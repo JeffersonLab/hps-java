@@ -7,7 +7,7 @@ import com.sun.jna.Pointer;
 import java.util.List;
 import java.util.ArrayList;
 
-//import jeigen.DenseMatrix;
+
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 

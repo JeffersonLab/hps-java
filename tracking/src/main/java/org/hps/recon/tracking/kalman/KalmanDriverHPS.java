@@ -1,6 +1,9 @@
 package org.hps.recon.tracking.kalman;
 
-//import hep.physics.matrix.SymmetricMatrix;
+/**
+ * Driver for refitting existing GBL using the Kalman filter
+ * @author Miriam Diamond, Robert Johnson
+ */
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
@@ -12,6 +15,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.ejml.data.DMatrixRMaj;
 //import org.hps.analysis.MC.TrackTruthMatching;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
@@ -171,7 +175,8 @@ public class KalmanDriverHPS extends Driver {
         bField = TrackUtils.getBField(det).magnitude();
         sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        KI = new KalmanInterface(this.uniformB, fm);
+        KalmanParams kPar = new KalmanParams();
+        KI = new KalmanInterface(this.uniformB, kPar, fm);
         KI.createSiModules(detPlanes);
         
         System.out.format("KalmanDriver: the B field is assumed uniform? %b\n", uniformB);
@@ -331,7 +336,7 @@ public class KalmanDriverHPS extends Driver {
                 kalParams = HelixState.pivotTransform(newPivot, kalParams, oldPivot, alphaLyr1, 0.);
 
                 double[] covHPS = ts1.getCovMatrix();
-                SquareMatrix cov = new SquareMatrix(5, KalmanInterface.ungetLCSimCov(covHPS, alphaLyr1));
+                DMatrixRMaj cov = new DMatrixRMaj(KalmanInterface.ungetLCSimCov(covHPS, alphaLyr1));
                 if (verbose) {
                     System.out.format("   1st sensor: D0=%10.7f phi0=%10.7f Omega=%10.7f Z0=%10.7f tanl=%10.7f\n", D0, Phi0, Omega, Z0, tanl);
                     oldPivot.print("Old pivot point for GBL track");

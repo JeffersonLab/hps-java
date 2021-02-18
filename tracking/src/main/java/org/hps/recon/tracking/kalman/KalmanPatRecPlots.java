@@ -10,13 +10,22 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hps.recon.tracking.TrackUtils;
+import org.ejml.dense.row.MatrixFeatures_DDRM;
+import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.util.Pair;
+import org.lcsim.detector.DetectorElementStore;
+import org.lcsim.detector.IDetectorElement;
+import org.lcsim.detector.identifier.IExpandedIdentifier;
+import org.lcsim.detector.identifier.IIdentifier;
+import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
@@ -24,6 +33,7 @@ import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
@@ -32,8 +42,11 @@ import org.lcsim.util.aida.AIDA;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.physics.vec.Hep3Vector;
-
-// Histograms and plots for Kalman Filter pattern recognition development
+/**
+ * Histograms and plots for Kalman Filter pattern recognition development
+ * @author Robert Johnson
+ *
+ */
 class KalmanPatRecPlots {
     private KalmanInterface KI;
     private AIDA aida;
@@ -56,7 +69,10 @@ class KalmanPatRecPlots {
     private Efficiency pEff;
     private Logger logger;
     private int numBadCov;
-    private String ecalClusterCollectionName;
+    private String ecalClusterCollectionName = "EcalClusters";
+    private String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
+    private String rawTrackerHitCollectionName = "SVTRawTrackerHits";
+    private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
 
     KalmanPatRecPlots(boolean verbose, KalmanInterface KI, IDDecoder decoder, int numEvtPlots, org.lcsim.geometry.FieldMap fm) {
         this.verbose = verbose;
@@ -65,7 +81,6 @@ class KalmanPatRecPlots {
         this.fm = fm;
         this.numEvtPlots = numEvtPlots;
         logger = Logger.getLogger(KalmanPatRecPlots.class.getName());
-        ecalClusterCollectionName = "EcalClusters";
         
         if (aida == null) aida = AIDA.defaultInstance();
         aida.tree().cd("/");
@@ -76,7 +91,6 @@ class KalmanPatRecPlots {
         numBadCov = 0;
         
         // arguments to histogram1D: name, nbins, min, max
-        aida.histogram1D("Kalman pattern recognition time", 100, 0., 500.);
         aida.histogram1D("Kalman number of tracks", 10, 0., 10.);
         aida.histogram1D("Kalman Track Chi2", 50, 0., 100.);
         aida.histogram1D("Kalman Track Chi2, >=12 hits", 50, 0., 100.);
@@ -94,10 +108,11 @@ class KalmanPatRecPlots {
         aida.histogram1D("Kalman track hit residual", 100, -0.1, 0.1);
         aida.histogram1D("Kalman hit true error", 100, -0.2, 0.2);
         aida.histogram1D("Kalman hit true error over uncertainty", 100, -5., 5.);
-        aida.histogram1D("Kalman track Momentum 11-hit", 100, 0., 5.);
-        aida.histogram1D("Kalman track Momentum 12-hit", 100, 0., 5.);
-        aida.histogram1D("Kalman track Momentum 13-hit", 100, 0., 5.);
-        aida.histogram1D("Kalman track Momentum 14-hit", 100, 0., 5.);
+        aida.histogram1D("Kalman track Momentum 11-hit", 120, 0., 6.);
+        aida.histogram1D("Kalman track Momentum 12-hit", 120, 0., 6.);
+        aida.histogram1D("Kalman track Momentum 13-hit", 120, 0., 6.);
+        aida.histogram1D("Kalman track Momentum 14-hit", 120, 0., 6.);
+        aida.histogram1D("Vertex constrained Kalman track Momentum 14-hit", 120, 0., 6.);
         aida.histogram1D("GBL momentum, >= 12 hits", 100, 0., 5.);
         aida.histogram1D("dRho", 100, -5., 5.);
         aida.histogram1D("dRho error, sigmas", 100, -5., 5.);
@@ -116,12 +131,18 @@ class KalmanPatRecPlots {
         aida.histogram1D("phi0 error, sigmas", 100, -5., 5.);
         aida.histogram1D("Kalman track drho",100,-5.,5.);
         aida.histogram1D("Kalman track dz",100,-2.,2.);
+        aida.histogram1D("Kalman track drho, 14-hit",100,-5.,5.);
+        aida.histogram1D("Kalman track dz, 14-hit",100,-2.,2.);
+        aida.histogram1D("Vertex constrained Kalman track drho, 14-hit",100,-5.,5.);
+        aida.histogram1D("Vertex constrained Kalman track dz, 14-hit",100,-2.,2.);
         aida.histogram1D("Kalman track number MC particles",10,0.,10.);
         aida.histogram1D("Kalman number of wrong hits on track",12,0.,12.);
         aida.histogram1D("Kalman number of wrong hits on track, >= 10 hits", 12, 0., 12.);
         aida.histogram1D("GBL track number MC particles",10,0.,10.);
+        aida.histogram1D("Kalman arc length to first measurement",100,0.,200.);
         aida.histogram1D("GBL number of wrong hits on track",12,0.,12.);
         aida.histogram1D("MC hit z in local system (should be zero)", 50, -2., 2.);
+        aida.histogram1D("Kalman track number of shared hits", 10, 0., 10.);
         aida.histogram1D("GBL d0", 100, -5., 5.);
         aida.histogram1D("GBL z0", 100, -2., 2.);
         aida.histogram1D("GBL pt inverse", 200, -1.5, 1.5);
@@ -158,12 +179,132 @@ class KalmanPatRecPlots {
         pEff = new Efficiency(40,0.,0.1,"Track efficency vs momentum","momentum (GeV)","efficiency");
     }
     
-    void process(EventHeader event, double runTime, ArrayList<KalmanPatRecHPS> kPatList, 
-            List<Track> outputFullTracks, RelationalTable rawtomc) {
+    void process(EventHeader event, List<HpsSiSensor> sensors, ArrayList<KalTrack>[] kPatList, 
+            List<Track> outputFullTracks) {
         
-        aida.histogram1D("Kalman pattern recognition time").fill(runTime);
         nEvents++;
         
+        setupSensors(event);
+        
+        // Set up relatations between raw hits and MC hits
+        RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+            for (LCRelation relation : trueHitRelations)
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    rawtomc.add(relation.getFrom(), relation.getTo());
+                }
+        }
+        
+        // Analysis of tracker hits (noise hits versus real hits)
+        // Get the list of fitted hits from the event
+        List<LCRelation> fittedHits = event.get(LCRelation.class, fittedHitsCollectionName);
+
+        // Map the fitted hits to their corresponding raw hits
+        Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
+
+        List<RawTrackerHit> rawHitsList = event.get(RawTrackerHit.class, rawTrackerHitCollectionName);
+        for (LCRelation fittedHit : fittedHits) {
+            fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
+        }
+        Map<String, Integer> hits = new HashMap<String, Integer>();
+        for (HpsSiSensor sensor : sensors) {
+            hits.put(sensor.getName(), 0);
+        }
+        
+        // Map the raw hits to the Kalman tracks and to TrackerHit
+        Map<TrackerHit, KalTrack> hitToTk = new HashMap<TrackerHit, KalTrack>();
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            for (KalTrack kTk : kPatList[topBottom]) {
+                for (MeasurementSite site : kTk.SiteList) {
+                    if (site.hitID < 0) continue;
+                    StateVector aS = site.aS;
+                    SiModule mod = site.m;
+                    if (aS != null && mod != null) {
+                        TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+                        hitToTk.put(hpsHit, kTk);
+                        List<RawTrackerHit> rawHits = hpsHit.getRawHits();
+                        double totalPh = 0.;
+                        HpsSiSensor sensor = null;
+                        int Layer = -1;
+                        int nstrip = 0;
+                        double chan = 0.;
+                        for (RawTrackerHit rawHit : rawHits) { 
+                            double amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rawHit));
+                            totalPh += amplitude;
+                            nstrip++;
+                            chan += rawHit.getIdentifierFieldValue("strip");
+                            if (sensor == null) {
+                                sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                                Layer = sensor.getLayerNumber();
+                            }
+                        }
+                        chan = chan/(double)nstrip;
+                        aida.histogram1D("hits/" + sensor.getName() + " average channel with track", 640, 0, 640).fill(chan);
+                        aida.histogram1D("hits/dEdx of hits on tracks",250,0.,20.).fill(hpsHit.getdEdx()*1000000.);
+                        aida.histogram1D("hits/Layer " + Integer.toString(Layer) + " cluster amplitude of hit on track", 250, 0., 5000.).fill(totalPh);
+                        aida.histogram1D("hits/cluster amplitude of hit on track", 250, 0., 5000.).fill(totalPh);
+                    }
+                }
+            }
+        }
+        Map<RawTrackerHit, TrackerHit> hitToTkHit = new HashMap<RawTrackerHit, TrackerHit>();
+        List<TrackerHit> stripHits = event.get(TrackerHit.class, stripHitInputCollectionName);
+        if (stripHits != null) {
+            for (TrackerHit tkHit : stripHits) {
+                KalTrack kTk = hitToTk.get(tkHit);
+                List<RawTrackerHit> rawHits = tkHit.getRawHits();
+                double totalPh = 0.;
+                HpsSiSensor sensor = null;
+                int Layer = -1;
+                int nstrip = 0;
+                double chan = 0.;
+                for (RawTrackerHit rawHit : rawHits) { 
+                    hitToTkHit.put(rawHit, tkHit);
+                    double amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rawHit));
+                    totalPh += amplitude;
+                    nstrip++;
+                    chan += rawHit.getIdentifierFieldValue("strip");
+                    if (sensor == null) {
+                        sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                        Layer = sensor.getLayerNumber();
+                    }
+                }
+                if (kTk == null) {
+                    chan = chan/(double)nstrip;
+                    aida.histogram1D("hits/" + sensor.getName() + " average channel with no track", 640, 0, 640).fill(chan);
+                    aida.histogram1D("hits/Layer " + Integer.toString(Layer) + " cluster amplitude with no track", 250, 0., 5000.).fill(totalPh);
+                    aida.histogram1D("hits/" + sensor.getName() + " cluster amplitude with no track", 250, 0., 5000.).fill(totalPh);
+                    aida.histogram1D("hits/cluster amplitude with no track", 250, 0., 5000.).fill(totalPh);
+                }
+            }
+        }
+        // Look for raw strip hits that were not associated with a tracker hit
+        for (RawTrackerHit rawHit : rawHitsList) {
+            // Access the sensor associated with the raw hit
+            HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+            int Layer = sensor.getLayerNumber();
+            aida.histogram1D("hits/layer number", 20,0.,20.).fill(Layer);
+            Integer nHits = hits.get(sensor.getName());
+            if (nHits == null) {
+                nHits = 0;
+            }
+            nHits++;
+            hits.put(rawHit.getDetectorElement().getName(), nHits);
+            TrackerHit hpsHit = hitToTkHit.get(rawHit);
+            if (hpsHit != null) continue;
+            
+            double amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rawHit));
+            aida.histogram1D("hits/" + sensor.getName() + " strip amplitude with no tracker hit", 250, 0., 5000.).fill(amplitude);
+            aida.histogram1D("hits/strip amplitude with no tracker hit", 250, 0., 5000.).fill(amplitude);
+            int channel = rawHit.getIdentifierFieldValue("strip");
+            aida.histogram1D("hits/" + sensor.getName() + " channel with no tracker hit", 640, 0, 640).fill(channel);
+            double t0 = FittedRawTrackerHit.getT0(fittedRawTrackerHitMap.get(rawHit));
+            aida.histogram1D("hits/" + sensor.getName() + " t0 with no tracker hit", 250, -400., 100.).fill(t0);
+        }
+
+        
+        // Tracker ECAL matching analysis
         if (event.hasCollection(Cluster.class, ecalClusterCollectionName)) {
             List<Cluster> clusters = event.get(Cluster.class, ecalClusterCollectionName);
             for (Track tkr : outputFullTracks) {            
@@ -197,8 +338,8 @@ class KalmanPatRecPlots {
                     }
                 }
             }
-            for (KalmanPatRecHPS kPat : kPatList) {
-                for (KalTrack tkr : kPat.TkrList) {
+            for (int topBottom=0; topBottom<2; ++topBottom) {
+                for (KalTrack tkr : kPatList[topBottom]) {
                     if (tkr.nHits < 12) continue;
                     if (tkr.chi2/tkr.nHits > 2.) continue;
                     MeasurementSite lastSite = tkr.SiteList.get(tkr.SiteList.size()-1);
@@ -209,8 +350,9 @@ class KalmanPatRecPlots {
                         ArrayList<Double> XLscat = new ArrayList<Double>();
                         //eCalPos.print("ECAL cluster position");
                         //lastSite.aS.helix.print("helix at last layer");
-                        HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fm);
-                        if (helixAtEcal.C.isNaN()) continue;
+                        double [] arcLength = new double[1];
+                        HelixState helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fm, arcLength);
+                        if (MatrixFeatures_DDRM.hasNaN(helixAtEcal.C)) continue;
                         Vec intPnt = helixAtEcal.getRKintersection();
                         //helixAtEcal.print("helix at ECAL cluster");
                         //intPnt.print("RK intersection point");
@@ -224,17 +366,27 @@ class KalmanPatRecPlots {
         hitToStrips = TrackUtils.getHitToStripsTable(event);
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
         
+        int minHits = 999;
         int nKalTracks = 0;
-        for (KalmanPatRecHPS kPat : kPatList) {
-            if (kPat == null) continue;
-            for (KalTrack kTk : kPat.TkrList) {
+        boolean sharedHitTrack = false;
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            for (KalTrack kTk : kPatList[topBottom]) {
                 nKalTracks++;
                 aida.histogram1D("Kalman Track Number Hits").fill(kTk.nHits);
+                if (kTk.nHits < minHits) minHits = kTk.nHits;
+                
+                // Vertex constraint
+                double [] vtx = {0.1735, -3.168, 0.1687};
+                double [][] vtxCov = {{0.686, 0., 0.}, {0., 10.09, 0.}, {0., 0., 0.017}};
+                HelixState constrained = kTk.originConstraint(vtx, vtxCov);
+                if (constrained == null) continue;
+                double pConstrained = constrained.getMom(0.).mag(); 
                 if (kTk.nHits >= 12) {
                     aida.histogram1D("Kalman Track Chi2, >=12 hits").fill(kTk.chi2);
                     aida.histogram1D("Kalman Track simple Chi2, >=12 hits").fill(kTk.chi2prime());
                 }
                 aida.histogram1D("Kalman Track Chi2").fill(kTk.chi2);
+                aida.histogram1D("Kalman arc length to first measurement").fill(kTk.originArcLength());
                 double[] momentum = kTk.originP();
                 double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
                 switch (kTk.nHits) {
@@ -249,6 +401,11 @@ class KalmanPatRecPlots {
                         break;
                     case 14:
                         aida.histogram1D("Kalman track Momentum 14-hit").fill(pMag);
+                        aida.histogram1D("Vertex constrained Kalman track Momentum 14-hit").fill(pConstrained);
+                        aida.histogram1D("Kalman track drho, 14-hit").fill(kTk.originHelixParms()[0]);
+                        aida.histogram1D("Kalman track dz, 14-hit").fill(kTk.originHelixParms()[3]);
+                        aida.histogram1D("Vertex constrained Kalman track drho, 14-hit").fill(constrained.a.v[0]);
+                        aida.histogram1D("Vertex constrained Kalman track dz, 14-hit").fill(constrained.a.v[3]);
                 }               
                 aida.histogram1D("Kalman track drho").fill(kTk.originHelixParms()[0]);
                 aida.histogram1D("Kalman track dz").fill(kTk.originHelixParms()[3]);
@@ -267,6 +424,7 @@ class KalmanPatRecPlots {
                 // Histogram residuals of hits in layers with no hits on the track and with hits
                 ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
                 ArrayList<Integer> mcCnt= new ArrayList<Integer>();
+                int nShared = 0;
                 for (MeasurementSite site : kTk.SiteList) {
                     if (verbose) site.print(String.format("track %d", kTk.ID));
                     StateVector aS = site.aS;
@@ -291,6 +449,10 @@ class KalmanPatRecPlots {
                                 //mod.print("the bad module");
                                 continue;
                             }
+                            if (mod.hits.get(site.hitID).tracks.size() > 1) {
+                                nShared++;
+                                sharedHitTrack = true;
+                            }
                             aida.histogram1D("Kalman layer hit").fill(mod.Layer);
                             double resid = mod.hits.get(site.hitID).v - hitV;
                             if (kTk.nHits >= 10) aida.histogram1D("Kalman track hit residual >= 10 hits, sigmas").fill(resid/Math.sqrt(site.aS.R));
@@ -304,16 +466,17 @@ class KalmanPatRecPlots {
                                 aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", mod.Layer)).fill(kTk.scatZ(mod.Layer));
                             }      
                             Pair<Double, Double> residPr = kTk.unbiasedResidual(site.m.Layer);
-                            if (residPr.getSecondElement() > -999.) {
+                            if (residPr.getSecondElement() > -999. && kTk.nHits >= 10) {
                                 double variance = residPr.getSecondElement();
-                                double sigma = Math.sqrt(variance);
-                                double unbResid = residPr.getFirstElement();
-                                aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d",site.m.Layer)).fill(unbResid);
-                                aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",site.m.Layer)).fill(unbResid/sigma);
-                                if (variance < 0.) {
+                                if (variance <= 0.) {
                                     numBadCov++;
                                 //    System.out.format("Event %d layer %d, unbiased residual variance < 0: %10.5f, chi2=%9.2f, hits=%d, resid=%9.6f\n", 
                                 //                        event.getEventNumber(), site.m.Layer, variance, kTk.chi2, kTk.nHits, unbResid);
+                                } else {
+                                    double sigma = Math.sqrt(variance);
+                                    double unbResid = residPr.getFirstElement();
+                                    aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d",site.m.Layer)).fill(unbResid);
+                                    aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",site.m.Layer)).fill(unbResid/sigma);
                                 }
                             }
                             TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
@@ -334,6 +497,7 @@ class KalmanPatRecPlots {
                         }
                     }
                 }
+                aida.histogram1D("Kalman track number of shared hits").fill(nShared);
                 aida.histogram1D("Kalman track number MC particles").fill(mcParts.size());
                 // Which MC particle is the best match?
                 int idBest = -1;
@@ -459,9 +623,8 @@ class KalmanPatRecPlots {
                    
             // Make a list of recon hits for each Kalman track
             Map<KalTrack, Set<TrackerHit>> hitKalMap = new HashMap<KalTrack, Set<TrackerHit>>(nKalTracks);
-            for (KalmanPatRecHPS kPat : kPatList) {
-                if (kPat == null) continue;
-                for (KalTrack kTk : kPat.TkrList) {
+            for (int topBottom=0; topBottom<2; ++topBottom) {
+                for (KalTrack kTk : kPatList[topBottom]) {
                     Set<TrackerHit> hitsOnTk = new HashSet<TrackerHit>();
                     for (MeasurementSite site : kTk.SiteList) {
                         SiModule mod = site.m;
@@ -476,9 +639,8 @@ class KalmanPatRecPlots {
             }
             if (verbose) {
                 System.out.format("KalmanPatRecPlots: MC track vs Kaltrack matching for event %d\n", event.getEventNumber());
-                for (KalmanPatRecHPS kPat : kPatList) {
-                    if (kPat == null) continue;
-                    for (KalTrack kTk : kPat.TkrList) {
+                for (int topBottom=0; topBottom<2; ++topBottom) {
+                    for (KalTrack kTk : kPatList[topBottom]) {
                         System.out.format("  Kaltrack %d with %d hits: [", kTk.ID, kTk.nHits);
                         for (TrackerHit hpsHt : hitKalMap.get(kTk)) {
                             int ID = reconHits.indexOf(hpsHt);
@@ -502,9 +664,8 @@ class KalmanPatRecPlots {
                 if (nHits < 6) continue;          
                 KalTrack tkBest = null;
                 int nMost = 0;
-                for (KalmanPatRecHPS kPat : kPatList) {
-                    if (kPat == null) continue;
-                    for (KalTrack kTk : kPat.TkrList) {
+                for (int topBottom=0; topBottom<2; ++topBottom) {
+                    for (KalTrack kTk : kPatList[topBottom]) {
                         Set<TrackerHit> kalHitList = hitKalMap.get(kTk);
                         Set<TrackerHit> intersection = new HashSet<TrackerHit>(mcHitList);
                         intersection.retainAll(kalHitList);
@@ -544,9 +705,10 @@ class KalmanPatRecPlots {
         }
         
         // Analysis of helix+GBL tracks, for comparison
+        int nGBL = 0;
         if (event.hasCollection(Track.class, trackCollectionName)) {
             List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
-            int nGBL = tracksGBL.size();
+            nGBL = tracksGBL.size();
             aida.histogram2D("number tracks Kalman vs GBL").fill(nKalTracks, nGBL);
             aida.histogram1D("GBL number tracks").fill(nGBL);
             double c = 2.99793e8; // Speed of light in m/s
@@ -645,7 +807,7 @@ class KalmanPatRecPlots {
             } //loop on GBL Tracks
         } //check if event has GBLTracks
         
-        if (nPlotted < numEvtPlots) {
+        if (nPlotted < numEvtPlots) { // && sharedHitTrack) {
             KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
             //KI.plotGBLtracks(outputGnuPlotDir, event);
             nPlotted++;
@@ -653,8 +815,8 @@ class KalmanPatRecPlots {
         
         double maxTruErr = simHitRes(event);
         if (maxTruErr < 0.02) {
-            for (KalmanPatRecHPS kPat : kPatList) {
-                for (KalTrack kTk : kPat.TkrList) {
+            for (int topBottom=0; topBottom<2; ++topBottom) {
+                for (KalTrack kTk : kPatList[topBottom]) {
                     if (kTk.nHits < 12) continue;                    
                     aida.histogram1D("Kalman Track Chi2 with >=12 good hits").fill(kTk.chi2);                    
                 }
@@ -771,6 +933,41 @@ class KalmanPatRecPlots {
             aida.saveAs(outputFileName);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void setupSensors(EventHeader event) {
+        List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
+        // Get the ID dictionary and field information.
+        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+        int fieldIdx = dict.getFieldIndex("side");
+        int sideIdx = dict.getFieldIndex("strip");
+        for (RawTrackerHit hit : rawTrackerHits) {
+            // The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.
+            IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
+            expId.setValue(fieldIdx, 0);
+            expId.setValue(sideIdx, 0);
+            IIdentifier strippedId = dict.pack(expId);
+            // Find the sensor DetectorElement.
+            List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
+            if (des == null || des.size() == 0) {
+                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            } else if (des.size() == 1) {
+                hit.setDetectorElement((SiSensor) des.get(0));
+            } else {
+                // Use first sensor found, which should work unless there are sensors with duplicate IDs.
+                for (IDetectorElement de : des) {
+                    if (de instanceof SiSensor) {
+                        hit.setDetectorElement((SiSensor) de);
+                        break;
+                    }
+                }
+            }
+            // No sensor was found.
+            if (hit.getDetectorElement() == null) {
+                throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
+            }
         }
     }
     

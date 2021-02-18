@@ -1,5 +1,4 @@
 package org.hps.recon.tracking.kalman;
-// Used by KalmanPatRecHPS to store information for candidate tracks
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -7,6 +6,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.math.util.FastMath;
+import org.ejml.dense.row.CommonOps_DDRM;
+/**
+ * Used by KalmanPatRecHPS Kalman-Filter based pattern recognition to store information for candidate tracks
+ * @author Robert Johnson
+ */
 class TrackCandidate {
     int ID;
     private Map<Measurement, KalHit> hitMap;
@@ -115,7 +120,7 @@ class TrackCandidate {
     }
     
     boolean reFit() {
-        boolean verbose = (logger.getLevel()==Level.FINER || logger.getLevel()==Level.FINEST);
+        final boolean verbose = false;
         if (verbose) System.out.format("TrackCandidate.reFit: starting filtering for event %d.\n",eventNumber);
 
         boolean failure = false;
@@ -127,7 +132,7 @@ class TrackCandidate {
                                        startSite.m.Layer, startSite.m.detector, sHstart.helix.a.toString());
         do {
             StateVector sH = sHstart;
-            sH.helix.C.scale(100.); // Blow up the initial covariance matrix to avoid double counting measurements
+            CommonOps_DDRM.scale(100., sH.helix.C); // Blow up the initial covariance matrix to avoid double counting measurements
             
             SiModule prevMod = null;
             chi2f = 0.;
@@ -159,7 +164,7 @@ class TrackCandidate {
                 boolean allowSharing = nTaken < kPar.mxShared;
                 boolean checkBounds = false;
                 double [] tRange = {tMax - kPar.mxTdif, tMin + kPar.mxTdif}; 
-                int rF = currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange);
+                int rF = currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, 0);
                 if (rF < 0) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction at layer %d for event %d!\n",currentSite.m.Layer,eventNumber);
                     if (nStereo > 2 && hits.size() > 4) {
@@ -241,7 +246,7 @@ class TrackCandidate {
             MeasurementSite currentSite = sites.get(idx);
             //if (currentSite.aF == null || currentSite.hitID < 0) continue;
             if (nextSite == null) {
-                currentSite.aS = currentSite.aF.copy();
+                currentSite.aS = currentSite.aF;
                 currentSite.smoothed = true;
             } else {
                 currentSite.smooth(nextSite);
@@ -288,11 +293,21 @@ class TrackCandidate {
         StateVector aS = site0.aS;
         if (aS == null) aS = site0.aF;
         Vec p = aS.helix.a;
-        double edrho = Math.sqrt(aS.helix.C.M[0][0]);
-        double ephi0 = Math.sqrt(aS.helix.C.M[1][1]);
-        double eK = Math.sqrt(aS.helix.C.M[2][2]);
-        double eZ0 = Math.sqrt(aS.helix.C.M[3][3]);
-        double etanl = Math.sqrt(aS.helix.C.M[4][4]);
+        double edrho = aS.helix.C.unsafe_get(0, 0);
+        if (edrho < 0.) edrho = -FastMath.sqrt(-edrho);
+        else edrho = FastMath.sqrt(edrho);
+        double ephi0 = aS.helix.C.unsafe_get(1, 1);
+        if (ephi0 < 0.) ephi0 = -FastMath.sqrt(-ephi0);
+        else ephi0 = FastMath.sqrt(ephi0);
+        double eK = aS.helix.C.unsafe_get(2, 2);
+        if (eK < 0.) eK = - FastMath.sqrt(-eK);
+        else eK = FastMath.sqrt(eK);
+        double eZ0 = aS.helix.C.unsafe_get(3, 3);
+        if (eZ0 < 0.) eZ0 = -FastMath.sqrt(-eZ0);
+        else eZ0 = FastMath.sqrt(eZ0);
+        double etanl = aS.helix.C.unsafe_get(4, 4);
+        if (etanl < 0.) etanl = FastMath.sqrt(-etanl);
+        else etanl = FastMath.sqrt(etanl);
         str=str+String.format("   Helix parameters at lyr %d= %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f %10.5f+-%8.5f\n", lyr, 
                 p.v[0],edrho, p.v[1],ephi0, p.v[2],eK, p.v[3],eZ0, p.v[4],etanl);
         str=str+String.format("              for origin at %s and pivot=%s\n", aS.helix.origin.toString(), aS.helix.X0.toString());
@@ -343,13 +358,13 @@ class TrackCandidate {
     // Comparator function for sorting track candidates by quality
     static Comparator<TrackCandidate> CandidateComparator = new Comparator<TrackCandidate>() {
         public int compare(TrackCandidate t1, TrackCandidate t2) {
-            double p1 = 0.;
-            if (!t1.good) p1 = 9.9e6;
-            double p2 = 0.;
-            if (!t2.good) p2 = 9.9e6; 
+            double p1 = 1.;
+            if (!t1.good) p1 = 9.9e3;
+            double p2 = 1.;
+            if (!t2.good) p2 = 9.9e3; 
             
-            Double chi1 = new Double(t1.chi2s / t1.hits.size() + 10.*(1.0 - (double)t1.hits.size()/12.) + p1);
-            Double chi2 = new Double(t2.chi2s / t2.hits.size() + 10.*(1.0 - (double)t2.hits.size()/12.) + p2);
+            Double chi1 = new Double(p1*t1.chi2s / t1.hits.size() + 10.*(1.0 - (double)t1.hits.size()/14.));
+            Double chi2 = new Double(p2*t2.chi2s / t2.hits.size() + 10.*(1.0 - (double)t2.hits.size()/14.));
             
             return chi1.compareTo(chi2);
         }

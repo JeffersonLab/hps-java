@@ -17,20 +17,13 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-    </dependency>    
-    <dependency>
-      <groupId>org.hps</groupId>
-      <artifactId>hps-test-data</artifactId>
-      <version>1.1</version>
-      <scope>test</scope>
-      <classifier>archive</classifier>
-      <type>jar</type>
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
       <artifactId>hps-test-data</artifactId>
       <version>1.1</version>
       <scope>test</scope>
+      <classifier>archive</classifier>
       <type>jar</type>
     </dependency>
   </dependencies>
@@ -64,6 +57,7 @@
             <exclude>**/ReconSteeringTest.java</exclude>
             <exclude>**/SimpleSvtReadoutTest.java</exclude>
             <exclude>**/HodoscopeSimDataTest.java</exclude>
+            <exclude>**/HodoscopeReadoutTest.java</exclude>
           </excludes>
           <systemPropertyVariables>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>

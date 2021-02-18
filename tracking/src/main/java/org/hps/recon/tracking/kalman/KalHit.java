@@ -3,7 +3,12 @@ package org.hps.recon.tracking.kalman;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-
+/**
+ * 
+ * Relationships between hits, silicon modules, and track candidates
+ * @author Robert Johnson
+ *
+ */
 class KalHit {
     SiModule module;
     Measurement hit;

@@ -46,7 +46,7 @@ public class FADCConfigEcal2019 extends IDAQConfig2019 {
     
     // Store the calorimeter conditions table for converting between
     // geometric IDs and channel objects.
-    private EcalChannelCollection geoMap = null;
+    private EcalChannelCollection geoMap = new EcalChannelCollection();
     
     @Override
     void loadConfig(EvioDAQParser2019 parser) {
@@ -313,7 +313,7 @@ public class FADCConfigEcal2019 extends IDAQConfig2019 {
     @Override
     public void printConfig(PrintStream ps) {
         // Print the basic configuration information.
-        ps.println("FADC Configuration:");
+        ps.println("Ecal FADC Configuration:");
         ps.printf("\tMode          :: %d%n", mode);
         ps.printf("\tNSA           :: %d%n", nsa);
         ps.printf("\tNSB           :: %d%n", nsb);

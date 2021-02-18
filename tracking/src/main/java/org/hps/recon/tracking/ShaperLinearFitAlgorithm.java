@@ -12,22 +12,42 @@ import org.apache.commons.math3.linear.DecompositionSolver;
 import org.apache.commons.math3.linear.NonPositiveDefiniteMatrixException;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
+//import org.apache.commons.math3.linear.RealMatrixFormat;
+//import org.apache.commons.math3.linear.RealVectorFormat;
+
 import org.apache.commons.math3.special.Gamma;
+
+/*
 import org.freehep.math.minuit.FCNBase;
 import org.freehep.math.minuit.FunctionMinimum;
 import org.freehep.math.minuit.MnSimplex;
 import org.freehep.math.minuit.MnUserParameters;
 //===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
+*/
+
+import org.hps.minuit.FCNBase;
+import org.hps.minuit.FunctionMinimum;
+import org.hps.minuit.MnSimplex;
+import org.hps.minuit.MnUserParameters;
 
 import org.hps.readout.svt.HPSSVTConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
+
+
+//Use ejml
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+import org.ejml.dense.row.mult.MatrixVectorMult_DDRM;
+import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
+import org.ejml.interfaces.linsol.LinearSolverDense;
 
 /**
  * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants;
  * fits values and errors for T0 and amplitude.
  *
  * @author Sho Uemura
+ * @author PF (ejml basic migration)
  */
 public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
@@ -285,7 +305,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         for (int i = 0; i < nFittedPulses; i++) {
             times[i] = min.userState().value(i);
         }
-        return doLinFit(times);
+        return doLinFit_ejml(times);
     }
 
     private FunctionMinimum minuitFit(double[] guess_t) {
@@ -356,7 +376,287 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         FunctionMinimum min = simplex.minimize(0, 0.001);
         return min;
     }
+    
+    private double doLinFit_ejml(double[] times) {
+        
+        boolean debug = false;
+        boolean canFit = true;
+        
+        //RealMatrixFormat formatter = new RealMatrixFormat("", "", "", "\n", "", ", ");
+        //RealVectorFormat vf = new RealVectorFormat();
+        
+        if (debug) {
+            System.out.println("PF:: nUsedSamples::"+nUsedSamples);
+        }
+        
+        if (times.length != nFittedPulses) {
+            throw new RuntimeException("wrong number of parameters in doLinFit");
+        }
+        int nAmplitudes = fitPedestal ? nFittedPulses + 1 : nFittedPulses;
+        
+        //RealMatrix sc_mat = new Array2DRowRealMatrix(nAmplitudes, nUsedSamples);
+        //RealVector y_vec = new ArrayRealVector(nUsedSamples);
+        //RealVector var_vec = new ArrayRealVector(nUsedSamples);
+        
+        DMatrixRMaj sc_mat_ejml = new DMatrixRMaj(nAmplitudes,nUsedSamples);
+        DMatrixRMaj y_vec_ejml = new DMatrixRMaj(1,nUsedSamples);
+        DMatrixRMaj var_vec_ejml = new DMatrixRMaj(1,nUsedSamples);
+        
+        
+        /*
+        for (int j = 0; j < nUsedSamples; j++) {
+            double sigma_j = sigma[firstUsedSample + j];
+            
+            //double sample_time = HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j);
+            //  for (int i = 0; i < nFittedPulses; i++) {
+            //    //===> sc_mat.setEntry(i, j, getAmplitude(HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j) - times[i], channelConstants) / sigma[firstUsedSample + j]);
+            //    sc_mat.setEntry(i, j, shape.getAmplitudePeakNorm(sample_time - times[i]) / sigma_j);
+            //    }
+            if (fitPedestal) {
+                sc_mat.setEntry(nFittedPulses, j, 1.0 / sigma_j);
+            }
+            y_vec.setEntry(j, y[firstUsedSample + j] / sigma_j);
+            var_vec.setEntry(j, sigma_j * sigma_j);
+        }
+        */
+        
+        //ejml
+        
+        for (int j=0; j<nUsedSamples; j++) {
+            double sigma_j = sigma[firstUsedSample + j];
+            if (fitPedestal) {
+                sc_mat_ejml.set(nFittedPulses,j,1.0/sigma_j);
+            }
+            y_vec_ejml.set(0,j,y[firstUsedSample + j] / sigma_j);
+            var_vec_ejml.set(0,j, sigma_j*sigma_j);
+        }
+        
+        if (debug) {
+            //System.out.println("PF::Check sc_mat:\n"  + formatter.format(sc_mat));
+            //System.out.println("PF::Check y_vec:\n"   + vf.format(y_vec));
+            //System.out.println("PF::Check var_vec:\n" + vf.format(var_vec));
+            
+            System.out.println("PF::Check sc_mat_ejml:\n");
+            sc_mat_ejml.print();
+            System.out.println("PF::Check y_vec_ejml:\n");
+            y_vec_ejml.print();
+            System.out.println("PF::Check var_vec_ejml:\n");
+            var_vec_ejml.print();
+        }
+        
+        // amplitudez is spelled with a zed for a reazon.  Changing the spelling to use an "s" will break the code.  believe me I tried.      
+        double[] amplitudez = new double[nUsedSamples];
+        
+        /*
+        for(int i = 0; i< nFittedPulses; i++){
+            double t0 = HPSSVTConstants.SAMPLING_INTERVAL * firstUsedSample - times[i];
+            shape.getAmplitudesPeakNorm(t0, HPSSVTConstants.SAMPLING_INTERVAL, amplitudez);
+            
+            for(int j = 0; j<nUsedSamples; j++){
+                
+                //double err = amplitudes[j]/sigma[firstUsedSample+j]-sc_mat.getEntry(i, j);
+                //if(Math.abs(err) > 1e-10)
+                    //System.out.println(amplitudes[j]/sigma[firstUsedSample + j] + " " + err);
+                if (debug) {
+                    System.out.println("PF:CHECK CHECK! " + amplitudez[j]);  //this is NaN in some cases
+                    System.out.println("PF:CHECK CHECK! " + sigma[firstUsedSample + j]);
+                }
+                sc_mat.setEntry(i, j, amplitudez[j] / sigma[firstUsedSample + j]);
+            }
+        }
+        */
 
+        //Check that at least 3 samples are not 0.
+        int OKamplitudes = 0;
+        for(int i = 0; i< nFittedPulses; i++){
+            double t0 = HPSSVTConstants.SAMPLING_INTERVAL * firstUsedSample - times[i];
+            shape.getAmplitudesPeakNorm(t0, HPSSVTConstants.SAMPLING_INTERVAL, amplitudez);
+           
+            for(int j = 0; j<nUsedSamples; j++){
+                
+                //double err = amplitudes[j]/sigma[firstUsedSample+j]-sc_mat.getEntry(i, j);
+                //if(Math.abs(err) > 1e-10)
+                //System.out.println(amplitudes[j]/sigma[firstUsedSample + j] + " " + err);
+                
+                if (Double.isNaN(amplitudez[j])) {
+                    canFit = false;
+                }
+   
+                if (amplitudez[j] > 0.1)
+                    OKamplitudes +=1;
+                
+                sc_mat_ejml.set(i, j, amplitudez[j] / sigma[firstUsedSample + j]);
+            }
+            
+            if (OKamplitudes < 3)
+                canFit = false;
+        }
+        
+        if (debug) { 
+            
+            System.out.println("############ CHECK 2 #############");
+            
+            //System.out.println("PF::Check sc_mat:\n"  + formatter.format(sc_mat));
+            System.out.println("PF::Check sc_mat_ejml:\n");
+            sc_mat_ejml.print();
+        }
+        
+        //RealVector a_vec = sc_mat.operate(y_vec);
+        //RealMatrix coeff_mat = sc_mat.multiply(sc_mat.transpose());
+
+        //Column (change the others?)
+        DMatrixRMaj a_vec_ejml = new DMatrixRMaj(1,nAmplitudes);
+        //CommonOps_DDRM.mult(sc_mat_ejml,y_vec_ejml,a_vec_ejml);
+        MatrixVectorMult_DDRM.mult(sc_mat_ejml,y_vec_ejml,a_vec_ejml);
+
+        DMatrixRMaj coeff_mat_ejml = new DMatrixRMaj(nAmplitudes, nAmplitudes);
+        CommonOps_DDRM.multOuter(sc_mat_ejml,coeff_mat_ejml);
+        
+        if (debug) {
+            
+            //System.out.println("PF::Check a_vec:\n"  + vf.format(a_vec));
+            //System.out.println("PF::Check coeff_mat:\n"  + formatter.format(coeff_mat));
+            
+            System.out.println("PF:: a_vec_ejml\n");
+            a_vec_ejml.print();
+            System.out.println("PF:: coeff_mat_ejml\n");
+            coeff_mat_ejml.print();
+        }
+        
+        
+        //DecompositionSolver a_solver;
+        //RealVector solved_amplitudes = null, amplitude_err = null;
+        
+        //boolean goodFit = true;
+        boolean goodFit_ejml = true;
+        
+        LinearSolverDense a_solver_ejml = LinearSolverFactory_DDRM.chol(nAmplitudes);
+        DMatrixRMaj solved_amplitudes_ejml = new DMatrixRMaj(nAmplitudes,1);
+        DMatrixRMaj amplitudes_err_ejml = new DMatrixRMaj(nAmplitudes,1);
+            
+        if (canFit) {
+            /*
+            try {
+                CholeskyDecomposition a_cholesky = new CholeskyDecomposition(coeff_mat);
+                a_solver = a_cholesky.getSolver();
+                solved_amplitudes = a_solver.solve(a_vec);
+                amplitude_err = a_solver.solve(sc_mat.operate(var_vec));
+                if (solved_amplitudes.getSubVector(0, nFittedPulses).getMinValue() < 0) {
+                    goodFit = false;
+                }
+            } catch (NonPositiveDefiniteMatrixException e) {
+                goodFit = false;
+            }
+            */
+            
+            if (!a_solver_ejml.setA(coeff_mat_ejml) || a_solver_ejml.quality() < 1.e-8 || CommonOps_DDRM.det(coeff_mat_ejml) < 1.e-8)  {
+                goodFit_ejml = false;
+            }
+            
+            else {
+                a_solver_ejml.solve(a_vec_ejml,solved_amplitudes_ejml);
+                
+                for (int i=0; i<nFittedPulses; i++) {
+                    if (solved_amplitudes_ejml.get(i,0) < 0.) {
+                        goodFit_ejml = false;
+                        break;
+                    }
+                }
+                
+                //Now compute the errors
+                MatrixVectorMult_DDRM.mult(sc_mat_ejml,var_vec_ejml,a_vec_ejml);
+                a_solver_ejml.solve(a_vec_ejml,amplitudes_err_ejml);
+                
+            }
+            
+            /*
+            if (goodFit != goodFit_ejml) {
+                if (goodFit)  {
+                    System.out.println("Good fit is true");
+                    System.out.println("PF:: solved_amplitudes: \n" + vf.format(solved_amplitudes)); 
+                    
+                    for(int j = 0; j<nUsedSamples; j++){ 
+                        System.out.println("PF:CHECK CHECK! amp " + j + " "+ amplitudez[j]);  //this is NaN in some cases
+                        System.out.println("PF:CHECK CHECK! sigma " + j + " "+ sigma[firstUsedSample + j]);
+                    }
+                }
+                if (goodFit_ejml) {
+                    System.out.println("Good fit ejml is true");
+                    System.out.println("PF:: solved_amplitudes_ejml: \n");
+                    solved_amplitudes_ejml.print();
+                }
+                //throw new RuntimeException("goodFit != goodFit_ejml");
+                
+            }
+            */
+            
+            //if (goodFit && goodFit_ejml && debug) { 
+            if (goodFit_ejml && debug) { 
+                //System.out.println("PF:: solved_amplitudes: \n" + vf.format(solved_amplitudes));
+                //System.out.println("PF:: amplitude_err: \n" + vf.format(amplitude_err));
+                System.out.println("PF:: solved_amplitudes_ejml: \n");
+                solved_amplitudes_ejml.print();
+                System.out.println("PF:: amplitudes_err_ejml: \n");
+                amplitudes_err_ejml.print();
+                
+            }
+        } //can Fit these hits
+        
+        else {
+            
+            //goodFit = false;
+            goodFit_ejml = false;
+            
+        }
+        
+        /*
+        if (!goodFit) {
+            solved_amplitudes = new ArrayRealVector(nAmplitudes, 0.0);
+            amplitude_err = new ArrayRealVector(nAmplitudes, Double.POSITIVE_INFINITY);
+        }
+        */
+        
+        if (!goodFit_ejml) {
+            for (int i = 0; i<nAmplitudes; i++)  {
+                solved_amplitudes_ejml.set(i,0,0.0);
+                amplitudes_err_ejml.set(i,0,Double.POSITIVE_INFINITY);
+            }
+        }
+        
+        
+        //double chisq = y_vec.subtract(sc_mat.preMultiply(solved_amplitudes)).getNorm();
+        
+        CommonOps_DDRM.multAddTransA(-1., solved_amplitudes_ejml,sc_mat_ejml, y_vec_ejml);
+        
+        double chisq_ejml = 0;
+        //Better way to compute this ??!
+        for (int i = 0; i < y_vec_ejml.getNumCols() ; i++) {
+            chisq_ejml += y_vec_ejml.get(0,i) * y_vec_ejml.get(0,i);
+        }
+        
+        chisq_ejml = Math.sqrt(chisq_ejml);
+        
+        /*
+        if (chisq_ejml-chisq > 1e-8)
+            System.out.println("PF:: CHECK NOMINAL CHI2="+chisq+"    EJML CHI2="+chisq_ejml);
+        */
+        
+        for (int i = 0; i < nFittedPulses; i++) {
+            //amplitudes[firstFittedPulse + i] = solved_amplitudes.getEntry(i);
+            //amplitudeErrors[firstFittedPulse + i] = Math.sqrt(amplitude_err.getEntry(i));
+            
+            amplitudes[firstFittedPulse + i] = solved_amplitudes_ejml.get(i,0);
+            amplitudeErrors[firstFittedPulse + i] = Math.sqrt(amplitudes_err_ejml.get(i,0));
+            
+        }
+        if (fitPedestal) {
+            //pedestal = solved_amplitudes.getEntry(nFittedPulses);
+            pedestal = solved_amplitudes_ejml.get(nFittedPulses,0);
+        }
+        
+        return chisq_ejml;
+    }
+    
     private double doLinFit(double[] times) {
         if (times.length != nFittedPulses) {
             throw new RuntimeException("wrong number of parameters in doLinFit");
@@ -365,7 +665,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         RealMatrix sc_mat = new Array2DRowRealMatrix(nAmplitudes, nUsedSamples);
         RealVector y_vec = new ArrayRealVector(nUsedSamples);
         RealVector var_vec = new ArrayRealVector(nUsedSamples);
-
+        
         for (int j = 0; j < nUsedSamples; j++) {
             double sigma_j = sigma[firstUsedSample + j];
             /*double sample_time = HPSSVTConstants.SAMPLING_INTERVAL * (firstUsedSample + j);
@@ -438,6 +738,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 //    }
     @Override
     public double valueOf(double[] times) {
-        return doLinFit(times);
+        return doLinFit_ejml(times);
+        //return doLinFit(times);
     }
 }

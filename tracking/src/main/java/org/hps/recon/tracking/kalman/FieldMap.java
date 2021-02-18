@@ -10,18 +10,20 @@ import java.io.IOException;
 import java.util.Scanner;
 
 import org.lcsim.geometry.field.FieldOverlay;
-
-// Retrieve the magnetic field vector from the HPS field map.
-// The HPS field is down, in the -y direction in the map coordinates, or the z direction in local Kalman coordinates
-// The constructor reads the map from a text file or binary file.
-// The field map is in coordinates different from the Kalman fitter coordinates
-//     x map =  x Kalman
-//     y map = -z Kalman
-//     z map =  y Kalman
-// These map coordinates are the HPS global coordinates (not HPS tracking coordinates)
-// This class is used for standalone testing of the Kalman code. See KalmanInterface.java for how the B-field access works
-// when running in hps-java.
-
+/**
+ * This class is used for standalone testing of the Kalman code. See KalmanInterface.java for how the B-field access works
+ * when running in hps-java.
+ * Retrieve the magnetic field vector from the HPS field map.
+ * The HPS field is down, in the -y direction in the map coordinates, or the z direction in local Kalman coordinates
+ * The constructor reads the map from a text file or binary file.
+ * The field map is in coordinates different from the Kalman fitter coordinates
+ *     x map =  x Kalman
+ *     y map = -z Kalman
+ *     z map =  y Kalman
+ * These map coordinates are the HPS global coordinates (not HPS tracking coordinates)
+ * @author Robert Johnson
+ *
+ */
 public class FieldMap extends FieldOverlay {
     private int nX, nY, nZ;
     private double[][][] bX, bY, bZ;
