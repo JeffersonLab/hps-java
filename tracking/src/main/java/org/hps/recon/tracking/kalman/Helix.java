@@ -1,9 +1,13 @@
 package org.hps.recon.tracking.kalman;
 
 import java.util.Random;
-
-// This is for testing only and is not part of the Kalman fitting code
-class Helix { // Create a simple helix oriented along the B field axis for testing the Kalman fit
+/**
+ * This is for stand-alone testing only and is not part of the Kalman fitting code.
+ * Create a simple helix oriented along the B field axis for testing the Kalman fit.
+ * @author Robert Johnson
+ *
+ */
+class Helix { 
     Vec p; // Helix parameters drho, phi0, K, dz, tanl
     Vec X0; // Pivot point in the B field reference frame
     private double alpha;

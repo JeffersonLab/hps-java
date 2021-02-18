@@ -2140,14 +2140,25 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /*
      * (non-Javadoc)
      * @see org.lcsim.geometry.compact.converter.HPSTrackerBuilder#getMillepedeLayer (java.lang.String)
+     * This function gets the millepedeLayer for a structure from the name. There is an hardcode for 
+     * module structures, i.e. module_1b, module_2t ... where the millepede id is set to 60 + X
+     * This is a workaround to use the same function but avoid checking sensor-only properties
      */
     public int getMillepedeLayer(String name) {
+        
+        if (isModule(name)) { 
+            
+            int mpid = getLayerFromVolumeName(name) + 60;
+            //System.out.printf("PF::The MPII ID For %s is %d \n",name,mpid);
+            return mpid;                
+        }
+        
 
         boolean isTopLayer = getHalfFromName(name).equals("top") ? true : false;
 
         // find layer
         int layer = getLayerFromVolumeName(name);
-
+        
         // axial or stereo
         boolean isAxial = isAxialFromName(name);
 

@@ -5,10 +5,17 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-//Driver program for executing a Kalman fit.  This version starts at layer N, filters to layer 0,
-//then starts over using the fit result to start filtering from layer 0 outward. Then it smooths
-//back to layer 0. The code assumes that the SiModules hold all the hits to be fit and only those hits.
-//No pattern recognition is done; no hits are dropped.
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+/**
+ * Driver program for executing a Kalman refit of existing tracks.  This version starts at layer N, filters to layer 0,
+ * then starts over using the fit result to start filtering from layer 0 outward. Then it smooths
+ * back to layer 0. The code assumes that the SiModules hold all the hits to be fit and only those hits.
+ * No pattern recognition is done; no hits are dropped.
+ * 
+ * @author Robert Johnson
+ *
+ */
 class KalmanTrackFit2 {
 
     ArrayList<MeasurementSite> sites;
@@ -25,7 +32,7 @@ class KalmanTrackFit2 {
             int nIterations, // Number of fit iterations requested
             Vec pivot, // Pivot point for the starting "guess" helix
             Vec helixParams, // 5 helix parameters for the starting "guess" helix
-            SquareMatrix C, // Full covariance matrix for the starting "guess" helix
+            DMatrixRMaj C, // Full covariance matrix for the starting "guess" helix
             KalmanParams kPar,
             org.lcsim.geometry.FieldMap fM) {
 
@@ -67,7 +74,7 @@ class KalmanTrackFit2 {
                     continue;
                 }
                 thisSite++;
-                newSite = new MeasurementSite(idx, m, mxResid, mxResid);
+                newSite = new MeasurementSite(idx, m, kPar);
                 int hitNumber = 0;
                 if (m.hits.size() == 0) hitNumber = -1;
                 if (idx == start) {
@@ -91,9 +98,6 @@ class KalmanTrackFit2 {
                 }
                 ;
 
-                // if (verbose) {
-                // newSite.print("initial filtering");
-                // }
                 if (m.Layer >= 0 && hitNumber >= 0) chi2f += newSite.chi2inc;
 
                 sites.add(newSite);
@@ -102,6 +106,7 @@ class KalmanTrackFit2 {
             }
             if (!success) { return; }
             if (verbose) {
+                for (MeasurementSite site : sites) site.print("initial filtering");
                 System.out.format("KalmanTrackFit2: Fit chi^2 after initial filtering = %12.4e;  Final site = %d\n", chi2f, finalSite);
                 newSite.aF.helix.a.print("filtered helix parameters at innermost site.");
                 System.out.format("    The innermost site is at layer %d\n", newSite.m.Layer);
@@ -137,7 +142,7 @@ class KalmanTrackFit2 {
                 } else {
                     sH = startSite.aF.copy();
                 }
-                sH.helix.C.scale(100.); // Blow up the initial covariance matrix to avoid double counting measurements
+                CommonOps_DDRM.scale(100., sH.helix.C); // Blow up the initial covariance matrix to avoid double counting measurements
             }
             if (verbose) {
                 System.out.format("KalmanTrackFit: starting filtering for iteration %d\n", iteration);
@@ -158,7 +163,7 @@ class KalmanTrackFit2 {
                 thisSite++;
                 int hitNumber = 0;
                 if (m.hits.size() == 0) hitNumber = -1;
-                MeasurementSite newSite = new MeasurementSite(thisSite, m, mxResid, mxResid);
+                MeasurementSite newSite = new MeasurementSite(thisSite, m, kPar);
                 if (thisSite == 0) {
                     if (newSite.makePrediction(sH, hitNumber, false, false) < 0) {
                         System.out.format("KalmanTrackFit2: Failed to make initial prediction at site %d.  Abort\n", thisSite);
@@ -183,9 +188,6 @@ class KalmanTrackFit2 {
                     previousSite.aF.helix.a.print("old filtered helix");
                     newSite.aP.helix.a.print("new predicted helix");
                     newSite.aF.helix.a.print("new filtered helix");
-                    previousSite.aF.helix.C.print("old filtered covariance");
-                    newSite.aP.helix.C.print("new predicted covariance");
-                    newSite.aF.helix.C.print("new filtered covariance");
                 }
                 // if (verbose) {
                 // newSite.print(String.format("Iteration %d: filtering", iteration));
@@ -242,9 +244,9 @@ class KalmanTrackFit2 {
                     if (iteration == nIterations - 1) nHits++;
                 }
 
-                // if (verbose) {
-                // currentSite.print(String.format("Iteration %d smoothing", iteration));
-                // }
+                if (verbose) {
+                    currentSite.print(String.format("Iteration %d smoothing", iteration));
+                }
                 nextSite = currentSite;
             }
 
@@ -274,10 +276,12 @@ class KalmanTrackFit2 {
 
         finalSite = sites.size() - 1;
 
-        int nLyrs = 12;
+        int nLyrs = 14;
         int [] lyrPtr = new int[nLyrs+1];
         for (int i=0; i<sites.size(); ++i) {
             MeasurementSite site = sites.get(i);
+            //System.out.println("PF::KalmanTrackFit2 == check");
+            //site.print("PF::CHECK");
             int lyr = site.m.Layer;
             lyrPtr[lyr] = i;
         }

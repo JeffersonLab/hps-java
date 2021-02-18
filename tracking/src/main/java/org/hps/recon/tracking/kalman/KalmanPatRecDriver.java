@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
+//import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.BasicHep3Vector;
 
+import org.hps.conditions.beam.BeamPosition;
+import org.hps.conditions.beam.BeamPosition.BeamPositionCollection;
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackData;
@@ -20,21 +24,20 @@ import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
-import org.lcsim.event.RawTrackerHit;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
-import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 import org.lcsim.geometry.IDDecoder;
-
-// $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
-
+/**
+ * Driver for pattern recognition and fitting of HPS tracks using the Kalman Filter
+ * @author Robert Johnson and Pierfrancesco Butti
+ *
+ */
 public class KalmanPatRecDriver extends Driver {
 
     IDDecoder decoder;
@@ -49,13 +52,17 @@ public class KalmanPatRecDriver extends Driver {
     private int nTracks;
     private int nEvents;
     private double executionTime;
+    private double maxTime;
     private double interfaceTime;
     private double plottingTime;
     private KalmanParams kPar;
     private KalmanPatRecPlots kPlot;
-    private Logger logger;
+    private static Logger logger;
     
     // Parameters for the Kalman pattern recognition that can be set by the user in the steering file:
+    private ArrayList<String> strategies;     // List of seed strategies for both top and bottom trackers, from steering
+    private ArrayList<String> strategiesTop;  // List of all the top tracker seed strategies from the steering file
+    private ArrayList<String> strategiesBot;  // List of all the bottom tracker seed strategies from the steering file
     private int numPatRecIteration;    // Number of global iterations of the pattern recognition
     private int numKalmanIteration;    // Number of Kalman filter iterations per track in the final fit
     private double maxPtInverse;       // Maximum value of 1/pt for the seed and the final track
@@ -72,13 +79,26 @@ public class KalmanPatRecDriver extends Driver {
     private double minChi2IncBad;      // Minimum increment in chi^2 to remove a hit from an already completed track
     private double maxResidShare;      // Maximum residual in units of detector resolution for a shared hit
     private double maxChi2IncShare;    // Maximum increment in chi^2 for a hit shared with another track
+    private double mxChi2Vtx;          // Maximum chi^2 for 5-hit tracks with a vertex constraint
     private int numEvtPlots;           // Number of event displays to plot (gnuplot files)
     private boolean doDebugPlots;      // Whether to make all the debugging histograms 
     private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
                                        // (protection against monster events) 
     private double seedCompThr;        // Threshold for seedTrack helix parameters compatibility
-    private double beamSpotLoc;        // Beam spot location along the beam axis
-    private boolean addResiduals;      // If true add the hit-on-track residuals to the LCIO event
+    private int numStrategyIter1;      // Number of seed strategies to use in the first iteration of pattern recognition
+    private double beamPositionZ;      // Beam spot location along the beam axis
+    private double beamSigmaZ;         // Beam spot size along the beam axis
+    private double beamPositionX;
+    private double beamSigmaX;
+    private double beamPositionY;
+    private double beamSigmaY;
+    private double lowPhThresh;                 // Threshold in residual ratio to prefer a low-ph hit over a high-ph hit
+    private double minSeedEnergy=-1.;           // Minimum energy of a hit for it to be used in a pattern recognition seed
+    private boolean useBeamPositionConditions;  // True to use beam position from database
+    private boolean useFixedVertexZPosition;    // True to override the database just for the z beam position
+    private Level logLevel = Level.WARNING;     // Set log level from steering
+    private boolean addResiduals;               // If true add the hit-on-track residuals to the LCIO event
+    private List<HpsSiSensor> sensors = null;   // List of tracker sensors
     
     
     public String getOutputFullTrackCollectionName() {
@@ -95,7 +115,7 @@ public class KalmanPatRecDriver extends Driver {
 
     public void setUniformB(boolean input) {
         uniformB = input;
-        System.out.format("KalmanPatRecDriver: the B field will be assumed uniform.\n");
+        logger.config("KalmanPatRecDriver: the B field will be assumed uniform.\n");
     }
 
     public void setMaterialManager(MaterialSupervisor mm) {
@@ -107,11 +127,7 @@ public class KalmanPatRecDriver extends Driver {
     
     public void setSiHitsLimit(int input) {
         siHitsLimit = input;
-    }
-    
-                                            
-                          
-     
+    }            
 
     public void setAddResiduals(boolean input) {
         addResiduals = input;
@@ -120,10 +136,16 @@ public class KalmanPatRecDriver extends Driver {
     @Override
     public void detectorChanged(Detector det) {
         logger = Logger.getLogger(KalmanPatRecDriver.class.getName());
+        if (logLevel != null) {
+            logger.setLevel(logLevel);
+            //LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(logLevel);
+        }
         verbose = (logger.getLevel()==Level.FINE);
+        System.out.format("KalmanPatRecDriver: entering detectorChanged, logger level = %s\n", logger.getLevel().getName());
         executionTime = 0.;
         interfaceTime = 0.;
         plottingTime = 0.;
+        maxTime = 0.;
         
         _materialManager = new MaterialSupervisor();
         _materialManager.buildModel(det);
@@ -154,28 +176,21 @@ public class KalmanPatRecDriver extends Driver {
             System.out.format("x=%6.1f y=%6.1f z=%6.1f: %s\n", x, y, z, B.toString());
         }
         */
+        
         detPlanes = new ArrayList<SiStripPlane>();
         List<ScatteringDetectorVolume> materialVols = ((MaterialSupervisor) (_materialManager)).getMaterialVolumes();
         for (ScatteringDetectorVolume vol : materialVols) {
             detPlanes.add((SiStripPlane) (vol));
         }
         
-        det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
+        sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         // Instantiate the interface to the Kalman-Filter code and set up the geometry
-        KI = new KalmanInterface(uniformB, fm);
-        KI.setSiHitsLimit(siHitsLimit);
-        KI.createSiModules(detPlanes);
-        
-        decoder = det.getSubdetector("Tracker").getIDDecoder();
-        if (doDebugPlots) {
-            kPlot = new KalmanPatRecPlots(verbose, KI, decoder, numEvtPlots, fm);
-        }
+        KalmanParams kPar = new KalmanParams();
         
         // Change Kalman parameters per settings supplied by the steering file
         // We assume that if not set by the steering file, then the parameters will have the Java default values for the primitives
         // Note that all of the parameters have defaults hard coded in KalmanParams.java
-        kPar = KI.getKalmanParams();
         if (numPatRecIteration != 0) kPar.setGlbIterations(numPatRecIteration);
         if (numKalmanIteration != 0) kPar.setIterations(numKalmanIteration);
         if (maxPtInverse != 0.0) kPar.setMaxK(maxPtInverse);
@@ -193,27 +208,79 @@ public class KalmanPatRecDriver extends Driver {
         if (maxResidShare != 0.0) kPar.setMxResidShare(maxResidShare);
         if (maxChi2IncShare != 0.0) kPar.setMxChi2double(maxChi2IncShare);
         if (seedCompThr != 0.0) kPar.setSeedCompThr(seedCompThr);
-        if (beamSpotLoc != 0.0) kPar.setBeamSpot(beamSpotLoc);
+        if (beamPositionZ != 0.0) kPar.setBeamSpotY(beamPositionZ);
+        if (beamSigmaZ != 0.0) kPar.setBeamSizeY(beamSigmaZ);
+        if (beamPositionX != 0.0) kPar.setBeamSpotX(beamPositionX);
+        if (beamSigmaX != 0.0) kPar.setBeamSizeX(beamSigmaX);
+        if (beamPositionY != 0.0) kPar.setBeamSpotZ(-beamPositionY);
+        if (beamSigmaY != 0.0) kPar.setBeamSizeZ(beamSigmaY);
+        if (mxChi2Vtx != 0.0) kPar.setMaxChi2Vtx(mxChi2Vtx);
+        if (minSeedEnergy >= 0.) kPar.setMinSeedEnergy(minSeedEnergy);
+      
+        // Here we set the seed strategies for the pattern recognition
+        if (strategies != null || (strategiesTop != null && strategiesBot != null)) {
+            logger.config("The Kalman pattern recognition seed strategies are being set from the steering file");
+            kPar.clrStrategies();
+            int nB = 0;
+            int nT = 0;
+            int nA = 0;
+            if (strategies != null) {
+                nA = strategies.size();
+                for (String strategy : strategies) {
+                    kPar.addStrategy(strategy, "top");
+                    kPar.addStrategy(strategy, "bottom");
+                }
+            }
+            if (strategiesTop != null) {
+                nT = strategiesTop.size();
+                for (String strategy : strategiesTop) {
+                    kPar.addStrategy(strategy, "top");
+                }
+            }
+            if (strategiesBot != null) {
+                nB = strategiesBot.size();
+                for (String strategy : strategiesBot) {
+                    kPar.addStrategy(strategy, "bottom");
+                }
+            }
+            kPar.setNumSeedIter1(nA + nT);
+            kPar.setNumSeedIter1(nA + nB);
+        }
+        if (numStrategyIter1 != 0) kPar.setNumSeedIter1(numStrategyIter1);
         
-        // Here we can replace or add search strategies to the pattern recognition (not, as yet, controlled by the steering file)
-        // Layers are numbered 0 through 13, and the numbering here corresponds to the bottom tracker. The top-tracker lists are
-        // appropriately translated from these. Each seed needs 3 stereo and 2 axial layers
+        // Setup optional usage of beam positions from database.
+        final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        if (useBeamPositionConditions && mgr.hasConditionsRecord("beam_positions")) {
+            logger.config("Using Kalman beam position from the conditions database");
+            BeamPositionCollection beamPositions = 
+                    mgr.getCachedConditions(BeamPositionCollection.class, "beam_positions").getCachedData();
+            BeamPosition beamPositionCond = beamPositions.get(0); 
+            if (!useFixedVertexZPosition) kPar.setBeamSpotY(beamPositionCond.getPositionZ());  
+            else logger.config("Using fixed Kalman beam Z position: " + kPar.beamSpot[1]);
+            kPar.setBeamSpotX(beamPositionCond.getPositionX());   // Includes a transformation to Kalman coordinates
+            kPar.setBeamSpotZ(-beamPositionCond.getPositionY());
+        } else {
+            logger.config("Using Kalman beam position from the steering file or default");
+        }
+        logger.config("Using Kalman beam position [ Z, X, Y ]: " + String.format("[ %f, %f, %f ]",
+                       kPar.beamSpot[0], -kPar.beamSpot[2], kPar.beamSpot[1]) + " in HPS coordinates.");      
         
-        //int[] list15 = {1, 2, 4, 5, 6};
-        //int[] list16 = {0, 1, 2, 3, 4};
-        //int[] list17 = {0, 3, 4, 5, 6};
-        //kPar.addStrategy(list15);
-        //kPar.addStrategy(list16);
-        //kPar.addStrategy(list17);
-        System.out.println("KalmanPatRecDriver: done with configuration changes.");
+        logger.config(String.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB));
+        logger.config("KalmanPatRecDriver: done with configuration changes.");
+        kPar.print();
         
-        System.out.format("KalmanPatRecDriver: the B field is assumed uniform? %b\n", uniformB);
+        KI = new KalmanInterface(uniformB, kPar, fm);
+        KI.setSiHitsLimit(siHitsLimit);
+        KI.createSiModules(detPlanes);
+        decoder = det.getSubdetector("Tracker").getIDDecoder();
+        if (doDebugPlots) {
+            kPlot = new KalmanPatRecPlots(verbose, KI, decoder, numEvtPlots, fm);
+        }
     }
 
     @Override
     public void process(EventHeader event) {
-        
-        
+                
         List<Track> outputFullTracks = new ArrayList<Track>();
         
         //For additional track information
@@ -228,7 +295,7 @@ public class KalmanPatRecDriver extends Driver {
         List<TrackResidualsData> trackResiduals = new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations = new ArrayList<LCRelation>();
        
-        prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
+        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
@@ -241,6 +308,18 @@ public class KalmanPatRecDriver extends Driver {
             event.put("KFUnbiasRes", trackResiduals, TrackResidualsData.class,0);
             event.put("KFUnbiasResRelations",trackResidualsRelations, LCRelation.class,0);
         }
+
+        if (kPlot != null) {
+            long startTime = System.nanoTime();
+            
+            kPlot.process(event, sensors, kPatList, outputFullTracks);
+            long endPlottingTime = System.nanoTime();
+            double runTime = (double)(endPlottingTime - startTime)/1000000.;
+            plottingTime += runTime;           
+        }
+        
+        KI.clearInterface();
+        logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", event.getEventNumber()));
     }
     
     class SortByZ implements Comparator<Pair<double[], double[]>> {
@@ -259,58 +338,48 @@ public class KalmanPatRecDriver extends Driver {
         }
     }
 
-    private void prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
+    private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
         
         int evtNumb = event.getEventNumber();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
             System.out.format("KalmanPatRecDriver.process:" + stripHitInputCollectionName + " does not exist; skipping event %d\n", evtNumb);
-            return;
+            return null;
         }
         
         long startTime = System.nanoTime();
-        ArrayList<KalmanPatRecHPS> kPatList = KI.KalmanPatRec(event, decoder);
+        ArrayList<KalTrack>[] kPatList = KI.KalmanPatRec(event, decoder);
         long endTime = System.nanoTime();
         double runTime = (double)(endTime - startTime)/1000000.;
         executionTime += runTime;
+        if (runTime > 200.) {
+            System.out.format("KalmanPatRecDriver.process: run time for pattern recognition at event %d is %9.1f ms\n", evtNumb, runTime);
+            List<TrackerHit> striphits = event.get(TrackerHit.class, "StripClusterer_SiTrackerHitStrip1D");
+            System.out.format("                            Number of strip hits = %d\n", striphits.size());
+        }
+        if (runTime > maxTime) maxTime = runTime;
         nEvents++;
-        logger.log(Level.FINE,
-                "KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
+        logger.log(Level.FINE,"KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
         
-        if (kPatList == null) {
-            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: null returned by KalmanPatRec. Skipping event %d", evtNumb));
-            return;
-        }
-        
-        RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
-            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
-            for (LCRelation relation : trueHitRelations)
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
-                    rawtomc.add(relation.getFrom(), relation.getTo());
-                }
-        }
-        
-        List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        if (rawhits == null) {
-            logger.log(Level.INFO, String.format("KalmanPatRecDriver.process: the raw hits collection is missing"));
-            return;
-        }
-        
+        //List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
+        //if (rawhits == null) {
+        //    logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: the raw hits collection is missing"));
+        //    return null;
+        //}        
         
         int nKalTracks = 0;
-        for (KalmanPatRecHPS kPat : kPatList) {
-            if (kPat == null) {
-                logger.log(Level.INFO, String.format("KalmanPatRecDriver.process: pattern recognition failed in the top or bottom tracker for event %d.", evtNumb));
-                return;
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            ArrayList<KalTrack> kPat = kPatList[topBottom];
+            if (kPat.size() == 0) {
+                logger.log(Level.FINE, String.format("KalmanPatRecDriver.process: pattern recognition failed to find tracks in tracker %d for event %d.", topBottom, evtNumb));
             }
-            for (KalTrack kTk : kPat.TkrList) {
-                if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",kPat.topBottom));
+            for (KalTrack kTk : kPat) {
+                if (verbose) kTk.print(String.format(" PatRec for topBot=%d ",topBottom));
                 double [][] covar = kTk.originCovariance();
                 for (int ix=0; ix<5; ++ix) {
                     for (int iy=0; iy<5; ++iy) {
                         if (Double.isNaN(covar[ix][iy])) {
-                            logger.log(Level.WARNING, String.format("KalmanPatRecDriver.process event %d: NaN at %d %d in covariance for track %d",evtNumb,ix,iy,kTk.ID));
+                            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process event %d: NaN at %d %d in covariance for track %d",evtNumb,ix,iy,kTk.ID));
                         }
                     }
                 }                
@@ -399,19 +468,7 @@ public class KalmanPatRecDriver extends Driver {
         runTime = (double)(endInterfaceTime - endTime)/1000000.;
         interfaceTime += runTime;
         
-        if (kPlot != null) {
-            kPlot.process(event, runTime, kPatList, outputFullTracks, rawtomc);
-            long endPlottingTime = System.nanoTime();
-            runTime = (double)(endPlottingTime - endInterfaceTime)/1000000.;
-            plottingTime += runTime;
-            
-        }
-        
-        KI.clearInterface();
-        logger.log(Level.FINE, String.format("\n KalmanPatRecDriver.process: Done with event %d", evtNumb));
-        
-
-        return;
+        return kPatList;
     }
 
     @Override
@@ -420,14 +477,16 @@ public class KalmanPatRecDriver extends Driver {
                 executionTime, nEvents, nTracks);
         double evtTime = executionTime/(double)nEvents;
         double tkrTime = executionTime/(double)nTracks;
-        System.out.format("                              Kalman Patrec Time per event = %9.4f; Time per track = %9.4f\n", evtTime, tkrTime);
+        System.out.format("                              Kalman Patrec Time per event = %9.4f ms; Time per track = %9.4f ms\n", evtTime, tkrTime);
+        System.out.format("                              Kalman Patrec maximum time for one event = %10.4f ms\n", maxTime);
         evtTime = interfaceTime/(double)nEvents;
-        System.out.format("                              Kalman Interface Time per event = %9.4f\n", evtTime);
+        System.out.format("                              Kalman Interface Time per event = %9.4f ms\n", evtTime);
         if (kPlot != null) {
             kPlot.output();
             evtTime = plottingTime/(double)nEvents;
-            System.out.format("                              Kalman Plotting Time per event = %9.4f\n", evtTime);
+            System.out.format("                              Kalman Plotting Time per event = %9.4f ms\n", evtTime);
         }
+        KI.summary();
     }
     
     // Methods to set Kalman parameters from within the steering file
@@ -473,6 +532,9 @@ public class KalmanPatRecDriver extends Driver {
     public void setMinChi2IncBad(double minChi2IncBad) {
         this.minChi2IncBad = minChi2IncBad;
     }
+    public void setMxChi2Vtx(double mxChi2Vtx) {
+        this.mxChi2Vtx = mxChi2Vtx;
+    }
     public void setMaxResidShare(double maxResidShare) {
         this.maxResidShare = maxResidShare;
     }
@@ -488,7 +550,65 @@ public class KalmanPatRecDriver extends Driver {
     public void setSeedCompThr(double seedCompThr) {
         this.seedCompThr = seedCompThr;
     }
-    public void setBeamSpotLoc(double beamSpotLoc) {
-        this.beamSpotLoc = beamSpotLoc;
+    public void setBeamPositionZ(double beamPositionZ) {
+        this.beamPositionZ = beamPositionZ;
+    }
+    public void setBeamSigmaZ(double beamSigmaZ) {
+        this.beamSigmaZ = beamSigmaZ;
+    }
+    public void setBeamPositionX(double beamPositionX) {
+        this.beamPositionX = beamPositionX;
+    }
+    public void setBeamSigmaX(double beamSigmaX) {
+        this.beamSigmaX = beamSigmaX;
+    }
+    public void setBeamPositionY(double beamPositionY) {
+        this.beamPositionY = beamPositionY;
+    }
+    public void setBeamSigmaY(double beamSigmaY) {
+        this.beamSigmaY = beamSigmaY;
+    }
+    public void setUseBeamPositionConditions(boolean useBeamPositionConditions) {
+        this.useBeamPositionConditions = useBeamPositionConditions;
+    }
+    public void setUseFixedVertexZPosition(boolean useFixedVertexZPosition) {
+        this.useFixedVertexZPosition = useFixedVertexZPosition;
+    }
+    public void setNumStrategyIter1(int numStrategyIter1) {
+        this.numStrategyIter1 = numStrategyIter1;
+    }
+    public void setMinSeedEnergy(double minSeedEnergy) {
+        this.minSeedEnergy = minSeedEnergy;
+        System.out.format("KalmanPatRecDriver: minimum seed energy from steering = %8.4f\n", minSeedEnergy);
+    }
+    public void setLowPhThresh(double lowPhThresh) {
+        this.lowPhThresh = lowPhThresh;
+        System.out.format("KalmanPatRecDriver: setting lowPhThresh from steering : %12.4f\n", lowPhThresh);
+    }
+    public void setSeedStrategy(String seedStrategy) {
+        if (strategies == null) {
+            strategies = new ArrayList<String>();
+        }
+        strategies.add(seedStrategy);
+        System.out.format("KalmanPatRecDriver: top and bottom strategy %s specified by steering.\n", seedStrategy);
+    }
+    public void setSeedStrategyTop(String seedStrategy) {
+        if (strategiesTop == null) {
+            strategiesTop = new ArrayList<String>();
+        }
+        strategiesTop.add(seedStrategy);
+        System.out.format("KalmanPatRecDriver: top strategy %s specified by steering.\n", seedStrategy);
+    }
+    public void setSeedStrategyBottom(String seedStrategy) {
+        if (strategiesBot == null) {
+            strategiesBot = new ArrayList<String>();
+        }
+        strategiesBot.add(seedStrategy);
+        System.out.format("KalmanPatRecDriver: bottom strategy %s specified by steering.\n", seedStrategy);
+    }
+    public void setLogLevel(String logLevel) {
+        System.out.format("KalmanPatRecDriver: setting the logger level to %s\n", logLevel);
+        this.logLevel = Level.parse(logLevel);
+        System.out.format("                    logger level = %s\n",this.logLevel.getName());
     }
 }

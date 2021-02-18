@@ -1,15 +1,21 @@
 package org.hps.recon.tracking.kalman;
 
-//package kalman;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 
-// Fit a line/parabola approximation of a helix to a set of measurement points.
-// The line and parabola are fit simultaneously in order to handle properly the stereo layers.
-// The pivot of the helix is assumed to be the origin of the coordinate system, but the
-// coordinate system in which the helix is described may be rotated slightly with respect to
-// the global coordinates, in order to optimize its alignment with the field.
+import org.apache.commons.math.util.FastMath;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+/**
+ * 
+ * Fit a line/parabola approximation of a helix to a set of measurement points.
+ * The line and parabola are fit simultaneously in order to handle properly the stereo layers.
+ * The pivot of the helix is assumed to be the origin of the coordinate system, but the
+ * coordinate system in which the helix is described may be rotated slightly with respect to
+ * the global coordinates, in order to optimize its alignment with the field.
+ * @author Robert Johnson
+ *
+ */
 class SeedTrack {
     boolean success;
     ArrayList<KalHit> hits; // Save information for the hit used in each layer
@@ -17,18 +23,35 @@ class SeedTrack {
     private Vec hParm; // Final helix parameters rotated into the field frame
     // private RotMatrix Rot; // Orthogonal transformation from global to helix
     // (B-field) coordinates
-    private SquareMatrix C; // Covariance of helix parameters
-    private boolean verbose; // Set true to generate lots of debug printout
-    private double alpha; // Conversion constant from 1/pt to helix radius
+    private DMatrixRMaj C; // Covariance of helix parameters
+    private DMatrixRMaj CovA;  // Covariance of the 5 linear fit polynomial coefficients
     private double R, xc, yc; // Radius and center of the "helix"
-    private Vec sol; // Fitted polynomial coefficients
-    private SquareMatrix Csol; // Covariance matrix of the fitted polynomial coefficients
     private double Bavg; // Average B field
+    private double alpha; // Conversion constant from 1/pt to helix radius
     double yOrigin;
     double chi2;
     private Plane p0; // x,z plane at the target location
     int Nbending;
     int Nnonbending;
+    
+    private static int nHits;
+    private static double [][] M;
+    private static double[] xMC = null;
+    private static double[] zMC = null;
+    private static double[] yMC = null;
+    private static double[] mTrue = null;
+    private static double[] y; // Global y coordinates of measurements (along beam direction)
+    private static double[] v; // Measurement value (i.e. position of the hit strip)
+    private static double[] s; // Uncertainty in the measurement (spatial resolution of the SSD)
+    private static double[][] delta;
+    private static double[][] R2;
+    private static DMatrixRMaj Mint;
+    private static double [][] A;
+    private static double [] B;
+    private static DMatrixRMaj a;  // Solution vector (line coefficients followed by parabola coefficients
+    private static double [] vpred;
+    private static final boolean debug = false; // Set true to generate lots of debug printout
+    //private static int nCalls;
 
     double getAlpha() {
         return alpha;
@@ -54,9 +77,9 @@ class SeedTrack {
             for (int j = 0; j < hits.size(); j++) str=str+String.format(" %d: %10.5f, ", hits.get(j).module.Layer, hits.get(j).hit.v);
             str=str+"\n";
             Vec pInt = planeIntersection(p0);
-            double xzDist = Math.sqrt(pInt.v[0]*pInt.v[0] + pInt.v[2]*pInt.v[2]);
+            double xzDist = FastMath.sqrt(pInt.v[0]*pInt.v[0] + pInt.v[2]*pInt.v[2]);
             str=str+String.format("  Distance from origin in X,Z at y= %8.2f is %10.5f. Intersection=%s\n", yP, xzDist, pInt.toString());
-            str = str + C.toString("  seed track covariance");
+            str = str + "Covariance: " + C.toString();
         } else {
             str = String.format("Seed track %s fit unsuccessful.\n", s);
         }
@@ -76,46 +99,57 @@ class SeedTrack {
             theHits.add(tmpHit);
         }
         double yTarget = 0.;
-        SeedTracker(theHits, yOrigin, yTarget, verbose);
+        SeedTracker(theHits, yOrigin, yTarget);
     }
 
     // Newer interface
-    SeedTrack(ArrayList<KalHit> hitList, double yOrigin, double yTarget, boolean verbose) {
-        SeedTracker(hitList, yOrigin, yTarget, verbose);
+    SeedTrack(ArrayList<KalHit> hitList, double yOrigin, double yTarget) {
+        SeedTracker(hitList, yOrigin, yTarget);
     }
 
-    private void SeedTracker(ArrayList<KalHit> hitList, double yOrigin, double yTarget, boolean verbose) {
+    
+    private void SeedTracker(ArrayList<KalHit> hitList, double yOrigin, double yTarget) {
         // yOrigin is the location along the beam about which we fit the seed helix
         // yTarget is the location along the beam of the target itself
+        //if (nCalls < 3) debug = true;
+        //else debug = false;
+        //nCalls++;
 
         p0 = new Plane(new Vec(0., yTarget, 0.), new Vec(0., 1., 0.));  // create plane at the target position
-        this.verbose = verbose;
         this.yOrigin = yOrigin;
+        
+        // Store the list of hits with the instance, for comparing different instances later
         hits = new ArrayList<KalHit>(hitList.size());
         for (KalHit hit : hitList) {
             hits.add(hit);
         }
 
-        // Fit a straight line in the non-bending plane and a parabola in the bending
-        // plane
-
-        double[] xMC = null;
-        double[] y = new double[hitList.size()]; // Global y coordinates of measurements (along beam direction)
-        double[] zMC = null;
-        double[] yMC = null;
-        double[] mTrue = null;
-        if (verbose) {
+        // Fit a straight line in the non-bending plane and a parabola in the bending plane
+        // Don't allocate space for debugging arrays unless debugging is really happening
+        if (debug) {
             System.out.format("Entering SeedTrack, yOrigin=%10.7f\n", yOrigin);
-            for (KalHit hit : hitList) { hit.print(" in SeedTrack "); }
+            for (KalHit hit : hitList) hit.print(" in SeedTrack ");
             xMC = new double[hitList.size()]; // Global x coordinates of measurements (bending plane)
             zMC = new double[hitList.size()]; // Global z coordinates of measurements (along B field direction)
             yMC = new double[hitList.size()];
             mTrue = new double[hitList.size()];
         }
-        double[] v = new double[hitList.size()]; // Measurement value (i.e. position of the hit strip)
-        double[] s = new double[hitList.size()]; // Uncertainty in the measurement (spatial resolution of the SSD)
-        double[][] delta = new double[hitList.size()][3];
-        double[][] R2 = new double[hitList.size()][3];
+        // reallocate the static working arrays only if necessary
+        if (hitList.size() != nHits) {
+            nHits = hitList.size();
+            y = new double[nHits]; // Global y coordinates of measurements (along beam direction)
+            v = new double[nHits]; // Measurement value (i.e. position of the hit strip)
+            s = new double[nHits]; // Uncertainty in the measurement (spatial resolution of the SSD)
+            vpred = new double[nHits];
+            delta = new double[nHits][3];
+            R2 = new double[nHits][3];
+            M = new double[5][5];
+            Mint = new DMatrixRMaj(5);
+            A = new double[5][5];
+            B = new double[5];
+            a = new DMatrixRMaj(5);
+        }
+        
         int N = 0;
         Nbending = 0;
         Nnonbending = 0;
@@ -127,11 +161,10 @@ class SeedTrack {
             Vec thisB = KalmanInterface.getField(thisSi.toGlobal(new Vec(0., 0., 0.)), thisSi.Bfield);
             Bvec = Bvec.sum(thisB);
         }
-        int Npnt = hitList.size();
-        double sF = 1.0 / ((double) Npnt);
+        double sF = 1.0 / ((double) nHits);
         Bvec = Bvec.scale(sF);
         Bavg = Bvec.mag();
-        if (verbose) { System.out.format("*** SeedTrack: Npnt=%d, Bavg=%10.5e\n", Npnt, Bavg); }
+        if (debug) { System.out.format("*** SeedTrack: nHits=%d, Bavg=%10.5e\n", nHits, Bavg); }
         double c = 2.99793e8; // Speed of light in m/s
         alpha = 1000.0 * 1.0e9 / (c * Bavg); // Convert from pt in GeV to curvature in mm
 
@@ -146,7 +179,7 @@ class SeedTrack {
             Measurement m = itr.hit;
             Vec pnt = new Vec(0., m.v, 0.);
             pnt = thisSi.toGlobal(pnt);
-            if (verbose) {
+            if (debug) {
                 if (thisSi.isStereo) {
                     System.out.format("Layer %d detector %d, Stereo measurement %d = %10.7f\n", thisSi.Layer, thisSi.detector, N,
                             m.v);
@@ -157,7 +190,7 @@ class SeedTrack {
                 pnt.print("point global");
             }
             y[N] = pnt.v[1] - yOrigin;
-            if (verbose) {
+            if (debug) {
                 xMC[N] = m.rGlobal.v[0];
                 yMC[N] = m.rGlobal.v[1] - yOrigin;
                 zMC[N] = m.rGlobal.v[2];
@@ -185,7 +218,7 @@ class SeedTrack {
             success = false;
             return;
         }
-        if (verbose) {
+        if (debug) {
             System.out.format("SeedTrack: data in global coordinates: y, yMC, zMC, xMC, m, mTrue, check, sigma, R2[0..2]\n");
             for (int i = 0; i < N; i++) {
                 double vcheck = R2[i][0] * (xMC[i] - delta[i][0]) + R2[i][2] * (zMC[i] - delta[i][2]) + R2[i][1] * (yMC[i] - delta[i][1]);
@@ -195,49 +228,51 @@ class SeedTrack {
         }
 
         // Here we do the 5-parameter linear fit:
-        LinearHelixFit fit = new LinearHelixFit(N, y, v, s, delta, R2, verbose);
-        if (verbose) { fit.print(N, xMC, y, zMC, v, s); }
-        chi2 = fit.chiSquared();
+        LinearHelixFit(N, y, v, s, delta, R2);
+        if (debug) printFit(N, xMC, y, zMC, v, s);
 
         // Now, derive the helix parameters and covariance from the two fits
         double sgn = -1.0; // Careful with this sign--->selects the correct half of the circle! B in +z direction only
-        sol = fit.solution();
-        Vec coef = new Vec(sol.v[2], sol.v[3], sol.v[4]); // Parabola coefficients
+        Vec coef = new Vec(a.unsafe_get(2,0), a.unsafe_get(3,0), a.unsafe_get(4,0)); // Parabola coefficients
 
         double[] circleParams = parabolaToCircle(sgn, coef);
         phi0 = circleParams[1];
         K = circleParams[2];
         drho = circleParams[0];
-        double dphi0da = (2.0 * coef.v[2] / coef.v[1]) * square(Math.sin(phi0));
-        double dphi0db = Math.sin(phi0) * Math.cos(phi0) / coef.v[1] - square(Math.sin(phi0));
-        double dphi0dc = (2.0 * coef.v[0] / coef.v[1]) * square(Math.sin(phi0));
-        SquareMatrix D = new SquareMatrix(5);
-        double temp = xc * Math.tan(phi0) / Math.cos(phi0);
+        double dphi0da = (2.0 * coef.v[2] / coef.v[1]) * square(FastMath.sin(phi0));
+        double dphi0db = FastMath.sin(phi0) * FastMath.cos(phi0) / coef.v[1] - square(FastMath.sin(phi0));
+        double dphi0dc = (2.0 * coef.v[0] / coef.v[1]) * square(FastMath.sin(phi0));
+        double temp = xc * FastMath.tan(phi0) / FastMath.cos(phi0);
 
-        double slope = sol.v[1];
-        double intercept = sol.v[0];
-        tanl = slope * Math.cos(phi0);
-        dz = intercept + drho * tanl * Math.tan(phi0);
-        if (verbose) {
+        double slope = a.unsafe_get(1,0);
+        double intercept = a.unsafe_get(0,0);
+        tanl = slope * FastMath.cos(phi0);
+        dz = intercept + drho * tanl * FastMath.tan(phi0);
+        if (debug) {
             System.out.format("SeedTrack: dz=%12.5e   tanl=%12.5e\n", dz, tanl);
             System.out.format("     R=%10.6f, xc=%10.6f, yc=%10.6f\n", R, xc, yc);
             System.out.format("     phi0=%10.7f,  K=%10.6f,   drho=%10.6f\n", phi0, K, drho);
         }
         // Some derivatives to transform the covariance from line and parabola
         // coefficients to helix parameters
-        D.M[0][2] = 1.0 / Math.cos(phi0) + temp * dphi0da;
-        D.M[0][3] = -(coef.v[1] / (2.0 * coef.v[2])) / Math.cos(phi0) + temp * dphi0db;
-        D.M[0][4] = -(sgn + (1.0 - 0.5 * coef.v[1] * coef.v[1]) / Math.cos(phi0)) / (2.0 * coef.v[2] * coef.v[2]) + temp * dphi0dc;
-        D.M[1][2] = dphi0da;
-        D.M[1][3] = dphi0db;
-        D.M[1][4] = dphi0dc;
-        D.M[2][4] = -2.0 * alpha * sgn;
-        D.M[3][0] = 1.0;
-        D.M[3][1] = drho * Math.sin(phi0);
-        D.M[4][1] = Math.cos(phi0);
-        Csol = fit.covariance();
-        C = Csol.similarity(D); // Covariance of helix parameters
-        if (verbose) { D.print("line/parabola to helix derivatives"); }
+        M[0][2] = 1.0 / FastMath.cos(phi0) + temp * dphi0da;
+        M[0][3] = -(coef.v[1] / (2.0 * coef.v[2])) / FastMath.cos(phi0) + temp * dphi0db;
+        M[0][4] = -(sgn + (1.0 - 0.5 * coef.v[1] * coef.v[1]) / FastMath.cos(phi0)) / (2.0 * coef.v[2] * coef.v[2]) + temp * dphi0dc;
+        M[1][2] = dphi0da;
+        M[1][3] = dphi0db;
+        M[1][4] = dphi0dc;
+        M[2][4] = -2.0 * alpha * sgn;
+        M[3][0] = 1.0;
+        M[3][1] = drho * FastMath.sin(phi0);
+        M[4][1] = FastMath.cos(phi0);
+        DMatrixRMaj D = new DMatrixRMaj(M);
+        CommonOps_DDRM.multTransB(CovA,D,Mint);
+        C = new DMatrixRMaj(5);
+        CommonOps_DDRM.mult(D, Mint, C);
+        if (debug) { 
+            System.out.println("line/parabola to helix derivatives:");
+            D.print();
+        }
 
         // Note that the non-bending plane is assumed to be y,z (B field in z
         // direction), and the track is assumed to start out more-or-less
@@ -256,14 +291,14 @@ class SeedTrack {
             RotMatrix Rot = new RotMatrix(xhat, yhat, zhat);
 
             hParm = rotateHelix(new Vec(drho, phi0, K, dz, tanl), Rot);
-            if (verbose) {
+            if (debug) {
                 firstB.print("Seedtrack, B field");
                 Rot.print("Seedtrack, rotation matrix");
                 hParm.print("Seedtrack, rotated helix");
             }
         } else {
             hParm = new Vec(drho, phi0, K, dz, tanl);
-            if (verbose) { hParm.print("Seedtrack, rotated helix"); }
+            if (debug) { hParm.print("Seedtrack, rotated helix"); }
         }
 
         success = true;
@@ -277,12 +312,12 @@ class SeedTrack {
         return hParm;
     }
 
-    SquareMatrix covariance() { // Return covariance matrix of the fitted helix parameters
+    DMatrixRMaj covariance() { // Return covariance matrix of the fitted helix parameters
         return C;
     }
 
     Vec solution() { // Return the 5 polynomial coefficients
-        return sol;
+        return new Vec(a.unsafe_get(0, 0),a.unsafe_get(1, 0),a.unsafe_get(2, 0),a.unsafe_get(3, 0),a.unsafe_get(4, 0));
     }
 
     double B() { // Return the average field
@@ -290,16 +325,23 @@ class SeedTrack {
     }
 
     SquareMatrix solutionCovariance() { // Return covariance of the polynomial coefficients
-        return Csol;
+        SquareMatrix CM = new SquareMatrix(5);
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<5; ++j) {
+                CM.M[i][j] = CovA.unsafe_get(i,j);
+            }
+        }
+        return CM;
     }
 
     Vec solutionErrors() { // Return errors on the polynomial coefficients (for testing)
-        return new Vec(Math.sqrt(Csol.M[0][0]), Math.sqrt(Csol.M[1][1]), Math.sqrt(Csol.M[2][2]), Math.sqrt(Csol.M[3][3]),
-                Math.sqrt(Csol.M[4][4]));
+        return new Vec(FastMath.sqrt(CovA.unsafe_get(0,0)), FastMath.sqrt(CovA.unsafe_get(1,1)), FastMath.sqrt(CovA.unsafe_get(2,2)), 
+                FastMath.sqrt(CovA.unsafe_get(3,3)), FastMath.sqrt(CovA.unsafe_get(4,4)));
     }
 
     Vec errors() { // Return errors on the helix parameters
-        return new Vec(Math.sqrt(C.M[0][0]), Math.sqrt(C.M[1][1]), Math.sqrt(C.M[2][2]), Math.sqrt(C.M[3][3]), Math.sqrt(C.M[4][4]));
+        return new Vec(FastMath.sqrt(C.unsafe_get(0,0)), FastMath.sqrt(C.unsafe_get(1,1)), FastMath.sqrt(C.unsafe_get(2,2)), 
+                FastMath.sqrt(C.unsafe_get(3,3)), FastMath.sqrt(C.unsafe_get(4,4)));
     }
 
     private double[] parabolaToCircle(double sgn, Vec coef) { // Utility to convert from parabola coefficients to circle
@@ -309,23 +351,23 @@ class SeedTrack {
         yc = sgn * R * coef.v[1];
         xc = coef.v[0] - sgn * R * (1.0 - 0.5 * coef.v[1] * coef.v[1]);
         double[] r = new double[3];
-        r[1] = Math.atan2(yc, xc);
+        r[1] = FastMath.atan2(yc, xc);
         if (R < 0.) { r[1] += Math.PI; }
         if (r[1] > Math.PI) r[1] -= 2.0 * Math.PI;
         r[2] = alpha / R;
-        r[0] = xc / Math.cos(r[1]) - R;
-        if (verbose) {
+        r[0] = xc / FastMath.cos(r[1]) - R;
+        if (debug) {
             System.out.format("parabolaToCircle:     R=%10.6f, xc=%10.6f, yc=%10.6f, drho=%10.7f, phi0=%10.7f, K=%10.7f\n", R, xc, yc, r[0],
                     r[1], r[2]);
             coef.print("parabola coefficients");
-            double phi02 = Math.atan(-coef.v[1] / (2.0 * coef.v[0] * coef.v[2] + (1.0 - coef.v[1] * coef.v[1])));
+            double phi02 = FastMath.atan(-coef.v[1] / (2.0 * coef.v[0] * coef.v[2] + (1.0 - coef.v[1] * coef.v[1])));
             System.out.format("phi02 = %10.7f\n", phi02);
         }
         return r;
     }
 
     // Transformation of a helix from one B-field frame to another, by rotation R
-    Vec rotateHelix(Vec a, RotMatrix R) {
+    private Vec rotateHelix(Vec a, RotMatrix R) {
         // a = 5 helix parameters
         // R = 3 by 3 rotation matrix
         // The rotation is easily applied to the momentum vector, so first we transform
@@ -339,9 +381,9 @@ class SeedTrack {
 
     // Transform from momentum at helix starting point back to the helix parameters
     private static Vec pTOa(Vec p, Double Q) {
-        double phi0 = Math.atan2(-p.v[0], p.v[1]);
-        double K = Q / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
-        double tanl = p.v[2] / Math.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+        double phi0 = FastMath.atan2(-p.v[0], p.v[1]);
+        double K = Q / FastMath.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+        double tanl = p.v[2] / FastMath.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
         if (phi0 > Math.PI) phi0 = phi0 - 2.0 * Math.PI;
         // Note: the following only makes sense when a.v[0] and a.v[3] (drho and dz) are
         // both zero, i.e. pivot is on the helix
@@ -367,18 +409,10 @@ class SeedTrack {
             Vec pInt1 = t1.planeIntersection(t1.p0);
             Vec pInt2 = t2.planeIntersection(t2.p0);
 
-            //double diff = pInt1.mag() - pInt2.mag();
-            /*
-            if (Math.abs(diff) < 1e-8) {
-                System.out.println("SeedTrack::WARNING::Probably duplicate seed.");
-            }
-            */
-            
             Double pInt1_mag = new Double(pInt1.mag());
             Double pInt2_mag = new Double(pInt2.mag());
                         
-            return pInt1_mag.compareTo(pInt2_mag);
-            
+            return pInt1_mag.compareTo(pInt2_mag);          
         }
     };
 
@@ -395,43 +429,152 @@ class SeedTrack {
         return compatible;
     }
     
-
     Vec planeIntersection(Plane p) {
-        double arg = (K / alpha) * ((drho + (alpha / K)) * Math.sin(phi0) - (p.X().v[1] - yOrigin));
-        double phiInt = -phi0 + Math.asin(arg);
+        double arg = (K / alpha) * ((drho + (alpha / K)) * FastMath.sin(phi0) - (p.X().v[1] - yOrigin));
+        double phiInt = -phi0 + FastMath.asin(arg);
         return atPhi(phiInt);
     }
 
     private Vec atPhi(double phi) { // point on the helix at the angle phi
-        double x = (drho + (alpha / K)) * Math.cos(phi0) - (alpha / K) * Math.cos(phi0 + phi);
-        double y = yOrigin + (drho + (alpha / K)) * Math.sin(phi0) - (alpha / K) * Math.sin(phi0 + phi);
+        double x = (drho + (alpha / K)) * FastMath.cos(phi0) - (alpha / K) * FastMath.cos(phi0 + phi);
+        double y = yOrigin + (drho + (alpha / K)) * FastMath.sin(phi0) - (alpha / K) * FastMath.sin(phi0 + phi);
         double z = dz - (alpha / K) * phi * tanl;
         return new Vec(x, y, z);
     }
 
     double[] pivotTransform(double[] pivot) {
         Vec X0 = new Vec(0., yOrigin, 0.);
-        double xC = X0.v[0] + (drho + alpha / K) * Math.cos(phi0); // Center of the helix circle
-        double yC = X0.v[1] + (drho + alpha / K) * Math.sin(phi0);
-        // X0.print("old pivot");
-        // System.out.format("SeedTrack::pivotTransform: center=%10.6f, %10.6f\n", xC, yC);
+        double xC = X0.v[0] + (drho + alpha / K) * FastMath.cos(phi0); // Center of the helix circle
+        double yC = X0.v[1] + (drho + alpha / K) * FastMath.sin(phi0);
 
         // Transformed helix parameters
         double[] aP = new double[5];
         aP[2] = K;
         aP[4] = tanl;
         if (K > 0) {
-            aP[1] = Math.atan2(yC - pivot[1], xC - pivot[0]);
+            aP[1] = FastMath.atan2(yC - pivot[1], xC - pivot[0]);
         } else {
-            aP[1] = Math.atan2(pivot[1] - yC, pivot[0] - xC);
+            aP[1] = FastMath.atan2(pivot[1] - yC, pivot[0] - xC);
         }
-        aP[0] = (xC - pivot[0]) * Math.cos(aP[1]) + (yC - pivot[1]) * Math.sin(aP[1]) - alpha / K;
+        aP[0] = (xC - pivot[0]) * FastMath.cos(aP[1]) + (yC - pivot[1]) * FastMath.sin(aP[1]) - alpha / K;
         aP[3] = X0.v[2] - pivot[2] + dz - (alpha / K) * (aP[1] - phi0) * tanl;
 
-        //xC = pivot[0] + (aP[0] + alpha / aP[2]) * Math.cos(aP[1]);
-        //yC = pivot[1] + (aP[0] + alpha / aP[2]) * Math.sin(aP[1]);
-        // System.out.format("pivotTransform new center=%10.6f, %10.6f\n", xC, yC);
-
         return aP;
+    }
+    
+    private void LinearHelixFit(int N, double[] y, double[] v, double[] s, double[][] delta, double[][] R2) {
+        // N = number of measurement points (detector layers) to fit. This must be no less than 5, with at least 2 axial and 2 stereo
+        // y = nominal location of each measurement plane along the beam axis
+        // v = measurement value in the detector coordinate system, perpendicular to the strips
+        // s = one sigma error estimate on each measurement
+        // delta = offset of the detector coordinate system from the global system (minus the nominal y value along the beam axis)
+        // R2 = 2nd row of the general rotation from the global system to the local detector system
+
+        A[0][0] = 0.;
+        A[0][1] = 0.;
+        A[0][2] = 0.;
+        A[0][3] = 0.;
+        A[0][4] = 0.;
+        A[1][1] = 0.;
+        A[1][4] = 0.;
+        A[2][2] = 0.;
+        A[2][3] = 0.;
+        A[2][4] = 0.;
+        A[3][4] = 0.;
+        A[4][4] = 0.;
+        B[0] = 0.;
+        B[1] = 0.;
+        B[2] = 0.;
+        B[3] = 0.;
+        B[4] = 0.;
+        for (int i = 0; i < N; i++) {
+            double R10 = R2[i][0];
+            double R11 = R2[i][1];
+            double R12 = R2[i][2];
+            double w = 1.0 / (s[i] * s[i]);
+
+            A[0][0] += w * R12 * R12;
+            A[0][1] += w * y[i] * R12 * R12;
+            A[0][2] += w * R12 * R10;
+            A[0][3] += w * y[i] * R12 * R10;
+            A[0][4] += w * y[i] * y[i] * R12 * R10;
+            A[1][1] += w * y[i] * y[i] * R12 * R12;
+            A[1][4] += w * y[i] * y[i] * y[i] * R12 * R10;
+            A[2][2] += w * R10 * R10;
+            A[2][3] += w * y[i] * R10 * R10;
+            A[2][4] += w * y[i] * y[i] * R10 * R10;
+            A[3][4] += w * y[i] * y[i] * y[i] * R10 * R10;
+            A[4][4] += w * y[i] * y[i] * y[i] * y[i] * R10 * R10;
+            double vcorr = (v[i] + R10 * delta[i][0] + R12 * delta[i][2] + R11 * (delta[i][1] - y[i]));
+            B[0] += vcorr * R12 * w;
+            B[1] += vcorr * y[i] * R12 * w;
+            B[2] += vcorr * R10 * w;
+            B[3] += vcorr * y[i] * R10 * w;
+            B[4] += vcorr * y[i] * y[i] * R10 * w;
+        }
+        A[1][0] = A[0][1];
+        A[1][2] = A[0][3];
+        A[1][3] = A[0][4];
+        A[2][0] = A[0][2];
+        A[2][1] = A[1][2];
+        A[3][0] = A[0][3];
+        A[3][1] = A[1][3];
+        A[3][2] = A[2][3];
+        A[3][3] = A[2][4];
+        A[4][0] = A[0][4];
+        A[4][1] = A[1][4];
+        A[4][2] = A[2][4];
+        A[4][3] = A[3][4];
+
+        CovA = new DMatrixRMaj(A);
+        DMatrixRMaj V = new DMatrixRMaj(B);
+        
+        if (debug) {
+            System.out.format("SeedTrack:LinearHelixFit, A matrix= ");
+            CovA.print();
+            System.out.format("SeedTrack:LinearHelixFit, B vector= ");
+            V.print();
+        }
+
+        // Do the calculation
+        CommonOps_DDRM.invert(CovA);
+        CommonOps_DDRM.mult(CovA,V,a);
+
+        // Add up the chi-squared
+        chi2 = 0.;
+        for (int i = 0; i < N; i++) {
+            double R10 = R2[i][0];
+            double R11 = R2[i][1];
+            double R12 = R2[i][2];
+            vpred[i] = R10 * (evaluateParabola(y[i]) - delta[i][0]) + R12 * (evaluateLine(y[i]) - delta[i][2]) + R11 * (y[i] - delta[i][1]);
+            //   R10 -0.000146  ePyi -4.094654  deltai0 -22.794523  R12 -0.999999 eLyi 22.174849  deltai2 32.839151  R11 -0.001407  yi 912.877681  deltai1 912.892707
+            //System.out.printf("  R10 %f  ePyi %f  deltai0 %f  R12 %f eLyi %f  deltai2 %f  R11 %f  yi %f  deltai1 %f \n", R10, evaluateParabola(y[i]), delta[i][0], R12, evaluateLine(y[i]), delta[i][2], R11, y[i], delta[i][1]);
+            double err = (v[i] - vpred[i]) / s[i];
+            chi2 += err * err;
+        }
+    }
+    
+    private double evaluateLine(double y) {
+        return a.unsafe_get(0,0) + a.unsafe_get(1,0) * y;
+    }
+
+    private double evaluateParabola(double y) {
+        return a.unsafe_get(2,0) + (a.unsafe_get(3,0) + a.unsafe_get(4,0) * y) * y;
+    }
+    
+    private void printFit(int N, double[] x, double[] y, double[] z, double[] v, double[] s) {
+        System.out.format("LinearHelixFit: parabola a=%10.7f   b=%10.7f   c=%10.7f\n", a.get(2,0), a.get(3,0), a.get(4,0));
+        System.out.format("LinearHelixFit:     line a=%10.7f   b=%10.7f\n", a.get(0,0), a.get(1,0));
+        System.out.println("LinearHelixFit covariance:");
+        CovA.print();
+        System.out.format(
+                "LinearHelixFit: i  xMC   xpred       y           zMC       zpred        v    v predicted   residual   sigmas       chi^2=%8.3f\n",
+                chi2);
+        for (int i = 0; i < N; i++) {
+            double xpred = evaluateParabola(y[i]);
+            double zpred = evaluateLine(y[i]);
+            System.out.format("        %d   %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f\n", i, x[i], xpred, y[i], z[i],
+                    zpred, v[i], vpred[i], v[i] - vpred[i], (v[i] - vpred[i]) / s[i]);
+        }
     }
 }

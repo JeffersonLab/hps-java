@@ -46,7 +46,7 @@ public abstract class HPSTrackerBuilder {
         } else {
             // Read alignment constants from compact XML file (default behavior).
             LOGGER.config("Mille parameters will be read from compact.xml file.");
-            System.out.println(this.getClass().getSimpleName()+"  Mille parameters will be read from compact.xml file");
+            //System.out.println(this.getClass().getSimpleName()+"  Mille parameters will be read from compact.xml file");
             initAlignmentParameters();
         }
 
@@ -60,7 +60,7 @@ public abstract class HPSTrackerBuilder {
      * Extract alignment constants from xml description
      */
     private void initAlignmentParameters() {
-        debug = true;
+        
         if (debug)
             System.out.printf("%s: initAlignmentParameters from %s\n", this.getClass().getSimpleName(),
                     node.getAttributeValue("name"));
@@ -109,7 +109,7 @@ public abstract class HPSTrackerBuilder {
                 System.out.printf("%s: %s \n", this.getClass().getSimpleName(), p.toString());
         }
 
-        debug = false;
+        
     }
 
 
@@ -139,18 +139,17 @@ public abstract class HPSTrackerBuilder {
                 }
             }
         }
-        //Only support first layers for the moment.
-        if (tFound != 3 || rFound != 3) {
-            throw new RuntimeException("Problem finding translation alignment parameters (found t " + tFound + " r "
-                                       + rFound + ") for " + (isTopLayer ? "top" : "bottom") + " layer " + layer);
-            //System.out.println("ERROR ERROR ERROR TEMPORARY TEMPORARY TEMPORARY ");
-            
+        
+        if (tFound != 3 || rFound != 3){
+            //System.out.println("MPII constants for layer "+layer + " " + (isTopLayer ? "top" : "bottom") + " not found. Set to 0.");
+            //throw new RuntimeException("Problem finding translation alignment parameters (found t " + tFound + " r "
+            //                     + rFound + ") for " + (isTopLayer ? "top" : "bottom") + " layer " + layer);
         }
         AlignmentCorrection c = new AlignmentCorrection();
         c.setTranslation(new BasicHep3Vector(t));
         c.setRotation(r[0], r[1], r[2]);
         if (localDebug) {
-            System.out.println(this.getClass().getSimpleName()+" PF::Debug::Alignment correction for MPII-ID top=" + isTopLayer +" layer="+layer);
+            System.out.println(this.getClass().getSimpleName()+"Debug::Alignment correction for MPII-ID top=" + isTopLayer +" layer="+layer);
             System.out.println("t[0] = " + t[0] + " t[1]= " + t[1]+ " t[2]=" + t[2]);
             System.out.println("r[0] = " + r[0] + " r[1]= " + r[1]+ " r[2]=" + r[2]);
         }
@@ -165,7 +164,7 @@ public abstract class HPSTrackerBuilder {
      */
 
     protected AlignmentCorrection getUChannelCorrection(boolean isTopLayer, int mpid) {
-        boolean localDebug = true;
+        boolean localDebug = false;
         double r[] = {0, 0, 0};
         double t[] = {0, 0, 0};
         for (MilleParameter p_loop : milleparameters) {
@@ -192,6 +191,14 @@ public abstract class HPSTrackerBuilder {
                 r[p_loop.getDim() - 1] = p_loop.getValue();
             }
             
+            //Backward compatibility - global structures have type = 3 - Only valid for front UChannel (filter on mpid == 80)
+            if (paramIsTop == isTopLayer && p_loop.getType() == 3 && mpid == 80) { 
+                // xcheck The L13-UChannel has MPID 0
+                if (p_loop.getSensor() != 0)  
+                    throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
+                r[p_loop.getDim() - 1] = p_loop.getValue(); 
+            }
+            
         }
         
         AlignmentCorrection c = new AlignmentCorrection();
@@ -199,7 +206,7 @@ public abstract class HPSTrackerBuilder {
         c.setRotation(r[0], r[1], r[2]);
         
         if (localDebug) {
-            System.out.println(this.getClass().getSimpleName()+" PF::Debug::Alignment correction for MPII-ID top=" + isTopLayer);
+            System.out.println(this.getClass().getSimpleName()+"Debug::Alignment correction for MPII-ID top=" + isTopLayer);
             System.out.println("t[0] = " + t[0] + " t[1]= " + t[1]+ " t[2]=" + t[2]);
             System.out.println("r[0] = " + r[0] + " r[1]= " + r[1]+ " r[2]=" + r[2]);
         }
@@ -223,7 +230,7 @@ public abstract class HPSTrackerBuilder {
 
             //Loop over the translations
             if (paramIsTop == isTopLayer && p_loop.getType() == 1) {
-                // xcheck The L13-UChannel has MPID 0
+                // xcheck The L13-UChannel has MPID 80
                 if (p_loop.getSensor() != 0 || p_loop.getSensor() != 80)
                     continue;
                 //throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
@@ -255,7 +262,7 @@ public abstract class HPSTrackerBuilder {
         c.setRotation(r[0], r[1], r[2]);
         
         if (localDebug) {
-            System.out.println(this.getClass().getSimpleName()+" PF::Debug::Alignment correction for MPII-ID top=" + isTopLayer);
+            System.out.println(this.getClass().getSimpleName()+"Debug::Alignment correction for MPII-ID top=" + isTopLayer);
             System.out.println("t[0] = " + t[0] + " t[1]= " + t[1]+ " t[2]=" + t[2]);
             System.out.println("r[0] = " + r[0] + " r[1]= " + r[1]+ " r[2]=" + r[2]);
         }

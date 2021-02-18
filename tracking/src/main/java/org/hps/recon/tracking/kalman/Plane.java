@@ -1,6 +1,10 @@
 package org.hps.recon.tracking.kalman;
-
-class Plane { // Description of a 2D plane in 3D space
+/**
+ * Description of a 2D plane in 3D space
+ * @author Robert
+ *
+ */
+class Plane { 
 
     private Vec x; // A point in the plane, at the origin of the local plane's coordinate system
     private Vec t; // Unit vector perpendicular to the plane

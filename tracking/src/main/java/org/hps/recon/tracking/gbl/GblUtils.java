@@ -340,8 +340,8 @@ public class GblUtils {
                                      aPrecision, proL2m,sArc2D,htf.slope(),htf.phi0() - sArc2D/htf.R());
             
     }
-    
 
+    //This method fails with singular matrices. TODO:: Check why that happens
     /**
      * Calculate the Jacobian from Curvilinear to Perigee frame.
      * 
@@ -350,10 +350,15 @@ public class GblUtils {
      * @param bfield - magnitude of B-field
      * @return the Jacobian matrix from Curvilinear to Perigee frame
      */
-    public static Matrix getCLToPerigeeJacobian(HelicalTrackFit helicalTrackFit, HpsHelicalTrackFit helicalTrackFitAtIPCorrected, double bfield) {
+    
+    /*
+      public static Matrix getCLToPerigeeJacobian(HelicalTrackFit helicalTrackFit, HpsHelicalTrackFit helicalTrackFitAtIPCorrected, double bfield) {
         
         return getCLToPerigeeJacobian(helicalTrackFitAtIPCorrected, bfield);
     }
+    
+    */
+
     
     /**
      * Calculate the Jacobian from Curvilinear to Perigee frame.
@@ -362,7 +367,7 @@ public class GblUtils {
      * @param bfield - magnitude of B-field
      * @return the Jacobian matrix from Curvilinear to Perigee frame
      */
-    public static Matrix getCLToPerigeeJacobian(HpsHelicalTrackFit helicalTrackFitAtIPCorrected, double bfield) {
+    public static Matrix getCLToPerigeeJacobian(HelicalTrackFit helicalTrackFit, HpsHelicalTrackFit helicalTrackFitAtIPCorrected, double bfield) {
         
         /*
          * This part is taken from: // Strandlie, Wittek, NIMA 566, 2006 Matrix covariance_gbl = new Matrix(5, 5);
@@ -400,12 +405,15 @@ public class GblUtils {
         // TODO should this not be the corrected helix?
         // It's a very small effect, but yes since lambda gets corrected and the Projection depends on lambda (only).
         // PF::08/07/2020
+        // However I noticed several cases where the jacobian is singular. Those cases should be investigated
+        // But for the moment revert to the old computation, although I think it is not fully correct. 
         
         //Hep3Matrix perToClPrj = getPerToClPrj(helicalTrackFit);
         double tanLambda = helicalTrackFitAtIPCorrected.slope();
         
         
-        Hep3Matrix perToClPrj   = getPerToClPrj(helicalTrackFitAtIPCorrected);
+        //Hep3Matrix perToClPrj   = getPerToClPrj(helicalTrackFitAtIPCorrected);
+        Hep3Matrix perToClPrj     = getPerToClPrj(helicalTrackFit);
         
         //This has been checked and is equivalent to perToClPrj. In some cases the matrix is indetermined tho. 
         //TODO::Check those cases. For the moment back to the old computation

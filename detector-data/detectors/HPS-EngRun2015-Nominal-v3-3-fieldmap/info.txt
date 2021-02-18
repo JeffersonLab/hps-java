@@ -1,0 +1,1 @@
+renamed:    detector-data/detectors/HPS-EngRun2015-Nominal-v3-3-fieldmap/compact_millepede-milleBinaryISN_hps_005772.evio.0.v3-1-fieldmap-100k.gbl-v3-1-fieldmap-100k-L2345_tu_rw_singleLayerIter_L234_L345_tu_rwIter0Iter1Iter2Iter3Iter4Iter5.xml -> detector-data/detectors/HPS-EngRun2015-Nominal-v3-3-fieldmap/compact_millepede.xml

@@ -186,20 +186,20 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
             
             System.out.printf("%s check for support ring %s \n", getClass().getSimpleName(), surveyVolume.getName());
             if (HPSTrackerBuilder.isSupportRingKinMount(surveyVolume.getName())) {
-                System.out.printf("%s PF::create the support ring detector element\n", getClass().getSimpleName());
+                //System.out.printf("%s PF::create the support ring detector element\n", getClass().getSimpleName());
                 IDetectorElement supportRingKin = createAlignableSupport(surveyVolume);
             }
             
             System.out.printf("%s check for back uChannel %s \n", getClass().getSimpleName(), surveyVolume.getName());
             
             if (HPSTrackerBuilder.isUChannelSupport(surveyVolume.getName())) {
-                System.out.printf("%s PF::create the uChannel detector element\n",getClass().getSimpleName());
+                //System.out.printf("%s PF::create the uChannel detector element\n",getClass().getSimpleName());
                 IDetectorElement uchannelSupport = createAlignableSupport(surveyVolume);
             }
             
             if (HPSTrackerBuilder.isModule(surveyVolume.getName())) {
                 
-                System.out.printf("%s PF::create the layer detector element\n", getClass().getSimpleName());
+                //System.out.printf("%s PF::create the layer detector element\n", getClass().getSimpleName());
                 IDetectorElement fullmoduleDe = createAlignableModuleDetectorElement(surveyVolume);
             }
                         
@@ -589,7 +589,7 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
             throw new RuntimeException("Support DE couldn't be found. Shouldn't happen!");
         }
         else {
-            System.out.printf("DEBUG::PF:: found support volume %s for surveyVolume %s \n", supportDe.getName(), surveyVolume.getName());
+            //System.out.printf("DEBUG::PF:: found support volume %s for surveyVolume %s \n", supportDe.getName(), surveyVolume.getName());
         }
         
         // create the layer detector element and keep track of it

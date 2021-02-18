@@ -2,8 +2,14 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.Random;
 
-// Runge-Kutta propagation through the detector, including Gaussian MCS at silicon planes.
-// This code is only to help with internal testing of the Kalman package and is not part of the fitting or pattern recognition.
+import org.apache.commons.math.util.FastMath;
+/**
+ * 
+ * Runge-Kutta propagation through the detector, including Gaussian MCS at silicon planes.
+ * This code is only to help with internal testing of the Kalman package and is not part of the fitting or pattern recognition.
+ * @author Robert Johnson
+ *
+ */
 class RKhelix {
 
     Vec x;    // point on the track
@@ -85,12 +91,12 @@ class RKhelix {
         double theta0;
         
         if (X == 0.) theta0 = 0.;  // Get the scattering angle
-        else theta0 = Math.sqrt((X / radLen) / ct) * (0.0136 / p.mag()) * (1.0 + 0.038 * Math.log((X / radLen) / ct));
+        else theta0 = FastMath.sqrt((X / radLen) / ct) * (0.0136 / p.mag()) * (1.0 + 0.038 * FastMath.log((X / radLen) / ct));
         double thetaX = rndm.nextGaussian() * theta0;
         double thetaY = rndm.nextGaussian() * theta0;
-        double tx = Math.sin(thetaX);
-        double ty = Math.sin(thetaY);
-        Vec tLoc = new Vec(tx, ty, Math.sqrt(1.0 - tx * tx - ty * ty));
+        double tx = FastMath.sin(thetaX);
+        double ty = FastMath.sin(thetaY);
+        Vec tLoc = new Vec(tx, ty, FastMath.sqrt(1.0 - tx * tx - ty * ty));
         Vec tnew = Rp.inverseRotate(tLoc);
 
         double E = p.mag(); // Everything is assumed electron

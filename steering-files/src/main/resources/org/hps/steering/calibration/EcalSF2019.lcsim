@@ -1,0 +1,34 @@
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+     <execute>
+     	<driver name="EventMarkerDriver"/>
+        <driver name="SF2019"/>
+        <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>        
+     </execute>
+     <drivers>
+   <!--     <driver name="FEEfilter" type="org.hps.recon.filtering.FEEFilterDriver">
+        </driver>-->
+        <driver name="SF2019" type="org.hps.analysis.ecal.SF2019Driver">
+           <inputCollection>${EcalClustersCollectionName}</inputCollection> <!--name of EcalClusters collection name-->
+           <outputPlots>yes</outputPlots>
+           <beamEnergy>${beamE}</beamEnergy>
+
+           <pid>${pid}</pid>
+
+        </driver>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+           <ignoreCollections>EcalCalHits EcalClusters</ignoreCollections>
+           <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver">
+        </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+           <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>
+     </drivers>
+</lcsim>
+

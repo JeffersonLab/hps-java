@@ -15,8 +15,11 @@ import java.util.Set;
 import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.util.Pair;
-
-//This is for testing only and is not part of the Kalman fitting code
+/**
+ * This is for stand-alone testing of the pattern recognition only and is not part of the Kalman fitting code
+ * @author Robert Johnson
+ *
+ */
 class PatRecTest {
 
     Random rnd;
@@ -24,17 +27,22 @@ class PatRecTest {
     PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000;              // The number of test eventNumbers to generate for pattern recognition and fitting
-        int mxPlot = 10;                // Maximum number of single event plots
-        int [] eventToPrint = {};
+        int nTrials = 1000;              // The number of test eventNumbers to generate for pattern recognition and fitting
+        int mxPlot = 10;                  // Maximum number of single event plots
+        int [] eventToPrint = {1,2,3,4,5,6,7,8,9,10};
         boolean perfect = false;
+        int mxHitsTkr = 5;               // Maximum number of hits for a simulated helix
 
-        boolean rungeKutta = true;      // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
+        boolean rungeKutta = true;       // Set true to generate the helix by Runge Kutta integration instead of a piecewise helix
         boolean verbose = false;
-        boolean noisy = true;
-        boolean smear = true;          // Smear initial momentum vector randomly
+        boolean noisy = false;
+        boolean smear = true;            // Smear initial momentum vector randomly
         boolean uniformB = false;
         double hitEfficiency = 0.90;
+        double [] vtxRes = {0.1, 0.5, 0.05};
+        int nHelices = 1; // Number of helix tracks to simulate
+        if (!smear) nHelices = 1;
+        double executionTime = 0.;
 
         // Seed the random number generator
         long rndSeed = -3113005327838135103L;
@@ -44,6 +52,8 @@ class PatRecTest {
         // Set pattern recognition parameters
         KalmanParams kPar = new KalmanParams();
         kPar.setIterations(2);
+        kPar.setMinHits(5);
+        KalmanPatRecHPS patRec = new KalmanPatRecHPS(kPar);
         
         // Definition of the magnetic field
         String mapType = "binary";
@@ -67,75 +77,75 @@ class PatRecTest {
 
         double yStart = 103.69;
         plnInt = new Plane(new Vec(3.4814, yStart, 20.781), new Vec(-0.030928, -0.99952, 0.00056169), -0.100076);
-        newModule = new SiModule(2, plnInt, true, 200., 47.17, thickness, fM, 0);
+        newModule = new SiModule(2, plnInt, true, 200., 47.17, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(3.7752, 111.75, 20.770), new Vec(0.029092, 0.99957, 0.0031495), 0.000303);
-        newModule = new SiModule(3, plnInt, false, 200., 47.17, thickness, fM, 0);
+        newModule = new SiModule(3, plnInt, false, 200., 47.17, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(6.6595, 203.81, 22.296), new Vec(-0.029875, -0.99954, 0.0053661), -0.099851);
-        newModule = new SiModule(4, plnInt, true, 200., 47.17, thickness, fM, 0);
+        newModule = new SiModule(4, plnInt, true, 200., 47.17, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(6.7661, 211.87, 22.281), new Vec(0.028940, 0.99958, 0.0028008), 0.000145);
-        newModule = new SiModule(5, plnInt, false, 200., 47.17, thickness, fM, 0);
+        newModule = new SiModule(5, plnInt, false, 200., 47.17, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(9.4835, 303.76, 23.796), new Vec(-0.029471, -0.99955, 0.0048642), -0.100012);
-        newModule = new SiModule(6, plnInt, true, 200., 47.17, thickness, fM, 0);
+        newModule = new SiModule(6, plnInt, true, 200., 47.17, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(9.7121, 311.63, 23.777), new Vec(0.027875, 0.99961, -0.0027053), 0.000106);
-        newModule = new SiModule(7, plnInt, false, 200., 47.17, thickness, fM, 0);
+        newModule = new SiModule(7, plnInt, false, 200., 47.17, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(-35.087, 505.57, 29.328), new Vec(-0.029044, -0.99958, 0.0022785), -0.049060);
-        newModule = new SiModule(8, plnInt, true, 100., 40.34, thickness, fM, 0);
+        newModule = new SiModule(8, plnInt, true, 100., 40.34, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(65.791, 502.52, 24.294), new Vec(-0.030402, -0.99954, 0.0012687), -0.050671);
-        newModule = new SiModule(8, plnInt, true, 100., 40.34, thickness, fM, 1);
+        newModule = new SiModule(8, plnInt, true, 100., 40.34, false, thickness, fM, 1);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(-34.848, 513.08, 26.824), new Vec(0.030086, 0.99954, -0.0021664), 0.000199);
-        newModule = new SiModule(9, plnInt, false, 100., 40.34, thickness, fM, 0);
+        newModule = new SiModule(9, plnInt, false, 100., 40.34, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(65.958, 510.03, 26.821), new Vec(0.030452, 0.99954, -0.00060382), 0.000194);
-        newModule = new SiModule(9, plnInt, false, 100., 40.34, thickness, fM, 1);
+        newModule = new SiModule(9, plnInt, false, 100., 40.34, false, thickness, fM, 1);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(-29.010, 705.47, 32.358), new Vec(-0.030508, -0.99953, -0.00048837), -0.050035);
-        newModule = new SiModule(10, plnInt, true, 100., 40.34, thickness, fM, 0);
+        newModule = new SiModule(10, plnInt, true, 100., 40.34, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(71.778, 702.43, 27.322), new Vec(-0.029627, -0.99956, -0.0015542), -0.050102);
-        newModule = new SiModule(10, plnInt, true, 100., 40.34, thickness, fM, 1);
+        newModule = new SiModule(10, plnInt, true, 100., 40.34, false, thickness, fM, 1);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(-28.846, 713.07, 29.845), new Vec(0.029810, 0.99956, -0.00084633), 0.000172);
-        newModule = new SiModule(11, plnInt, false, 100., 40.34, thickness, fM, 0);
+        newModule = new SiModule(11, plnInt, false, 100., 40.34, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(72.034, 710.03, 29.845), new Vec(0.030891, 0.99952, 0.00016092), 0.000205);
-        newModule = new SiModule(11, plnInt, false, 100., 40.34, thickness, fM, 1);
+        newModule = new SiModule(11, plnInt, false, 100., 40.34, false, thickness, fM, 1);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(-22.879, 905.35, 35.309), new Vec(-0.029214, -0.99957, 0.0019280), -0.049801);
-        newModule = new SiModule(12, plnInt, true, 100., 40.34, thickness, fM, 0);
+        newModule = new SiModule(12, plnInt, true, 100., 40.34, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(77.869, 902.35, 30.284), new Vec(-0.029989, -0.99955, -0.00062471), -0.049863);
-        newModule = new SiModule(12, plnInt, true, 100., 40.34, thickness, fM, 1);
+        newModule = new SiModule(12, plnInt, true, 100., 40.34, false, thickness, fM, 1);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(-22.795, 912.89, 32.839), new Vec(0.028266, 0.99960, -0.0014105), 0.000107);
-        newModule = new SiModule(13, plnInt, false, 100., 40.34, thickness, fM, 0);
+        newModule = new SiModule(13, plnInt, false, 100., 40.34, false, thickness, fM, 0);
         SiModules.add(newModule);
 
         plnInt = new Plane(new Vec(78.097, 909.99, 32.835), new Vec(0.030889, 0.99952, -0.00029751), 0.000071);
-        newModule = new SiModule(13, plnInt, false, 100., 40.34, thickness, fM, 1);
+        newModule = new SiModule(13, plnInt, false, 100., 40.34, false, thickness, fM, 1);
         SiModules.add(newModule);
         
         for (SiModule siM : SiModules) {
@@ -160,8 +170,6 @@ class PatRecTest {
                     si.p.X().v[1], xdet[i], ydet[i], zdet[i]);
         }
 
-        int nHelices = 2; // Number of helix tracks to simulate
-        if (!smear) nHelices = 1;
         double[] Q = new double[nHelices]; // charge
         double[] p = new double[nHelices]; // momentum
         Vec helixOrigin = new Vec(0., 0., 0.); // Pivot point of initial helices
@@ -174,6 +182,7 @@ class PatRecTest {
         Histogram hNhits = new Histogram(15, 0., 1., "Number of hits per fitted track", "hits", "tracks");
         Histogram hScatProj = new Histogram(100, -0.01, 0.0002, "Projected Scattering Angle", "radians", "Si planes");
         Histogram hTkChi2 = new Histogram(100, 0., 1.0, "Track helix fit chi^2 after smoothing", "chi^2", "tracks");
+        Histogram hTkChi2Vtx = new Histogram(100, 0., 0.1, "Track vtx constraint chi^2", "chi^2", "tracks");
         Histogram hEdrhoS = new Histogram(100, -10., 0.2, "Smoothed helix parameter drho error", "sigmas", "track");
         Histogram hEdrho = new Histogram(100, -2., 0.04, "drho error", "mm", "tracks");
         Histogram hEphi0S = new Histogram(100, -10., 0.2, "Smoothed helix parameter phi0 error", "sigmas", "track");
@@ -335,7 +344,7 @@ class PatRecTest {
                         double occ = 0.0002 + 0.005 * Math.exp(-(thisSi.yExtent[1] - ys) / a);
                         if (rnd.nextDouble() < occ) {
                             Vec pntGlobal = thisSi.toGlobal(new Vec(0., ys, 0.));
-                            Measurement ms = new Measurement(ys, resolution, 0., pntGlobal, 999.);
+                            Measurement ms = new Measurement(ys, 0., resolution, 0., 10., pntGlobal, 999.);
                             thisSi.addMeasurement(ms);
                         }
                     }
@@ -348,6 +357,7 @@ class PatRecTest {
                     printWriter2.format("$helix%d << EOD\n", ih);
                     System.out.format("Begin simulation of helix number %d\n", ih);
                 }
+                int nLyrHit = 0;
                 for (int icm = 0; icm < SiModules.size(); icm++) {
                     SiModule thisSi = SiModules.get(icm);
                     if (thisSi.Layer < 0) { continue; }
@@ -405,7 +415,7 @@ class PatRecTest {
                         if (verbose) { System.out.format("     Intersection point is outside of the detector %d in layer %d\n", det, pln); }
                         continue;
                     }
-                    if (rnd.nextDouble() < hitEfficiency) { // Apply some hit inefficiency
+                    if (rnd.nextDouble() < hitEfficiency && nLyrHit < mxHitsTkr) { // Apply some hit inefficiency
                         double[] gran = new double[2];
                         if (perfect) {
                             gran[0] = 0.;
@@ -429,10 +439,11 @@ class PatRecTest {
                             md.addMC(ih);
                             if (verbose) { System.out.format("Overlapping with hit at v=%8.4f\n", md.v); }
                         } else {
-                            Measurement thisM1 = new Measurement(m1, resolution, 0., rscat, rDet.v[1]);
+                            Measurement thisM1 = new Measurement(m1, 0., resolution, 0., 10., rscat, rDet.v[1]);
                             thisM1.addMC(ih);
                             thisSi.addMeasurement(thisM1);
-                            if (verbose) { System.out.format("Adding measurement. Size of hit array=%d\n", thisSi.hits.size()); }
+                            if (verbose) System.out.format("Adding measurement. Size of hit array=%d\n", thisSi.hits.size());
+                            nLyrHit++;
                         }
                     }
                     if (icm + 1 < SiModules.size()) {
@@ -483,8 +494,22 @@ class PatRecTest {
                 printWriter2.close();
             }
 
-            if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRecHPS.\n");
-            KalmanPatRecHPS patRec = new KalmanPatRecHPS(SiModules, 0, eventNumber, kPar);
+            if (verbose) System.out.format("\n\n ******* PatRecTest: now making the call to KalmanPatRec.\n");
+            Vec vtx = helixOrigin.copy();
+            for (int i=0; i<3; ++i) {
+                vtx.v[i] += rnd.nextGaussian() * vtxRes[i];
+            }
+            SquareMatrix vtxCov = new SquareMatrix(3);
+            vtxCov.M[0][0] = vtxRes[0]*vtxRes[0];
+            vtxCov.M[1][1] = vtxRes[1]*vtxRes[1];
+            vtxCov.M[2][2] = vtxRes[2]*vtxRes[2];
+            patRec.patRecSetVtx(vtx.v, vtxCov.M);
+            long startTimeF = System.nanoTime();
+            int topBottom = 0;
+            ArrayList<KalTrack> kPat = patRec.kalmanPatRec(SiModules, topBottom, eventNumber);
+            long endTimeF = System.nanoTime();
+            double runTime = (double)(endTimeF - startTimeF)/1000000.;
+            executionTime += runTime;
             if (nPlot < mxPlot && verbose) {  // Code to make a single event display using gnuplot
                 nPlot++;
                 PrintWriter printWriter3 = null;
@@ -505,14 +530,14 @@ class PatRecTest {
                 printWriter3.format("set xlabel 'X'\n");
                 printWriter3.format("set ylabel 'Y'\n");
                 double vPos = 0.9;
-                for (KalTrack tkr : patRec.TkrList) {
+                for (KalTrack tkr : kPat) {
                     double [] a = tkr.originHelixParms();
                     String s = String.format("TB %d Track %d, %d hits, chi^2=%7.1f, a=%8.3f %8.3f %8.3f %8.3f %8.3f", 
-                            patRec.topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4]);
+                            topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4]);
                     printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);
                     vPos = vPos - 0.03;
                 }
-                for (KalTrack tkr : patRec.TkrList) {
+                for (KalTrack tkr : kPat) {
                     printWriter3.format("$tkr%d << EOD\n", tkr.ID);
                     for (MeasurementSite site : tkr.SiteList) {
                         StateVector aS = site.aS;
@@ -530,7 +555,7 @@ class PatRecTest {
                     }
                     printWriter3.format("EOD\n");
                 }
-                for (KalTrack tkr : patRec.TkrList) {
+                for (KalTrack tkr : kPat) {
                     printWriter3.format("$tkp%d << EOD\n", tkr.ID);
                     for (MeasurementSite site : tkr.SiteList) {
                         SiModule m = site.m;
@@ -554,15 +579,15 @@ class PatRecTest {
                 }
                 printWriter3.format("EOD\n");
                 printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2");
-                for (KalTrack tkr : patRec.TkrList) { printWriter3.format(", $tkr%d u 1:2:3 with lines lw 3", tkr.ID); }
-                for (KalTrack tkr : patRec.TkrList) { printWriter3.format(", $tkp%d u 1:2:3 with points pt 7 ps 2", tkr.ID); }
+                for (KalTrack tkr : kPat) { printWriter3.format(", $tkr%d u 1:2:3 with lines lw 3", tkr.ID); }
+                for (KalTrack tkr : kPat) { printWriter3.format(", $tkp%d u 1:2:3 with points pt 7 ps 2", tkr.ID); }
                 printWriter3.format("\n");
                 printWriter3.close();
             }
             // Analysis of the tracking results
-            int nTracks = patRec.TkrList.size();
+            int nTracks = kPat.size();
             hNtracks.entry(nTracks);
-            for (KalTrack tkr : patRec.TkrList) {
+            for (KalTrack tkr : kPat) {
                 // Check on the covariance matrix
                 Matrix C = new Matrix(tkr.originCovariance());
                 EigenvalueDecomposition eED= new EigenvalueDecomposition(C);
@@ -584,6 +609,9 @@ class PatRecTest {
                     tkr.print("from KalmanPatRecHPS");
                 }
                 hNhits.entry(tkr.nHits);
+                if (tkr.nHits == 5) {
+                    hTkChi2Vtx.entry(tkr.chi2);
+                }
                 hTkChi2.entry(tkr.chi2);
                 double[] momentum = tkr.originP();
                 double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
@@ -725,10 +753,13 @@ class PatRecTest {
         ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
         System.out.format("%s %d %d at %d:%d %d.%d seconds\n", ldt.getMonth(), ldt.getDayOfMonth(), ldt.getYear(), ldt.getHour(),
                 ldt.getMinute(), ldt.getSecond(), ldt.getNano());
+        System.out.format("Elapsed time for Kalman Pattern Recognition = %10.4f ms\n", executionTime);
+
 
         hNtracks.plot(path + "nTracks.gp", true, " ", " ");
         hNhits.plot(path + "nHits.gp", true, " ", " ");
         hTkChi2.plot(path + "tkrChi2.gp", true, " ", " ");
+        hTkChi2Vtx.plot(path + "tkrChi2Vtx.gp", true, " ", " ");
         hEdrhoS.plot(path + "drhoErrorS.gp", true, "gaus", " ");
         hEphi0S.plot(path + "phi0ErrorS.gp", true, "gaus", " ");
         hEkS.plot(path + "kErrorS.gp", true, "gaus", " ");

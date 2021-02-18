@@ -223,9 +223,16 @@ public class HpsGblRefitter {
             // track direction in tracking/global frame
             Hep3Vector tDirGlobal = new BasicHep3Vector(cosPhi * cosLambda, sinPhi * cosLambda, sinLambda);
 
+            if (debug) {
+                System.out.println("track directions: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString() );
+            }
+
             // Cross-check that the input is consistent
+            //if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
             if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
-                throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
+                //throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
+                LOGGER.warning("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
+                return null;
             }
 
             // rotate track direction to measurement frame

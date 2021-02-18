@@ -1,12 +1,18 @@
 package org.hps.readout.ecal.updated;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Set;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
+import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.readout.DigitizationReadoutDriver;
 import org.hps.readout.ReadoutTimestamp;
+import org.hps.record.daqconfig2019.ConfigurationManager2019;
+import org.hps.record.daqconfig2019.DAQConfig2019;
+import org.hps.record.daqconfig2019.FADCConfigEcal2019;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
@@ -18,10 +24,20 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * of the calorimeter-specific functions needed by the superclass.
  * 
  * @author Kyle McCarty <mccarty@jlab.org>
+ * @author Tongtong Cao <caot@jlab.org>
  */
-public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPSEcal3> {
+public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPSEcal3> {    
+    // The DAQ configuration manager for FADC parameters.
+    private FADCConfigEcal2019 config = new FADCConfigEcal2019();
+    
+    // The number of nanoseconds in a clock-cycle (sample).
+    private static final int nsPerSample = 4;
+    
     /** Stores the conditions for this subdetector. */
     private EcalConditions ecalConditions = null;
+    
+    /** Stores the channel collection for this subdetector. */
+    private EcalChannelCollection geoMap = new EcalChannelCollection();
     
     public EcalDigitizationReadoutDriver() {
         // Set the default values for each subdetector-dependent
@@ -36,16 +52,51 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
         
         setPhotoelectronsPerMeV(32.8);
         setPulseTimeParameter(9.6);
+    }    
+    
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfigurationAppliedintoReadout(boolean state) {
+        // If the DAQ configuration should be read, attach a listener
+        // to track when it updates.               
+        if (state) {
+            ConfigurationManager2019.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig2019 daq = ConfigurationManager2019.getInstance();
+
+                    // Load the DAQ settings from the configuration manager.
+                    numSamplesAfter = daq.getEcalFADCConfig().getNSA() / nsPerSample;
+                    numSamplesBefore = daq.getEcalFADCConfig().getNSB() / nsPerSample;
+                    readoutWindow = daq.getEcalFADCConfig().getWindowWidth() / nsPerSample;
+                    
+                    // Get the FADC configuration.
+                    config = daq.getEcalFADCConfig();
+                    integrationThreshold = config.getThreshold((int)10);
+                }
+            });
+        }
     }
     
     @Override
-    public void detectorChanged(Detector detector) {
+    public void detectorChanged(Detector detector) {        
         // Get a copy of the calorimeter conditions for the detector.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         
+        // Store the calorimeter conditions table for converting between
+        // geometric IDs and channel objects.
+        geoMap = DatabaseConditionsManager.getInstance().getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
+        
         // Run the superclass method.
         super.detectorChanged(detector);
-    }
+    }    
     
     @Override
     protected Set<Long> getChannelIDs() {
@@ -53,24 +104,29 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
     }
     
     @Override
-    protected double getGainConditions(long channelID) {
-        return findChannel(channelID).getGain().getGain();
+    protected double getGainConditions(long cellID) {        
+        return findChannel(cellID).getGain().getGain();
     }
     
     @Override
-    protected double getNoiseConditions(long channelID) {
-        return findChannel(channelID).getCalibration().getNoise();
+    protected double getNoiseConditions(long cellID) {
+        return findChannel(cellID).getCalibration().getNoise();
     }
     
     @Override
-    protected double getPedestalConditions(long channelID) {
-        return findChannel(channelID).getCalibration().getPedestal();
+    protected double getPedestalConditions(long cellID) {        
+        return findChannel(cellID).getCalibration().getPedestal();
     }
     
     @Override
-    protected double getTimeShiftConditions(long channelID) {
-        return findChannel(channelID).getTimeShift().getTimeShift();
+    protected double getDAQPedestalConditions(long cellID) {        
+        return config.getPedestal(geoMap.findGeometric(cellID));
     }
+    
+    @Override
+    protected double getTimeShiftConditions(long cellID) {
+        return findChannel(cellID).getTimeShift().getTimeShift();
+    }    
     
     @Override
     protected int getTimestampFlag() {
