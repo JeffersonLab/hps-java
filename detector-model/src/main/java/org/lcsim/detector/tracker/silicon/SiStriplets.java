@@ -29,6 +29,24 @@ public class SiStriplets extends SiPixels {
         super(carrier, rowPitch, colPitch, detector, parentToLocal); 
     }
 
+    /** Informations:
+     *
+     * NOTE:: cellID in this class IS NOT the RawHitTracker getCellID()
+     * In this class, CellID is the strip number.
+     * For example the strip number of and hit associated to a *sensor*
+     * can be retrieved from a RawTrackerHit by using the decoder. See Snippet below
+     *
+     * Imports needed: 
+     * import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper; 
+     *
+     * Snippet:
+     * SiTrackerIdentifierHelper _sid_helper = (SiTrackerIdentifierHelper) sensor.getIdentifierHelper();
+     * int strip = _sid_helper.getElectrodeValue(hit.getIdentifier());
+     *
+     * Then strip can be used as cellID in this class to get row/columns/position 
+     *
+     **/
+
     @Override
     public int getCellID(int row, int column) { 
         
