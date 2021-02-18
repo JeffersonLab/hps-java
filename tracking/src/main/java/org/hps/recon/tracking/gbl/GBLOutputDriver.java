@@ -54,6 +54,7 @@ public class GBLOutputDriver extends Driver {
     private AIDA aidaGBL; // era public 
     private String outputPlots = "GBLplots_ali.root";
     private String trackCollectionName = "GBLTracks";
+    private String trackResidualsRelColName = "TrackResidualsGBLRelations";
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
     private double bfield;
     public boolean debug = false;
@@ -64,8 +65,9 @@ public class GBLOutputDriver extends Driver {
     String trkpDetailFolder="/trk_detail/";
     String resFolder="/res/";
     String hitFolder="/hit/";
-    private boolean b_doGBLkinks = true;
-    private boolean b_doDetailPlots = false;
+    private boolean b_doGBLkinks     = true;
+    private boolean b_doGBLresiduals = true;
+    private boolean b_doDetailPlots  = false;
 
     //This should be moved to the GBL Refitter!!!
     //The field map for extrapolation
@@ -80,6 +82,18 @@ public class GBLOutputDriver extends Driver {
     //Override the Z of the target.
     public void setBsZ (double input) {
         bsZ = input;
+    }
+
+    public void setDoGBLresiduals (boolean input) {
+        b_doGBLresiduals = input;
+    }
+    
+    public void setDoGBLkinks (boolean input) {
+        b_doGBLkinks = input;
+    }
+
+    public void setTrackResidualsRelColName (String val) {
+        trackResidualsRelColName = val;
     }
 
     public void setChi2Cut(double input) {
@@ -121,14 +135,14 @@ public class GBLOutputDriver extends Driver {
     public void process(EventHeader event) {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
 
-        RelationalTable trackMatchTable = null;
-        trackMatchTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-        List<LCRelation> trackMatchRelation = event.get(LCRelation.class, "MatchedToGBLTrackRelations");
-        for (LCRelation relation : trackMatchRelation) {
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
-                trackMatchTable.add(relation.getFrom(), relation.getTo());
-            }
-        }
+        //RelationalTable trackMatchTable = null;
+        //trackMatchTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+        //List<LCRelation> trackMatchRelation = event.get(LCRelation.class, "MatchedToGBLTrackRelations");
+        //for (LCRelation relation : trackMatchRelation) {
+        //    if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+        //        trackMatchTable.add(relation.getFrom(), relation.getTo());
+        //    }
+        //}
 
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
@@ -137,7 +151,7 @@ public class GBLOutputDriver extends Driver {
             if (trk.getChi2() > chi2Cut)
                 continue;
             GenericObject gblKink = GBLKinkData.getKinkData(event, trk);
-            Track matchedTrack = (Track) trackMatchTable.from(trk);
+            //Track matchedTrack = (Track) trackMatchTable.from(trk);
             Map<HpsSiSensor, TrackerHit> sensorHits = new HashMap<HpsSiSensor, TrackerHit>();
             Map<HpsSiSensor, Integer> sensorNums    = new HashMap<HpsSiSensor, Integer>();
             List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(trk, hitToStrips, hitToRotated);
@@ -157,8 +171,32 @@ public class GBLOutputDriver extends Driver {
                 i++;
 
             }
+            
+
+            //THIS IS TEMPORARY AND NEEDED FOR FIXING THE LOOP ON THE SENSORS ON TRACK FOR KALMAN TRACKS
+            
+            if (hitsOnTrack.size() == 0) {
+                for (TrackerHit hit : trk.getTrackerHits()) {
+                    HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
+                    if (sensor != null) {
+                        sensorHits.put(sensor, hit);
+                        sensorNums.put(sensor, i);
+                        if (debug)
+                            System.out.printf("adding sensor %d \n", i);
+                    }
+                    
+                    if (debug && sensor == null)
+                        System.out.printf("TrackerHit null sensor %s \n", hit.toString());
+                    i++;
+                    
+                }
+                
+            }
+            
             doBasicGBLtrack(trk,sensorHits);
-            doGBLresiduals(trk, sensorHits,event);
+            if (b_doGBLresiduals) 
+                doGBLresiduals(trk, sensorHits,event);
+            
             //doMTresiduals(matchedTrack, sensorHits);
             if (b_doGBLkinks)
                 doGBLkinks(trk,gblKink, sensorNums);
@@ -446,9 +484,9 @@ public class GBLOutputDriver extends Driver {
         }//loop on sensor hits
         
         RelationalTable trackResidualsTable = null;
-        if (event.hasCollection(LCRelation.class, "TrackResidualsGBLRelations")) {
+        if (event.hasCollection(LCRelation.class, trackResidualsRelColName)) {
             trackResidualsTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-            List<LCRelation> trackresRelation = event.get(LCRelation.class, "TrackResidualsGBLRelations");
+            List<LCRelation> trackresRelation = event.get(LCRelation.class, trackResidualsRelColName);
             for (LCRelation relation : trackresRelation) {
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
                     trackResidualsTable.add(relation.getFrom(), relation.getTo());
@@ -477,10 +515,11 @@ public class GBLOutputDriver extends Driver {
         //get the bias first 
         for (int i_hit =0; i_hit <= nres-1 ; i_hit+=2) {
             if (trackRes.getIntVal(i_hit)!=-999)  {
+                //System.out.println("PF::DEBUG:: "+ trackCollectionName+ " trackRes.getIntVal(i_hit) " + trackRes.getIntVal(i_hit));
                 String sensorName = (sensorMPIDs.get(trackRes.getIntVal(i_hit))).getName();
                 if (debug) {
-                    System.out.printf("NHits %d MPID sensor:%d %s %d\n", nres,trackRes.getIntVal(i_hit), sensorName,i_hit);
-                    System.out.printf("Track residuals: %s %.5f %.5f\n",sensorName, trackRes.getDoubleVal(i_hit),trackRes.getFloatVal(i_hit));
+                    //System.out.printf("NHits %d MPID sensor:%d %s %d\n", nres,trackRes.getIntVal(i_hit), sensorName,i_hit);
+                    //System.out.printf("Track residuals: %s %.5f %.5f\n",sensorName, trackRes.getDoubleVal(i_hit),trackRes.getFloatVal(i_hit));
                 }
                 //General residuals Per volume
                 aidaGBL.histogram1D(resFolder+"bresidual_GBL"+vol).fill(trackRes.getDoubleVal(i_hit));

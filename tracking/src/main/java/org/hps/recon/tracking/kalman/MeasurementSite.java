@@ -26,7 +26,7 @@ class MeasurementSite {
     DMatrixRMaj H; // Derivatives of the transformation from state vector to measurement
     double arcLength; // Arc length from the previous measurement
     private double conFac; // Conversion from B to alpha
-    private double alpha;
+    double alpha;
     double radLen; // radiation length in silicon
     private double dEdx; // in GeV/mm
     private KalmanParams kPar;
@@ -91,7 +91,7 @@ class MeasurementSite {
         predicted = false;
         filtered = false;
         smoothed = false;
-        double rho = 2.329; // Density of silicon in g/cm^2
+        double rho = 2.329; // Density of silicon in g/cm^3
         radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
         dEdx = -0.1 * sp * rho; // in GeV/mm

@@ -389,23 +389,54 @@ public class KalmanInterface {
     // Make a GBLStripClusterData object for each MeasurementSite of a Kalman track
     public List<GBLStripClusterData> createGBLStripClusterData(KalTrack kT) {
         List<GBLStripClusterData> rtnList = new ArrayList<GBLStripClusterData>(kT.SiteList.size());
+
+        //Arc length from origin to first plane
         
+        double phi_org         = kT.originHelixParms()[1];
+        double phi_1state      = kT.SiteList.get(0).aS.helix.a.v[1]; 
+        //double alpha         = kT.SiteList.get(0).alpha;
+        double alpha           = kT.helixAtOrigin.alpha;
+        double radius          = Math.abs(alpha/kT.originHelixParms()[2]);
+        double arcLength2D     = radius*(phi_1state-phi_org);
+        double arcLength       = arcLength2D*Math.sqrt(1.0 + kT.originHelixParms()[4] * kT.originHelixParms()[4]);
+
+        double total_s3D = arcLength;
+        double total_s2D = arcLength2D;
+        
+        
+
         for (MeasurementSite site : kT.SiteList) {
-            GBLStripClusterData clstr = new GBLStripClusterData(kT.SiteList.indexOf(site));
+            //GBLStripClusterData clstr = new GBLStripClusterData(kT.SiteList.indexOf(site));
+            GBLStripClusterData clstr = new GBLStripClusterData(site.m.millipedeID);
             
             // Sites without hits are "scatter-only"
             if (site.hitID < 0) clstr.setScatterOnly(1);
             else clstr.setScatterOnly(0);
             
             // Arc length along helix from the previous site
-            clstr.setPath3D(site.arcLength);
+            //clstr.setPath3D(site.arcLength);
+            //double tanL = site.aS.helix.a.v[4];
+            //clstr.setPath(site.arcLength/Math.sqrt(1.+tanL*tanL));
+
+            // Store the total Arc length in the GBLStripClusterData
+            total_s3D += site.arcLength;
+            clstr.setPath3D(total_s3D);
             double tanL = site.aS.helix.a.v[4];
             clstr.setPath(site.arcLength/FastMath.sqrt(1.+tanL*tanL));
             
             // Direction cosines of the sensor axes in the HPS tracking coordinate system
-            Hep3Vector u = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.V().scale(-1.0)));
-            Hep3Vector v = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.U()));
+            //Hep3Vector u = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.V().scale(-1.0)));
+            //Hep3Vector v = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.U()));
+            //Hep3Vector w = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.T()));
+
+            //The above definitions have U and V have a sign flip wrt the seedTracker -> GBL computation
+            //I corrected them here. (PF 01/23/21)
+            
+            Hep3Vector u = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.V()));
+            Hep3Vector v = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.U().scale(-1.0)));
             Hep3Vector w = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.T()));
+            
+
             clstr.setU(u);
             clstr.setV(v);
             clstr.setW(w);
@@ -435,7 +466,10 @@ public class KalmanInterface {
             double uMeas, uMeasErr;
             if (site.hitID >= 0) {
                 uMeas = site.m.hits.get(site.hitID).v; 
-                uMeasErr = FastMath.sqrt(site.aS.R);
+                uMeasErr = site.m.hits.get(site.hitID).sigma;
+                //This is the un-biased residual error (post-fit)
+                //uMeasErr = Math.sqrt(site.aS.R);
+
             } else {
                 uMeas = -999.;
                 uMeasErr = -9999.;
@@ -451,7 +485,7 @@ public class KalmanInterface {
             
             // rms projected scattering angle
             double ctSensor = pDir.dot(site.m.p.T());
-            double XL = Math.abs(site.m.thickness/site.radLen/ctSensor);
+            double XL = Math.abs((site.m.thickness / site.radLen) / ctSensor);
             clstr.setScatterAngle(HelixState.projMSangle(momentum.mag(), XL));
             
             rtnList.add(clstr);
@@ -486,8 +520,8 @@ public class KalmanInterface {
         double[] globalParams = kT.originHelixParms();
         // To get the LCSIM curvature parameter, we want the curvature at the center of the SVT (more-or-less the
         // center of the magnet), so we need to use the magnetic field there to convert from 1/pt to curvature.
-        // Field at the origin => For 2016 this is ~ 0.430612 T
-        //In the center of SVT => For 2016 this is ~ 0.52340 T
+        // Field at the origin  => For 2016 this is ~ 0.430612 T
+        // In the center of SVT => For 2016 this is ~ 0.52340 T
         Vec Bfield = KalmanInterface.getField(new Vec(0., SVTcenter ,0.), kT.SiteList.get(0).m.Bfield);
         double B = Bfield.mag();
         double[] newParams = getLCSimParams(globalParams, alphaCenter);
