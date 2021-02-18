@@ -65,7 +65,7 @@ public class GBLOutputDriver extends Driver {
     String resFolder="/res/";
     String hitFolder="/hit/";
     private boolean b_doGBLkinks = true;
-    private boolean b_doDetailPlots = true;
+    private boolean b_doDetailPlots = false;
 
     //This should be moved to the GBL Refitter!!!
     //The field map for extrapolation
@@ -157,7 +157,7 @@ public class GBLOutputDriver extends Driver {
                 i++;
 
             }
-            doBasicGBLtrack(trk);
+            doBasicGBLtrack(trk,sensorHits);
             doGBLresiduals(trk, sensorHits,event);
             //doMTresiduals(matchedTrack, sensorHits);
             if (b_doGBLkinks)
@@ -220,7 +220,14 @@ public class GBLOutputDriver extends Driver {
         aidaGBL.histogram2D(str+isTop+charge).fill(valX,valY);
     }
 
-    private void doBasicGBLtrack(Track trk) {
+    private void FillGBLTrackPlot(String str, String isTop, String charge, double valX, double valY, double valZ) {
+        aidaGBL.histogram3D(str+isTop).fill(valX,valY,valZ);
+        aidaGBL.histogram3D(str+isTop+charge).fill(valX,valY,valZ);
+    }
+    
+
+
+    private void doBasicGBLtrack(Track trk, Map<HpsSiSensor, TrackerHit> sensorHits) {
         
         TrackState trackState = trk.getTrackStates().get(0);
 
@@ -232,13 +239,14 @@ public class GBLOutputDriver extends Driver {
         if (trk.getType()==1 && trk.getTrackerHits().size() < 12) {
             return;
         }
+
+        List<Integer> missingHits; 
+        missingHits =  findMissingLayer(trk);
         
         if (trackState.getTanLambda() > 0) {
             isTop = "_top";
         }
-        
-        
-        
+                
         String charge = "_pos";
         if (trk.getCharge()<0)
             charge = "_neg";
@@ -252,9 +260,41 @@ public class GBLOutputDriver extends Driver {
         FillGBLTrackPlot(trkpFolder+"p",isTop,charge,trackp);
         if (trk.getTrackerHits().size()==7)
             FillGBLTrackPlot(trkpFolder+"p7h",isTop,charge,trackp);
-
+        if (trk.getTrackerHits().size()==6)
+            FillGBLTrackPlot(trkpFolder+"p6h",isTop,charge,trackp);
+        if (trk.getTrackerHits().size()==5)
+            FillGBLTrackPlot(trkpFolder+"p5h",isTop,charge,trackp);
+        
+        if (TrackUtils.isHoleTrack(trk)) 
+            FillGBLTrackPlot(trkpFolder+"p_hole",isTop,charge,trackp);
+        else 
+            FillGBLTrackPlot(trkpFolder+"p_slot",isTop,charge,trackp);
+        
+        
+        //Momentum maps
+        FillGBLTrackPlot(trkpFolder+"p_vs_phi",isTop,charge,trackState.getPhi(),trackp);
+        FillGBLTrackPlot(trkpFolder+"p_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackp);
+        FillGBLTrackPlot(trkpFolder+"p_vs_phi_tanLambda",isTop,charge,trackState.getPhi(),trackState.getTanLambda(),trackp);
+        
+        double tanLambda = trackState.getTanLambda();
+        double cosLambda = 1. / (Math.sqrt(1+tanLambda*tanLambda));
+        
+        FillGBLTrackPlot(trkpFolder+"pT_vs_phi",isTop,charge,trackState.getPhi(),trackp*cosLambda);
+        FillGBLTrackPlot(trkpFolder+"pT_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackp*cosLambda);
+        
+        
+        if (trk.getTrackerHits().size()==6)
+            FillGBLTrackPlot(trkpFolder+"p_Missing1Hit",isTop,charge,missingHits.get(0),trackp);
+        
+        if (missingHits.size()==1 && missingHits.get(0)==7) 
+            FillGBLTrackPlot(trkpFolder+"p_MissingLastLayer",isTop,charge,trackp);
+        
+        
         FillGBLTrackPlot(trkpFolder+"Chi2",isTop,charge,trk.getChi2());
-                
+        FillGBLTrackPlot(trkpFolder+"Chi2_vs_p",isTop,charge,trackp,trk.getChi2());
+        
+        
+
         aidaGBL.histogram1D(trkpFolder+"nHits" + isTop).fill(trk.getTrackerHits().size());
         aidaGBL.histogram1D(trkpFolder+"nHits" + isTop+charge).fill(trk.getTrackerHits().size());
 
@@ -507,6 +547,37 @@ public class GBLOutputDriver extends Driver {
         }
     }//doGBLresiduals
     
+    private List<Integer> findMissingLayer(Track trk) {
+        
+        List<Integer> layers = new ArrayList<Integer>();
+        layers.add(1);
+        layers.add(2);
+        layers.add(3);
+        layers.add(4);
+        layers.add(5);
+        layers.add(6);
+        layers.add(7);
+        
+        List<Integer> LayersOnTrack = new ArrayList<Integer>();
+        List<Integer> missingHits   = new ArrayList<Integer>();
+        
+        for (TrackerHit hit : trk.getTrackerHits()) {
+            
+            int stripLayer = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+            
+            int hpslayer = (stripLayer + 1 ) / 2;
+            LayersOnTrack.add(hpslayer);
+        }
+
+        for (Integer layer : layers) {
+            if (!LayersOnTrack.contains(layer))
+                missingHits.add(layer);
+        }
+        
+        return missingHits;
+    }
+
+
     private void setupPlots() {
         
 
@@ -579,8 +650,8 @@ public class GBLOutputDriver extends Driver {
                 if (sens.isTopLayer() && !sens.isAxial())
                     xmax = 0.001;
             }
-            aidaGBL.histogram1D(kinkFolder+"lambda_kink_" + sensor.getName(), 50, -xmax, xmax);
-            aidaGBL.histogram1D(kinkFolder+"phi_kink_" + sensor.getName(), 50, -xmax, xmax);
+            aidaGBL.histogram1D(kinkFolder+"lambda_kink_" + sensor.getName(), 250, -xmax, xmax);
+            aidaGBL.histogram1D(kinkFolder+"phi_kink_" + sensor.getName(), 250, -xmax, xmax);
         }
         
         aidaGBL.histogram2D(kinkFolder+"lambda_kink_mod",mod_2dplot_bins,-0.5,mod_2dplot_bins-0.5,nbins,-0.001,0.001);
@@ -614,6 +685,11 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"tanLambda"+vol+charge,nbins_t,-0.2,0.2);
                 aidaGBL.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,pmax);
                 aidaGBL.histogram1D(trkpFolder+"p7h"+vol+charge,nbins_p,0.,pmax);
+                aidaGBL.histogram1D(trkpFolder+"p6h"+vol+charge,nbins_p,0.,pmax);
+                aidaGBL.histogram1D(trkpFolder+"p5h"+vol+charge,nbins_p,0.,pmax);
+                aidaGBL.histogram1D(trkpFolder+"p_MissingLastLayer"+vol+charge,nbins_p,0.,pmax);
+                aidaGBL.histogram1D(trkpFolder+"p_hole"+vol+charge,nbins_p,0.,pmax);
+                aidaGBL.histogram1D(trkpFolder+"p_slot"+vol+charge,nbins_p,0.,pmax);
                                 
                 aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t*2,0,200);
                 aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,15,0,15);
@@ -631,8 +707,9 @@ public class GBLOutputDriver extends Driver {
                 
                 
                 //TH2Ds
-               
+                
                 aidaGBL.histogram2D(trkpFolder+"d0_vs_phi"+vol+charge,nbins_t,-0.3,0.3,nbins_t,-5.0,5.0);
+                aidaGBL.histogram2D(trkpFolder+"Chi2_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t*2,0,200);
                 //aidaGBL.histogram2D("d0_vs_phi_bs"+vol+charge,nbins_t,-5.0,5.0,nbins_t,-0.3,0.3);
                 aidaGBL.histogram2D(trkpFolder+"d0_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_t,-5.0,5.0);
                 aidaGBL.histogram2D(trkpFolder+"d0_vs_p"+vol+charge,  nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
@@ -641,6 +718,16 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram2D(trkpFolder+"z0bs_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t,-z0bsmax,z0bsmax);
                 aidaGBL.histogram2D(trkpFolder+"z0_vs_tanLambda"+vol+charge,  nbins_t,-0.1,0.1,nbins_t,-z0max,z0max);
                 aidaGBL.histogram2D(trkpFolder+"z0bs_vs_tanLambda"+vol+charge,nbins_t,-0.1,0.1,nbins_t,-z0bsmax,z0bsmax);
+
+                aidaGBL.histogram2D(trkpFolder+"p_Missing1Hit"+vol+charge,8,0,8,nbins_p,0.0,pmax);
+                aidaGBL.histogram2D(trkpFolder+"p_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
+                aidaGBL.histogram2D(trkpFolder+"p_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
+                aidaGBL.histogram3D(trkpFolder+"p_vs_phi_tanLambda"+vol+charge, 50,-0.3,0.3,50,-0.2,0.2,100,0.,pmax);
+
+                aidaGBL.histogram2D(trkpFolder+"pT_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
+                aidaGBL.histogram2D(trkpFolder+"pT_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
+                                
+
                 
                 if (b_doDetailPlots) { 
                     //TH2Ds - detail

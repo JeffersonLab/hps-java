@@ -26,6 +26,7 @@ public final class MultipleEventsVertexingDriver extends Driver {
     private List<Track> accumulatedTracksBot            = new ArrayList<Track>();
     private List<BilliorTrack> accumulatedBTracksBot    = new ArrayList<BilliorTrack>(); 
 
+
     private String trackCollectionName = "GBLTracks";
     protected double[] beamSize = {0.001, 0.130, 0.050}; // rough estimate from harp scans during engineering run
     private double[] beamPositionToUse = new double[3];
@@ -35,12 +36,25 @@ public final class MultipleEventsVertexingDriver extends Driver {
     private AIDA aida;
     private String vtxFold="MultiEventVtx/";
     private int _ntrks = 100;
+    private int _nhits = -1;
     private String outputPlots = "multiEvt.root";
     
+    public void setNhits(int nhits) {
+        _nhits = nhits;
+    }
 
+    public void setTrackCollectionName(String val) {
+        trackCollectionName = val;
+    }
+    
     public void setNtrks( int ntrks) {
         _ntrks = ntrks;
     }
+
+    public void setVtxFold( String val) {
+        vtxFold = val;
+    }
+
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -82,19 +96,23 @@ public final class MultipleEventsVertexingDriver extends Driver {
         }
         
         for (Track track : trackCollection) {
-            accumulatedTracks.add(track);
-            accumulatedBTracks.add(new BilliorTrack(track));
-            
-            if (track.getTrackStates().get(0).getTanLambda() > 0) {
-                accumulatedTracksTop.add(track);
-                accumulatedBTracksTop.add(new BilliorTrack(track));
-            }
-            
-            else {
-                accumulatedTracksBot.add(track);
-                accumulatedBTracksBot.add(new BilliorTrack(track));
-            }
 
+            if (_nhits < 0 || track.getTrackerHits().size() == _nhits) {
+                
+                //accumulatedTracks.add(track);
+                accumulatedBTracks.add(new BilliorTrack(track));
+                
+                if (track.getTrackStates().get(0).getTanLambda() > 0) {
+                    //accumulatedTracksTop.add(track);
+                    accumulatedBTracksTop.add(new BilliorTrack(track));
+                }
+                
+                else {
+                    //accumulatedTracksBot.add(track);
+                    accumulatedBTracksBot.add(new BilliorTrack(track));
+                }
+                
+            }
         }
     }
     
@@ -116,7 +134,6 @@ public final class MultipleEventsVertexingDriver extends Driver {
         vtxFitter.setDebug(debug);
         vtxFitter.doBeamSpotConstraint(false);
         
-        
         //Randomize the tracks ? Better to do something more reproducible
         
         Collections.shuffle(accumulatedBTracks);
@@ -124,6 +141,9 @@ public final class MultipleEventsVertexingDriver extends Driver {
         
         FitMultiVtx(accumulatedBTracksTop,vtxFitter,"_top");
         FitMultiVtx(accumulatedBTracksBot,vtxFitter,"_bottom");
+        
+        
+
 
     }
     

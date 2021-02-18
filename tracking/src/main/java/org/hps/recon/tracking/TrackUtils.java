@@ -1931,4 +1931,48 @@ public class TrackUtils {
         return detectorElementContainsPoint( trackPosition,  sensor,0.0);
     }
     
+    
+    //This methods checks if a track has only hole hits in the back of the detector
+    //return true if all back layers have hole hits, false if all back layers have slot hits
+    
+    public static boolean isHoleTrack(Track trk) {
+        
+        boolean holeTrack = false;
+        
+        TrackState trackState = trk.getTrackStates().get(0);
+        boolean isTop = true;
+        if (trackState.getTanLambda()<0)
+            isTop=false;                        
+        
+        //System.out.println("--------------");
+        for (TrackerHit hit : trk.getTrackerHits()) {
+            
+            int stripLayer   = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+            int hpslayer     = (stripLayer + 1 ) / 2;
+            String side      = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getSide();
+            
+            if (isTop) {
+                if (hpslayer == 5 || hpslayer ==6 || hpslayer==7) 
+                    if (side=="ELECTRON")
+                        holeTrack=true;
+            }
+            else {
+                if (hpslayer == 5 || hpslayer ==6 || hpslayer==7)
+                    if (side=="ELECTRON")
+                        holeTrack=true;
+            }
+            
+            String moduleName = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getName();
+            int hpsmodule    = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getModuleNumber();
+            int MPID         = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getMillepedeId();
+            
+            //System.out.println("Hit on track :: " + moduleName);
+            //System.out.println("Layer="+hpslayer+" Module=" + hpsmodule +" MPID=" + MPID+" side="+side +" top=" +isTop);
+            
+        }
+        //System.out.println("Track is hole=" + holeTrack);
+        //System.out.println("==========");
+        
+        return holeTrack;
+    }
 }
