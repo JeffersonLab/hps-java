@@ -14,9 +14,12 @@ public class HPSSVTConstants {
 
     // The Rear Transition Module gain
     public static final double RTM_GAIN = 1.5;
-
+    
     // Total number of strips per sensor
     public static final int TOTAL_STRIPS_PER_SENSOR = 639;
+
+    // Total number of strips per thin sensor
+    public static final int TOTAL_STRIPS_PER_THIN_SENSOR = 512;
 
     // Total number of shaper signal samples obtained
     public static final int TOTAL_NUMBER_OF_SAMPLES = 6;
