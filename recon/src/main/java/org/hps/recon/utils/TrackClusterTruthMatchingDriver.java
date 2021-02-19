@@ -1,5 +1,5 @@
 //package org.hps.recon.test.ecalScoringPlane;
-package org.hps.recon.tracking.kalman;
+package org.hps.recon.utils;
 
 
 import hep.aida.IAnalysisFactory;
@@ -21,6 +21,8 @@ import java.util.HashSet;
 import java.io.IOException;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackData;
+import org.hps.record.StandardCuts;
+
 import org.hps.util.Pair;
 import org.hps.util.RK4integrator;
 //import org.lcsim.event.GenericObject;
@@ -47,6 +49,10 @@ import org.lcsim.event.CalorimeterHit;
 //import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+
+import org.lcsim.geometry.subdetector.HPSEcal3;
+
+
 /** 
  * Driver stolen from Omar to relate a Track to an Ecal scoring plane hit
  *
@@ -66,8 +72,10 @@ public class TrackClusterTruthMatchingDriver extends Driver {
     RelationalTable hitToRotated = null;
     RelationalTable hitToStrips = null;
     RelationalTable TrktoData = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-
-    TrackClusterMatcher2019 matcher;
+    HPSEcal3 ecal;
+    double beamEnergy = 2.3;
+    protected StandardCuts cuts = new StandardCuts();
+    TrackClusterMatcherInter matcher;
 
     //INITIALIZE TERMS TO EVALUATE MATCHING PERFORMANCE
     int ntruthpairs_ele = 0;
@@ -413,13 +421,18 @@ public class TrackClusterTruthMatchingDriver extends Driver {
     }
 
     public void startOfData() {
+
+        System.out.println("time offset before set: " + cuts.getTrackClusterTimeOffset());
         System.out.println("Starting job");
         bookHistograms();
-        matcher = new TrackClusterMatcher2019(this.trackCollectionName);
+        matcher = TrackClusterMatcherFactory.create("TrackClusterMatcher2019");
+        matcher.setTrackCollectionName(this.trackCollectionName);
         matcher.enablePlots(true);
     }
 
     public void endOfData() {
+
+        matcher.saveHistograms();
        
         eleFakeRate = eleNegMatch/(eleNegMatch+eleTrueMatch);
         posFakeRate = posNegMatch/(posNegMatch + posTrueMatch);
@@ -449,14 +462,14 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         System.out.println("Unconfirmed ele tracks matched to any cluster: " + z_ele);
         System.out.println("Real ele tracks not matched to cluster: " + b_ele);
         System.out.println("Unconfirmed ele tracks not matched to cluster: " + c_ele);
-        System.out.println("ele tracks outside ecal: " + b_ele);
+        System.out.println("ele tracks outside ecal: " + d_ele);
 
         System.out.println("Real pos tracks matched to correct cluster: " + x_pos);
         System.out.println("Real pos tracks matched to wrong cluster: " + y_pos);
         System.out.println("Unconfirmed pos tracks matched to any cluster: " + z_pos);
         System.out.println("Real pos tracks not matched to cluster: " + c_pos);
         System.out.println("Unconfirmed pos tracks not matched to cluster: " + b_pos);
-        System.out.println("pos tracks outside ecal: " + b_pos);
+        System.out.println("pos tracks outside ecal: " + d_pos);
 
         //Define Fake Rate
         double fakerate_ele = y_ele/(y_ele + x_ele);
@@ -596,10 +609,10 @@ public class TrackClusterTruthMatchingDriver extends Driver {
     }
     protected void process(EventHeader event) {
 
+        cuts.setTrackClusterTimeOffset(44.8);
+        System.out.println("time offset after set: " + cuts.getTrackClusterTimeOffset());
 
-        System.out.println("Printing MCParticle Tree");
         //printMCPtree(event);
-        System.out.println("End Printing MCParticle Tree");
         //Get collection of Ecal clusters
         //If event has no collection of tracks, skip
         if(!event.hasCollection(Track.class, trackCollectionName)) return;
@@ -632,6 +645,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
         // Get collection of tracks from event
         List<Track> tracks = event.get(Track.class, trackCollectionName);
+        List<Track> tracksInEcal = new ArrayList<Track>();
         List<Track> truthTracks = new ArrayList<Track>();
         Map<Track,MCParticle> truthTracksMap = new HashMap<Track,MCParticle>();
         List<Track> truthTracks_w_truthClusters = new ArrayList<Track>();
@@ -689,6 +703,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             boolean inHole = isTrackInHole(trackx,tracky);
             if(inEcalAccept == false)
                 continue;
+            tracksInEcal.add(track);
 
             //be careful about this -1...Is it always going to be correct?
             //Check "flipsign" in ReconParticleDriver.java
@@ -927,13 +942,20 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         //To check the performance of the Track+Cluster matching algorithm,
         //feed the algorithm the set of truth matched Tracks and truth
         //matched Clusters, so that comparison can be done.
-        //matchedTrackClusterMap = matcher.trackClusterMatcher(truthTracks_w_truthClusters,event, this.trackCollectionName, truthClusters, this.trackClusterTimeOffset);
-        matchedTrackClusterMap = matcher.trackClusterMatcher(tracks,event, this.trackCollectionName, clusters, this.trackClusterTimeOffset);
+        //matchedTrackClusterMap = matcher.trackClusterMatcher(tracks,event, this.trackCollectionName, clusters, this.trackClusterTimeOffset);
+        List<List<Track>> trackCollections = new ArrayList<List<Track>>();
+        trackCollections.add(tracksInEcal);
+        System.out.println("Size of track collections: " + trackCollections.size());
+        System.out.println("Size of tracks in ecal: " + trackCollections.get(0).size());
+        matchedTrackClusterMap = matcher.matchTracksToClusters(event, trackCollections, clusters, cuts, -1, false, true, ecal, beamEnergy);
+        System.out.println("Size of matchedTrackClusterMap: " + matchedTrackClusterMap.size());
         if(matchedTrackClusterMap != null){
 
             for (Map.Entry<Track,Cluster> entry : matchedTrackClusterMap.entrySet()){
                 Track track = entry.getKey();
                 Cluster cluster = entry.getValue();
+                if(cluster == null)
+                    System.out.println("Track matched to null Cluster");
                 int charge = -1* (int)Math.signum(track.getTrackStates().get(0).getOmega());
                 double[] trackP_dummy = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
                 double trackPmag_dummy = Math.sqrt(Math.pow(trackP_dummy[0],2) + Math.pow(trackP_dummy[1],2) + Math.pow(trackP_dummy[2],2));
@@ -1285,7 +1307,6 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         List<Cluster> truthClusters = new ArrayList<Cluster>();
 
         List<Cluster> skipentry = new ArrayList<Cluster>();
-        System.out.println("Checking for duplicate cluster MCP matches");
         for(Map.Entry<Cluster, MCParticle> c : truthClustersMapUnsorted.entrySet()){
             if(skipentry.contains(c.getKey()))
                 continue;
@@ -1300,14 +1321,10 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 if(skipentry.contains(cc.getKey()))
                     continue;
                 if(mcp1 == cc.getValue()){
-                    System.out.println("Found duplicate MCP to cluster");
                     skipentry.add(cc.getKey());
                     double ccenergy = cc.getKey().getEnergy();
                     double dcc = Math.abs(ccenergy - mcpenergy);
-                    System.out.println("dE cluster1 to MCP: " + dc);
-                    System.out.println("dE cluster2 to MCP: " + dcc);
                     if(dcc < smallestdE){
-                        System.out.println("replacing cluster1 with cluster2");
                         smallestdE = dcc;
                         smallestdEcluster = cc.getKey();
                     }
@@ -1711,7 +1728,6 @@ public class TrackClusterTruthMatchingDriver extends Driver {
     }
 
     private MCParticle getClusterMCP(Cluster cluster, EventHeader event) {
-        System.out.println("Updated matcher");
         List <RawTrackerHit> ecalReadoutHits = event.get(RawTrackerHit.class,ecalReadoutHitsCollectionName);
         Map <MCParticle, int[]>mcParticleMultiplicity = new HashMap<MCParticle, int[]>();
         RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
@@ -1727,21 +1743,14 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         //Match Cluster->CalorimeterHit(s) to corresponding EcalReadoutHits via
         //CellID match
         List<CalorimeterHit> calorimeterhits = cluster.getCalorimeterHits();
-        System.out.println("Cluster energy: " + cluster.getEnergy());
-        for(CalorimeterHit calhit : calorimeterhits){
-            System.out.println("calhit raw energy: " + calhit.getRawEnergy());
-        }
         CalorimeterHit seedhit = ClusterUtilities.findSeedHit(cluster);
-        System.out.println("seedhit raw energy: " + seedhit.getRawEnergy());
 
         RawTrackerHit readoutMatchHit = null;
         long cellID = seedhit.getCellID();
-        System.out.println("seedhit cellID: " + cellID);
         for(RawTrackerHit ecalReadoutHit : ecalReadoutHits) {
             long recellID = ecalReadoutHit.getCellID();
             if(cellID == recellID) {
                 readoutMatchHit = ecalReadoutHit;
-                System.out.println("readoutMatchHit cellID: " + cellID);
             }
         }
         if(readoutMatchHit == null)
@@ -1752,8 +1761,6 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         SimCalorimeterHit largest_simcalhit = null;
         double maxMCPEnergy = 0.0;
         for(SimCalorimeterHit simcalhit : simcalhits) {
-            System.out.println("simcalhit raw energy: " + simcalhit.getRawEnergy());
-            System.out.println("simcalhit MCParticleCount = " + simcalhit.getMCParticleCount()); 
             if(simcalhit.getRawEnergy() > simcalhit_largestEnergy){
                 simcalhit_largestEnergy = simcalhit.getRawEnergy();
                 largest_simcalhit = simcalhit;
@@ -1764,18 +1771,17 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         double bestMCPContrE = 0.0;
         if(largest_simcalhit == null)
             return null;
-        System.out.println("Breaking down simcalhit into MCPs");
         for(int i=0; i < largest_simcalhit.getMCParticleCount(); i++){
             MCParticle mcp = largest_simcalhit.getMCParticle(i);
             double originZ = largest_simcalhit.getMCParticle(i).getOriginZ();
             int PDGID = largest_simcalhit.getMCParticle(i).getPDGID();
             double MCPEnergyFrac = largest_simcalhit.getContributedEnergy(i)/cluster.getEnergy();
             //System.out.println("simcalhit MCP"+i+" cellID: " + mcp.getCellID());
-            System.out.println("simcalhit MCP"+i+" PDGID: " + PDGID);
-            System.out.println("simcalhit MCP"+i+" Contributed energy: " + largest_simcalhit.getContributedEnergy(i));
-            System.out.println("simcalhit MCP"+i+" energy: " + largest_simcalhit.getMCParticle(i).getEnergy());
-            System.out.println("simcalhit MCP"+i+" origin z: " + originZ);
-            System.out.println("simcalhit MCP"+i+" production time: " + largest_simcalhit.getMCParticle(i).getProductionTime());
+            //System.out.println("simcalhit MCP"+i+" PDGID: " + PDGID);
+            //System.out.println("simcalhit MCP"+i+" Contributed energy: " + largest_simcalhit.getContributedEnergy(i));
+            //System.out.println("simcalhit MCP"+i+" energy: " + largest_simcalhit.getMCParticle(i).getEnergy());
+            //System.out.println("simcalhit MCP"+i+" origin z: " + originZ);
+            //System.out.println("simcalhit MCP"+i+" production time: " + largest_simcalhit.getMCParticle(i).getProductionTime());
 /*
             List<MCParticle> ogMCPs = new ArrayList<MCParticle>();
             boolean adam = false;
@@ -1809,7 +1815,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 int branch = 0;
                 while(sterile == false){
                     branch = branch + 1;
-                    System.out.println("Daughters of Original Ancestor Branch " + branch); 
+                   System.out.println("Daughters of Original Ancestor Branch " + branch); 
                     List<MCParticle> iterate = new ArrayList<MCParticle>();
                     for(int ii=0; ii < daughters.size(); ii++){
                         //System.out.println("[Daughter " + ii + "] cellID: " + daughters[i].getCellID());
@@ -1858,27 +1864,9 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             return null;
 
 
-        System.out.println(" EcalCluster matched MCP PDGID: " + bestMCP.getPDGID());
-        System.out.println(" ratio of Cluster/MCP Energy: " + cluster.getEnergy()/bestMCP.getEnergy());
-        System.out.println(" ratio of Cluster/(MCP Contributed Energy): " + seedhit.getRawEnergy()/bestMCPContrE);
-
         //Get parents and daughters of matched MCParticle
         List<MCParticle> daughters = bestMCP.getDaughters();
         List<MCParticle> parents = bestMCP.getParents();
-
-        if(daughters != null){
-            for(MCParticle daughter : daughters){
-                System.out.println(" best MCP Daughter PDGID: " + daughter.getPDGID());
-                System.out.println(" best MCP Daughter Energy: " + daughter.getEnergy());
-            }
-        }
-        if(parents != null){
-            for(MCParticle parent : parents){
-                System.out.println(" best MCP Parent PDGID: " + parent.getPDGID());
-                System.out.println(" best MCP Parent Energy: " + parent.getEnergy());
-            }
-        }
-
 
         double energyRatio = cluster.getEnergy()/bestMCP.getEnergy();
         plots1D.get(String.format("%s_cluster_truthMCP_energy_ratio",this.trackCollectionName)).fill(energyRatio);

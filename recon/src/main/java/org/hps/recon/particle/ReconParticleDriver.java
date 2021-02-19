@@ -101,7 +101,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Indicates whether debug text should be output or not.
      */
-    protected boolean debug = true;
+    protected boolean debug = false;
 
     /**
      * The simple name of the class used for debug print statements.
@@ -435,7 +435,6 @@ public abstract class ReconParticleDriver extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
 
-        System.out.println("FUCK");
         BeamEnergyCollection beamEnergyCollection
                 = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
         beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
@@ -529,13 +528,6 @@ public abstract class ReconParticleDriver extends Driver {
         // track to a cluster. Details of the matching algorithm used are
         // defined in the specfic matcher implementation
 
-        System.out.println("[My branch] Event Number: " + event.getEventNumber());
-        System.out.println("[HEY] trackCollections size: " + trackCollections.size());
-        for(List<Track> tracks : trackCollections)
-            System.out.println("[HEY] tracks size: " + tracks.size());
-        System.out.println("[HEY] Clusters size: " + clusters.size());
-
-        
         //Matcher returns a mapping of Tracks with matched Clusters.
         TrackClusterPairs = matcher.matchTracksToClusters(event, trackCollections, clusters, cuts, flipSign, useTrackPositionForClusterCorrection,isMC,ecal, beamEnergy);
 

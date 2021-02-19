@@ -183,6 +183,7 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
 
         // Create a mapping of Tracks and their corresponding Clusters.
         HashMap<Track, Cluster> alltrackClusterPairs = new HashMap<Track, Cluster>();
+        System.out.println("TrackClusterTimeOffset: " + cuts.getTrackClusterTimeOffset());
 
         //If Kalman Tracks
         //Relational Table is used to get KF track time from
@@ -202,15 +203,17 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
                 }
             }
         }
+        System.out.println("Size of tracks in ecal: " + trackCollections.get(0).size());
+
 
         //Map of position residuals between all track+cluster combinations
         for (List<Track> tracks : trackCollections) {
 
 
             //Map of position residuals between all track+cluster combinations
-            if(tracks == null || tracks.isEmpty() || clusters == null || clusters.isEmpty()){
-                continue;
-            }
+            //if(tracks == null || tracks.isEmpty() || clusters == null || clusters.isEmpty()){
+              //  continue;
+            //}
 
             Map<Track, Map<Cluster, Double>> trackClusterResidualsMap = new HashMap<Track, Map<Cluster, Double>>(); 
 
@@ -218,7 +221,7 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
             for(Track track : tracks) {
 
                  // Derive the charge of the particle from the track.
-                int charge = -1* (int) Math.signum(track.getTrackStates().get(0).getOmega())*flipSign;
+                int charge = (int) Math.signum(track.getTrackStates().get(0).getOmega())*flipSign;
 
                 //Track time includes a hard-coded offset
                 double trackt;
@@ -299,8 +302,8 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
 
                 //define time and position cuts for Track-Cluster matching,
                 double tcut = 4.0;
-                double xcut = 10.0;
-                double ycut = 10.0;
+                double xcut = 15.0;
+                double ycut = 15.0;
 
                 //Loop over all clusters, looking for best match to current track
                 double smallestdt = Double.MAX_VALUE;
@@ -321,6 +324,7 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
                     double clusterEnergy = cluster.getEnergy();
                     double cluster_time = ClusterUtilities.getSeedHitTime(cluster);
                     double dt = cluster_time - cuts.getTrackClusterTimeOffset() - trackt + tracktOffset;
+                    System.out.println("dt: " + dt);
 
                     double dist = getDistanceR(cluster, track);
 
@@ -331,6 +335,8 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
                     double dy = clustery - tracky;
                     double dz = clusterz - trackz;
                     double dr = Math.sqrt(Math.pow(clusterx-trackx,2) + Math.pow(clustery-tracky,2));
+                    System.out.println("dx: " + dx);
+                    System.out.println("dy: " + dy);
 
                     //Ecal fiduciary cuts
                     //if(clusterx < 10 && charge > 0)
@@ -346,6 +352,7 @@ public class TrackClusterMatcher2019 extends AbstractTrackClusterMatcher{
                     //If position and time residual cuts are passed, build map of
                     //all cluster position residuals with this track
                     if((Math.abs(dt) < tcut) && (Math.abs(dx) < xcut) && (Math.abs(dy) < ycut) ) {
+                        System.out.println("Track paired with Cluster");
                         cluster_dr_Map.put(originalcluster, dr);
                     }
 
