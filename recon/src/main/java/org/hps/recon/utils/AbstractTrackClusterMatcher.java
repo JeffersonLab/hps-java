@@ -1,59 +1,60 @@
 package org.hps.recon.utils;
 
-//import hep.aida.ref.rootwriter.RootFileStore;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
-
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
-//import org.hps.recon.particle.SimpleParticleID;
-
-
-
 import org.lcsim.event.Cluster;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.ReconstructedParticle;
-//import org.lcsim.event.base.BaseReconstructedParticle;
-
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.FieldMap;
-
-
-
-
-//import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.CoordinateTransformations;
-
 import org.hps.record.StandardCuts;
+
+/**
+ * This is an abstract class that {@link TrackClusterMatcher} classes should
+ * implement to match Tracks to Ecal Clusters in reconstruction.
+ * The sub-class should implement {@link #matchTracksToClusters(args)} which
+ * returns a map of Tracks matched with Ecal Clusters.
+ * The sub-class should also implement the following abstract methods, as they
+ * are called during reconstruction:
+ * enablePlots, bookHistograms,saveHistograms, getMatchQC,
+ * applyClusterCorrections, initializeParameterization
+ */
+
+/* 
+ * @see TrackClusterMatcherInter
+ */
 
 public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcherInter {
 
+    /*
+     * Default no-arg constructor.
+     */
+    AbstractTrackClusterMatcher() {
+        //Do nothing
+    }
 
-    //Set track collection name. Used to discriminate between KF and GBL tracks
-    //in matcer algorithms that extend this class.
-    //Default to GBLTracks.
+    /*Set track collection name. Used to discriminate between KF and GBL tracks
+     * in matcher algorithms that extend this class.
+     * Default is GBLTracks.
+     */
     protected String trackCollectionName = "GBLTracks";
     public void setTrackCollectionName(String trackCollectionName){
         this.trackCollectionName = trackCollectionName;
     }
 
-
-    //Empty constructor
-    AbstractTrackClusterMatcher() {
-    }
-
     /**
-     * abstract methods for producing plots
+     * Abstract methods for producing plots
      */
     public abstract void enablePlots(boolean enablePlots);
 
@@ -62,45 +63,47 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     public abstract void saveHistograms();
 
     /**
-     * abstract method for defining a Track Cluster match quality value. Used
-     * to give particle id goodness of fit
+     * Abstract method for defining a Track Cluster match quality value. Used
+     * to give particle id goodness of fit.
      */
     public abstract double getMatchQC(Cluster cluster, ReconstructedParticle particle);
 
     /**
-     * abstract method to apply Cluster corrections after Track to Cluster matching, if true.
+     * Abstract method to apply Cluster corrections after Track to Cluster matching, if true.
      */
     public abstract void applyClusterCorrections(boolean useTrackPositionClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC);
 
     /**
-     * abstract method that runs the Track Cluster matching algorithm. Returns
+     * Abstract method that runs the Track Cluster matching algorithm. Returns
      * Map of Tracks matched to Clusters.
      */
     public abstract HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, boolean isMC, HPSEcal3 ecal, double beamEnergy);
 
     /**
-     * abstract method that initializes misc parameterization file used for
+     * Abstract method that initializes misc parameterization file used for
      * Cluster parameters. Not always required by matcher extensions/
      */
     public abstract void initializeParameterization(String fname);
 
     /**
-     * The B field map
+     * Set B field map if used in matching.
      */
     FieldMap bFieldMap = null;
     public void setBFieldMap(FieldMap bFieldMap) {
         this.bFieldMap = bFieldMap;
     }
 
+    /**
+     * Set snapToEdge if used in matching alg.
+     */
     private boolean snapToEdge = true;
     public void setSnapToEdge(boolean val){
         this.snapToEdge = val;
     }
 
-
     /**
-     * Below are defined various general purpose functions for performing any
-     * generic Track to Cluster matching.
+     * Defined below are generic methods that may be useful for developing
+     * matching algorithms
      */
 
     public boolean isInTime(EventHeader event, StandardCuts cuts, Cluster cluster, Track track){
@@ -123,25 +126,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         else
             return true;
 
-    }
-
-
-
-
-    public boolean isMatch(Cluster cluster, Track track){
-    
-        // Check that the track and cluster are in the same detector volume.
-        // If not, there is no way they can be a match.
-        if ((track.getTrackStates().get(0).getTanLambda() > 0 && cluster.getPosition()[1] < 0)
-                || (track.getTrackStates().get(0).getTanLambda() < 0 && cluster.getPosition()[1] > 0)) {
-            return false;
-        }
-
-        double [] delta = getDistanceXYZ(cluster, track);
-        double deltaX = delta[0];
-        double deltaY = delta[1];
-
-        return true;
     }
 
     public double getDistanceR(Cluster cluster, Track track){

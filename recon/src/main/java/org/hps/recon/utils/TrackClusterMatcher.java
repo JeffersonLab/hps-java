@@ -14,9 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-//import java.util.HashSet;
-//import java.util.Set;
-
 
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
@@ -25,11 +22,9 @@ import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
 import org.hps.recon.particle.SimpleParticleID;
 import org.lcsim.event.base.BaseCluster;
 
-
 import org.lcsim.event.Cluster;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.base.BaseReconstructedParticle;
-
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
@@ -37,9 +32,6 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.subdetector.HPSEcal3;
-
-
-
 import org.hps.record.StandardCuts;
 
 
@@ -123,6 +115,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
 
     public void setRootFileName(String filename) {                                                                                                                 rootFile = filename;                                                                                                                                  }
 
+    @Override
     public void initializeParameterization(String fname) {
 
         java.io.InputStream fis = TrackClusterMatcher.class.getResourceAsStream(fname);
@@ -182,6 +175,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
      * 
      * @param enablePlots true to enable, false to disable
      */
+    @Override
     public void enablePlots(boolean enablePlots) {
         this.enablePlots = enablePlots;
         if (enablePlots == true) {
@@ -195,6 +189,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
      * @param bFieldMap The {@link FieldMap} object containing a mapping to the
      * 3D field map.
      */
+    @Override
     public void setBFieldMap(FieldMap bFieldMap) {
         this.bFieldMap = bFieldMap;
     }
@@ -483,6 +478,7 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
     /**
      * Book histograms of Ecal cluster x/y vs extrapolated track x/y
      */
+    @Override
     public void bookHistograms() {
 
         plots1D = new HashMap<String, IHistogram1D>();
@@ -549,7 +545,12 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
 
     }
 
+    /**
+     * Applies EcalCluster corrections, with option to use Track position for
+     * corrections.
+     */
     protected HashMap<Cluster, Track> clusterToTrack;
+    @Override
     public void applyClusterCorrections(boolean useTrackPositionForClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC){
         // Apply the corrections to the Ecal clusters using track information, if available
         for (Cluster cluster : clusters) {
@@ -566,10 +567,16 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
 
     }
 
+    /**
+     * Return Map of Tracks with matched EcalCluster. 
+     * Tracks are not matched to unique Clusters, and the same Cluster may be
+     * matched to different Tracks.
+     * If Track is not matched to a Cluster, Map value set to null
+     */
+    @Override
     public HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositionsForMatching, boolean isMC, HPSEcal3 ecal, double beamEnergy){
 
-        //ecal and isMC are only used if useCorrectedClusterPositions is true
-
+        //Relational Tables used to get Track data
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
 
@@ -586,7 +593,6 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
         // track to a cluster. Allow a cluster to be matched to multiple
         // tracks and use a probability (to be coded later) to determine what
         // the best match is.
-        // TODO: At some point, pull this out to it's own method
         for (List<Track> tracks : trackCollections) {
 
             for (Track track : tracks){
@@ -620,7 +626,6 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                 } else if (particle.getCharge() < 0) {
                     ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
                 }
-
 
                 double smallestNSigma = Double.MAX_VALUE;
                 // try to find a matching cluster:
@@ -687,24 +692,15 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                 }
 
                 trackClusterPairs.put(track, matchedCluster);
-
-                // If a cluster was found that matches the track...
-                // add track cluster pair to Map
-                //if (matchedCluster != null) {
-                  //  trackClusterPairs.put(track, matchedCluster);
-               // }
-
             }
         }
-
-
         return trackClusterPairs;
-
     }
 
     /**
      * Save the histograms to a ROO file
      */
+    @Override
     public void saveHistograms() {
 
         RootFileStore store = new RootFileStore(rootFile);
