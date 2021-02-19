@@ -39,9 +39,12 @@ public class ReadoutCleanupDriver
 
     protected void process(EventHeader event) {
         Detector detector = event.getDetector();
-        for (String collection : this.collections)
-//            System.out.println("Removing "+collection);
-            event.remove(collection);
+        for (String collection : this.collections) {
+            if (event.hasItem(collection)) {
+                //System.out.println("Removing "+collection);
+                event.remove(collection);
+            }
+        }
         for (Subdetector subdet : detector.getSubdetectors().values())
             if (subdet.getReadout() != null)
                 if (canHandle(subdet.getReadout().getName()))
