@@ -37,8 +37,6 @@ public final class TrackClusterMatcherFactory {
         try {
             if (TrackClusterMatcher.class.getSimpleName().equals(name))
                 matcher = new TrackClusterMatcher();
-            else if (TrackClusterMatcher2019.class.getSimpleName().equals(name))
-                matcher = new TrackClusterMatcher2019();
         }
 
         catch (Exception e){
