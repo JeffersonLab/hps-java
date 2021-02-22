@@ -191,6 +191,14 @@ public abstract class HPSTrackerBuilder {
                 r[p_loop.getDim() - 1] = p_loop.getValue();
             }
             
+            //Backward compatibility - global structures have type = 3 - Only valid for front UChannel (filter on mpid == 80)
+            if (paramIsTop == isTopLayer && p_loop.getType() == 3 && mpid == 80) { 
+                // xcheck The L13-UChannel has MPID 0
+                if (p_loop.getSensor() != 0)  
+                    throw new RuntimeException("sensor name is not zero for support plate param! " + p_loop.getSensor());
+                r[p_loop.getDim() - 1] = p_loop.getValue(); 
+            }
+            
         }
         
         AlignmentCorrection c = new AlignmentCorrection();
