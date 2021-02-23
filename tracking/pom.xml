@@ -55,5 +55,9 @@
       <artifactId>ejml-all</artifactId>
       <version>0.39</version>
     </dependency>
+    <dependency>
+      <groupId>org.lcsim</groupId>
+      <artifactId>lcsim-tracking</artifactId>
+    </dependency>
   </dependencies>
 </project>

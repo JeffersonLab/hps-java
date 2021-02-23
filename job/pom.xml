@@ -18,5 +18,9 @@
       <groupId>org.hps</groupId>
       <artifactId>hps-run-database</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.lcsim</groupId>
+      <artifactId>lcsim-job-manager</artifactId>
+    </dependency>
   </dependencies>
 </project>
