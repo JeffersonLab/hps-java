@@ -15,6 +15,8 @@ import org.lcsim.detector.ITransform3D;
  */
 public class SiStriplets extends SiPixels { 
 
+    final int CHANNEL_MAP_OFFSET = 1; 
+
     /**
      * Constructor.
      *
@@ -29,30 +31,62 @@ public class SiStriplets extends SiPixels {
         super(carrier, rowPitch, colPitch, detector, parentToLocal); 
     }
 
+    /** Informations:
+     *
+     * NOTE:: cellID in this class IS NOT the RawHitTracker getCellID()
+     * In this class, CellID is the strip number.
+     * For example the strip number of and hit associated to a *sensor*
+     * can be retrieved from a RawTrackerHit by using the decoder. See Snippet below
+     *
+     * Imports needed: 
+     * import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper; 
+     *
+     * Snippet:
+     * SiTrackerIdentifierHelper _sid_helper = (SiTrackerIdentifierHelper) sensor.getIdentifierHelper();
+     * int strip = _sid_helper.getElectrodeValue(hit.getIdentifier());
+     *
+     * Then strip can be used as cellID in this class to get row/columns/position 
+     *
+     **/
+
     @Override
     public int getCellID(int row, int column) { 
-        
+        //System.out.println("[ getCellID ]: Row: " + row + " Col: " + column); 
         if (row < 0 || row >= getNCells(0)) return -1; 
         
         if (column < 0 || column >= getNCells(1)) return -1; 
 
-        int id = (column == 0) ? row : ((column + 1)*getNCells(0) - row); 
-        
+        int id = (column == 0) ? row + CHANNEL_MAP_OFFSET : ((column + 1)*getNCells(0) - row); 
+       
+        //System.out.println("[ getCellID ]: Original Cell ID: " + id); 
+        //System.out.println("[ getCellID ]: New Cell ID: " + (id + CHANNEL_MAP_OFFSET));
+        //System.out.println("[ getCellID ]: Position: " + getCellPosition(id + CHANNEL_MAP_OFFSET).toString());  
         return id;
     }
 
     
     @Override 
     public int getRowNumber(int cellID) {
-        
-        int row = (getColumnNumber(cellID) == 0) ? cellID : (getColumnNumber(cellID) + 1)*getNCells(0) - cellID;
-        
+        //System.out.println("[ getRowNumber ]: Cell ID: " + cellID); 
+        int row = (getColumnNumber(cellID) == 0) ? (cellID - CHANNEL_MAP_OFFSET): (getColumnNumber(cellID) + 1)*getNCells(0) - cellID;
+        //System.out.println("[ getRowNumber ]: Cell ID: " + cellID + " Before Off Row: " + row); 
+       
         return row;      
     }
 
     @Override
     public int getColumnNumber(int cellID) {
-        return (int) Math.floor(cellID/getNCells(0));  
+        int col = (int) Math.floor((cellID - CHANNEL_MAP_OFFSET)/getNCells(0));  
+        //System.out.println("[ getColumnNumber ]: Cell ID: " + cellID + " Col: " + col); 
+        return col; 
+    }
+
+    @Override
+    public int getRowNumber(Hep3Vector position) {
+        //System.out.println("[ getRowNumber(position) ]: Position: " + position.toString());  
+        int row = super.getRowNumber(position);
+        //System.out.println("[ getRowNumber(position) ]: Row: " + row); 
+        return row;
     }
 
     public Hep3Vector getStripCenter(int cellID) { 
