@@ -145,51 +145,45 @@
     </dependency>
     <dependency>
       <groupId>org.lcsim</groupId>
-      <artifactId>lcsim-distribution</artifactId>
+      <artifactId>lcsim-event-heprep</artifactId>
       <version>${lcsimVersion}</version>
-      <type>pom</type>
       <exclusions>
         <exclusion>
           <groupId>jdom</groupId>
           <artifactId>jdom</artifactId>
         </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.lcsim</groupId>
+      <artifactId>lcsim-job-manager</artifactId>
+      <version>${lcsimVersion}</version>
+      <exclusions>
         <exclusion>
           <groupId>commons-math</groupId>
           <artifactId>commons-math</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>freehep-graphicsio-tests</groupId>
-          <artifactId>org.freehep</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>aida-test</groupId>
-          <artifactId>hep.aida</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-analysis</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-cal-calib</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>detector-data</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-mc</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-steering-files</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-users</artifactId>
+          <groupId>jdom</groupId>
+          <artifactId>jdom</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.lcsim</groupId>
+      <artifactId>lcsim-tracking</artifactId>
+      <version>${lcsimVersion}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>jdom</groupId>
+          <artifactId>jdom</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.lcsim</groupId>
+      <artifactId>lcsim-vertexing</artifactId>
+      <version>${lcsimVersion}</version>
     </dependency>
   </dependencies>
 
@@ -372,6 +366,11 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.11</version>
+      </dependency>      
+      <dependency>
+        <groupId>org.jdom</groupId>
+        <artifactId>jdom</artifactId>
+        <version>1.1</version>
       </dependency>      
     </dependencies>
   </dependencyManagement>
