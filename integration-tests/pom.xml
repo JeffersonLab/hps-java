@@ -58,6 +58,8 @@
             <exclude>**/SimpleSvtReadoutTest.java</exclude>
             <exclude>**/HodoscopeSimDataTest.java</exclude>
             <exclude>**/HodoscopeReadoutTest.java</exclude>
+            <exclude>**/MCTrackerHitResidualAnalysisDriverTest.java</exclude>
+            <exclude>**/HodoscopeDataConverterTest.java</exclude>
           </excludes>
           <systemPropertyVariables>
             <org.lcsim.cacheDir>${org.lcsim.cacheDir}</org.lcsim.cacheDir>
