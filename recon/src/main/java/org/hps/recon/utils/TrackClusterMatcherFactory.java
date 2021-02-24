@@ -13,13 +13,11 @@ package org.hps.recon.utils;
  * @author Alic Spellman <alspellm@ucsc.edu>
  */
 
-
 public final class TrackClusterMatcherFactory {
 
     /**
      * Dont instantiate this class.
      */
-
     private TrackClusterMatcherFactory() {
 
     }
@@ -30,7 +28,6 @@ public final class TrackClusterMatcherFactory {
      * @return The matching algorithm
      * @throws IllegalArgumentException if there is no matcher found with name.
      */
-
     public static TrackClusterMatcherInter create(String name) {
 
         TrackClusterMatcherInter matcher = null;
@@ -38,13 +35,10 @@ public final class TrackClusterMatcherFactory {
             if (TrackClusterMatcher.class.getSimpleName().equals(name))
                 matcher = new TrackClusterMatcher();
         }
-
         catch (Exception e){
             //No matcher by the given name has been found :(
             throw new IllegalArgumentException("Unknown Mactcher algorithm " + name + " cannot be instantiated.", e);
         }
-
         return matcher;
     }
-
 }
