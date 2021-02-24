@@ -184,13 +184,13 @@ public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorCon
                 System.out.printf("%s: %s  is a ghost volume, dont create alignable structures only, not physvol\n", getClass()
                                   .getSimpleName(), surveyVolume.getName());
             
-            System.out.printf("%s check for support ring %s \n", getClass().getSimpleName(), surveyVolume.getName());
+            //System.out.printf("%s check for support ring %s \n", getClass().getSimpleName(), surveyVolume.getName());
             if (HPSTrackerBuilder.isSupportRingKinMount(surveyVolume.getName())) {
                 //System.out.printf("%s PF::create the support ring detector element\n", getClass().getSimpleName());
                 IDetectorElement supportRingKin = createAlignableSupport(surveyVolume);
             }
             
-            System.out.printf("%s check for back uChannel %s \n", getClass().getSimpleName(), surveyVolume.getName());
+            //System.out.printf("%s check for back uChannel %s \n", getClass().getSimpleName(), surveyVolume.getName());
             
             if (HPSTrackerBuilder.isUChannelSupport(surveyVolume.getName())) {
                 //System.out.printf("%s PF::create the uChannel detector element\n",getClass().getSimpleName());
