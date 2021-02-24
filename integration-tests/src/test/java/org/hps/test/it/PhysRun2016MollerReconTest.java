@@ -33,7 +33,7 @@ public class PhysRun2016MollerReconTest extends TestCase {
         File outputFile = new TestOutputFile(PhysRun2016MollerReconTest.class, "recon");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapFileName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
-            evioInputFile.getPath(), "-e", "1000"};
+            evioInputFile.getPath()};
         System.out.println("writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);

@@ -35,7 +35,7 @@ public class PhysRun2019ReconTest extends TestCase {
         File outputFile = new TestOutputFile(PhysRun2019ReconTest.class, "PhysRun2019ReconTest");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             detectorName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
-            evioInputFile.getPath(), "-e", "1"};
+            evioInputFile.getPath()};
         System.out.println("Running PhysRun2019ReconTest.main ...");
         System.out.println("writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
