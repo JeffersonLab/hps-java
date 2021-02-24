@@ -17,16 +17,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>**/ReconTestSkeleton.java</exclude>
-            <exclude>**/RecoToRaw.java</exclude>
-            <exclude>**/RecoToRawMC.java</exclude>
-            <exclude>**/TrackingReconstructionPlotsTest.java</exclude>
-            <exclude>**/TrackReconWithPlotsTest.java</exclude>
-            <exclude>**/CircleFitTest.java</exclude>
-            <exclude>**/TwoPointRadiusCircleFitterTest.java</exclude>
-            <exclude>**/ComparisonTest.java</exclude>
-            <exclude>**/TruthResidualTest.java</exclude>
-            <exclude>**/ReconGBLoutputTest.java</exclude>
+            <exclude>**/*Test.java</exclude>
           </excludes>
         </configuration>
       </plugin>
