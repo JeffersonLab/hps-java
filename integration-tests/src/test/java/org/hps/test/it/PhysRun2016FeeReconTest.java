@@ -29,19 +29,12 @@ public class PhysRun2016FeeReconTest extends TestCase {
     private String aidaOutputFile = "target/test-output/PhysRun2016FeeReconTest/PhysRun2016FeeReconTest";
 
     public void testIt() throws Exception {
-        //URL testURL = new URL(testURLBase + "/" + testFileName);
-        //FileCache cache = new FileCache();
         File evioInputFile = TestUtil.downloadTestFile(testFileName);
         File outputFile = new TestOutputFile(PhysRun2016FeeReconTest.class, "recon");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath()};
-        long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
-        long endTime = System.currentTimeMillis();
-        System.out.println("That took " + (endTime - startTime) + " milliseconds");
-        // Read in the LCIO event file and print out summary information.
-        System.out.println("Running ReconCheckDriver on output ...");
         LCSimLoop loop = new LCSimLoop();
         PhysRun2016FeeRecon reconDriver = new PhysRun2016FeeRecon();
         aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
@@ -53,7 +46,6 @@ public class PhysRun2016FeeReconTest extends TestCase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
         comparePlots();
     }
 

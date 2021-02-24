@@ -34,11 +34,7 @@ public class PhysRun2016MollerReconTest extends TestCase {
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapFileName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath()};
-        long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
-        long endTime = System.currentTimeMillis();
-        System.out.println("That took " + (endTime - startTime) + " milliseconds");
-        // Read in the LCIO event file and print out summary information.
         LCSimLoop loop = new LCSimLoop();
         PhysRun2016MollerRecon reconDriver = new PhysRun2016MollerRecon();
         aidaOutputFile = new TestOutputFile(getClass(), this.getClass().getSimpleName()).getPath();
@@ -50,7 +46,6 @@ public class PhysRun2016MollerReconTest extends TestCase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
         comparePlots();
     }
 

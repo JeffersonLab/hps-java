@@ -37,8 +37,6 @@ public class PhysRun2016V0ReconTest  extends TestCase {
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
         long endTime = System.currentTimeMillis();
-        System.out.println("That took " + (endTime - startTime) + " milliseconds");
-        // Read in the LCIO event file and print out summary information.
         LCSimLoop loop = new LCSimLoop();
         PhysRun2016V0Recon reconDriver = new PhysRun2016V0Recon();
         aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
@@ -50,7 +48,6 @@ public class PhysRun2016V0ReconTest  extends TestCase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
         comparePlots();
     }
 

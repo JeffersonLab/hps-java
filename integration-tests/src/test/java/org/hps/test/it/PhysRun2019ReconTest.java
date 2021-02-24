@@ -36,10 +36,7 @@ public class PhysRun2019ReconTest extends TestCase {
         String args[] = {"-r", "-x", steeringFileName, "-d",
             detectorName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath()};
-        long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
-        long endTime = System.currentTimeMillis();
-        System.out.println("That took " + (endTime - startTime) + " milliseconds");
         // Read in the LCIO event file and print out summary information.
 //        System.out.println("Running ReconCheckDriver on output ...");
 //        LCSimLoop loop = new LCSimLoop();

@@ -34,11 +34,7 @@ public class EngRun2015FeeReconTest extends TestCase {
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath()};
-        long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
-        long endTime = System.currentTimeMillis();
-        System.out.println("That took " + (endTime - startTime) + " milliseconds");
-        // Read in the LCIO event file and print out summary information.
         LCSimLoop loop = new LCSimLoop();
         EngRun2015FeeRecon reconDriver = new EngRun2015FeeRecon();
         aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
@@ -50,7 +46,6 @@ public class EngRun2015FeeReconTest extends TestCase {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
         comparePlots();
     }
 
