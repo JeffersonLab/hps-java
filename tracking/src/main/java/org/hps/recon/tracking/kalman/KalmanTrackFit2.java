@@ -8,8 +8,6 @@ import java.util.logging.Logger;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 
-import java.util.logging.Logger;
-
 /**
  * Driver program for executing a Kalman refit of existing tracks.  This version starts at layer N, filters to layer 0,
  * then starts over using the fit result to start filtering from layer 0 outward. Then it smooths
@@ -20,8 +18,6 @@ import java.util.logging.Logger;
  *
  */
 class KalmanTrackFit2 {
-
-    private static final Logger LOG = Logger.getLogger(KalmanTrackFit2.class.getName());
 
     ArrayList<MeasurementSite> sites;
     int initialSite;
@@ -84,20 +80,20 @@ class KalmanTrackFit2 {
                 if (m.hits.size() == 0) hitNumber = -1;
                 if (idx == start) {
                     if (newSite.makePrediction(sI, hitNumber, false, false) < 0) {
-                        LOG.warning(String.format("Failed to make initial prediction at site %d, idx=%d.  Abort", thisSite, idx));
+                        logger.warning(String.format("Failed to make initial prediction at site %d, idx=%d.  Abort", thisSite, idx));
                         success = false;
                         break;
                     }
                 } else {
                     if (newSite.makePrediction(sites.get(prevSite).aF, sites.get(prevSite).m, hitNumber, false, false) < 0) {
-                        LOG.warning(String.format("Failed to make prediction at site %d, idx=%d.  Abort", thisSite, idx));
+                        logger.warning(String.format("Failed to make prediction at site %d, idx=%d.  Abort", thisSite, idx));
                         success = false;
                         break;
                     }
                 }
 
                 if (!newSite.filter()) {
-                    LOG.warning(String.format("Failed to filter at site %d, idx=%d.  Ignore remaining sites", thisSite, idx));
+                    logger.warning(String.format("Failed to filter at site %d, idx=%d.  Ignore remaining sites", thisSite, idx));
                     success = false;
                     break;
                 }
