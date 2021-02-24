@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 public final class ClusterEnergyCorrection2019 {
 
-    private static final Logger LOG = Logger.getName(ClusterEnergyCorrection2019.class.getName());
+    private static final Logger LOG = Logger.getLogger(ClusterEnergyCorrection2019.class.getName());
 
     public static String name = "ClusterEnergyCorrection2019";
 
