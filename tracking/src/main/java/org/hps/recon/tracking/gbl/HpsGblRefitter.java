@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
@@ -336,7 +337,7 @@ public class HpsGblRefitter {
             return fittedTraj;
         }
         catch (RuntimeException e) {
-            LOG.warning("Skipping invalid GblTrajectory", e); 
+            LOG.log(Level.WARNING, "Skipping invalid GblTrajectory", e); 
             return null;
         }
     }
