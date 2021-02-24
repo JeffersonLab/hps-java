@@ -36,8 +36,6 @@ public class PhysRun2019ReconTest extends TestCase {
         String args[] = {"-r", "-x", steeringFileName, "-d",
             detectorName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath()};
-        System.out.println("Running PhysRun2019ReconTest.main ...");
-        System.out.println("writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
         long endTime = System.currentTimeMillis();
@@ -58,7 +56,6 @@ public class PhysRun2019ReconTest extends TestCase {
 //        System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
 //        System.out.println("writing aida file to: " + aidaOutputFile);
 //        comparePlots();
-        System.out.println("Done!");
     }
 
     public void comparePlots() throws Exception {

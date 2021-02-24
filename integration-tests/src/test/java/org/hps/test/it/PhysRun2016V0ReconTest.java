@@ -51,9 +51,7 @@ public class PhysRun2016V0ReconTest  extends TestCase {
             throw new RuntimeException(e);
         }
         System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
-        System.out.println("writing aida file to: " + aidaOutputFile);
         comparePlots();
-        System.out.println("Done!");
     }
 
        public void comparePlots() throws Exception {

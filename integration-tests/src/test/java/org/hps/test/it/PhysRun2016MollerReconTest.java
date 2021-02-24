@@ -34,7 +34,6 @@ public class PhysRun2016MollerReconTest extends TestCase {
         String args[] = {"-r", "-x", steeringFileName, "-d",
             fieldmapFileName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
             evioInputFile.getPath()};
-        System.out.println("writing to: " + outputFile.getPath());
         long startTime = System.currentTimeMillis();
         EvioToLcio.main(args);
         long endTime = System.currentTimeMillis();
@@ -52,9 +51,7 @@ public class PhysRun2016MollerReconTest extends TestCase {
             throw new RuntimeException(e);
         }
         System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
-        System.out.println("writing aida file to: " + aidaOutputFile);
         comparePlots();
-        System.out.println("Done!");
     }
 
     public void comparePlots() throws Exception {
