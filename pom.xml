@@ -1,9 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <prerequisites>
-    <maven>3.0</maven>
-  </prerequisites>
 
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
@@ -18,7 +15,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>4.2</lcsimVersion>
+    <lcsimVersion>4.3-SNAPSHOT</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
     <additionalparam>-Xdoclint:none</additionalparam>
