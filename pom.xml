@@ -23,7 +23,7 @@
     <skipPlugin>false</skipPlugin>
     <additionalparam>-Xdoclint:none</additionalparam>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-    <junitVersion>4.11</junitVersion>
+    <junitVersion>4.13.1</junitVersion>
   </properties>
 
   <scm>
@@ -289,7 +289,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>18.0</version>
+        <version>30.1-jre</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>
