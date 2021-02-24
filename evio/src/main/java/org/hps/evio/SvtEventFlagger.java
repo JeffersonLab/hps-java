@@ -200,10 +200,10 @@ public class SvtEventFlagger {
             trigPhase0 = syncPhase0%24;
             trigPhase1 = syncPhase1%24;
 
-            LOG.info("svt_readout_sync_phases found phase0: " + syncPhase0);
+            LOG.config("svt_readout_sync_phases found phase0: " + syncPhase0);
         } catch (Exception e) {
             svtSyncPhaseColl = null;
-            LOG.warning("svt_readout_sync_phases not found.");
+            LOG.config("svt_readout_sync_phases not found.");
         }
 
     }
