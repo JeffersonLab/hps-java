@@ -26,6 +26,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
+import java.util.logging.Logger;
 
 /**
  *
@@ -34,6 +35,8 @@ import org.lcsim.event.RawTrackerHit;
  * @version $Id: $
  */
 public class SvtEventFlagger {
+
+    static private final Logger LOG = Logger.getLogger(SvtEventFlagger.class.getName());
 
     private static final double angleTolerance = 0.0001;
     SvtBiasConstant.SvtBiasConstantCollection svtBiasConstants = null;
@@ -196,10 +199,11 @@ public class SvtEventFlagger {
             cut1H = Long.valueOf(svtSyncPhaseColl.get(0).getCut1H().intValue());
             trigPhase0 = syncPhase0%24;
             trigPhase1 = syncPhase1%24;
-            System.out.println("[SvtEventFlagger] svt_readout_sync_phases found phase0: " + syncPhase0);
+
+            LOG.info("svt_readout_sync_phases found phase0: " + syncPhase0);
         } catch (Exception e) {
             svtSyncPhaseColl = null;
-            System.out.println("[SvtEventFlagger] svt_readout_sync_phases not found " + e);
+            LOG.warning("svt_readout_sync_phases not found.");
         }
 
     }
