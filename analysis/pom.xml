@@ -27,8 +27,6 @@
             <exclude>**/MollerTupleDriverTest.java</exclude>
             <exclude>**/TridentTupleDriverTest.java</exclude>
             <exclude>**/MC/TrackExtrapTest.java</exclude>
-            <exclude>**/MollerTupleDriverTest.java</exclude>
-            <exclude>**/TridentTupleDriverTest.java</exclude>
           </excludes>
         </configuration>
       </plugin>

@@ -670,7 +670,6 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                             System.out.println("match NSigma = " + thisNSigma + "; Max NSigma =  " + MAXNSIGMAPOSITIONMATCH);
                         }
                         continue;
-                    
                     }
 
                     // ignore if we already found a cluster that's a better match:
@@ -690,7 +689,6 @@ public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
                         this.clusterToTrack.put(matchedCluster, track);
                     }
                 }
-
                 trackClusterPairs.put(track, matchedCluster);
             }
         }

@@ -4,13 +4,9 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.Track;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
-
-
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.geometry.FieldMap;
-
 import org.hps.record.StandardCuts;
-
 import java.util.List;
 import java.util.HashMap;
 
@@ -18,9 +14,6 @@ import java.util.HashMap;
  * This is an interface for creating TrackClusterMatcher algorithms used in
  * reconstruction.
  */
-
-
-
 public interface TrackClusterMatcherInter {
 
     /**
@@ -44,7 +37,6 @@ public interface TrackClusterMatcherInter {
      * Set BField Map
      */
     public void setBFieldMap(FieldMap bFieldMap);
-
     
     public void setSnapToEdge(boolean val);
 

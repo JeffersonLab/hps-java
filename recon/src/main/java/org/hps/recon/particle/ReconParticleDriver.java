@@ -320,7 +320,6 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setEcalClusterCollectionName(String ecalClustersCollectionName) {
         this.ecalClustersCollectionName = ecalClustersCollectionName;
-        System.out.println("Setting ecalClusterCollectionName");
     }
 
     /**
@@ -564,8 +563,6 @@ public abstract class ReconParticleDriver extends Driver {
                 ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
             }
 
-
-
             // If a cluster was found that matches the track...
             if(matchedCluster != null){
 
@@ -583,14 +580,11 @@ public abstract class ReconParticleDriver extends Driver {
                         ((BaseCluster) matchedCluster).setParticleId(pid);
                     }
                 }
-
                 // unmatched clusters will (later) be used to create photon particles:
                 unmatchedClusters.remove(matchedCluster);
             }
-
             // Add the particle to the list of reconstructed particles.
             particles.add(particle);
-
         }
 
         // Iterate over the remaining unmatched clusters.
@@ -620,12 +614,10 @@ public abstract class ReconParticleDriver extends Driver {
             particles.add(particle);
         }
 
-
         // Apply the corrections to the Ecal clusters using track information, if available
         if (applyClusterCorrections) {
             matcher.applyClusterCorrections(useTrackPositionForClusterCorrection, clusters, beamEnergy, ecal, isMC);
         }
-
 
         for (ReconstructedParticle particle : particles) {
             double clusterEnergy = 0;
@@ -651,9 +643,7 @@ public abstract class ReconParticleDriver extends Driver {
                 double goodnessPID_corrected = matcher.getMatchQC(particle.getClusters().get(0), particle);
                 ((BaseReconstructedParticle) particle).setGoodnessOfPid(goodnessPID_corrected);
             }
-
         }
-
         // Return the list of reconstructed particles.
         return particles;
     }

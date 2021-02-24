@@ -119,13 +119,11 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
             TrackData trackdata = (TrackData) trackToData.from(track);
             trackt = trackdata.getTrackTime();
         }
-
         double clustert = ClusterUtilities.getSeedHitTime(cluster);
         if (Math.abs(clustert - trackt - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt())
             return false;
         else
             return true;
-
     }
 
     public double getDistanceR(Cluster cluster, Track track){
@@ -184,9 +182,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         distance[2] = cPos.z() - tPos.z();
         
         return distance;
-        
-        
-
     }
 
     public double getdt(EventHeader event, StandardCuts cuts, Cluster cluster, Track track){
@@ -207,9 +202,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         double dt = clustert - cuts.getTrackClusterTimeOffset() - trackt;
 
         return dt;
-
-
-
     }
 
 
@@ -267,9 +259,7 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
                 }
             }
         }
-
         return trackToData;
-
     }
 
 
