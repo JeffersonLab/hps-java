@@ -58,6 +58,9 @@ public class StripMaker {
     }
 
     public void setDebug(boolean debug) {
+        System.err.println(">>>> StripMaker setting debug flag: " + debug);
+        new Exception().printStackTrace();
+        System.err.println(">>>>");
         this._debug = debug;
     }
 

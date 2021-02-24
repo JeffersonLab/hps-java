@@ -336,8 +336,7 @@ public class HpsGblRefitter {
             return fittedTraj;
         }
         catch (RuntimeException e) {
-            e.printStackTrace();
-            LOG.warning("Skipping invalid GblTrajectory"); 
+            LOG.warning("Skipping invalid GblTrajectory", e); 
             return null;
         }
     }
