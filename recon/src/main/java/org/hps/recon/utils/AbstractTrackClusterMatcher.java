@@ -69,6 +69,11 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     public abstract double getMatchQC(Cluster cluster, ReconstructedParticle particle);
 
     /**
+     * Abstract method to set beam energy
+     */
+    public abstract void setBeamEnergy(double beamEnergy);
+
+    /**
      * Abstract method to apply Cluster corrections after Track to Cluster matching, if true.
      */
     public abstract void applyClusterCorrections(boolean useTrackPositionClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC);

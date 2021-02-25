@@ -9,7 +9,7 @@ import java.util.Set;
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.particle.SimpleParticleID;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.utils.TrackClusterMatcher;
+import org.hps.recon.utils.LegacyTrackClusterMatcher;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -43,7 +43,7 @@ import org.lcsim.util.Driver;
 public class IdentifyBadTracksDriver extends Driver{
 
 
-    TrackClusterMatcher matcher = new TrackClusterMatcherNSigma();
+    LegacyTrackClusterMatcher matcher = new LegacyTrackClusterMatcher();
     //Collection name
     //TODO Make these names configurable by steering file
     private final String trackColName = "GBLTracks";

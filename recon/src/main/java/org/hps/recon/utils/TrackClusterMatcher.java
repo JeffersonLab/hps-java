@@ -37,6 +37,11 @@ public interface TrackClusterMatcher {
      * Set BField Map
      */
     public void setBFieldMap(FieldMap bFieldMap);
+
+    /**
+     * Set beam energy
+     */
+    public void setBeamEnergy(double beamEnergy);
     
     public void setSnapToEdge(boolean val);
 

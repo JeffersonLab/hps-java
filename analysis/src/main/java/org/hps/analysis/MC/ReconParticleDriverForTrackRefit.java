@@ -18,7 +18,7 @@ import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.SimpleParticleID;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.utils.TrackClusterMatcher;
+import org.hps.recon.utils.LegacyTrackClusterMatcher;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -45,7 +45,7 @@ public abstract class ReconParticleDriverForTrackRefit extends Driver {
     /**
      * Utility used to determine if a track and cluster are matched
      */
-    TrackClusterMatcher matcher = new TrackClusterMatcherNSigma();
+    LegacyTrackClusterMatcher matcher = new LegacyTrackClusterMatcher();
 
     String[] trackCollectionNames = {"GBLTracks"};
 
