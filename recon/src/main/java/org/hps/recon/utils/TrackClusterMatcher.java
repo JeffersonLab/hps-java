@@ -12,22 +12,47 @@ import hep.physics.vec.Hep3Vector;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
+import org.hps.recon.particle.SimpleParticleID;
+import org.lcsim.event.base.BaseCluster;
+
 import org.lcsim.event.Cluster;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.geometry.FieldMap;
+import org.lcsim.event.EventHeader;
+import org.lcsim.geometry.subdetector.HPSEcal3;
+import org.hps.record.StandardCuts;
+
 
 /**
  * Utility used to determine if a track and cluster are matched.
  *
  * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
  */
-public class TrackClusterMatcher {
+public class TrackClusterMatcher extends AbstractTrackClusterMatcher {
+
+
+    public double getMatchQC(Cluster cluster, ReconstructedParticle particle){
+
+        double matchqc = this.getNSigmaPosition(cluster, particle);
+        return matchqc;
+    }
+
+    public void initializeParameterizationFile(String fname){
+
+        this.initializeParameterization(fname);
+    }
 
     /**
      * The B field map
@@ -35,19 +60,30 @@ public class TrackClusterMatcher {
     FieldMap bFieldMap = null;
 
     // Plotting
-    private ITree tree;
-    private IHistogramFactory histogramFactory;
-    private Map<String, IHistogram1D> plots1D;
-    private Map<String, IHistogram2D> plots2D;
-    private String rootFile = "track_cluster_matching_plots.root";
+    protected ITree tree;
+    protected IHistogramFactory histogramFactory;
+    protected Map<String, IHistogram1D> plots1D;
+    protected Map<String, IHistogram2D> plots2D;
+    protected String rootFile = "track_cluster_matching_plots.root";
 
     // parameterization
     private Map<String, double[]> paramMap;
 
+    //normalized cluster-track distance required for qualifying as a match
+    private double MAXNSIGMAPOSITIONMATCH = 15.0;
+    private void setMAXNSIGMAPOSITIONMATCH(double MAXNSIGMAPOSITIONMATCH){
+        this.MAXNSIGMAPOSITIONMATCH = MAXNSIGMAPOSITIONMATCH;
+    }
+
+    //THIS IS SET IN RECONPARTICLEDRIVE. HOW SHOULD I PASS THIS VALUE TO THE
+    //MATCHERS? SHOULD I CRATE A setDisablePID() METHOD IN THE ABSTRACT CLASS,
+    //AND CALL IT THAT WAY???
+    private boolean disablePID = false;
+
     /**
      * Flag used to determine if plots are enabled/disabled
      */
-    boolean enablePlots = false;
+    protected boolean enablePlots = false;
 
     /**
      * Flag used to determine whether the analytic or field map extrapolator
@@ -79,6 +115,7 @@ public class TrackClusterMatcher {
 
     public void setRootFileName(String filename) {                                                                                                                 rootFile = filename;                                                                                                                                  }
 
+    @Override
     public void initializeParameterization(String fname) {
 
         java.io.InputStream fis = TrackClusterMatcher.class.getResourceAsStream(fname);
@@ -105,7 +142,7 @@ public class TrackClusterMatcher {
                 //                Scanner s = new Scanner(line);
                 //                String paramName = s.next();
                 //                
-                //                while (s.hasNext()) {
+                //                while (s.hasNext()) 
                 //                float f = s.nextFloat();
 
 
@@ -138,6 +175,7 @@ public class TrackClusterMatcher {
      * 
      * @param enablePlots true to enable, false to disable
      */
+    @Override
     public void enablePlots(boolean enablePlots) {
         this.enablePlots = enablePlots;
         if (enablePlots == true) {
@@ -151,6 +189,7 @@ public class TrackClusterMatcher {
      * @param bFieldMap The {@link FieldMap} object containing a mapping to the
      * 3D field map.
      */
+    @Override
     public void setBFieldMap(FieldMap bFieldMap) {
         this.bFieldMap = bFieldMap;
     }
@@ -398,14 +437,14 @@ public class TrackClusterMatcher {
         // positions is reasonable.  Different requirements are imposed on 
         // top and bottom tracks in order to account for offsets.
         if ((track.getTrackStates().get(0).getTanLambda() > 0 && (deltaX > paramMap.get("topClusterTrackMatchDeltaXHigh")[0]
-                || deltaX < paramMap.get("topClusterTrackMatchDeltaXLow")[0]))
+                        || deltaX < paramMap.get("topClusterTrackMatchDeltaXLow")[0]))
                 || (track.getTrackStates().get(0).getTanLambda() < 0 && (deltaX > paramMap.get("bottomClusterTrackMatchDeltaXHigh")[0]
                         || deltaX < paramMap.get("bottomClusterTrackMatchDeltaXLow")[0]))) {
             return false;
         }
 
         if ((track.getTrackStates().get(0).getTanLambda() > 0 && (deltaY > paramMap.get("topClusterTrackMatchDeltaYHigh")[0]
-                || deltaY < paramMap.get("topClusterTrackMatchDeltaYLow")[0]))
+                        || deltaY < paramMap.get("topClusterTrackMatchDeltaYLow")[0]))
                 || (track.getTrackStates().get(0).getTanLambda() < 0 && (deltaY > paramMap.get("bottomClusterTrackMatchDeltaYHigh")[0]
                         || deltaY < paramMap.get("bottomClusterTrackMatchDeltaYLow")[0]))) {
             return false;
@@ -439,7 +478,8 @@ public class TrackClusterMatcher {
     /**
      * Book histograms of Ecal cluster x/y vs extrapolated track x/y
      */
-    private void bookHistograms() {
+    @Override
+    public void bookHistograms() {
 
         plots1D = new HashMap<String, IHistogram1D>();
         plots2D = new HashMap<String, IHistogram2D>();
@@ -506,8 +546,159 @@ public class TrackClusterMatcher {
     }
 
     /**
+     * Applies EcalCluster corrections, with option to use Track position for
+     * corrections.
+     */
+    protected HashMap<Cluster, Track> clusterToTrack;
+    @Override
+    public void applyClusterCorrections(boolean useTrackPositionForClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC){
+        // Apply the corrections to the Ecal clusters using track information, if available
+        for (Cluster cluster : clusters) {
+            if (cluster.getParticleId() != 0) {
+                if (useTrackPositionForClusterCorrection && this.clusterToTrack.containsKey(cluster)) {
+                    Track matchedT = clusterToTrack.get(cluster);
+                    double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos, isMC);
+                } else {
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, isMC);
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Return Map of Tracks with matched EcalCluster. 
+     * Tracks are not matched to unique Clusters, and the same Cluster may be
+     * matched to different Tracks.
+     * If Track is not matched to a Cluster, Map value set to null
+     */
+    @Override
+    public HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositionsForMatching, boolean isMC, HPSEcal3 ecal, double beamEnergy){
+
+        //Relational Tables used to get Track data
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+
+        // Create a list in which to store reconstructed particles.
+        List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
+
+        // Create a mapping of matched clusters to corresponding tracks.
+        this.clusterToTrack = new HashMap<Cluster, Track>();
+
+        // Create a mapping of Tracks and their corresponding Clusters.
+        HashMap<Track, Cluster> trackClusterPairs = new HashMap<Track, Cluster>();
+
+        // Loop through all of the track collections and try to match every
+        // track to a cluster. Allow a cluster to be matched to multiple
+        // tracks and use a probability (to be coded later) to determine what
+        // the best match is.
+        for (List<Track> tracks : trackCollections) {
+
+            for (Track track : tracks){
+
+                //create a mapping of smallestNSigma Clusters and their sigma values
+                HashMap<Cluster,Double> clusterNSigma = new HashMap<Cluster,Double>();
+
+                //Create a reconstructed particle to represent the track.
+                //ReconstructedParticle particle = super.addTrackToParticle(track, flipSign);
+                ReconstructedParticle particle = new BaseReconstructedParticle();
+                // Store the track in the particle.
+                particle.addTrack(track);
+
+                // Set the type of the particle. This is used to identify
+                // the tracking strategy used in finding the track associated with
+                // this particle.
+                ((BaseReconstructedParticle) particle).setType(track.getType());
+
+                // Derive the charge of the particle from the track.
+                int charge = (int) Math.signum(track.getTrackStates().get(0).getOmega());
+                ((BaseReconstructedParticle) particle).setCharge(charge * flipSign);
+
+                // initialize PID quality to a junk value:
+                ((BaseReconstructedParticle) particle).setGoodnessOfPid(9999);
+
+                // Extrapolate the particle ID from the track. Positively
+                // charged particles are assumed to be positrons and those
+                // with negative charges are assumed to be electrons.
+                if (particle.getCharge() > 0) {
+                    ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(-11, 0, 0, 0));
+                } else if (particle.getCharge() < 0) {
+                    ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(11, 0, 0, 0));
+                }
+
+                double smallestNSigma = Double.MAX_VALUE;
+                // try to find a matching cluster:
+                Cluster matchedCluster = null;
+                for(Cluster cluster : clusters) {
+                    double clusTime = ClusterUtilities.getSeedHitTime(cluster);
+                    double trkT = TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+
+                    if (Math.abs(clusTime - trkT - cuts.getTrackClusterTimeOffset()) > cuts.getMaxMatchDt()) {
+                        if (debug) {
+                            System.out.println("Failed cluster-track deltaT!");
+                            System.out.println(clusTime + "  " + trkT + "  " + cuts.getTrackClusterTimeOffset() + ">" + cuts.getMaxMatchDt());
+                        }
+                        continue;
+                    }
+
+                    //if the option to use corrected cluster positions is selected, then
+                    //create a copy of the current cluster, and apply corrections to it
+                    //before calculating nsigma.  Default is don't use corrections.  
+                    Cluster originalCluster = cluster;
+                    if (useCorrectedClusterPositionsForMatching) {
+                        BaseCluster clusterBase = new BaseCluster(cluster);
+                        clusterBase.setNeedsPropertyCalculation(false);
+                        cluster = clusterBase;
+                        double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
+                        ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos, isMC);
+                    }                    
+
+                    // normalized distance between this cluster and track:
+                    final double thisNSigma = this.getNSigmaPosition(cluster, particle);
+
+                    if (enablePlots) {
+                        if (TrackUtils.getTrackStateAtECal(track) != null) {
+                            this.isMatch(cluster, track);
+                        }
+                    }
+
+                    // ignore if matching quality doesn't make the cut:
+                    if (thisNSigma > MAXNSIGMAPOSITIONMATCH) {
+                        if (debug) {
+                            System.out.println("Failed cluster-track NSigma Cut!");
+                            System.out.println("match NSigma = " + thisNSigma + "; Max NSigma =  " + MAXNSIGMAPOSITIONMATCH);
+                        }
+                        continue;
+                    }
+
+                    // ignore if we already found a cluster that's a better match:
+                    if (thisNSigma > smallestNSigma) {
+                        if (debug) {
+                            System.out.println("Already found a better match than this!");
+                            System.out.println("match NSigma = " + thisNSigma + "; smallest NSigma =  " + smallestNSigma);
+                        }
+                        continue;
+                    }
+                    // we found a new best cluster candidate for this track:
+                    smallestNSigma = thisNSigma;
+                    matchedCluster = originalCluster;
+
+                    // prefer using GBL tracks to correct (later) the clusters, for some consistency:
+                    if (track.getType() >= 32 || !this.clusterToTrack.containsKey(matchedCluster)) {
+                        this.clusterToTrack.put(matchedCluster, track);
+                    }
+                }
+                trackClusterPairs.put(track, matchedCluster);
+            }
+        }
+        return trackClusterPairs;
+    }
+
+    /**
      * Save the histograms to a ROO file
      */
+    @Override
     public void saveHistograms() {
 
         RootFileStore store = new RootFileStore(rootFile);
@@ -519,10 +710,10 @@ public class TrackClusterMatcher {
             e.printStackTrace();
         }
     }
-   
+
     @Deprecated
     public void setBeamEnergy(double beamEnergy) {
-    //          this.beamEnergy = beamEnergy;
+        //          this.beamEnergy = beamEnergy;
     }
 
 }
