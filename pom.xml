@@ -357,6 +357,10 @@
             <groupId>jdom</groupId>
             <artifactId>jdom</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>commons-math</groupId>
+            <artifactId>commons-math</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
