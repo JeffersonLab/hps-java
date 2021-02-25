@@ -253,11 +253,6 @@ public class ClustererTest extends TestCase {
         }
         DatabaseConditionsManager.reset();
 
-        // Setup event number print outs.
-        EventMarkerDriver eventMarkerDriver = new EventMarkerDriver();
-        eventMarkerDriver.setEventInterval(1);
-        loop.add(eventMarkerDriver);
-
         // Configure the ClusterDriver and add it to the loop.
         ClusterDriver clusterDriver = new ClusterDriver();
         clusterDriver.setClustererName(config.clustererName);
