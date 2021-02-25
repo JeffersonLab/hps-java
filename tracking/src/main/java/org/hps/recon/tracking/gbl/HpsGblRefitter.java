@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
@@ -29,7 +30,7 @@ import org.lcsim.geometry.compact.converter.MilleParameter;
  */
 public class HpsGblRefitter {
 
-    private final static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
+    private final static Logger LOG = Logger.getLogger(HpsGblRefitter.class.getName());
     private boolean _debug = false;
     
     public void setDebug(boolean debug) {
@@ -231,7 +232,7 @@ public class HpsGblRefitter {
             //if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
             if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
                 //throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
-                LOGGER.warning("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
+                LOG.warning("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
                 return null;
             }
 
@@ -312,7 +313,7 @@ public class HpsGblRefitter {
                         
             
             if (!traj.isValid()) {
-                System.out.println("HpsGblFitter: " + " Invalid GblTrajectory -> skip");
+                LOG.warning("Skipping invalid GblTrajectory");
                 return null; // 1;//INVALIDTRAJ;
             }
 
@@ -327,7 +328,7 @@ public class HpsGblRefitter {
             double[] dVals = new double[2];
             int[] iVals = new int[1];
             traj.fit(dVals, iVals, "");
-            LOGGER.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
+            LOG.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
 
             FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
             fittedTraj.setPathLengthMap(pathLengthMap);
@@ -336,8 +337,7 @@ public class HpsGblRefitter {
             return fittedTraj;
         }
         catch (RuntimeException e) {
-            e.printStackTrace();
-            System.out.println("HpsGblFitter: Invalid GblTrajectory -> skip"); 
+            LOG.log(Level.WARNING, "Skipping invalid GblTrajectory", e); 
             return null;
         }
     }

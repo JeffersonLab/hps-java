@@ -117,7 +117,7 @@ public abstract class HPSTrackerJavaBuilder implements IHPSTrackerJavaBuilder {
                 
         //Loop on the layerDetectorElements
         for (IDetectorElement e : layerDetectorElements) {
-            System.out.printf("%s::getSupportDetecDetector: Checking element %s \n", this.getClass().getSimpleName(), e.getName());
+            //System.out.printf("%s::getSupportDetecDetector: Checking element %s \n", this.getClass().getSimpleName(), e.getName());
         
             //Check for volume 
             if (e.getName().contains(volume)) {

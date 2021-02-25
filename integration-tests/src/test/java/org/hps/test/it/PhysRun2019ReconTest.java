@@ -35,13 +35,8 @@ public class PhysRun2019ReconTest extends TestCase {
         File outputFile = new TestOutputFile(PhysRun2019ReconTest.class, "PhysRun2019ReconTest");
         String args[] = {"-r", "-x", steeringFileName, "-d",
             detectorName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
-            evioInputFile.getPath(), "-e", "1"};
-        System.out.println("Running PhysRun2019ReconTest.main ...");
-        System.out.println("writing to: " + outputFile.getPath());
-        long startTime = System.currentTimeMillis();
+            evioInputFile.getPath()};
         EvioToLcio.main(args);
-        long endTime = System.currentTimeMillis();
-        System.out.println("That took " + (endTime - startTime) + " milliseconds");
         // Read in the LCIO event file and print out summary information.
 //        System.out.println("Running ReconCheckDriver on output ...");
 //        LCSimLoop loop = new LCSimLoop();
@@ -58,7 +53,6 @@ public class PhysRun2019ReconTest extends TestCase {
 //        System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
 //        System.out.println("writing aida file to: " + aidaOutputFile);
 //        comparePlots();
-        System.out.println("Done!");
     }
 
     public void comparePlots() throws Exception {

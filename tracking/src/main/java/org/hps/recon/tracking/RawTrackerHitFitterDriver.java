@@ -149,13 +149,11 @@ public class RawTrackerHitFitterDriver extends Driver {
         try {
             syncStatusColl = DatabaseConditionsManager.getInstance().getCachedConditions(SvtSyncStatusCollection.class, "svt_sync_statuses").getCachedData();
             syncGood = syncStatusColl.get(0).isGood();
-        } 
+        }
         catch (Exception e) {
             syncGood = true;
-            System.out.println("[RawTrackerHitFitterDriver] svt_sync_statuses was not found: " + e);
-            //e.printStackTrace();
+            getLogger().config("svt_sync_statuses was not found.");
         }
-
     }
 
     @Override
