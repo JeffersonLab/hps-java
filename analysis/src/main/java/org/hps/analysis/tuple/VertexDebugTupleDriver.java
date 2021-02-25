@@ -25,7 +25,7 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
-import org.hps.recon.utils.TrackClusterMatcher;
+import org.hps.recon.utils.TrackClusterMatcherNSigma;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
@@ -55,7 +55,7 @@ public class VertexDebugTupleDriver extends MCTupleMaker {
     private String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
     private String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
     String[] fpQuantNames = {"nEle_per_Event", "nPos_per_Event", "nPhoton_per_Event", "nUnAssociatedTracks_per_Event", "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P", "avg_mom_beam_elec", "sig_mom_beam_elec"};
-    private TrackClusterMatcher matcher = new TrackClusterMatcher();
+    private TrackClusterMatcherNSigma matcher = new TrackClusterMatcherNSigma();
     //private Map<SiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<SiSensor, Map<Integer, Hep3Vector>>(); 
     private List<HpsSiSensor> sensors = null;
     private Map<Integer, List<SvtStereoLayer>> topStereoLayers = new HashMap<Integer, List<SvtStereoLayer>>();

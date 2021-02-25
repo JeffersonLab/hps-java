@@ -8,7 +8,6 @@ import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-//import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +17,7 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.record.StandardCuts;
 
-import org.hps.recon.utils.TrackClusterMatcherInter;
+import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.utils.TrackClusterMatcherFactory;
 
 import org.lcsim.event.Cluster;
@@ -67,7 +66,7 @@ public abstract class ReconParticleDriver extends Driver {
     //Track to Cluster matching algorithms interfaced from
     //TrackClusteMatcherInter and the specific algorithm is chosen by name using
     //TrackClusterMatcherFactory 
-    TrackClusterMatcherInter matcher;
+    TrackClusterMatcher matcher;
 
     protected boolean enableTrackClusterMatchPlots = false;
 
@@ -163,7 +162,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Track Cluster Algorithm set to Kalman or GBL Tracks
      */
-    private String trackClusterMatcherAlgo = "TrackClusterMatcher";
+    private String trackClusterMatcherAlgo = "TrackClusterMatcherNSigma";
     /**
      * LCIO collection name for reconstructed particles.
      */
@@ -365,8 +364,8 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
-     * Selects track-EcalCluster matching algorithm - TrackClusterMatcher or
-     * TrackClusterMatcher2019
+     * Selects track-EcalCluster matching algorithm - TrackClusterMatcherNSigma or
+     * TrackClusterMatcherMinDistance
      *
      * @param trackClusterMatcherAlgo - GBL or Kalman Track.
      * */

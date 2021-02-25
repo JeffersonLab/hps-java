@@ -32,10 +32,10 @@ import org.hps.record.StandardCuts;
  */
 
 /* 
- * @see TrackClusterMatcherInter
+ * @see TrackClusterMatcher
  */
 
-public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcherInter {
+public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher {
 
     /*
      * Default no-arg constructor.

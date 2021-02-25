@@ -3,12 +3,12 @@ package org.hps.recon.utils;
 /**
  * This is a convenience class for creating specific Track-to-Cluster matching
  * algorithms via their name in the package org.hps.recon.utils. They must
- * implement the {@link TrackClusterMatcherInter} interface.
+ * implement the {@link TrackClusterMatcher} interface.
  *
- * @see TrackClusterMatcherInter
- * @see AbstractTrackClusterMatcher
  * @see TrackClusterMatcher
- * @see TrackClusterMatcher2019
+ * @see AbstractTrackClusterMatcher
+ * @see TrackClusterMatcherNSigma
+ * @see TrackClusterMatcherMinDistance
  *
  * @author Alic Spellman <alspellm@ucsc.edu>
  */
@@ -28,12 +28,12 @@ public final class TrackClusterMatcherFactory {
      * @return The matching algorithm
      * @throws IllegalArgumentException if there is no matcher found with name.
      */
-    public static TrackClusterMatcherInter create(String name) {
+    public static TrackClusterMatcher create(String name) {
 
-        TrackClusterMatcherInter matcher = null;
+        TrackClusterMatcher matcher = null;
         try {
-            if (TrackClusterMatcher.class.getSimpleName().equals(name))
-                matcher = new TrackClusterMatcher();
+            if (TrackClusterMatcherNSigma.class.getSimpleName().equals(name))
+                matcher = new TrackClusterMatcherNSigma();
         }
         catch (Exception e){
             //No matcher by the given name has been found :(
