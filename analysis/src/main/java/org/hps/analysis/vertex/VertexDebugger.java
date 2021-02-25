@@ -19,7 +19,7 @@ import org.hps.analysis.dataquality.DataQualityMonitor;
 
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.TrackerHitUtils;
-import org.hps.recon.utils.TrackClusterMatcherNSigma;
+import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
@@ -56,7 +56,7 @@ public class VertexDebugger extends DataQualityMonitor {
     private String outputFile;
     private LCIOWriter writer;
     private LCIOWriter notrackwriter;
-    private TrackClusterMatcherNSigma matcher = new TrackClusterMatcherNSigma();
+    private TrackClusterMatcher matcher = new TrackClusterMatcherNSigma();
     //private Map<SiSensor, Map<Integer, Hep3Vector>> stripPositions = new HashMap<SiSensor, Map<Integer, Hep3Vector>>(); 
     private List<HpsSiSensor> sensors = null;
     private Map<Integer, List<SvtStereoLayer>> topStereoLayers = new HashMap<Integer, List<SvtStereoLayer>>();
