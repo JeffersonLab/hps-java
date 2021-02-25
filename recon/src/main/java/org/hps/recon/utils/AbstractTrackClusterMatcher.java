@@ -204,7 +204,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         return dt;
     }
 
-
     public double getTrackTime(Track track, EventHeader event){
 
         double trackt;    
@@ -261,9 +260,4 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         }
         return trackToData;
     }
-
-
-
-
-
 }
