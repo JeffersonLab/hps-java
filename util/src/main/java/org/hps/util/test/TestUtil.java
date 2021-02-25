@@ -40,7 +40,6 @@ public final class TestUtil {
             FileCache cache = new FileCache();
             cache.setPrintStream(null);
             File file = cache.getCachedFile(url);
-            //System.out.println("Cached test file: " + file.getPath());
             return file;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -59,7 +58,6 @@ public final class TestUtil {
             FileCache cache = new FileCache();
             cache.setPrintStream(null);
             File file = cache.getCachedFile(url);
-            System.out.println("Cached ref plots: " + file.getPath());
             return file;
         } catch (Exception e) {
             throw new RuntimeException(e);
