@@ -1,27 +1,18 @@
 package org.hps.test.it;
 
-import static java.lang.Math.abs;
+public class PhysRun2016FeeReconTest extends ReconTest {
 
-import java.io.File;
-import java.io.IOException;
+    public PhysRun2016FeeReconTest() {
+        super(PhysRun2016FeeReconTest.class,
+                "HPS-PhysicsRun2016-v5-3-fieldmap_v4_globalAlign",
+                "hps_007796_feeskim.evio",
+                "/org/hps/steering/recon/legacy_drivers/PhysicsRun2016FullRecon.lcsim",
+                5000,
+                new PhysRun2016FeeRecon(),
+                DEFAULT_TOLERANCE);
+    }
 
-import org.hps.evio.EvioToLcio;
-import org.hps.util.test.TestUtil;
-import org.hps.util.test.TestOutputFile;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.loop.LCSimLoop;
-
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.ITree;
-import junit.framework.TestCase;
-
-/**
- *
- * @author Norman A. Graf
- */
-public class PhysRun2016FeeReconTest extends TestCase {
-
+    /*
     static final String testFileName = "hps_007796_feeskim.evio";
     static final String fieldmapName = "HPS-PhysicsRun2016-v5-3-fieldmap_v4_globalAlign";
     static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/PhysicsRun2016FullRecon.lcsim";
@@ -76,4 +67,5 @@ public class PhysRun2016FeeReconTest extends TestCase {
             }
         }
     }
+    */
 }

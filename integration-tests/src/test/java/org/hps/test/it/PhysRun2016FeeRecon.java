@@ -1,11 +1,8 @@
 package org.hps.test.it;
 
-import hep.aida.IHistogram1D;
-import hep.physics.vec.BasicHep3Matrix;
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.VecOp;
 import java.io.IOException;
 import java.util.List;
+
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackType;
@@ -28,16 +25,20 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.math.chisq.ChisqProb;
-import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
+import hep.aida.IHistogram1D;
+import hep.physics.vec.BasicHep3Matrix;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
 
 /**
  * Analysis Driver to test reconstruction of 2016 Full Energy Electron candidates.
  * All selection cuts should have already been made prior to calling this Driver.
- * 
+ *
  * @author Norman A. Graf
  */
-public class PhysRun2016FeeRecon extends Driver
+public class PhysRun2016FeeRecon extends RefPlotsDriver
 {
    boolean debug = true;
     private AIDA aida = AIDA.defaultInstance();
@@ -67,13 +68,12 @@ public class PhysRun2016FeeRecon extends Driver
     private IHistogram1D trkY0Bottom = aida.histogram1D("Bottom Track Y0", 100, -5.0, 5.0);
     private IHistogram1D trkZ0Bottom = aida.histogram1D("Bottom Track Z0", 100, -1.0, 1.0);
 
-    private String _aidaFileName = "PhysRun2016FeeRecon";
     private final String finalStateParticlesColName = "OtherElectrons";
 
     private Double _beamEnergy = 1.056;
     private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
 
-    //Set min seed energy value, default to 2015 run 
+    //Set min seed energy value, default to 2015 run
     private double seedCut = 0.4; //= 0.4
 
     //set min cluster energy value, default to 2015 run
@@ -179,7 +179,7 @@ public class PhysRun2016FeeRecon extends Driver
                     aida.cloud1D("rp y0").fill(TrackUtils.getY0(t));
                     aida.cloud1D("rp z0").fill(TrackUtils.getZ0(t));
                 }
-                
+
                 double trackDataTime = TrackData.getTrackTime(TrackData.getTrackData(event, t));
                 aida.cloud1D("track data time").fill(trackDataTime);
                 if (isTopTrack(t)) {
@@ -232,21 +232,16 @@ public class PhysRun2016FeeRecon extends Driver
     public void setDumpRunAndEventNumber(boolean b) {
         _dumpRunAndEventNumber = b;
     }
-    
-    public void setAidaFileName(String s)
-    {
-        _aidaFileName = s;
-    }
-    
+
     @Override
     protected void endOfData() {
       try {
-            AIDA.defaultInstance().saveAs(_aidaFileName+".aida");
-            AIDA.defaultInstance().saveAs(_aidaFileName+".root");
+            AIDA.defaultInstance().saveAs(getAidaFileName() + ".aida");
+            AIDA.defaultInstance().saveAs(getAidaFileName() + ".root");
             //AIDA.defaultInstance().saveAs(testOutputDir.getPath() + File.separator + this.getClass().getSimpleName() + ".root");
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }  
+        }
     }
 
 
