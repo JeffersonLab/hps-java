@@ -47,7 +47,7 @@ public final class EvioToLcioTest extends TestCase {
 
         CheckDriver() {
             for (String collectionName : COLLECTION_NAMES) {
-                emptyCollections.put(collectionName, new Integer(0));
+                emptyCollections.put(collectionName, 0);
             }
         }
 
