@@ -1,6 +1,5 @@
 package org.hps.test.it;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.hps.recon.ecal.cluster.ClusterUtilities;
@@ -9,23 +8,12 @@ import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
-import org.lcsim.detector.DetectorElementStore;
-import org.lcsim.detector.IDetectorElement;
-import org.lcsim.detector.identifier.IExpandedIdentifier;
-import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.IIdentifierDictionary;
-import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
-import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackerHit;
-import org.lcsim.geometry.Detector;
 import org.lcsim.math.chisq.ChisqProb;
-import org.lcsim.util.aida.AIDA;
 
 import hep.aida.IHistogram1D;
 import hep.physics.vec.BasicHep3Matrix;
@@ -34,14 +22,11 @@ import hep.physics.vec.VecOp;
 
 /**
  * Analysis Driver to test reconstruction of 2016 Full Energy Electron candidates.
- * All selection cuts should have already been made prior to calling this Driver.
  *
- * @author Norman A. Graf
+ * All selection cuts should have already been made prior to calling this Driver.
  */
-public class PhysRun2016FeeRecon extends RefPlotsDriver
-{
-   boolean debug = true;
-    private AIDA aida = AIDA.defaultInstance();
+public class PhysRun2016FeeRecon extends RefPlotsDriver {
+
     private IHistogram1D trkChisqNdfTop = aida.histogram1D("Top Track Chisq per DoF", 100, 0., 100.);
     private IHistogram1D trkChisqProbTop = aida.histogram1D("Top Track Chisq Prob", 100, 0., 1.);
     private IHistogram1D trkNhitsTop = aida.histogram1D("Top Track Number of Hits", 7, -0.5, 6.5);
@@ -70,35 +55,30 @@ public class PhysRun2016FeeRecon extends RefPlotsDriver
 
     private final String finalStateParticlesColName = "OtherElectrons";
 
-    private Double _beamEnergy = 1.056;
-    private final BasicHep3Matrix beamAxisRotation = new BasicHep3Matrix();
-
-    //Set min seed energy value, default to 2015 run
-    private double seedCut = 0.4; //= 0.4
-
-    //set min cluster energy value, default to 2015 run
-    private double clusterCut = 0.6;
-
-    //minimum number of hits per cluster
-    private int minHits = 3; // = 3;
-
-    double ctMin = 40.;
-    double ctMax = 49.;
-
-    private boolean _dumpRunAndEventNumber = false;
-
-    protected void detectorChanged(Detector detector) {
-        beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
+    private final static BasicHep3Matrix BEAM_AXIS_ROTATION = new BasicHep3Matrix();
+    static {
+        BEAM_AXIS_ROTATION.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
     }
 
+    private Double beamEnergy = 2.306;
+
+    // Set min seed energy value
+    private final double seedCut = 1.2;
+
+    // Set min cluster energy value
+    private double clusterCut = 1.6;
+
+    // Minimum number of hits per cluster
+    private int minHits = 3;
+
+    // Seed time cuts
+    private double ctMin = 55.;
+    private double ctMax = 61.;
+
     protected void process(EventHeader event) {
-        if (event.getRunNumber() > 7000) {
-            _beamEnergy = 2.306;
-            seedCut = 1.2;
-            clusterCut = 1.6;
-            ctMin = 55.;
-            ctMax = 61.;
-        }
+
+        super.process(event);
+
         // only keep singles triggers:
         if (!event.hasCollection(GenericObject.class, "TriggerBank")) {
             return;
@@ -121,12 +101,11 @@ public class PhysRun2016FeeRecon extends RefPlotsDriver
             return;
         }
         List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
-        setupSensors(event);
         for (ReconstructedParticle rp : rpList) {
             if (!TrackType.isGBL(rp.getType())) {
                 continue;
             }
-            if (rp.getMomentum().magnitude() > 1.5 * _beamEnergy) {
+            if (rp.getMomentum().magnitude() > 1.5 * beamEnergy) {
                 continue;
             }
             // require both track and cluster
@@ -163,7 +142,7 @@ public class PhysRun2016FeeRecon extends RefPlotsDriver
                 int nHits = t.getTrackerHits().size();
                 double dEdx = t.getdEdx();
                 //rotate into physiscs frame of reference
-                Hep3Vector rprot = VecOp.mult(beamAxisRotation, rp.getMomentum());
+                Hep3Vector rprot = VecOp.mult(BEAM_AXIS_ROTATION, rp.getMomentum());
                 double theta = Math.acos(rprot.z() / rprot.magnitude());
 
                 // debug diagnostics to set cuts
@@ -183,7 +162,6 @@ public class PhysRun2016FeeRecon extends RefPlotsDriver
                 double trackDataTime = TrackData.getTrackTime(TrackData.getTrackData(event, t));
                 aida.cloud1D("track data time").fill(trackDataTime);
                 if (isTopTrack(t)) {
-                    if(_dumpRunAndEventNumber) System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " top");
                     trkChisqNdfTop.fill(chi2Ndf);
                     trkChisqProbTop.fill(chisqProb);
                     trkNhitsTop.fill(nHits);
@@ -199,12 +177,8 @@ public class PhysRun2016FeeRecon extends RefPlotsDriver
                     } else if (nHits == 6) {
                         trkMomentumTop6.fill(p);
                         trkdEdXTop6.fill(dEdx);
-                        if (_dumpRunAndEventNumber) {
-                            System.out.println(event.getRunNumber() + " " + event.getEventNumber());
-                        }
                     }
                 } else {
-                    if(_dumpRunAndEventNumber) System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " bottom");
                     trkChisqNdfBottom.fill(chi2Ndf);
                     trkChisqProbBottom.fill(chisqProb);
                     trkNhitsBottom.fill(nHits);
@@ -220,86 +194,9 @@ public class PhysRun2016FeeRecon extends RefPlotsDriver
                     } else if (nHits == 6) {
                         trkMomentumBottom6.fill(p);
                         trkdEdXBottom6.fill(dEdx);
-                        if (_dumpRunAndEventNumber) {
-                            System.out.println(event.getRunNumber() + " " + event.getEventNumber());
-                        }
                     }
                 }
             }// end of cluster cuts
         }
     }
-
-    public void setDumpRunAndEventNumber(boolean b) {
-        _dumpRunAndEventNumber = b;
-    }
-
-    @Override
-    protected void endOfData() {
-      try {
-            AIDA.defaultInstance().saveAs(getAidaFileName() + ".aida");
-            AIDA.defaultInstance().saveAs(getAidaFileName() + ".root");
-            //AIDA.defaultInstance().saveAs(testOutputDir.getPath() + File.separator + this.getClass().getSimpleName() + ".root");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    private boolean isTopTrack(Track t) {
-        List<TrackerHit> hits = t.getTrackerHits();
-        int n[] = {0, 0};
-        int nHits = hits.size();
-        for (TrackerHit h : hits) {
-            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) h.getRawHits().get(0)).getDetectorElement());
-            if (sensor.isTopLayer()) {
-                n[0] += 1;
-            } else {
-                n[1] += 1;
-            }
-        }
-        if (n[0] == nHits && n[1] == 0) {
-            return true;
-        }
-        if (n[1] == nHits && n[0] == 0) {
-            return false;
-        }
-        throw new RuntimeException("mixed top and bottom hits on same track");
-
-    }
-
-    private void setupSensors(EventHeader event) {
-        List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
-        EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
-        // Get the ID dictionary and field information.
-        IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
-        int fieldIdx = dict.getFieldIndex("side");
-        int sideIdx = dict.getFieldIndex("strip");
-        for (RawTrackerHit hit : rawTrackerHits) {
-            // The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.
-            IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
-            expId.setValue(fieldIdx, 0);
-            expId.setValue(sideIdx, 0);
-            IIdentifier strippedId = dict.pack(expId);
-            // Find the sensor DetectorElement.
-            List<IDetectorElement> des = DetectorElementStore.getInstance().find(strippedId);
-            if (des == null || des.size() == 0) {
-                throw new RuntimeException("Failed to find any DetectorElements with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
-            } else if (des.size() == 1) {
-                hit.setDetectorElement((SiSensor) des.get(0));
-            } else {
-                // Use first sensor found, which should work unless there are sensors with duplicate IDs.
-                for (IDetectorElement de : des) {
-                    if (de instanceof SiSensor) {
-                        hit.setDetectorElement((SiSensor) de);
-                        break;
-                    }
-                }
-            }
-            // No sensor was found.
-            if (hit.getDetectorElement() == null) {
-                throw new RuntimeException("No sensor was found for hit with stripped ID <0x" + Long.toHexString(strippedId.getValue()) + ">.");
-            }
-        }
-    }
-
 }

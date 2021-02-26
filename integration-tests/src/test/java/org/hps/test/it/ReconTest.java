@@ -34,7 +34,9 @@ public class ReconTest extends TestCase {
     private RefPlotsDriver plotDriver;
     private File outputFile;
     private double tolerance;
+    private int maxEventTime;
     private Class<? extends ReconTest> testClass;
+    private boolean printComparisonTable = false;
 
     /**
      * Fully qualified constructor for reconstruction IT
@@ -44,7 +46,9 @@ public class ReconTest extends TestCase {
      * @param steering The path to the steering resource
      * @param nEvents The number of events to run (-1 for all)
      * @param plotDriver The driver to create the test plots
-     * @param tolerance The tolerance level for comparisons with ref plots
+     * @param tolerance The tolerance level for comparisons with reference plots
+     * @param maxEventTime Max allowed time per event in milliseconds, inclusive (-1 for no check)
+     * @param printComparisonTable True to print the histogram comparison table
      */
     public ReconTest(Class<? extends ReconTest> testClass,
             String detectorName,
@@ -52,7 +56,9 @@ public class ReconTest extends TestCase {
             String steering,
             int nEvents,
             RefPlotsDriver plotDriver,
-            double tolerance) {
+            double tolerance,
+            int maxEventTime,
+            boolean printComparisonTable) {
 
         if (detectorName == null) {
             throw new NullPointerException("detectorName is null");
@@ -84,6 +90,28 @@ public class ReconTest extends TestCase {
         this.outputFile = new TestOutputFile(testClass, "recon");
 
         this.tolerance = tolerance;
+
+        this.maxEventTime = maxEventTime;
+
+        this.printComparisonTable = printComparisonTable;
+    }
+
+    /**
+     * Simplified constructor using some defaults
+     * @param testClass Concrete class of the test
+     * @param detectorName The name of the detector
+     * @param testFileName The name of the test input file
+     * @param steering The path to the steering resource
+     * @param plotDriver The driver to create the test plots
+     */
+    public ReconTest(Class<? extends ReconTest> testClass,
+            String detectorName,
+            String testFileName,
+            String steering,
+            RefPlotsDriver plotDriver) {
+        this(testClass, detectorName, testFileName,
+                steering, -1 /* nevents */, plotDriver, DEFAULT_TOLERANCE,
+                -1 /* max time */ , false /* print table */);
     }
 
     /**
@@ -116,17 +144,17 @@ public class ReconTest extends TestCase {
     }
 
     protected void createPlots() {
-        System.out.println("Creating plots: " + getAidaOutputPath() + ".aida");
+        System.out.println("Creating test plots: " + getAidaOutputPath() + ".aida");
         LCSimLoop loop = new LCSimLoop();
         plotDriver.setAidaFileName(getAidaOutputPath());
         loop.add(plotDriver);
         try {
             loop.setLCIORecordSource(new File(outputFile.getPath() + ".slcio"));
-            loop.loop(-1);
+            loop.loop(-1, null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Done creating plots!");
+        System.out.println("Done creating test plots!");
     }
 
     /**
@@ -145,7 +173,7 @@ public class ReconTest extends TestCase {
         try {
             refTree = af.createTreeFactory().create(refFile.getPath());
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load ref plots from: " + refFile.getPath());
+            throw new RuntimeException("Failed to open ref plots");
         }
 
         System.out.println("Reading in test AIDA file: " + testFile.getPath());
@@ -153,36 +181,63 @@ public class ReconTest extends TestCase {
         try {
             testTree = af.createTreeFactory().create(testFile.getPath());
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load test plots from: " + testFile.getPath());
+            throw new RuntimeException("Failed to open test plots");
         }
 
         String[] refNames = refTree.listObjectNames();
         String[] refTypes = refTree.listObjectTypes();
-        System.out.println("AIDA ref file object count: " + refNames.length);
+
+        if (this.printComparisonTable) {
+            printComparisonTable(refTree, testTree, refNames, refTypes);
+        }
+
         for (int i = 0; i < refNames.length; ++i) {
             String histoName = refNames[i];
             if (refTypes[i].equals("IHistogram1D")) {
-                System.out.println("Checking histogram: " + histoName);
                 IHistogram1D refHist = (IHistogram1D) refTree.find(histoName);
                 IHistogram1D testHist = (IHistogram1D) testTree.find(histoName);
-                assertEquals("Number of entries is different", refHist.entries(), testHist.entries());
-                assertEquals("Mean is different", refHist.mean(), testHist.mean(), tolerance * abs(refHist.mean()));
-                assertEquals("RMS is different", refHist.rms(), testHist.rms(), tolerance * abs(refHist.rms()));
+                assertEquals("Number of entries is different for: " + histoName, refHist.entries(), testHist.entries());
+                assertEquals("Mean is different for: " + histoName, refHist.mean(), testHist.mean(), tolerance * abs(refHist.mean()));
+                assertEquals("RMS is different for: " + histoName, refHist.rms(), testHist.rms(), tolerance * abs(refHist.rms()));
+
             }
         }
         System.out.println("Done comparing plots!");
+    }
+
+    private void printComparisonTable(ITree refTree, ITree testTree, String[] refNames, String[] refTypes) {
+        System.out.println("\nHistogram\t\t\tRef Entries\tTest Entries\tRef Mean\tTest Mean\tRef RMS\t\tTest RMS\n");
+        for (int i = 0; i < refNames.length; ++i) {
+            String histoName = refNames[i];
+            if (refTypes[i].equals("IHistogram1D")) {
+                System.out.print(String.format("%-" + 31 + "s", histoName.replace("/", "")) + ' ');
+                IHistogram1D refHist = (IHistogram1D) refTree.find(histoName);
+                IHistogram1D testHist = (IHistogram1D) testTree.find(histoName);
+                System.out.printf("%d\t\t%d\t\t%.8f\t%.8f\t%.8f\t%.8f\n",
+                        refHist.entries(), testHist.entries(), refHist.mean(),
+                        testHist.mean(), refHist.rms(), testHist.rms());
+                System.out.flush();
+            }
+        }
+        System.out.println();
     }
 
     /**
      * Run the full test
      */
     public void testRecon() {
-
         long start = System.currentTimeMillis();
         runEvioToLcio();
         long elapsed = System.currentTimeMillis() - start;
+        long perEvent = elapsed/nEvents;
         System.out.println("Reconstruction for " + testClass.getSimpleName() +
-                " took " + new DecimalFormat("#0.00").format((double) elapsed/1000.0) + " seconds");
+                " took " + new DecimalFormat("#0.00").format((double) elapsed/1000.0) + " seconds" +
+                " which is " + perEvent + " millis/event");
+
+        if (perEvent > 0) {
+            assertTrue("Event processing took too long per event: " + perEvent + " millis",
+                    perEvent <= maxEventTime);
+        }
 
         createPlots();
 
