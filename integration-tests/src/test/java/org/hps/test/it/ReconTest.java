@@ -45,7 +45,7 @@ public class ReconTest extends TestCase {
     private String detectorName;
 
     /**
-     * The input test from JLAB
+     * The input file from JLAB
      */
     private String testFileName;
 
