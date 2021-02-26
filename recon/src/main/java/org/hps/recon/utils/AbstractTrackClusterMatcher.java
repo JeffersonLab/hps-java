@@ -37,6 +37,10 @@ import org.hps.record.StandardCuts;
 
 public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher {
 
+    protected String trackCollectionName = "GBLTracks";
+    protected FieldMap bFieldMap = null;
+    protected boolean snapToEdge = true;
+
     /*
      * Default no-arg constructor.
      */
@@ -48,7 +52,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
      * in matcher algorithms that extend this class.
      * Default is GBLTracks.
      */
-    protected String trackCollectionName = "GBLTracks";
     public void setTrackCollectionName(String trackCollectionName){
         this.trackCollectionName = trackCollectionName;
     }
@@ -93,7 +96,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     /**
      * Set B field map if used in matching.
      */
-    FieldMap bFieldMap = null;
     public void setBFieldMap(FieldMap bFieldMap) {
         this.bFieldMap = bFieldMap;
     }
@@ -101,7 +103,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     /**
      * Set snapToEdge if used in matching alg.
      */
-    private boolean snapToEdge = true;
     public void setSnapToEdge(boolean val){
         this.snapToEdge = val;
     }

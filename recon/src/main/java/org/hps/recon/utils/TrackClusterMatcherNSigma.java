@@ -77,6 +77,9 @@ public class TrackClusterMatcherNSigma extends AbstractTrackClusterMatcher {
         this.MAXNSIGMAPOSITIONMATCH = MAXNSIGMAPOSITIONMATCH;
     }
 
+    //Map of Clusters w Tracks if applyClusterCorrections
+    protected HashMap<Cluster, Track> clusterToTrack;
+
     //THIS IS SET IN RECONPARTICLEDRIVE. HOW SHOULD I PASS THIS VALUE TO THE
     //MATCHERS? SHOULD I CRATE A setDisablePID() METHOD IN THE ABSTRACT CLASS,
     //AND CALL IT THAT WAY???
@@ -545,7 +548,6 @@ public class TrackClusterMatcherNSigma extends AbstractTrackClusterMatcher {
      * Applies EcalCluster corrections, with option to use Track position for
      * corrections.
      */
-    protected HashMap<Cluster, Track> clusterToTrack;
     @Override
     public void applyClusterCorrections(boolean useTrackPositionForClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC){
         // Apply the corrections to the Ecal clusters using track information, if available
