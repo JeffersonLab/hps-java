@@ -16,7 +16,6 @@ import org.lcsim.event.Track;
 import org.lcsim.math.chisq.ChisqProb;
 
 import hep.aida.IHistogram1D;
-import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
@@ -54,11 +53,6 @@ public class PhysRun2016FeeRecon extends RefPlotsDriver {
     private IHistogram1D trkZ0Bottom = aida.histogram1D("Bottom Track Z0", 100, -1.0, 1.0);
 
     private final String finalStateParticlesColName = "OtherElectrons";
-
-    private final static BasicHep3Matrix BEAM_AXIS_ROTATION = new BasicHep3Matrix();
-    static {
-        BEAM_AXIS_ROTATION.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
-    }
 
     private Double beamEnergy = 2.306;
 

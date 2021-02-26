@@ -9,7 +9,7 @@ public class PhysRun2016FeeReconTest extends ReconTest {
     static final String TEST_FILE_NAME = "hps_007796_feeskim.evio";
     static final String STEERING = "/org/hps/steering/recon/legacy_drivers/PhysicsRun2016FullRecon.lcsim";
     static final int NEVENTS = 5000;
-    static final int MAX_EVENT_TIME = 35;
+    static final long MAX_EVENT_TIME = 35;
 
     public PhysRun2016FeeReconTest() {
         super(PhysRun2016FeeReconTest.class,
@@ -20,6 +20,7 @@ public class PhysRun2016FeeReconTest extends ReconTest {
                 new PhysRun2016FeeRecon(),
                 DEFAULT_TOLERANCE,
                 MAX_EVENT_TIME,
+                true,
                 true);
     }
 }

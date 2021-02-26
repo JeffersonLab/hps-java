@@ -17,6 +17,8 @@ import org.lcsim.event.TrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
+import hep.physics.vec.BasicHep3Matrix;
+
 /**
  * Driver to be extended that writes reference plots
  */
@@ -27,6 +29,11 @@ public abstract class RefPlotsDriver extends Driver {
     protected boolean debug = false;
 
     protected AIDA aida = AIDA.defaultInstance();
+
+    protected final static BasicHep3Matrix BEAM_AXIS_ROTATION = new BasicHep3Matrix();
+    static {
+        BEAM_AXIS_ROTATION.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
+    }
 
     public RefPlotsDriver(boolean debug) {
         this.debug = debug;
