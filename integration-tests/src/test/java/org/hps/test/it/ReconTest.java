@@ -101,6 +101,7 @@ public class ReconTest extends TestCase {
      * @param tolerance The tolerance level for comparisons with reference plots
      * @param maxEventTime Max allowed time per event in milliseconds, inclusive (-1 for no check)
      * @param printComparisonTable True to print the histogram comparison table
+     * @param printMemoryUsage True to print memory usage after running recon
      */
     public ReconTest(Class<? extends ReconTest> testClass,
             String detectorName,
@@ -243,7 +244,7 @@ public class ReconTest extends TestCase {
             throw new RuntimeException("Failed to open test plots");
         }
 
-        if (this.printComparisonTable) {
+        if (printComparisonTable) {
             printComparisonTable(refTree, testTree);
         }
 

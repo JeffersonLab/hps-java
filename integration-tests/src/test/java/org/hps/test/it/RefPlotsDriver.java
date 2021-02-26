@@ -84,6 +84,17 @@ public abstract class RefPlotsDriver extends Driver {
         throw new RuntimeException("Mixed top and bottom hits on same track");
     }
 
+    protected static boolean hasLayer1Hit(Track t) {
+        List<TrackerHit> hits = t.getTrackerHits();
+        for (TrackerHit h : hits) {
+            HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) h.getRawHits().get(0)).getDetectorElement());
+            if (sensor.getLayerNumber() == 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private void setupSensors(EventHeader event) {
         List<RawTrackerHit> rawTrackerHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
