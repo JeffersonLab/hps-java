@@ -22,6 +22,8 @@ import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.TestRun
  * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDefinition {
+    
+    boolean applySurvey = true;
 
     private static final Logger LOGGER = Logger
             .getLogger(HPSTracker2019GeometryDefinition.class.getPackage().getName());
@@ -31,6 +33,13 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         layerBitMask = 0x7F;
         doTop = true;
         doStereo = true;
+        
+        if (System.getProperty("disableSurvey") != null) {
+            applySurvey = false;
+        }
+
+        System.out.println("PF::DEBUG:: APPLY SURVEY CONSTANTS::" + applySurvey);
+        
     }
 
     @Override
@@ -1078,7 +1087,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             if(layer == 1){
                 if(isTopLayer){
                     halfModuleBundle = new ShortHalfModuleBundle();
-                    halfModule = new ShortAxialHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half);
+                    halfModule = new ShortAxialHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half,applySurvey);
                     bundle.halfModuleAxial = halfModuleBundle;
                 }
                 else{
@@ -1197,7 +1206,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                 //bundle.halfModuleAxialHole = halfModuleBundle;
                 if(layer == 1){
                     if(isTopLayer){
-                        halfModule = new ShortAxialHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half);
+                        halfModule = new ShortAxialHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half,applySurvey);
                         bundle.halfModuleAxialHole = halfModuleBundle;
                     }
                     else{
@@ -1474,9 +1483,15 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     }
 
     public abstract static class ShortAxialHalfModule extends ShortHalfModule {
-
+        
+        
+        protected double sensor_x;
+        protected double sensor_y;
         protected final static double sensor_z = LongHalfModule.sensor_z;
-
+        
+        protected final static double shift_vertically_to_beam_plane = -20.6658;
+        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
+        
         public ShortAxialHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
                 int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
@@ -1502,10 +1517,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // private final static double sensor_x = 1.382*inch;
         // private final static double sensor_y = 3.887*inch;
 
-        // place vertically based on L2 (old L1) position to make it easier
-        protected final static double shift_vertically_to_beam_plane = -20.6658;
-        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
-
         private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
                 + shift_vertically_to_15mrad;
         private final static double sensor_y = HalfModuleAxial.sensor_y;
@@ -1525,127 +1536,173 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
     }
     
+
     public static class ShortAxialHoleHalfModuleL0Top extends ShortAxialHalfModule {
-
-        // private final static double sensor_x = 1.382*inch;
-        // private final static double sensor_y = 3.887*inch;
-
-        // place vertically based on L2 (old L1) position to make it easier
-        protected final static double shift_vertically_to_beam_plane = -20.6658;
-        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
         
-        protected final static double survey_shift_x = 0.086; //positive is away from beam (up)
-        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
-        protected final static double survey_shift_z = 0.0; //positive is downstream shift
+        private double survey_shift_x = 0.0; //positive is away from beam (up)
+        private double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        private double survey_shift_z = 0.0; //positive is downstream shift
 
-        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
-                + shift_vertically_to_15mrad + survey_shift_x;
-        private final static double sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
-        // private final static double sensor_z = HalfModuleAxial.sensor_z;
-        private final static double sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+        //private double sensor_x = 0.0;
+        //private double sensor_y = 0.0;
+        private double sensor_z = 0.0;
+        
 
+        //Constructor with survey constants on by default
+        public ShortAxialHoleHalfModuleL0Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
+            this(name, mother, alignmentCorrection, layer, half, true);
+            
+        }
+        
         public ShortAxialHoleHalfModuleL0Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
-                int layer, String half) {
+                                             int layer, String half, boolean applySurvey) {
             super(name, mother, alignmentCorrection, layer, half);
+            
+            //Flag to decide if to apply MRSolt 2019 Survey constants or not
+            //TODO - place them in a better place
+            survey_shift_x = applySurvey ? 0.086 : 0.0;
+            survey_shift_y = applySurvey ? 0.0 : 0.0;
+            survey_shift_z = applySurvey ? 0.0 : 0.0;
+            
+            sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad + survey_shift_x;
+            sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+            sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+
             init();
         }
-
+        
+        @Override
         protected Hep3Vector getSensorPosition() {
             // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
             return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
         }
-
+        
     }
     
+
+    //TODO FIX THE SENSOR_Z
+
     public static class ShortAxialHoleHalfModuleL0Bot extends ShortAxialHalfModule {
-
-        // private final static double sensor_x = 1.382*inch;
-        // private final static double sensor_y = 3.887*inch;
-
-        // place vertically based on L2 (old L1) position to make it easier
-        protected final static double shift_vertically_to_beam_plane = -20.6658;
-        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
         
-        protected final static double survey_shift_x = 0.200; //positive is away from beam (down)
-        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
-        protected final static double survey_shift_z = 0.0; //positive is upstream shift
-
-        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
-                + shift_vertically_to_15mrad + survey_shift_x;
-        private final static double sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+        private double survey_shift_x = 0.0; //positive is away from beam (down)
+        private double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        private double survey_shift_z = 0.0; //positive is upstream shift
+        
+        //private double sensor_x;
+        //private double sensor_y;
         // private final static double sensor_z = HalfModuleAxial.sensor_z;
-        private final static double sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+        private double sensor_z;
 
+        //Constructor with survey constants applied by default
+        public ShortAxialHoleHalfModuleL0Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
+            this(name, mother, alignmentCorrection, layer, half, true);
+            
+        }
+        
         public ShortAxialHoleHalfModuleL0Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
-                int layer, String half) {
+                                             int layer, String half, boolean applySurvey) {
             super(name, mother, alignmentCorrection, layer, half);
+            
+            //Flag to decide if to apply MRSolt 2019 Survey constants or not
+            //TODO - place them in a better place
+            survey_shift_x = applySurvey ? 0.2 : 0.0;
+            survey_shift_y = applySurvey ? 0.0 : 0.0;
+            survey_shift_z = applySurvey ? 0.0 : 0.0;
+            
+            sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad + survey_shift_x;
+            sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+            sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+            
             init();
         }
-
+        
+        @Override
         protected Hep3Vector getSensorPosition() {
             // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
             return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
         }
-
+        
     }
     
     public static class ShortAxialHoleHalfModuleL1Top extends ShortAxialHalfModule {
-
-        // private final static double sensor_x = 1.382*inch;
-        // private final static double sensor_y = 3.887*inch;
-
-        // place vertically based on L2 (old L1) position to make it easier
-        protected final static double shift_vertically_to_beam_plane = -20.6658;
-        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
         
-        protected final static double survey_shift_x = 0.366 - 0.245; //positive is away from beam (up)
-        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
-        protected final static double survey_shift_z = 0.0; //positive is downstream shift
-
-        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
-                + shift_vertically_to_15mrad + survey_shift_x;
-        private final static double sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+        private double survey_shift_x = 0.0; //positive is away from beam (up)
+        private double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        private double survey_shift_z = 0.0; //positive is downstream shift
+        
+        //private double sensor_x;
+        //private double sensor_y;
         // private final static double sensor_z = HalfModuleAxial.sensor_z;
-        private final static double sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
-
+        private double sensor_z;
+        
+        
+        //Constructor with survey constants applied by default
+        public ShortAxialHoleHalfModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
+            this(name, mother, alignmentCorrection, layer, half, true);
+            
+        }
+        
         public ShortAxialHoleHalfModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
-                int layer, String half) {
+                                             int layer, String half, boolean applySurvey) {
             super(name, mother, alignmentCorrection, layer, half);
+            
+            //Flag to decide if to apply MRSolt 2019 Survey constants or not
+            //TODO - place them in a better place
+            survey_shift_x = applySurvey ? 0.366 - 0.245 : 0.0;
+            survey_shift_y = applySurvey ? 0.0 : 0.0;
+            survey_shift_z = applySurvey ? 0.0 : 0.0;
+            
+            sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad + survey_shift_x;
+            sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+            sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+            
             init();
         }
-
+        
+        @Override
         protected Hep3Vector getSensorPosition() {
             // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
             return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
         }
-
+        
     }
     
     public static class ShortAxialHoleHalfModuleL1Bot extends ShortAxialHalfModule {
 
-        // private final static double sensor_x = 1.382*inch;
-        // private final static double sensor_y = 3.887*inch;
-
-        // place vertically based on L2 (old L1) position to make it easier
-        protected final static double shift_vertically_to_beam_plane = -20.6658;
-        protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
+        private double survey_shift_x = 0.0; //positive is away from beam (down)
+        private double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+        private double survey_shift_z = 0.0; //positive is upstream shift
         
-        protected final static double survey_shift_x = 0.285; //positive is away from beam (down)
-        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
-        protected final static double survey_shift_z = 0.0; //positive is upstream shift
-
-        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
-                + shift_vertically_to_15mrad + survey_shift_x;
-        private final static double sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+        //private double sensor_x;
+        //private double sensor_y;
         // private final static double sensor_z = HalfModuleAxial.sensor_z;
-        private final static double sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
-
+        private double sensor_z;
+        
+        //Constructor with survey constants applied by default
+        public ShortAxialHoleHalfModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
+            this(name, mother, alignmentCorrection, layer, half, true);
+            
+        }
+        
         public ShortAxialHoleHalfModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
-                int layer, String half) {
+                                             int layer, String half, boolean applySurvey) {
             super(name, mother, alignmentCorrection, layer, half);
+            
+            //Flag to decide if to apply MRSolt 2019 Survey constants or not
+            //TODO - place them in a better place
+            survey_shift_x = applySurvey ? 0.285 : 0.0;
+            survey_shift_y = applySurvey ? 0.0 : 0.0;
+            survey_shift_z = applySurvey ? 0.0 : 0.0;
+            
+            sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad + survey_shift_x;
+            sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
+            sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+            
             init();
         }
-
+        
+        
+        @Override
         protected Hep3Vector getSensorPosition() {
             // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
             return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
