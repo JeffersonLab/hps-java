@@ -26,7 +26,7 @@ public class EngRun2015V0ReconTest extends ReconTest {
     static final String DETECTOR = "HPS-EngRun2015-Nominal-v6-0-fieldmap_v3";
     static final String TEST_FILE_NAME = "hps_005772_v0skim_10k.evio";
     static final String STEERING = "/org/hps/steering/recon/legacy_drivers/EngineeringRun2015FullRecon.lcsim";
-    static final int NEVENTS = 5000;
+    static final int NEVENTS = 2000;
     static final long MAX_EVENT_TIME = -1;
 
     public EngRun2015V0ReconTest() {
@@ -128,9 +128,6 @@ public class EngRun2015V0ReconTest extends ReconTest {
 
                 List<Vertex> vertices = event.get(Vertex.class, vertexCollectionName);
                 for (Vertex v : vertices) {
-                    aida.tree().cd("/");
-                    aida.tree().mkdirs(vertexCollectionName);
-                    aida.tree().cd(vertexCollectionName);
                     ReconstructedParticle rp = v.getAssociatedParticle();
                     int type = rp.getType();
                     boolean isGbl = TrackType.isGBL(type);
@@ -165,33 +162,15 @@ public class EngRun2015V0ReconTest extends ReconTest {
                         if (abs(deltaT) > 2.0) {
                             continue;
                         }
-//                        // require momentum sum to equal beam energy +-
-//                        double psum = rp1.getMomentum().magnitude() + rp2.getMomentum().magnitude();
-//                        if (psum < psumMin || psum > psumMax) {
-//                            continue;
-//                        }
+
                         //rotate into physiscs frame of reference
                         Hep3Vector rprot = VecOp.mult(BEAM_AXIS_ROTATION, rp.getMomentum());
                         Hep3Vector p1rot = VecOp.mult(BEAM_AXIS_ROTATION, rp1.getMomentum());
                         Hep3Vector p2rot = VecOp.mult(BEAM_AXIS_ROTATION, rp2.getMomentum());
                         double theta1 = Math.acos(p1rot.z() / p1rot.magnitude());
                         double theta2 = Math.acos(p2rot.z() / p2rot.magnitude());
-                        double thetasum = theta1 + theta2;
-//                        // cut on thetasum
-//                        if (thetasum > _thetasumCut) {
-//                            continue;
-//                        }
-//                        // cut on V0 pX
-//                        if (abs(rprot.x()) > 0.01) {
-//                            continue;
-//                        }
-//                        // cut on V0 pY
-//                        if (abs(rp.getMomentum().y()) > .01) {
-//                            continue;
-//                        }
                         double t1ChisqNdf = t1.getChi2() / t1.getNDF();
                         double t2ChisqNdf = t2.getChi2() / t2.getNDF();
-
                         double t1ChisqProb = ChisqProb.gammp(t1.getNDF(), t1.getChi2());
                         double t2ChisqProb = ChisqProb.gammp(t2.getNDF(), t2.getChi2());
                         // used to cut on prob < 0.995, which corresponds to roughly 3.4
@@ -319,9 +298,9 @@ public class EngRun2015V0ReconTest extends ReconTest {
                             pvsthetaHist_TargetConstrainedV0Vertices.fill(p2, theta2);
                             xvsyHist_TargetConstrainedV0Vertices.fill(pos.x(), pos.y());
                         }
-                    }//Loop over GBL-vertices
-                }// Loop over vertices
-            }// loop over various vertex collections
+                    } // Loop over GBL-vertices
+                } // Loop over vertices
+            } // Loop over various vertex collections
         }
     }
 }

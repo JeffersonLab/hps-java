@@ -28,7 +28,7 @@ public class EngRun2015MollerReconTest extends ReconTest {
     static final String DETECTOR = "HPS-EngRun2015-Nominal-v6-0-fieldmap_v3";
     static final String TEST_FILE_NAME = "hps_005772_mollerskim_10k.evio";
     static final String STEERING = "/org/hps/steering/recon/legacy_drivers/EngineeringRun2015FullRecon.lcsim";
-    static final int NEVENTS = 5000;
+    static final int NEVENTS = 1000;
     static final long MAX_EVENT_TIME = -1;
 
     public EngRun2015MollerReconTest() {
