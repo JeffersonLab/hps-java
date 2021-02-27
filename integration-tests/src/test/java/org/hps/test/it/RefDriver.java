@@ -22,7 +22,7 @@ import hep.physics.vec.BasicHep3Matrix;
 /**
  * Driver to be extended that writes reference plots
  */
-public abstract class RefPlotsDriver extends Driver {
+public abstract class RefDriver extends Driver {
 
     private String aidaFileName = "plots";
 
@@ -35,11 +35,11 @@ public abstract class RefPlotsDriver extends Driver {
         BEAM_AXIS_ROTATION.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
     }
 
-    public RefPlotsDriver(boolean debug) {
+    public RefDriver(boolean debug) {
         this.debug = debug;
     }
 
-    public RefPlotsDriver() {
+    public RefDriver() {
     }
 
     public void setAidaFileName(String s) {

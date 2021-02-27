@@ -27,7 +27,7 @@ import junit.framework.TestCase;
  * Test-specific parameters such as detector name and test file can be configured
  * through one of the constructors.
  */
-public class ReconTest extends TestCase {
+public abstract class ReconTest extends TestCase {
 
     /**
      * The default tolerance level for histogram statistics comparison
@@ -62,7 +62,7 @@ public class ReconTest extends TestCase {
     /**
      * A driver instance to generate the local AIDA file
      */
-    private RefPlotsDriver plotDriver;
+    private RefDriver plotDriver;
 
     /**
      * The LCIO output file (not set by the user)
@@ -101,14 +101,14 @@ public class ReconTest extends TestCase {
      * @param tolerance The tolerance level for comparisons with reference plots
      * @param maxEventTime Max allowed time per event in milliseconds, inclusive (-1 for no check)
      * @param printComparisonTable True to print the histogram comparison table
-     * @param printMemoryUsage True to print memory usage after running recon
+     * @param printMemoryUsage True to print memory usage after running reconstruction
      */
     public ReconTest(Class<? extends ReconTest> testClass,
             String detectorName,
             String testFileName,
             String steering,
             int nEvents,
-            RefPlotsDriver plotDriver,
+            RefDriver plotDriver,
             double tolerance,
             long maxEventTime,
             boolean printComparisonTable,
@@ -164,7 +164,7 @@ public class ReconTest extends TestCase {
             String detectorName,
             String testFileName,
             String steering,
-            RefPlotsDriver plotDriver) {
+            RefDriver plotDriver) {
         this(testClass, detectorName, testFileName,
                 steering, -1 /* nevents */, plotDriver, DEFAULT_TOLERANCE,
                 -1 /* max time */ , false /* print table */, false /* memory usage */);
