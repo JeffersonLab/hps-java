@@ -67,14 +67,12 @@ public class PhysRun2016V0ReconTest extends ReconTest {
         private IHistogram1D vtxZHistL1L1_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex z L1L1", 200, -20.0, 20.0);
         private IHistogram1D vtxChisqHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex Chisq", 100, 0.0, 100.0);
 
-        //2D
         private IHistogram2D p1vsp2Hist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
         private IHistogram2D ptopvspbotHist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
         private IHistogram2D theta1vstheta2Hist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
         private IHistogram2D pvsthetaHist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
         private IHistogram2D xvsyHist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
 
-        //
         private IHistogram1D invMassHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
         private IHistogram1D pHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
         private IHistogram1D pxHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 x Momentum", 200, -0.01, 0.01);
