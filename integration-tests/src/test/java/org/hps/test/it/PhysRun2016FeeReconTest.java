@@ -45,48 +45,48 @@ public class PhysRun2016FeeReconTest extends ReconTest {
 
     private static class PlotDriver extends RefDriver {
 
-        private IHistogram1D trkChisqNdfTop = aida.histogram1D("Top Track Chisq per DoF", 100, 0., 100.);
-        private IHistogram1D trkChisqProbTop = aida.histogram1D("Top Track Chisq Prob", 100, 0., 1.);
-        private IHistogram1D trkNhitsTop = aida.histogram1D("Top Track Number of Hits", 7, -0.5, 6.5);
-        private IHistogram1D trkMomentumTop = aida.histogram1D("Top Track Momentum", 200, 0., 3.);
-        private IHistogram1D trkMomentumTop5 = aida.histogram1D("Top 5 Hit Track Momentum", 200, 0., 3.);
-        private IHistogram1D trkMomentumTop6 = aida.histogram1D("Top 6 Hit Track Momentum", 200, 0., 3.);
-        private IHistogram1D trkdEdXTop5 = aida.histogram1D("Top 5 Track dEdx", 100, 0., .00015);
-        private IHistogram1D trkdEdXTop6 = aida.histogram1D("Top 6 Track dEdx", 100, 0., .00015);
-        private IHistogram1D trkthetaTop = aida.histogram1D("Top Track theta", 100, 0.01, 0.05);
-        private IHistogram1D trkX0Top = aida.histogram1D("Top Track X0", 100, -0.5, 0.5);
-        private IHistogram1D trkY0Top = aida.histogram1D("Top Track Y0", 100, -5.0, 5.0);
-        private IHistogram1D trkZ0Top = aida.histogram1D("Top Track Z0", 100, -1.0, 1.0);
+        IHistogram1D trkChisqNdfTop = aida.histogram1D("Top Track Chisq per DoF", 100, 0., 100.);
+        IHistogram1D trkChisqProbTop = aida.histogram1D("Top Track Chisq Prob", 100, 0., 1.);
+        IHistogram1D trkNhitsTop = aida.histogram1D("Top Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkMomentumTop = aida.histogram1D("Top Track Momentum", 200, 0., 3.);
+        IHistogram1D trkMomentumTop5 = aida.histogram1D("Top 5 Hit Track Momentum", 200, 0., 3.);
+        IHistogram1D trkMomentumTop6 = aida.histogram1D("Top 6 Hit Track Momentum", 200, 0., 3.);
+        IHistogram1D trkdEdXTop5 = aida.histogram1D("Top 5 Track dEdx", 100, 0., .00015);
+        IHistogram1D trkdEdXTop6 = aida.histogram1D("Top 6 Track dEdx", 100, 0., .00015);
+        IHistogram1D trkthetaTop = aida.histogram1D("Top Track theta", 100, 0.01, 0.05);
+        IHistogram1D trkX0Top = aida.histogram1D("Top Track X0", 100, -0.5, 0.5);
+        IHistogram1D trkY0Top = aida.histogram1D("Top Track Y0", 100, -5.0, 5.0);
+        IHistogram1D trkZ0Top = aida.histogram1D("Top Track Z0", 100, -1.0, 1.0);
 
-        private IHistogram1D trkChisqNdfBottom = aida.histogram1D("Bottom Track Chisq per DoF", 100, 0., 100.);
-        private IHistogram1D trkChisqProbBottom = aida.histogram1D("Bottom Track Chisq Prob", 100, 0., 1.);
-        private IHistogram1D trkNhitsBottom = aida.histogram1D("Bottom Track Number of Hits", 7, -0.5, 6.5);
-        private IHistogram1D trkMomentumBottom = aida.histogram1D("Bottom Track Momentum", 200, 0., 3.);
-        private IHistogram1D trkMomentumBottom5 = aida.histogram1D("Bottom 5 Hit Track Momentum", 200, 0., 3.);
-        private IHistogram1D trkMomentumBottom6 = aida.histogram1D("Bottom 6 Hit Track Momentum", 200, 0., 3.);
-        private IHistogram1D trkdEdXBottom5 = aida.histogram1D("Bottom 5 Track dEdx", 100, 0., .00015);
-        private IHistogram1D trkdEdXBottom6 = aida.histogram1D("Bottom 6 Track dEdx", 100, 0., .00015);
-        private IHistogram1D trkthetaBottom = aida.histogram1D("Bottom Track theta", 100, 0.01, 0.05);
-        private IHistogram1D trkX0Bottom = aida.histogram1D("Bottom Track X0", 100, -0.5, 0.5);
-        private IHistogram1D trkY0Bottom = aida.histogram1D("Bottom Track Y0", 100, -5.0, 5.0);
-        private IHistogram1D trkZ0Bottom = aida.histogram1D("Bottom Track Z0", 100, -1.0, 1.0);
+        IHistogram1D trkChisqNdfBottom = aida.histogram1D("Bottom Track Chisq per DoF", 100, 0., 100.);
+        IHistogram1D trkChisqProbBottom = aida.histogram1D("Bottom Track Chisq Prob", 100, 0., 1.);
+        IHistogram1D trkNhitsBottom = aida.histogram1D("Bottom Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkMomentumBottom = aida.histogram1D("Bottom Track Momentum", 200, 0., 3.);
+        IHistogram1D trkMomentumBottom5 = aida.histogram1D("Bottom 5 Hit Track Momentum", 200, 0., 3.);
+        IHistogram1D trkMomentumBottom6 = aida.histogram1D("Bottom 6 Hit Track Momentum", 200, 0., 3.);
+        IHistogram1D trkdEdXBottom5 = aida.histogram1D("Bottom 5 Track dEdx", 100, 0., .00015);
+        IHistogram1D trkdEdXBottom6 = aida.histogram1D("Bottom 6 Track dEdx", 100, 0., .00015);
+        IHistogram1D trkthetaBottom = aida.histogram1D("Bottom Track theta", 100, 0.01, 0.05);
+        IHistogram1D trkX0Bottom = aida.histogram1D("Bottom Track X0", 100, -0.5, 0.5);
+        IHistogram1D trkY0Bottom = aida.histogram1D("Bottom Track Y0", 100, -5.0, 5.0);
+        IHistogram1D trkZ0Bottom = aida.histogram1D("Bottom Track Z0", 100, -1.0, 1.0);
 
-        private final String finalStateParticlesColName = "OtherElectrons";
+        final String finalStateParticlesColName = "OtherElectrons";
 
-        private Double beamEnergy = 2.306;
+        Double beamEnergy = 2.306;
 
         // Set min seed energy value
-        private final double seedCut = 1.2;
+        final double seedCut = 1.2;
 
         // Set min cluster energy value
-        private double clusterCut = 1.6;
+        double clusterCut = 1.6;
 
         // Minimum number of hits per cluster
-        private int minHits = 3;
+        int minHits = 3;
 
         // Seed time cuts
-        private double ctMin = 55.;
-        private double ctMax = 61.;
+        double ctMin = 55.;
+        double ctMax = 61.;
 
         protected void process(EventHeader event) {
 

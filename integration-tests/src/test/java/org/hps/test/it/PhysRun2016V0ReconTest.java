@@ -47,76 +47,75 @@ public class PhysRun2016V0ReconTest extends ReconTest {
         String[] vertexCollectionNames = {
                 "UnconstrainedV0Vertices", "BeamspotConstrainedV0Vertices", "TargetConstrainedV0Vertices"};
 
-        private Double _beamEnergy = 2.306;
-        private double _trackChi2NdfCut = 100.; //corresponds to chisquared cut of 40 for 5-hit tracks
+        Double beamEnergy = 2.306;
+        double trackChi2NdfCut = 100.; //corresponds to chisquared cut of 40 for 5-hit tracks
 
-        private IHistogram1D invMassHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
-        private IHistogram1D pHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
-        private IHistogram1D pxHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 x Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pyHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 y Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pzHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 z Momentum", 200, 0., 3.0);
-        private IHistogram1D trkpHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkptopHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Top Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkpbotHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Bottom Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkNhitsHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Track Number of Hits", 7, -0.5, 6.5);
-        private IHistogram1D trkChisqHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Track Chisq per DoF", 100, 0.0, 20.0);
-        private IHistogram1D trkChisqProbHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Track Chisq Prob", 100, 0.0, 1.0);
-        private IHistogram1D vtxXHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex x", 200, -2.5, 2.5);
-        private IHistogram1D vtxYHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex y", 200, -1.0, 1.0);
-        private IHistogram1D vtxZHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex z", 200, -20.0, 20.0);
-        private IHistogram1D vtxZHistL1L1_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex z L1L1", 200, -20.0, 20.0);
-        private IHistogram1D vtxChisqHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex Chisq", 100, 0.0, 100.0);
+        IHistogram1D invMassHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
+        IHistogram1D pHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
+        IHistogram1D pxHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 x Momentum", 200, -0.01, 0.01);
+        IHistogram1D pyHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 y Momentum", 200, -0.01, 0.01);
+        IHistogram1D pzHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 z Momentum", 200, 0., 3.0);
+        IHistogram1D trkpHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkptopHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Top Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkpbotHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Bottom Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkNhitsHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkChisqHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Track Chisq per DoF", 100, 0.0, 20.0);
+        IHistogram1D trkChisqProbHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Track Chisq Prob", 100, 0.0, 1.0);
+        IHistogram1D vtxXHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex x", 200, -2.5, 2.5);
+        IHistogram1D vtxYHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex y", 200, -1.0, 1.0);
+        IHistogram1D vtxZHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex z", 200, -20.0, 20.0);
+        IHistogram1D vtxZHistL1L1_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex z L1L1", 200, -20.0, 20.0);
+        IHistogram1D vtxChisqHist_UnconstrainedV0Vertices = aida.histogram1D("UnconstrainedV0Vertices/V0 Vertex Chisq", 100, 0.0, 100.0);
 
-        private IHistogram2D p1vsp2Hist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D ptopvspbotHist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D theta1vstheta2Hist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
-        private IHistogram2D pvsthetaHist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
-        private IHistogram2D xvsyHist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
+        IHistogram2D p1vsp2Hist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D ptopvspbotHist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D theta1vstheta2Hist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
+        IHistogram2D pvsthetaHist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
+        IHistogram2D xvsyHist_UnconstrainedV0Vertices = aida.histogram2D("UnconstrainedV0Vertices/V0 vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
 
-        private IHistogram1D invMassHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
-        private IHistogram1D pHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
-        private IHistogram1D pxHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 x Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pyHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 y Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pzHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 z Momentum", 200, 0., 3.0);
-        private IHistogram1D trkpHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkptopHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Top Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkpbotHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Bottom Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkNhitsHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Track Number of Hits", 7, -0.5, 6.5);
-        private IHistogram1D trkChisqHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Track Chisq per DoF", 100, 0.0, 20.0);
-        private IHistogram1D trkChisqProbHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Track Chisq Prob", 100, 0.0, 1.0);
-        private IHistogram1D vtxXHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Vertex x", 200, -2.5, 2.5);
-        private IHistogram1D vtxYHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Vertex y", 200, -1.0, 1.0);
-        private IHistogram1D vtxZHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Vertex z", 200, -20.0, 20.0);
-        private IHistogram1D vtxChisqHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Vertex Chisq", 100, 0.0, 100.0);
+        IHistogram1D invMassHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
+        IHistogram1D pHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
+        IHistogram1D pxHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 x Momentum", 200, -0.01, 0.01);
+        IHistogram1D pyHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 y Momentum", 200, -0.01, 0.01);
+        IHistogram1D pzHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 z Momentum", 200, 0., 3.0);
+        IHistogram1D trkpHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkptopHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Top Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkpbotHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Bottom Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkNhitsHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkChisqHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Track Chisq per DoF", 100, 0.0, 20.0);
+        IHistogram1D trkChisqProbHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Track Chisq Prob", 100, 0.0, 1.0);
+        IHistogram1D vtxXHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Vertex x", 200, -2.5, 2.5);
+        IHistogram1D vtxYHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Vertex y", 200, -1.0, 1.0);
+        IHistogram1D vtxZHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Vertex z", 200, -20.0, 20.0);
+        IHistogram1D vtxChisqHist_BeamspotConstrainedV0Vertices = aida.histogram1D("BeamspotConstrainedV0Vertices/V0 Vertex Chisq", 100, 0.0, 100.0);
 
-        //2D
-        private IHistogram2D p1vsp2Hist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D ptopvspbotHist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D theta1vstheta2Hist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
-        private IHistogram2D pvsthetaHist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
-        private IHistogram2D xvsyHist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
+        IHistogram2D p1vsp2Hist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D ptopvspbotHist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D theta1vstheta2Hist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
+        IHistogram2D pvsthetaHist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
+        IHistogram2D xvsyHist_BeamspotConstrainedV0Vertices = aida.histogram2D("BeamspotConstrainedV0Vertices/V0 vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
 
-        private IHistogram1D invMassHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
-        private IHistogram1D pHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
-        private IHistogram1D pxHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 x Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pyHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 y Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pzHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 z Momentum", 200, 0., 3.0);
-        private IHistogram1D trkpHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkptopHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Top Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkpbotHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Bottom Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkNhitsHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Track Number of Hits", 7, -0.5, 6.5);
-        private IHistogram1D trkChisqHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Track Chisq per DoF", 100, 0.0, 20.0);
-        private IHistogram1D trkChisqProbHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Track Chisq Prob", 100, 0.0, 1.0);
-        private IHistogram1D vtxXHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Vertex x", 200, -2.5, 2.5);
-        private IHistogram1D vtxYHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Vertex y", 200, -1.0, 1.0);
-        private IHistogram1D vtxZHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Vertex z", 200, -20.0, 20.0);
-        private IHistogram1D vtxChisqHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Vertex Chisq", 100, 0.0, 100.0);
+        IHistogram1D invMassHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Invariant Mass", 200, 0., 0.1);
+        IHistogram1D pHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Momentum", 200, 0., 3.0);
+        IHistogram1D pxHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 x Momentum", 200, -0.01, 0.01);
+        IHistogram1D pyHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 y Momentum", 200, -0.01, 0.01);
+        IHistogram1D pzHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 z Momentum", 200, 0., 3.0);
+        IHistogram1D trkpHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkptopHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Top Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkpbotHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Bottom Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkNhitsHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkChisqHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Track Chisq per DoF", 100, 0.0, 20.0);
+        IHistogram1D trkChisqProbHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Track Chisq Prob", 100, 0.0, 1.0);
+        IHistogram1D vtxXHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Vertex x", 200, -2.5, 2.5);
+        IHistogram1D vtxYHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Vertex y", 200, -1.0, 1.0);
+        IHistogram1D vtxZHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Vertex z", 200, -20.0, 20.0);
+        IHistogram1D vtxChisqHist_TargetConstrainedV0Vertices = aida.histogram1D("TargetConstrainedV0Vertices/V0 Vertex Chisq", 100, 0.0, 100.0);
 
-        private IHistogram2D p1vsp2Hist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D ptopvspbotHist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D theta1vstheta2Hist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
-        private IHistogram2D pvsthetaHist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
-        private IHistogram2D xvsyHist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
+        IHistogram2D p1vsp2Hist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D ptopvspbotHist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D theta1vstheta2Hist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
+        IHistogram2D pvsthetaHist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
+        IHistogram2D xvsyHist_TargetConstrainedV0Vertices = aida.histogram2D("TargetConstrainedV0Vertices/V0 vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
 
         protected void process(EventHeader event) {
             super.process(event);
@@ -132,7 +131,7 @@ public class PhysRun2016V0ReconTest extends ReconTest {
                         ReconstructedParticle rp1 = parts.get(0);
                         ReconstructedParticle rp2 = parts.get(1);
                         // basic sanity check here, remove full energy electrons (fee)
-                        if (rp1.getMomentum().magnitude() > 1.5 * _beamEnergy || rp2.getMomentum().magnitude() > 1.5 * _beamEnergy) {
+                        if (rp1.getMomentum().magnitude() > 1.5 * beamEnergy || rp2.getMomentum().magnitude() > 1.5 * beamEnergy) {
                             continue;
                         }
                         // require both reconstructed particles to have a track and a cluster
@@ -172,10 +171,10 @@ public class PhysRun2016V0ReconTest extends ReconTest {
                         // change this to a cut on chi-squared/dof which people are more familiar with.
                         // Omar currently cuts on chi-squared <40(!), irrespective of 5 or 6 hit tracks
                         // let's start at chisq/dof of 8
-                        if (t1ChisqNdf > _trackChi2NdfCut) {//(t1ChisqProb > 0.995) {
+                        if (t1ChisqNdf > trackChi2NdfCut) {//(t1ChisqProb > 0.995) {
                             continue;
                         }
-                        if (t2ChisqNdf > _trackChi2NdfCut) {//(t2ChisqProb > 0.995) {
+                        if (t2ChisqNdf > trackChi2NdfCut) {//(t2ChisqProb > 0.995) {
                             continue;
                         }
                         // all cuts passed, let's fill some histograms

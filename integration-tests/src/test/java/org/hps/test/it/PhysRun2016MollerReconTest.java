@@ -47,79 +47,79 @@ public class PhysRun2016MollerReconTest extends ReconTest {
                 "BeamspotConstrainedMollerVertices",
                 "TargetConstrainedMollerVertices"};
 
-        private Double beamEnergy = 2.306;
-        private double psumDelta = 0.06;
-        private double thetaSumCut = 0.0475;
-        private double trackChi2NdfCut = 8.; //corresponds to chisquared cut of 40 for 5-hit tracks
+        Double beamEnergy = 2.306;
+        double psumDelta = 0.06;
+        double thetaSumCut = 0.0475;
+        double trackChi2NdfCut = 8.; //corresponds to chisquared cut of 40 for 5-hit tracks
 
-        private double psumMin = (1 - psumDelta) * beamEnergy;
-        private double psumMax = (1 + psumDelta) * beamEnergy;
+        double psumMin = (1 - psumDelta) * beamEnergy;
+        double psumMax = (1 + psumDelta) * beamEnergy;
 
-        private IHistogram1D invMassHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Invariant Mass", 200, 0., 0.1);
-        private IHistogram1D pHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Momentum", 200, 0., 3.0);
-        private IHistogram1D pxHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller x Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pyHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller y Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pzHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller z Momentum", 200, 0., 3.0);
-        private IHistogram1D trkpHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkptopHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Top Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkpbotHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Bottom Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkNhitsHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Track Number of Hits", 7, -0.5, 6.5);
-        private IHistogram1D trkChisqHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Track Chisq per DoF", 100, 0.0, 20.0);
-        private IHistogram1D trkChisqProbHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Track Chisq Prob", 100, 0.0, 1.0);
-        private IHistogram1D vtxXHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex x", 200, -2.5, 2.5);
-        private IHistogram1D vtxYHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex y", 200, -1.0, 1.0);
-        private IHistogram1D vtxZHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex z", 200, -20.0, 20.0);
-        private IHistogram1D vtxChisqHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex Chisq", 100, 0.0, 100.0);
+        IHistogram1D invMassHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Invariant Mass", 200, 0., 0.1);
+        IHistogram1D pHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Momentum", 200, 0., 3.0);
+        IHistogram1D pxHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller x Momentum", 200, -0.01, 0.01);
+        IHistogram1D pyHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller y Momentum", 200, -0.01, 0.01);
+        IHistogram1D pzHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller z Momentum", 200, 0., 3.0);
+        IHistogram1D trkpHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkptopHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Top Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkpbotHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Bottom Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkNhitsHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkChisqHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Track Chisq per DoF", 100, 0.0, 20.0);
+        IHistogram1D trkChisqProbHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Track Chisq Prob", 100, 0.0, 1.0);
+        IHistogram1D vtxXHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex x", 200, -2.5, 2.5);
+        IHistogram1D vtxYHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex y", 200, -1.0, 1.0);
+        IHistogram1D vtxZHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex z", 200, -20.0, 20.0);
+        IHistogram1D vtxChisqHist_UnconstrainedMollerVertices = aida.histogram1D("UnconstrainedMollerVertices/Moller Vertex Chisq", 100, 0.0, 100.0);
 
-        private IHistogram2D p1vsp2Hist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D ptopvspbotHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D theta1vstheta2Hist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
-        private IHistogram2D pvsthetaHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
-        private IHistogram2D xvsyHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
+        IHistogram2D p1vsp2Hist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D ptopvspbotHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D theta1vstheta2Hist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
+        IHistogram2D pvsthetaHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
+        IHistogram2D xvsyHist_UnconstrainedMollerVertices = aida.histogram2D("UnconstrainedMollerVertices/Moller vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
 
-        private IHistogram1D invMassHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Invariant Mass", 200, 0., 0.1);
-        private IHistogram1D pHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Momentum", 200, 0., 3.0);
-        private IHistogram1D pxHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller x Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pyHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller y Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pzHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller z Momentum", 200, 0., 3.0);
-        private IHistogram1D trkpHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkptopHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Top Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkpbotHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Bottom Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkNhitsHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Track Number of Hits", 7, -0.5, 6.5);
-        private IHistogram1D trkChisqHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Track Chisq per DoF", 100, 0.0, 20.0);
-        private IHistogram1D trkChisqProbHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Track Chisq Prob", 100, 0.0, 1.0);
-        private IHistogram1D vtxXHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Vertex x", 200, -2.5, 2.5);
-        private IHistogram1D vtxYHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Vertex y", 200, -1.0, 1.0);
-        private IHistogram1D vtxZHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Vertex z", 200, -20.0, 20.0);
-        private IHistogram1D vtxChisqHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Vertex Chisq", 100, 0.0, 100.0);
+        IHistogram1D invMassHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Invariant Mass", 200, 0., 0.1);
+        IHistogram1D pHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Momentum", 200, 0., 3.0);
+        IHistogram1D pxHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller x Momentum", 200, -0.01, 0.01);
+        IHistogram1D pyHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller y Momentum", 200, -0.01, 0.01);
+        IHistogram1D pzHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller z Momentum", 200, 0., 3.0);
+        IHistogram1D trkpHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkptopHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Top Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkpbotHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Bottom Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkNhitsHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkChisqHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Track Chisq per DoF", 100, 0.0, 20.0);
+        IHistogram1D trkChisqProbHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Track Chisq Prob", 100, 0.0, 1.0);
+        IHistogram1D vtxXHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Vertex x", 200, -2.5, 2.5);
+        IHistogram1D vtxYHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Vertex y", 200, -1.0, 1.0);
+        IHistogram1D vtxZHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Vertex z", 200, -20.0, 20.0);
+        IHistogram1D vtxChisqHist_BeamspotConstrainedMollerVertices = aida.histogram1D("BeamspotConstrainedMollerVertices/Moller Vertex Chisq", 100, 0.0, 100.0);
 
-        private IHistogram2D p1vsp2Hist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D ptopvspbotHist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D theta1vstheta2Hist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
-        private IHistogram2D pvsthetaHist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
-        private IHistogram2D xvsyHist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
+        IHistogram2D p1vsp2Hist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D ptopvspbotHist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D theta1vstheta2Hist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
+        IHistogram2D pvsthetaHist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
+        IHistogram2D xvsyHist_BeamspotConstrainedMollerVertices = aida.histogram2D("BeamspotConstrainedMollerVertices/Moller vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
 
-        private IHistogram1D invMassHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Invariant Mass", 200, 0., 0.1);
-        private IHistogram1D pHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Momentum", 200, 0., 3.0);
-        private IHistogram1D pxHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller x Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pyHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller y Momentum", 200, -0.01, 0.01);
-        private IHistogram1D pzHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller z Momentum", 200, 0., 3.0);
-        private IHistogram1D trkpHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkptopHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Top Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkpbotHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Bottom Track Momentum", 100, 0.25, 1.75);
-        private IHistogram1D trkNhitsHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Track Number of Hits", 7, -0.5, 6.5);
-        private IHistogram1D trkChisqHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Track Chisq per DoF", 100, 0.0, 20.0);
-        private IHistogram1D trkChisqProbHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Track Chisq Prob", 100, 0.0, 1.0);
-        private IHistogram1D vtxXHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Vertex x", 200, -2.5, 2.5);
-        private IHistogram1D vtxYHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Vertex y", 200, -1.0, 1.0);
-        private IHistogram1D vtxZHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Vertex z", 200, -20.0, 20.0);
-        private IHistogram1D vtxChisqHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Vertex Chisq", 100, 0.0, 100.0);
+        IHistogram1D invMassHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Invariant Mass", 200, 0., 0.1);
+        IHistogram1D pHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Momentum", 200, 0., 3.0);
+        IHistogram1D pxHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller x Momentum", 200, -0.01, 0.01);
+        IHistogram1D pyHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller y Momentum", 200, -0.01, 0.01);
+        IHistogram1D pzHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller z Momentum", 200, 0., 3.0);
+        IHistogram1D trkpHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkptopHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Top Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkpbotHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Bottom Track Momentum", 100, 0.25, 1.75);
+        IHistogram1D trkNhitsHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkChisqHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Track Chisq per DoF", 100, 0.0, 20.0);
+        IHistogram1D trkChisqProbHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Track Chisq Prob", 100, 0.0, 1.0);
+        IHistogram1D vtxXHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Vertex x", 200, -2.5, 2.5);
+        IHistogram1D vtxYHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Vertex y", 200, -1.0, 1.0);
+        IHistogram1D vtxZHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Vertex z", 200, -20.0, 20.0);
+        IHistogram1D vtxChisqHist_TargetConstrainedMollerVertices = aida.histogram1D("TargetConstrainedMollerVertices/Moller Vertex Chisq", 100, 0.0, 100.0);
 
-        private IHistogram2D p1vsp2Hist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D ptopvspbotHist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
-        private IHistogram2D theta1vstheta2Hist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
-        private IHistogram2D pvsthetaHist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
-        private IHistogram2D xvsyHist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
+        IHistogram2D p1vsp2Hist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller p1 vs p2", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D ptopvspbotHist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller p top vs p bottom", 200, 0.25, 1.75, 200, 0.25, 1.75);
+        IHistogram2D theta1vstheta2Hist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller theta1 vs theta2", 100, 0.01, 0.05, 100, 0.01, 0.05);
+        IHistogram2D pvsthetaHist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller p vs theta", 100, 0.25, 1.75, 100, 0.01, 0.05);
+        IHistogram2D xvsyHist_TargetConstrainedMollerVertices = aida.histogram2D("TargetConstrainedMollerVertices/Moller vertex X vs Y", 250, -2.5, 2.5, 100, -1.0, 1.0);
 
         protected void process(EventHeader event) {
             super.process(event);
