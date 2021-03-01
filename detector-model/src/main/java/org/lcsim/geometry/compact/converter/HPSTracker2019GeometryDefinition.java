@@ -24,6 +24,7 @@ import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.TestRun
 public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDefinition {
     
     boolean applySurvey = true;
+    boolean applyDesign = true;
 
     private static final Logger LOGGER = Logger
             .getLogger(HPSTracker2019GeometryDefinition.class.getPackage().getName());
@@ -37,8 +38,13 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         if (System.getProperty("disableSurvey") != null) {
             applySurvey = false;
         }
+        
+        if (System.getProperty("disableDesign") != null) {
+            applyDesign = false;
+        }
 
         System.out.println("PF::DEBUG:: APPLY SURVEY CONSTANTS::" + applySurvey);
+        System.out.println("PF::DEBUG:: APPLY DESIGN CORRECTIONS::" + applyDesign);
         
     }
 
@@ -304,10 +310,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         } else {
             switch (layer) {
                 case 1:
-                    module = new ModuleL1Top(volName, mother, alignmentCorrection, ref);
+                    module = new ModuleL1Top(volName, mother, alignmentCorrection, ref,applyDesign);
                     break;
                 case 2:
-                    module = new ModuleL2Top(volName, mother, alignmentCorrection, ref);
+                    module = new ModuleL2Top(volName, mother, alignmentCorrection, ref,applyDesign);
                     break;
                 case 3:
                     module = new ModuleL3Top(volName, mother, alignmentCorrection, ref);
@@ -509,55 +515,57 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected double getHeight() {
             return height;
         }
-
+        
     }
-    //public static class ModuleL2Bot extends ModuleL13Bot {
-    public static class ModuleL2Bot extends ShortModuleBot {
-        protected final static double shift_along_uchannel = 0; //positive is downstream
-        protected final static double shift_across_uchannel = 0.250; //positive is beam right
-        protected final static double shift_vertically_uchannel = -0.300; //positive is towards beam
-        // Note the L1 measures are used here
-        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel + shift_along_uchannel;
-        protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
-        protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
 
-        public ModuleL2Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
-            super(name, mother, alignmentCorrection, ref);
+    public static class ModuleL1Top extends ShortModuleTop {
+
+        public ModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+            this(name,mother,alignmentCorrection,ref,false);
             init();
         }
+        
 
-        //protected Hep3Vector getHolePosition() {
-        protected Hep3Vector getHole() {
-            double x = cone_to_hole_across_uchannel;
-            double y = cone_to_hole_along_uchannel;
-            double z = cone_to_hole_vertical_from_uchannel;
-            return new BasicHep3Vector(x, y, z);
+        public ModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref, boolean applyDesign) {
+            super(name, mother, alignmentCorrection, ref);
+
+            // position this module w.r.t. previous L1 by shifting it along the
+            // channel
+            // note flip
+            shift_along_uchannel      = -50.;
+            shift_across_uchannel     = applyDesign ? -0.062372 : 0.0;//4.81;
+            shift_vertically_uchannel = 0.0;
+            
+                        
+            // note flip wr.t. bottom
+            cone_to_hole_along_uchannel         = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel   + shift_along_uchannel;
+            cone_to_hole_across_uchannel        = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel  + shift_across_uchannel; 
+            cone_to_hole_vertical_from_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
+            init();
         }
     }
-    //public static class ModuleL2Top extends ModuleL13Top {
+        
     public static class ModuleL2Top extends ShortModuleTop {
-        protected final static double shift_along_uchannel = 0; //positive is downstream
-        protected final static double shift_across_uchannel = -0.250; //positive is beam left
-        protected final static double shift_vertically_uchannel = -0.300; //positive is towards beam
-
-        // Note the L1 measures are used here
-        protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel + shift_along_uchannel;
-        protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
-        protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
-
+        
+        // Note the 2014 Geometry definitions of ModuleL1 measures are used here
         public ModuleL2Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+            this(name,mother,alignmentCorrection,ref,false);
+            
+        }
+        
+        public ModuleL2Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref, boolean applyDesign) {
             super(name, mother, alignmentCorrection, ref);
+            
+            shift_along_uchannel      = 0;
+            shift_across_uchannel     = -0.250;
+            shift_vertically_uchannel = applyDesign ? -0.381 : -0.300; 
+
+            cone_to_hole_along_uchannel         = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel + shift_along_uchannel;
+            cone_to_hole_across_uchannel        = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
+            cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
+            
             init();
         }
-
-        //protected Hep3Vector getHolePosition() {
-        protected Hep3Vector getHole() {
-            double x = cone_to_hole_across_uchannel;
-            double y = cone_to_hole_along_uchannel;
-            double z = cone_to_hole_vertical_from_uchannel;
-            return new BasicHep3Vector(x, y, z);
-        }
-
     }
 
     public static class ModuleL3Bot extends ModuleL13Bot {
@@ -868,24 +876,41 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class ShortModule extends BaseModule {
-
-        //protected final static double distance_between_stereo_axial_norm_dir = 3.0 / 16.0 * inch;
-        //protected final static double distance_between_stereo_axial_norm_dir = 5.0 / 16.0 * inch;
-        protected final static double distance_between_stereo_axial_norm_dir = 0.299 * inch;
+        
+        //Original 2019MRSolt separation
+        protected final static double distance_between_stereo_axial_norm_dir        = 0.299 * inch;
+        
+        //Recomputed separation by Tim (2021/02/25)
+        //.188" (support) + 0.100" (2 * glue fixture pedestal)  + 0.010" (2*teflon tape [McMaster 6305A18]) + 0.002" (2*thermal compound) + 0.200 mm (silicon thickness) 
+        protected final static double distance_between_stereo_axial_norm_dir_design = 7.82; //[mm]
 
         // OLD STUFF MOSTLY
+        // PF:: This is unused
         protected final static double hole_to_center_of_plate_width_dir = 5.875 * inch;
+
+        //PF:: This is unused
         protected final static double hole_to_module_edge_height_dir = 0.875 * inch;
+        
         protected static final double hole_to_module_edge_length_dir = 0.25 * inch;
-        private final static double box_extra_length = 0.0;// random at this
-                                                           // point
-        private final static double box_extra_height = -0.45 * inch;// random at
-                                                                    // this
-                                                                    // point
-        private final static double box_extra_width = 0.5 * inch;// random at
-                                                                 // this point
+        
+
+        //Ad-hoc shifts to place the sensors
+        protected double shift_along_uchannel; //positive is downstream
+        protected double shift_across_uchannel; //positive is beam left
+        protected double shift_vertically_uchannel; //positive is towards beam 
+                
+        //General placement of the sensors
+        protected double cone_to_hole_along_uchannel;
+        protected double cone_to_hole_across_uchannel;
+        protected double cone_to_hole_vertical_from_uchannel;
+        
+        //These initialised values are "random" - TODO temporary?
+        private final static double box_extra_length = 0.0;
+        private final static double box_extra_height = -0.45 * inch;
+        private final static double box_extra_width = 0.5 * inch;
 
         private static final double tension_lever_y = 2.5 * inch;
+        
         // TODO the dimension of the L4-6 module is completely made up
         public static final double length = 12.25 * inch + box_extra_length;
         public static final double height = 1.0 * inch + box_extra_height;
@@ -895,7 +920,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             super(name, mother, alignmentCorrection, ref, getLayerFromVolumeName(name), getHalfFromName(name));
 
         }
-
+        
+        //Since the dimensioon of the modules is made up, this method is not meaningful
         protected void setCenter() {
             final double x = -width / 2.0;
             final double y = -hole_to_module_edge_length_dir + length / 2.0;
@@ -903,7 +929,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             // final double z = -hole_to_module_edge_height_dir + height/2.0;
             setCenter(x, y, z);
         }
-
+        
         protected void setBoxDim() {
             setBoxDim(width, length, height);
         }
@@ -912,7 +938,9 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
         protected abstract double getHoleModuleCenterOffset();
 
-        protected abstract Hep3Vector getHole();
+        protected Hep3Vector getHole() {
+            return new BasicHep3Vector(cone_to_hole_across_uchannel, cone_to_hole_along_uchannel, cone_to_hole_vertical_from_uchannel);
+        }
     }
 
     /**
@@ -921,23 +949,27 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class ShortModuleBot extends ShortModule {
-
+        
         // positions are in the mother (U-channel) coord. system as usual
-
+        
         public ShortModuleBot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
                 SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
+            
         }
-
+        
+        @Override
         protected void setPos() {
             ballPos = getHole();
             veePos = new BasicHep3Vector(ballPos.x(), ballPos.y(), ballPos.z() - 1.0);
             flatPos = new BasicHep3Vector(ballPos.x() - 1.0, ballPos.y(), ballPos.z());
         }
-
+        
+        @Override
         protected double getHoleModuleCenterOffset() {
             return UChannelL46Bottom.cone_to_edge_of_plate_y - UChannelL46BottomPlate.L4_module_pin_to_edge_of_plate;
         }
+        
     }
 
     /**
@@ -946,87 +978,78 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
      * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class ShortModuleTop extends ShortModule {
-
-        // positions are in the mother (U-channel) coord. systtem as usual
-        protected final static double x = -149.225; // distance from survey ball
+        
+        //PF:: These coordinates are NOT used anywhere. => Should clean up
+        
+        //protected final static double x = -149.225; // distance from survey ball
                                                     // to hole mounting surface
-        protected final static double y = -9.525; // distance along U-channel
-        protected final static double z = -53.34; // distance normal to the
+        //protected final static double y = -9.525; // distance along U-channel
+        //protected final static double z = -53.34; // distance normal to the
                                                   // U-channel plate
-
+        
         public ShortModuleTop(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
                 SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
         }
 
+        @Override
         protected void setPos() {
             ballPos = getHole();
             veePos = new BasicHep3Vector(ballPos.x(), ballPos.y(), ballPos.z() - 1.0);
             flatPos = new BasicHep3Vector(ballPos.x() + 1.0, ballPos.y(), ballPos.z());
         }
-
+        
+        @Override
         protected double getHoleModuleCenterOffset() {
             return UChannelL46Top.cone_to_edge_of_plate_y - UChannelL46TopPlate.L4_module_pin_to_edge_of_plate;
         }
 
     }
 
+    
+    //PF:: As it is now, the only information that this class 
+    // position this module w.r.t. previous L1 by shifting it along the
+    // channel
     public static class ModuleL1Bot extends ShortModuleBot {
 
-        // position this module w.r.t. previous L1 by shifting it along the
-        // channel
-        protected final static double shift_along_uchannel = -50.;
-        protected final static double shift_vertically_uchannel = 0.0;//0;// 20.6658;
-        protected final static double shift_across_uchannel = 0;//5.19;
-        protected final static double shift_again_along_uchannel = 0;//4.66;
-
-        protected final static double cone_to_hole_along_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel
-                + shift_along_uchannel - shift_again_along_uchannel;
-        protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_across_uchannel
-                + shift_across_uchannel; // change x position layer 1 bot
-        protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_vertical_from_uchannel
-                + shift_vertically_uchannel;
-
         public ModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+            this(name, mother, alignmentCorrection, ref, false);
+        }
+
+        public ModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref, boolean applyDesign) {
             super(name, mother, alignmentCorrection, ref);
+            
+            shift_along_uchannel = -50.;
+            shift_vertically_uchannel = 0.0;
+            shift_across_uchannel = 0;
+            
+            cone_to_hole_along_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel + shift_along_uchannel;
+            cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot 
+            cone_to_hole_vertical_from_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
+            
             init();
         }
-
-        protected Hep3Vector getHole() {
-            double x = cone_to_hole_across_uchannel;
-            double y = cone_to_hole_along_uchannel;
-            double z = cone_to_hole_vertical_from_uchannel;
-            return new BasicHep3Vector(x, y, z);
-        }
-
     }
 
-    public static class ModuleL1Top extends ShortModuleTop {
+    //public static class ModuleL2Bot extends ModuleL13Bot {
+    public static class ModuleL2Bot extends ShortModuleBot {
 
-        // position this module w.r.t. previous L1 by shifting it along the
-        // channel
-        // note flip
-        protected final static double shift_along_uchannel = -50.;
-        protected final static double shift_vertically_uchannel = 0.0;
-        protected final static double shift_across_uchannel = 0;//4.81;
-        protected final static double shift_again_along_uchannel = 0;//4.32;
-        // note flip wr.t. bottom
-        protected final static double cone_to_hole_along_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel
-                + shift_along_uchannel + shift_again_along_uchannel;
-        protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel
-                - shift_across_uchannel; // change x position layer 1 top
-        protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
-
-        public ModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
-            super(name, mother, alignmentCorrection, ref);
-            init();
+        public ModuleL2Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
+            this(name, mother, alignmentCorrection, ref, false);
         }
+                
+        public ModuleL2Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref, boolean applyDesign) {
+            super(name, mother, alignmentCorrection, ref);
+            
+            shift_along_uchannel = 0; 
+            shift_across_uchannel = 0.250; 
+            shift_vertically_uchannel = applyDesign ? -0.381 : -0.300; 
+            
+            cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel + shift_along_uchannel;
+            cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
+            cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
 
-        protected Hep3Vector getHole() {
-            double x = cone_to_hole_across_uchannel;
-            double y = cone_to_hole_along_uchannel;
-            double z = cone_to_hole_vertical_from_uchannel;
-            return new BasicHep3Vector(x, y, z);
+            init();
         }
 
     }
@@ -1089,19 +1112,19 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                 }
                 else{
                     halfModuleBundle = new ShortHalfModuleBundle();
-                    halfModule = new ShortAxialHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half);
+                    halfModule = new ShortAxialHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half,applySurvey);
                     bundle.halfModuleAxial = halfModuleBundle;
                 }
             }
             else if(layer == 2){
                 if(isTopLayer){
                     halfModuleBundle = new ShortHalfModuleBundle();
-                    halfModule = new ShortAxialHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half);
+                    halfModule = new ShortAxialHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half,applySurvey);
                     bundle.halfModuleAxial = halfModuleBundle;
                 }
                 else{
                     halfModuleBundle = new ShortHalfModuleBundle();
-                    halfModule = new ShortAxialHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half);
+                    halfModule = new ShortAxialHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half,applySurvey);
                     bundle.halfModuleAxial = halfModuleBundle;
                 }
             }
@@ -1112,24 +1135,24 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             if(layer == 1){
                 if(isTopLayer){
                     halfModuleBundle = new ShortHalfModuleBundle();
-                    halfModule = new ShortStereoHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half);
+                    halfModule = new ShortStereoHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half,applySurvey);
                     bundle.halfModuleStereo = halfModuleBundle;
                 }
                 else{
                     halfModuleBundle = new ShortHalfModuleBundle();
-                    halfModule = new ShortStereoHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half);
+                    halfModule = new ShortStereoHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half,applySurvey);
                     bundle.halfModuleStereo = halfModuleBundle;
                 }
             }
             else if(layer == 2){
                 if(isTopLayer){
                     halfModuleBundle = new ShortHalfModuleBundle();
-                    halfModule = new ShortStereoHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half);
+                    halfModule = new ShortStereoHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half,applySurvey);
                     bundle.halfModuleStereo = halfModuleBundle;
                 }
                 else{
                     halfModuleBundle = new ShortHalfModuleBundle();
-                    halfModule = new ShortStereoHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half);
+                    halfModule = new ShortStereoHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half,applySurvey);
                     bundle.halfModuleStereo = halfModuleBundle;
                 }
             }
@@ -1470,14 +1493,25 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         public ShortAxialHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
                 int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
+            sensor_x = 0.0;
+            sensor_y = 0.0;
+            //sensor_z = LongHalfModule.sensor_z;
         }
 
+        @Override
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+        
     }
 
     public abstract static class ShortStereoHalfModule extends ShortHalfModule {
 
         protected final static double stereo_angle = 0.1;
         protected final static double sensor_z = ShortAxialHalfModule.sensor_z + ShortModule.distance_between_stereo_axial_norm_dir;
+        protected double sensor_x;
+        protected double sensor_y;
 
         protected Hep3Vector pos_of_rotation = new BasicHep3Vector(-ShortSensor.width / 2-0.5,0, 0);
 
@@ -1485,6 +1519,19 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                 int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
         }
+        
+        protected Hep3Vector getSensorPosition() {
+            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
+            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+        }
+        
+        //Overrides the method from SurveyVolume class
+        @Override
+        protected void applyGenericCoordinateSystemCorrections() {
+            super.applyGenericCoordinateSystemCorrections();
+            stereo_rotation();
+        }
+        
 
         protected void stereo_rotation() {
 
@@ -1561,12 +1608,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             init();
         }
 
-        @Override
-        protected Hep3Vector getSensorPosition() {
-            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
-            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
-        }
-
     }
     
 
@@ -1602,12 +1643,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
 
             init();
-        }
-        
-        @Override
-        protected Hep3Vector getSensorPosition() {
-            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
-            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
         }
         
     }
@@ -1649,12 +1684,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             init();
         }
         
-        @Override
-        protected Hep3Vector getSensorPosition() {
-            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
-            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
-        }
-        
     }
   
     
@@ -1693,12 +1722,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             init();
         }
         
-        @Override
-        protected Hep3Vector getSensorPosition() {
-            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
-            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
-        }
-        
     }
     
     public static class ShortAxialHoleHalfModuleL1Bot extends ShortAxialHalfModule {
@@ -1734,144 +1757,119 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             
             init();
         }
-        
-        
-        @Override
-        protected Hep3Vector getSensorPosition() {
-            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
-            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
-        }
     }
     
     public static class ShortStereoHoleHalfModuleL0Top extends ShortStereoHalfModule {
 
-        protected final static double survey_shift_x = 0.113; //positive is away from beam (up)
-        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
-        protected final static double survey_shift_z = 0.0; //positive is downstream shift
-        
-        // reference is kind of random I guess
-        private final static double sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
-        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
-        private final static double sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;// +
-                                                                              // ShortModule.distance_between_stereo_axial_norm_dir;
         // private final static double sensor_x = 1.282*inch;
         // private final static double sensor_y = 3.889*inch;
-
-        public ShortStereoHoleHalfModuleL0Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
-                int layer, String half) {
-            super(name, mother, alignmentCorrection, layer, half);
-            init();
-        }
-
-        protected Hep3Vector getSensorPosition() {
-            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
-            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
-        }
-
-        @Override
-        protected void applyGenericCoordinateSystemCorrections() {
-            super.applyGenericCoordinateSystemCorrections();
-            stereo_rotation();
-        }
-    }
-
-    public static class ShortStereoHoleHalfModuleL0Bot extends ShortStereoHalfModule {
-
-        protected final static double survey_shift_x = 0.098; //positive is away from beam (down)
-        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
-        protected final static double survey_shift_z = 0.0; //positive is upstream shift
-        
-        // reference is kind of random I guess
-        private final static double sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
-        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
-        private final static double sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;// +
-                                                                              // ShortModule.distance_between_stereo_axial_norm_dir;
-        
-        public ShortStereoHoleHalfModuleL0Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
-                int layer, String half) {
-            super(name, mother, alignmentCorrection, layer, half);
-            init();
-        }
-
-        protected Hep3Vector getSensorPosition() {
-            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
-            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
-        }
-
-        @Override
-        protected void applyGenericCoordinateSystemCorrections() {
-            super.applyGenericCoordinateSystemCorrections();
-            stereo_rotation();
-        }
-    }
-
-    public static class ShortStereoHoleHalfModuleL1Top extends ShortStereoHalfModule {
-
-        protected final static double survey_shift_x = 0.253; //positive is away from beam (up)
-        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
-        protected final static double survey_shift_z = 0.0; //positive is downstream shift
-        
-        // reference is kind of random I guess
-        private final static double sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
-        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
-        private final static double sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;// +
-                                                                              // ShortModule.distance_between_stereo_axial_norm_dir;
-        // private final static double sensor_x = 1.282*inch;
-        // private final static double sensor_y = 3.889*inch;
-
         // protected final static Hep3Vector pos_of_rotation = new
         // BasicHep3Vector(ActiveShortSensor.width/2,ActiveShortSensor.length/2,0);
         //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
         //        ShortSensor.length / 2, 0);
         
-        public ShortStereoHoleHalfModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
-                int layer, String half) {
+        private double sensor_z;
+
+        //Constructor with survey constants on by default
+        public ShortStereoHoleHalfModuleL0Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
+            this(name, mother, alignmentCorrection, layer, half, true);
+            
+        }
+
+        public ShortStereoHoleHalfModuleL0Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half, boolean applySurvey) {
             super(name, mother, alignmentCorrection, layer, half);
+            
+            double survey_shift_x = applySurvey ? 0.113 : 0; //positive is away from beam (up)
+            double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+            double survey_shift_z = 0.0; //positive is downstream shift
+                        
+            // reference is kind of random I guess
+            sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
+            sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
+            //sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z; //+ ShortModule.distance_between_stereo_axial_norm_dir;
+            sensor_z = LongHalfModule.sensor_z + survey_shift_z + ShortModule.distance_between_stereo_axial_norm_dir;
             init();
         }
+    }
 
-        protected Hep3Vector getSensorPosition() {
-            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
-            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
+    public static class ShortStereoHoleHalfModuleL0Bot extends ShortStereoHalfModule {
+
+        private double sensor_z;
+
+        //Constructor with survey constants on by default
+        public ShortStereoHoleHalfModuleL0Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
+            this(name, mother, alignmentCorrection, layer, half, true);
+            
         }
 
-        @Override
-        protected void applyGenericCoordinateSystemCorrections() {
-            super.applyGenericCoordinateSystemCorrections();
-            stereo_rotation();
-
+        public ShortStereoHoleHalfModuleL0Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half, boolean applySurvey) {
+            super(name, mother, alignmentCorrection, layer, half);
+            
+            double survey_shift_x = applySurvey ? 0.098 : 0.; //positive is away from beam (up)
+            double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+            double survey_shift_z = 0.0; //positive is downstream shift
+                        
+            // reference is kind of random I guess
+            sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
+            sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
+            //sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;//+ ShortModule.distance_between_stereo_axial_norm_dir;
+            sensor_z = LongHalfModule.sensor_z + survey_shift_z + ShortModule.distance_between_stereo_axial_norm_dir;
+            init();
         }
+        
+    }
+
+    public static class ShortStereoHoleHalfModuleL1Top extends ShortStereoHalfModule {
+
+        private double sensor_z;
+        
+        //Constructor with survey constants on by default
+        public ShortStereoHoleHalfModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
+            this(name, mother, alignmentCorrection, layer, half, true);
+            
+        }
+
+        public ShortStereoHoleHalfModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half, boolean applySurvey) {
+            super(name, mother, alignmentCorrection, layer, half);
+            
+            double survey_shift_x = applySurvey ? 0.253 : 0.; //positive is away from beam (up)
+            double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+            double survey_shift_z = 0.0; //positive is downstream shift
+                        
+            // reference is kind of random I guess
+            sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
+            sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
+            //sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;//+ ShortModule.distance_between_stereo_axial_norm_dir;
+            sensor_z = LongHalfModule.sensor_z + survey_shift_z + ShortModule.distance_between_stereo_axial_norm_dir;
+            init();
+        }
+        
 
     }
 
     public static class ShortStereoHoleHalfModuleL1Bot extends ShortStereoHalfModule {
 
-        protected final static double survey_shift_x = 0.231; //positive is away from beam (down)
-        protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
-        protected final static double survey_shift_z = 0.0; //positive is upstream shift
+        private double sensor_z;
         
-        // reference is kind of random I guess
-        private final static double sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
-        private final static double sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
-        private final static double sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;// +
-                                                                              // ShortModule.distance_between_stereo_axial_norm_dir;
+        //Constructor with survey constants on by default
+        public ShortStereoHoleHalfModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
+            this(name, mother, alignmentCorrection, layer, half, true);
+            
+        }
         
-        public ShortStereoHoleHalfModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
-                int layer, String half) {
+        public ShortStereoHoleHalfModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half, boolean applySurvey) {
             super(name, mother, alignmentCorrection, layer, half);
+            
+            double survey_shift_x = applySurvey ? 0.231 : 0.; //positive is away from beam (up)
+            double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
+            double survey_shift_z = 0.0; //positive is downstream shift
+                        
+            // reference is kind of random I guess
+            sensor_x = ShortAxialHoleHalfModule.sensor_x + survey_shift_x;
+            sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
+            //sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;//+ ShortModule.distance_between_stereo_axial_norm_dir;
+            sensor_z = LongHalfModule.sensor_z + survey_shift_z + ShortModule.distance_between_stereo_axial_norm_dir;
             init();
-        }
-
-        protected Hep3Vector getSensorPosition() {
-            // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
-            return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
-        }
-
-        @Override
-        protected void applyGenericCoordinateSystemCorrections() {
-            super.applyGenericCoordinateSystemCorrections();
-            stereo_rotation();
-
         }
     }    
 }
