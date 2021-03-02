@@ -82,14 +82,14 @@ public abstract class SurveyVolume {
 
     private void applySurvey(Element node) {
 
-        if (debug)
-            System.out.printf("%s: apply survey from compact.\n", this.getClass().getSimpleName());
+        if (debug || true )
+            System.out.printf("PF::DEBUG %s: apply survey from compact.\n", this.getClass().getSimpleName());
 
         // Check that XML file is read into memory and available
         if (node == null) {
 
-            if (debug)
-                System.out.printf("%s: WARNING: no XML file for survey information available.\n", this.getClass()
+            if (debug || true)
+                System.out.printf("PF::DEBUG %s: WARNING: no XML file for survey information available.\n", this.getClass()
                         .getSimpleName());
 
         } else {
@@ -97,8 +97,8 @@ public abstract class SurveyVolume {
             SurveyResult surveyResult = SurveyResult.findResultFromDetector(node, getName());
 
             if (surveyResult != null) {
-                if (debug)
-                    System.out.printf("%s: found survey results: \n%s \n", this.getClass().getSimpleName(),
+                if (debug || true)
+                    System.out.printf("PF:: DEBUG:: %s: found survey results: \n%s \n", this.getClass().getSimpleName(),
                             surveyResult.toString());
 
                 // Adjust coordinate system to match the one used in the geometry.
@@ -651,6 +651,11 @@ public abstract class SurveyVolume {
             }
             referenceGeom.add(refGeom);
         }
+    }
+
+
+    public List<SurveyVolume> getReferenceGeom()  {
+        return referenceGeom;
     }
 
     public void addReferenceGeom(List<SurveyVolume> refGeomList) {

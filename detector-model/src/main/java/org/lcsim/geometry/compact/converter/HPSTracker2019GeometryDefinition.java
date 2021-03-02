@@ -15,6 +15,7 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 // import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.HalfModuleComponent;
 // import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.Sensor;
 import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.TestRunModuleBundle;
+import org.lcsim.detector.Transform3D;
 
 /**
  * Updated geometry information for the HPS tracker 2019
@@ -156,6 +157,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         surveyVolumes.add(uChannelL46TopPlate);
 
         LOGGER.info("Construct modules");
+        //PF::This is where the geometry hierarchy is broken and the tree becomes counter-intuitive. 
+        
         for (int l = 1; l <= 7; ++l) {
             if (doLayer(l)) {
                 LOGGER.info("Construct layer " + l + " modules");
@@ -185,7 +188,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                 }
             }
         }
-
+        
         LOGGER.info(String.format("%s: Constructed %d geometry objects", this.getClass().getSimpleName(),
                 surveyVolumes.size()));
         LOGGER.info(String.format("%s: Constructed %d module bundles", this.getClass().getSimpleName(), modules.size()));
@@ -217,7 +220,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
         // Create the module
         BaseModule module = createModule(half, layer, mother, ref);
-
+                
         BaseModuleBundle bundle;
 
         if (layer <= 2) {
@@ -225,22 +228,16 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             bundle = new ShortModuleBundleOneSensor(module);
             addModuleBundle(bundle);
             if (doAxial) {
-                //makeShortHalfModule("axial", "hole", module);
                 makeShortHalfModule("axial", module);
-                //makeShortHalfModule("axial", "slot", module);
             }
-            // if(doColdBlock) makeColdBlock(module);
             if (doStereo) {
-                //makeShortHalfModule("stereo", "hole", module);
                 makeShortHalfModule("stereo", module);
-                //makeShortHalfModule("stereo", "slot", module);
             }
         } else if (layer > 2 && layer <= 4) {
             bundle = new TestRunModuleBundle(module);
             addModuleBundle(bundle);
             if (doAxial)
                 makeHalfModule("axial", module);
-            // if(doColdBlock) makeColdBlock(module);
             if (doStereo)
                 makeHalfModule("stereo", module);
         } else {
@@ -250,7 +247,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                 makeLongHalfModule("axial", "hole", module);
                 makeLongHalfModule("axial", "slot", module);
             }
-            // if(doColdBlock) makeColdBlock(module);
             if (doStereo) {
                 makeLongHalfModule("stereo", "hole", module);
                 makeLongHalfModule("stereo", "slot", module);
@@ -484,8 +480,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected static final double height = HPSTracker2014GeometryDefinition.UChannelL13.height;
         // this length need to be longer by the difference in length
         protected static final double length_diff = length - HPSTracker2014GeometryDefinition.UChannelL13Top.length;
-        protected static final double cone_to_edge_of_plate_y = HPSTracker2014GeometryDefinition.UChannelL13Top.cone_to_edge_of_plate_y
-                + length_diff;
+        protected static final double cone_to_edge_of_plate_y = HPSTracker2014GeometryDefinition.UChannelL13Top.cone_to_edge_of_plate_y + length_diff;
 
         public UChannelL14Top(String name, SurveyVolume m, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, m, alignmentCorrection, ref);
@@ -536,11 +531,11 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             shift_across_uchannel     = applyDesign ? -0.062372 : 0.0;//4.81;
             shift_vertically_uchannel = 0.0;
             
-                        
+            
             // note flip wr.t. bottom
-            cone_to_hole_along_uchannel         = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel   + shift_along_uchannel;
-            cone_to_hole_across_uchannel        = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel  + shift_across_uchannel; 
-            cone_to_hole_vertical_from_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
+            cone_to_hole_along_uchannel         = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel   + shift_along_uchannel;
+            cone_to_hole_across_uchannel        = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel  + shift_across_uchannel; 
+            cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
             init();
         }
     }
@@ -561,7 +556,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             shift_vertically_uchannel = applyDesign ? -0.381 : -0.300; 
 
             cone_to_hole_along_uchannel         = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_along_uchannel + shift_along_uchannel;
-            cone_to_hole_across_uchannel        = HPSTracker2014v1GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
+            cone_to_hole_across_uchannel        = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
             cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Top.cone_to_hole_vertical_from_uchannel + shift_vertically_uchannel;
             
             init();
@@ -878,7 +873,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     public abstract static class ShortModule extends BaseModule {
         
         //Original 2019MRSolt separation
-        protected final static double distance_between_stereo_axial_norm_dir        = 0.299 * inch;
+        protected final static double distance_between_stereo_axial_norm_dir  = 0.299 * inch;
         
         //Recomputed separation by Tim (2021/02/25)
         //.188" (support) + 0.100" (2 * glue fixture pedestal)  + 0.010" (2*teflon tape [McMaster 6305A18]) + 0.002" (2*thermal compound) + 0.200 mm (silicon thickness) 
@@ -1003,7 +998,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected double getHoleModuleCenterOffset() {
             return UChannelL46Top.cone_to_edge_of_plate_y - UChannelL46TopPlate.L4_module_pin_to_edge_of_plate;
         }
-
     }
 
     
@@ -1065,12 +1059,12 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     protected void makeShortHalfModule(String side, BaseModule mother) {
 
         String moduleName = mother.getName();
-
-        if (isDebug())
-            System.out.printf("%s: makeHalfModule for %s %s %s \n", this.getClass().getSimpleName(), moduleName, side);
+        
+        if (isDebug() || true)
+            System.out.printf("PF:: DEBUG :: %s: makeHalfModule for %s %s %s \n", this.getClass().getSimpleName(), moduleName, side,mother.getName());
 
         String volName = moduleName + "_halfmodule_" + side;
-
+        
         // top or bottom?
         String half = mother.getHalf();
         boolean isTopLayer = !mother.isBottom();
@@ -1099,6 +1093,15 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         ShortModuleBundleOneSensor bundle = (ShortModuleBundleOneSensor) getModuleBundle(mother);
         //TestRunModuleBundle bundle = (TestRunModuleBundle) getModuleBundle(mother);
 
+        //Get the reference volume of the mother (to know what UChannel this sensor belongs to)
+        SurveyVolume uchannel_ref = null;
+        
+        if (mother.getReferenceGeom() != null && mother.getReferenceGeom().size() > 0) {
+            uchannel_ref = mother.getReferenceGeom().get(0);
+            System.out.println("PF::DEBUG::MakeShortHalfModule reference volume:\n" + uchannel_ref.getName());
+        }        
+        
+        
         // Build the half-module bundle and half-module
         // TODO clean this up to a separate method
         ShortHalfModule halfModule;
@@ -1170,115 +1173,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
     }
     
-    protected void makeShortHalfModule(String side, String type, BaseModule mother) {
-
-        String moduleName = mother.getName();
-
-        if (isDebug())
-            System.out.printf("%s: makeHalfModule for %s %s %s \n", this.getClass().getSimpleName(), moduleName, side,
-                    type);
-
-        String volName = moduleName + "_halfmodule_" + side + "_" + type;
-
-        // top or bottom?
-        String half = mother.getHalf();
-        boolean isTopLayer = !mother.isBottom();
-
-        // find layer
-        int layer = mother.getLayer();
-
-        // axial or stereo
-        boolean isAxial = isAxialFromName(volName);
-
-        // hole or slot
-        boolean isHole = isHoleFromName(volName);
-
-        // find layer according to Millepede layer definition
-        int millepedeLayer = getMillepedeLayer(isTopLayer, layer, isAxial, isHole);
-
-        // find alignment correction to this volume
-        AlignmentCorrection alignmentCorrection = getHalfModuleAlignmentCorrection(isTopLayer, millepedeLayer);
-        alignmentCorrection.setNode(node);
-
-        // find the module bundle that it will be added to
-        // TestRunModuleBundle bundle =
-        // (TestRunModuleBundle)getModuleBundle(mother);
-        // TestRunHalfModuleBundle halfModuleBundle;
-        ShortModuleBundle bundle = (ShortModuleBundle) getModuleBundle(mother);
-
-        // Build the half-module bundle and half-module
-        // TODO clean this up to a separate method
-        ShortHalfModule halfModule;
-        HalfModuleBundle halfModuleBundle;
-        if (isAxial) {
-            halfModuleBundle = new ShortHalfModuleBundle();
-            if (isHole) {
-                if(layer == 1){
-                    if(isTopLayer){
-                        halfModule = new ShortAxialHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half,applySurvey);
-                        bundle.halfModuleAxialHole = halfModuleBundle;
-                    }
-                    else{
-                        halfModule = new ShortAxialHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half,applySurvey);
-                        bundle.halfModuleAxialHole = halfModuleBundle;
-                    }
-                }
-                else if(layer == 2){
-                    if(isTopLayer){
-                        halfModule = new ShortAxialHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half,applySurvey);
-                        bundle.halfModuleAxialHole = halfModuleBundle;
-                    }
-                    else{
-                        halfModule = new ShortAxialHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half,applySurvey);
-                        bundle.halfModuleAxialHole = halfModuleBundle;
-                    }
-                }
-                else{
-                    throw new RuntimeException("Short modules should only apply to L0 and L1 modules. Please check geometry code.");
-                }
-            } else {
-                throw new RuntimeException("Short modules should NOT have a slot sensor. Please check geometry code.");
-            }
-        } else {
-            halfModuleBundle = new ShortHalfModuleBundle();
-            if (isHole) {
-                if(layer == 1){
-                    if(isTopLayer){
-                        halfModule = new ShortStereoHoleHalfModuleL0Top(volName, mother, alignmentCorrection, layer, half);
-                        bundle.halfModuleStereoHole = halfModuleBundle;
-                    }
-                    else{
-                        halfModule = new ShortStereoHoleHalfModuleL0Bot(volName, mother, alignmentCorrection, layer, half);
-                        bundle.halfModuleStereoHole = halfModuleBundle;
-                    }
-                }
-                else if(layer == 2){
-                    if(isTopLayer){
-                        halfModule = new ShortStereoHoleHalfModuleL1Top(volName, mother, alignmentCorrection, layer, half);
-                        bundle.halfModuleStereoHole = halfModuleBundle;
-                    }
-                    else{
-                        halfModule = new ShortStereoHoleHalfModuleL1Bot(volName, mother, alignmentCorrection, layer, half);
-                        bundle.halfModuleStereoHole = halfModuleBundle;
-                    }
-                }
-                else{
-                    throw new RuntimeException("Short modules should only apply to L0 and L1 modules. Please check geometry code.");
-                }
-            } else {
-                throw new RuntimeException("Short modules should NOT have a slot sensor. Please check geometry code.");
-            }
-        }
-        halfModuleBundle.halfModule = halfModule;
-
-        // create the half module components
-        makeShortHalfModuleComponentSensor(halfModule);
-        // makeShortHalfModuleComponentKapton(halfModule);
-        // makeHalfModuleComponentCF(halfModule);
-        // makeHalfModuleComponentHybrid(halfModule);
-
-    }
-
     protected void makeShortHalfModuleComponentSensor(BaseModule mother) {
 
         if (isDebug())
@@ -1352,6 +1246,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         public ShortHalfModuleBundle(SurveyVolume hm) {
             super(hm);
         }
+
     }
     
     /*public static class ShortHalfModuleBundleOneSensor extends TestRunHalfModuleBundle {
@@ -1479,13 +1374,45 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y() + 1, ballPos.z());
         }
 
+        //I define here the survey application as this should be different from the past
+        
+        protected Hep3Vector ComputeSurveyShifts() {
+            
+            //Get the reference volume (should be the UChannel support only)
+            SurveyVolume uchannel_ref = null;
+            if (getMother().getReferenceGeom() != null) {
+                uchannel_ref = getMother().getReferenceGeom().get(0);
+            }
+            else {
+                System.out.println("PF::DEBUG-- WARNING WARNING:: no mother"); 
+            }
+            
+            
+            if (uchannel_ref == null) {
+                System.out.println("PF::DEBUG-- WARNING WARNING:: ref vol not found"); 
+                return new BasicHep3Vector(0,0,0);
+            } 
+            
+            else {
+                System.out.println("PF::DEBUG Found Reference frame::" + uchannel_ref.getName());
+            }
+            
+            Transform3D ref_transform = uchannel_ref.getl2gTransform();
+            System.out.println("PF::DEBUG:: ref_transform="+ref_transform.toString());
+            
+            return new BasicHep3Vector(0,0,0);
+            
+        }
+        
+        
+        
     }
     
     public abstract static class ShortAxialHalfModule extends ShortHalfModule {
         
         protected final static double shift_vertically_to_beam_plane = -20.6658;
         protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
-                
+        
         protected double sensor_x;
         protected double sensor_y;
         protected final static double sensor_z = LongHalfModule.sensor_z;
@@ -1596,8 +1523,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
     public static class ShortAxialHoleHalfModule extends ShortAxialHalfModule {
         
-        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane
-                + shift_vertically_to_15mrad;
+        private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad;
         private final static double sensor_y = HalfModuleAxial.sensor_y;
         // private final static double sensor_z = HalfModuleAxial.sensor_z;
         private final static double sensor_z = ShortAxialHalfModule.sensor_z;
@@ -1642,6 +1568,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
             sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
 
+            ComputeSurveyShifts();
+
             init();
         }
         
@@ -1680,6 +1608,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad + survey_shift_x;
             sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
             sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+
+            ComputeSurveyShifts();
             
             init();
         }
@@ -1872,4 +1802,18 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             init();
         }
     }    
+    
+    //Compute the survey corrections from the UChannel measurements by MRSolt
+    //1 - The survey corrections are loaded wrt the UChannel reference frame
+    //2 - Transform the UChannel frame locations to the module frame locations
+    //3 - Apply the shifts
+    //4 - Check the global position vs the one that MRSolt provides
+    
+    //Top Axial Corrections in UChannel frame
+    //[-54.09130816 -28.4573564    0.57462736] 
+    
+    //SurveyVolume instead?
+    //double getSurveyShifts(SurveyVolume sensor) {
+    //   return 1;
+    //}
 }
