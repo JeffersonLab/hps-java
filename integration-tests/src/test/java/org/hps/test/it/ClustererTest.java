@@ -277,11 +277,11 @@ public class ClustererTest extends TestCase {
         }
 
         // Run job over the input events to generate clusters, check their validity, and fill plots.
-        long startNanos = System.nanoTime();
-        loop.loop(nEvents);
-        long elapsedMillis = (System.nanoTime() - startNanos) / 1000000;
-        System.out.println(config.clustererName + " took " + elapsedMillis + "ms for " + loop.getTotalSupplied()
-                + " events which is " + (double) loop.getTotalSupplied() / (((double) elapsedMillis) / 1000.) + " events/s");
+        //long startNanos = System.nanoTime();
+        loop.loop(nEvents, null);
+        //long elapsedMillis = (System.nanoTime() - startNanos) / 1000000;
+        //System.out.println(config.clustererName + " took " + elapsedMillis + "ms for " + loop.getTotalSupplied()
+        //        + " events which is " + (double) loop.getTotalSupplied() / (((double) elapsedMillis) / 1000.) + " events/s");
         loop.dispose();
 
         /***************************************************
