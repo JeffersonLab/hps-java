@@ -32,7 +32,7 @@ public abstract class ReconTest extends TestCase {
     /**
      * The default tolerance level for histogram statistics comparison
      */
-    protected static final double DEFAULT_TOLERANCE = 1E-6;
+    protected static final double DEFAULT_TOLERANCE = 1E-4;
 
     /**
      * The concrete class of the test, set for convenience
