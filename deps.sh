@@ -1,1 +1,1 @@
-mvn dependency:tree -Doutput=deps.txt
+mvn dependency:tree -DoutputFile=deps.txt

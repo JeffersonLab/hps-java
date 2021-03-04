@@ -9,7 +9,7 @@
     <execute>
 
         <!--RF driver-->
-        <driver name="PreCleanupDriver"/>
+         <driver name="PreCleanupDriver"/>
         <driver name="RfFitter"/>
  
         <!-- Ecal reconstruction drivers -->        
@@ -23,26 +23,12 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
-        <driver name="TrackReconSeed123Conf4Extd56"/>
-        <driver name="TrackReconSeed123Conf5Extd46"/>
 
-        <driver name="TrackReconSeed567Conf4Extd123"/>
-        <driver name="TrackReconSeed456Conf3Extd127"/>
-        <driver name="TrackReconSeed356Conf7Extd124"/>
-        <driver name="TrackReconSeed235Conf6Extd147"/>
-        <driver name="TrackReconSeed234Conf6Extd157"/>
-
-        <!-- 
-            Will run track finding algorithm using layers 345 as a seed, 
-            layer 2 to confirm and layers 1 and 6 to extend. The collection
-            name of the tracks found with this strategy will be "MatchedTracks".
-        -->
-
-
-        <driver name="MergeTrackCollections"/>
+        <!-- <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
-        <driver name="TrackDataDriver" />
-        <driver name="ReconParticleDriver" />   
+        <driver name="TrackDataDriver" /> -->
+        <driver name="KalmanPatRecDriver"/>
+        <driver name="ReconParticleDriver_Kalman" />
 
         <driver name="LCIOWriter"/>            
         <driver name="CleanupDriver"/>
@@ -51,7 +37,7 @@
 
     <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
           <!-- Clean all -->
-           <collectionNames> EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations  </collectionNames>
+           <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations </collectionNames>
           <!-- Clean tracking and Final state particles -->
           <!-- <collectionNames>FinalStateParticles GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations RotatedHelicalTrackHits RotatedHelicalTrackHitRelations TrackData  </collectionNames> -->
         </driver>
@@ -255,32 +241,46 @@
         <!-- SVT Track finding -->
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
-        <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
+
+            <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+            <!--<doDebugPlots>true</doDebugPlots>-->
+            <!-- <siHitsLimit>50</siHitsLimit> -->
+            <!-- <seedCompThr>0.05</seedCompThr> -->
+            <!-- <addResiduals>true</addResiduals> -->
+            <verbose>false</verbose>
+          </driver>
+
+        <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" >
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
-            <trackCollectionNames>GBLTracks</trackCollectionNames>
-            <trackCollectionName>GBLTracks</trackCollectionName>
-            <beamPositionX> -0.224 </beamPositionX>
-            <beamSigmaX> 0.125 </beamSigmaX>
-            <beamPositionY> -0.08 </beamPositionY>
-            <beamSigmaY> 0.030 </beamSigmaY>
-            <beamPositionZ> -4.3 </beamPositionZ>
-            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
-            <requireClustersForV0>true</requireClustersForV0>
-            <isMC>true</isMC>
+            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
+            <trackCollectionName>KalmanFullTracks</trackCollectionName>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
+            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+            <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
-            <minVertexChisqProb> 0.0 </minVertexChisqProb>
-            <maxElectronP> 2.15 </maxElectronP>
-            <maxVertexP> 2.8 </maxVertexP>
+            <requireClustersForV0>true</requireClustersForV0>
+            <beamPositionX>-0.224</beamPositionX>
+            <beamSigmaX>0.125</beamSigmaX>
+            <beamPositionY>-0.08</beamPositionY>
+            <beamSigmaY>0.030</beamSigmaY>
+            <beamPositionZ>-4.3</beamPositionZ>
+            <maxElectronP>2.15</maxElectronP>
+            <maxVertexP>2.8</maxVertexP>
+            <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>5.0</maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
-            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
             <debug>false</debug>
+            <makeMollerCols>false</makeMollerCols>
+            <isMC>true</isMC>
             <applyClusterCorrections>true</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
             <trackClusterMatchPlots>true</trackClusterMatchPlots>
-            <trackClusterMatching>new</trackClusterMatching>
-            
-        </driver>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
 
         </driver>
 

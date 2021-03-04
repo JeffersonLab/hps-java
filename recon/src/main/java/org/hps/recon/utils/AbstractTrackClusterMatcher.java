@@ -32,10 +32,14 @@ import org.hps.record.StandardCuts;
  */
 
 /* 
- * @see TrackClusterMatcherInter
+ * @see TrackClusterMatcher
  */
 
-public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcherInter {
+public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher {
+
+    protected String trackCollectionName = "GBLTracks";
+    protected FieldMap bFieldMap = null;
+    protected boolean snapToEdge = true;
 
     /*
      * Default no-arg constructor.
@@ -48,7 +52,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
      * in matcher algorithms that extend this class.
      * Default is GBLTracks.
      */
-    protected String trackCollectionName = "GBLTracks";
     public void setTrackCollectionName(String trackCollectionName){
         this.trackCollectionName = trackCollectionName;
     }
@@ -67,6 +70,11 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
      * to give particle id goodness of fit.
      */
     public abstract double getMatchQC(Cluster cluster, ReconstructedParticle particle);
+
+    /**
+     * Abstract method to set beam energy
+     */
+    public abstract void setBeamEnergy(double beamEnergy);
 
     /**
      * Abstract method to apply Cluster corrections after Track to Cluster matching, if true.
@@ -88,7 +96,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     /**
      * Set B field map if used in matching.
      */
-    FieldMap bFieldMap = null;
     public void setBFieldMap(FieldMap bFieldMap) {
         this.bFieldMap = bFieldMap;
     }
@@ -96,7 +103,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
     /**
      * Set snapToEdge if used in matching alg.
      */
-    private boolean snapToEdge = true;
     public void setSnapToEdge(boolean val){
         this.snapToEdge = val;
     }
@@ -204,7 +210,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         return dt;
     }
 
-
     public double getTrackTime(Track track, EventHeader event){
 
         double trackt;    
@@ -261,9 +266,4 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         }
         return trackToData;
     }
-
-
-
-
-
 }
