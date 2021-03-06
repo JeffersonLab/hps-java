@@ -80,8 +80,20 @@ public abstract class SurveyVolume {
         }
     }
 
-    private void applySurvey(Element node) {
-
+    
+    //TODO apply the survey via an external flag
+    protected void applySurvey(Element node, boolean apply_survey) {
+        
+        if (! apply_survey)
+            return;
+        else {
+            applySurvey(node);
+        }
+    }
+    
+    //Override this if the way the survey constants are applied is different
+    protected void applySurvey(Element node) {
+                
         if (debug || true )
             System.out.printf("PF::DEBUG %s: apply survey from compact.\n", this.getClass().getSimpleName());
 
@@ -114,6 +126,7 @@ public abstract class SurveyVolume {
                         // The U-channel coordinate system is flipped 90deg clockwise around survey x-axis
 
                         Rotation rotation1 = new Rotation(new Vector3D(1, 0, 0), -Math.PI / 2.0);
+                        
                         surveyResult.rotateOrigin(rotation1);
                         surveyResult.rotateUnitVectors(rotation1);
 
@@ -353,7 +366,7 @@ public abstract class SurveyVolume {
                                     ref.getCoord().toString());
                         }
                         surveyResult.transform(ref.getCoord().getTransformation());
-
+                        
                         if (debug)
                             System.out.printf("%s: survey system after ref %s transform:\n%s\n", this.getClass()
                                     .getSimpleName(), ref.getName(), surveyResult.toString());
@@ -393,7 +406,7 @@ public abstract class SurveyVolume {
                             .getCoord().toString());
 
             } else {
-                if (debug)
+                if (debug || true)
                     System.out.printf("%s: no survey results for %s in node %s \n", this.getClass().getSimpleName(),
                             getName(), node.getName());
             }
@@ -417,6 +430,7 @@ public abstract class SurveyVolume {
      */
     protected void applyReferenceTransformation() {
         
+        debug = true;
         if (referenceGeom != null) {
 
             if (debug)
@@ -456,15 +470,17 @@ public abstract class SurveyVolume {
 
         }
         
+        debug = false;
+        
     }
 
     /**
      * Apply @link AlignmentCorrection to the volume if they are supplied.
      */
-    private void applyLocalAlignmentCorrections() {
+    protected void applyLocalAlignmentCorrections() {
 
         // Apply alignment corrections to local coordinate system that is already built
-        boolean debug_local = false;
+        boolean debug_local = true;
         if (this.coord == null)
             throw new RuntimeException("no coordinate system was set before trying to apply alignment corrections.");
 
@@ -595,7 +611,7 @@ public abstract class SurveyVolume {
         }
 
         coord = new SurveyCoordinateSystem(ballPos, veePos, flatPos);
-
+        
         if (this.debug) {
             System.out.printf("%s: setCoord \n%s\n", this.getClass().getSimpleName(), coord.toString());
         }

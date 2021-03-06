@@ -16,6 +16,8 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 // import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.Sensor;
 import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.TestRunModuleBundle;
 import org.lcsim.detector.Transform3D;
+import org.lcsim.detector.Rotation3D;
+import org.lcsim.detector.Translation3D;
 
 /**
  * Updated geometry information for the HPS tracker 2019
@@ -24,8 +26,9 @@ import org.lcsim.detector.Transform3D;
  */
 public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDefinition {
     
-    boolean applySurvey = true;
-    boolean applyDesign = true;
+    boolean applySurvey     = true;
+    boolean applyDesign     = true;
+    boolean apply2019Survey = true;
 
     private static final Logger LOGGER = Logger
             .getLogger(HPSTracker2019GeometryDefinition.class.getPackage().getName());
@@ -43,9 +46,14 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         if (System.getProperty("disableDesign") != null) {
             applyDesign = false;
         }
+        
+        if (System.getProperty("disable2019Survey") != null) {
+            apply2019Survey = false;
+        }
 
         System.out.println("PF::DEBUG:: APPLY SURVEY CONSTANTS::" + applySurvey);
         System.out.println("PF::DEBUG:: APPLY DESIGN CORRECTIONS::" + applyDesign);
+        System.out.println("PF::DEBUG:: APPLY 2019 SURVEY CORRECTIONS::" + apply2019Survey);
         
     }
 
@@ -193,7 +201,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                 surveyVolumes.size()));
         LOGGER.info(String.format("%s: Constructed %d module bundles", this.getClass().getSimpleName(), modules.size()));
 
-        if (isDebug()) {
+        if (isDebug() || true) {
             System.out.printf("%s: DONE constructing the geometry objects\n", this.getClass().getSimpleName());
             System.out.printf("%s: List of the survey volumes built\n", this.getClass().getSimpleName());
             for (SurveyVolume bg : surveyVolumes) {
@@ -584,6 +592,117 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
     }
 
+    
+    
+    /*
+    //This class is an intermediate class that only works as way to override the applySurvey 
+    //in 2019 data taking run. It is necessary because the constants are different
+    //NOT CALLED AT THE MOMENT
+    public static class ModuleL13Top2019 extends ModuleL13Top {
+        
+        @Override 
+        protected void applySurvey(Element node) {
+            
+            debug = true;
+            if (debug)
+                System.out.println("######### PF :: DEBUG :: "+ this.getClass().getSimpleName() + " APPLY SURVEY CONSTANTS NEW NEW NEW");
+            
+            if (node == null) {
+                if (debug)
+                    System.out.printf("PF::DEBUG %s: WARNING: no XML file for NEW NEW NEW survey information available.\n", this.getClass().getSimpleName());
+            } else { 
+                
+                SurveyResult surveyResult = SurveyResult.findResultFromDetector(node,getName());
+                if (surveyResult != null) {
+                    if (debug) 
+                        System.out.printf("PF:: DEBUG:: %s: found NEW NEW NEW survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                }
+                
+                //Half sensors
+                if (HPSTrackerBuilder.isHalfModule(getName())) {
+                    
+                    
+                    //Get the reference volume (should be the UChannel support only)
+                    SurveyVolume uchannel_ref = null;
+                    if (getMother().getReferenceGeom() != null) {
+                        uchannel_ref = getMother().getReferenceGeom().get(0);
+                    }
+                    else {
+                        System.out.println("PF::DEBUG-- WARNING WARNING:: NEW NEW NEW no mother"); 
+                        return;
+                    }
+                    
+                    if (uchannel_ref == null) {
+                        System.out.println("PF::DEBUG-- WARNING WARNING:: NEW NEW NEW ref vol not found"); 
+                        return;
+                    } 
+                    
+                    else
+                        System.out.println("PF::DEBUG NEW NEW NEW Found Reference frame::" + uchannel_ref.getName());
+                    
+                    
+                    //Get the local to global transformation of the uchannel frame
+                    Transform3D ref_transform_l2g = uchannel_ref.getl2gTransform();
+                    Transform3D ref_transform_g2l = uchannel_ref.getl2gTransform().inverse();
+                    
+                    
+                    //Get the global to local transformation from jLab to the mother module of the sensor
+                    Transform3D mother_transform_G2L = getMother().getl2gTransform().inverse();
+                    System.out.println("PF::MOTHER " + getMother().getName() + "G2L transform" );
+                    System.out.println(mother_transform_G2L);
+                    
+                    //Get the surveyed position
+                    Hep3Vector surveyedSensorPosition = surveyResult.getOrigin();
+                    // Adjust origin to the sensor center  -> Not sure if this is needed. For sure is not correct for the thin sensors. Commented out and left just for reference
+                    //surveyResult.setOrigin(VecOp.add(surveyResult.getOrigin(), VecOp.mult(-0.160, surveyResult.getZ()))); 
+                    
+                    //These sensors only have one reliable measurement: the position along the UChannel. To apply this properly
+                    //1) Transform the sensor coordinate in the hps-java UChannel
+                    
+                    Hep3Vector sensorOrigin = getCoord().origin();
+                    getMother().getl2gTransform().transform(sensorOrigin);
+                    
+                    System.out.println("PF::SENSOR POSITION IN GLOBAL FRAME "+ getMother().getName() + " " +getName());
+                    System.out.println(sensorOrigin);
+                    
+                    
+                    //2) Transform the sensor coordinate to the uchannel
+                    ref_transform_g2l.transform(sensorOrigin);
+                    
+                    System.out.println("PF::SENSOR POSITION IN UCHANNEL FRAME "+ getMother().getName() + " " +getName());
+                    System.out.println(sensorOrigin);
+                    
+                    //3) The Y component of the sensorOrigin in this frame should now be set to the surveyed X position
+                    Hep3Vector surveyedOrigin = new BasicHep3Vector(sensorOrigin.x(), surveyResult.getOrigin().x(),sensorOrigin.z());
+                    
+                    System.out.println("PF::SURVEYED SENSOR POSITION IN SURVEY UCHANNEL FRAME "+ getMother().getName() + " " +getName());
+                    System.out.println(surveyResult.getOrigin());
+                    
+                    System.out.println("PF::SURVEYED SENSOR POSITION IN UCHANNEL FRAME "+ getMother().getName() + " " +getName());
+                    System.out.println(surveyedOrigin);
+                    
+                    //4) Transform back into the mother frame
+                    
+                    ref_transform_l2g.transform(surveyedOrigin);
+                    mother_transform_G2L.transform(surveyedOrigin);
+                    
+                    //5) Translate to surveyed position
+                    
+                    Translation3D transToSurvey = new Translation3D(VecOp.sub(surveyedOrigin, getCoord().origin()));
+                    getCoord().translate(transToSurvey);
+                    
+                    System.out.println("PF::SURVEYED SENSOR POSITION IN MODULE FRAME "+ getMother().getName() + " " +getName());
+                    System.out.println(getCoord().origin());
+                    
+                    System.out.println("PF::SURVEYED SENSOR POSITION IN GLOBAL FRAME "+ getMother().getName() + " " +getName());
+                    getMother().getl2gTransform().transform(surveyedOrigin);
+                    System.out.println(surveyedOrigin);
+                } // is an half module
+            } // found the survey node
+        } //applySurvey
+    }
+    */
+
     public static class ModuleL3Top extends ModuleL13Top {
 
         // Note the L2 measures are used here
@@ -602,7 +721,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             double z = cone_to_hole_vertical_from_uchannel + L3_new_vertical_shift;
             return new BasicHep3Vector(x, y, z);
         }
-
     }
 
     public static class ModuleL4Bot extends ModuleL13Bot {
@@ -623,9 +741,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             double z = cone_to_hole_vertical_from_uchannel + L4_new_vertical_shift;
             return new BasicHep3Vector(x, y, z);
         }
-
     }
-
+       
     public static class ModuleL4Top extends ModuleL13Top {
 
         // Note the L2 measures are used here
@@ -1339,14 +1456,14 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     }
 
     public abstract static class ShortHalfModule extends BaseModule {
-
+        
         // private static final double randomoffset = 5.0;
-        public static final double width = ShortSensor.width; // + randomoffset;
-        public static final double length = ShortSensor.length;// +
+        public double width = ShortSensor.width; // + randomoffset;
+        public double length = ShortSensor.length;// +
                                                                // randomoffset/10.0;
-        public static final double height = ShortSensor.height;// +
+        public double height = ShortSensor.height;// +
                                                                // HalfLongModuleLamination.height;
-        protected final static double sensor_z = 0.23 * inch;
+        protected double sensor_z = 0.23 * inch;
 
         public ShortHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer,
                 String half) {
@@ -1356,14 +1473,17 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected abstract Hep3Vector getSensorPosition();
 
         protected void setBoxDim() {
+            System.out.println("PF:: DEBUG::" + getName() + "Sensor Box Dim width="+width+" length="+length+" height=" + height);
             setBoxDim(width, length, height);
         }
 
         protected void setCenter() {
             double x = 0.0;
             double y = 0.0;
-            double z = +0.5 * ShortSensor.height - height / 2.0;
-            ;
+            //PF::This is 0 by definition.
+            //double z = +0.5 * ShortSensor.height - height / 2.0;
+            double z = 0.0;
+            System.out.println("PF:: DEBUG::" + getName() + "Sensor Center x="+x+" y="+y+" z=" + z);
             setCenter(x, y, z);
         }
 
@@ -1374,38 +1494,141 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             flatPos = new BasicHep3Vector(ballPos.x(), ballPos.y() + 1, ballPos.z());
         }
 
-        //I define here the survey application as this should be different from the past
-        
-        protected Hep3Vector ComputeSurveyShifts() {
+        @Override
+        protected void applySurvey(Element node) {
             
-            //Get the reference volume (should be the UChannel support only)
-            SurveyVolume uchannel_ref = null;
-            if (getMother().getReferenceGeom() != null) {
-                uchannel_ref = getMother().getReferenceGeom().get(0);
-            }
-            else {
-                System.out.println("PF::DEBUG-- WARNING WARNING:: no mother"); 
-            }
+            debug = true;
+            if (debug)
+                System.out.println("######### PF :: DEBUG :: "+ this.getClass().getSimpleName() + " APPLY SURVEY CONSTANTS NEW NEW NEW");
             
+            if (node == null) {
+                if (debug)
+                    System.out.printf("PF::DEBUG %s: WARNING: no XML file for NEW NEW NEW survey information available.\n", this.getClass().getSimpleName());
+            } else { 
+                
+                SurveyResult surveyResult = SurveyResult.findResultFromDetector(node,getName());
+                if (surveyResult != null) {
+                    if (debug) 
+                        System.out.printf("PF:: DEBUG:: %s: found NEW NEW NEW survey results: \n%s \n", this.getClass().getSimpleName(), surveyResult.toString());
+                }
+                else 
+                    return;
+                
+                                
+                //Half sensors
+                if (HPSTrackerBuilder.isHalfModule(getName())) {
+
+
+                    //Get the reference volume (should be the UChannel support only)
+                    SurveyVolume uchannel_ref = null;
+                    if (getMother().getReferenceGeom() != null) {
+                        uchannel_ref = getMother().getReferenceGeom().get(0);
+                    }
+                    else {
+                        System.out.println("PF::DEBUG-- WARNING WARNING:: NEW NEW NEW no mother"); 
+                        return;
+                    }
+                    
+                    if (uchannel_ref == null) {
+                        System.out.println("PF::DEBUG-- WARNING WARNING:: NEW NEW NEW ref vol not found"); 
+                        return;
+                    } 
+                    
+                    else
+                        System.out.println("PF::DEBUG NEW NEW NEW Found Reference frame::" + uchannel_ref.getName());
+                    
+                    
+                    //Get the local to global transformation of the uchannel frame
+                    Transform3D ref_transform_l2g = uchannel_ref.getl2gTransform();
+                    Transform3D ref_transform_g2l = uchannel_ref.getl2gTransform().inverse();
+                    
+                    
+                    //Get the global to local transformation from jLab to the mother module of the sensor
+                    Transform3D mother_transform_G2L = getMother().getl2gTransform().inverse();
+                    System.out.println("PF::MOTHER " + getMother().getName() + "G2L transform" );
+                    System.out.println(mother_transform_G2L);
+
+                    //Get the surveyed position
+                    Hep3Vector surveyedSensorPosition = surveyResult.getOrigin();
+                    // Adjust origin to the sensor center  -> Not sure if this is needed. For sure is not correct for the thin sensors. Commented out and left just for reference
+                    //surveyResult.setOrigin(VecOp.add(surveyResult.getOrigin(), VecOp.mult(-0.160, surveyResult.getZ()))); 
+                        
+                    
+                    
+                    //Thin sensors only
+                    if (getName().contains("1") || getName().contains("2")) {
+                        
+                        
+                        if (debug)
+                            System.out.printf("%s: NEW NEW NEW treating it as a half-module\n", this.getClass().getSimpleName());
+                        
+                        if (HPSTrackerBuilder.isTopFromName(uchannel_ref.getName())) {
+                            if (debug)
+                                System.out.printf("%s: NEW NEW NEW The half module is in top volume\n", this.getClass().getSimpleName());
+                            
+                            
+                            //The Survey UChannel seems to be rotated of 90deg around Z axis wrt hps-java uchannel for the top
+                            //The transform from uchannel in hps-java to survey uchannel is x->-y, y->x z->z
+                            //So a clockwise rotation of 90 deg
+                            
+                            //Rotation matrix R: 
+                            //0   1   0
+                            //-1  0   0
+                            //0   0   1
+                            
+                            //This translates to the following rotation
+                            Rotation3D hpsJava_ucTop_2_survey_ucTop = (Rotation3D) Rotation3D.passiveZRotation(Math.PI / 2.0) ;
+                            
+                            //Get the surveyed position in the UC
+                            
+                            System.out.println("PF::SURVEYED SENSOR POSITION IN SURVEY UCHANNEL FRAME L0 TOP");
+                            System.out.println(surveyedSensorPosition);
+                            
+                            //Compute the surveyed position in the mother of the module
+                            // 1) Go from surveyed UChannel frame to UChannel frame
+                            Rotation3D hpsJava_surveyucTop_2_hpsJava_ucTop = (Rotation3D) hpsJava_ucTop_2_survey_ucTop.inverse();
+                            hpsJava_surveyucTop_2_hpsJava_ucTop.rotate(surveyedSensorPosition);
+                            System.out.println("PF::SURVEYED SENSOR POSITION IN JAVA UCHANNEL FRAME " + getName() );
+                            System.out.println(surveyedSensorPosition.toString());
+                                
+                            // 2) Go from the UChannel to the global frame
+                            ref_transform_l2g.transform(surveyedSensorPosition);
+                            System.out.println("PF::SURVEYED SENSOR POSITION IN GLOBAL FRAME " + getName());
+                            System.out.println(surveyedSensorPosition.toString());
+                            
+                            // 3) Go from the global frame to the module frame
+                            mother_transform_G2L.transform(surveyedSensorPosition);
+                            System.out.println("PF::SURVEYED SENSOR POSITION IN MODULE FRAME "+ getMother().getName() + " " +getName());
+                            System.out.println(surveyedSensorPosition.toString());
+                            
+                            
+                            //getCoord should get the location of the sensor wrt the mother volume (module)
+                            //I now translate the coordinates to the surveyed position
+                            
+                            //Translation3D transToSurvey = surveyResult.getTranslationFrom(getCoord());
+                            Translation3D transToSurvey = new Translation3D(VecOp.sub(surveyedSensorPosition, getCoord().origin()));
+                            getCoord().translate(transToSurvey);
+                            
+                            
+                            if (debug)
+                                System.out.printf("%s: after translation to survey \n%s \n", this.getClass().getSimpleName(), this
+                                                  .getCoord().toString());
+                        }//Is top
+                    }//is a thin sensor
+                    
+                    /*
+                    else if (getName().contains("3") || getName().contains("4")) {  
+                        
+                        
+                        
+                    }// is a ly3 or ly4
+                    */
+                    
+                }// is an half module
+                
+            }//found the node information               
             
-            if (uchannel_ref == null) {
-                System.out.println("PF::DEBUG-- WARNING WARNING:: ref vol not found"); 
-                return new BasicHep3Vector(0,0,0);
-            } 
-            
-            else {
-                System.out.println("PF::DEBUG Found Reference frame::" + uchannel_ref.getName());
-            }
-            
-            Transform3D ref_transform = uchannel_ref.getl2gTransform();
-            System.out.println("PF::DEBUG:: ref_transform="+ref_transform.toString());
-            
-            return new BasicHep3Vector(0,0,0);
-            
-        }
-        
-        
-        
+        }//apply Survey
     }
     
     public abstract static class ShortAxialHalfModule extends ShortHalfModule {
@@ -1415,28 +1638,36 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         
         protected double sensor_x;
         protected double sensor_y;
-        protected final static double sensor_z = LongHalfModule.sensor_z;
+        //protected final static double sensor_z = LongHalfModule.sensor_z;
+        protected double sensor_z; 
         
         public ShortAxialHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
-                int layer, String half) {
+                                    int layer, String half) {
             super(name, mother, alignmentCorrection, layer, half);
             sensor_x = 0.0;
             sensor_y = 0.0;
-            //sensor_z = LongHalfModule.sensor_z;
+            sensor_z = LongHalfModule.sensor_z;
         }
-
+        
         @Override
         protected Hep3Vector getSensorPosition() {
             // return new BasicHep3Vector(sensor_x, sensor_y, sensor_z);
             return new BasicHep3Vector(sensor_x, sensor_y, -sensor_z);
         }
         
+        //static method to return a default value
+        static double getSensorZ() {
+            return LongHalfModule.sensor_z;
+        }
+        
+        
     }
 
     public abstract static class ShortStereoHalfModule extends ShortHalfModule {
 
         protected final static double stereo_angle = 0.1;
-        protected final static double sensor_z = ShortAxialHalfModule.sensor_z + ShortModule.distance_between_stereo_axial_norm_dir;
+        //protected final static double sensor_z = ShortAxialHalfModule.getSensorZ() + ShortModule.distance_between_stereo_axial_norm_dir;
+        protected double sensor_z; 
         protected double sensor_x;
         protected double sensor_y;
 
@@ -1465,6 +1696,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             // Rotate these into the right place for the stereo
             // My rotations here are active rotations in the mother coordinate
             // system frame
+            //debug = false;
 
             if (debug) {
                 System.out.printf("%s: ShortStereoSlotHalfModule\n", getClass().getSimpleName());
@@ -1518,6 +1750,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                 System.out.printf("%s: Coord after corrections\n%s\n", getClass().getSimpleName(), getCoord().toString());
                 System.out.printf("%s: box center after corrections\n%s\n", getClass().getSimpleName(), getBoxDim().toString());
             }
+            
+            debug = false;
         }
     }
 
@@ -1526,7 +1760,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         private final static double sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad;
         private final static double sensor_y = HalfModuleAxial.sensor_y;
         // private final static double sensor_z = HalfModuleAxial.sensor_z;
-        private final static double sensor_z = ShortAxialHalfModule.sensor_z;
+        private final static double sensor_z = ShortAxialHalfModule.getSensorZ();
 
         public ShortAxialHoleHalfModule(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection,
                 int layer, String half) {
@@ -1543,11 +1777,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         private double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         private double survey_shift_z = 0.0; //positive is downstream shift
 
-        //private double sensor_x = 0.0;
-        //private double sensor_y = 0.0;
-        private double sensor_z = 0.0;
         
-
         //Constructor with survey constants on by default
         public ShortAxialHoleHalfModuleL0Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
             this(name, mother, alignmentCorrection, layer, half, true);
@@ -1566,17 +1796,17 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             
             sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad + survey_shift_x;
             sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
-            sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+            sensor_z = ShortAxialHalfModule.getSensorZ() + survey_shift_z;
 
-            ComputeSurveyShifts();
-
+            System.out.println("PF:: DEBUG " +getName()+"  SENSOR POSITION PRE-SURVEY");
+            System.out.println(sensor_x+ " "+ sensor_y+" "+ sensor_z);
+            
             init();
+            
         }
         
     }
     
-
-    //TODO FIX THE SENSOR_Z
 
     public static class ShortAxialHoleHalfModuleL0Bot extends ShortAxialHalfModule {
         
@@ -1584,11 +1814,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         private double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         private double survey_shift_z = 0.0; //positive is upstream shift
         
-        //private double sensor_x;
-        //private double sensor_y;
-        // private final static double sensor_z = HalfModuleAxial.sensor_z;
-        private double sensor_z;
-
+        
         //Constructor with survey constants applied by default
         public ShortAxialHoleHalfModuleL0Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
             this(name, mother, alignmentCorrection, layer, half, true);
@@ -1607,10 +1833,8 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             
             sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad + survey_shift_x;
             sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
-            sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+            sensor_z = ShortAxialHalfModule.getSensorZ() + survey_shift_z;
 
-            ComputeSurveyShifts();
-            
             init();
         }
         
@@ -1622,11 +1846,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         private double survey_shift_x = 0.0; //positive is away from beam (up)
         private double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         private double survey_shift_z = 0.0; //positive is downstream shift
-        
-        //private double sensor_x;
-        //private double sensor_y;
-        // private final static double sensor_z = HalfModuleAxial.sensor_z;
-        private double sensor_z;
         
         
         //Constructor with survey constants applied by default
@@ -1647,8 +1866,11 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             
             sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad + survey_shift_x;
             sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
-            sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
-            
+            sensor_z = ShortAxialHalfModule.getSensorZ() + survey_shift_z;
+
+            System.out.println("PF:: DEBUG "+getName()+ " SENSOR POSITION PRE-SURVEY");
+            System.out.println(sensor_x+ " "+ sensor_y+" "+ sensor_z);
+
             init();
         }
         
@@ -1660,11 +1882,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         private double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         private double survey_shift_z = 0.0; //positive is upstream shift
         
-        //private double sensor_x;
-        //private double sensor_y;
-        // private final static double sensor_z = HalfModuleAxial.sensor_z;
-        private double sensor_z;
-        
+                
         //Constructor with survey constants applied by default
         public ShortAxialHoleHalfModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
             this(name, mother, alignmentCorrection, layer, half, true);
@@ -1683,7 +1901,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             
             sensor_x = HalfModuleAxial.sensor_x + shift_vertically_to_beam_plane + shift_vertically_to_15mrad + survey_shift_x;
             sensor_y = HalfModuleAxial.sensor_y + survey_shift_y;
-            sensor_z = ShortAxialHalfModule.sensor_z + survey_shift_z;
+            sensor_z = ShortAxialHalfModule.getSensorZ() + survey_shift_z;
             
             init();
         }
@@ -1698,8 +1916,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         //protected final static Hep3Vector pos_of_rotation = new BasicHep3Vector(ShortSensor.width / 2,
         //        ShortSensor.length / 2, 0);
         
-        private double sensor_z;
-
         //Constructor with survey constants on by default
         public ShortStereoHoleHalfModuleL0Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
             this(name, mother, alignmentCorrection, layer, half, true);
@@ -1718,13 +1934,16 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
             //sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z; //+ ShortModule.distance_between_stereo_axial_norm_dir;
             sensor_z = LongHalfModule.sensor_z + survey_shift_z + ShortModule.distance_between_stereo_axial_norm_dir;
+
+            
+            System.out.println("PF:: DEBUG "+getName()+ " SENSOR POSITION PRE-SURVEY");
+            System.out.println(sensor_x+ " "+ sensor_y+" "+ sensor_z);
             init();
+            
         }
     }
 
     public static class ShortStereoHoleHalfModuleL0Bot extends ShortStereoHalfModule {
-
-        private double sensor_z;
 
         //Constructor with survey constants on by default
         public ShortStereoHoleHalfModuleL0Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
@@ -1751,7 +1970,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
     public static class ShortStereoHoleHalfModuleL1Top extends ShortStereoHalfModule {
 
-        private double sensor_z;
         
         //Constructor with survey constants on by default
         public ShortStereoHoleHalfModuleL1Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
@@ -1771,6 +1989,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             sensor_y = ShortAxialHoleHalfModule.sensor_y + survey_shift_y;
             //sensor_z = ShortStereoHalfModule.sensor_z + survey_shift_z;//+ ShortModule.distance_between_stereo_axial_norm_dir;
             sensor_z = LongHalfModule.sensor_z + survey_shift_z + ShortModule.distance_between_stereo_axial_norm_dir;
+            
+            
+            System.out.println("PF:: DEBUG "+getName()+ " SENSOR POSITION PRE-SURVEY");
+            System.out.println(sensor_x+ " "+ sensor_y+" "+ sensor_z);
             init();
         }
         
@@ -1778,9 +2000,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     }
 
     public static class ShortStereoHoleHalfModuleL1Bot extends ShortStereoHalfModule {
-
-        private double sensor_z;
-        
+                        
         //Constructor with survey constants on by default
         public ShortStereoHoleHalfModuleL1Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, int layer, String half) {
             this(name, mother, alignmentCorrection, layer, half, true);
@@ -1801,19 +2021,5 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             sensor_z = LongHalfModule.sensor_z + survey_shift_z + ShortModule.distance_between_stereo_axial_norm_dir;
             init();
         }
-    }    
-    
-    //Compute the survey corrections from the UChannel measurements by MRSolt
-    //1 - The survey corrections are loaded wrt the UChannel reference frame
-    //2 - Transform the UChannel frame locations to the module frame locations
-    //3 - Apply the shifts
-    //4 - Check the global position vs the one that MRSolt provides
-    
-    //Top Axial Corrections in UChannel frame
-    //[-54.09130816 -28.4573564    0.57462736] 
-    
-    //SurveyVolume instead?
-    //double getSurveyShifts(SurveyVolume sensor) {
-    //   return 1;
-    //}
+    }        
 }
