@@ -201,7 +201,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                 surveyVolumes.size()));
         LOGGER.info(String.format("%s: Constructed %d module bundles", this.getClass().getSimpleName(), modules.size()));
 
-        if (isDebug() || true) {
+        if (isDebug()) {
             System.out.printf("%s: DONE constructing the geometry objects\n", this.getClass().getSimpleName());
             System.out.printf("%s: List of the survey volumes built\n", this.getClass().getSimpleName());
             for (SurveyVolume bg : surveyVolumes) {
@@ -1547,6 +1547,23 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                     Transform3D mother_transform_G2L = getMother().getl2gTransform().inverse();
                     System.out.println("PF::MOTHER " + getMother().getName() + "G2L transform" );
                     System.out.println(mother_transform_G2L);
+                    
+                    if (debug) {
+                        //Print the location of the sensor in the global frame
+                        Hep3Vector sensorOrigin = getCoord().origin();
+                        getMother().getl2gTransform().transform(sensorOrigin);
+                        
+                        System.out.println("PF::SENSOR POSITION IN GLOBAL FRAME "+ getMother().getName() + " " +getName());
+                        System.out.println(sensorOrigin);
+                        
+                        //2) Transform the sensor coordinate to the uchannel
+                        ref_transform_g2l.transform(sensorOrigin);
+                    
+                        System.out.println("PF::SENSOR POSITION IN UCHANNEL FRAME "+ getMother().getName() + " " +getName());
+                        System.out.println(sensorOrigin);
+                    }
+                    
+                    
 
                     //Get the surveyed position
                     Hep3Vector surveyedSensorPosition = surveyResult.getOrigin();
@@ -1555,74 +1572,61 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                         
                     
                     
-                    //Thin sensors only
-                    if (getName().contains("1") || getName().contains("2")) {
-                        
-                        
-                        if (debug)
-                            System.out.printf("%s: NEW NEW NEW treating it as a half-module\n", this.getClass().getSimpleName());
-                        
-                        if (HPSTrackerBuilder.isTopFromName(uchannel_ref.getName())) {
-                            if (debug)
-                                System.out.printf("%s: NEW NEW NEW The half module is in top volume\n", this.getClass().getSimpleName());
-                            
-                            
-                            //The Survey UChannel seems to be rotated of 90deg around Z axis wrt hps-java uchannel for the top
-                            //The transform from uchannel in hps-java to survey uchannel is x->-y, y->x z->z
-                            //So a clockwise rotation of 90 deg
-                            
-                            //Rotation matrix R: 
-                            //0   1   0
-                            //-1  0   0
-                            //0   0   1
-                            
-                            //This translates to the following rotation
-                            Rotation3D hpsJava_ucTop_2_survey_ucTop = (Rotation3D) Rotation3D.passiveZRotation(Math.PI / 2.0) ;
-                            
-                            //Get the surveyed position in the UC
-                            
-                            System.out.println("PF::SURVEYED SENSOR POSITION IN SURVEY UCHANNEL FRAME L0 TOP");
-                            System.out.println(surveyedSensorPosition);
-                            
-                            //Compute the surveyed position in the mother of the module
-                            // 1) Go from surveyed UChannel frame to UChannel frame
-                            Rotation3D hpsJava_surveyucTop_2_hpsJava_ucTop = (Rotation3D) hpsJava_ucTop_2_survey_ucTop.inverse();
-                            hpsJava_surveyucTop_2_hpsJava_ucTop.rotate(surveyedSensorPosition);
-                            System.out.println("PF::SURVEYED SENSOR POSITION IN JAVA UCHANNEL FRAME " + getName() );
-                            System.out.println(surveyedSensorPosition.toString());
-                                
-                            // 2) Go from the UChannel to the global frame
-                            ref_transform_l2g.transform(surveyedSensorPosition);
-                            System.out.println("PF::SURVEYED SENSOR POSITION IN GLOBAL FRAME " + getName());
-                            System.out.println(surveyedSensorPosition.toString());
-                            
-                            // 3) Go from the global frame to the module frame
-                            mother_transform_G2L.transform(surveyedSensorPosition);
-                            System.out.println("PF::SURVEYED SENSOR POSITION IN MODULE FRAME "+ getMother().getName() + " " +getName());
-                            System.out.println(surveyedSensorPosition.toString());
-                            
-                            
-                            //getCoord should get the location of the sensor wrt the mother volume (module)
-                            //I now translate the coordinates to the surveyed position
-                            
-                            //Translation3D transToSurvey = surveyResult.getTranslationFrom(getCoord());
-                            Translation3D transToSurvey = new Translation3D(VecOp.sub(surveyedSensorPosition, getCoord().origin()));
-                            getCoord().translate(transToSurvey);
-                            
-                            
-                            if (debug)
-                                System.out.printf("%s: after translation to survey \n%s \n", this.getClass().getSimpleName(), this
-                                                  .getCoord().toString());
-                        }//Is top
-                    }//is a thin sensor
+                    if (debug)
+                        System.out.printf("%s: NEW NEW NEW treating it as a half-module\n", this.getClass().getSimpleName());
                     
-                    /*
-                    else if (getName().contains("3") || getName().contains("4")) {  
-                        
-                        
-                        
-                    }// is a ly3 or ly4
-                    */
+                    if (debug)
+                        System.out.printf("%s: NEW NEW NEW The half module is in top volume\n", this.getClass().getSimpleName());
+                    
+                    
+                    //The Survey UChannel seems to be rotated of 90deg around Z axis wrt hps-java uchannel for the top
+                    //The transform from uchannel in hps-java to survey uchannel is x->-y, y->x z->z
+                    //So a clockwise rotation of 90 deg
+                    
+                    //Rotation matrix R: 
+                    //0   1   0
+                    //-1  0   0
+                    //0   0   1
+                    
+                    //This translates to the following rotation
+                    Rotation3D hpsJava_ucTop_2_survey_ucTop = (Rotation3D) Rotation3D.passiveZRotation(Math.PI / 2.0) ;
+                    
+                    //Get the surveyed position in the UC
+                    
+                    System.out.println("PF::SURVEYED SENSOR POSITION IN SURVEY UCHANNEL FRAME L0 TOP");
+                    System.out.println(surveyedSensorPosition);
+                    
+                    //Compute the surveyed position in the mother of the module
+                    // 1) Go from surveyed UChannel frame to UChannel frame
+                    Rotation3D hpsJava_surveyucTop_2_hpsJava_ucTop = (Rotation3D) hpsJava_ucTop_2_survey_ucTop.inverse();
+                    hpsJava_surveyucTop_2_hpsJava_ucTop.rotate(surveyedSensorPosition);
+                    System.out.println("PF::SURVEYED SENSOR POSITION IN JAVA UCHANNEL FRAME " + getName() );
+                    System.out.println(surveyedSensorPosition.toString());
+                    
+                    // 2) Go from the UChannel to the global frame
+                    ref_transform_l2g.transform(surveyedSensorPosition);
+                    System.out.println("PF::SURVEYED SENSOR POSITION IN GLOBAL FRAME " + getName());
+                    System.out.println(surveyedSensorPosition.toString());
+                    
+                    // 3) Go from the global frame to the module frame
+                    mother_transform_G2L.transform(surveyedSensorPosition);
+                    System.out.println("PF::SURVEYED SENSOR POSITION IN MODULE FRAME "+ getMother().getName() + " " +getName());
+                    System.out.println(surveyedSensorPosition.toString());
+                    
+                    
+                    //getCoord should get the location of the sensor wrt the mother volume (module)
+                    //I now translate the coordinates to the surveyed position
+                    
+                    //Translation3D transToSurvey = surveyResult.getTranslationFrom(getCoord());
+                    Translation3D transToSurvey = new Translation3D(VecOp.sub(surveyedSensorPosition, getCoord().origin()));
+                    getCoord().translate(transToSurvey);
+                    
+                    
+                    if (debug)
+                        System.out.printf("%s: after translation to survey \n%s \n", this.getClass().getSimpleName(), this
+                                          .getCoord().toString());
+                    
+                    
                     
                 }// is an half module
                 
@@ -1836,6 +1840,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             sensor_z = ShortAxialHalfModule.getSensorZ() + survey_shift_z;
 
             init();
+            
         }
         
     }
