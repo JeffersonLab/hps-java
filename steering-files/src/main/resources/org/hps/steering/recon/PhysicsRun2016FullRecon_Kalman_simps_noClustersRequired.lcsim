@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @brief Steering file that will be used for pass 1 reconstruction of 
-             the 2016 Engineering Run data. 
-      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
-      @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
+        @brief Steering file for 2016 MC reco using kalman filter without requiring ECal clusters
     -->
     <execute>
 
