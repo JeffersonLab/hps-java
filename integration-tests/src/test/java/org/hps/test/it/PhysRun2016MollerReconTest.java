@@ -25,7 +25,7 @@ public class PhysRun2016MollerReconTest extends ReconTest {
     static final String TEST_FILE_NAME = "hps_007796_mollerskim.evio";
     static final String STEERING = "/org/hps/steering/recon/legacy_drivers/PhysicsRun2016FullRecon.lcsim";
     static final int NEVENTS = 5000;
-    static final long MAX_EVENT_TIME = 100;
+    static final long MAX_EVENT_TIME = -1L;
 
     public PhysRun2016MollerReconTest() {
         super(PhysRun2016MollerReconTest.class,
