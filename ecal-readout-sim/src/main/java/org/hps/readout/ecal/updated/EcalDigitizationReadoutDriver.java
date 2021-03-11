@@ -29,6 +29,7 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPSEcal3> {    
     // The DAQ configuration manager for FADC parameters.
     private FADCConfigEcal2019 config = new FADCConfigEcal2019();
+    private boolean configStat = false; // Indicates if DAQ configuration is loaded
     
     // The number of nanoseconds in a clock-cycle (sample).
     private static final int nsPerSample = 4;
@@ -79,6 +80,7 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
                     
                     // Get the FADC configuration.
                     config = daq.getEcalFADCConfig();
+                    configStat = true;
                     integrationThreshold = config.getThreshold((int)10);
                 }
             });
@@ -114,14 +116,10 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
     }
     
     @Override
-    protected double getPedestalConditions(long cellID) {        
-        return findChannel(cellID).getCalibration().getPedestal();
-    }
-    
-    @Override
-    protected double getDAQPedestalConditions(long cellID) {        
-        return config.getPedestal(geoMap.findGeometric(cellID));
-    }
+    protected double getPedestalConditions(long cellID) { 
+        if(configStat == true) return config.getPedestal(geoMap.findGeometric(cellID)); 
+        else return findChannel(cellID).getCalibration().getPedestal();
+    }   
     
     @Override
     protected double getTimeShiftConditions(long cellID) {

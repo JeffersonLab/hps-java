@@ -32,7 +32,7 @@ public abstract class ReconTest extends TestCase {
     /**
      * The default tolerance level for histogram statistics comparison
      */
-    protected static final double DEFAULT_TOLERANCE = 1E-4;
+    protected static final double DEFAULT_TOLERANCE = 1E-3;
 
     /**
      * The concrete class of the test, set for convenience
@@ -287,9 +287,10 @@ public abstract class ReconTest extends TestCase {
      * @param testHist The test AIDA tree
      */
     protected void compareHistograms(IHistogram1D refHist, IHistogram1D testHist) {
-        assertEquals("Number of entries is different for: " + refHist.title(), refHist.entries(), testHist.entries());
-        assertEquals("Mean is different for: " + refHist.title(), refHist.mean(), testHist.mean(), tolerance * abs(refHist.mean()));
-        assertEquals("RMS is different for: " + refHist.title(), refHist.rms(), testHist.rms(), tolerance * abs(refHist.rms()));
+        assertEquals("Number of bins is different for: " + refHist.title(), refHist.axis().bins(), testHist.axis().bins());
+        for(int ix = 0; ix < refHist.axis().bins(); ++ix){
+            assertEquals("Bin " + ix + " is different for: " + refHist.title(), refHist.binEntries(ix), testHist.binEntries(ix));
+        }
     }
 
     /**
@@ -299,12 +300,13 @@ public abstract class ReconTest extends TestCase {
      * @param testHist The test AIDA tree
      */
     protected void compareHistograms(IHistogram2D refHist, IHistogram2D testHist) {
-        assertEquals("Number of entries is different for: " + refHist.title(), refHist.entries(), testHist.entries());
-        assertEquals("X Mean is different for: " + refHist.title(), refHist.meanX(), testHist.meanX(), tolerance * abs(refHist.meanX()));
-        assertEquals("X RMS is different for: " + refHist.title(), refHist.rmsX(), testHist.rmsX(), tolerance * abs(refHist.rmsX()));
-        assertEquals("Y Mean is different for: " + refHist.title(), refHist.meanY(), testHist.meanY(), tolerance * abs(refHist.meanY()));
-        assertEquals("Y RMS is different for: " + refHist.title(), refHist.rmsY(), testHist.rmsY(), tolerance * abs(refHist.rmsY()));
-
+        assertEquals("Number of X bins is different for: " + refHist.title(), refHist.xAxis().bins(), testHist.xAxis().bins());
+        assertEquals("Number of Y bins is different for: " + refHist.title(), refHist.yAxis().bins(), testHist.yAxis().bins());
+        for(int ix = 0; ix < refHist.xAxis().bins(); ++ix){
+            for(int iy = 0; iy < refHist.yAxis().bins(); ++iy){
+                assertEquals("Bin " + ix + ", " + iy + " (x, y) is different for: " + refHist.title(), refHist.binEntries(ix, iy), testHist.binEntries(ix, iy) );
+            }
+        }
     }
 
     /**

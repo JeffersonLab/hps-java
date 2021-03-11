@@ -469,7 +469,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             double currentValue = voltageBuffer.getValue() * ((Math.pow(2, nBit) - 1) / maxVolt);
             
             // Get the pedestal for the channel.
-            int pedestal = (int) Math.round(getDAQPedestalConditions(cellID));            
+            int pedestal = (int) Math.round(getPedestalConditions(cellID));            
             
             // An ADC value is not allowed to exceed 4095. If a
             // larger value is observed, 4096 (overflow) is given
@@ -974,15 +974,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * <code>double</code>.
      */
     protected abstract double getPedestalConditions(long channelID);
-    
-    
-    /**
-     * Gets the pedestal for the indicated subdetector channel.
-     * @param channelID - The channel ID.
-     * @return Returns the value of the pedestal from the DAQ configuration in units of ADC as a
-     * <code>double</code>.
-     */
-    protected abstract double getDAQPedestalConditions(long channelID);
+        
     
     @Override
     protected boolean isPersistent() {
@@ -1113,7 +1105,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             for(int i = 0; i < adcValues.length; i++) {
                 // Check that there is a threshold-crossing at some
                 // point in the ADC buffer.
-                if(adcValues[i] > getDAQPedestalConditions(cellID) + integrationThreshold) {
+                if(adcValues[i] > getPedestalConditions(cellID) + integrationThreshold) {
                     isAboveThreshold = true;
                     break;
                 }
@@ -1155,8 +1147,8 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                     if (numSamplesToRead == 0) {
                         hits.add(new BaseRawTrackerHit(cellID, thresholdCrossing, adcValues));
                     }
-                } else if ((i == 0 || window[i - 1] <= getDAQPedestalConditions(cellID) + integrationThreshold) && window[i]
-                        > getDAQPedestalConditions(cellID) + integrationThreshold) {
+                } else if ((i == 0 || window[i - 1] <= getPedestalConditions(cellID) + integrationThreshold) && window[i]
+                        > getPedestalConditions(cellID) + integrationThreshold) {
                     thresholdCrossing = i;
                     pointerOffset = Math.min(numSamplesBefore, i);
                     numSamplesToRead = pointerOffset + Math.min(numSamplesAfter, ReadoutDataManager.getReadoutWindow() - i - pointerOffset - 1);
@@ -1197,8 +1189,8 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                         if(numSamplesToRead == 0) {
                             hits.add(new BaseRawCalorimeterHit(cellID, adcSum, 64 * thresholdCrossing));
                         }
-                    } else if((i == 0 || window[i - 1] <= getDAQPedestalConditions(cellID) + integrationThreshold)
-                            && window[i] > getDAQPedestalConditions(cellID) + integrationThreshold) {
+                    } else if((i == 0 || window[i - 1] <= getPedestalConditions(cellID) + integrationThreshold)
+                            && window[i] > getPedestalConditions(cellID) + integrationThreshold) {
                         thresholdCrossing = i;
                         pointerOffset = Math.min(numSamplesBefore, i);
                         numSamplesToRead = pointerOffset + Math.min(numSamplesAfter, ReadoutDataManager.getReadoutWindow() - i - pointerOffset - 1);
