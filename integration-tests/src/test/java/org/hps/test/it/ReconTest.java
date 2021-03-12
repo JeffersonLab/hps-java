@@ -288,6 +288,7 @@ public abstract class ReconTest extends TestCase {
      */
     protected void compareHistograms(IHistogram1D refHist, IHistogram1D testHist) {
         assertEquals("Number of bins is different for: " + refHist.title(), refHist.axis().bins(), testHist.axis().bins());
+
         for(int ix = 0; ix < refHist.axis().bins(); ++ix){
             assertEquals("Bin " + ix + " is different for: " + refHist.title(), refHist.binEntries(ix), testHist.binEntries(ix));
         }
