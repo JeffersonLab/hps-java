@@ -201,6 +201,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         plots1D.put(String.format("nTracklessMCPClusterNotMatchedToTrack",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("nTracklessMCPClusterNotMatchedToTrack",this.trackCollectionName), 101, -1, 100));
         plots1D.put(String.format("nClusterlessMCPtrackMatchedToRogueCluster",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("nClusterlessMCPtrackMatchedToRogueCluster",this.trackCollectionName), 101, -1, 100));
         plots1D.put(String.format("nClusterlessMCPtrackNotMatchedToCluster",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("nClusterlessMCPtrackNotMatchedToCluster",this.trackCollectionName), 101, -1, 100));
+        plots1D.put(String.format("nMCParticlesEvaluated",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("nMCParticlesEvaluated",this.trackCollectionName), 101, -1, 100));
 
 //Event characterization plots
 
@@ -591,8 +592,6 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
     public void endOfData() {
 
-
-
         matcher.saveHistograms();
         saveHistograms();
 
@@ -784,11 +783,11 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         Map<MCParticle, Map<Track, Integer>> mcpTracksMap = new HashMap<MCParticle, Map<Track, Integer>>();
         Map<Track, MCParticle> tracksMCPMap = new HashMap<Track, MCParticle>();
         getMCPTracks(event, tracks, mcpTracksMap, tracksMCPMap);
-
         plots2D.get("nMCP_w_truth_tracks_v_nMCP_w_truth_clusters_per_event").fill(mcpTracksMap.size(),mcpClustersMap.size());
 
 
         //Combine Cluster and Track MCParticle Map into one map
+        Map<MCParticle, Map<Track, Cluster>> truthPairsMap = new HashMap<MCParticle, Pair<Track, Cluster>>();
         Map<MCParticle, Pair<Cluster, List<Track>>> comboMap = new HashMap<MCParticle, Pair<Cluster, List<Track>>>();
         Set<MCParticle> mcpsOfInterest = new HashSet<MCParticle>();
 
@@ -815,7 +814,6 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 }
             }
 
-
             //get cluster matched to this mcp
             if(mcpClustersMap.containsKey(mcp))
                 mcpCluster = mcpClustersMap.get(mcp);
@@ -835,6 +833,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
             if(mcpTracks.size() > 0 && mcpCluster != null){
                 Track bestTrack = getMcpBestTrack(mcp,mcpTracksMap);
+                truthPairsMap.put(mcp, new Pair<Track,Cluster>(bestTrack, mclCluster));
                 int charge = -1* (int)Math.signum(bestTrack.getTrackStates().get(0).getOmega());
                 double[] trackP = bestTrack.getTrackStates().get(bestTrack.getTrackStates().size()-1).getMomentum();
                 double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
@@ -869,6 +868,14 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         plots1D.get("nMCP_w_truth_tracks_BUT_NO_truth_cluster_per_event").fill(nMcp_wo_cluster);
         plots1D.get("nMCP_w_truth_cluster_BUT_NO_truth_tracks_per_event").fill(nMcp_wo_track);
         plots1D.get("nMCP_w_truth_tracks_AND_truth_cluster_per_event").fill(nMcp_w_both);
+
+
+
+        //Caluclate track+cluster pair position residuals as function of
+        //momentum and create residual parameterization file to be used in
+        //matcher algorithm class
+
+
 
         //Feed Track and Cluster collections to matcher algorithm to get
         //algorithm matched Tracks and Clusters
@@ -907,6 +914,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         int nTracklessMCPClusterNotMatchedToTrack = 0;
         int nClusterlessMCPtrackMatchedToRogueCluster = 0;
         int nClusterlessMCPtrackNotMatchedToCluster = 0;
+        int nMCParticlesEvaluated = 0;
 
         for(Map.Entry<MCParticle, Pair<Cluster, List<Track>>> entry : comboMap.entrySet()){
             MCParticle mcp = entry.getKey();
@@ -1115,6 +1123,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
                 }
             }
             mcparticlesEvaluated.add(mcp);
+            nMCParticlesEvaluated = nMCParticlesEvaluated + 1;
         }
 
         plots1D.get("mcp_loop_nEle_per_event").fill(nele);
@@ -1213,6 +1222,9 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
         plots1D.get("nClusterlessMCPtrackNotMatchedToCluster").fill(nClusterlessMCPtrackNotMatchedToCluster);
         plots1D.get("nClusterlessMCPtrackNotMatchedToCluster").fill(-1, nClusterlessMCPtrackNotMatchedToCluster);
+
+        plots1D.get("nMCParticlesEvaluated").fill(nMCParticlesEvaluated);
+        plots1D.get("nMCParticlesEvaluated").fill(-1, nMCParticlesEvaluated);
 
         /*
         //Loop over MCParticle Track map. 
@@ -1429,7 +1441,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
             double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtLastHit).getMomentum();
             double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
             
-            double[] trackPfinal = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+            double[] trackPfinal = TrackUtils.getTrackStateAtLocation(algTrack,TrackState.AtIP).getMomentum();
             double[] trackPinitial = track.getTrackStates().get(0).getMomentum();
             double deltaPmag = Math.sqrt(Math.pow(trackPfinal[0]-trackPinitial[0],2) + Math.pow(trackPfinal[1]-trackPinitial[1],2) + Math.pow(trackPfinal[2]-trackPinitial[2],2));
 
@@ -1857,6 +1869,30 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
     }
 
+    private void trackClusterResidualParameterization(Map<MCParticle,Pair<Track, Cluster>> truthPairsMap){
+        
+        for(Map.Entry<MCParticle, Pair<Track, Cluster>> entry : truthPairsMap.entrySet()){
+
+            Track track = entry.getValue().getFirstElement();
+            Cluster cluster = entry.getValue().getSecondElement();
+            int charge = -1* (int) Math.signum(track.getTrackStates().get(0).getOmega());
+            double [] params = mosthitsTrack.getTrackParameters();
+            double tanlambda = params[4];
+            boolean isTop;
+            if(tanlambda > 0 )
+                isTop = true;
+            else
+                isTop = false;
+
+
+
+        }
+
+
+
+
+    }
+
 
     public boolean isTrackInEcal(double trackx, double tracky){
 
@@ -2017,7 +2053,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
         //double[] trackP = track.getMomentum();
         //momentum is rotated coords (x->z, z->y, y->x)
-        double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+        double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtIP).getMomentum();
         double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
         double[] truthP = scoringplaneHit.getMomentum();
         double truthPmag = Math.sqrt(Math.pow(truthP[0],2) + Math.pow(truthP[1],2) + Math.pow(truthP[2],2));
@@ -2126,7 +2162,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         double trackx = trackpos.get(0);
         double tracky = trackpos.get(1);
         double trackz = trackpos.get(2);
-        double[] trackP = track.getTrackStates().get(track.getTrackStates().size()-1).getMomentum();
+        double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtIP).getMomentum();
         double px = trackP[0];
         double py = trackP[1];
         double pz = trackP[2];
