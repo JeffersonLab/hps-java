@@ -14,10 +14,7 @@ import org.lcsim.event.EventHeader;
 import junit.framework.TestCase;
 
 /**
- *  Test used to check the EVIO reader that will be used for the engineering
- *  run.
- *
- *  @author Omar Moreno <omoreno1@ucsc.edu>
+ * Test used to check the EVIO reader that will be used for the engineering run.
  */
 public class SvtEvioReaderTest extends TestCase {
 

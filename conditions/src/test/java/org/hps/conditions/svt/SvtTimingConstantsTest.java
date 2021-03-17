@@ -10,8 +10,6 @@ import org.hps.conditions.svt.SvtTimingConstants.SvtTimingConstantsCollection;
 
 /**
  * Read SVT timing constants from the conditions database.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class SvtTimingConstantsTest extends TestCase {
 

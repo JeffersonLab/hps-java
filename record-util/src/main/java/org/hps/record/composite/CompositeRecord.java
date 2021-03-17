@@ -8,8 +8,6 @@ import org.lcsim.event.EventHeader;
  * This class is used to group together corresponding ET, EVIO and LCIO events for use by the {@link CompositeLoop}. The
  * loop's <code>RecordListener</code> objects may alter this record by setting references to event objects such as an
  * <code>EvioEvent</code>.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class CompositeRecord {
 

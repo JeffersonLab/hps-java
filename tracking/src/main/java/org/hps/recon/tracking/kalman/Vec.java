@@ -1,8 +1,7 @@
 package org.hps.recon.tracking.kalman;
+
 /**
  * Simple N-vector for the Kalman filter
- * @author Robert Johnson
- *
  */
 class Vec {
     double[] v;

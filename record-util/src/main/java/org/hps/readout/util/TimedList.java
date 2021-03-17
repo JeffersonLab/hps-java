@@ -12,7 +12,6 @@ import java.util.Comparator;
  * timed lists, but only compares the list time, not the contents of
  * the lists.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <E> - The object type of the stored data.
  */
 public class TimedList<E> extends ArrayList<E> implements Comparable<TimedList<?>> {

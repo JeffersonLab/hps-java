@@ -33,8 +33,6 @@ import org.hps.util.RandomGaussian;
 
 /**
  * SVT readout simulation.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class SimpleSvtReadout extends TriggerableDriver {
 

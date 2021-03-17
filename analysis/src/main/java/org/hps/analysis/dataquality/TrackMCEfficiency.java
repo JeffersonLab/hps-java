@@ -34,8 +34,6 @@ import org.lcsim.geometry.Detector;
  * vs variable plots for all tracks and just electrons from trident/A' event, as
  * well as "findable" tracks use the debugTrackEfficiency flag to print out info
  * regarding individual failed events
- *
- * @author mgraham on Mar 28, 2014
  */
 // TODO:  Add some quantities for DQM monitoring:  e.g. <efficiency>, <eff>_findable
 public class TrackMCEfficiency extends DataQualityMonitor {

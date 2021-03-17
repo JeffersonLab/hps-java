@@ -22,9 +22,6 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 
 /**
  * A class with only static utilities related to GBL
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @author PF <pbutti@slac.stanford.edu>
  */
 public class GblUtils {
 
@@ -39,7 +36,6 @@ public class GblUtils {
     /**
      * Store local curvilinear track parameters.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ClParams {
 
@@ -105,7 +101,6 @@ public class GblUtils {
     /**
      * Store perigee track parameters.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class PerigeeParams {
 

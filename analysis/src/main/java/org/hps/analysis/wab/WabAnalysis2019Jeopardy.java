@@ -34,10 +34,6 @@ import org.lcsim.math.chisq.ChisqProb;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author Norman A. Graf
- */
 public class WabAnalysis2019Jeopardy extends Driver {
 
     private boolean _writeRunAndEventNumbers = false;

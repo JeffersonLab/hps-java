@@ -13,10 +13,6 @@ import org.lcsim.util.loop.LCSimLoop;
 
 import junit.framework.TestCase;
 
-/**
- *
- * @author ngraf
- */
 public class APrimeMCAnalysisDriverTest extends TestCase {
 
     static final String testFileName = "ap40mev_SLIC-v06-00-00_QGSP_BERT_HPS-EngRun2015-Nominal-v5-0-fieldmap_SimpleMCReconTest.slcio";

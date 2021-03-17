@@ -17,8 +17,6 @@ import org.lcsim.util.Driver;
  * {@link CompositeLoop}, but their values must be set through the public set methods when the class is used outside its
  * package. Depending on how this object is setup, some arguments may end up being ignored (e.g. setting a file path
  * when actually using an ET server, etc.).
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 // TODO: Add lcsim steering setting that uses JobControlManager to create Driver list.
 public final class CompositeLoopConfiguration {

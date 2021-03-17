@@ -9,7 +9,6 @@ package org.hps.minuit;
  * requests. As SIMPLEX is a stepping method it does not produce a covariance
  * matrix.
  *
- * @version $Id: MnSimplex.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnSimplex extends MnApplication {
 

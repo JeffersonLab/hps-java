@@ -24,9 +24,6 @@ import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 /**
  * Convert a compact subdetector to LCDD output using ECal database conditions
  * for the crystal positions.
- * 
- * @author annie
- * @author jeremym
  */
 public class HPSEcal4 extends LCDDSubdetector {
 

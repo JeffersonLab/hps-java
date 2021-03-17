@@ -25,8 +25,6 @@ import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
  * <li>Thresholds</li>
  * <li>Pedestals</li>
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class FADCConfigHodo2019 extends IDAQConfig2019 {
     // Store basic FADC information.

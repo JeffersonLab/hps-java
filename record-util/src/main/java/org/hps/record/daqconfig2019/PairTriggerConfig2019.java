@@ -3,8 +3,6 @@ package org.hps.record.daqconfig2019;
 /**
  * Class <code>PairTriggerConfig2019</code> holds the configuration data
  * for a pair trigger.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class PairTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2019<Double>> {
     private static final int CUT_ENERGY_MIN   = 0;

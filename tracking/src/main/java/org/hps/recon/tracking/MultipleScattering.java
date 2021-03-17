@@ -1,8 +1,6 @@
 package org.hps.recon.tracking;
 
 import hep.physics.vec.Hep3Vector;
-//import hep.physics.vec.BasicHep3Vector;
-//import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
@@ -14,13 +12,11 @@ import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.detector.IDetectorElement;
-//import org.lcsim.detector.solids.Inside;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.fit.helicaltrack.HitUtils;
 import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 
-//ejml
 import org.ejml.data.DMatrix3;
 import org.ejml.data.DMatrix3x3;
 import org.ejml.dense.fixed.CommonOps_DDF3;
@@ -28,9 +24,6 @@ import org.ejml.dense.fixed.CommonOps_DDF3;
 /**
  * Extention of lcsim class to allow use of local classes. Finds scatter points
  * and magnitude from detector geometry directly.
- *
- * @author Per Hansson <phansson@slac.stanford.edu>
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
  */
 public class MultipleScattering extends org.lcsim.recon.tracking.seedtracker.MultipleScattering {
 

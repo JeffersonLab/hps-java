@@ -1,10 +1,3 @@
-/**
- * This driver plots tracker hit positions and 1D strip cluster positions
- */
-/**
- * @author mrsolt
- *
- */
 package org.hps.analysis.MC;
 
 import java.util.HashMap;
@@ -21,12 +14,14 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.SimTrackerHit;
-//import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
+/**
+ * This driver plots tracker hit positions and 1D strip cluster positions
+ */
 public class SvtStripClusterPositionPlots extends Driver {
 
     // Plotting

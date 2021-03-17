@@ -8,11 +8,10 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.lcsim.event.TrackState;
+
 /**
  * Code to propagate an HPS track state to a given plane, through the non-uniform field.
  * All of the internal methods used are from the Kalman package.
- * @author Robert Johnson
- *
  */
 public class PropagatedTrackState {
     private static final double c = 2.99793e8;

@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 /**
- * 
  * Description of a single silicon-strip module, and a container for its hits
- * @author Robert Johnson
- *
  */
 class SiModule {
     int Layer; // Tracker layer number, or a negative integer for a dummy layer added just for stepping in a

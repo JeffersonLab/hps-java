@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
-//import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import hep.physics.vec.Hep3Vector;
@@ -33,10 +32,9 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 import org.lcsim.geometry.IDDecoder;
+
 /**
  * Driver for pattern recognition and fitting of HPS tracks using the Kalman Filter
- * @author Robert Johnson and Pierfrancesco Butti
- *
  */
 public class KalmanPatRecDriver extends Driver {
 

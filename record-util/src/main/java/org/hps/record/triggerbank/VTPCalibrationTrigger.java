@@ -9,10 +9,7 @@ import java.util.logging.Logger;
  * <li>10bit [0 : 9] trigger time in 4 ns unit</li> 
  * <li>4bit [19: 22] calibration trigger type: cosmic (0), LED (1), hodoscope (2), pulser (3)</li> 
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class VTPCalibrationTrigger {
     // calibration trigger's variables.
     private int t; // in 4 ns units

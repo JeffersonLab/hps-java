@@ -6,8 +6,6 @@ import java.awt.Color;
  * Class <code>BooleanMap</code> defines an implementation of the <code>
  * ColorMap</code> interface which maps values to colors based on whether
  * or not the values pass a boolean comparison.
- * 
- * @author Kyle McCarty
  */
 public final class BooleanMap implements ColorMap<Double> {
     // The color to display for values which pass the boolean check.

@@ -11,15 +11,10 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.jdom.Element;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseModule;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseSensor;
-//import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.TestRunHalfModuleBundle;
-// import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.HalfModuleComponent;
-// import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.Sensor;
 import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.TestRunModuleBundle;
 
 /**
  * Updated geometry information for the HPS tracker 2019
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDefinition {
 
@@ -718,7 +713,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Silicon sensor @SurveyVolume. The coordinate system is located at the same position and orientation as the half-module.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ShortSensor extends BaseSensor {
 
@@ -795,7 +789,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Active part of the @ShortSensor @SurveyVolume. The coordinate system is located at the same position and orientation as the sensor.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ActiveShortSensor extends SurveyVolume {
 
@@ -856,7 +849,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of module L4-6
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class ShortModule extends BaseModule {
 
@@ -909,7 +901,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of bottom modules for L4-6 Reference: @UChannelL46Bottom coordinate system Origin: hole position on mounting surface (electron side) Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards positron side.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class ShortModuleBot extends ShortModule {
 
@@ -934,7 +925,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of top modules for L4-6 Reference: @UChannelL46Top coordinate system Origin: hole position on mounting surface (electron side when installed) Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards electron side when installed.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class ShortModuleTop extends ShortModule {
 
@@ -1333,7 +1323,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     }
 
     /**
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ShortHalfModuleBundle extends LongHalfModuleBundle {
 
@@ -1359,7 +1348,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     }*/
 
     /**
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ShortModuleBundle extends LongModuleBundle {
 

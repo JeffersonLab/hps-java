@@ -21,10 +21,6 @@ import org.lcsim.event.base.BaseCluster;
  * Hits are assigned to a cluster with the largest seed hit energy.  Time information is not used, and multiple hits in the same 
  * crystal are not handled correctly so an exception is throw if this occurs.  An optional cut can be applied to discard hits
  * with a time that is too far from t0.
- *
- * @author Holly Szumila-Vance <hszumila@jlab.org>
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class SimpleReconClusterer extends AbstractClusterer {
     

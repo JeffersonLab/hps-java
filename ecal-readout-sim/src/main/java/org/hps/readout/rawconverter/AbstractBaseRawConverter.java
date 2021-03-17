@@ -9,13 +9,6 @@ import org.lcsim.geometry.Detector;
  * <code>AbstractBaseRawConverter</code> implements all of the basic
  * functionality common to all raw converters. It does not, however,
  * perform any actual hit conversions.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
- * @author Nathan Baltzell <baltzell@jlab.org>
- * @author Holly Szumila <hvanc001@odu.edu>
- * @author Tongtong Cao <caot@jlab.org>
  */
 public abstract class AbstractBaseRawConverter {
     /**

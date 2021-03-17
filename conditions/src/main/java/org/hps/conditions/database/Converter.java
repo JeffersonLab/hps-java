@@ -10,7 +10,6 @@ import java.lang.annotation.Target;
  * classes.
  *
  * @see AbstractConditionsObjectConverter
- * @author Jeremy McCormick, SLAC
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

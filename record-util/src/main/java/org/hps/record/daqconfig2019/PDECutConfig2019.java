@@ -6,8 +6,6 @@ package org.hps.record.daqconfig2019;
  * The PED is expressed by a 3rd order polynominal, where there are 4 parameters.
  * It provides the means to access this value and, for package classes,
  * set it.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class PDECutConfig2019 extends AbstractConfig2019<Double> {
     private static final int parC0 = 0;

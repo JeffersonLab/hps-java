@@ -13,12 +13,7 @@ import org.lcsim.fit.helicaltrack.MultipleScatter;
 
 /**
  * Extension of {@link HelicalTrackFit} to include HPS-specific information and utilities.
- *
- * @author mgraham <mgraham@slac.stanford.edu>
- * @author phansson <phansson@slac.stanford.edu>
- * 
  */
-
 public class HpsHelicalTrackFit extends HelicalTrackFit {
 
     private MCParticle mcParticle = null;

@@ -38,10 +38,6 @@ import org.hps.conditions.svt.SvtMotorMyaDataReader.SvtPositionRunRange;
 import org.hps.conditions.svt.SvtMotorPosition.SvtMotorPositionCollection;
 import org.lcsim.util.aida.AIDA;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class SvtBiasConditionsLoader {
 
     private static final Set<String> FIELDS = new HashSet<String>();

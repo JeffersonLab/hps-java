@@ -24,9 +24,7 @@ import org.lcsim.util.Driver;
  * energy output which can be used for clustering, etc. 
  * 
  * Original author for test run:
- * @author phansson 
  * Modified from test run to Spring 2015 running: 
- * @author Holly Szumila <hvanc001@odu.edu>
  */
 public class EcalEdepToTriggerConverterDriver extends Driver {
     

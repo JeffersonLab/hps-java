@@ -277,7 +277,6 @@ public abstract class HPSTrackerBuilder {
     /**
      * Bundle volumes into a module.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class BaseModuleBundle {
 
@@ -311,7 +310,6 @@ public abstract class HPSTrackerBuilder {
     /**
      * Bundle volumes into a half-module. TODO If the geometry definition has access to daughter information I could avoid this?
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class HalfModuleBundle {
 

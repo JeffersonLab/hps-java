@@ -9,10 +9,6 @@ import org.lcsim.util.loop.LCSimLoop;
 
 import junit.framework.TestCase;
 
-/**
- *
- * @author ngraf
- */
 public class V0CandidateFilter2015Pass7Test extends TestCase {
 
     public void testIt() throws Exception {

@@ -6,8 +6,6 @@ import org.hps.util.Pair;
 
 /**
  * This class encapsulates the Test Run SVT DAQ map.
- *
- * @author Omar Moreno, UCSC
  */
 @Table(names = {"test_run_svt_daq_map"})
 public final class TestRunSvtDaqMapping extends AbstractSvtDaqMapping {

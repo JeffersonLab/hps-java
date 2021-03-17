@@ -2,7 +2,6 @@ package org.hps.analysis.MC;
 
 
 import hep.physics.vec.Hep3Vector;
-//import hep.physics.vec.BasicHep3Vector;
 import hep.physics.matrix.SymmetricMatrix;
 
 import java.util.List;
@@ -13,7 +12,6 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.event.base.BaseRelationalTable;
 
-
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
@@ -22,21 +20,16 @@ import org.lcsim.event.base.BaseTrackState;
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
-//import org.lcsim.event.TrackerHit;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.geometry.Detector;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOConstants;
 
-
 /**
- * @author PF
  * This driver creates an MCParticle relation to be persisted for each track collection
  * It also saves a TruthTrack
  */
-
-
 public class TrackToMCParticleRelationsDriver extends Driver {
     
     //Collection Names

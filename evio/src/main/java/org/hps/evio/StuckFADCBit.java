@@ -9,7 +9,6 @@ import org.lcsim.event.RawTrackerHit;
 /**
  * Tools to resolve stuck FADC bit in 2019 run, based on comparing
  * measured and expected pedestal values.
- * @author baltzell
  */
 public class StuckFADCBit {
    

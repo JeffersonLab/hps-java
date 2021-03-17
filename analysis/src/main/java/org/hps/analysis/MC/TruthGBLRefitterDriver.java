@@ -1,7 +1,5 @@
 package org.hps.analysis.MC;
 
-
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,8 +35,6 @@ import org.lcsim.util.Driver;
 /**
  * A Driver which refits tracks using GBL, but only the truth hits of interest. Does not require GBL collections to
  * be present in the event. This is adapted from the nominal GBLRefitterDriver.
- * 
- * @author Matt Solt
  */
 public class TruthGBLRefitterDriver extends Driver {
 

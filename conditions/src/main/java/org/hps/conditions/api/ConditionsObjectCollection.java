@@ -8,7 +8,6 @@ import java.util.Comparator;
 /**
  * Interface representing a collection of conditions objects.
  *
- * @author Jeremy McCormick, SLAC
  * @param <ObjectType> the type of the objects
  */
 public interface ConditionsObjectCollection<ObjectType extends ConditionsObject> extends Iterable<ObjectType>,

@@ -5,8 +5,6 @@ import org.hps.conditions.dummy.DummyConditionsObject.DummyConditionsObjectColle
 
 /**
  * Converter for dummy conditions object.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class DummyConditionsObjectConverter extends
         AbstractConditionsObjectConverter<DummyConditionsObjectCollection> {

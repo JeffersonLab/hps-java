@@ -5,10 +5,6 @@ import static java.lang.Math.min;
 import static java.lang.Math.max;
 import java.util.List;
 
-/**
- * @author Norman A. Graf
- * @version $Id$
- */
 // / (Symmetric) Bordered Band Matrix.
 /**
  * Separate storage of border, mixed and band parts (as vector<double>).

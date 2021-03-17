@@ -38,7 +38,6 @@ import org.lcsim.util.Driver;
  * Code is developed referring to org.hps.record.daqconfig.DAQConfigDriver by
  * Kyle McCarty
  *
- * @author Tongtong Cao <caot@jlab.org>
  * @see ConfigurationManager2019
  */
 public class DAQConfig2019Driver extends Driver {

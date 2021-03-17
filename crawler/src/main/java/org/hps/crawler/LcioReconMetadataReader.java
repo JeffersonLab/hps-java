@@ -17,8 +17,6 @@ import org.lcsim.util.loop.DummyDetector;
 
 /**
  * Reads metadata from LCIO files with reconstructed data.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class LcioReconMetadataReader implements FileMetadataReader {
 

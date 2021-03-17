@@ -10,10 +10,7 @@ import org.lcsim.math.chisq.ChisqProb;
  * Only performs: removal of duplicates, removal of partials, removal of shared tracks based on number of shared-hits,
  * removal of poor scoring tracks. No consideration of holes, bad channels, acceptance, nor hit times. No track
  * cleaning. Scoring based on chi-squared/dof.
- *
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
  */
-
 public class SimpleAmbiguityResolver extends AmbiguityResolver {
 
     public enum AmbiMode {

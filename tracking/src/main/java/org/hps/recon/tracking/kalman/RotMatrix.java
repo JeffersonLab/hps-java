@@ -1,8 +1,7 @@
 package org.hps.recon.tracking.kalman;
+
 /**
  * 3 by 3 rotation matrix for the Kalman filter
- * @author Robert Johnson
- *
  */
 class RotMatrix {  
     double[][] M = null;

@@ -6,7 +6,6 @@ package org.hps.minuit;
  * converge. Constructor arguments, methods arguments and names of methods are
  * the same as for MnMigrad or MnSimplex.
  *
- * @version $Id: MnMinimize.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnMinimize extends MnApplication {
 

@@ -22,9 +22,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Command line tool to add together histograms from multiple AIDA files.
- * 
- * @author Jeremy McCormick, SLAC
- *
  */
 public class AddPlots {
     

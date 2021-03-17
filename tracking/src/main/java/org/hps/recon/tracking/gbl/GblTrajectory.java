@@ -1,11 +1,5 @@
 package org.hps.recon.tracking.gbl;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @author Norman A Graf
- * @author PF <pbutti@slac.stanford.edu>
- * @version $Id:
-o */
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.sqrt;

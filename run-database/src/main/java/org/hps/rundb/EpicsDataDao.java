@@ -6,8 +6,6 @@ import org.hps.record.epics.EpicsData;
 
 /**
  * Database Access Object (DAO) API for EPICS data from the run database.
- * 
- * @author jeremym
  */
 public interface EpicsDataDao {
 

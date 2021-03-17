@@ -13,8 +13,6 @@ import org.lcsim.recon.tracking.seedtracker.MaterialXPlane;
 
 /**
  * Extension to lcsim MaterialManager to allow more flexibility in track reconstruction
- *
- * @author Per Hansson <phansson@slac.stanford.edu>
  */
 public class MaterialManager extends org.lcsim.recon.tracking.seedtracker.MaterialManager {
 

@@ -22,8 +22,6 @@ import org.hps.util.BashParameter;
  * arguments which represents arguments that take a value and can
  * occur more than once (i.e. <code>-i $INPUT_FILE_1 -i
  * $INPUT_FILE_2</code>).
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 class UtilityArgumentParser {
     private final String command;

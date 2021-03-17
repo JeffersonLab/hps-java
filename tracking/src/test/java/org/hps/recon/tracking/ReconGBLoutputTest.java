@@ -19,8 +19,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 /**
  * Skeleton class for raw->reco LCIO + tests.
  * Assign any driver to testTrackingDriver for tests on the reco LCIO, if desired
- *
- * @author mdiamond <mdiamond@slac.stanford.edu>
  */
 public class ReconGBLoutputTest extends TestCase {
 

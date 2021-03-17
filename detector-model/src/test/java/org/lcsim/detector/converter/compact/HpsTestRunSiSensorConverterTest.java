@@ -17,8 +17,6 @@ import org.lcsim.geometry.GeometryReader;
 /**
  * Unit test for the {@link HPSTracker2Converter} when the sensor type
  * is equal to {@link HpsTestRunSiSensor} 
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class HpsTestRunSiSensorConverterTest extends TestCase {
     

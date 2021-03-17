@@ -3,11 +3,6 @@ package org.hps.recon.ecal;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: ECalUtils.java,v 1.1 2013/02/25 22:39:24 meeg Exp $
- */
 public class EcalUtils {
 
     public static final double GeV = 1.0;

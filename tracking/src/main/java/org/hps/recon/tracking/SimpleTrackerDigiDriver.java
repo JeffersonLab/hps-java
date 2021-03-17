@@ -11,8 +11,6 @@ import org.lcsim.recon.tracking.digitization.sisim.StripHitMaker;
  * 
  * Copied from org.lcsim.hps.recon.tracking.TrackerDigiDriver, with the difference that this driver
  * does not make noise hits or add noise to hits, and drops bad channels.
- * 
- * @author Sho Uemura
  */
 public class SimpleTrackerDigiDriver extends TrackerDigiDriver {
 

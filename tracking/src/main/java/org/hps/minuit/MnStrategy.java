@@ -31,7 +31,6 @@ package org.hps.minuit;
  * Acts on: Migrad (behavioural), Minos (lowers strategy by 1 for Minos-own
  * minimization), Hesse (iterations), Numerical2PDerivative (iterations)
  *
- * @version $Id: MnStrategy.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnStrategy {
 

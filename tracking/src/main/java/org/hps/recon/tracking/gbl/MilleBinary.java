@@ -19,9 +19,6 @@ import java.util.logging.Logger;
  * derivative | global derivative label of global derivative -+ RMEAS, measured value 0 local derivative index of local
  * derivative local derivative index of local derivative ... SIGMA, error 0 global derivative label of global derivative
  * global derivative label of global derivative ... global derivative label of global derivative
- *
- * @author Norman A Graf
- * @version $Id$
  */
 public class MilleBinary {
 

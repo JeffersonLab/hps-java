@@ -35,7 +35,6 @@ import org.lcsim.util.Driver;
  * in the chain rely on <code>ConfigurationManager</code>, as it can
  * not be initialized otherwise.
  * 
- * @author Kyle McCarty
  * @see ConfigurationManager
  */
 public class DAQConfigDriver extends Driver {

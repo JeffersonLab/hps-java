@@ -2,10 +2,6 @@ package org.hps.recon.tracking;
 
 import org.lcsim.event.GenericObject;
 
-/**
- *
- * @author Matt Graham
- */
 public class ShapeFitParameters implements GenericObject {
 
     private double _t0 = Double.NaN;

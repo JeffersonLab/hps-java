@@ -26,8 +26,6 @@ import org.lcsim.geometry.util.TransformationUtils;
 
 /**
  * Convert an HPS tracker "2014" to the LCDD format.
- * 
- * @author Per Hansson <phansson@slac.stanford.edu>
  */
 public abstract class HPSTracker2014Base extends LCDDSubdetector {
 

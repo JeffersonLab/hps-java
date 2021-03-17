@@ -4,10 +4,6 @@ package org.hps.recon.tracking.circlefit;
 import static java.lang.Math.sqrt;
 import junit.framework.TestCase;
 
-/**
- *
- * @author Norman A. Graf
- */
 public class CircleFitTest extends TestCase
 {
 

@@ -8,9 +8,6 @@ import org.lcsim.event.GenericObject;
 /**
  * <code>ReadoutTimestamp</code> specifies the simulation time at
  * which a given subsystem produced its readout data.
- * 
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class ReadoutTimestamp implements GenericObject {
     public static final String collectionName = "ReadoutTimestamps";

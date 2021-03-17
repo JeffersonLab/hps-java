@@ -27,8 +27,6 @@ import org.lcsim.detector.solids.Polygon3D;
  * half-modules (sensors) used during the engineering run and beyond. Each
  * half-module is uniquely identified by a FEB ID/Hybrid ID pair which is then
  * related to calibration conditions such as baseline, noise, gain etc.
- *
- * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public class HpsSiSensor extends SiSensor {
 

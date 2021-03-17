@@ -1,12 +1,3 @@
-/**
- * This driver removes a helical track hit for each layer
- * and then puts hits into a new collection of rotated helical
- * track hits with the missing hit.
- */
-/**
- * @author mrsolt
- *
- */
 package org.hps.recon.tracking;
 
 import java.util.ArrayList;
@@ -18,6 +9,11 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
+/**
+ * This driver removes a helical track hit for each layer
+ * and then puts hits into a new collection of rotated helical
+ * track hits with the missing hit.
+ */
 public class RemoveHelicalTrackHit extends Driver {
     
     //New Track Collection Strings

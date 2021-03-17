@@ -19,8 +19,6 @@ import org.lcsim.util.Driver;
  * six-hit tracks and 
  * nothing else in the event
  *
- * @author Norman A Graf
- *
  * @todo Move to recon.filtering
  */
 public class StripMollerEventsDriver extends Driver

@@ -7,7 +7,6 @@ import java.util.logging.Logger;
  * calculating the parameter step size (-V*g) and for the covariance update
  * (ErrorUpdator). The covariance matrix is equal to twice the inverse Hessian.
  *
- * @version $Id: MinimumError.java 16142 2014-09-05 02:52:34Z tonyj $
  */
 class MinimumError {
 

@@ -10,8 +10,6 @@ import org.lcsim.util.Driver;
  * To implement, write your own processTrigger(), and call checkTrigger() somewhere in process().
  * You might want to set your own default latency in your constructor.
  * readoutDeltaT() and isLive() are meant to be overridden if you're doing something unusual.
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: TriggerableDriver.java,v 1.3 2013/03/20 01:03:32 meeg Exp $
  */
 public abstract class TriggerableDriver extends Driver {
 

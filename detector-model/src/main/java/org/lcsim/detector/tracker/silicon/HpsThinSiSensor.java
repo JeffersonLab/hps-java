@@ -11,8 +11,6 @@ import hep.physics.matrix.BasicMatrix;
  * {@link HpsSiSensor} but overrides several properties such as strip pitch and
  * sense transfer efficiency.  It should be noted that this sensor has no
  * intermediate strips and that is why the sense transfer efficiency is 0.
- *
- * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public class HpsThinSiSensor extends HpsSiSensor {
 

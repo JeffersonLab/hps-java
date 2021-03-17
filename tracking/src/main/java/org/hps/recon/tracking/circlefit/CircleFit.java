@@ -2,10 +2,6 @@ package org.hps.recon.tracking.circlefit;
 
 /**
  * A class which encapsulates the result of a circle fit.
- *
- * @author Norman A Graf
- *
- * @version $Id:
  */
 public class CircleFit
 {

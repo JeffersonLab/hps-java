@@ -1,10 +1,3 @@
-/**
- * Driver for analyzing monster events
- */
-/**
- * @author mrsolt
- *
- */
 package org.hps.analysis.dataquality;
 
 import java.util.HashMap;
@@ -27,6 +20,9 @@ import org.lcsim.util.aida.AIDA;
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 
+/**
+ * Driver for analyzing monster events
+ */
 public class MonsterEventAnalysis extends Driver {
 
     // Plotting

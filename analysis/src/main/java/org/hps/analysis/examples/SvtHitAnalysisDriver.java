@@ -22,10 +22,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author ngraf
- */
 public class SvtHitAnalysisDriver extends Driver {
 
     // Plotting

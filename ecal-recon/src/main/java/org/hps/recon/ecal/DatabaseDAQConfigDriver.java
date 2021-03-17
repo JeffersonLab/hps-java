@@ -18,10 +18,9 @@ import java.io.StringReader;
  * Driver <code>DatabaseDAQConfigDriver</code> is a variant of the
  * standard DAQ configuration driver that reads configuration data from
  * the run database instead of either local files or an EvIO file.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class DatabaseDAQConfigDriver extends DAQConfigDriver {
+
     // Define the crate enumerables by crate number. Crates are
     // in the order 46, 37, 39.
     private static final Crate[] CRATES = { Crate.CONFIG3, Crate.CONFIG1, Crate.CONFIG2 };

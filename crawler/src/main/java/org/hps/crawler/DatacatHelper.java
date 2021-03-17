@@ -14,8 +14,6 @@ import org.srs.datacat.model.DatasetModel;
 
 /**
  * Datacat helper functions for the crawler.
- *
- * @author Jeremy McCormick, SLAC
  */
 class DatacatHelper {
     

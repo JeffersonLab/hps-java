@@ -2,10 +2,6 @@ package org.hps.monitoring.drivers.hodoscope;
 
 import java.util.Map;
 
-/**
- *
- * @author rafopar
- */
 public class HodoUtils {
 
     HodoUtils() {

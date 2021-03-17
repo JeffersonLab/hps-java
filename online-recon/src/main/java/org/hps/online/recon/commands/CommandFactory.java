@@ -9,8 +9,6 @@ import org.hps.online.recon.Command;
 
 /**
  * Factory for creating instances of <code>Command</code> class.
- *
- * @author jeremym
  */
 public class CommandFactory {
 

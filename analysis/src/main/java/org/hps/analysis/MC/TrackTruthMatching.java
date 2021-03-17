@@ -17,11 +17,11 @@ import org.lcsim.event.TrackerHit;
 
 /**
  *
- * @author Matt Solt
  * based off of "TrackAnalysis" Driver
+ *
  * This class matches a track to an MCParticle as well as info about each truth hit
- * The MC Particle with the most hits on a track wins.
- * First tie breaker is the innermost hits, second tie breaker is highest energy particle.
+ * The MC Particle with the most hits on a track wins. First tie breaker is the 
+ * innermost hits, second tie breaker is highest energy particle.
  */
 public class TrackTruthMatching {
 

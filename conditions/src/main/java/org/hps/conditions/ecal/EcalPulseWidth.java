@@ -9,8 +9,6 @@ import org.hps.conditions.database.Table;
  * Conditions object for representing the ECAL signal pulse width of a single channel.
  * <p>
  * The convention for the units is defined in the ECal reconstruction code (nominally nanoseconds).
- * 
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"ecal_pulse_widths"})
 public final class EcalPulseWidth extends BaseConditionsObject {

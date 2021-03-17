@@ -33,8 +33,6 @@ import org.jdom.input.SAXBuilder;
 /**
  * This is the GUI panel for setting job parameters. It is connected to the global configuration settings via a
  * {@link org.hps.monitoring.model.ConfigurationModel} object.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class JobSettingsPanel extends AbstractFieldsPanel {

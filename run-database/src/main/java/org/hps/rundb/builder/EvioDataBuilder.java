@@ -14,8 +14,6 @@ import org.hps.record.triggerbank.TriggerConfigEvioProcessor;
 
 /**
  * Extracts EPICS data, scaler data and trigger configuration from an EVIO file.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class EvioDataBuilder extends AbstractRunBuilder {
 

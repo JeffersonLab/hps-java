@@ -2,9 +2,6 @@ package org.hps.readout.ecal;
 
 /**
  * Ring buffer for storing ECal and SVT signals for trigger and readout
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: RingBuffer.java,v 1.5 2012/04/10 01:00:13 meeg Exp $
  */
 public class RingBuffer {
 

@@ -12,7 +12,6 @@ import java.util.List;
  * Argument}.
  * 
  * @see org.hps.analysis.util.Argument
- * @author Kyle McCarty
  */
 public class MultipleValueArgument extends Argument implements Iterable<String> {
     private List<String> values = new ArrayList<String>();

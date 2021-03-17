@@ -24,10 +24,6 @@ import junit.framework.TestCase;
 
 /**
  * Test of reading scaler data from EVIO files.
- * <p>
- * <a href="https://jira.slac.stanford.edu/browse/HPSJAVA-470">HPSJAVA-470</a>
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ScalersTest extends TestCase {
 

@@ -16,8 +16,6 @@ import org.lcsim.geometry.subdetector.Hodoscope_v1;
  * implementation of {@link org.hps.readout.RawConverterReadoutDriver
  * RawConverterReadoutDriver} for the hodoscope subdetector.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  * @see org.hps.readout.RawConverterReadoutDriver
  */
 public class HodoscopeRawConverterReadoutDriver extends RawConverterReadoutDriver {    

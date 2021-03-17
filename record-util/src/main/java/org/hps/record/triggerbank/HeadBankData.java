@@ -3,10 +3,6 @@ package org.hps.record.triggerbank;
 import java.util.Date;
 import org.lcsim.event.GenericObject;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
 public class HeadBankData extends AbstractIntData {
 
     public static final int BANK_TAG = 0xe10f;

@@ -65,7 +65,6 @@ import hep.aida.IHistogram1D;
  * Class <code>DataTriggerSim2019Driver</code> is developed based on Class
  * <code>DataTriggerSimDriver</code>
  * 
- * @author Tongtong Cao <caot@jlab.org>
  * @see org.hps.record.daqconfig.DAQConfig2019Driver
  * @see org.hps.recon.ecal.EcalOnlineRawConverter2019Driver
  * @see org.hps.recon.ecal.cluster.VTPOnlineCluster2019Driver

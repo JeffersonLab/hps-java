@@ -19,8 +19,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Test class to check truth particle and propagated position.
- * @author phansson <phansson@slac.stanford.edu>
- * @author mdiamond <mdiamond@slac.stanford.edu>
  */
 public class TruthResidualTest extends ReconTestSkeleton {
 

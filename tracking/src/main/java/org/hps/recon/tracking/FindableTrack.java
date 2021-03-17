@@ -1,9 +1,3 @@
-/*
- * FindableTrack.java
- *
- * Created on October 24, 2008, 9:50 PM
- *
- */
 package org.hps.recon.tracking;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -29,11 +23,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedLayer;
 import org.lcsim.recon.tracking.seedtracker.SeedLayer.SeedType;
 import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 
-/**
- * 
- * @author Richard Partridge
- * @version $Id: FindableTrack.java,v 1.4 2012/11/08 01:22:41 omoreno Exp $
- */
 // FIXME: This class is used in some analyses but is not actually created by the recon.
 // Should it be put someplace else like in the analysis module? --JM
 public class FindableTrack {

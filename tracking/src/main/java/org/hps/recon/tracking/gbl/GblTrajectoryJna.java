@@ -1,27 +1,16 @@
 package org.hps.recon.tracking.gbl;
 
-/**
- * @author PF <pbutti@slac.stanford.edu>
- *
- */
-
-
-
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.DoubleByReference;
 
-//import java.util.ArrayList;
 import java.util.List;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
-
-
-
 
 public class GblTrajectoryJna {
     

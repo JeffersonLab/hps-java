@@ -7,8 +7,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 /**
  * Some methods which manipulate hit collection in various ways --right now, uses HelicalTrackHits everywhere since I
  * plan to use it for tracking...probably can use TrackerHits to make it more general
- * 
- * @author mgraham -- data created 7/9/2014
  */
 public class HitCollectionUtilites {
 

@@ -24,8 +24,6 @@ import org.lcsim.event.RawTrackerHit;
  * This converter is primarily employed in the trigger and hardware diagnostic
  * processes as well as the readout simulation in Monte Carlo. <br/>
  * <br/>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class HodoOnlineRawConverter2019 {
     // Defines the maximum number of peaks that may be extracted from

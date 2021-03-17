@@ -33,11 +33,7 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.util.Driver;
 
 /**
- * Driver used to create reconstructed particles and matching clusters and
- * tracks.
- *
- * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
- * @author Mathew Graham <mgraham@slac.stanford.edu>
+ * Driver used to create reconstructed particles and matching clusters and tracks.
  */
 public abstract class ReconParticleDriver extends Driver {
 

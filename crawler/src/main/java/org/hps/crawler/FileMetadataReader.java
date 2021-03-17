@@ -6,8 +6,6 @@ import java.util.Map;
 
 /**
  * Interface for reading metadata for the datacat from files.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public interface FileMetadataReader {   
     

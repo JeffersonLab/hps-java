@@ -16,10 +16,7 @@ import org.hps.conditions.database.ConnectionParameters;
 /**
  * Manages the DQM database connection and access re-uses ConnectionParameters and TableMetaData classes from
  * conditionsDB as they do exactly what we want here.
- * 
- * @author Matt Graham <mgraham@slac.stanford.edu>
  */
-
 @SuppressWarnings("rawtypes")
 public class DQMDatabaseManager {
     

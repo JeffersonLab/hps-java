@@ -7,8 +7,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver to print simple job processing statistics.
- * 
- * @author jeremym
  */
 public class EventStatisticsDriver extends Driver {
 
