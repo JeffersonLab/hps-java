@@ -27,6 +27,7 @@ public class KalTrack {
     public int ID;
     public int nHits;
     public double chi2;
+    private double reducedChi2;
 
     ArrayList<MeasurementSite> SiteList;
     // call the corresponding functions to create and access the following two maps
@@ -50,7 +51,7 @@ public class KalTrack {
     private double time;
     double tMin;
     double tMax;
-    final static boolean debug = false;
+    static final boolean debug = false;
     private KalmanParams kPar;
     private double chi2incVtx;
     private static DMatrixRMaj tempV;
@@ -68,6 +69,7 @@ public class KalTrack {
         this.kPar = kPar;
         ID = tkID;
         arcLength = null;
+        //debug = (evtNumb == 217481);
         
         if (!initialized) {
             logger = Logger.getLogger(KalTrack.class.getName());
@@ -125,6 +127,7 @@ public class KalTrack {
         tMax = -9.9e9;
         this.chi2 = 0.;
         this.nHits = 0;
+        if (debug) System.out.format("KalTrack: event %d, creating track %d\n", evtNumb, ID);
         for (MeasurementSite site : this.SiteList) {
             if (site.hitID < 0) continue;
             nHits++;
@@ -132,8 +135,10 @@ public class KalTrack {
             tMin = Math.min(tMin, site.m.hits.get(site.hitID).time);
             tMax = Math.max(tMax,  site.m.hits.get(site.hitID).time);
             this.chi2 += site.chi2inc;
+            if (debug) System.out.format("  Layer %d, chi^2 increment=%10.5f, a=%s\n", site.m.Layer, site.chi2inc, site.aS.helix.a.toString());
         }
         time = time/(double)nHits; 
+        reducedChi2 = chi2/(double)nHits;
         lyrMap = null;
         millipedeMap = null;
         interceptVects = null;
@@ -615,7 +620,7 @@ public class KalTrack {
         SquareMatrix Cov = helixAtOrigin.Rot.rotate(new SquareMatrix(3,vtxCov));
         Vec X0 = helixAtOrigin.X0;
         double phi = phiDOCA(helixAtOrigin.a, v, X0, alpha);
-        if (debug) {  // Test the DOCA algorithm
+/*        if (debug) {  // Test the DOCA algorithm
             Vec rDoca = HelixState.atPhi(X0, helixAtOrigin.a, phi, alpha);
             System.out.format("originConstraint: phi of DOCA=%10.5e\n", phi);
             rDoca.print("  DOCA point");
@@ -633,7 +638,7 @@ public class KalTrack {
             double deriv = dfDOCAdPhi(phi, helixAtOrigin.a, v, X0, alpha);
             double df2 = deriv * delPhi;
             System.out.format("Test of fDOCA derivative: df exact = %11.7f; df from derivative = %11.7f\n", df1, df2);
-        }
+        }*/
         double [][] H = buildH(helixAtOrigin.a, v, X0, phi, alpha);
         Vec pntDOCA = HelixState.atPhi(X0, helixAtOrigin.a, phi, alpha);
         if (debug) {
@@ -984,6 +989,7 @@ public class KalTrack {
         }
         chi2 -= site.chi2inc;
         nHits--;
+        reducedChi2 = chi2/(double)nHits;
         int oldID = site.hitID;
         site.removeHit();
         // Check whether there might be another hit available                                   
@@ -1103,62 +1109,93 @@ public class KalTrack {
     }
         
     // re-fit the track 
-    public boolean fit(int nIterations) {
+    public boolean fit(boolean keep) {
+        // keep = true if there might be another recursion after dropping more hits
         double chi2s = 0.;
-        for (int iteration = 0; iteration < nIterations; iteration++) {
-            if (debug) System.out.format("KalTrack.fit: starting filtering for iteration %d\n", iteration);
-            StateVector sH = SiteList.get(0).aS;
-            CommonOps_DDRM.scale(100., sH.helix.C);  // Blow up the initial covariance matrix to avoid double counting measurements 
-            SiModule prevMod = null;
-            double chi2f = 0.;
-            for (int idx = 0; idx < SiteList.size(); idx++) { // Redo all the filter steps
-                MeasurementSite currentSite = SiteList.get(idx);
-                currentSite.predicted = false;
-                currentSite.filtered = false;
-                currentSite.smoothed = false;
-                currentSite.chi2inc = 0.;
-                currentSite.aP = null;
-                currentSite.aF = null;
-                currentSite.aS = null;
-                
-                boolean allowSharing = false;
-                boolean pickupHits = false;
-                boolean checkBounds = false;
-                double [] tRange = {-999., 999.};
-                if (currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, 0) < 0) {
-                    if (debug) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to make prediction!!\n", eventNumber, ID, iteration);
-                    return false;
-                }
-                if (!currentSite.filter()) {
-                    if (debug) System.out.format("KalTrack.fit: event %d, track %d in iteration %d failed to filter!!\n", eventNumber, ID, iteration);
-                    return false;
-                }
-
-                if (currentSite.hitID >= 0 && debug) chi2f += Math.max(currentSite.chi2inc,0.);
-
-                sH = currentSite.aF;
-                prevMod = currentSite.m;
-            }
-            if (debug) System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after filtering = %12.4e\n", iteration, chi2f);
-            
-            chi2s = 0.;
-            MeasurementSite nextSite = null;
-            for (int idx = SiteList.size() - 1; idx >= 0; idx--) {
-                MeasurementSite currentSite = SiteList.get(idx);
-                if (nextSite == null) {
-                    currentSite.aS = currentSite.aF;
-                    currentSite.smoothed = true;
-                } else {
-                    currentSite.smooth(nextSite);
-                }
-                if (currentSite.hitID >= 0) chi2s += Math.max(currentSite.chi2inc,0.);
-
-                nextSite = currentSite;
-            }
-            if (debug) System.out.format("KalTrack.fit: Iteration %d, Fit chi^2 after smoothing = %12.4e\n", iteration, chi2s);
+        if (debug) System.out.format("Entering KalTrack.fit for event %d, track %d\n", eventNumber, ID);
+        StateVector sH = SiteList.get(0).aS.copy();
+        boolean badC = KalmanPatRecHPS.negativeCov(sH.helix.C);
+        if (badC) {
+            if (debug) System.out.format("KalTrack.fit: negative starting covariance, event %d track %d\n", eventNumber, ID);
+            KalmanPatRecHPS.setInitCov(sH.helix.C, sH.helix.a, false);
+        } else {
+            CommonOps_DDRM.scale(10., sH.helix.C);  // Blow up the initial covariance matrix to avoid double counting measurements 
         }
+        SiModule prevMod = null;
+        double chi2f = 0.;
+        ArrayList<MeasurementSite> newSiteList = new ArrayList<MeasurementSite>(SiteList.size());
+        for (int idx = 0; idx < SiteList.size(); idx++) { // Redo all the filter steps
+            MeasurementSite currentSite = SiteList.get(idx);
+            MeasurementSite newSite = new MeasurementSite(currentSite.m.Layer, currentSite.m, kPar);
+            
+            boolean allowSharing = false;
+            boolean pickupHits = false;
+            boolean checkBounds = false;
+            double [] tRange = {-999., 999.};
+            if (newSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, 0) < 0) {
+                if (debug) System.out.format("KalTrack.fit: event %d, track %d failed to make prediction at layer %d!\n", eventNumber, ID, newSite.m.Layer);
+                return false;
+            }
+            if (!newSite.filter()) {
+                if (debug) System.out.format("KalTrack.fit: event %d, track %d failed to filter!\n", eventNumber, ID);
+                return false;
+            }
+            if (debug) {
+                if (KalmanPatRecHPS.negativeCov(currentSite.aF.helix.C)) {
+                    System.out.format("KalTrack: event %d, ID %d, negative covariance after filtering at layer %d\n", 
+                            eventNumber,ID,currentSite.m.Layer);
+                }
+                if (newSite.hitID >= 0) chi2f += Math.max(currentSite.chi2inc,0.);
+            }
+            newSite.hitID = currentSite.hitID;
+            sH = newSite.aF;
+            if (debug) System.out.format("  Layer %d hit %d filter, chi^2 increment=%10.5f, a=%s\n", 
+                    newSite.m.Layer, newSite.hitID, newSite.chi2inc, newSite.aF.helix.a.toString());
+            prevMod = newSite.m;
+            if (keep) currentSite.chi2inc = newSite.chi2inc; // Residuals to cut out hits in next recursion
+            newSiteList.add(newSite);
+        }
+        if (debug) System.out.format("KalTrack.fit: Track %d, Fit chi^2 after filtering = %12.4e\n", ID, chi2f);
+        
+        chi2s = 0.;
+        int nNewHits = 0;
+        MeasurementSite nextSite = null;
+        for (int idx = newSiteList.size() - 1; idx >= 0; idx--) {
+            MeasurementSite currentSite = newSiteList.get(idx);
+            if (nextSite == null) {
+                currentSite.aS = currentSite.aF;
+                currentSite.smoothed = true;
+            } else {
+                currentSite.smooth(nextSite);
+            }
+            if (currentSite.hitID >= 0) {
+                chi2s += Math.max(currentSite.chi2inc,0.);
+                nNewHits++;
+            }
+            if (debug) {
+                if (KalmanPatRecHPS.negativeCov(currentSite.aS.helix.C)) {
+                    System.out.format("KalTrack: event %d, ID %d, negative covariance after smoothing at layer %d\n", 
+                                eventNumber,ID,currentSite.m.Layer);
+                }
+                System.out.format("  Layer %d hit %d, smooth, chi^2 increment=%10.5f, a=%s\n", 
+                            currentSite.m.Layer, currentSite.hitID, currentSite.chi2inc, currentSite.aS.helix.a.toString());
+            }
+            nextSite = currentSite;
+        }
+        if (debug) System.out.format("KalTrack.fit: Track %d, Fit chi^2 after smoothing = %12.4e\n", ID, chi2s);
+        if (!keep) {
+            if (chi2s/(double)nNewHits > reducedChi2*1.2) {        
+                if (debug) System.out.format("KalTrack.fit event %d track %d: fit chisquared=%10.5f is not an improvement. Discard new fit.\n", 
+                                      eventNumber, ID, chi2s);
+                return false;
+            }
+        }
+        SiteList = newSiteList;
         this.chi2 = chi2s;
+        this.nHits = nNewHits;
+        this.reducedChi2 = chi2s/(double)nNewHits;
         propagated = false;
+        if (debug) System.out.format("Exiting KalTrack.fit for event %d, track %d\n", eventNumber, ID);
         return true;
     }
 

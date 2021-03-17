@@ -282,10 +282,22 @@ class StateVector {
         directProd(K, H, tempM);
         CommonOps_DDRM.scale(-1.0, tempM);
         CommonOps_DDRM.addEquals(tempM, U);
-        aPrime.helix.C = new DMatrixRMaj(5,5);
-        CommonOps_DDRM.mult(tempM, helix.C, aPrime.helix.C);
+
+        // Alternate calculation of the covariance update
+        //double R = (1 - H.dot(K))*V;
+        //System.out.format("StateVector.filter: R=%10.8f\n", R);
+        double R = V*(1- CommonOps_DDRM.dot(H, K));
+        CommonOps_DDRM.mult(tempM, helix.C, tempV);
+        CommonOps_DDRM.multTransB(tempV, tempM, tempA);
+        directProd(K, K, tempV);
+        //aPrime.helix.C = new DMatrixRMaj(5,5);
+        CommonOps_DDRM.add(tempA, R, tempV, aPrime.helix.C);
 
         if (debug) {
+            System.out.format("StateVector.filter: compare covariance calculations, stable one first:\n");
+            CommonOps_DDRM.mult(tempM, helix.C, tempV);
+            aPrime.helix.C.print();
+            tempV.print();
             System.out.println("filtered covariance (gain-matrix formalism) in StateVector.filter:");
             aPrime.helix.C.print();
             // Alternative calculation of filtered covariance (sanity check that it gives
@@ -303,8 +315,6 @@ class StateVector {
             helix.a.print("predicted helix parameters");
             aPrime.helix.a.print("filtered helix parameters (gain matrix formalism)");
         }
-        //double R = (1 - H.dot(K))*V;
-        //System.out.format("StateVector.filter: R=%10.8f\n", R);
 
         return aPrime;
     }
@@ -337,37 +347,51 @@ class StateVector {
                     snS.kLow, snS.kUp, snP.kLow, snP.kUp);
         StateVector sS = this.copy();
 
-        // solver.setA defines the input matrix and checks whether it is singular. A copy is needed because the input gets modified.
+        // solver.setA defines the input matrix and checks whether it is singular. 
+        // A copy is needed because the input gets modified.
         if (!solver.setA(snP.helix.C.copy())) {
-            logger.fine("StateVector:smooth, inversion of the covariance matrix failed");
-            //snP.helix.C.print();
-            //SquareMatrix invrs = KalTrack.mToS(snP.helix.C).invert();
-            //invrs.print("inverse");
-            //invrs.multiply(KalTrack.mToS(snP.helix.C)).print("unit matrix?");            
-            for (int i=0; i<5; ++i) {      // Fill the inverse with something not too crazy and continue . . .
-                for (int j=0; j<5; ++j) {
-                    if (i == j) {
-                        Cinv.unsafe_set(i,j,1.0/Cinv.unsafe_get(i,j));
-                    } else {
-                        Cinv.unsafe_set(i, j, 0.); 
+            SquareMatrix invrs = KalTrack.mToS(snP.helix.C).fastInvert();
+            if (invrs == null) {
+                logger.warning("StateVector:smooth, inversion of the covariance matrix failed");
+                snP.helix.C.print();
+                for (int i=0; i<5; ++i) {      // Fill the inverse with something not too crazy and continue . . .
+                    for (int j=0; j<5; ++j) {
+                        if (i == j) {
+                            Cinv.unsafe_set(i,j,1.0/snP.helix.C.unsafe_get(i,j));
+                        } else {
+                            Cinv.unsafe_set(i, j, 0.);
+                            snP.helix.C.unsafe_set(i, j, 0.);
+                        }
+                    }
+                }          
+            } else {
+                if (debug) {
+                    KalTrack.mToS(snP.helix.C).print("singular covariance?");
+                    invrs.print("inverse");
+                    invrs.multiply(KalTrack.mToS(snP.helix.C)).print("unit matrix?"); 
+                }
+                for (int i=0; i<5; ++i) {
+                    for (int j=0; j<5; ++j) {
+                        Cinv.unsafe_set(i, j, invrs.M[i][j]);
                     }
                 }
-            }          
+            }
         } else {
             solver.invert(Cinv);
         }
-        if (debug) {
+
+        CommonOps_DDRM.multTransB(helix.C, sS.F, tempM);
+        CommonOps_DDRM.mult(tempM, Cinv, tempA);
+
+        vecToM(snS.helix.a.dif(snP.helix.a), tempV);
+        CommonOps_DDRM.mult(tempA, tempV, tempV2);
+        sS.helix.a = helix.a.sum(mToVec(tempV2));
+        if (debug || Math.abs(tempV2.unsafe_get(1, 0))>1.5) {
             System.out.println("StateVector:smooth, inverse of the covariance:");
             Cinv.print("%11.6e");
             CommonOps_DDRM.mult(snP.helix.C, Cinv, tempM);
             System.out.format("Unit matrix?? ");
             tempM.print();
-        }
-        CommonOps_DDRM.multTransB(helix.C, sS.F, tempM);
-        CommonOps_DDRM.mult(tempM, Cinv, tempA);
-
-        vecToM(snS.helix.a.dif(snP.helix.a), tempV);
-        if (debug) {
             System.out.format("Predicted helix covariance: ");
             snP.helix.C.print();
             System.out.format("This helix covariance: ");
@@ -380,10 +404,6 @@ class StateVector {
             tempA.print();
             System.out.format("Difference of helix parameters tempV: ");
             tempV.print();
-        }
-        CommonOps_DDRM.mult(tempA, tempV, tempV2);
-        sS.helix.a = helix.a.sum(mToVec(tempV2));
-        if (debug) {
             System.out.format("tempV2 ");
             tempV2.print();
             sS.helix.a.print("new helix parameters");
@@ -407,8 +427,7 @@ class StateVector {
                 Math.sqrt(tC.unsafe_get(3,3)), Math.sqrt(tC.unsafe_get(4,4)));
     }
 
-    // Transform the helix covariance to new pivot point (specified in local
-    // coordinates)
+    // Transform the helix covariance to new pivot point (specified in local coordinates)
     DMatrixRMaj covariancePivotTransform(Vec aP) {
         // aP are the helix parameters for the new pivot point, assumed already to be
         // calculated by pivotTransform()
@@ -419,7 +438,7 @@ class StateVector {
         CommonOps_DDRM.mult(mF, tempM, tempA);
         return tempA;
     }    
-    
+    // Go to and from 1D EJML matrix for a vector Vec
     static void vecToM(Vec a, DMatrixRMaj m) {
         for (int i=0; i<a.N; ++i) {
             m.unsafe_set(i, 0, a.v[i]);
@@ -428,6 +447,7 @@ class StateVector {
     static Vec mToVec(DMatrixRMaj M) {
         return new Vec(M.unsafe_get(0, 0), M.unsafe_get(1, 0), M.unsafe_get(2, 0), M.unsafe_get(3, 0), M.unsafe_get(4, 0));
     }
+    // Direct product of two row vectors to make a 2D matrix
     private static void directProd(DMatrixRMaj a, DMatrixRMaj b, DMatrixRMaj c) {
         for (int i=0; i<5; ++i) {
             for (int j=0; j<5; ++j) {

@@ -398,8 +398,15 @@ class KalmanPatRecHPS {
                         }
                     }
                     
-                    DMatrixRMaj CovGuess = seed.covariance().copy();
-                    CommonOps_DDRM.scale(100., CovGuess);
+                    //DMatrixRMaj CovGuess = seed.covariance().copy();
+                    //if (negativeCov(CovGuess)) {
+                    //    System.out.format("KalmanPatRec: starting covariance matrix is negative for event %d!\n", eventNumber);
+                    //    CovGuess.print();
+                    //}
+                    //CommonOps_DDRM.scale(10., CovGuess);
+                    DMatrixRMaj CovGuess = new DMatrixRMaj(5,5);
+                    setInitCov(CovGuess, seed.helixParams(), true);
+
                     // Create an state vector from the input seed to initialize the Kalman filter
                     StateVector sI = new StateVector(-1, seed.helixParams(), CovGuess, new Vec(0., 0., 0.), Bmag, tB, pivot);
                     TrackCandidate candidateTrack = new TrackCandidate(candID, seed.hits, kPar, hitMap, eventNumber);
@@ -1060,13 +1067,9 @@ class KalmanPatRecHPS {
                 }
             }
         }
-        ArrayList<KalTrack> allTks = new ArrayList<KalTrack>(TkrList.size());
-        for (KalTrack tkr : TkrList) {
-            allTks.add(tkr);
-        }
         
         // Refit the KalTracks
-        Iterator<KalTrack> iter = allTks.iterator();
+        Iterator<KalTrack> iter = TkrList.iterator();
         while (iter.hasNext()) {
             KalTrack tkr = iter.next();
             if (debug) {
@@ -1079,14 +1082,16 @@ class KalmanPatRecHPS {
             }
             
             // Try to add hits on layers with missing hits
-            tkr.addHits(data, kPar.mxResid[1], kPar.mxChi2Inc, kPar.mxTdif, debug);
+            int nAdded = tkr.addHits(data, kPar.mxResid[1], kPar.mxChi2Inc, kPar.mxTdif, debug);
             
             // check that there are enough hits in both views
             int nStereo = 0;
             int nAxial = 0;
             int nShared = 0;
+            boolean needRefit = (nAdded>0);
             for (MeasurementSite site : tkr.SiteList) {
                 if (site.hitID < 0) continue;
+                if (site.aS == null) needRefit = true;
                 SiModule m = site.m;
                 if (!m.isStereo) nAxial++;
                 else nStereo++;
@@ -1112,7 +1117,7 @@ class KalmanPatRecHPS {
                 removeIt = true;
             }
             if (removeIt) {
-                TkrList.remove(tkr);
+                iter.remove();
                 for (MeasurementSite site : tkr.SiteList) {
                     if (site.hitID != -1) {
                         site.m.hits.get(site.hitID).tracks.remove(tkr);
@@ -1126,52 +1131,131 @@ class KalmanPatRecHPS {
                 double runTime = (double)((System.nanoTime() - startTime)/1000000.);
                 System.out.format("KalmanPatRecHPS: Call the Kalman fit for track %d at time=%10.6f ms\n", tkr.ID, runTime);
             }            
-            boolean goodFit = tkr.fit(kPar.nIterations);
+            boolean goodFit = tkr.fit(!needRefit);
             if (debug) {
                 double runTime = (double)((System.nanoTime() - startTime)/1000000.);
                 System.out.format("                 The Kalman fit is finished for track %d at time=%10.6f ms\n", tkr.ID, runTime);
-            }  
-            if (goodFit) {
-                StateVector aS = tkr.SiteList.get(0).aS;
-                if (aS == null) {
-                    if (debug) System.out.format("KalmanPatRecHPS: track %d has no smoothed state vector at site 0!\n", tkr.ID);
-                    goodFit = false;
-                }
-                if (goodFit) {
-                    double phi0 = aS.helix.planeIntersect(new Plane(new Vec(3,kPar.beamSpot), new Vec(0.,1.,0.)));
-                    if (Double.isNaN(phi0)) {
-                        if (debug) System.out.format("KalmanPatRecHPS: track %d does not intersect the origin plane!\n", tkr.ID);
-                    } else {
-                        if (!tkr.originHelix()) {
-                            if (debug) System.out.format("KalmanPatRecHPS: propagating track %d to the origin failed!\n", tkr.ID);
-                            //goodFit = false;
+            }
+            // See if the fit is better if we strip off the extra hits added 
+            if (!goodFit && needRefit) {
+                if (debug) System.out.format("KalmanPatRecHPS event %d: Kaltrack fit not improved for track %d, chi2=%10.5f for %d hits\n",
+                                eventNumber, tkr.ID, tkr.chi2, tkr.nHits);
+                int nChange = 0;
+                Iterator<MeasurementSite> itr = tkr.SiteList.iterator();
+                while (itr.hasNext()) {  
+                    MeasurementSite site = itr.next();
+                    //System.out.format("KalmanPatRecHPS:  Layer %d stereo=%b hit %d, chi^2 increment=%10.5f, a=%s\n", 
+                    //        site.m.Layer, site.m.isStereo, site.hitID, site.chi2inc, site.aF.helix.a.toString());
+                    if (site.hitID < 0) continue;
+                    if (site.aS == null) {
+                        if (site.m.hits.get(site.hitID).tracks.contains(tkr)) {
+                            site.m.hits.get(site.hitID).tracks.remove(tkr);    
                         }
-                        if (debug) {
-                            double runTime = (double)((System.nanoTime() - startTime)/1000000.);
-                            System.out.format("                 The origin propagation is finished for track %d at time=%10.6f ms\n", tkr.ID, runTime);
-                        }
+                        itr.remove();  // Try getting rid of any hits that were added
+                        nChange++;
+                        if (site.m.isStereo) nStereo--;
+                        else nAxial--;
                     }
                 }
-                if (goodFit) { // For tracks with few hits, include an origin constraint
-                    if (tkr.nHits == 5) {
-                        if (debug) System.out.format("KalmanPatRecHPS: try an origin constraint on track %d\n", tkr.ID);
-                        HelixState constrHelix = tkr.originConstraint(vtx, vtxCov);
-                        if (constrHelix == null) goodFit = false;
-                        if (goodFit) {
-                            double chi2inc = tkr.chi2incOrigin();
-                            if (chi2inc <= kPar.mxChi2Vtx) {
-                                tkr.helixAtOrigin = constrHelix;
-                                tkr.chi2 += chi2inc * tkr.nHits;
-                            } else {
-                                goodFit = false;
+                if (nChange == 0) System.out.format("KalmanPatRecHPS: no changed hits were removed from track %d???\n", tkr.ID);
+                if (nStereo > 2 && nAxial > 1 && nStereo+nAxial > 5) {
+                    goodFit = tkr.fit(true);
+                    if (debug) System.out.format("KalmanPatRecHPS event %d, result of refitting after removing new hits on track %d = %b \n",
+                                      eventNumber, tkr.ID, goodFit);
+                } else goodFit = false;
+            }
+            if (!goodFit) {
+                if (debug) System.out.format("KalmanPatRecHPS: removing KalTrack %d for bad fit!\n", tkr.ID);
+                iter.remove();
+                for (MeasurementSite site : tkr.SiteList) {
+                    if (site.hitID!=-1) {
+                        if (debug) System.out.format("      removing hit %d from site on layer %d, detector %d\n", site.hitID, site.m.Layer, site.m.detector);
+                        site.m.hits.get(site.hitID).tracks.remove(tkr);
+                        site.removeHit();
+                    }
+                }
+                continue;
+            }
+            if (tkr.chi2/(double)tkr.nHits > kPar.chi2mx1[0]) {   // Try removing bad hits if the fit is still lousy
+                ArrayList<MeasurementSite> listSave = tkr.SiteList;
+                double chi2Save = tkr.chi2;
+                int nhitSave = tkr.nHits;
+                int nRemoved;
+                boolean refitted = false;
+                do {
+                    if (debug) System.out.format("KalmanPatRecHPS event %d: try removing some bad hits on track %d\n", eventNumber, tkr.ID);
+                    nRemoved = 0;
+                    Iterator<MeasurementSite> itr = tkr.SiteList.iterator();
+                    while (itr.hasNext()) {  
+                        MeasurementSite site = itr.next();
+                        if (debug) System.out.format("KalmanPatRecHPS:  Layer %d stereo=%b, hit %d, chi^2 increment=%10.5f, a=%s\n", 
+                                        site.m.Layer, site.m.isStereo, site.hitID, site.chi2inc, site.aF.helix.a.toString());
+                        if (site.hitID < 0) continue;
+                        if (site.chi2inc > chi2Save/(double)nhitSave + 1.6*kPar.mxChi2Inc) {
+                            if (site.m.isStereo && nStereo>3 || !site.m.isStereo && nAxial>2) {
+                                itr.remove();
+                                nRemoved++;
+                                if (debug) System.out.format("KalmanPatRecHPS: remove hit %d on layer %d of track %d\n", site.hitID, site.m.Layer, tkr.ID);
+                                if (site.m.isStereo) nStereo--;
+                                else nAxial--;
                             }
+                        }
+                    }
+                    if (debug) System.out.format("KalmanPatRecHPS: hits remaining are %d stereo and %d axial\n", nStereo, nAxial);
+                    if (nRemoved > 0) {
+                        goodFit = tkr.fit(true);
+                        if (goodFit) refitted = true;
+                        if (debug) System.out.format("KalmanPatRecHPS event %d, result of refitting after removing bad hits on track %d = %b %10.5f %d \n",
+                                        eventNumber, tkr.ID, goodFit, tkr.chi2, tkr.nHits);
+                    }
+                } while (nRemoved > 0 && goodFit && tkr.chi2/(double)tkr.nHits > kPar.chi2mx1[0]);
+                if (!goodFit || (refitted && chi2Save/(double)nhitSave <= tkr.chi2/(double)tkr.nHits)) {  // Keep the old fit
+                    if (debug) System.out.format("KalmanPatRecHPS event %d track %d, keeping original fit.\n", eventNumber, tkr.ID);
+                    tkr.SiteList = listSave;
+                    tkr.nHits = nhitSave;
+                    tkr.chi2 = chi2Save;
+                    goodFit = true;
+                }
+            } 
+            StateVector aS = tkr.SiteList.get(0).aS;
+            if (aS == null) {
+                if (debug) System.out.format("KalmanPatRecHPS: track %d has no smoothed state vector at site 0!\n", tkr.ID);
+                goodFit = false;
+            }
+            if (goodFit) {
+                double phi0 = aS.helix.planeIntersect(new Plane(new Vec(3,kPar.beamSpot), new Vec(0.,1.,0.)));
+                if (Double.isNaN(phi0)) {
+                    if (debug) System.out.format("KalmanPatRecHPS: track %d does not intersect the origin plane!\n", tkr.ID);
+                } else {
+                    if (!tkr.originHelix()) {
+                        if (debug) System.out.format("KalmanPatRecHPS: propagating track %d to the origin failed!\n", tkr.ID);
+                        //goodFit = false;
+                    }
+                    if (debug) {
+                        double runTime = (double)((System.nanoTime() - startTime)/1000000.);
+                        System.out.format("                 The origin propagation is finished for track %d at time=%10.6f ms\n", tkr.ID, runTime);
+                    }
+                }
+            }
+            if (goodFit) { // For tracks with few hits, include an origin constraint
+                if (tkr.nHits == 5) {
+                    if (debug) System.out.format("KalmanPatRecHPS: try an origin constraint on track %d\n", tkr.ID);
+                    HelixState constrHelix = tkr.originConstraint(vtx, vtxCov);
+                    if (constrHelix == null) goodFit = false;
+                    if (goodFit) {
+                        double chi2inc = tkr.chi2incOrigin();
+                        if (chi2inc <= kPar.mxChi2Vtx) {
+                            tkr.helixAtOrigin = constrHelix;
+                            tkr.chi2 += chi2inc * tkr.nHits;
+                        } else {
+                            goodFit = false;
                         }
                     }
                 }
             }
             if (!goodFit) {
                 if (debug) System.out.format("KalmanPatRecHPS: removing KalTrack %d for bad fit!\n", tkr.ID);
-                TkrList.remove(tkr);
+                iter.remove();
                 for (MeasurementSite site : tkr.SiteList) {
                     if (site.hitID!=-1) {
                         if (debug) System.out.format("      removing hit %d from site on layer %d, detector %d\n", site.hitID, site.m.Layer, site.m.detector);
@@ -1400,6 +1484,10 @@ class KalmanPatRecHPS {
                     break layerLoop;
                 }
                 if (debug) {
+                    if (negativeCov(newSite.aF.helix.C)) {
+                        System.out.format("KalmanPatRecHPS.filtertrack: event %d candidate %d layer %d has negative covariance after filter step.\n",
+                                eventNumber, tkrCandidate.ID, newSite.m.Layer);
+                    }
                     System.out.format("KalmanPatRecHPS.filterTrack: candidate %d, completed filter at site (%d, %d, %d), chi2-inc=%8.3f\n",
                             tkrCandidate.ID, newSite.m.Layer, newSite.m.detector, newSite.hitID, newSite.chi2inc);
                 }
@@ -1514,6 +1602,32 @@ class KalmanPatRecHPS {
             return p2_2.compareTo(p1_2);
         }
     };
+    
+    static boolean negativeCov(DMatrixRMaj C) {
+        boolean badCov = false;
+        for (int i=0; i<5; ++i) {
+            if (C.unsafe_get(i, i) <= 0.) {
+                badCov = true;
+                break;
+            }
+        }
+        return badCov;
+    }
+    
+    static void setInitCov(DMatrixRMaj C, Vec helix, boolean newM) {
+        C.unsafe_set(0, 0, 0.5);
+        C.unsafe_set(1, 1, .00005);
+        C.unsafe_set(2, 2, Math.pow(0.1*helix.v[2],2));
+        C.unsafe_set(3, 3, .01);
+        C.unsafe_set(4, 4, .00001);
+        if (!newM) {
+            for (int i=0; i<5; ++i) {
+                for (int j=0; j<5; ++j) {
+                    if (i != j) C.unsafe_set(i, j, 0.);
+                }
+            }
+        }
+    }
     
     // Quick check on where the seed track is heading, using only the two axial layers in the seed
     private boolean seedNoGood(int j, int iter) {

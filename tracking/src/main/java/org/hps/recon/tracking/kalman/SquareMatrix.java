@@ -209,7 +209,7 @@ class SquareMatrix { //
             indxc[i] = icol;
             if (this.M[icol][icol] == 0.0) {
                 //System.out.format("Singular matrix in SquareMatrix.java method invert.\n");
-                return this;
+                return null;
             }
             double pivinv = 1.0 / this.M[icol][icol];
             this.M[icol][icol] = 1.0;

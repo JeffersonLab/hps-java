@@ -87,7 +87,7 @@ class MeasurementSite {
         conFac = 1.0e12 / c;
         Vec Bfield = KalmanInterface.getField(m.p.X(), m.Bfield);
         B = Bfield.mag();
-        alpha = conFac / B; // Convert from pt in GeV to curvature in mm
+        alpha = conFac / B; // Convert from 1/pt in 1/GeV to curvature in mm
         predicted = false;
         filtered = false;
         smoothed = false;
