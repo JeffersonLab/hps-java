@@ -80,7 +80,7 @@ public class HPSTracker2014JavaBuilder extends HPSTestRunTracker2014JavaBuilder 
                 getBaseTrackerGeometry());
         add(svtBoxBasePlate);
         
-        System.out.println("PF::TEMPORARY:: Move the kinMounts to a 2019 detector build method");
+        //System.out.println("PF::TEMPORARY:: Move the kinMounts to a 2019 detector build method");
 
         //Problem: 
         //We align the SupportRing for the front and the UChannel for the back... What a mess.

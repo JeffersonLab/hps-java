@@ -9,6 +9,8 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
+import java.util.logging.Logger;
+
 /**
  * This class handles the cluster energy correction for the 2019 run, to include
  * edge corrections and sampling fractions derived from data.
@@ -16,6 +18,8 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  */
 public final class ClusterEnergyCorrection2019 {
+
+    private static final Logger LOG = Logger.getLogger(ClusterEnergyCorrection2019.class.getName());
 
     public static String name = "ClusterEnergyCorrection2019";
 
@@ -49,7 +53,7 @@ public final class ClusterEnergyCorrection2019 {
     private static void loadDataCorrectionParameters() {
         String fname;
         fname = "2019SF_parameters_data.dat";
-        System.out.println(name + ": Loading resources data:  " + fname);
+        LOG.config("Loading resource data: " + fname);
         java.io.InputStream fis = ClusterEnergyCorrection2019.class.getResourceAsStream(fname);
         java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(fis));
         try {
@@ -109,7 +113,7 @@ public final class ClusterEnergyCorrection2019 {
 
         fname = "2019SF_MC_parameters_" + pname + ".dat";
 
-        System.out.println(name + ": Loading resources data:  " + fname);
+        LOG.config("Loading resource data: " + fname);
 
         java.io.InputStream fis = ClusterEnergyCorrection2019.class.getResourceAsStream(fname);
         java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(fis));

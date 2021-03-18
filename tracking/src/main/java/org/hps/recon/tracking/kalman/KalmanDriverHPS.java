@@ -89,7 +89,7 @@ public class KalmanDriverHPS extends Driver {
     
     public void setUniformB(boolean input) {
         uniformB = input;
-        System.out.format("KalmanDriver: the B field will be assumed uniform.\n");
+        getLogger().config("The B field will be assumed uniform.");
     }
 
     public void setMaterialManager(MaterialSupervisor mm) {

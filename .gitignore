@@ -38,3 +38,6 @@ ETBuffer
 
 # local repo
 .m2repo
+
+# ignore output from Maven dependency tree
+deps.txt

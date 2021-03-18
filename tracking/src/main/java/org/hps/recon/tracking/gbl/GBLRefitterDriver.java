@@ -234,7 +234,7 @@ public class GBLRefitterDriver extends Driver {
             
             Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), gblRefitIterations, track.getType(), _scattering, bfield, storeTrackStates,includeNoHitScatters);
             if (newTrackTraj == null) {
-                System.out.println("GBLRefitterDriver::process() -- Aborted refit of track -- null pointer for newTrackTraj returned from MakeGblTracks.refitTrackWithTraj .");
+                getLogger().warning("Null returned from MakeGblTracks.refitTrackWithTraj - aborting refit");
                 continue;
             }
             Pair<Track, GBLKinkData> newTrack = newTrackTraj.getFirst();

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
@@ -29,9 +30,9 @@ import org.lcsim.geometry.compact.converter.MilleParameter;
  */
 public class HpsGblRefitter {
 
-    private final static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
+    private final static Logger LOG = Logger.getLogger(HpsGblRefitter.class.getName());
     private boolean _debug = false;
-    
+
     public void setDebug(boolean debug) {
         _debug = debug;
         MakeGblTracks.setDebug(debug);
@@ -68,7 +69,7 @@ public class HpsGblRefitter {
         // save path length to each point
         iLabel = listOfPoints.size();
         pathLengthMap.put(iLabel, s);
-        
+
         // Loop over strips
         int n_strips = hits.size();
         for (int istrip = 0; istrip != n_strips; ++istrip) {
@@ -85,7 +86,7 @@ public class HpsGblRefitter {
             if (debug) {
                 System.out.println("HpsGblFitter: " + "Path length step " + step + " from " + s + " to " + strip.getPath3D());
             }
-            
+
             if (strip.getScatterOnly() == 1 && debug) {
                 System.out.println("This is scatter only on sensor: MPID " + strip.getId());
             }
@@ -144,7 +145,7 @@ public class HpsGblRefitter {
 
             // projection from local (uv) to measurement directions (dm/duv)
             Matrix proL2m = proM2l.copy();
-            
+
             //Invertible
             if (strip.getScatterOnly() == 0)
                 proL2m = proL2m.inverse();
@@ -205,7 +206,7 @@ public class HpsGblRefitter {
             scatPrec.set(0, 1.0 / (scatErr.get(0) * scatErr.get(0)));
             scatPrec.set(1, 1.0 / (scatErr.get(1) * scatErr.get(1)));
 
-            // add scatterer 
+            // add scatterer
             point.addScatterer(scat, scatPrec);
             if (debug) {
                 System.out.println("HpsGblFitter: " + "adding scatError to this point:");
@@ -231,7 +232,7 @@ public class HpsGblRefitter {
             //if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
             if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
                 //throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
-                LOGGER.warning("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
+                LOG.warning("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
                 return null;
             }
 
@@ -242,28 +243,28 @@ public class HpsGblRefitter {
             // measurements: non-measured directions
             double vmeas = 0.;
             double wmeas = 0.;
-            
+
             //Add derivatives only to measurements
             if (strip.getScatterOnly()==0) {
                 // calculate and add derivatives to point
                 GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, strip.getTrackPos(), normalMeas);
-                
+
                 // TODO find a more robust way to get half.
                 boolean isTop = Math.sin(strip.getTrackLambda()) > 0;
-                
+
                 // Get the list of millepede parameters
                 List<MilleParameter> milleParameters = glDers.getDers(isTop);
 
                 // need to make vector and matrices for interface
                 List<Integer> labGlobal = new ArrayList<Integer>();
-                
+
                 //The Matrix addDer is a single row vector of the size of the milleParameters (6)
                 Matrix addDer = new Matrix(1, milleParameters.size());
                 if (debug) {
                     System.out.println("PF::Derivatives Informations");
                     System.out.printf("MilleParameters size %d\n", milleParameters.size());
                 }
-                
+
                 for (int i = 0; i < milleParameters.size(); ++i) {
                     labGlobal.add(milleParameters.get(i).getId());
                     addDer.set(0, i, milleParameters.get(i).getValue());
@@ -273,46 +274,46 @@ public class HpsGblRefitter {
                     System.out.println(labGlobal.toString());
                     addDer.print(6,6);
                 }
-                
+
                 point.addGlobals(labGlobal, addDer);
                 //            String logders = "";
                 //            for (int i = 0; i < milleParameters.size(); ++i) {
                 //                logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
                 //            }
                 //            LOGGER.info("\n" + logders);
-                
+
                 //LOGGER.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
             }
             // go to next point
             s += step;
-            
+
         } // strips
-        
+
         // create the trajectory
         GblTrajectory traj = null;
-        
+
         boolean constrainedFit = false;
-        
+
         try {
-            
+
             if (!constrainedFit) {
                 //Unconstrained fit
-                traj = new GblTrajectory(listOfPoints); 
+                traj = new GblTrajectory(listOfPoints);
             }
-            
+
             else {
-                
+
                 //Seed constrained fit
-                
+
                 SymMatrix seedPrecision = new SymMatrix(5);
                 seedPrecision.set(0,0,1000000.);
                 traj = new GblTrajectory(listOfPoints,1,seedPrecision,true, true, true);
-                
+
             }
-                        
-            
+
+
             if (!traj.isValid()) {
-                System.out.println("HpsGblFitter: " + " Invalid GblTrajectory -> skip");
+                LOG.warning("Skipping invalid GblTrajectory");
                 return null; // 1;//INVALIDTRAJ;
             }
 
@@ -327,7 +328,7 @@ public class HpsGblRefitter {
             double[] dVals = new double[2];
             int[] iVals = new int[1];
             traj.fit(dVals, iVals, "");
-            LOGGER.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
+            LOG.info("fit result: Chi2=" + dVals[0] + " Ndf=" + iVals[0] + " Lost=" + dVals[1]);
 
             FittedGblTrajectory fittedTraj = new FittedGblTrajectory(traj, dVals[0], iVals[0], dVals[1]);
             fittedTraj.setPathLengthMap(pathLengthMap);
@@ -336,8 +337,7 @@ public class HpsGblRefitter {
             return fittedTraj;
         }
         catch (RuntimeException e) {
-            e.printStackTrace();
-            System.out.println("HpsGblFitter: Invalid GblTrajectory -> skip"); 
+            LOG.log(Level.WARNING, "Skipping invalid GblTrajectory - " + e.getMessage());
             return null;
         }
     }
