@@ -37,8 +37,6 @@ import org.json.JSONObject;
  * Server for managing instances of the online reconstruction.
  * 
  * Accepts commands from the Client class and sends back a JSON result.
- * 
- * @author jeremym
  */
 public final class Server {        
        

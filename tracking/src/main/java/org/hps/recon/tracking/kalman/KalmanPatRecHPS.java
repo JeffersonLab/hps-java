@@ -15,6 +15,7 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.hps.util.Pair;
+
 /**
  * Tracking pattern recognition for the HPS experiment based on an extended Kalman filter
  * Algorithm:
@@ -31,9 +32,6 @@ import org.hps.util.Pair;
  *    5. Sort all the track candidates by quality
  *    6. Remove hits from track candidates that are used by better candidates, unless the hits can be shared
  *    7. Track candidates without enough hits remaining get dropped, the others get refit
- *
- * @author Robert Johnson
- *
  */
 class KalmanPatRecHPS {
 

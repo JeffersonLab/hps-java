@@ -1,8 +1,7 @@
 package org.hps.recon.tracking.kalman;
+
 /**
  * Description of a 2D plane in 3D space
- * @author Robert
- *
  */
 class Plane { 
 

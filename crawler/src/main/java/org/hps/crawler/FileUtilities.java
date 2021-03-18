@@ -9,8 +9,6 @@ import com.google.common.io.Files;
 
 /**
  * File utilities for the datacat crawler.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class FileUtilities {
     

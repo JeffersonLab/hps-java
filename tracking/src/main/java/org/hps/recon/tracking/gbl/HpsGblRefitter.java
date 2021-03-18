@@ -19,14 +19,9 @@ import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
 
-
 /**
  * A Driver which refits tracks using GBL. Modeled on the hps-dst code written by Per Hansson and Omar Moreno. Requires
  * the GBL Collections and Relations to be present in the event.
- *
- * @author Norman A Graf, SLAC
- * @author Per Hansson Adrian, SLAC
- * @author Miriam Diamond, SLAC
  */
 public class HpsGblRefitter {
 

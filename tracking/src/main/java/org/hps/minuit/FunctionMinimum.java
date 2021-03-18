@@ -17,7 +17,6 @@ import java.util.List;
  * manipulation. The parameters and/or the FunctionMinimum can be printed using
  * the toString() method or the MnPrint class.
  *
- * @version $Id: FunctionMinimum.java 8584 2006-08-10 23:06:37Z duns $
  * @see #userState()
  * @see #userParameters()
  * @see #userCovariance()

@@ -64,7 +64,6 @@ import org.lcsim.util.loop.DetectorConditionsConverter;
  * of a particular version of the master MySQL database at JLab.
  *
  * @see org.lcsim.conditions.ConditionsManager
- * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("rawtypes")
 public final class DatabaseConditionsManager extends ConditionsManagerImplementation {

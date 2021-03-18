@@ -15,8 +15,6 @@ import org.jlab.coda.jevio.EvioReader;
 
 /**
  * Computes livetimes from a set of EVIO files.
- * 
- * @author jeremym
  */
 public class LivetimeBuilder extends AbstractRunBuilder {
     

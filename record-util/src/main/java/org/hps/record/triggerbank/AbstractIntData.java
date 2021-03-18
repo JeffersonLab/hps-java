@@ -16,7 +16,6 @@ import org.lcsim.event.GenericObject;
  * Subclasses must implement the two constructors and two abstract methods, plus
  * whatever methods are needed to access the parsed data.
  *
- * @author Sho Uemura <meeg@slac.stanford.edu>
  * @see GenericObject
  */
 public abstract class AbstractIntData implements GenericObject {

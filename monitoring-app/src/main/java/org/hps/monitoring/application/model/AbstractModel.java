@@ -17,8 +17,6 @@ import javassist.Modifier;
 
 /**
  * An abstract class which updates a set of listeners when there are property changes to a backing model.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public abstract class AbstractModel {
 

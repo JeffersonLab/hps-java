@@ -3,10 +3,9 @@ package org.hps.record.daqconfig;
 /**
  * Class <code>PairTriggerConfig</code> holds the configuration data
  * for a pair trigger.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class PairTriggerConfig extends AbstractConfig<AbstractConfig<Double>> {
+
     private static final int CUT_ENERGY_MIN   = 0;
     private static final int CUT_ENERGY_MAX   = 1;
     private static final int CUT_HIT_COUNT    = 2;

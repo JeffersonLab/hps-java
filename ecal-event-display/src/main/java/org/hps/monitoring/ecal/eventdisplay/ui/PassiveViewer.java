@@ -8,8 +8,6 @@ import org.lcsim.event.CalorimeterHit;
  * Abstract class <code>PassiveViewer</code> represents a <code>Viewer
  * </code> implementation which updates based on information passed to
  * it by an external source.
- * 
- * @author Kyle McCarty
  */
 public abstract class PassiveViewer extends Viewer {
     private static final long serialVersionUID = -7479125553259270894L;

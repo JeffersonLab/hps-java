@@ -8,7 +8,6 @@ import java.util.List;
  * parameters, set values and errors, etc.; parameters can be accessed via their
  * parameter number or via their user-specified name.
  *
- * @version $Id: MnUserParameters.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnUserParameters {
 

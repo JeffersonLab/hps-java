@@ -8,7 +8,6 @@ import java.util.Map.Entry;
  * Class <code>MapValueIterator</code> creates an iterator for the
  * values stored in a map.
  * 
- * @author Kyle McCarty
  * @param E The object type of the map's values.
  */
 public class MapValueIterator<E> implements Iterator<E> {

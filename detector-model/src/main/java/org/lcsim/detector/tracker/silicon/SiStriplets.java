@@ -10,8 +10,6 @@ import org.lcsim.detector.ITransform3D;
  * Class describing striplet electrodes of a silicon sensor. This class extends
  * {@link SiPixels} but overrides the calculation of the strip ID and provides 
  * methods needed to create 1D strip hits. 
- *
- * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public class SiStriplets extends SiPixels { 
 

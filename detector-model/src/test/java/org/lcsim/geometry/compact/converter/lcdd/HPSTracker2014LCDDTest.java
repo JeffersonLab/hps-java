@@ -12,22 +12,17 @@ import junit.framework.TestSuite;
 
 /**
 *
-* @author Per Hansson Adrian <phansson@slac.stanford.edu>
 */
-public class HPSTracker2014LCDDTest extends TestCase
-{    
-   public HPSTracker2014LCDDTest(String name)
-   {
+public class HPSTracker2014LCDDTest extends TestCase {    
+   public HPSTracker2014LCDDTest(String name) {
     super(name);
    }
    
-   public static TestSuite suite()
-   {
+   public static TestSuite suite() {
        return new TestSuite(HPSTracker2014LCDDTest.class);
    }
    
-   public void test_converter() throws Exception
-   {
+   public void test_converter() throws Exception {
        InputStream in = HPSTracker2014.class.getResourceAsStream("/org/lcsim/geometry/subdetector/HPSTracker2014.xml");
        OutputStream out = new BufferedOutputStream(new FileOutputStream(new TestOutputFile("HPSTracker2014.lcdd")));
        new Main().convert("HPSTracker2014",in,out);

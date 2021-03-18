@@ -6,8 +6,6 @@ import javax.swing.filechooser.FileFilter;
 
 /**
  * This is a file filter that will accept files with ".evio" anywhere in their name.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EvioFileFilter extends FileFilter {
 

@@ -4,8 +4,6 @@ import java.util.Random;
 /**
  * This is for stand-alone testing only and is not part of the Kalman fitting code.
  * Create a simple helix oriented along the B field axis for testing the Kalman fit.
- * @author Robert Johnson
- *
  */
 class Helix { 
     Vec p; // Helix parameters drho, phi0, K, dz, tanl

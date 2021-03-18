@@ -21,10 +21,7 @@ import org.lcsim.util.Driver;
  * This driver reads in a hit collection and outputs a new hit collection with
  * energies that have been multiplied by an improved gain correction factor.
  * This is primarily used for the elastic energy calibration.
- *
- * @author Holly Szumila-Vance
  */
-
 public class IterateGainFactorDriver extends Driver {
 
     private boolean isGainFileRead = false;

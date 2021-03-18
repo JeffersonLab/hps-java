@@ -2,10 +2,6 @@ package org.hps.analysis.MC;
 
 import junit.framework.TestCase;
 
-/**
- *
- * @author Norman A> Graf
- */
 public class GenerateSingleParticleStdhepEventsTest extends TestCase {
 
     public void testIt() throws Exception {

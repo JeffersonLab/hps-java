@@ -1,13 +1,8 @@
 package org.hps.recon.tracking;
 
 import java.util.Collection;
-//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
 import org.lcsim.event.RawTrackerHit;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
 public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
 
     ShaperLinearFitAlgorithm onePulseFitter = new ShaperLinearFitAlgorithm(1);

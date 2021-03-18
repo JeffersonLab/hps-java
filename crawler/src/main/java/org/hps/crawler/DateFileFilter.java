@@ -11,8 +11,6 @@ import java.util.Date;
  * Filter a file on its creation date.
  * <p>
  * Files with a creation date after the time stamp will be rejected.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class DateFileFilter implements FileFilter {
 

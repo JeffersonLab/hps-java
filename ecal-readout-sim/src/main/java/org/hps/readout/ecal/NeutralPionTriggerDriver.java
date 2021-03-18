@@ -43,9 +43,6 @@ import org.lcsim.util.aida.AIDA;
  * All thresholds can be set through a steering file, along with the
  * coincidence window. The driver also supports a verbose mode where
  * it will output more details with every event to help with diagnostics.
- * 
- * @author Kyle McCarty
- * @author Michel Garçon
  */
 public class NeutralPionTriggerDriver extends TriggerDriver {
     

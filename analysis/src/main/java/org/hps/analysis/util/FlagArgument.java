@@ -7,7 +7,6 @@ package org.hps.analysis.util;
  * argument has been seen or not.
  * 
  * @see org.hps.analysis.util.Argument
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class FlagArgument extends Argument {
     private boolean defined = false;

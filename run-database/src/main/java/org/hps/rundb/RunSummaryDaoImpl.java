@@ -10,8 +10,6 @@ import java.util.logging.Logger;
 
 /**
  * Implementation of database operations for {@link RunSummary} objects in the run database.
- *
- * @author jeremym
  */
 final class RunSummaryDaoImpl implements RunSummaryDao {
 

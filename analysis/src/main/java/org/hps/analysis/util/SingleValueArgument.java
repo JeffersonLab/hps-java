@@ -7,7 +7,6 @@ package org.hps.analysis.util;
  * Argument}.
  * 
  * @see org.hps.analysis.util.Argument
- * @author Kyle McCarty
  */
 public class SingleValueArgument extends Argument {
     private String value = null;

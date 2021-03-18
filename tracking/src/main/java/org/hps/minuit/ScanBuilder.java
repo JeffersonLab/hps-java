@@ -7,7 +7,6 @@ import java.util.List;
  * Performs a minimization using the simplex method of Nelder and Mead (ref.
  * Comp. J. 7, 308 (1965)).
  *
- * @version $Id: ScanBuilder.java 8584 2006-08-10 23:06:37Z duns $
  */
 class ScanBuilder implements MinimumBuilder {
 

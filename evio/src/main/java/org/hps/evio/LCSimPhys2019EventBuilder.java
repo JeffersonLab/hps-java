@@ -13,10 +13,6 @@ import org.lcsim.event.EventHeader;
  * <p>
  * This implementation makes uses a new SVT EVIO reader that was updated to 
  * parse RSSI frames. 
- * <p>
- *
- * @author Omar Moreno,    SLAC National Accelerator Laboratory
- * @author Maurik Holtrop, University of New Hampshire.  
  */
 public class LCSimPhys2019EventBuilder extends LCSimEngRunEventBuilder { 
 

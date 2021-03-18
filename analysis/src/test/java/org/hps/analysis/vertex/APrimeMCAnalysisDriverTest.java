@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.analysis.vertex;
 
 import java.io.File;
@@ -13,10 +8,6 @@ import org.lcsim.util.loop.LCSimLoop;
 
 import junit.framework.TestCase;
 
-/**
- *
- * @author ngraf
- */
 public class APrimeMCAnalysisDriverTest extends TestCase {
 
     static final String testFileName = "ap40mev_SLIC-v06-00-00_QGSP_BERT_HPS-EngRun2015-Nominal-v5-0-fieldmap_SimpleMCReconTest.slcio";

@@ -14,7 +14,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
-// import org.hps.UnusedImportCheckstyleViolation
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.HpsReconParticleDriver;
 import org.hps.recon.particle.ReconParticleDriver;
@@ -34,9 +33,6 @@ import org.lcsim.geometry.Detector;
 /**
  * DQM driver V0 particles (i.e. e+e- pars) plots things like number of vertex
  * position an mass
- *
- * @author mgraham on May 14, 2014
- *
  */
 public class TridentMonitoring extends DataQualityMonitor {
 

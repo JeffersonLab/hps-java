@@ -5,8 +5,6 @@ import org.lcsim.event.EventHeader;
 
 /**
  * A record queue for LCIO/LCSim events.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class LcioEventQueue extends AbstractRecordQueue<EventHeader> {
 

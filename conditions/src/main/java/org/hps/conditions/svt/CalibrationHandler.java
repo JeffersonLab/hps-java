@@ -12,8 +12,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Handler for calibration events.
- *
- * @author Omar Moreno, UCSC
  */
 class CalibrationHandler extends DefaultHandler {
 

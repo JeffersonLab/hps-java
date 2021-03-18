@@ -10,7 +10,6 @@ import java.util.logging.Logger;
  * done before and minimum must be valid. Possibility to ask only for the points
  * or the points and associated Minos errors.
  *
- * @version $Id: MnContours.java 16142 2014-09-05 02:52:34Z tonyj $
  */
 public class MnContours {
 

@@ -22,9 +22,6 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * DigitizationReadoutDriver} for a subdetector of type {@link
  * org.lcsim.geometry.subdetector.HPSEcal3 HPSEcal3}. It handles all
  * of the calorimeter-specific functions needed by the superclass.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPSEcal3> {    
     // The DAQ configuration manager for FADC parameters.

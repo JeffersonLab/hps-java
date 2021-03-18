@@ -5,10 +5,7 @@ package org.hps.record.daqconfig2019;
  * <code>AbstractCutConfig2019</code> for FEE prescale of a region.
  * It provides the means to access this value and, for package classes,
  * set it.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */ 
-
 public class FEEPrecaleConfig2019 extends AbstractConfig2019<Double>{
     private static final int PRESCALE_REGION_MIN  = 0;
     private static final int PRESCALE_REGION_MAX  = 1;

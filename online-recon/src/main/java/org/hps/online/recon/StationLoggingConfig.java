@@ -6,8 +6,6 @@ import java.util.logging.LogManager;
 
 /**
  * Load log properties resource for online reconstruction station.
- * 
- * @author jeremym
  */
 public class StationLoggingConfig {
     

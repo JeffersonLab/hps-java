@@ -2,12 +2,6 @@ package org.hps.recon.tracking;
 
 import org.lcsim.event.GenericObject;
 
-/**
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
- *
- */
 public class TrackQualityData implements GenericObject {
 
     public static final int L1_ISOLATION = 0;

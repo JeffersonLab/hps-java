@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor; 
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.Identifier;
@@ -18,10 +17,6 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
 public class LCIOTrackAnalysis {
 
     protected Track track;

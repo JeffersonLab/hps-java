@@ -38,8 +38,6 @@ import junit.framework.TestCase;
  * and it creates an AIDA file with some useful plots, as well as optionally writes an LCIO
  * file with the event data plus the clusters.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
  * @see Clusterer
  * @see org.lcsim.event.Cluster
  * @see org.lcsim.event.CalorimeterHit

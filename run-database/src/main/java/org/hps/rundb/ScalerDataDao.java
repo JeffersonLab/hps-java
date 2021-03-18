@@ -6,8 +6,6 @@ import org.hps.record.scalers.ScalerData;
 
 /**
  * Database Access Object (DAO) for scaler data in the run database.
- *
- * @author jeremym
  */
 public interface ScalerDataDao {
 

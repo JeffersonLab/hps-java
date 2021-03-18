@@ -4,8 +4,6 @@ package org.hps.analysis.util;
  * Class <code>Argument</code> is a simple representation of a
  * command line argument. It is itself abstract, and only defines the
  * attributes common to all argument types.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 abstract class Argument {
     private final boolean required;

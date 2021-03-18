@@ -18,10 +18,6 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.fourvec.Momentum4Vector;
 
-/**
- *
- * @author ngraf
- */
 public class Pi0AnalysisDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

@@ -22,10 +22,6 @@ import static java.lang.Math.sqrt;
 import java.util.Random;
 import static org.apache.commons.math3.special.Erf.erf;
 
-/**
- *
- * @author Norman Graf
- */
 public class CrystalBallFunction implements IFunction, Cloneable {
 
     double xmean;

@@ -10,8 +10,6 @@ import org.hps.recon.tracking.StraightLineTrack;
 
 /**
  *  Encapsulate the results of a vertex fit
- *
- * @author Richard Partridge
  */
 public class VertexFit {
 

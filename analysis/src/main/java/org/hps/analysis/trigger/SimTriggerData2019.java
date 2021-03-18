@@ -12,7 +12,6 @@ import org.lcsim.event.Cluster;
  * 
  * Class <code>SimTriggerData2019</code>  is developed based on Class <code>SimTriggerData</code> 
  * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class SimTriggerData2019 {
     private final SimTriggerModule2019<Cluster> softwareClusterTriggers;

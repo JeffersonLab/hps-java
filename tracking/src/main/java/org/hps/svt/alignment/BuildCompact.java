@@ -47,8 +47,6 @@ import org.hps.recon.tracking.CoordinateTransformations;
 
 /**
  * Class building a new compact.xml detector based on MillepedeII input corrections.
- * 
- * @author Per Ola Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class BuildCompact {
 

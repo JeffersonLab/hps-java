@@ -24,8 +24,6 @@ import org.lcsim.geometry.FieldMap;
 
 /**
  * Utility used to determine if a track and cluster are matched.
- *
- * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
  */
 public class LegacyTrackClusterMatcher {
 

@@ -1,6 +1,3 @@
-/*
- * To change this template, choose Tools | Templates and open the template in the editor.
- */
 package org.hps.readout.ecal;
 
 import java.io.FileNotFoundException;
@@ -16,9 +13,6 @@ import org.lcsim.geometry.Detector;
 
 /**
  * Dumps trigger variables to text file
- * 
- * @author phansson <phansson@slac.stanford.edu>
- * @version $id: $
  */
 public class FADCTriggerVariableDriver extends FADCTriggerDriver {
 

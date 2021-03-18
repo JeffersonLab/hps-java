@@ -4,15 +4,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.math.util.FastMath;
+
 /**
  * 
  * Calculate the intersection of a helix with a nearly arbitrary plane
  *     Coordinates: the beam is ~ in the y direction
  *     the B field is ~ along the +z direction
  *     Si detectors are ~ in the xz plane
- * 
- * @author Robert Johnson
- *
  */
 class HelixPlaneIntersect { 
 

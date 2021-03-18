@@ -6,7 +6,6 @@ package org.hps.minuit;
  * direction of that component is done in order to find a better position where
  * g2 is again positive.
  *
- * @version $Id: NegativeG2LineSearch.java 8584 2006-08-10 23:06:37Z duns $
  */
 abstract class NegativeG2LineSearch {
 

@@ -17,8 +17,6 @@ import org.srs.datacat.model.DatasetModel;
 
 /**
  * Command line tool for adding files to the data catalog.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class DatacatAddFile {
 

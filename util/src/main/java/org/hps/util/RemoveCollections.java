@@ -7,9 +7,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 
 /**
- *
- * @author mgraham
- * @author mrsolt
  * This driver removes collections from an event
  */
 public class RemoveCollections extends Driver {

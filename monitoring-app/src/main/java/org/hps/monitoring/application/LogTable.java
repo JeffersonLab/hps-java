@@ -19,8 +19,6 @@ import org.hps.monitoring.application.model.ConfigurationModel;
 
 /**
  * This is a simple {@link avax.swing.JTable} component for displaying log messages.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class LogTable extends JTable implements PropertyChangeListener {

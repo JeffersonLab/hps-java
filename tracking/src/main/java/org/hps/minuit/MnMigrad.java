@@ -9,7 +9,6 @@ package org.hps.minuit;
  * requests. The minimization produces as a by-product the error matrix of the
  * parameters, which is usually reliable unless warning messages are produced.
  *
- * @version $Id: MnMigrad.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnMigrad extends MnApplication {
 

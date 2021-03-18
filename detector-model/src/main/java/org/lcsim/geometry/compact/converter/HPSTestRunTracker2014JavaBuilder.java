@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.lcsim.geometry.compact.converter;
 
 import java.util.ArrayList;
@@ -19,9 +16,8 @@ import org.lcsim.geometry.compact.converter.HPSTrackerBuilder.BaseModuleBundle;
 import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.TestRunModuleBundle;
 
 /**
- * Class used by java converter to build java run time objects for the detector It encapsulates and adds the LCDD specific information to the generic @HPSTestRunTracker2014Builder.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * Class used by java converter to build java run time objects for the detector It encapsulates and 
+ * adds the LCDD specific information to the generic @HPSTestRunTracker2014Builder.
  */
 public class HPSTestRunTracker2014JavaBuilder extends HPSTrackerJavaBuilder {
 

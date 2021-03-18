@@ -2,7 +2,6 @@ package org.hps.recon.ecal.cluster;
 
 /**
  * Type codes for different kinds of ECAL clusters.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public enum ClusterType {
     

@@ -16,11 +16,6 @@ import org.lcsim.event.EventHeader;
  * values into a GenericObject. In the GenericObject, the header tag is stored
  * as the first integer, and contents of the bank are the remaining integer
  * primitives.
- *
- * 
- * 
- * 
- * @author tongtong
  */
 public class TSEvioReader extends EvioReader {
     public TSEvioReader() {

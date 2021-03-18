@@ -6,11 +6,9 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
+
 /**
- * 
  * Helix state vector (projected, filtered, or smoothed) for the Kalman filter
- * @author Robert Johnson
- *
  */
 class StateVector {
 

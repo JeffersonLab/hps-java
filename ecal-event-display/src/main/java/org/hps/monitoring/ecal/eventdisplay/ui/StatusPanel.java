@@ -11,8 +11,6 @@ import javax.swing.JPanel;
  * Class <code>StatusPanel</code> displays text in a set of fields.
  * This class is being phased out in favor of <code>ResizableFieldPanel
  * </code> and should no longer be used. It will be removed next update.
- *
- * @author Kyle McCarty
  */
 @Deprecated
 public class StatusPanel extends JPanel {

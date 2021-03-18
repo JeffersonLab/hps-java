@@ -17,8 +17,6 @@ import org.json.JSONObject;
  * 
  * These are key-value pairs that can be loaded from a properties file
  * or a JSON object.
- * 
- * @author jeremym
  */
 final class StationConfiguration {
 

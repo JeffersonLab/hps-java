@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.tracking;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -13,7 +9,6 @@ import org.apache.commons.math.util.FastMath;
 import org.lcsim.constants.Constants;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
-//ejml
 import org.ejml.data.DMatrix3;
 import org.ejml.data.DMatrix3x3;
 import org.ejml.dense.fixed.CommonOps_DDF3;
@@ -23,9 +18,6 @@ import org.ejml.dense.fixed.CommonOps_DDF3;
  * Paul Avery, CBX 98-39, June 9, 1998
  *  
  * Used primarily for the algorithm to intersect a helix with a generic plane in space.
- *  
- * @author phansson <phansson@slac.stanford.edu>
- * @author pf <pbutti@slac.stanford.edu> #usage of ejml in internal methods
  */
 public class WTrack {
 

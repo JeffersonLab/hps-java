@@ -14,8 +14,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Based on Kyle's aida file utility
- *
- * @author Norman A. Graf
  */
 public class SplitAndFit {
 

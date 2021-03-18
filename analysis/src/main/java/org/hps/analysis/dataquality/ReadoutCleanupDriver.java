@@ -12,12 +12,9 @@ import org.lcsim.recon.tracking.digitization.sisim.config.CollectionHandler;
 /**
  * This Driver clears the DetectorElement Readout
  * associated with a given collection in the event header.
+ *
  * It accepts a list of collection names and ignores
  * others.
- *
- * @author jeremym
- * @version $Id: ReadoutCleanupDriver.java,v 1.2 2012/04/25 14:27:00 jeremy Exp
- * $
  */
 public class ReadoutCleanupDriver
         extends CollectionHandler {

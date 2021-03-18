@@ -7,10 +7,9 @@ import java.util.logging.Logger;
 import org.apache.commons.math.util.FastMath;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
+
 /**
  * Kalman fit measurement site, one for each silicon-strip detector with hits
- * @author Robert Johnson
- *
  */
 class MeasurementSite {
     SiModule m; // Si detector hit data

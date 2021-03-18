@@ -6,9 +6,9 @@ package org.hps.record.daqconfig;
  * a lower bound. It provides the means to access these values and, for
  * package classes, set them.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class ULBCutConfig extends AbstractConfig<Double> {
+
     private static final int LOWER_BOUND = 0;
     private static final int UPPER_BOUND = 1;
     

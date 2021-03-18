@@ -7,7 +7,6 @@ import java.util.logging.Logger;
  * be done before and minimum must be valid; possibility to ask only for one
  * side of the Minos error;
  *
- * @version $Id: MnMinos.java 16141 2014-09-05 01:17:10Z tonyj $
  */
 public class MnMinos {
 

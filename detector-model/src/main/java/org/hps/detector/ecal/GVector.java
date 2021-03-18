@@ -5,8 +5,6 @@ import hep.physics.vec.BasicHep3Vector;
 /**
  * Define a vector in (XYZ) coordinate system as a geometrical object.
  * This class is similar to HepVector 
- * 
- * @author Annie Simonyan
  */
 class GVector {
 

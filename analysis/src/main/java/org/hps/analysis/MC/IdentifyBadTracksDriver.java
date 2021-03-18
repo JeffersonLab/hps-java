@@ -31,14 +31,11 @@ import org.lcsim.util.Driver;
 /**
  * Driver to skim selected events from LCIO files based on 
  * track picking up the wrong hit.
+ *
  * It outputs the bad track, the MCParticle associated with the bad hit,
  * the truth hits associated with the truth match, and the track of the 
  * other particle associated with the bad hit (if any)
  * This driver can only be run on MC readout with full truth.
- *
- * @author Matt Solt
- *
- * @version $Id:
  */
 public class IdentifyBadTracksDriver extends Driver{
 

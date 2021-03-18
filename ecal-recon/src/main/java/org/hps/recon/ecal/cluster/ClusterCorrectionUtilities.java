@@ -10,10 +10,6 @@ import org.lcsim.event.Cluster;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
-/**
- *
- * @author baltzell
- */
 public final class ClusterCorrectionUtilities {
 
     static final double CUTOFF_OFFSET = 35.0;

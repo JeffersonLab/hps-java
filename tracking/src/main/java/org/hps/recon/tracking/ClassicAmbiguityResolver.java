@@ -9,14 +9,10 @@ import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 
 /**
- * 
- * @author Miriam Diamond <mdiamond@slac.stanford.edu> $Id:
- *         ClassicAmbiguityResolver.java, v1 05/30/2017$ Performs: removal of
- *         duplicates, removal of partials, removal of shared tracks based on
- *         number of shared-hits, removal of poor scoring tracks. Track scoring
- *         considers holes, bad channels, layer acceptances. No track cleaning.
+ *Performs: removal of duplicates, removal of partials, removal of shared tracks based on 
+ * number of shared-hits, removal of poor scoring tracks. Track scoring considers holes, 
+ * bad channels, layer acceptances. No track cleaning.
  */
-
 public class ClassicAmbiguityResolver extends AmbiguityResolver {
     private int shareThreshold;
     private double scoreThreshold;

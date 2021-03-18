@@ -26,7 +26,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseTrack;
-//import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.event.TrackerHit;
@@ -37,17 +36,12 @@ import org.lcsim.util.aida.AIDA;
 import hep.aida.IManagedObject;
 import hep.aida.IBaseHistogram;
 
-
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.FieldMap;
 
 
 /**
  * Make post-GBL plots needed for alignment.
- *
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
- * @author Alessandra Filippi <filippi@to.infn.it>
- * @author PF <pbutti@slac.stanford.edu>
  */
 public class GBLOutputDriver extends Driver {
     

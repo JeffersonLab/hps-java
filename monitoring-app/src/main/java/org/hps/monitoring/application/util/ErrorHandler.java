@@ -22,8 +22,6 @@ import javax.swing.SwingUtilities;
  * <p>
  * It mostly uses the "builder" pattern so that the various handling methods can be easily chained, where appropriate.
  * Some methods are not available for chaining when it doesn't make sense.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class ErrorHandler {
 

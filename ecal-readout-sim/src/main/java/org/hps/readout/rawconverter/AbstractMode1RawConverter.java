@@ -17,11 +17,6 @@ import org.lcsim.event.RawTrackerHit;
  * behavior that is specific to a subdetector. That is left for its
  * implementing drivers.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
- * @author Nathan Baltzell <baltzell@jlab.org>
- * @author Holly Szumila <hvanc001@odu.edu>
  * @see org.hps.readout.rawconverter.AbstractBaseRawConverter
  */
 public abstract class AbstractMode1RawConverter extends AbstractBaseRawConverter {

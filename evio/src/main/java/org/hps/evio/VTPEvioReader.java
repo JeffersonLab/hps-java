@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.evio;
 
 import java.util.List;
@@ -13,20 +8,14 @@ import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.BaseStructureHeader;
 import org.hps.record.evio.EvioEventConstants;
 import org.jlab.coda.jevio.EvioEvent;
-//import org.jlab.coda.jevio.EvioException;
 
 import org.lcsim.event.EventHeader;
 
 /**
- *
  * This code reads VTP banks from the EVIO, and writes it's values as a genericObject.
  * In GenericObject there are two arrays. One represents Trigger words, and
  * the other represents rocIDs. In particular we want to know the rocID of i-th  VTP word,
  * the we should use the i-th value of the array "rocID_vals" (see description in the code).
- * 
- * 
- * 
- * @author rafopar
  */
 public class VTPEvioReader extends EvioReader {
 

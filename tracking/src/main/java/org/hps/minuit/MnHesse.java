@@ -8,7 +8,6 @@ import java.util.logging.Logger;
  * matrix of second derivatives of the function with respect to the currently
  * variable parameters, and inverts it.
  *
- * @version $Id: MnHesse.java 16142 2014-09-05 02:52:34Z tonyj $
  */
 public class MnHesse {
 

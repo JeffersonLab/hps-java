@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.lcsim.geometry.compact.converter;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -20,8 +17,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
 /**
  * Geometry information for the HPS tracker 2014
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefinition {
 
@@ -146,7 +141,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the pair spectrometer (PS) vacuum chamber Reference: tracking volume coordinate system Origin: same as reference Orientation: u - points in x direction (towards positron side), v - points upstream
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class PSVacuumChamber extends SurveyVolume {
 
@@ -179,7 +173,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the SVT box envelope Reference: PS vacuum chamber coordinate system. Note that the PS vacuum chamber box is placed w.r.t. this box and the target positions. Origin: intersection of midplanes vertically and horizontally Orientation: same as reference
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class SvtBox extends SurveyVolume {
 
@@ -218,7 +211,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the base plate of the SVT box. Reference: {@link SvtBox} coordinate system. Origin: surface of base plate intersection with center of hole for adjustment screw on positron side Orientation: same as reference
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class SvtBoxBasePlate extends SurveyVolume {
 
@@ -267,7 +259,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the support ring Reference: @SvtBoxBasePlate Origin: pin position of support ring (electron side) Orientation: slot position is vee position (positron side) i.e u points towards the positron side and v in the upstream beam direction
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class SupportRing extends SurveyVolume {
 
@@ -315,7 +306,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Abstract {@link SurveyVolume} volume defining a coordinate system from the kinematic mount positions for support channels
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class SupportRingL13KinMount extends SurveyVolume {
 
@@ -357,7 +347,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining a coordinate system from the kinematic mount positions for support channels Reference: {@link SvtBox} coordinate system Origin: cone mount (it's on the electron side) Orientation: ball is cone mount, slot mount is vee position and flat is along beam line pointing upstream
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class SupportRingL13BottomKinMount extends SupportRingL13KinMount {
 
@@ -378,7 +367,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining a coordinate system from the kinematic mount positions for support channels Reference: @SupportRing coordinate system Origin: cone mount (it's on the electron side) Orientation: ball is cone mount, slot mount is vee position and flat is along beamline pointing upstream
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class SupportRingL13TopKinMount extends SupportRingL13KinMount {
 
@@ -418,7 +406,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of the L1-3 u-channels
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class UChannelL13 extends SurveyVolume {
 
@@ -454,7 +441,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the bottom L1-3 u-channel Reference: {@link SupportRingL13BottomKinMount} coordinate system Origin: midpoint between upstream survey cones Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class UChannelL13Bottom extends UChannelL13 {
 
@@ -496,7 +482,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Position of the center of the survey balls when engaging the cones in the side plates of the U-channel. This is at nominal position.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     private static class UChannelL13BottomSurveyBalls {
 
@@ -531,7 +516,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the top L1-3 u-channel Reference: SupportRingL13TopKinMount coordinate system Origin: midpoint between upstream survey cones Orientation: u - width pointing towards positron side, v - pointing along the U-channel in the beam direction Note that this is flipped w.r.t. bottom support.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class UChannelL13Top extends UChannelL13 {
 
@@ -572,7 +556,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Position of the center of the survey balls when engaging the cones in the side plates of the U-channel. This is at nominal position.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     private static class UChannelL13TopSurveyBalls {
 
@@ -606,7 +589,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of the u-channel plate
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class UChannelPlate extends SurveyVolume {
 
@@ -623,7 +605,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of the u-channel plate
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class UChannelL13Plate extends UChannelPlate {
 
@@ -686,7 +667,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the bottom u-channel plate Reference: @UChannelL13Bottom coordinate system Origin: same as reference Orientation: same as reference
      *
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class UChannelL13BottomPlate extends UChannelL13Plate {
 
@@ -710,7 +690,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the bottom u-channel plate Reference: @UChannelL13Bottom coordinate system Origin: same as reference Orientation: same as reference
      *
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class UChannelL13TopPlate extends UChannelL13Plate {
 
@@ -734,7 +713,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Abstract {@link SurveyVolume} volume defining the L4-6 u-channel volume
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class UChannelL46 extends SurveyVolume {
 
@@ -759,7 +737,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the u-channel Reference: SVTBox coordinate system Origin: midpoint between upstream survey cones Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class UChannelL46Bottom extends UChannelL46 {
 
@@ -789,7 +766,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Position of the center of the survey balls when engaging the cones in the side plates of the U-channel.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     private static class UChannelL46BottomSurveyBalls {
 
@@ -834,7 +810,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the u-channel Reference: {@link SVTBox} coordinate system Origin: midpoint between upstream survey cones Orientation: u - width pointing towards electron side, v - pointing along the U-channel in the beam direction
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class UChannelL46Top extends UChannelL46 {
 
@@ -875,7 +850,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Position of the center of the survey balls when engaging the cones in the side plates of the U-channel.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     private static class UChannelL46TopSurveyBalls {
 
@@ -920,7 +894,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Abstract {@link SurveyVolume} defining the coordinate system of the u-channel plates
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class UChannelL46Plate extends UChannelPlate {
 
@@ -981,7 +954,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} defining the coordinate system of the bottom u-channel plate Reference: @UChannelL13Bottom coordinate system Origin: same as reference Orientation: same as reference
      *
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class UChannelL46BottomPlate extends UChannelL46Plate {
 
@@ -1005,7 +977,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} defining the coordinate system of the top u-channel plate Reference: @UChannelL13Top coordinate system Origin: same as reference Orientation: same as reference
      *
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class UChannelL46TopPlate extends UChannelL46Plate {
 
@@ -1029,7 +1000,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of module L1-3 Reference: @UChannelL13Bottom coordinate system Origin: hole position on mounting surface (on electron side) Orientation: u - is normal to the surface pointing vertically down, v - points along module away from hybrid side (i.e. positron direction).
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class ModuleL13 extends BaseModule {
 
@@ -1238,7 +1208,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of module L4-6
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class ModuleL46 extends BaseModule {
 
@@ -1286,7 +1255,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of bottom modules for L4-6 Reference: @UChannelL46Bottom coordinate system Origin: hole position on mounting surface (electron side) Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards positron side.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class ModuleL46Bot extends ModuleL46 {
 
@@ -1315,7 +1283,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of top modules for L4-6 Reference: @UChannelL46Top coordinate system Origin: hole position on mounting surface (electron side when installed) Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards electron side when installed.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class ModuleL46Top extends ModuleL46 {
 
@@ -1602,7 +1569,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the axial half-module in module L1-3 Reference: @ModuleL13Bot coordinate system Origin: sensor center Orientation: w - is normal to the surface pointing from p-side to n-side, v - points along strips away from signal bond pads
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class HalfModuleAxial extends HPSTestRunTracker2014GeometryDefinition.TestRunHalfModule {
 
@@ -1645,7 +1611,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     /**
      * {@link SurveyVolume} volume defining the coordinate system of the stereo half-module in module L1-3 Reference: @ModuleL13Bot coordinate system Origin: sensor center Orientation: same as axial - the module is rotated later.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class HalfModuleStereo extends HPSTestRunTracker2014GeometryDefinition.TestRunHalfModule {
 
@@ -1899,7 +1864,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     }
 
     /**
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class LongModuleBundle extends BaseModuleBundle {
 
@@ -1930,7 +1894,6 @@ public class HPSTracker2014GeometryDefinition extends HPSTrackerGeometryDefiniti
     }
 
     /**
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class LongHalfModuleBundle extends HalfModuleBundle {
 

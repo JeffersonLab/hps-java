@@ -3,14 +3,11 @@ package org.hps.record.daqconfig2019;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-
 /**
  * Class <code>DAQConfig2019</code> holds all of the supported parameters
  * from the DAQ configuration that exists in EVIO files. These values
  * are stored in various subclasses appropriate to the parameter that
  * are accessed through this primary interface.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class DAQConfig2019 extends IDAQConfig2019 {
     //If print out configuration in terminal

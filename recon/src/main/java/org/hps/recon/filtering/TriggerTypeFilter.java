@@ -7,9 +7,6 @@ import org.lcsim.event.GenericObject;
 
 /**
  * Accept events with the desired trigger bit.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class TriggerTypeFilter extends EventReconFilter {
 

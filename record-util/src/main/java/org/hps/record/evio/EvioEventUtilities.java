@@ -19,8 +19,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 
 /**
  * This is a set of basic static utility methods for <code>EvioEvent</code> objects.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EvioEventUtilities {
 

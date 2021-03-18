@@ -6,7 +6,6 @@ import java.io.StringWriter;
 /**
  * Utilities for printing various minuit results.
  *
- * @version $Id: MnPrint.java 8584 2006-08-10 23:06:37Z duns $
  */
 public abstract class MnPrint {
 

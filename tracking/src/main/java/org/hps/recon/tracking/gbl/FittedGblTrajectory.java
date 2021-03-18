@@ -12,14 +12,11 @@ import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.event.Track;
-//import org.lcsim.event.base.BaseTrack;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 
 /**
  * A class that collects information about a fitted GBL trajectory.
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class FittedGblTrajectory {
 

@@ -5,15 +5,12 @@ import java.util.Collection;
 
 import org.apache.commons.math3.special.Gamma;
 import org.hps.readout.svt.HPSSVTConstants;
-//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 
 /**
  * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants;
  * fits values and errors for T0 and amplitude.
- *
- * @author Sho Uemura
  */
 public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
 

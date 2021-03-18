@@ -18,10 +18,9 @@ import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
 import org.hps.util.Pair;
+
 /**
  * Track followed and fitted by the Kalman filter
- * @author Robert Johnson
- *
  */
 public class KalTrack {
     public int ID;

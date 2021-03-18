@@ -6,9 +6,6 @@ import org.hps.monitoring.application.model.ConfigurationModel;
 import org.hps.record.et.EtConnection;
 import org.jlab.coda.et.EtConstants;
 
-/**
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
- */
 public final class EtSystemUtil {
 
     /**

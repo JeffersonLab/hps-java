@@ -16,8 +16,6 @@ import org.lcsim.util.cache.FileCache;
 
 /**
  * Test class to create set of histograms (aida/root) from reco LCIO.
- *
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
  */
 public class TrackingReconstructionPlotsTest extends TestCase {
 

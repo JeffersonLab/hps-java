@@ -12,18 +12,8 @@ import org.apache.commons.math3.linear.DecompositionSolver;
 import org.apache.commons.math3.linear.NonPositiveDefiniteMatrixException;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
-//import org.apache.commons.math3.linear.RealMatrixFormat;
-//import org.apache.commons.math3.linear.RealVectorFormat;
 
 import org.apache.commons.math3.special.Gamma;
-
-/*
-import org.freehep.math.minuit.FCNBase;
-import org.freehep.math.minuit.FunctionMinimum;
-import org.freehep.math.minuit.MnSimplex;
-import org.freehep.math.minuit.MnUserParameters;
-//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
-*/
 
 import org.hps.minuit.FCNBase;
 import org.hps.minuit.FunctionMinimum;
@@ -34,8 +24,6 @@ import org.hps.readout.svt.HPSSVTConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 
-
-//Use ejml
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.row.mult.MatrixVectorMult_DDRM;
@@ -45,9 +33,6 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
 /**
  * Fast fitter; currently only fits single hits. Uses Tp from ChannelConstants;
  * fits values and errors for T0 and amplitude.
- *
- * @author Sho Uemura
- * @author PF (ejml basic migration)
  */
 public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 

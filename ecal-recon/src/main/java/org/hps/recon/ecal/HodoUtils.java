@@ -9,10 +9,7 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.geometry.Detector;
 
 /**
- *
- * @author mgraham
  * Utility classes for Hodoscope
- * created: 7/20/2019
  */
 public class HodoUtils {
 

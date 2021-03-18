@@ -74,8 +74,6 @@ import org.lcsim.util.aida.AIDA;
  * 
  * Driver <code>TriggeDiagnostic2019Driver</code> is developed based on Driver
  * <code>TriggeDiagnosticDriver</code>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class TriggerDiagnostic2019Driver extends Driver {
     private String runNumber = "-1";

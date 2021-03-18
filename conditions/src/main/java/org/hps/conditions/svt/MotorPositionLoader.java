@@ -23,8 +23,6 @@ import org.apache.commons.cli.PosixParser;
  * the motor stage to an opening angle.
  * <p>
  * The calculated angle ranges are written out to a comma delimited text file with double-quoted field values.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class MotorPositionLoader {
 

@@ -14,10 +14,6 @@ import java.util.List;
 import java.util.StringTokenizer;
 import static java.lang.Math.abs;
 
-/**
- * @author Norman A Graf
- * @version $Id:
- */
 public class UnfoldFieldmap {
 
     // The dimensions of the table

@@ -14,11 +14,9 @@ import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.ejml.dense.fixed.CommonOps_DDF3;
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
+
 /**
- * 
  * Helix description for the Kalman filter
- * @author Robert Johnson
- *
  */
 class HelixState implements Cloneable {
     Vec a;                      // Helix parameters: rho0, phi0, K, z0, tan(lambda)

@@ -98,8 +98,6 @@ import org.lcsim.util.Driver;
  * org.hps.readout.ReadoutDataManager#checkCollectionStatus(String, double)
  * ReadoutDataManager.checkCollectionStatus(String, double)} for the
  * appropriate collection.<br/><br/>
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public abstract class ReadoutDriver extends Driver {
     /**
