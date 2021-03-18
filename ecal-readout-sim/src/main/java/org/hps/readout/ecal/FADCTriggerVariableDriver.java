@@ -1,6 +1,3 @@
-/*
- * To change this template, choose Tools | Templates and open the template in the editor.
- */
 package org.hps.readout.ecal;
 
 import java.io.FileNotFoundException;
