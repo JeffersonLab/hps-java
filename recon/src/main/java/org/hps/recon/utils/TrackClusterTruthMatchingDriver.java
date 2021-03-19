@@ -181,6 +181,22 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         tree = IAnalysisFactory.create().createTreeFactory().create();
         histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
 
+//Plots for creating track+cluster residual parameterization files
+        plots2D.put(String.format("%s_ele_TOP_track_cluster_param_dx",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_TOP_track_cluster_param_dx",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_ele_TOP_track_cluster_param_dy",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_TOP_track_cluster_param_dy",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_ele_TOP_track_cluster_param_dz",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_TOP_track_cluster_param_dz",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_ele_BOTTOM_track_cluster_param_dx",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_BOTTOM_track_cluster_param_dx",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_ele_BOTTOM_track_cluster_param_dy",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_BOTTOM_track_cluster_param_dy",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_ele_BOTTOM_track_cluster_param_dz",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_ele_BOTTOM_track_cluster_param_dz",this.trackCollectionName),50, 0, 5, 160,-40,40));
+
+        plots2D.put(String.format("%s_pos_TOP_track_cluster_param_dx",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_TOP_track_cluster_param_dx",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_pos_TOP_track_cluster_param_dy",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_TOP_track_cluster_param_dy",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_pos_TOP_track_cluster_param_dz",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_TOP_track_cluster_param_dz",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_pos_BOTTOM_track_cluster_param_dx",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_BOTTOM_track_cluster_param_dx",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_pos_BOTTOM_track_cluster_param_dy",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_BOTTOM_track_cluster_param_dy",this.trackCollectionName),50, 0, 5, 160,-40,40));
+        plots2D.put(String.format("%s_pos_BOTTOM_track_cluster_param_dz",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_BOTTOM_track_cluster_param_dz",this.trackCollectionName),50, 0, 5, 160,-40,40));
+    
+
 
 //Total Counts of Interesting Events
     
@@ -745,7 +761,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         //Truth Match Clusters to MCParticles    
         Map<MCParticle, Cluster> mcpClustersMap = new HashMap<MCParticle, Cluster>();
         Map<Cluster, MCParticle> clustersMCPMap = new HashMap<Cluster, MCParticle>();
-        getClusterMcpMap(clusters, event, false, mcpClustersMap, clustersMCPMap);
+        getClusterMcpMap(clusters, event, true, mcpClustersMap, clustersMCPMap);
         plots2D.get("nMCP_truth_clusters_v_clusters_per_event").fill(mcpClustersMap.size(),clusters.size());
 
         List<Cluster> truthClusters = new ArrayList<Cluster>();
@@ -787,7 +803,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
 
         //Combine Cluster and Track MCParticle Map into one map
-        Map<MCParticle, Map<Track, Cluster>> truthPairsMap = new HashMap<MCParticle, Pair<Track, Cluster>>();
+        Map<MCParticle, Pair<Track, Cluster>> truthPairsMap = new HashMap<MCParticle, Pair<Track, Cluster>>();
         Map<MCParticle, Pair<Cluster, List<Track>>> comboMap = new HashMap<MCParticle, Pair<Cluster, List<Track>>>();
         Set<MCParticle> mcpsOfInterest = new HashSet<MCParticle>();
 
@@ -833,7 +849,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
 
             if(mcpTracks.size() > 0 && mcpCluster != null){
                 Track bestTrack = getMcpBestTrack(mcp,mcpTracksMap);
-                truthPairsMap.put(mcp, new Pair<Track,Cluster>(bestTrack, mclCluster));
+                truthPairsMap.put(mcp, new Pair<Track,Cluster>(bestTrack, mcpCluster));
                 int charge = -1* (int)Math.signum(bestTrack.getTrackStates().get(0).getOmega());
                 double[] trackP = bestTrack.getTrackStates().get(bestTrack.getTrackStates().size()-1).getMomentum();
                 double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
@@ -874,6 +890,7 @@ public class TrackClusterTruthMatchingDriver extends Driver {
         //Caluclate track+cluster pair position residuals as function of
         //momentum and create residual parameterization file to be used in
         //matcher algorithm class
+        trackClusterResidualParameterization(truthPairsMap);
 
 
 
@@ -1870,26 +1887,56 @@ public class TrackClusterTruthMatchingDriver extends Driver {
     }
 
     private void trackClusterResidualParameterization(Map<MCParticle,Pair<Track, Cluster>> truthPairsMap){
-        
+
+        //baboon
         for(Map.Entry<MCParticle, Pair<Track, Cluster>> entry : truthPairsMap.entrySet()){
 
             Track track = entry.getValue().getFirstElement();
             Cluster cluster = entry.getValue().getSecondElement();
             int charge = -1* (int) Math.signum(track.getTrackStates().get(0).getOmega());
-            double [] params = mosthitsTrack.getTrackParameters();
+            double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtIP).getMomentum();
+            double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
+            double [] params = track.getTrackParameters();
             double tanlambda = params[4];
             boolean isTop;
-            if(tanlambda > 0 )
-                isTop = true;
-            else
-                isTop = false;
 
+            List<Double> trackPos = getTrackPositionAtEcal(track);
+            double trackx = trackPos.get(0);
+            double tracky = trackPos.get(1);
+            double trackz = trackPos.get(2);
 
+            double clustx = cluster.getPosition()[0];
+            double clusty = cluster.getPosition()[1];
+            double clustz = cluster.getPosition()[2];
+            double clusterEnergy = cluster.getEnergy();
+
+            if(charge < 0){
+                if(tanlambda > 0){
+                    plots2D.get(String.format("%s_ele_TOP_track_cluster_param_dx",this.trackCollectionName)).fill(trackPmag,trackx-clustx);
+                    plots2D.get(String.format("%s_ele_TOP_track_cluster_param_dy",this.trackCollectionName)).fill(trackPmag,tracky-clusty);
+                    plots2D.get(String.format("%s_ele_TOP_track_cluster_param_dz",this.trackCollectionName)).fill(trackPmag,trackz-clustz);
+                }
+                else{
+                    plots2D.get(String.format("%s_ele_BOTTOM_track_cluster_param_dx",this.trackCollectionName)).fill(trackPmag,trackx-clustx);
+                    plots2D.get(String.format("%s_ele_BOTTOM_track_cluster_param_dy",this.trackCollectionName)).fill(trackPmag,tracky-clusty);
+                    plots2D.get(String.format("%s_ele_BOTTOM_track_cluster_param_dz",this.trackCollectionName)).fill(trackPmag,trackz-clustz);
+                }
+            }
+            else{
+                if(tanlambda > 0){
+                    plots2D.get(String.format("%s_pos_TOP_track_cluster_param_dx",this.trackCollectionName)).fill(trackPmag,trackx-clustx);
+                    plots2D.get(String.format("%s_pos_TOP_track_cluster_param_dy",this.trackCollectionName)).fill(trackPmag,tracky-clusty);
+                    plots2D.get(String.format("%s_pos_TOP_track_cluster_param_dz",this.trackCollectionName)).fill(trackPmag,trackz-clustz);
+                }
+                else{
+                    plots2D.get(String.format("%s_pos_BOTTOM_track_cluster_param_dx",this.trackCollectionName)).fill(trackPmag,trackx-clustx);
+                    plots2D.get(String.format("%s_pos_BOTTOM_track_cluster_param_dy",this.trackCollectionName)).fill(trackPmag,tracky-clusty);
+                    plots2D.get(String.format("%s_pos_BOTTOM_track_cluster_param_dz",this.trackCollectionName)).fill(trackPmag,trackz-clustz);
+                }
+
+            }
 
         }
-
-
-
 
     }
 
