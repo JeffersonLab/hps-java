@@ -21,8 +21,6 @@ import hep.aida.IHistogram2D;
  * GTPClusterReadoutDriver} and performs the necessary trigger logic
  * on them. If a trigger is detected, it is sent to the readout data
  * manager so that a triggered readout event may be written.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SinglesTriggerReadoutDriver extends TriggerDriver {
     

@@ -9,10 +9,7 @@ package org.hps.recon.utils;
  * @see AbstractTrackClusterMatcher
  * @see TrackClusterMatcherNSigma
  * @see TrackClusterMatcherMinDistance
- *
- * @author Alic Spellman <alspellm@ucsc.edu>
  */
-
 public final class TrackClusterMatcherFactory {
 
     /**

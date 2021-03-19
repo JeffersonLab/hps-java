@@ -11,7 +11,6 @@ import org.hps.readout.util.TimedList;
  * {@link org.hps.readout.util.TimedList TimedList}, where each entry
  * corresponds to the data present at a given time.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The object type of the data stored by the collection.
  */
 public class ManagedLCIOData<T> extends LCIOData<T, ManagedLCIOCollection<T>, LinkedList<TimedList<?>>> {

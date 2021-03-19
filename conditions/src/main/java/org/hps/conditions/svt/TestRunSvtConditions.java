@@ -12,9 +12,6 @@ import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
  * This class contains all test run SVT conditions data by readout channel. {@link TestRunSvtChannel} objects from the
  * SVT channel map should be used to lookup the conditions using the {@link #getChannelConstants(AbstractSvtChannel)}
  * method.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 public final class TestRunSvtConditions extends AbstractSvtConditions {
 

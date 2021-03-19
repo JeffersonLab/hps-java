@@ -4,16 +4,12 @@ import java.util.List;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 
-/**
- *
- * @author Norman Graf
- */
 public class V0SkimDriver extends EventReconFilter {
 
     private String v0CollectionName = "UnconstrainedV0Candidates";
 
     /**
-     * sets the V0 candidate collection to use.
+     * Sets the V0 candidate collection to use.
      *
      * @param val
      */

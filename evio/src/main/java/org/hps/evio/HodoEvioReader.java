@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.evio;
 
 import java.util.ArrayList;
@@ -32,11 +27,8 @@ import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
- *
  * This class is similar to the ECalEvioReader. It was copied and modified to
  * work with Hodoscope data.
- *
- * @author rafopar
  */
 public class HodoEvioReader extends EvioReader {
 

@@ -26,8 +26,6 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType.CoordinateSyst
 
 /**
  * Class with static utilities for straight through tracking.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class STUtils {
 

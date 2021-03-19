@@ -2,8 +2,6 @@ package org.hps.conditions.api;
 
 /**
  * Thrown by methods of {@link ConditionsObject} or other associated classes such as converters and collections.
- *
- * @author Jeremy McCormick
  */
 @SuppressWarnings("serial")
 public final class ConditionsObjectException extends Exception {

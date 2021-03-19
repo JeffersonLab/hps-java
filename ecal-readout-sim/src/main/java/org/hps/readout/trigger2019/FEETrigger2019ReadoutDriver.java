@@ -22,8 +22,6 @@ import org.lcsim.event.EventHeader;
  * manager so that a triggered readout event may be written.
  * 
  * Prescale for various regions are not set. 
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 
 public class FEETrigger2019ReadoutDriver extends TriggerDriver{

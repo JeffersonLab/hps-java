@@ -4,7 +4,6 @@ package org.hps.minuit;
  * Calculates and the eigenvalues of the user covariance matrix
  * MnUserCovariance.
  *
- * @version $Id: MnEigen.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnEigen {
 

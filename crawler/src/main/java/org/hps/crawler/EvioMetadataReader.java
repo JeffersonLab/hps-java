@@ -25,8 +25,6 @@ import org.jlab.coda.jevio.EvioReader;
 
 /**
  * Creates detailed metadata for the datacat from an EVIO input file.
- * 
- * @author Jeremy McCormick, SLAC
  */
 final class EvioMetadataReader implements FileMetadataReader {
 

@@ -6,8 +6,6 @@ import java.util.Set;
 
 /**
  * A filter which rejects files with run numbers not in a specified set.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class RunFilter implements FileFilter {
 

@@ -13,12 +13,7 @@ import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.GeometryReader;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class HPSTestRunTracker2014Test extends TestCase {
-
     
     Detector det;
     public HPSTestRunTracker2014Test(String name) {
@@ -34,12 +29,9 @@ public class HPSTestRunTracker2014Test extends TestCase {
         det = geometryReader.read(in);
         
         System.out.printf("%s: detector name converted: %s\n",this.getClass().getSimpleName(), det.getName());
-        
-        
     }
     
     public void test() {
-        
         
 //      IDetectorElementStore store =  DetectorElementStore.getInstance();
 //      System.out.printf("%s: Printing %d DE:\n",this.getClass().getSimpleName(), store.size());

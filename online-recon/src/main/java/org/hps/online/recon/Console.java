@@ -17,8 +17,6 @@ import org.hps.online.recon.commands.CommandFactory;
 
 /**
  * Interactive console for online reconstruction client.
- * 
- * @author jeremym
  */
 public class Console {
 

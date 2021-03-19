@@ -28,8 +28,6 @@ import org.lcsim.event.RawTrackerHit;
  * <br/>
  * <code>EcalOnlineRawConverter2019</code> is developed referring to
  * <code>EcalOnlineRawConverter</code>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class EcalOnlineRawConverter2019 {
     // Defines the maximum number of peaks that may be extracted from

@@ -7,8 +7,6 @@ import org.lcsim.event.ReconstructedParticle;
 
 /**
  * Moller skim driver to use for pass1.  
- * @author spaul
- *
  */
 public class MollerCandidateFilterPass1 extends EventReconFilter{
     private String mollerCollectionName = "TargetConstrainedMollerCandidates";

@@ -11,10 +11,8 @@ import org.lcsim.event.SimTrackerHit;
 
 /**
  * <code>SimTrackerHitReadoutDriver</code> handles SLIC objects in
- * input Monte Carlo files of type {@link
- * org.lcsim.event.SimTrackerHit SimTrackerHit}.
+ * input Monte Carlo files of type {@link org.lcsim.event.SimTrackerHit SimTrackerHit}.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see org.hps.readout.SLICDataReadoutDriver
  */
 public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTrackerHit> {

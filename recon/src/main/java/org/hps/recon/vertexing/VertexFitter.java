@@ -17,8 +17,6 @@ import org.hps.recon.tracking.StraightLineTrack;
 
 /**
  * Fit a set of straight line tracks to a common vertex
- *
- * @author Richard Partridge
  */
 public class VertexFitter {
 

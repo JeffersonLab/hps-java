@@ -3,14 +3,9 @@ package org.hps.recon.tracking.kalman;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import org.hps.conditions.beam.BeamPosition;
-//import org.hps.conditions.beam.BeamPosition.BeamPositionCollection;
-//import org.hps.conditions.database.DatabaseConditionsManager;
 
 /**
  * Parameters used by the Kalman-Filter pattern recognition and fitting
- * @author Robert Johnson
- *
  */ 
 public class KalmanParams {
     static final int mxTrials = 2;  // Max number of iterations through the entire pattern recognition; not configurable

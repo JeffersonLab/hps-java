@@ -32,9 +32,6 @@ import org.lcsim.geometry.subdetector.Hodoscope_v1;
  * org.lcsim.geometry.subdetector.Hodoscope_v1 Hodoscope_v1}. It
  * handles all of the hodoscope-specific functions needed by the
  * superclass.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDriver<Hodoscope_v1> {    
     // The DAQ configuration manager for FADC parameters.

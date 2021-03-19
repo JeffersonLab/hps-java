@@ -1,13 +1,13 @@
 package org.hps.recon.tracking.kalman;
+
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+
 /**
  * Simultaneous fit of axial and stereo measurements to a line in the non-bending plane
  * and a parabola in the bending plane
  * Deprecated. The LinearHelixFit code was integrated into SeedTrack as a method of that class, for better efficiency.
- * @author Robert Johnson
  */
-import org.ejml.data.DMatrixRMaj;
-import org.ejml.dense.row.CommonOps_DDRM;
-
 class LinearHelixFit { // 
 
     private DMatrixRMaj  C; // Covariance matrix of solution

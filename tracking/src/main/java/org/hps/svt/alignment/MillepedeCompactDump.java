@@ -1,11 +1,5 @@
 package org.hps.svt.alignment;
 
-/**
- * Class building a new compact.xml detector based on MillepedeII input corrections
- * 
- * @author phansson created on 1/15/2014
- */
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -25,6 +19,9 @@ import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
+/**
+ * Class building a new compact.xml detector based on MillepedeII input corrections
+ */
 public class MillepedeCompactDump {
 
     private static String detectorName = "Tracker";

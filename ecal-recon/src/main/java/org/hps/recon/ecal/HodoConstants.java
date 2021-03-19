@@ -1,13 +1,5 @@
-/*
- * Here comes the text of your license
- * Each line should be prefixed with  * 
- */
 package org.hps.recon.ecal;
 
-/**
- *
- * @author rafopar
- */
 public class HodoConstants {
     
     public static final int TET_AllCh = 12;

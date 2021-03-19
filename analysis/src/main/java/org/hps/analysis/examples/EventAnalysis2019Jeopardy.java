@@ -29,10 +29,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author ngraf
- */
 public class EventAnalysis2019Jeopardy extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

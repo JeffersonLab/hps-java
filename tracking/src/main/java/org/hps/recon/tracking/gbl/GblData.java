@@ -6,13 +6,7 @@ import java.util.List;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.VVector;
 
-/**
- * @author Norman A Graf
- * @author PF
- * @version $Id:
- */
 public class GblData {
-    
    
     enum dataBlockType {
         None, InternalMeasurement, InternalKink, ExternalSeed, ExternalMeasurement;

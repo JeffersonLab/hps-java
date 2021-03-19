@@ -7,8 +7,6 @@ package org.hps.record.daqconfig2019;
  * set it.
  * 
  * Code is developed referring to org.hps.record.daqconfig.UBOCutConfig by Kyle McCarty
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class UBOCutConfig2019 extends AbstractConfig2019<Double> {
     private static final int UPPER_BOUND = 0;

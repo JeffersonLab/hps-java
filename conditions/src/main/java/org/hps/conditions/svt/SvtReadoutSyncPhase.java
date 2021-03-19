@@ -7,8 +7,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * This class represents the svt readout phases and crostalk time windows
- *
- * @author Cameron Bravo, SLAC
  */
 @Table(names = {"svt_readout_sync_phases"})
 public final class SvtReadoutSyncPhase extends BaseConditionsObject {

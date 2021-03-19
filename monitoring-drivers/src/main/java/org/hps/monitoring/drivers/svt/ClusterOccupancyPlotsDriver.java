@@ -34,14 +34,9 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This Driver makes plots of SVT sensor occupancies across a run.
  *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * <<<<<<< HEAD
- *
  * 6/6/19: modified this to work with SVT upgrade including "L0"; separated all
  * plotters into 2
  * so that we have one page for L1-4 and one for L5-7
- * =======
- * >>>>>>> iss457
  */
 public class ClusterOccupancyPlotsDriver extends Driver {
 

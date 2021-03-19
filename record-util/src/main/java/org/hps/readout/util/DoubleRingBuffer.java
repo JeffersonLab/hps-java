@@ -7,8 +7,6 @@ package org.hps.readout.util;
  * through the method {@link
  * org.hps.readout.util.RingBuffer#addToCell(int, Object)
  * addToCell(int, Object)}.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class DoubleRingBuffer extends RingBuffer<Double, Double> {
     /**

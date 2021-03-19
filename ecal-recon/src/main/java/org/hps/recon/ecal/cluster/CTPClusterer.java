@@ -23,10 +23,6 @@ import org.lcsim.geometry.IDDecoder;
  * Creates clusters from CalorimeterHits in the HPSEcal detector.
  *
  * The clustering algorithm is from JLab Hall B 6 GeV DVCS Trigger Design doc.
- *
- * @author Kyle McCarty
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class CTPClusterer extends AbstractClusterer {
 

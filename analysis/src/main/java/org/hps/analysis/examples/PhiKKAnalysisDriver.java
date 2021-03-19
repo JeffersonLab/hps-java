@@ -22,8 +22,6 @@ import org.lcsim.util.fourvec.Momentum4Vector;
 /**
  * Simple analysis to search for φ→K⁺K⁻ Loop over existing V0s, recalculate mass
  * using different particle hypotheses for the constituent particles.
- *
- * @author Norman A. Graf
  */
 public class PhiKKAnalysisDriver extends Driver {
 

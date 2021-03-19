@@ -4,10 +4,6 @@ import java.util.List;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 
-/**
- *
- * @author Norman Graf
- */
 public class MollerSkimDriver extends EventReconFilter {
 
     private String mollerCollectionName = "UnconstrainedMollerCandidates";

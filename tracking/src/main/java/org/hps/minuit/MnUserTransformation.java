@@ -10,7 +10,6 @@ import java.util.Map;
  * knows how to transform between user specified parameters (external) and
  * internal parameters used for minimization
  *
- * @version $Id: MnUserTransformation.java 8584 2006-08-10 23:06:37Z duns $
  */
 class MnUserTransformation {
 

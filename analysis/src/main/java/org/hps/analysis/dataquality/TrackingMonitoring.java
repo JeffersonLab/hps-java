@@ -31,8 +31,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * DQM driver for reconstructed track quantities plots things like number of
  * tracks/event, chi^2, track parameters (d0/z0/theta/phi/curvature)
- *
- * @author mgraham on Mar 28, 2014
  */
 // TODO:  Add some quantities for DQM monitoring:  e.g. <tracks>, <hits/track>, etc
 public class TrackingMonitoring extends DataQualityMonitor {

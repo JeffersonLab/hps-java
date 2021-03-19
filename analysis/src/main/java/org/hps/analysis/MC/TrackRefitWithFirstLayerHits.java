@@ -1,6 +1,5 @@
 package org.hps.analysis.MC;
 
-
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -38,8 +37,6 @@ import org.lcsim.recon.tracking.seedtracker.StrategyXMLUtils;
 import org.lcsim.util.Driver;
 
 /**
- *
- * @author mrsolt
  * This driver selects all 3D hits in the first layer of the track (L1 or L2),
  * and refits on all 3D hits in that layer. This seed track can be fed to "FirstHitGBLRefitterDriver"
  * to do a GBL Refit.

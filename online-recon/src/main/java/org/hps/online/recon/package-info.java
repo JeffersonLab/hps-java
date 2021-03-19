@@ -34,8 +34,5 @@
  * 
  * An optional task runs server-side to automatically add output ROOT plots 
  * periodically and write them to an output target file.
- * 
- * @author jeremym
- * @version 1.0
  */
 package org.hps.online.recon;

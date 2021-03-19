@@ -11,11 +11,8 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import junit.framework.TestCase;
 
 /**
- * 
  * Test that beam positions from conditions database match 
  * hard-coded map copied from reconstruction driver.
- * 
- * @author jeremym
  */
 public class BeamPositionTest extends TestCase {
 

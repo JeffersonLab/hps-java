@@ -6,9 +6,6 @@ import org.lcsim.event.GenericObject;
  * GenericObject to store hit information for FADC channels not corresponding to
  * ECal crystals. Intended for scintillator paddles and other hardware plugged
  * into unused FADC channels.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class FADCGenericHit implements GenericObject {
 

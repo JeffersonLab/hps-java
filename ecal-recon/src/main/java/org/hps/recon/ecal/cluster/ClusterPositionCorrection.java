@@ -7,9 +7,6 @@ import org.lcsim.event.base.BaseCluster;
  * This uses the uncorrected cluster energy to correct the position of the cluster.
  * This should be used before the energy is corrected on the Cluster and after
  * cluster-track matching.
- * 
- * @author Holly Vance <hvanc001@odu.edu>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public final class ClusterPositionCorrection {
     //Parameterizations tested in MC using v3-fieldmap

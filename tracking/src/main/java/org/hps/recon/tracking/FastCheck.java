@@ -17,9 +17,6 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
 /**
  * HPS version of LCSim class
- * @author Richard Partridge
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
- * @version $Id: 2.0 07/07/17$
  */
 public class FastCheck extends org.lcsim.recon.tracking.seedtracker.FastCheck {
 

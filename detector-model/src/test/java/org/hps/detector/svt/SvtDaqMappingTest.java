@@ -9,8 +9,6 @@ import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 /**
  * This test checks if the SVT DAQ map was loaded and being read correctly from
  * the conditions database. This test is currently valid for the 2019 SVT only.
- *
- * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public final class SvtDaqMappingTest extends TestCase {
 

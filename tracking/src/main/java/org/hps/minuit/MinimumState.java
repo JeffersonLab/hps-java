@@ -4,7 +4,6 @@ package org.hps.minuit;
  * MinimumState keeps the information (position, gradient, 2nd deriv, etc) after
  * one minimization step (usually in MinimumBuilder).
  *
- * @version $Id: MinimumState.java 8584 2006-08-10 23:06:37Z duns $
  */
 class MinimumState {
 

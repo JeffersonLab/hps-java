@@ -7,9 +7,6 @@ import org.hps.util.Pair;
 /**
  * This class is a data holder for associating a t0 time shift with a specific sensor by DAQ pair (FEB ID and FEB hybrid
  * ID).
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 @Table(names = {"svt_t0_shifts"})
 public final class SvtT0Shift extends AbstractSvtT0Shift {

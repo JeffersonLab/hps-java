@@ -11,8 +11,6 @@ import org.lcsim.util.Driver;
 /**
  * Example analysis {@link Driver} showing how to use SVT track collections
  * and how to filter out unwanted ones. 
- * 
- * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
  */
 public class SvtTrackAnalysis extends Driver {
 

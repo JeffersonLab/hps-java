@@ -22,8 +22,6 @@ import org.lcsim.util.aida.AIDA;
  * The code for generating trigger pairs and handling the coincidence
  * window comes from <code>FADCTriggerDriver</code>.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Sho Uemura <meeg@slac.stanford.edu>
  * @see FADCTriggerDriver
  */
 public class FADCPrimaryTriggerDriver extends TriggerDriver {

@@ -16,9 +16,6 @@ import org.lcsim.event.base.BaseCluster;
  * <p>
  * The clustering algorithm is implemented according to the description on pages 83 and 84 of the 
  * <a href="https://confluence.slac.stanford.edu/download/attachments/86676777/HPSProposal-FINAL_Rev2.pdf">HPS Proposal document</a>.
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Tim Nelson <tknelson@slac.stanford.edu>
  */
 public class LegacyClusterer extends AbstractClusterer {
     

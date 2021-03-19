@@ -41,8 +41,6 @@ import org.lcsim.util.aida.AIDA;
  * 
  * Currently, it uses every ADC value for the distribution, but filtering should probably
  * be added to exclude hits above a certain threshold.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EcalCalibrationsDriver extends Driver {
     

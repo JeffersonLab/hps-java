@@ -10,10 +10,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author ngraf
- */
 public class StripOneFiducialCluster extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

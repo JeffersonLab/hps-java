@@ -28,12 +28,6 @@ import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @version $Id: $
- */
 public class SvtEventFlagger {
 
     static private final Logger LOG = Logger.getLogger(SvtEventFlagger.class.getName());

@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 /**
  *
- * @version $Id: SimplexBuilder.java 16142 2014-09-05 02:52:34Z tonyj $
  */
 class SimplexBuilder implements MinimumBuilder {
 

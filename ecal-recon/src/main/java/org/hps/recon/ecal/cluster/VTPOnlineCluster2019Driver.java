@@ -36,7 +36,6 @@ import org.lcsim.event.EventHeader;
  * <code>VTPOnlineCluster2019Driver</code> is developed referring to
  * <code>GTPOnlineClusterDriver</code>
  * 
- * @author Tongtong Cao <caot@jlab.org>
  * @see GTPOnlineClusterer
  * @see ConfigurationManager2019
  * @see org.hps.record.daqconfig2019.DAQConfig2019Driver

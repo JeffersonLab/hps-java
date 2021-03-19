@@ -7,8 +7,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * Beam x, y, and z position in millimeters.
- * 
- * @author jeremym
  */
 @Table(names = {"beam_positions"})
 public final class BeamPosition extends BaseConditionsObject {

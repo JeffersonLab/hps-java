@@ -15,8 +15,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 /**
  * Encapsulates the {@link org.lcsim.fit.helicaltrack.HelicalTrackStrip} to make sure that the local unit vectors are
  * coming from the underlying geometry.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class HelicalTrackStripGbl {
 

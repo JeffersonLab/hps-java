@@ -13,11 +13,10 @@ import org.lcsim.geometry.Detector;
  * is implemented. Calibrations specific to reconstruction are not
  * supported.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  * @see org.hps.readout.rawconverter.AbstractMode3RawConverter
  */
 public class EcalReadoutMode3RawConverter extends AbstractMode3RawConverter {        
+
     /**
      * Stores the calibrations and conditions for the calorimeter
      * subdetector.

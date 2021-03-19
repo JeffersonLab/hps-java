@@ -22,8 +22,6 @@ import org.lcsim.util.Driver;
 /**
  * Online reconstruction station which processes events from the ET system
  * and writes intermediate plot files.
- * 
- * @author jeremym
  */
 public class Station {
        

@@ -7,7 +7,6 @@ import java.util.List;
  * sometimes useful for debugging the user function or finding a reasonable
  * starting point.
  *
- * @version $Id: MnScan.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnScan extends MnApplication {
 

@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-//import java.util.Iterator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,7 +15,6 @@ import java.util.logging.Logger;
 import org.hps.record.StandardCuts;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
-//import org.lcsim.event.base.BaseTrack;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
@@ -28,10 +26,6 @@ import org.lcsim.util.aida.AIDA;
  * resulting list of unique tracks in a new collection. Remove the original
  * track collections (this behavior can be disabled). Produce some basic plots
  * (can be disabled) in mergingPlots.aida.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
- * @version $Id: v2 05/30/2017$
  */
 public class MergeTrackCollections extends Driver {
 

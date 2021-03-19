@@ -1,7 +1,6 @@
 /**
  * User API to the database conditions system
  *
- * @author Jeremy McCormick, SLAC
  * 
  * @see org.hps.conditions.api.ConditionsObject
  * @see org.hps.conditions.api.ConditionsObjectCollection

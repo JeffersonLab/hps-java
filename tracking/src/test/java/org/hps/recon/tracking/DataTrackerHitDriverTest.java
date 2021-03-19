@@ -27,9 +27,6 @@ import org.lcsim.util.loop.LCSimLoop;
  * 13, count 0
  *
  * I could automate this but not worth the effort at this time.
- *
- *
- * @author Norman A Graf
  */
 public class DataTrackerHitDriverTest extends TestCase {
 

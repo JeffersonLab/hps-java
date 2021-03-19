@@ -11,10 +11,6 @@ import static java.lang.Math.sqrt;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-/**
- *
- * @author Norman A Graf
- */
 public class GenerateSingleParticleStdhepEvents {
 
     public static void main(String[] args) throws IOException {

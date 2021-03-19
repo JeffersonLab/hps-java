@@ -2,14 +2,11 @@ package org.hps.record.daqconfig2019;
 
 import java.io.PrintStream;
 
-
 /**
  * Interface <code>DAQConfig2019</code> represents a configuration bank
  * generated from the 2019 DAQ configuration bank. This requires that all
  * implementing classes have the ability to load settings from the DAQ
  * bank parser and also print their contents to the terminal.
- * 
- * @author Tongtong Cao
  */
 abstract class IDAQConfig2019 {
     /**

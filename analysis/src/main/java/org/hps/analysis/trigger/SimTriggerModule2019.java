@@ -13,7 +13,6 @@ import org.hps.analysis.trigger.util.SinglesTrigger2019;
  * 
  * Class <code>SimTriggerModule2019</code> is developed based on Class <code>SimTriggerModule</code> 
  * 
- * @author Tongtong Cao <caot@jlab.org>
  * @param <E> - The type of clusters from which the triggers were
  * simulated. This will always be either <code>Cluster</code> or
  * <code>VTPCluster</code>. 

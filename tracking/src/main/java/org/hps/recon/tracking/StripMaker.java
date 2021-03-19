@@ -28,10 +28,6 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
 import org.hps.readout.svt.HPSSVTConstants;
 
-/**
- *
- * @author Matt Graham
- */
 // TODO: Add class documentation.
 public class StripMaker {
 

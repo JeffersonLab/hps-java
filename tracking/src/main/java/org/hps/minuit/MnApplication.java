@@ -5,7 +5,6 @@ import java.util.List;
 /**
  * Base class for minimizers.
  *
- * @version $Id: MnApplication.java 8584 2006-08-10 23:06:37Z duns $
  */
 public abstract class MnApplication {
 

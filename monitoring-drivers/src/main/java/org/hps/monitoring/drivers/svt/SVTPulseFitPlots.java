@@ -26,15 +26,7 @@ import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class SVTPulseFitPlots extends Driver {
-
-    //static {
-    //    hep.aida.jfree.AnalysisFactory.register();
-    //}
 
     private String fittedTrackerHitCollectionName = "SVTFittedRawTrackerHits";
     private static ITree tree = null;

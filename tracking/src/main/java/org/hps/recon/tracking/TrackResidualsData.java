@@ -5,13 +5,6 @@ import java.util.ArrayList;
 
 import org.lcsim.event.GenericObject;
 
-/**
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author PF <pbutti@slac.stanford.edu>
- * @version $Id$
- * 
- */
 public class TrackResidualsData implements GenericObject {
     
     List<Double> residuals = new ArrayList<Double>();

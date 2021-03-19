@@ -11,8 +11,6 @@ import org.jlab.coda.jevio.EvioReader;
 
 /**
  * A miscellaneous collection of EVIO file utility methods.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class EvioFileUtilities {
 

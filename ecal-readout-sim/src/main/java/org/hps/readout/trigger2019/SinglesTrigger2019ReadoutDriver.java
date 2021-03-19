@@ -29,8 +29,6 @@ import hep.aida.IHistogram2D;
  * {@link HodoscopePatternReadoutDriver}, and perform the necessary trigger
  * logic on them. If a trigger is detected, it is sent to the readout data
  * manager so that a triggered readout event may be written.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {     
     // ==============================================================

@@ -23,9 +23,6 @@ import org.lcsim.lcio.LCIOConstants;
  * <code>RawConverterReadoutDriver</code> itself is abstract - it
  * requires that implementing classes handle any subdetector-specific
  * functionality.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  */
 public abstract class RawConverterReadoutDriver extends ReadoutDriver {
     /**

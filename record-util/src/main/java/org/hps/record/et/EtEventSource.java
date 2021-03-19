@@ -11,8 +11,6 @@ import org.jlab.coda.et.EtEvent;
 
 /**
  * Implementation of a record source supplying <tt>EtEvent</tt> objects from an ET server connection to a record loop.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EtEventSource extends AbstractRecordSource {
 

@@ -13,8 +13,6 @@ import org.lcsim.fit.line.SlopeInterceptLineFitter;
 
 /**
  * Do a simple 1d linear fit using the 
- * 
- * @author mgraham <mgraham@slac.stanford.edu>
  */
 public class StraightTrackAxialFitter implements HPSFitter{
 

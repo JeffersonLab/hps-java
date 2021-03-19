@@ -22,15 +22,8 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Monitoring driver that plots the raw hit samples for each of the hits on a
  * sensor.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class SamplesPlots extends Driver {
-
-    // TODO: Add documentation
-    static {
-        hep.aida.jfree.AnalysisFactory.register();
-    }
 
     protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
     protected Map<HpsSiSensor, IHistogram2D> samplesPlots = new HashMap<HpsSiSensor, IHistogram2D>();

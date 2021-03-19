@@ -9,8 +9,6 @@ package org.hps.rundb;
  * @see EpicsType
  * @see org.hps.rundb.EpicsVariableDao
  * @see org.hps.rundb.EpicsVariableDaoImpl
- * 
- * @author jeremym
  */
 public final class EpicsVariable {
 

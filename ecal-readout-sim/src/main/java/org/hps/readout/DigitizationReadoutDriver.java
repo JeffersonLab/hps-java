@@ -54,10 +54,6 @@ import org.lcsim.lcio.LCIOConstants;
  * designed with the intent to function for both the hodoscope and
  * the calorimeter. As such, it requires its implementing classes to
  * handle certain subdetector-specific tasks.
- * 
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  */
 public abstract class DigitizationReadoutDriver<D extends Subdetector> extends ReadoutDriver {
     
@@ -1604,7 +1600,6 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * of pulses that may be used to emulate the subdetector response
      * to incident energy.
      * 
-     * @author Sho Uemura <meeg@slac.stanford.edu>
      */
     public enum PulseShape {
         CRRC, DoubleGaussian, ThreePole

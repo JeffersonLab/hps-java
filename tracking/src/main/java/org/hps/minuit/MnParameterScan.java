@@ -7,7 +7,6 @@ import java.util.List;
  * Scans the values of FCN as a function of one parameter and retains the best
  * function and parameter values found
  *
- * @version $Id: MnParameterScan.java 8584 2006-08-10 23:06:37Z duns $
  */
 class MnParameterScan {
 

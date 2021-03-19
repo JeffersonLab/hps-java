@@ -11,10 +11,7 @@ import java.util.logging.Logger;
  * <li>4bit [10 : 13] pass bits</li>
  * <li>3bit [19 : 22] pair cluster trigger bit instance: 0 to 3</li> 
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class VTPPairsTrigger {
     // pairs trigger's variables.
     private int t; // in 4 ns units

@@ -28,8 +28,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Analysis of events containing a V0 and one other FinalStateParticle See if we
  * can find the recoil. Three particles should sum to the beam four-vector
- *
- * @author Norman A. Graf
  */
 public class TridentAnalysis extends Driver {
 

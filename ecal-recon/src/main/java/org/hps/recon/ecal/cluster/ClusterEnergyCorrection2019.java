@@ -14,8 +14,6 @@ import java.util.logging.Logger;
 /**
  * This class handles the cluster energy correction for the 2019 run, to include
  * edge corrections and sampling fractions derived from data.
- *
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  */
 public final class ClusterEnergyCorrection2019 {
 

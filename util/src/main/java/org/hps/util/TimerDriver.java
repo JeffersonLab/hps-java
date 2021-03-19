@@ -5,8 +5,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Lightweight timer driver. Add one copy of this driver to measure time per event; add multiple copies to measure time between two points in the execute list.
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: TimerDriver.java,v 1.1 2012/08/08 01:02:21 meeg Exp $
  */
 public class TimerDriver extends Driver {
 

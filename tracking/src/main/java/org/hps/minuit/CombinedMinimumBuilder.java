@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 /**
  *
- * @version $Id: CombinedMinimumBuilder.java 16142 2014-09-05 02:52:34Z tonyj $
  */
 class CombinedMinimumBuilder implements MinimumBuilder {
 

@@ -9,8 +9,6 @@ import java.util.Set;
  * 
  * Replaces direct usage of {@link SvtEvioExceptions.SvtEvioHeaderException} when
  * checking event header information using {@link SvtEventHeaderCheckerNew}.
- * 
- * @author jeremym
  */
 public class EvioHeaderError {
    

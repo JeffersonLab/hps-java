@@ -15,10 +15,6 @@ import org.lcsim.util.Driver;
  * {@link org.lcsim.event.RawTrackerHit}, objects with ADC/sample information,
  * and collections of {@link org.lcsim.event.CalorimeterHit}, objects with
  * energy/time information.
- * 
- * 
- * @author Tongtong Cao <caot@jlab.org>
- *
  */
 public class HodoOnlineRawConverter2019Driver extends Driver {
     private HodoOnlineRawConverter2019 converter = null;
