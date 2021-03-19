@@ -184,7 +184,6 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
             plots2D.put(String.format("%s_pos_BOTTOM_track_cluster_param_dz",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_BOTTOM_track_cluster_param_dz",this.trackCollectionName),50, 0, 5, 160,-40,40));
         }
 
-
         //Timing Plots
         plots1D.put(String.format("%s_ele_track_cluster_dt",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_cluster_dt",this.trackCollectionName),  600, -150, 150));
 
