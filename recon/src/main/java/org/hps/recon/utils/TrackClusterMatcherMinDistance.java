@@ -12,6 +12,7 @@ import hep.aida.IHistogram2D;
 import hep.aida.IHistogramFactory;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
+import hep.physics.vec.BasicHep3Vector;
 import java.io.IOException;
 
 import java.util.HashMap;
@@ -183,6 +184,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
             plots2D.put(String.format("%s_pos_BOTTOM_track_cluster_param_dy",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_BOTTOM_track_cluster_param_dy",this.trackCollectionName),50, 0, 5, 160,-40,40));
             plots2D.put(String.format("%s_pos_BOTTOM_track_cluster_param_dz",this.trackCollectionName), histogramFactory.createHistogram2D(String.format("%s_pos_BOTTOM_track_cluster_param_dz",this.trackCollectionName),50, 0, 5, 160,-40,40));
         }
+
 
         //Timing Plots
         plots1D.put(String.format("%s_ele_track_cluster_dt",this.trackCollectionName), histogramFactory.createHistogram1D(String.format("%s_ele_track_cluster_dt",this.trackCollectionName),  600, -150, 150));
@@ -403,8 +405,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
                 double tanlambda = track.getTrackParameter(4);
 
                 //Track momentum magnitude
-                double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtIP).getMomentum();
-                double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
+                double trackPmag = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum()).magnitude();
 
                 //Plots
                 if(enablePlots){
@@ -525,8 +526,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
                     int charge = (int) Math.signum(track.getTrackStates().get(0).getOmega())*flipSign;
                     double trackt = getTrackTime(track);
                     //Track momentum magnitude
-                    double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtIP).getMomentum();
-                    double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
+                    double trackPmag = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum()).magnitude();
                     //Track position
                     List<Double> trackPos = this.getTrackPositionAtEcal(track);
                     double trackx = trackPos.get(0);
@@ -710,8 +710,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
     private void trackClusterResidualParameterization(Track track, Cluster cluster){
 
         int charge = -1* (int) Math.signum(track.getTrackStates().get(0).getOmega());
-        double[] trackP = TrackUtils.getTrackStateAtLocation(track,TrackState.AtIP).getMomentum();
-        double trackPmag = Math.sqrt(Math.pow(trackP[0],2) + Math.pow(trackP[1],2) + Math.pow(trackP[2],2));
+        double trackPmag = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum()).magnitude();
         double [] params = track.getTrackParameters();
         double tanlambda = params[4];
         boolean isTop;
