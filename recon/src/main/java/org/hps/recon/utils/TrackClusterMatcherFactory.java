@@ -31,6 +31,8 @@ public final class TrackClusterMatcherFactory {
         try {
             if (TrackClusterMatcherNSigma.class.getSimpleName().equals(name))
                 matcher = new TrackClusterMatcherNSigma();
+            else if (TrackClusterMatcherMinDistance.class.getSimpleName().equals(name))
+                matcher = new TrackClusterMatcherMinDistance();
         }
         catch (Exception e){
             //No matcher by the given name has been found :(
