@@ -31,15 +31,6 @@ import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.event.ReconstructedParticle;
 
-
-/**
- * Utility used to determine if a Tracks and Ecal Cluster are matched.
- * Class extends AbstractTrackClusterMatcher, which implements
- * TrackClusterMatcherInter
- *
- * @author <a href="mailto:alspellm@ucsc.edu">Alic Spellman</a>
- */
-
 public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
 
     protected HashMap<Cluster, Track> clusterToTrack;
@@ -53,9 +44,9 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
     /*
      * Cuts used for track+cluster residual matching 
      */
-    protected double tcut = 8.0;
-    protected double xcut = 20.0;
-    protected double ycut = 20.0;
+    protected double tcut;
+    protected double xcut = 20;
+    protected double ycut = 20;
 
     /*
      * Define and initialize plots
@@ -337,6 +328,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
          * Returns Map of Tracks matched do unique Clusters
          */
 
+        this.tcut = cuts.getMaxMatchDt();
         //Initialize clusterToTrack map, used for applying cluster corrections
         this.clusterToTrack = new HashMap<Cluster, Track>();
 
