@@ -42,7 +42,6 @@ public abstract class ReconParticleDriver extends Driver {
      */
 
     private String clusterParamFileName = null;
-    String[] trackCollectionNames = {"GBLTracks"};
 
     public static final int ELECTRON = 0;
     public static final int POSITRON = 1;
@@ -59,9 +58,9 @@ public abstract class ReconParticleDriver extends Driver {
     protected StandardCuts cuts = new StandardCuts();
     RelationalTable hitToRotated = null;
     RelationalTable hitToStrips = null;
-    //Track to Cluster matching algorithms interfaced from
-    //TrackClusteMatcherInter and the specific algorithm is chosen by name using
-    //TrackClusterMatcherFactory 
+    // Track to Cluster matching algorithms interfaced from
+    // TrackClusteMatcherInter and the specific algorithm is chosen by name using
+    // TrackClusterMatcherFactory
     TrackClusterMatcher matcher;
 
     protected boolean enableTrackClusterMatchPlots = false;
@@ -83,7 +82,7 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     boolean useCorrectedClusterPositionsForMatching = false;
-    
+
     // These are new for 2019 running and should be set to false in the steering file.
     // Default values should replicate correct behavior for 2015 and 2016 data
     boolean useTrackPositionForClusterCorrection = true;
@@ -303,7 +302,6 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Set Ecal Cluster time offset in steering file (in nanoseconds)
      */
-
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
@@ -364,7 +362,7 @@ public abstract class ReconParticleDriver extends Driver {
      * TrackClusterMatcherMinDistance
      *
      * @param trackClusterMatcherAlgo - GBL or Kalman Track.
-     * */
+     */
     public void setTrackClusterMatcherAlgo(String trackClusterMatcherAlgo) {
         this.trackClusterMatcherAlgo = trackClusterMatcherAlgo;
     }
@@ -387,18 +385,6 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setUnconstrainedV0VerticesColName(String unconstrainedV0VerticesColName) {
         this.unconstrainedV0VerticesColName = unconstrainedV0VerticesColName;
-    }
-
-    /**
-     * Set the names of the LCIO track collections used as input.
-     *
-     * @param trackCollectionNames Array of collection names. If not set, use
-     * all Track collections in the event.
-     */
-    public void setTrackCollectionNames(String[] trackCollectionNames) {
-        this.trackCollectionNames = trackCollectionNames;
-        
-        
     }
 
     /**
@@ -429,8 +415,8 @@ public abstract class ReconParticleDriver extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
 
-        BeamEnergyCollection beamEnergyCollection
-                = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
+        BeamEnergyCollection beamEnergyCollection = this.getConditionsManager()
+                .getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
         beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
 
         if (clusterParamFileName == null) {
@@ -441,11 +427,11 @@ public abstract class ReconParticleDriver extends Driver {
             }
         }
 
-        //By default, use the original track-cluster matching class
+        // By default, use the original track-cluster matching class
         matcher = TrackClusterMatcherFactory.create(trackClusterMatcherAlgo);
         matcher.initializeParameterization(clusterParamFileName);
         matcher.setBFieldMap(detector.getFieldMap());
-        matcher.setTrackCollectionName(trackCollectionName);
+        // matcher.setTrackCollectionName(trackCollectionName);
         matcher.enablePlots(enableTrackClusterMatchPlots);
 
         // Set the magnetic field parameters to the appropriate values.
@@ -456,7 +442,7 @@ public abstract class ReconParticleDriver extends Driver {
         }
 
         ecal = (HPSEcal3) detector.getSubdetector("Ecal");
-                
+
         if (cuts == null) {
             cuts = new StandardCuts(beamEnergy);
         } else {
@@ -506,7 +492,8 @@ public abstract class ReconParticleDriver extends Driver {
      * data.
      */
 
-    protected List<ReconstructedParticle> makeReconstructedParticles(EventHeader event, List<Cluster> clusters, List<List<Track>> trackCollections) {
+    protected List<ReconstructedParticle> makeReconstructedParticles(EventHeader event, List<Cluster> clusters,
+            List<Track> tracks) {
 
         // Create a list in which to store reconstructed particles.
         List<ReconstructedParticle> particles = new ArrayList<ReconstructedParticle>();
@@ -516,21 +503,22 @@ public abstract class ReconParticleDriver extends Driver {
         Set<Cluster> unmatchedClusters = new HashSet<Cluster>(clusters);
 
         // Create a mapping of matched Tracks to corresonding Clusters.
-        HashMap<Track,Cluster> TrackClusterPairs = new HashMap<Track, Cluster>();
+        HashMap<Track, Cluster> TrackClusterPairs = new HashMap<Track, Cluster>();
 
         // Loop through all of the track collections and try to match every
         // track to a cluster. Details of the matching algorithm used are
         // defined in the specfic matcher implementation
 
-        //Matcher returns a mapping of Tracks with matched Clusters.
-        TrackClusterPairs = matcher.matchTracksToClusters(event, trackCollections, clusters, cuts, flipSign, useTrackPositionForClusterCorrection,isMC,ecal, beamEnergy);
+        // Matcher returns a mapping of Tracks with matched Clusters.
+        TrackClusterPairs = matcher.matchTracksToClusters(event, tracks, clusters, cuts, flipSign,
+                useTrackPositionForClusterCorrection, isMC, ecal, beamEnergy);
 
-        //Loop over matched Track Cluster pairs and reconstruct particles
-        for(HashMap.Entry<Track, Cluster> entry : TrackClusterPairs.entrySet()){
+        // Loop over matched Track Cluster pairs and reconstruct particles
+        for (HashMap.Entry<Track, Cluster> entry : TrackClusterPairs.entrySet()) {
 
             Track track = entry.getKey();
             Cluster matchedCluster = entry.getValue();
-            
+
             // Create a reconstructed particle to represent the track.
             ReconstructedParticle particle = new BaseReconstructedParticle();
 
@@ -559,7 +547,7 @@ public abstract class ReconParticleDriver extends Driver {
             }
 
             // If a cluster was found that matches the track...
-            if(matchedCluster != null){
+            if (matchedCluster != null) {
 
                 // add cluster to the particle:
                 particle.addCluster(matchedCluster);
@@ -666,47 +654,19 @@ public abstract class ReconParticleDriver extends Driver {
     @Override
     protected void process(EventHeader event) {
 
-        //ADDED 01/08 TO CHECK CLUSTER COLLECTION ENERGIES
+        // Get the collection of ECal clusters from the event. If there are no
+        // clusters in the event, create an empty collection to pass to the
+        // matcher.
+        List<Cluster> clusters = event.hasCollection(Cluster.class, ecalClustersCollectionName)
+                ? event.get(Cluster.class, ecalClustersCollectionName)
+                : new ArrayList<Cluster>();
 
-        // All events are required to contain Ecal clusters. If
-        // the event lacks these, then it should be skipped.
-        if (!event.hasCollection(Cluster.class, ecalClustersCollectionName)) {
-            return;
-        }
-        
-        // VERBOSE :: Note that a new event is being read.
-        printDebug("\n" + trackCollectionName+"Processing Event..." + event.getEventNumber());
-
-        // Get the list of Ecal clusters from an event.
-        List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
-
-        // Get all collections of the type Track from the event. This is
-        // required in case an event contains different track collection
-        // for each of the different tracking strategies. If the event
-        // doesn't contain any track collections, intialize an empty
-        // collection and add it to the list of collections. This is
-        // needed in order to create final state particles from the the
-        // Ecal clusters in the event.
-        List<List<Track>> trackCollections = new ArrayList<List<Track>>();
-
-        if (trackCollectionNames != null) {
-            for (String collectionName : trackCollectionNames) {
-                printDebug("CollectionName ::" + collectionName);
-                if (event.hasCollection(Track.class, collectionName)) {
-                    // VERBOSE :: Output the number of clusters in the event.
-                    printDebug("Tracks :: " + event.get(Track.class, collectionName).size());
-                    trackCollections.add(event.get(Track.class, collectionName));
-                }
-            }
-        } 
-        else {
-            if (event.hasCollection(Track.class)) {
-                trackCollections = event.get(Track.class);
-                printDebug("Tracks :: " + trackCollections.size());
-            } else {
-                trackCollections.add(new ArrayList<Track>(0));
-            }
-        }
+        // Get the collection of tracks from the event. If a collection
+        // of tracks isn't found, create an empty collection to pass to the
+        // matcher.
+        List<Track> tracks = event.hasCollection(Track.class, trackCollectionName)
+                ? event.get(Track.class, trackCollectionName)
+                : new ArrayList<Track>();
 
         hitToRotated = TrackUtils.getHitToRotatedTable(event);
         hitToStrips = TrackUtils.getHitToStripsTable(event);
@@ -726,7 +686,7 @@ public abstract class ReconParticleDriver extends Driver {
         // Loop through all of the track collections present in the event and
         // create final state particles.
 
-        finalStateParticles.addAll(makeReconstructedParticles(event, clusters, trackCollections));
+        finalStateParticles.addAll(makeReconstructedParticles(event, clusters, tracks));
 
         // Separate the reconstructed particles into electrons and
         // positrons so that V0 candidates can be generated from them.

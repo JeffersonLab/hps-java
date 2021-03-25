@@ -85,7 +85,7 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
      * Abstract method that runs the Track Cluster matching algorithm. Returns
      * Map of Tracks matched to Clusters.
      */
-    public abstract HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, boolean isMC, HPSEcal3 ecal, double beamEnergy);
+    public abstract HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<Track> tracks, List<Cluster> clusters, StandardCuts cuts, int flipSign,boolean useCorrectedClusterPositions, boolean isMC, HPSEcal3 ecal, double beamEnergy);
 
     /**
      * Abstract method that initializes misc parameterization file used for

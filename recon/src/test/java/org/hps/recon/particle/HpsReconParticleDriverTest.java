@@ -115,9 +115,8 @@ public class HpsReconParticleDriverTest extends TestCase {
         EventHeader event = null;
         // Create two ReconstructedParticles with tracks only
         List<Cluster> emptyClusters = new ArrayList<Cluster>(); 
-        List<List<Track>> trackCollections = new ArrayList<List<Track>>(0);
-        trackCollections.add(tracks);
-        particleTracks = particleDriver.makeReconstructedParticles(event, emptyClusters, trackCollections);
+        List<Track> tracks = new ArrayList<Track>();
+        particleTracks = particleDriver.makeReconstructedParticles(event, emptyClusters, tracks);
     
         //
         // The list contains two Tracks which should result in two 

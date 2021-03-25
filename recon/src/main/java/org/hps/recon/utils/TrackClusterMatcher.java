@@ -20,13 +20,16 @@ public interface TrackClusterMatcher {
      * Return a map of Tracks with matched Clusters.
      * Tracks may be returned with null Cluster match.
      */
-    HashMap<Track,Cluster> matchTracksToClusters(EventHeader event, List<List<Track>> trackCollections, List<Cluster> clusters, StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositionsForMatching, boolean isMC, HPSEcal3 ecal, double beamEnergy);
+    HashMap<Track, Cluster> matchTracksToClusters(EventHeader event, List<Track> tracks, List<Cluster> clusters,
+            StandardCuts cuts, int flipSign, boolean useCorrectedClusterPositionsForMatching, boolean isMC,
+            HPSEcal3 ecal, double beamEnergy);
 
     /**
      * If set to true in steering-file, apply cluster corrections before
      * matching Tracs to Clusters.
      */
-    void applyClusterCorrections(boolean useTrackPositionClusterCorrection, List<Cluster> clusters, double beamEnergy, HPSEcal3 ecal, boolean isMC);
+    void applyClusterCorrections(boolean useTrackPositionClusterCorrection, List<Cluster> clusters, double beamEnergy,
+            HPSEcal3 ecal, boolean isMC);
 
     /**
      * Return match quality of Track+Cluster pair
@@ -42,7 +45,7 @@ public interface TrackClusterMatcher {
      * Set beam energy
      */
     void setBeamEnergy(double beamEnergy);
-    
+
     void setSnapToEdge(boolean val);
 
     /**
@@ -50,15 +53,8 @@ public interface TrackClusterMatcher {
      */
     void initializeParameterization(String fname);
 
-    /**
-     * Set Track collection name to GBLTracks or KalmanFullTracks
-     */
-    void setTrackCollectionName(String trackCollectionName);
-
     void enablePlots(boolean enablePlots);
 
     void saveHistograms();
 
-
 }
-
