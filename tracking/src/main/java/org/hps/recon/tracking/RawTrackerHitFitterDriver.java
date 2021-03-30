@@ -39,7 +39,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean correctChanT0 = true;
     private boolean subtractRFTime = false;
     private Boolean syncGood = true;
-    private Boolean isMC = true;
+    private Boolean isMC = false;
 
     private double trigTimeScale = 43.0;//  the mean time of the trigger...changes with run period!!!  43.0 is for 2015 Eng. Run
 
