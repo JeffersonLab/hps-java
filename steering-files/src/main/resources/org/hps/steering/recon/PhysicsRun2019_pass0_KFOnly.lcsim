@@ -124,7 +124,7 @@
             <beamSigmaX>0.05</beamSigmaX>
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
-            <beamPositionZ>-10</beamPositionZ>
+            <beamPositionZ>-7.5</beamPositionZ>
             <maxElectronP>7.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb>0.0</minVertexChisqProb>
@@ -132,7 +132,7 @@
             <maxMatchDt>40</maxMatchDt>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-            <applyClusterCorrections>false</applyClusterCorrections>
+            <applyClusterCorrections>true</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
             <debug>false</debug>
 	    <makeMollerCols>false</makeMollerCols>
