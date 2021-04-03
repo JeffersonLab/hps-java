@@ -1,13 +1,13 @@
 package org.hps.recon.particle;
 
-import java.util.List;
+/*import java.util.List;
 
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseReconstructedParticle;
 
-import org.hps.recon.vertexing.TwoTrackVertexer;
+import org.hps.recon.vertexing.TwoTrackVertexer;*/
 
 /**
  * Method creates reconstructed particles from tracks and clusters for
@@ -21,8 +21,7 @@ public class TestRunReconParticleDriver extends ReconParticleDriver {
      * @param electrons - The list of electrons.
      * @param positrons - The list of positrons.
      */
-    @Override
-    protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
+    /*protected void findVertices(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
         // Create a vertex fitter.
         TwoTrackVertexer vtxFitter = new TwoTrackVertexer();
         
@@ -52,20 +51,18 @@ public class TestRunReconParticleDriver extends ReconParticleDriver {
                 unconstrainedV0Candidates.add(candidate); 
             }
         }
-    }
+    }*/
     
     /**
      * Sets the unconstrained A' candidate particle collection name if
      * it has not already been defined.
      */
-    @Override
-    protected void startOfData(){
+    /*protected void startOfData(){
         if(unconstrainedV0CandidatesColName == null) { unconstrainedV0CandidatesColName = "V0Candidates"; }
-    }
+    }*/
 
-    @Override
-    protected List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles) {
+    /*protected List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles) {
         // TODO Auto-generated method stub
         return finalStateParticles;
-    }
+    }*/
 }
