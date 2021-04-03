@@ -34,10 +34,15 @@ import org.hps.record.StandardCuts;
 /* 
  * @see TrackClusterMatcher
  */
-
 public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher {
 
-    protected String trackCollectionName = "GBLTracks";
+    /**
+     * Name of the track collection to use. By default, this is set to "" to 
+     * force users to set it in the steering file.
+     */
+    protected String trackCollectionName = "";
+    
+    
     protected FieldMap bFieldMap = null;
     protected boolean snapToEdge = true;
 
