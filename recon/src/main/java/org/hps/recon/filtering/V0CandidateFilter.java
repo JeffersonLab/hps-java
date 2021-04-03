@@ -3,7 +3,6 @@ package org.hps.recon.filtering;
 import static java.lang.Math.abs;
 import java.util.List;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
-import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackType;
 import org.hps.record.epics.EpicsData;
@@ -54,8 +53,8 @@ public class V0CandidateFilter extends EventReconFilter {
         List<ReconstructedParticle> V0Candidates = event.get(ReconstructedParticle.class, _V0CandidateCollectionName);
         int nV0 = 0; // number of good V0
         for (ReconstructedParticle v0 : V0Candidates) {
-            ReconstructedParticle electron = v0.getParticles().get(ReconParticleDriver.ELECTRON);
-            ReconstructedParticle positron = v0.getParticles().get(ReconParticleDriver.POSITRON);
+            ReconstructedParticle electron = v0.getParticles().get(0);
+            ReconstructedParticle positron = v0.getParticles().get(1);
 
             if (!TrackType.isGBL(v0.getType())) { // we only care about GBL vertices
                 continue;
