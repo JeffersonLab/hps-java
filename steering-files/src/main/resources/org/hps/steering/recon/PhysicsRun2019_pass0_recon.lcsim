@@ -337,7 +337,7 @@
             <maxMatchDt>40</maxMatchDt>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-            <applyClusterCorrections>true</applyClusterCorrections>
+            <applyClusterCorrections>false</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
 	    <makeMollerCols>false</makeMollerCols>
