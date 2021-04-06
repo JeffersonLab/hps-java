@@ -36,6 +36,7 @@ public class KalTrack {
     Map<Integer, MeasurementSite> millipedeMap;
     Map<Integer, MeasurementSite> lyrMap;
     public int eventNumber;
+    public boolean bad;
     HelixState helixAtOrigin;
     private boolean propagated;
     private RotMatrix Rot;
@@ -60,10 +61,12 @@ public class KalTrack {
     private static boolean initialized;
     private double [] arcLength;
     private static LinearSolverDense<DMatrixRMaj> solver;
+    static int [] nBadCov = {0, 0};
 
     KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat, ArrayList<Double> XLscat, KalmanParams kPar) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
         eventNumber = evtNumb;
+        bad = false;
         this.yScat = yScat;
         this.XLscat = XLscat;        
         this.kPar = kPar;
@@ -100,6 +103,7 @@ public class KalTrack {
                 logger.log(Level.WARNING, String.format("Event %d: site is missing smoothed state vector for layer %d detector %d", 
                         eventNumber, site.m.Layer, site.m.detector));
                 logger.log(Level.WARNING, site.toString("bad site"));
+                bad = true;
                 continue;
             }
             this.SiteList.add(site); 
@@ -145,6 +149,7 @@ public class KalTrack {
         interceptMomVects = null;
         if (nHits < 5) {  // This should never happen
             logger.log(Level.WARNING, "KalTrack error: not enough hits ("+nHits+") on the candidate track (ID::"+ID+") for event "+eventNumber);
+            bad = true;
             //for (MeasurementSite site : SiteList) logger.log(Level.FINE, site.toString("in KalTrack input list"));
             //logger.log(Level.FINE, String.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID));
             //String str="";
@@ -371,7 +376,7 @@ public class KalTrack {
     }
     
     String toString(String s) {
-        String str = String.format("\n KalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax);
+        String str = String.format("\n KalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f, bad=%b\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax, bad);
         if (propagated) {
             str=str+String.format("    B-field at the origin=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB.v[0], tB.v[1], tB.v[2]);
             str=str+helixAtOrigin.toString("helix state for a pivot at the origin")+"\n";
@@ -1119,11 +1124,12 @@ public class KalTrack {
             if (debug) System.out.format("KalTrack.fit: negative starting covariance, event %d track %d\n", eventNumber, ID);
             KalmanPatRecHPS.setInitCov(sH.helix.C, sH.helix.a, false);
         } else {
-            CommonOps_DDRM.scale(10., sH.helix.C);  // Blow up the initial covariance matrix to avoid double counting measurements 
+            CommonOps_DDRM.scale(100., sH.helix.C);  // Blow up the initial covariance matrix to avoid double counting measurements 
         }
         SiModule prevMod = null;
         double chi2f = 0.;
         ArrayList<MeasurementSite> newSiteList = new ArrayList<MeasurementSite>(SiteList.size());
+        boolean badCov = false;
         for (int idx = 0; idx < SiteList.size(); idx++) { // Redo all the filter steps
             MeasurementSite currentSite = SiteList.get(idx);
             MeasurementSite newSite = new MeasurementSite(currentSite.m.Layer, currentSite.m, kPar);
@@ -1140,11 +1146,13 @@ public class KalTrack {
                 if (debug) System.out.format("KalTrack.fit: event %d, track %d failed to filter!\n", eventNumber, ID);
                 return false;
             }
+            if (KalmanPatRecHPS.negativeCov(currentSite.aF.helix.C)) {
+                if (debug) System.out.format("KalTrack: event %d, ID %d, negative covariance after filtering at layer %d\n", 
+                                eventNumber,ID,currentSite.m.Layer);
+                badCov = true;
+                KalmanPatRecHPS.fixCov(currentSite.aF.helix.C, currentSite.aF.helix.a);
+            }
             if (debug) {
-                if (KalmanPatRecHPS.negativeCov(currentSite.aF.helix.C)) {
-                    System.out.format("KalTrack: event %d, ID %d, negative covariance after filtering at layer %d\n", 
-                            eventNumber,ID,currentSite.m.Layer);
-                }
                 if (newSite.hitID >= 0) chi2f += Math.max(currentSite.chi2inc,0.);
             }
             newSite.hitID = currentSite.hitID;
@@ -1155,10 +1163,15 @@ public class KalTrack {
             if (keep) currentSite.chi2inc = newSite.chi2inc; // Residuals to cut out hits in next recursion
             newSiteList.add(newSite);
         }
+        if (badCov) {
+            nBadCov[0]++;
+            bad = true;
+        }        
         if (debug) System.out.format("KalTrack.fit: Track %d, Fit chi^2 after filtering = %12.4e\n", ID, chi2f);
         
         chi2s = 0.;
         int nNewHits = 0;
+        badCov = false;
         MeasurementSite nextSite = null;
         for (int idx = newSiteList.size() - 1; idx >= 0; idx--) {
             MeasurementSite currentSite = newSiteList.get(idx);
@@ -1172,15 +1185,21 @@ public class KalTrack {
                 chi2s += Math.max(currentSite.chi2inc,0.);
                 nNewHits++;
             }
+            if (KalmanPatRecHPS.negativeCov(currentSite.aS.helix.C)) {
+                if (debug) System.out.format("KalTrack: event %d, ID %d, negative covariance after smoothing at layer %d\n", 
+                            eventNumber,ID,currentSite.m.Layer);
+                badCov = true;
+                KalmanPatRecHPS.fixCov(currentSite.aS.helix.C, currentSite.aS.helix.a);
+            }
             if (debug) {
-                if (KalmanPatRecHPS.negativeCov(currentSite.aS.helix.C)) {
-                    System.out.format("KalTrack: event %d, ID %d, negative covariance after smoothing at layer %d\n", 
-                                eventNumber,ID,currentSite.m.Layer);
-                }
                 System.out.format("  Layer %d hit %d, smooth, chi^2 increment=%10.5f, a=%s\n", 
                             currentSite.m.Layer, currentSite.hitID, currentSite.chi2inc, currentSite.aS.helix.a.toString());
             }
             nextSite = currentSite;
+        }
+        if (badCov) {
+            nBadCov[1]++;
+            bad = true;
         }
         if (debug) System.out.format("KalTrack.fit: Track %d, Fit chi^2 after smoothing = %12.4e\n", ID, chi2s);
         if (!keep) {

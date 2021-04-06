@@ -214,6 +214,8 @@ public class KalmanInterface {
         System.out.format("KalmanInterface::summary: number of events with > 200 hits=%d.\n", nBigEvents);
         System.out.format("                          Maximum event size = %d strip hits.\n", maxHits);
         System.out.format("                          Events with > %d hits were not processed.\n", _siHitsLimit);
+        System.out.format("                          Number of tracks with bad covariance in filterTrack= %d %d\n", KalmanPatRecHPS.nBadCov[0], KalmanPatRecHPS.nBadCov[1]);
+        System.out.format("                          Number of tracks with bad covariance in KalTrack.fit=%d %d\n", KalTrack.nBadCov[0], KalTrack.nBadCov[1]);
     }
 
     // Return the reference to the parameter setting code for the driver to use
@@ -391,7 +393,6 @@ public class KalmanInterface {
     public List<GBLStripClusterData> createGBLStripClusterData(KalTrack kT) {
         List<GBLStripClusterData> rtnList = new ArrayList<GBLStripClusterData>(kT.SiteList.size());
         
-        if (eventNumber == 210857) kT.print("dump");
         double phiLast = 9999.;
         for (MeasurementSite site : kT.SiteList) {
             GBLStripClusterData clstr = new GBLStripClusterData(kT.SiteList.indexOf(site));
@@ -462,7 +463,6 @@ public class KalmanInterface {
             clstr.setScatterAngle(HelixState.projMSangle(momentum.mag(), XL));
             
             rtnList.add(clstr);
-            if (eventNumber == 210857) printGBLStripClusterData(clstr);
         }
         return rtnList;
     }

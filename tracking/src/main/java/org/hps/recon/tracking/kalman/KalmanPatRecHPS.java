@@ -60,6 +60,7 @@ class KalmanPatRecHPS {
     private int firstLayer;
     private Plane p0;
     private static long startTime;
+    static int [] nBadCov = {0, 0};
 
     KalmanPatRecHPS(KalmanParams kPar) {
         startTime = (long)0.;
@@ -1322,6 +1323,7 @@ class KalmanPatRecHPS {
     // Method to smooth an already filtered track candidate
     private void smoothTrack(TrackCandidate filteredTkr) {
         MeasurementSite nextSite = null;
+        boolean badCov = false;
         for (int idxS = filteredTkr.sites.size() - 1; idxS >= 0; idxS--) {
             MeasurementSite currentSite = filteredTkr.sites.get(idxS);
             if (nextSite == null) {   // The outermost site with a hit is already smoothed by definition
@@ -1332,10 +1334,14 @@ class KalmanPatRecHPS {
                 currentSite.smooth(nextSite);
             }
             filteredTkr.chi2s += Math.max(currentSite.chi2inc, 0.);
-
+            if (negativeCov(currentSite.aS.helix.C)) {
+                badCov = true;
+                fixCov(currentSite.aS.helix.C, currentSite.aS.helix.a);
+            }
             nextSite = currentSite;
             //if (debug) currentSite.print("smoothed");
         }
+        if (badCov) nBadCov[1]++;
         filteredTkr.smoothed = true;
     }
 
@@ -1390,6 +1396,7 @@ class KalmanPatRecHPS {
         } else {
             direction = -1;
         }
+        boolean badCov = false;
         boolean needCleanup = false;
         layerLoop: for (int lyr = lyrBegin; lyr != lyrEnd + direction; lyr += direction) {
             SiModule mExistingHit = null;
@@ -1483,11 +1490,13 @@ class KalmanPatRecHPS {
                     needCleanup = true;
                     break layerLoop;
                 }
+                if (negativeCov(newSite.aF.helix.C)) {
+                    if (debug) System.out.format("KalmanPatRecHPS.filtertrack: event %d candidate %d layer %d has negative covariance after filter step.\n",
+                            eventNumber, tkrCandidate.ID, newSite.m.Layer);
+                    badCov = true;
+                    fixCov(newSite.aF.helix.C, newSite.aF.helix.a);
+                }
                 if (debug) {
-                    if (negativeCov(newSite.aF.helix.C)) {
-                        System.out.format("KalmanPatRecHPS.filtertrack: event %d candidate %d layer %d has negative covariance after filter step.\n",
-                                eventNumber, tkrCandidate.ID, newSite.m.Layer);
-                    }
                     System.out.format("KalmanPatRecHPS.filterTrack: candidate %d, completed filter at site (%d, %d, %d), chi2-inc=%8.3f\n",
                             tkrCandidate.ID, newSite.m.Layer, newSite.m.detector, newSite.hitID, newSite.chi2inc);
                 }
@@ -1531,6 +1540,7 @@ class KalmanPatRecHPS {
                 tkrCandidate.good = false;
             }
         }
+        if (badCov) nBadCov[0]++;
         tkrCandidate.filtered = true;
         return;
     }
@@ -1628,6 +1638,37 @@ class KalmanPatRecHPS {
             }
         }
     }
+
+    static void fixCov(DMatrixRMaj C, Vec helix) {
+        for (int i=0; i<5; ++i) {
+            if (C.unsafe_get(i, i) < 0.) {
+                for (int j=0; j<5; ++j) {
+                    if (j != i) {
+                        C.unsafe_set(i, j, 0.);
+                        C.unsafe_set(j, i, 0.);
+                    }
+                }
+                switch (i) {
+                    case 0:
+                        C.unsafe_set(0, 0, 0.5);
+                        break;
+                    case 1:
+                        C.unsafe_set(1, 1, .00005);
+                        break;
+                    case 2:
+                        C.unsafe_set(2, 2, Math.pow(0.1*helix.v[2],2));
+                        break;
+                    case 3:
+                        C.unsafe_set(3, 3, .01);
+                        break;
+                    case 4:
+                        C.unsafe_set(4, 4, .00001);
+                        break;
+                }
+                    
+            }
+        }
+    }    
     
     // Quick check on where the seed track is heading, using only the two axial layers in the seed
     private boolean seedNoGood(int j, int iter) {
