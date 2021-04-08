@@ -204,9 +204,9 @@ class MeasurementSite {
             arcLength = 0.;
         } else {
             double ct = pMom.unitVec().dot(mPs.p.T()); // cos(theta) at the **previous** site
-            double radius = Math.abs(alpha/pS.helix.a.v[2]);
+            double radius = alpha/pS.helix.a.v[2];
             XL = mPs.thickness / radLen / Math.abs(ct); // Si scattering thickness at previous site
-            arcLength = radius*phi*FastMath.sqrt(1.0 + pS.helix.a.v[4] * pS.helix.a.v[4]);
+            arcLength = -radius*phi*FastMath.sqrt(1.0 + pS.helix.a.v[4] * pS.helix.a.v[4]);
             if (debug) {
                 double dx = m.p.X().v[0]-mPs.p.X().v[0];
                 double dy = m.p.X().v[1]-mPs.p.X().v[1];
