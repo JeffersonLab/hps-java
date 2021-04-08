@@ -282,22 +282,19 @@ class StateVector {
         directProd(K, H, tempM);
         CommonOps_DDRM.scale(-1.0, tempM);
         CommonOps_DDRM.addEquals(tempM, U);
-
-        // Alternate calculation of the covariance update
-        //double R = (1 - H.dot(K))*V;
-        //System.out.format("StateVector.filter: R=%10.8f\n", R);
-        double R = V*(1- CommonOps_DDRM.dot(H, K));
-        CommonOps_DDRM.mult(tempM, helix.C, tempV);
-        CommonOps_DDRM.multTransB(tempV, tempM, tempA);
-        directProd(K, K, tempV);
-        //aPrime.helix.C = new DMatrixRMaj(5,5);
-        CommonOps_DDRM.add(tempA, R, tempV, aPrime.helix.C);
+        CommonOps_DDRM.mult(tempM, helix.C, aPrime.helix.C);
 
         if (debug) {
-            System.out.format("StateVector.filter: compare covariance calculations, stable one first:\n");
+            System.out.format("StateVector.filter: compare covariance calculations, original one first:\n");
+            // Alternate calculation of the covariance update
+            double R = V*(1- CommonOps_DDRM.dot(H, K));
             CommonOps_DDRM.mult(tempM, helix.C, tempV);
+            CommonOps_DDRM.multTransB(tempV, tempM, tempA);
+            directProd(K, K, tempV);
+            DMatrixRMaj tempZ = new DMatrixRMaj(5,5);
+            CommonOps_DDRM.add(tempA, R, tempV, tempZ);
             aPrime.helix.C.print();
-            tempV.print();
+            tempZ.print();
             System.out.println("filtered covariance (gain-matrix formalism) in StateVector.filter:");
             aPrime.helix.C.print();
             // Alternative calculation of filtered covariance (sanity check that it gives
