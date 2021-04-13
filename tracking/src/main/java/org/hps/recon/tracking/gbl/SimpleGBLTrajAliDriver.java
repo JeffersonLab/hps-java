@@ -822,8 +822,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         //seed matrix q/p, yT', xT', xT, yT 
                         
                         //q/p constraint
-                        //seedPrecision.set(0,0,1000000);
-                        seedPrecision.set(0,0,10000);
+                        seedPrecision.set(0,0,1000000);
+                        //seedPrecision.set(0,0,10000);
                         
                         //d0 constraint
                         //seedPrecision.set(3,3,1000000);
@@ -833,6 +833,15 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     if (debugAlignmentDs)
                         trajForMPII.printData();
                     
+
+                    //Fit the trajectory to get the Chi2
+                    trajForMPII.fit(Chi2,Ndf, lostWeight,"");
+                    
+                    
+                    //Avoid to use tracks with terrible Chi2
+                    if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
+                        continue;
+
                     trajForMPII.milleOut(mille);
                     
                     
@@ -1123,7 +1132,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 bufferedWriter.write(hpsSensor.getMPIILabels().toString());
                 bufferedWriter.newLine();
                 
-            }
+                }
             */
             
             bufferedWriter.close();
@@ -1132,7 +1141,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
             e.printStackTrace();
         }
     }
-    
+
+
     //Assigns the mother to the sensors
     private void MakeAlignmentTree(String regEx) {
         
