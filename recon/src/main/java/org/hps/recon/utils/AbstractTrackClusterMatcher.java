@@ -227,28 +227,6 @@ public abstract class AbstractTrackClusterMatcher implements TrackClusterMatcher
         return trackt;
     }
 
-    public double[] getTrackPositionAtEcal(Track track){
-
-        // Extrapolate the track to the Ecal cluster position
-        Hep3Vector tPos = null;
-        TrackState trackStateAtEcal = null;
-        if(this.trackCollectionName.contains("GBLTracks")){
-            trackStateAtEcal = TrackUtils.getTrackStateAtECal(track);
-            tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
-            tPos = CoordinateTransformations.transformVectorToDetector(tPos);
-        }       
-
-        if(this.trackCollectionName.contains("KalmanFullTracks")){
-            trackStateAtEcal = track.getTrackStates().get(track.getTrackStates().size()-1);
-            tPos = new BasicHep3Vector(trackStateAtEcal.getReferencePoint());
-            tPos = CoordinateTransformations.transformVectorToDetector(tPos);
-
-        }
-
-        double[] trackPosition = {tPos.x(),tPos.y(),tPos.z()};
-        return trackPosition;
-    }
-
     public RelationalTable getKFTrackDataRelations(EventHeader event){
         
         List<TrackData> TrackData;
