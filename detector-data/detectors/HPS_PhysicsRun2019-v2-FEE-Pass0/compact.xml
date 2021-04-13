@@ -632,7 +632,7 @@
         <millepede_constant name="12320" value="0.0" />
         <millepede_constant name="12321" value="0.0" />
         <millepede_constant name="12322" value="0.0" />
-        
+
         <!-- bottom half-module translations -->
 
         <millepede_constant name="21101" value="0.0 + 0.004180" />
@@ -885,45 +885,45 @@
         <millepede_constant name="22167" value="0.0" /> <!-- ru -->
         <millepede_constant name="22267" value="0.0" /> <!-- rv -->
         <millepede_constant name="22367" value="0.0" /> <!-- rw -->
-        
+
         <!-- top support front translations -->
-        <millepede_constant name="11180" value="0.0 + -0.636090 + -0.123290 + -0.000292 + -0.256510" />     <!-- + opening global X-->
-        <millepede_constant name="11280" value="0.0" />     <!-- + opening global Z-->
-        <millepede_constant name="11380" value="0.0 + 0.096841 + 0.022731 + -0.029719 + 0.028933 + 0.010131 + 0.000845 + -0.045571" />     <!-- + opening global Y-->
+        <millepede_constant name="11180" value="0.0 + -0.636090 + -0.123290 + -0.000292 + -0.256510 + -0.033879" />     <!-- + opening global X-->
+        <millepede_constant name="11280" value="0.0 + 0.877980" />     <!-- + opening global Z-->
+        <millepede_constant name="11380" value="0.0 + 0.096841 + 0.022731 + -0.029719 + 0.028933 + 0.010131 + 0.000845 + -0.045571 + -0.040349" />     <!-- + opening global Y-->
 
         <!-- top support front tilt angles -->
 
-        <millepede_constant name="12180" value="-0.0001 + -0.000123 + -0.000043 + -0.000004" /> <!-- + means opening-->
+        <millepede_constant name="12180" value="-0.0001 + -0.000123 + -0.000043 + -0.000004 + -0.000001" /> <!-- + means opening-->
         <millepede_constant name="12280" value="0.0" />
         <millepede_constant name="12380" value="0.0" />
 
 
         <!-- top support back translations -->
-        <millepede_constant name="11190" value="0.0 + -0.244390" />     <!-- + opening global X-->
+        <millepede_constant name="11190" value="0.0 + -0.244390 + -0.014508" />     <!-- + opening global X-->
         <millepede_constant name="11290" value="0.0" />     <!-- + opening global Z-->
-        <millepede_constant name="11390" value="0.0 + 0.046110" />     <!-- + opening global Y-->
+        <millepede_constant name="11390" value="0.0 + 0.046110 + 0.003477" />     <!-- + opening global Y-->
 
         <!-- top support back tilt angles -->
 
         <millepede_constant name="12190" value="0.0" /> <!-- + means opening-->
         <millepede_constant name="12290" value="0.0" />
         <millepede_constant name="12390" value="0.0" />
-        
+
         <!-- bottom support translations -->
-        <millepede_constant name="21180" value="0.0 + 0.991020 + -0.075507 + -0.036106" />     <!-- + opening global X-->
-        <millepede_constant name="21280" value="0.0" />     <!-- + opening global Z-->
-        <millepede_constant name="21380" value="0.0 + 0.018919 + 0.004137 + 0.011636 + 0.004590 + 0.001019 + 0.000232 + 0.033083 + -0.165940 + -0.014889" />     <!-- + opening global Y-->
+        <millepede_constant name="21180" value="0.0 + 0.991020 + -0.075507 + -0.036106 + -0.020808" />     <!-- + opening global X-->
+        <millepede_constant name="21280" value="0.0 + 0.223920" />     <!-- + opening global Z-->
+        <millepede_constant name="21380" value="0.0 + 0.018919 + 0.004137 + 0.011636 + 0.004590 + 0.001019 + 0.000232 + 0.033083 + -0.165940 + -0.014889 + 0.009021" />     <!-- + opening global Y-->
 
         <!-- bottom support tilt angles -->
-        <millepede_constant name="22180" value="0.0001 + 0.000262 + 0.000049 + -0.000063 + 0.000258 + 0.000013" />  <!-- - means opening -->
+        <millepede_constant name="22180" value="0.0001 + 0.000262 + 0.000049 + -0.000063 + 0.000258 + 0.000013 + -0.000002" />  <!-- - means opening -->
         <millepede_constant name="22280" value="0.0" />
         <millepede_constant name="22380" value="0.0" />
 
 
         <!-- bottom support back translations -->
-        <millepede_constant name="21190" value="0.0 + 1.007900 + 0.345190" />
+        <millepede_constant name="21190" value="0.0 + 1.007900 + 0.345190 + 0.080289" />
         <millepede_constant name="21290" value="0.0" />
-        <millepede_constant name="21390" value="0.0 + -0.137440 + -0.022874" />
+        <millepede_constant name="21390" value="0.0 + -0.137440 + -0.022874 + -0.001883" />
 
         <!-- bottom support back tilt angles -->
 
