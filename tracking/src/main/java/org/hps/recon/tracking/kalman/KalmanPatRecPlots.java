@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.hps.recon.tracking.TrackUtils;
+import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
@@ -149,6 +150,12 @@ class KalmanPatRecPlots {
         aida.histogram1D("Kalman track time range (ns)", 100, 0., 100.);
         aida.histogram1D("GBL number of hits",20,0.,20.);
         aida.histogram1D("Kalman layer hit",20,0.,20.);
+        aida.histogram1D("drho error estimate",50,0.,1.);
+        aida.histogram1D("phi0 error estimate",50,0.,.01);
+        aida.histogram1D("ptInv error estimate",50,0.,0.2);
+        aida.histogram1D("ptInv relative error estimate",50,0.,0.5);
+        aida.histogram1D("dz error estimate",50,0.,0.2);
+        aida.histogram1D("tanl error estimate",50,0.,.005);
         for (int lyr=0; lyr<14; ++lyr) {
             aida.histogram1D(String.format("Layers/Kalman missed hit residual in layer %d",lyr), 100, -1.0, 1.0);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",lyr), 100, -0.1, 0.1);
@@ -418,6 +425,16 @@ class KalmanPatRecPlots {
                     if (e[i] < 0.) {
                         logger.warning(String.format("Event %d, eigenvalue %d of covariance is negative!", event.getEventNumber(), i));
                     }
+                }
+                if (kTk.nHits >= 10) {
+                    DMatrixRMaj thisCov = kTk.SiteList.get(0).aS.helix.C;
+                    double ptInv1 = kTk.SiteList.get(0).aS.helix.a.v[2];
+                    aida.histogram1D("drho error estimate").fill(Math.sqrt(thisCov.unsafe_get(0, 0)));
+                    aida.histogram1D("phi0 error estimate").fill(Math.sqrt(thisCov.unsafe_get(1, 1)));
+                    aida.histogram1D("ptInv relative error estimate").fill(Math.sqrt(thisCov.unsafe_get(2, 2))/Math.abs(ptInv1));
+                    aida.histogram1D("ptInv error estimate").fill(Math.sqrt(thisCov.unsafe_get(2, 2)));
+                    aida.histogram1D("dz error estimate").fill(Math.sqrt(thisCov.unsafe_get(3, 3)));
+                    aida.histogram1D("tanl error estimate").fill(Math.sqrt(thisCov.unsafe_get(4, 4)));
                 }
                 
                 // Histogram residuals of hits in layers with no hits on the track and with hits

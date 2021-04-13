@@ -267,10 +267,19 @@ class SeedTrack {
         CommonOps_DDRM.multTransB(CovA,D,Mint);
         C = new DMatrixRMaj(5);
         CommonOps_DDRM.mult(D, Mint, C);
-        if (debug) { 
-            System.out.println("line/parabola to helix derivatives:");
-            D.print();
-        }
+        //boolean badC = false;
+        //for (int i=0; i<5; ++i) {
+        //    if (C.unsafe_get(i, i) < 0.) {
+        //        badC = false;
+        //        System.out.format("SeedTrack: negative covariance matrix found!\n");
+        //        break;
+        //    }
+        //}
+        //if (debug || badC) { 
+        //    System.out.println("line/parabola to helix derivatives and final covariance:");
+        //    D.print();
+        //    C.print();
+        //}
 
         // Note that the non-bending plane is assumed to be y,z (B field in z
         // direction), and the track is assumed to start out more-or-less

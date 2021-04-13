@@ -54,8 +54,8 @@ public class TestMain {
             matInv.print();
             res.print();
         }
-        //HelixTest3 t1 = new HelixTest3(path);
-        PatRecTest t1 = new PatRecTest(path);
+        HelixTest3 t1 = new HelixTest3(path);
+        //PatRecTest t1 = new PatRecTest(path);
     }
 
     public TestMain() {
