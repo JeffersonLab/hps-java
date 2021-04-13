@@ -20,6 +20,12 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 
+
+import org.lcsim.event.Track;
+import java.util.ArrayList;
+import java.util.List;
+import org.hps.recon.tracking.TrackResidualsData;
+
 /**
  * A class with only static utilities related to GBL
  */
@@ -95,8 +101,100 @@ public class GblUtils {
         double getYt() {
             return _params.e(0, FittedGblTrajectory.GBLPARIDX.YT.getValue());
         }
-
+        
     }
+    
+    /** returns the residuals from the trajectory fit
+     *  
+     */
+    
+    public static TrackResidualsData computeGblResiduals(Track trk, FittedGblTrajectory fitGbl_traj) {
+        
+        GblTrajectory gbl_fit_trajectory = fitGbl_traj.get_traj();
+        
+        List<Double>  b_residuals = new ArrayList<Double>();
+        List<Float>   b_sigmas    = new ArrayList<Float>();
+        List<Integer> r_sensors   = new ArrayList<Integer>();
+        
+        int numData[] = new int[1];
+        //System.out.printf("Getting the residuals. Points  on trajectory: %d \n",gbl_fit_trajectory.getNpointsOnTraj());
+        //The fitted trajectory has a mapping between the MPID and the ilabel. Use that to get the MPID of the residual.
+        Integer[] sensorsFromMapArray = fitGbl_traj.getSensorMap().keySet().toArray(new Integer[0]);
+        //System.out.printf("Getting the residuals. Sensors on trajectory: %d \n",sensorsFromMapArray.length);
+        
+        //System.out.println("Check residuals of the original fit");
+        //Looping on all the sensors on track -  to get the biased residuals.
+        for (int i_s = 0; i_s < sensorsFromMapArray.length; i_s++) {       
+            //Get the point label
+            int ilabel = sensorsFromMapArray[i_s];
+            //Get the millepede ID
+            int mpid = fitGbl_traj.getSensorMap().get(ilabel);
+            List<Double> aResiduals   = new ArrayList<Double>();   
+            List<Double> aMeasErrors  = new ArrayList<Double>();
+            List<Double> aResErrors   = new ArrayList<Double>();  
+            List<Double> aDownWeights = new ArrayList<Double>();
+            gbl_fit_trajectory.getMeasResults(ilabel,numData,aResiduals,aMeasErrors,aResErrors,aDownWeights); 
+            if (numData[0]>1) { 
+                System.out.printf("GBLRefitterDriver::WARNING::We have SCT sensors. Residuals dimensions should be <=1\n");
+            }
+            for (int i=0; i<numData[0];i++) {
+                //System.out.printf("KalmanToGBLDriver::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
+                //System.out.printf("KalmanToGBLDriver::measResults %d %d %d %f %f %f \n",ilabel, i, mpid, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));
+                
+                r_sensors.add(mpid);
+                b_residuals.add(aResiduals.get(i));
+                b_sigmas.add(aResErrors.get(i).floatValue());
+            }
+            //Perform an unbiasing fit for each traj
+            
+            //System.out.println("Run the unbiased residuals!!!\n");
+            //For each sensor create a trajectory 
+            GblTrajectory gbl_fit_traj_u = new GblTrajectory(gbl_fit_trajectory.getSingleTrajPoints());
+            double[] u_dVals = new double[2];
+            int[] u_iVals    = new int[1];
+            int[] u_numData  = new int[1]; 
+            //Fit it once to have exactly the same starting point of gbl_fit_trajectory.
+            gbl_fit_traj_u.fit(u_dVals,u_iVals,"");
+            List<Double> u_aResiduals   = new ArrayList<Double>();   
+            List<Double> u_aMeasErrors  = new ArrayList<Double>();
+            List<Double> u_aResErrors   = new ArrayList<Double>();  
+            List<Double> u_aDownWeights = new ArrayList<Double>();
+            
+            try {
+                //Fit removing the measurement
+                gbl_fit_traj_u.fit(u_dVals,u_iVals,"",ilabel);
+                gbl_fit_traj_u.getMeasResults(ilabel,numData,u_aResiduals,u_aMeasErrors,u_aResErrors,u_aDownWeights); 
+                for (int i=0; i<numData[0];i++) {
+                    //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
+                    //System.out.printf("Example1::UmeasResults %d %d %d %f %f %f \n",ilabel, i, mpid, u_aResiduals.get(i),u_aMeasErrors.get(i),u_aResErrors.get(i));
+                    
+                    r_sensors.add(mpid);
+                    b_residuals.add(u_aResiduals.get(i));
+                    b_sigmas.add(u_aResErrors.get(i).floatValue());
+                }
+            }
+            catch (RuntimeException e){
+                //  e.printStackTrack();
+                r_sensors.add(-999);
+                b_residuals.add(-9999.);
+                b_sigmas.add((float)-9999.);
+                //System.out.printf("Unbiasing fit fails! For label::%d\n",ilabel);
+            }
+            
+        }//loop on sensors on track
+        
+        //Set top by default
+        int trackerVolume = 0;
+        //if tanLamda<0 set bottom
+        //System.out.printf("Residuals size %d \n", r_sensors.size());
+        
+        if (trk.getTrackStates().get(0).getTanLambda() < 0) trackerVolume = 1;
+        TrackResidualsData resData  = new TrackResidualsData(trackerVolume,r_sensors,b_residuals,b_sigmas);
+        
+        return resData;
+    }
+      
+    
 
     /**
      * Store perigee track parameters.
