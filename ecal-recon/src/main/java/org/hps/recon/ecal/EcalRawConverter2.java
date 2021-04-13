@@ -28,11 +28,6 @@ import org.lcsim.geometry.Detector;
  * subtraction/addition and gain scaling. Knows how to deal with Mode-1/3/7 FADC readout formats. Can perform Mode-3/7
  * firmware algorithms on Mode-1 data. Can alternatively call pulse-fitting on Mode-1 data. All time walk/time offset
  * corrections are performed to this collection after gains in EcalTimeCorrectionDriver
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
- * @author Nathan Baltzell <baltzell@jlab.org>
- * @author Holly Szumila <hvanc001@odu.edu>
  */
 public class EcalRawConverter2 {
 

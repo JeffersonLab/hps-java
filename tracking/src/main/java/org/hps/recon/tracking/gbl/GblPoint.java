@@ -7,11 +7,6 @@ import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
-/**
- * @author phansson
- * @author Norman A Graf
- * @version $Id:
- */
 public class GblPoint {
 
     public GblPoint(hep.physics.matrix.BasicMatrix jacPointToPoint) {

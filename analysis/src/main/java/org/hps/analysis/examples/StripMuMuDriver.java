@@ -7,10 +7,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author Norman A. Graf
- */
 public class StripMuMuDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

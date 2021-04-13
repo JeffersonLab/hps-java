@@ -26,8 +26,6 @@ import org.lcsim.geometry.Detector;
  * channels in the hardware. This entails splitting the energy of
  * those hits where the physical scintillator feeds into multiple
  * FADC channels.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class HodoscopePreprocessingDriver extends ReadoutDriver {
     /** Object for accessing the geometric data of the hodoscope detector model. */

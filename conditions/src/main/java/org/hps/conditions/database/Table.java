@@ -7,8 +7,6 @@ import java.lang.annotation.Target;
 
 /**
  * This annotation can be used to assign a class to one or more database tables.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

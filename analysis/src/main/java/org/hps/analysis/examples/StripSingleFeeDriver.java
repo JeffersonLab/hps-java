@@ -13,8 +13,6 @@ import org.lcsim.util.Driver;
  * numberOfHitsOnTrack (default is 6). By default, only one ReconstructedParticle
  * is allowed per event.
  *
- * @author Norman A Graf
- *
  * @todo Move to recon.filtering
  */
 public class StripSingleFeeDriver extends Driver {

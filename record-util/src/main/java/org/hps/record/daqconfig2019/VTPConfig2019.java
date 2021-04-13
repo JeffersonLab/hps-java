@@ -16,8 +16,6 @@ import java.io.PrintStream;
  * <li>Pair 3 Trigger</li>
  * <li>Pair 4 Trigger</li>
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class VTPConfig2019 extends IDAQConfig2019 {
     ////// Store cluster cut parameters

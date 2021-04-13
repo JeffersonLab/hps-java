@@ -21,8 +21,6 @@ import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
  * 
  * @see Clusterer
  * @see org.lcsim.event.Cluster
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public abstract class AbstractClusterer implements Clusterer {
     

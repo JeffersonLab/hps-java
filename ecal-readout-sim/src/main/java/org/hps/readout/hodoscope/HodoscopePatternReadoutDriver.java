@@ -36,9 +36,6 @@ import org.lcsim.geometry.Detector;
  * in [localTime - (persistentTime - timeEarlierThanEcal), localTime +
  * timeEarlierThanEcal + 4] are taken into account to generate hodoscope
  * patterns for all layers.
- * 
- * @author tongtongcao <caot@jlab.org>
- *
  */
 public class HodoscopePatternReadoutDriver extends ReadoutDriver {
     /** Maps hodoscope channel IDs to channels. */

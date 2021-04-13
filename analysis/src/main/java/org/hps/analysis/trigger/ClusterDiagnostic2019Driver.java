@@ -20,7 +20,6 @@ import org.hps.analysis.trigger.util.LocalOutputLogger;
 import org.hps.analysis.trigger.util.TriggerDiagnosticUtil;
 import org.hps.record.daqconfig2019.ConfigurationManager2019;
 import org.hps.record.daqconfig2019.DAQConfig2019;
-//import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.VTPData;
 import org.hps.record.triggerbank.VTPCluster;
 import org.hps.record.triggerbank.TriggerModule2019;
@@ -56,8 +55,6 @@ import org.lcsim.util.aida.AIDA;
  * 
  * <code>ClusterDiagnostic2019Driver</code> is developed based on
  * <code>ClusterDiagnosticDriver</code>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public final class ClusterDiagnostic2019Driver extends Driver {
     // === Defines cluster verification statistics.

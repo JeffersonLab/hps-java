@@ -1,9 +1,5 @@
 package org.hps.recon.tracking.kalman;
 
-/**
- * Driver for refitting existing GBL using the Kalman filter
- * @author Miriam Diamond, Robert Johnson
- */
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
@@ -16,7 +12,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.ejml.data.DMatrixRMaj;
-//import org.hps.analysis.MC.TrackTruthMatching;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackStateUtils;
@@ -44,7 +39,6 @@ import org.lcsim.util.aida.AIDA;
 import org.lcsim.event.MCParticle;
 
 // $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
-
 public class KalmanDriverHPS extends Driver {
 
     private ArrayList<SiStripPlane> detPlanes;

@@ -16,10 +16,7 @@ import org.hps.record.daqconfig2019.FEETriggerConfig2019;
 
 /**
  * Class <code>TriggerModule2019</code> handles trigger cuts for 2019 MC.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class TriggerModule2019 {
     /* Keys for general Cuts */
 

@@ -11,7 +11,6 @@ package org.hps.recon.tracking.gbl.matrix;
  * The primary use of the LU decomposition is in the solution of square systems of simultaneous linear equations. This
  * will fail if isNonsingular() returns false.
  * 
- * @version $Id: LUDecomposition.java,v 1.1.1.1 2010/11/30 21:31:59 jeremy Exp $
  */
 
 public class LUDecomposition implements java.io.Serializable {

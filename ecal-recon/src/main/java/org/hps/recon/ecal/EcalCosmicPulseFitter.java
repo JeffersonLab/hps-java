@@ -26,10 +26,7 @@ import org.lcsim.util.aida.AIDA;
  * Limits are chosen based on cosmic signals characteristics. 
  * Width parameter can be free or fixed (fixed by default).
  * Pedestal parameter is initialized from samples before threshold crossing.
- * 
- * @author LucaMarsicano
  */
-
 public class EcalCosmicPulseFitter {
     
     private EcalConditions ecalConditions = null;

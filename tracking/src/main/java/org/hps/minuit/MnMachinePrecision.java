@@ -6,7 +6,6 @@ package org.hps.minuit;
  * when the user knows that the {FCN} function value is not calculated to the
  * nominal machine accuracy.
  *
- * @version $Id: MnMachinePrecision.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnMachinePrecision {
 

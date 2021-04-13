@@ -19,8 +19,6 @@ import junit.framework.TestCase;
 /**
  * Basic test of converting EVIO to LCIO using the {@link org.hps.evio.EvioToLcio} command line utility on Engineering
  * Run 2015 data.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class EvioToLcioTest extends TestCase {
 

@@ -35,11 +35,8 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.hps.record.StandardCuts;
 
-
 /**
  * Utility used to determine if a track and cluster are matched.
- *
- * @author <a href="mailto:moreno1@ucsc.edu">Omar Moreno</a>
  */
 public class TrackClusterMatcherNSigma extends AbstractTrackClusterMatcher {
 

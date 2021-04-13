@@ -7,7 +7,6 @@ package org.hps.minuit;
  * as input prior to the minimization. The size of the covariance matrix is
  * according to the number of variable parameters (free and limited).
  *
- * @version $Id: MnUserCovariance.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnUserCovariance {
 

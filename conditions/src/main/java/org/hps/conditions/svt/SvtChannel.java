@@ -10,9 +10,6 @@ import org.hps.util.Pair;
 
 /**
  * This class represents SVT channel setup information, including FEB ID, FEB Hybrid ID, and channel numbers.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 @Table(names = {"svt_channels"})
 public final class SvtChannel extends AbstractSvtChannel {

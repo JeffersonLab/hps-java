@@ -27,7 +27,6 @@ import java.util.Set;
 import org.apache.commons.math3.util.Pair;
 import org.apache.commons.math.util.FastMath;
 import org.hps.recon.tracking.EventQuality.Quality;
-//import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.HelicalTrackStripGbl;
 import org.hps.util.RK4integrator;
 import org.lcsim.constants.Constants;
@@ -45,7 +44,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.EventHeader;
-//import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
@@ -71,15 +69,11 @@ import org.lcsim.util.swim.Helix;
 import org.lcsim.util.swim.Line;
 import org.lcsim.util.swim.Trajectory;
 
-
-//ejml
 import org.ejml.data.DMatrix3;
 
 /**
  * Assorted helper functions for the track and helix objects in lcsim. Re-use as
  * much of HelixUtils as possible.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class TrackUtils {
 

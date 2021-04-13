@@ -2,9 +2,6 @@ package org.hps.conditions.svt;
 
 /**
  * This class represents the combined conditions for a single SVT channel.
- *
- * @author Omar Moreno, UCSC
- * @author Jeremy McCormick, SLAC
  */
 public final class ChannelConstants {
 

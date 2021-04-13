@@ -13,7 +13,6 @@ import org.lcsim.job.DefaultConditionsSetup;
 
 /**
  * Provides setup for HPS specific conditions manager.
- * @author jeremym
  */
 public final class DatabaseConditionsManagerSetup extends DefaultConditionsSetup {
 

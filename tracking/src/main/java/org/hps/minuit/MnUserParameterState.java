@@ -8,7 +8,6 @@ import java.util.List;
  * MnUserCovariance. It can be created on input by the user, or by MINUIT itself
  * as user representable format of the result of the minimization.
  *
- * @version $Id: MnUserParameterState.java 8584 2006-08-10 23:06:37Z duns $
  */
 public class MnUserParameterState {
 

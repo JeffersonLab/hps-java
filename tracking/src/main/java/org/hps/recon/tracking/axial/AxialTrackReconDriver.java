@@ -19,8 +19,6 @@ import org.lcsim.util.Driver;
  * This class runs the Track Reconstruction using just the axial layers;
  * No circle fit is performed.
  * The tracker digitization must be run in front of it. 
- *
- * @author Matt Graham <mgraham@slac.stanford.edu>
  */
 public final class AxialTrackReconDriver extends Driver {
 

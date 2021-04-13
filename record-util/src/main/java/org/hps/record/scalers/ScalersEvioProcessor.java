@@ -11,8 +11,6 @@ import org.jlab.coda.jevio.EvioEvent;
 
 /**
  * This is an EVIO event processor for creating a {@link ScalerData} object from scaler bank data.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class ScalersEvioProcessor extends EvioEventProcessor {
 

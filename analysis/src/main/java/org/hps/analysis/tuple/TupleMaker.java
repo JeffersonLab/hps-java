@@ -56,7 +56,6 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
  * sort of an interface for DQM analysis drivers creates the DQM database
  * manager, checks whether row exists in db etc
  *
- * @author mgraham on Apr 15, 2014 update mgraham on May 15, 2014 to include
  * calculateEndOfRunQuantities & printDQMData i.e. useful methods
  */
 public abstract class TupleMaker extends Driver {

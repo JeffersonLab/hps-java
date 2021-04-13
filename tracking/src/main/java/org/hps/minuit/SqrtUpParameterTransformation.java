@@ -2,7 +2,6 @@ package org.hps.minuit;
 
 /**
  *
- * @version $Id: SqrtUpParameterTransformation.java 8584 2006-08-10 23:06:37Z
  * duns $
  */
 class SqrtUpParameterTransformation {

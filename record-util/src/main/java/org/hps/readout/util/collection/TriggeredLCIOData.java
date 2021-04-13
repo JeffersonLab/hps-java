@@ -9,7 +9,6 @@ import java.util.Set;
  * both a list of the output data, corresponding to a single event,
  * and also the LCIO parameters needed to write the event.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The object type of the data stored by the collection.
  */
 public class TriggeredLCIOData<T> extends LCIOData<T, LCIOCollection<T>, Set<T>> {

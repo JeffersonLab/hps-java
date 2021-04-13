@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.evio;
 
 //import static org.hps.evio.EventConstants.ECAL_BANK_NUMBER;
@@ -27,15 +22,10 @@ import org.lcsim.event.EventHeader;
 //import org.lcsim.geometry.Subdetector;
 //import org.lcsim.lcio.LCIOConstants;
 
-/**
- *
- * @author rafopar
- */
 public class HodoHitWriter implements HitWriter {
 
     private String hitCollectionName = "HodoReadoutHits";
     private int mode = EventConstants.HODO_PULSE_INTEGRAL_MODE;
-    
     
     private int verbosity = 1;
 

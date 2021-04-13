@@ -3,12 +3,10 @@ package org.hps.recon.tracking.kalman;
 import java.util.Random;
 
 import org.apache.commons.math.util.FastMath;
+
 /**
- * 
  * Runge-Kutta propagation through the detector, including Gaussian MCS at silicon planes.
  * This code is only to help with internal testing of the Kalman package and is not part of the fitting or pattern recognition.
- * @author Robert Johnson
- *
  */
 class RKhelix {
 

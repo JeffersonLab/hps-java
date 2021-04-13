@@ -2,10 +2,6 @@ package org.hps.recon.tracking.gbl.matrix;
 
 /**
  * Specializes the Matrix class to a vector.
- *
- * @author CKAllen
- * @author Norman A. Graf (modifications for the gbl package)
- * @version $Id$
  */
 public class Vector extends Matrix implements java.io.Serializable {
 

@@ -14,12 +14,6 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Vertex;
 import org.lcsim.math.chisq.ChisqProb;
 
-/**
- *
- * @author Mathew Thomas Graham <mgraham@slac.stanford.edu>
- * @version $Id:$
- *
- */
 public class BilliorVertex implements Vertex {
     // the value of the magnetic field in the vicinity of the vertex
     // default is a constant field along the z axis

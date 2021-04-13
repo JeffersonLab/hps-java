@@ -16,9 +16,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * Reads clusters and makes trigger decision using opposite quadrant criterion.
  * Prints triggers to file if file path specified.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: TestRunRateAnalysis.java,v 1.1 2013/02/25 22:39:26 meeg Exp $
  */
 public class TestRunRateAnalysis extends Driver {
 

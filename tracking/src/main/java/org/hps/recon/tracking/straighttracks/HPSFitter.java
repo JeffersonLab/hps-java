@@ -6,13 +6,8 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackHit;
 import org.lcsim.fit.helicaltrack.MultipleScatter;
 
-/**
- *
- * @author mgraham
- */
 public interface HPSFitter {
 
-//    public void HPSFitter();
 
     public enum FitStatus {
     

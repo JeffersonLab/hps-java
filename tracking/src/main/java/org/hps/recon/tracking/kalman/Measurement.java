@@ -1,10 +1,10 @@
 package org.hps.recon.tracking.kalman;
-/**
- * Holds a single silicon-strip measurement (single-sided), to interface with the Kalman fit
- * @author Robert Johnson
- */
+
 import java.util.ArrayList;
 
+/**
+ * Holds a single silicon-strip measurement (single-sided), to interface with the Kalman fit
+ */
 class Measurement { // 
     double v; // Measurement value in detector frame
     double x; // X of the center of the strip in the detector frame

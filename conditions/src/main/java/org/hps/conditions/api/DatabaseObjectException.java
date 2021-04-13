@@ -2,8 +2,6 @@ package org.hps.conditions.api;
 
 /**
  * Exception for errors that occur when performing operations on {@link DatabaseObject}s.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class DatabaseObjectException extends Exception {
 

@@ -7,12 +7,7 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 
 /**
  * HPS extension of the fitter algorithm to enable the use of local classes
- * 
- * @author Per Hansson <phansson@slac.stanford.edu>
- * @author Miriam Diamond
- * @version $Id: $
  */
-
 public class HelixFitter extends org.lcsim.recon.tracking.seedtracker.HelixFitter {
 
     public HelixFitter(MaterialManager materialManager) {

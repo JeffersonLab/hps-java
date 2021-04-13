@@ -22,7 +22,6 @@ import org.lcsim.detector.material.MaterialStore;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.detector.tracker.silicon.SiTrackerModule;
-//import org.lcsim.detector.tracker.silicon.SiTrackerLayer;
 import org.lcsim.geometry.compact.Detector;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.geometry.compact.converter.HPSTrackerBuilder;
@@ -33,8 +32,6 @@ import org.lcsim.detector.tracker.silicon.AlignableDetectorElement;
 
 /**
  * Converts the compact description into Java runtime objects
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public abstract class HPSTracker2014ConverterBase extends AbstractSubdetectorConverter {
 

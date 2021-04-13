@@ -1,9 +1,7 @@
 package org.hps.recon.tracking.gbl;
 
-//import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
-//import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
@@ -14,34 +12,20 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-//import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MultipleScattering;
-//import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
-//import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.hps.recon.tracking.SiTrackerHitStrip1D;
-//import org.lcsim.constants.Constants;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.IDetectorElement;
-//import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-//import org.lcsim.detector.tracker.silicon.SiSensor;
-//import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.RawTrackerHit;
-//import org.lcsim.event.Track;
-//import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
-//import org.lcsim.event.base.BaseTrack;
-//import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
-
-//ejml
-
 
 /**
  * This class is a converter from track to GBLTrajectory for alignment purposes.
@@ -49,13 +33,10 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
  * 1) ejml for matrix algebra
  * 2) jna for full support of GBL C++ external library
  *
- *
  * No Fit is performed over GBLTrajectories
  * Constraints supported:
  * - impact parameters
  * - vertex constraint
- *  * @author PF
- *
  */
 public class GblTrajectoryMaker {
 

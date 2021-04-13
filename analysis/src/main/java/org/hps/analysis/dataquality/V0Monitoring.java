@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-// import org.hps.UnusedImportCheckstyleViolation
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.tracking.TrackType;
@@ -37,9 +36,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 /**
  * DQM driver V0 particles (i.e. e+e- pars) plots things like number of vertex
  * position an mass
- *
- * @author mgraham on May 14, 2014
- *
  */
 public class V0Monitoring extends DataQualityMonitor {
 

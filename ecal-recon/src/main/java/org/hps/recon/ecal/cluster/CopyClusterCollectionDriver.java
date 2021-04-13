@@ -10,9 +10,8 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 /**
- * Copy a {@link org.lcsim.event.Cluster} collection to a new collection via the {@link org.lcsim.event.base.BaseCluster} class's copy constructor.
- *
- * @author Jeremy McCormick
+ * Copy a {@link org.lcsim.event.Cluster} collection to a new collection via the 
+ * {@link org.lcsim.event.base.BaseCluster} class's copy constructor.
  */
 public class CopyClusterCollectionDriver extends Driver {
 

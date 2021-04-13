@@ -39,8 +39,6 @@ import org.lcsim.util.Driver;
  * drivers as input, for managing triggers, and for writing out data.
  * <br/><br/>
  * More information on how a readout driver should interface
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class ReadoutDataManager extends Driver {
     /**

@@ -22,8 +22,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.SvtPlotUtils;
-// ===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-// ===> import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -32,15 +30,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
 public class PedestalPlots extends Driver {
-
-    //static {
-    //    hep.aida.jfree.AnalysisFactory.register();
-    //}
 
     // Plotting
     private static ITree tree = null;

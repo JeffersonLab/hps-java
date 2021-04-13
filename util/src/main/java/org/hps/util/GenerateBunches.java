@@ -1,7 +1,3 @@
-/*
- * Simple java program to generate single particles of fixed momentum uniformly
- * distributed in pseudorapidity.
- */
 package org.hps.util;
 
 import hep.io.stdhep.StdhepEvent;
@@ -12,8 +8,8 @@ import java.io.IOException;
 import java.util.Random;
 
 /**
- *
- * @author mgraham
+ * Simple java program to generate single particles of fixed momentum uniformly
+ * distributed in pseudorapidity.
  */
 public class GenerateBunches {
 

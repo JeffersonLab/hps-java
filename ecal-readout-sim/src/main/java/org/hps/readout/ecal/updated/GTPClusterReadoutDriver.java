@@ -51,9 +51,6 @@ import org.lcsim.lcio.LCIOConstants;
  * org.hps.readout.ecal.updated.GTPClusterReadoutDriver#setWriteClusterCollection(boolean)
  * setWriteClusterCollection(boolean)} is set to true, the clusters
  * will also be persisted into the output LCIO file.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class GTPClusterReadoutDriver extends ReadoutDriver {     
     // ==============================================================

@@ -23,10 +23,7 @@ import org.lcsim.util.Driver;
  * 
  * E(run) = E0 * (1+(run-run0)*k), where run0 is a reference run and k is a slope parameter, for each crystal
  * This is primarily used for the 2019 run
- *
- * @author Andrea Celentano
  */
-
 public class CorrectGainRunDependenceDriver extends Driver {
 
     private boolean isSlopeFileRead = false;

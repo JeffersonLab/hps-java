@@ -19,8 +19,6 @@ import java.util.logging.Logger;
 
 /**
  * Task to add ROOT histograms from the reconstruction stations using the hadd utility.
- * 
- * @author jeremym
  */
 final class PlotAddTask extends TimerTask {
 

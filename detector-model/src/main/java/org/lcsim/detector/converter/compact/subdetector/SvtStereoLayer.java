@@ -4,8 +4,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 
 /**
  * A class describing an SVT stereo pair.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class SvtStereoLayer {
 

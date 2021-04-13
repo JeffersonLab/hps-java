@@ -8,8 +8,6 @@ import org.hps.conditions.run.RunSpreadsheet.RunData;
 
 /**
  * Adds information to a {@link RunSummary} from the run spreadsheet.
- * 
- * @author jeremym
  */
 public final class SpreadsheetBuilder extends AbstractRunBuilder {
     

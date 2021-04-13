@@ -20,8 +20,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
  * any conditions objects, only the collection information. By default it will print information about the single
  * collection found for a given type, which is by convention the last one updated. The <code>-a</code> option can be
  * used to print out all collection information.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class RunSummaryCommand extends AbstractCommand {
 

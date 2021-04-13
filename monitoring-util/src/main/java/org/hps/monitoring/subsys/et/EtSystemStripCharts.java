@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.monitoring.subsys.et;
 
 import java.util.ArrayList;
@@ -21,8 +18,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This will show a series of strip charts from ET system performance statistics
  * such as event and data rates.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EtSystemStripCharts extends EtEventProcessor implements SystemStatisticsListener {
 

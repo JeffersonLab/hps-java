@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-//===> import org.hps.conditions.deprecated.HPSSVTCalibrationConstants;
-//===> import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.RawTrackerHit;
@@ -27,8 +25,6 @@ import org.lcsim.recon.tracking.digitization.sisim.SiElectrodeDataCollection;
  * This implementation has thresholds that are settable in units of RMS noise of each channel to
  * enable simluation of highly optimized readout chains. If absolute thresholds are desired,
  * GenericReadoutChip should be used instead.
- * 
- * @author Tim Nelson
  */
 // FIXME: Is this a copy-paste job from SiSim? What behavior is changed from there?
 public class NoiselessReadoutChip implements ReadoutChip {

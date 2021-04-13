@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 import org.lcsim.geometry.field.FieldOverlay;
+
 /**
  * This class is used for standalone testing of the Kalman code. See KalmanInterface.java for how the B-field access works
  * when running in hps-java.
@@ -21,8 +22,6 @@ import org.lcsim.geometry.field.FieldOverlay;
  *     y map = -z Kalman
  *     z map =  y Kalman
  * These map coordinates are the HPS global coordinates (not HPS tracking coordinates)
- * @author Robert Johnson
- *
  */
 public class FieldMap extends FieldOverlay {
     private int nX, nY, nZ;

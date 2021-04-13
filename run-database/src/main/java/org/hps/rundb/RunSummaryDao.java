@@ -4,8 +4,6 @@ import java.util.List;
 
 /**
  * Database API for managing basic run summary information in the run database.
- *
- * @author jeremym
  */
 public interface RunSummaryDao {
   

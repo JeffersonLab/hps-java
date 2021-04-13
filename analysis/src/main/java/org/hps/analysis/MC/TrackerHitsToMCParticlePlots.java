@@ -15,8 +15,6 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- *
- * @author mrsolt
  * This driver plots info related to Tracker Hits to MC Particle Truth Info
  */
 public class TrackerHitsToMCParticlePlots extends Driver {

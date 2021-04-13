@@ -12,8 +12,6 @@ import org.hps.conditions.database.Field;
 /**
  * This is a basic ORM class for performing CRUD (create, read, update, delete) operations on objects in the conditions
  * system. Each object is mapped to a single row in a database table.
- *
- * @author Jeremy McCormick, SLAC
  */
 public abstract class BaseConditionsObject implements ConditionsObject {
 

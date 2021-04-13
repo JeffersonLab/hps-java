@@ -5,10 +5,7 @@ import java.io.PrintStream;
 /**
  * Class <code>TSConfig2019</code> stores TS configuration settings
  * parsed from the an EVIO file. 
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class TSConfig2019 extends IDAQConfig2019 {
     // Store TS prescale setting
     public static final int Single0Top = 0;

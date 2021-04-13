@@ -1,9 +1,5 @@
 package org.hps.readout.svt;
 
-/**
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- */
 public class HPSSVTConstants {
 
     public static final int SVT_TOTAL_FPGAS = 7;

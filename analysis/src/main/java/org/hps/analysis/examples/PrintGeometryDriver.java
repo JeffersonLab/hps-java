@@ -3,7 +3,6 @@ package org.hps.analysis.examples;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.BasicHep3Matrix;
-//import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.VecOp;
 
 import java.util.List;
@@ -16,18 +15,11 @@ import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.SiSensor;
-//import org.lcsim.detector.tracker.silicon.AlignableDetectorElement;
-//import org.lcsim.detector.tracker.silicon.SiTrackerLayer;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author phansson
- * @author Norman A Graf
- */
 public class PrintGeometryDriver extends Driver {
 
     @Override

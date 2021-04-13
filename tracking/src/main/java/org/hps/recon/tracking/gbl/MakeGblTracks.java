@@ -3,7 +3,6 @@ package org.hps.recon.tracking.gbl;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
-//import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
@@ -18,7 +17,6 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
-//import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.hps.recon.tracking.SiTrackerHitStrip1D;
 import org.lcsim.constants.Constants;
 import org.lcsim.detector.ITransform3D;
@@ -41,10 +39,6 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 
 /**
  * Utilities that create track objects from fitted GBL trajectories.
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @author Miriam Diamond
- *
  */
 public class MakeGblTracks {
 

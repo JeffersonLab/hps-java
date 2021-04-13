@@ -7,8 +7,6 @@ package org.hps.record.daqconfig2019;
  * package classes, set them.
  * 
  * Code is developed referring to org.hps.record.daqconfig.ULBCutConfig by Kyle McCarty
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class ULBCutConfig2019 extends AbstractConfig2019<Double> {
     private static final int LOWER_BOUND = 0;

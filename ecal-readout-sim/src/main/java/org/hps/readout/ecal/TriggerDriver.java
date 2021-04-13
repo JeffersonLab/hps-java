@@ -19,9 +19,6 @@ import org.lcsim.lcio.LCIOWriter;
  * to file if file path specified. Writes trigger events to LCIO if file path
  * specified. To implement: extend this class and write your own
  * triggerDecision().
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: TriggerDriver.java,v 1.7 2013/09/02 21:56:56 phansson Exp $
  */
 public abstract class TriggerDriver extends TriggerableDriver {
 

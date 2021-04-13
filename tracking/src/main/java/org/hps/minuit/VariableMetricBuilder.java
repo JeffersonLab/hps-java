@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 /**
  *
- * @version $Id: VariableMetricBuilder.java 16141 2014-09-05 01:17:10Z tonyj $
  */
 class VariableMetricBuilder implements MinimumBuilder {
 

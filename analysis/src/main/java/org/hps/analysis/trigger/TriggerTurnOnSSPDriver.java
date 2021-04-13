@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.analysis.trigger;
 
 import hep.aida.IAnalysisFactory;
@@ -24,10 +21,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>, Matt Solt <mrsolt@slac.stanford.edu>
- *
- */
 public class TriggerTurnOnSSPDriver extends Driver {
     
     private static Logger LOGGER = Logger.getLogger(TriggerTurnOnSSPDriver.class.getPackage().getName());

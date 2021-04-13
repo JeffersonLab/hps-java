@@ -18,8 +18,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
  * delimited consistently by a single character. The user must supply a table name as the target for the SQL insert. An
  * optional collection ID can be supplied, which is not allowed to exist already in the table. Otherwise, the command
  * will fail. By default, the next collection ID will be found by the conditions manager.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class LoadCommand extends AbstractCommand {
 

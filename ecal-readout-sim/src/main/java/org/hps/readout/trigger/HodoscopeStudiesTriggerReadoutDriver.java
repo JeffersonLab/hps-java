@@ -12,10 +12,10 @@ import org.lcsim.event.EventHeader;
  * triggers by selecting events that a cluster with an x-position
  * greater than some threshold.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see org.hps.readout.TriggerDriver
  */
 public class HodoscopeStudiesTriggerReadoutDriver extends TriggerDriver {
+
     /**
      * Specifies the name of the LCIO collection containing the input
      * hodoscope hits that are used for triggering.

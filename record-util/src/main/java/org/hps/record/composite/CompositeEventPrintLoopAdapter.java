@@ -13,8 +13,6 @@ import org.lcsim.event.EventHeader;
  * 
  * Class can be configured to print information from composite record,
  * LCIO, EVIO and ET.
- * 
- * @author jeremym
  */
 public class CompositeEventPrintLoopAdapter implements RecordListener {
 

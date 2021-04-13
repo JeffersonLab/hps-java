@@ -19,8 +19,6 @@ import org.hps.monitoring.subsys.SystemStatusListener;
 
 /**
  * This is a table that shows every system status change in a different row.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class SystemStatusEventsTable extends JTable {

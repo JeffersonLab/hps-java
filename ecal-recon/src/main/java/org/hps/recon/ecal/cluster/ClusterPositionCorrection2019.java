@@ -7,12 +7,7 @@ import org.lcsim.event.base.BaseCluster;
  * This should be used before the energy is corrected on the Cluster and after
  * cluster-track matching.
  * This is to be used with 2019 data
- * 
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
- * @author Luca Marsicano <luca.marsicano@ge.infn.it>
- */
-
-/**
+ *
  * To determine these corrections, we simulated e+ e- and gamma at fixed
  * energies over the ECAL acceptance, sampled the true hit position with MC
  * scoring plane, and compared with the measured cluster position. We then
@@ -32,9 +27,7 @@ import org.lcsim.event.base.BaseCluster;
  * Electrons and Positrons: parameter(E) = p0 + p1*pow(E,p2) for all parameters
  * Photons: par(E) = p0 + p1*pow(E,p2) | par = q,m par(E) = (a + b*E + c*E*E)/(d
  * + e*E + f*E*E) | par = q1,t,q2
- * 
  */
-
 final class ClusterPosResult {
     private final double X;
     private final double Y;

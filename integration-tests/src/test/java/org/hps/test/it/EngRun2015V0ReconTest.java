@@ -27,7 +27,7 @@ public class EngRun2015V0ReconTest extends ReconTest {
     static final String TEST_FILE_NAME = "hps_005772_v0skim_10k.evio";
     static final String STEERING = "/org/hps/steering/recon/legacy_drivers/EngineeringRun2015FullRecon.lcsim";
     static final int NEVENTS = 2000;
-    static final long MAX_EVENT_TIME = -1;
+    static final long MAX_EVENT_TIME = -1L;
 
     public EngRun2015V0ReconTest() {
         super(EngRun2015V0ReconTest.class,

@@ -12,8 +12,6 @@ import java.util.List;
  * the configuration parser object when available and passes it to this
  * manager, and <code>EvioDAQParser2019</code>, which parses the EVIO data.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  * @see DAQConfig2019Driver
  * @see EvioDAQParser2019
  */

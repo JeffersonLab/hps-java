@@ -19,8 +19,6 @@ import org.hps.record.svt.EvioHeaderError.ErrorType;
  * <li>Make generation of large debug strings optional. Errors are reported generically without debug strings when this is turned off.</li>
  * <li>Remove all log messages so the class runs silently; caller can print returned errors to the log, if necessary.</li>
  * </ul>
- * 
- * @author jeremym
  */
 public class SvtEventHeaderCheckerNew {
         

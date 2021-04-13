@@ -12,10 +12,10 @@ import org.lcsim.lcio.SIOMCParticle;
  * Monte Carlo files of type {@link org.lcsim.event.MCParticle
  * MCParticle}.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see org.hps.readout.SLICDataReadoutDriver
  */
 public class MCParticleReadoutDriver extends SLICDataReadoutDriver<MCParticle> {
+
     /**
      * Instantiate an instance of {@link
      * org.hps.readout.SLICDataReadoutDriver SLICDataReadoutDriver}

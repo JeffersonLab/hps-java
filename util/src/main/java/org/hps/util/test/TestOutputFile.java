@@ -4,8 +4,6 @@ import java.io.File;
 
 /**
  * Convenience class for test file output
- *
- * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("serial")
 public class TestOutputFile extends File {

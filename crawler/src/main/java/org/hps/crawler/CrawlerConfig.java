@@ -17,8 +17,6 @@ import org.hps.datacat.Site;
 
 /**
  * Full configuration information for the {@link Crawler} class.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class CrawlerConfig {
 

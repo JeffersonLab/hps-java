@@ -8,8 +8,6 @@ import org.lcsim.event.Cluster;
  * and an VTP bank reported cluster which have been compared for the
  * purpose of cluster matching. It also tracks what the match state of
  * the two clusters is.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class ClusterMatchedPair2019 extends Pair<Cluster, VTPCluster> {
     // CLass variables.

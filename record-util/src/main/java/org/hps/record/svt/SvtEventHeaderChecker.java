@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.record.svt;
 
 import java.util.ArrayList;
@@ -13,13 +10,8 @@ import java.util.regex.Pattern;
 
 import org.hps.record.svt.SvtEvioExceptions.*;
 
-
 /**
- * 
  * Static functions to check integrity of the SVT header data.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class SvtEventHeaderChecker {
 

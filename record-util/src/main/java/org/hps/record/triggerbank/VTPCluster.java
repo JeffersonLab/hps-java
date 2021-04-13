@@ -12,10 +12,7 @@ import java.util.logging.Logger;
  * <li>10bit cluster time in 4 ns unit in the second word</li> 
  * <li>4bit number of hits in the second word</li>
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class VTPCluster {
     // cluster's variables.
     private int ix;

@@ -9,7 +9,6 @@ import org.hps.readout.ReadoutDriver;
  * file. It additionally stores the parameters needed by the readout
  * data manager to handle readout and maintenance of the collection.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The object type of the data stored by the collection.
  */
 public class ManagedLCIOCollection<T> extends LCIOCollection<T> {

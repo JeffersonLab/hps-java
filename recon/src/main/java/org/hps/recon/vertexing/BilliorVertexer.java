@@ -15,8 +15,6 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.constants.Constants;
 
 /**
- * @version $Id: BilliorVertexer.java,v 1.3 2013/03/13 19:24:20 mgraham Exp $
- * @version Vertex tracks using least-squares method laid out by billior etal
  * used in the HPS Java package.
  */
 public class BilliorVertexer {

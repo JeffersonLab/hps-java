@@ -7,8 +7,6 @@ import org.hps.util.Pair;
 
 /**
  * This abstract class provides some of the basic functionality used to access SVT DAQ map variables.
- *
- * @author Omar Moreno, UCSC
  */
 public abstract class AbstractSvtDaqMapping extends BaseConditionsObject {
 

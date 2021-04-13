@@ -54,11 +54,6 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
  * </ul>
  * 
  * To be excluded, a crystal's ID must pass all four of these min/max checks.<br>
- * 
- * @author Jeremy McCormick
- * @author Tim Nelson
- * 
- * @version $Id: HPSEcal3.java,v 1.9 2012/06/11 22:55:31 jeremy Exp $
  */
 public class HPSEcal3 extends LCDDSubdetector {
     // Tolerance factor for moving crystals to appropriate place in mom volume.

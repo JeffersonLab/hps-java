@@ -14,7 +14,6 @@ import org.lcsim.event.base.BaseCalorimeterHit;
  * hit times to better match the time resolution as studied in the
  * 2016 data set.
  * 
- * @author Holly
  */
 public class HitTMCSmearDriver extends Driver {
     /**
