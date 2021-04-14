@@ -49,6 +49,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
 
         boolean verbose = nTrials < 2;
         double executionTime = 0.;
+        int nBadCov = 0;
         
         double eCalLoc = 1394.;
         
@@ -418,7 +419,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             hResidS4[i] = new Histogram(100, -0.1, 0.002, String.format("Smoothed true residual for plane %d", i), "mm", "hits");
             hResidX[i] = new Histogram(100, -0.8, 0.016, String.format("True residual in global X for plane %d", i), "mm", "hits");
             hResidZ[i] = new Histogram(100, -0.1, 0.002, String.format("True residual in global Z for plane %d", i), "mm", "hits");
-            hUnbias[i] = new Histogram(100, -0.2, 0.004, String.format("Unbiased residual for plant %d", i), "mm", "hits");
+            hUnbias[i] = new Histogram(100, -0.2, 0.004, String.format("Unbiased residual for plane %d", i), "mm", "hits");
             hUnbiasSig[i] = new Histogram(100, -10., 0.2, String.format("Unbiased residuals for layer %d", i), "sigmas", "hits");
         }
         Histogram hpropx = new Histogram(100,-5.,0.1,"projected track-state x error","mm","track");
@@ -740,11 +741,14 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             Matrix C = new Matrix(KalmanTrack.originCovariance());
             EigenvalueDecomposition eED= new EigenvalueDecomposition(C);
             double [] ev = eED.getRealEigenvalues();
+            boolean badCov = false;
             for (int i=0; i<5; ++i) {
                 if (ev[i] < 0.) {
                     System.out.format("Event %d, eigenvalue %d of covariance is negative!", iTrial, i);
+                    badCov = true;
                 }
             }
+            if (badCov) nBadCov++;
             if (iTrial < 10) {
                 Vec evV = new Vec(5,ev);
                 evV.print("Eigenvalues of covariance");
@@ -1107,6 +1111,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             }
         }
 
+        System.out.format("Number of track fits with bad covariance matrix = %d\n", nBadCov);
         long grdef = rnd.nextLong();
         System.out.format("New seed = %d\n", grdef);
         timestamp = Instant.now();
