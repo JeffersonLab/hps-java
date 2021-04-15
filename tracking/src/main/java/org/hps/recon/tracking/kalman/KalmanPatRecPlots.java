@@ -118,7 +118,7 @@ class KalmanPatRecPlots {
         aida.histogram1D("dRho, >=10 hits", 100, -5., 5.);
         aida.histogram1D("dRho error, >=10 hits, sigmas", 100, -5., 5.);
         aida.histogram1D("z0, >=10 hits", 100, -2., 2.);
-        aida.histogram1D("z0 error, sigmas", 100, -5., 5.);
+        aida.histogram1D("z0 error, >=10 hits, sigmas", 100, -5., 5.);
         aida.histogram1D("pt inverse, >=10 hits", 200, -1.5, 1.5);
         aida.histogram1D("pt inverse True", 200, -1.5, 1.5);
         aida.histogram1D("pt inverse error, >=10 hits, percent", 100, -50., 50.);
