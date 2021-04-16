@@ -378,7 +378,7 @@ public class GBLOutputDriver extends Driver {
         //Interesting plot to get a sense where z-vtx is. 
         //If z0 is referenced to the right BS z location, the slope of <z0> vs tanLambda is 0
         FillGBLTrackPlot(trkpFolder+"z0_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getZ0());
-        FillGBLTrackPlot(trkpFolder+"z0bs_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getZ0());
+        FillGBLTrackPlot(trkpFolder+"z0bs_vs_tanLambda",isTop,charge,trackState.getTanLambda(),ts_bs.getZ0());
         
         
         if (b_doDetailPlots) {
