@@ -3,11 +3,8 @@ package org.hps.record.evio;
 import org.jlab.coda.jevio.EvioEvent;
 
 /**
- * Encapsulates event tag constants for EVIO events as described at <a
- * href="https://confluence.slac.stanford.edu/display/hpsg/EVIO+Data+Format#EVIODataFormat-EVIOEventtypes-2015DataSet"
- * >EVIO Event types</a>.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
+ * Encapsulates event tag constants for EVIO events as described at 
+ * <a href="https://confluence.slac.stanford.edu/display/hpsg/EVIO+Data+Format#EVIODataFormat-EVIOEventtypes-2015DataSet">EVIO Event types</a>.
  */
 public enum EventTagConstant {
 

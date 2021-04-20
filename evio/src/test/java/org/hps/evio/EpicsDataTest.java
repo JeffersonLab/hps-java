@@ -2,9 +2,6 @@ package org.hps.evio;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-
-import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.LCSimEventBuilder;
@@ -14,27 +11,24 @@ import org.hps.record.enums.DataSourceType;
 import org.hps.record.enums.ProcessingStage;
 import org.hps.record.epics.EpicsData;
 import org.hps.record.evio.EvioDetectorConditionsProcessor;
+import org.hps.util.test.TestUtil;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCIODriver;
 import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
+import junit.framework.TestCase;
+
 /**
  * Test of reading EPICs scalar data from EVIO and writing it out to LCIO.
- *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class EpicsDataTest extends TestCase {
-
-    static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps-java/ScalersTest/hpsecal_004469_1000_events.evio.0";
 
     public void test() throws IOException {
 
         // Cache input data file.
-        final FileCache cache = new FileCache();
-        final File inputFile = cache.getCachedFile(new URL(TEST_FILE_URL));
+        final File inputFile = TestUtil.downloadTestFile("hpsecal_004469_1000_events.evio.0");
 
         // Setup conditions and event building.
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();

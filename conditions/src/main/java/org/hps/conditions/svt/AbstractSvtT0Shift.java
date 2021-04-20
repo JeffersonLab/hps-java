@@ -8,8 +8,6 @@ import org.hps.util.Pair;
 /**
  * Abstract class providing some of the basic functionality used to relate a t0 shift value with either a FEB ID/FEB
  * hybrid ID or an FPGA ID/hybrid ID.
- *
- * @author Omar Moreno, UCSC
  */
 public abstract class AbstractSvtT0Shift extends BaseConditionsObject {
 

@@ -3,10 +3,6 @@ package org.hps.util;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
 
-/**
- *
- * @author phansson
- */
 public class TwoTrackFilterDriver extends LCIOFilterDriver {
 
     private String trackCollectionName = "MatchedTracks";

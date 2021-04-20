@@ -12,10 +12,7 @@ import java.util.logging.Logger;
  * <li>1bit [19 : 19] TOP or BOT</li>
  * <li>3bit [20 : 22] single cluster trigger bit instance: 0 to 3</li> 
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class VTPSinglesTrigger {   
     // singles trigger's variables.
     private int t; // in 4 ns units

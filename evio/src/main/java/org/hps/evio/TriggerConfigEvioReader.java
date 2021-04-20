@@ -24,12 +24,8 @@ import org.hps.record.daqconfig2019.EvioDAQParser2019;
  * But the banks are still being written in physics events under their crate's bank.
  * This should change soon.
  * 
+ * <code>EvioDAQParser2019</code> is parser for 2019 trigger configuration banks.
  *  
- * @author <baltzell@jlab.org>
- * 
- *  * <code>EvioDAQParser2019</code> is parser for 2019 trigger configuration banks.
- *  
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class TriggerConfigEvioReader {
 

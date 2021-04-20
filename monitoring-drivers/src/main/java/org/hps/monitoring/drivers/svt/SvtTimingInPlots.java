@@ -31,17 +31,8 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Monitoring driver that will be used when 'timing in' the SVT.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class SvtTimingInPlots extends Driver {
-
-    // TODO: Add documentation
-
-    static {
-        hep.aida.jfree.AnalysisFactory.register();
-    }
 
     ITree tree;
     IHistogramFactory histogramFactory;

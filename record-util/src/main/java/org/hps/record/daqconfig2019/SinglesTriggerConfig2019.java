@@ -3,8 +3,6 @@ package org.hps.record.daqconfig2019;
 /**
  * Class <code>SinglesTriggerConfig</code> holds the configuration data
  * for a singles trigger.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class SinglesTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2019<Double>> {
     private static final int CUT_ENERGY_MIN = 0;

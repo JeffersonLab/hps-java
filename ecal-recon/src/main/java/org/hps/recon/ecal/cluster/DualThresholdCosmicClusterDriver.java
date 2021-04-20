@@ -10,8 +10,6 @@ import org.lcsim.event.RawTrackerHit;
  * 
  * @see ClusterDriver
  * @see DualThresholdCosmicClusterer
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class DualThresholdCosmicClusterDriver extends ClusterDriver {
     

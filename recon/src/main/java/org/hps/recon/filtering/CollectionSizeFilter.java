@@ -6,9 +6,6 @@ import org.lcsim.event.EventHeader;
 /**
  * Accept events where the specified collection exists and is of the required
  * size range.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
  */
 public class CollectionSizeFilter extends EventReconFilter {
 

@@ -16,11 +16,7 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
 
 /**
  * Utilities for retrieving TrackStates.
- *
- * @author Miriam Diamond
- *
  */
-
 public class TrackStateUtils {
 
     public static TrackState getTrackStateAtLayer(Track track, List<HpsSiSensor> sensors, int layer) {

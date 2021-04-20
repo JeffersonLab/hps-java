@@ -8,8 +8,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * Represents the SVT motor position as a time-based condition.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = "svt_motor_positions")
 public class SvtMotorPosition extends BaseConditionsObject {

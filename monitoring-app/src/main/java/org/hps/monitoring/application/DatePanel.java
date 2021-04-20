@@ -6,8 +6,6 @@ import java.util.Date;
 
 /**
  * A small <code>JPanel</code> with a date field and a label on its border.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class DatePanel extends FieldPanel {

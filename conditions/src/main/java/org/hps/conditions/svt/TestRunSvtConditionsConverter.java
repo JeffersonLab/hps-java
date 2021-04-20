@@ -13,8 +13,6 @@ import org.lcsim.conditions.ConditionsManager;
 
 /**
  * Converter for combined Test Run SVT conditions {@link TestRunSvtConditions} object.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class TestRunSvtConditionsConverter extends AbstractSvtConditionsConverter<TestRunSvtConditions> {
 

@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.readout.svt.FpgaData;
 import org.hps.readout.svt.HPSSVTConstants;
 import org.hps.readout.svt.SVTData;
@@ -24,10 +23,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- */
 // TODO: Update this class so it works correctly with the database conditions system
 public class SVTHitWriter implements HitWriter {
 

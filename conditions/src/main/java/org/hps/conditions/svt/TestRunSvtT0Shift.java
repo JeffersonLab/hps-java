@@ -6,8 +6,6 @@ import org.hps.util.Pair;
 
 /**
  * This class is a container that allows associating a t0 shift with a specific sensor by FPGA ID and hybrid ID.
- *
- * @author Omar Moreno, UCSC
  */
 @Table(names = {"test_run_svt_t0_shifts"})
 public final class TestRunSvtT0Shift extends AbstractSvtT0Shift {

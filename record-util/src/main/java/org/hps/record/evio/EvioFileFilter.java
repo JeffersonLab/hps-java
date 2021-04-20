@@ -8,8 +8,6 @@ import java.io.FileFilter;
  * <i>FILENAME.evio.SEQUENCE</i>.
  * <p>
  * This matches the convention used by the CODA DAQ software.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class EvioFileFilter implements FileFilter {
 

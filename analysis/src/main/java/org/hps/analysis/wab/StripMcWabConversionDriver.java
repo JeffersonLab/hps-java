@@ -10,10 +10,6 @@ import org.lcsim.util.Driver;
  * Driver to select events in which the bremsstrahlung photon has converted in
  * the tracker. Input files should be WAB events, i.e. events with just the
  * incoming electron as particle 0 and the photon as particle 1
- *
- * @author Norman A Graf
- *
- * @version $Id:
  */
 public class StripMcWabConversionDriver extends Driver
 {

@@ -11,12 +11,7 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Rotation;
 import org.lcsim.geometry.compact.converter.lcdd.util.SensitiveDetector;
 import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
-/**
- * @author jeremym
- * @version $Id: HPSMuonCalorimeter.java,v 1.5 2013/01/25 00:13:44 jeremy Exp $
- */
-public class HPSMuonCalorimeter extends LCDDSubdetector
-{
+public class HPSMuonCalorimeter extends LCDDSubdetector {
 
     HPSMuonCalorimeter(Element node) throws JDOMException
     {

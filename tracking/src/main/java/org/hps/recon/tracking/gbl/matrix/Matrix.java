@@ -49,10 +49,7 @@ import java.util.Locale;
 // * </PRE></DD>
 // * </DL>
 // *
-// * @author The MathWorks, Inc. and the National Institute of Standards and
 // * Technology.
-// * @author Norman A. Graf (modifications for the gbl package)
-// * @version 5 August 1998 $Id: Matrix.java,v 1.1.1.1 2010/11/30 21:31:59 jeremy
 // * Exp $
 // */
 public class Matrix implements Cloneable, java.io.Serializable {
@@ -112,27 +109,26 @@ public class Matrix implements Cloneable, java.io.Serializable {
     // }
     // }
     //
-    // /**
-    // * Construct a matrix from a 2-D array.
-    // *
-    // * @param A Two-dimensional array of doubles.
-    // * @exception IllegalArgumentException All rows must have the same length
-    // * @see #constructWithCopy
-    // */
-    // public Matrix(double[][] A)
-    // {
-    // m = A.length;
-    // n = A[0].length;
-    // for (int i = 0; i < m; i++)
-    // {
-    // if (A[i].length != n)
-    // {
-    // throw new IllegalArgumentException("All rows must have the same length.");
-    // }
-    // }
-    // this.A = A;
-    // }
-    //
+    /**
+     * Construct a matrix from a 2-D array.
+     *
+     * @param A Two-dimensional array of doubles.
+     * @exception IllegalArgumentException All rows must have the same length
+     * @see #constructWithCopy
+     */
+    public Matrix(double[][] A) {
+        m = A.length;
+        n = A[0].length;
+        for (int i = 0; i < m; i++)
+        {
+            if (A[i].length != n)
+            {
+                throw new IllegalArgumentException("All rows must have the same length.");
+            }
+        }
+        this.A = A;
+    }
+    
     /**
      * Construct a matrix quickly without checking arguments.
      *
@@ -145,7 +141,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
         this.m = m;
         this.n = n;
     }
-
+    
     // /**
     // * Construct a matrix from a one-dimensional packed array
     // *
@@ -248,42 +244,38 @@ public class Matrix implements Cloneable, java.io.Serializable {
         return C;
     }
 
-    // /**
-    // * Make a one-dimensional column packed copy of the internal array.
-    // *
-    // * @return Matrix elements packed in a one-dimensional array by columns.
-    // */
-    // public double[] getColumnPackedCopy()
-    // {
-    // double[] vals = new double[m * n];
-    // for (int i = 0; i < m; i++)
-    // {
-    // for (int j = 0; j < n; j++)
-    // {
-    // vals[i + j * m] = A[i][j];
-    // }
-    // }
-    // return vals;
-    // }
-    //
-    // /**
-    // * Make a one-dimensional row packed copy of the internal array.
-    // *
-    // * @return Matrix elements packed in a one-dimensional array by rows.
-    // */
-    // public double[] getRowPackedCopy()
-    // {
-    // double[] vals = new double[m * n];
-    // for (int i = 0; i < m; i++)
-    // {
-    // for (int j = 0; j < n; j++)
-    // {
-    // vals[i * n + j] = A[i][j];
-    // }
-    // }
-    // return vals;
-    // }
-    //
+    /**
+     * Make a one-dimensional column packed copy of the internal array.
+     *
+     * @return Matrix elements packed in a one-dimensional array by columns.
+     */
+    public double[] getColumnPackedCopy() {
+        double[] vals = new double[m * n];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                vals[i + j * m] = A[i][j];
+            }
+        }
+        return vals;
+    }
+    
+    /**
+     * Make a one-dimensional row packed copy of the internal array.
+     *
+     * @return Matrix elements packed in a one-dimensional array by rows.
+     */
+    public double[] getRowPackedCopy() {
+        double[] vals = new double[m * n];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                vals[i * n + j] = A[i][j];
+            }
+        }
+        return vals;
+    }
+    
+
+    
     /**
      * @return the number of rows.
      */

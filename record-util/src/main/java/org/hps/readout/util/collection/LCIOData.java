@@ -8,7 +8,6 @@ import java.util.Collection;
  * that they define LCIO collection parameters, and provide access to
  * the data sets.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The object type of the data stored by the collection.
  * @param <E> - The type of LCIO collection parameters object used by
  * the data set.

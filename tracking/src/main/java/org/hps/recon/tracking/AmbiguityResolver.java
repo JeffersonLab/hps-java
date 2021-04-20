@@ -19,11 +19,7 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
  * discarded because they share too many hits with operable tracks, tracks that
  * fail scoring criteria, original versions of tracks that required cleaning to
  * become operable.
- *
- * @author Miriam Diamond <mdiamond@slac.stanford.edu> * @version $id: v1
- *         05/30/2017$
  */
-
 public abstract class AmbiguityResolver {
 
     List<Track> tracks;

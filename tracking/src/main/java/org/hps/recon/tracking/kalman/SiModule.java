@@ -2,14 +2,17 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-//import org.lcsim.geometry.FieldMap;
-
-// Description of a single silicon-strip module, and a container for its hits
+/**
+ * Description of a single silicon-strip module, and a container for its hits
+ */
 class SiModule {
     int Layer; // Tracker layer number, or a negative integer for a dummy layer added just for stepping in a
                // non-uniform field
     int detector; // Detector number within the layer
+    int millipedeID; // ID used by millipede for alignment
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
     Plane p; // Orientation and offset of the detector measurement plane in global coordinates 
              // The offset should be the location of the center of the detector in global
@@ -18,6 +21,7 @@ class SiModule {
                       // the strips)
     double[] yExtent; // Plus and minus limits on the detector active area in the y direction
                       // (perpendicular to the strips)
+    boolean split;    // True if the strips are split into two channels at the middle
     RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field coordinates)
     RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates (transpose of R)
                     // The local coordinate system is u, v, t where t is more-or-less the beam direction (y-global)
@@ -26,25 +30,30 @@ class SiModule {
     org.lcsim.geometry.FieldMap Bfield;
     boolean isStereo;
 
-    boolean verbose = false;
+    private boolean verbose;
+    private Logger logger;
 
-    void setVerbose(boolean input) { 
-        verbose = input;
-    }
-    SiModule(int Layer, Plane p, double stereo, double width, double height, double thickness, org.lcsim.geometry.FieldMap Bfield) {
+    SiModule(int Layer, Plane p, double stereo, double width, double height, boolean split, double thickness, org.lcsim.geometry.FieldMap Bfield) {
         // for backwards-compatibility with old stand-alone development code: assume axial
         // layers have stereo angle=0
-        this(Layer, p, stereo != 0.0, width, height, thickness, Bfield, 0);
+        this(Layer, p, stereo != 0.0, width, height, split, thickness, Bfield, 0, 0);
     }
 
-    SiModule(int Layer, Plane p, boolean isStereo, double width, double height, double thickness,
+    SiModule(int Layer, Plane p, boolean isStereo, double width, double height, boolean split, double thickness,
             org.lcsim.geometry.FieldMap Bfield) {
-        this(Layer, p, isStereo, width, height, thickness, Bfield, 0);
+        this(Layer, p, isStereo, width, height, split, thickness, Bfield, 0, 0);
     }
 
-    SiModule(int Layer, Plane p, boolean isStereo, double width, double height, double thickness,
+    SiModule(int Layer, Plane p, boolean isStereo, double width, double height, boolean split, double thickness,
             org.lcsim.geometry.FieldMap Bfield, int detector) {
-        
+        this(Layer, p, isStereo, width, height, split, thickness, Bfield, detector, 0);
+    }
+
+    SiModule(int Layer, Plane p, boolean isStereo, double width, double height, boolean split, double thickness,
+            org.lcsim.geometry.FieldMap Bfield, int detector, int millipedeID) {
+        logger = Logger.getLogger(SiModule.class.getName());
+        verbose = (logger.getLevel()==Level.FINE);
+        this.millipedeID = millipedeID;
         if (verbose) { 
             System.out.format("SiModule constructor called with layer = %d, detector module = %d, y=%8.2f\n", Layer, detector, p.X().v[1]);
             p.print("of SiModule");
@@ -55,6 +64,7 @@ class SiModule {
             BOnAxis.print("B field on axis");
             BatCenter.print("B at detector center");
         }
+        this.split = split;
         this.Layer = Layer;
         this.detector = detector;
         this.Bfield = Bfield;
@@ -74,25 +84,38 @@ class SiModule {
     }
 
     void print(String s) {
-        System.out.format(
-                "Si module %s, Layer=%2d, Detector=%2d, stereo=%b, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n",
-                s, Layer, detector, isStereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
+        System.out.format("%s",this.toString(s));
+    }
+    
+    String toString(String s) {
+        String str = String.format(
+                "Si module %s, Layer=%2d, Detector=%2d, Millipede=%d, stereo=%b, thickness=%8.4f mm, x extents=%10.6f %10.6f, y extents=%10.6f %10.6f\n",
+                s, Layer, detector, millipedeID, isStereo, thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
         if (isStereo) {
-            System.out.format("This is a stereo detector layer");
+            str = str + String.format("This is a stereo detector layer");
         } else {
-            System.out.format("This is an axial detector layer");
+            str = str + String.format("This is an axial detector layer");
         }
-        p.X().print("origin of Si layer coordinates in the global system");
+        str = str + p.X().toString("origin of Si layer coordinates in the global system");
+        if (split) str = str + "The strips are split at the detector center.\n";
         Vec Bf = KalmanInterface.getField(p.X(), Bfield);
         Vec tBf = Bf.unitVec();
-        System.out.format("      At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n",Bf.mag(),tBf.v[0],tBf.v[1],tBf.v[2]);
-        R.print("from detector coordinates to global coordinates");
-        System.out.format("List of measurements for Si module %s:\n", s);
+        str = str + String.format("      At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n",Bf.mag(),tBf.v[0],tBf.v[1],tBf.v[2]);
+        str = str + R.toString("from detector coordinates to global coordinates");
+        str = str + String.format("List of measurements for Si module %s:\n", s);
         Iterator<Measurement> itr = hits.iterator();
         while (itr.hasNext()) {
             Measurement m = itr.next();
-            m.print(" ");
+            str = str + m.toString(" ");
         }
+        return str;
+    }
+    public String toString() {
+        String str = String.format("Si Module: Lyr=%2d Det=%2d Mpd=%d split=%b stereo=%b pnt=%8.3f %8.3f %8.3f t=%7.3f %7.3f %7.3f\n",
+                Layer, detector, millipedeID, split, isStereo, p.X().v[0], p.X().v[1], p.X().v[2], p.T().v[0], p.T().v[1], p.T().v[2]);
+        str = str +  String.format("           thick=%8.4f mm, x ext=%8.4f %8.4f, y ext=%8.4f %8.4f\n", 
+                thickness, xExtent[0], xExtent[1], yExtent[0], yExtent[1]);
+        return str;
     }
 
     // Delete all the existing hits

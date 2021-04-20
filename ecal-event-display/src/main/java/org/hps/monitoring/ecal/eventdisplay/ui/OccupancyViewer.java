@@ -13,8 +13,6 @@ import org.hps.monitoring.ecal.eventdisplay.io.EventManager;
  * Class <code>OccupancyViewer</code> is an active implementation of
  * the <code>Viewer</code> class that displays occupancies on each
  * crystal.
- * 
- * @author Kyle McCarty
  */
 @Deprecated
 public class OccupancyViewer extends ActiveViewer {

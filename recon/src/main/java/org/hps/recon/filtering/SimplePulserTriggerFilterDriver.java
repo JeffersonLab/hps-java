@@ -11,11 +11,7 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
 /**
- * 
  * Skim events where the pulser fired.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class SimplePulserTriggerFilterDriver extends EventReconFilter {
 

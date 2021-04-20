@@ -1,26 +1,22 @@
 package org.hps.conditions;
 
 import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
+
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.util.test.TestUtil;
+import org.lcsim.geometry.Detector;
+import org.lcsim.util.Driver;
+import org.lcsim.util.loop.LCSimLoop;
 
 import junit.framework.TestCase;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.lcsim.geometry.Detector;
-import org.lcsim.util.Driver;
-import org.lcsim.util.cache.FileCache;
-import org.lcsim.util.loop.LCSimLoop;
-
 /**
  * This class checks that event processing works correctly for files that have multiple runs in them.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class RunNumberTest extends TestCase {
 
@@ -79,20 +75,13 @@ public final class RunNumberTest extends TestCase {
     private static final int RUN_COUNT = 9;
 
     /**
-     * Test file with a few events from each of the "good runs" of the 2012 Test Run.
-     */
-    private static final String URL = "http://www.lcsim.org/test/hps-java/ConditionsTest.slcio";
-
-    /**
      * Run the test.
-     * 
+     *
      * @throws Exception if there is a test error
      */
     public void test() throws Exception {
 
-        // Cache a data file from the www.
-        final FileCache cache = new FileCache();
-        final File testFile = cache.getCachedFile(new URL(URL));
+        final File testFile = TestUtil.downloadTestFile("ConditionsTest.slcio");
 
         // Create the record loop.
         final LCSimLoop loop = new LCSimLoop();

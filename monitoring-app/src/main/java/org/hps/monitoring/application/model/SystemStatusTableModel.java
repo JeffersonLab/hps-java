@@ -15,8 +15,6 @@ import org.hps.monitoring.subsys.SystemStatusListener;
 
 /**
  * A <code>JTableModel</code> that has a list of {@link org.hps.monitoring.subsys.SystemStatus} objects.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 public final class SystemStatusTableModel extends AbstractTableModel implements SystemStatusListener {

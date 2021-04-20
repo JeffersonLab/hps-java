@@ -19,7 +19,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * This Driver makes profile plots of the raw mode ADC data.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class RawModeADCProfileDriver extends Driver {
 

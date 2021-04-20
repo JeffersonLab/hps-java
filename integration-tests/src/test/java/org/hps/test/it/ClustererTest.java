@@ -1,29 +1,20 @@
 package org.hps.test.it;
 
-import hep.aida.ICloud1D;
-import hep.aida.ICloud2D;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
-
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.data.test.TestDataUtility;
 import org.hps.detector.ecal.EcalCrystal;
 import org.hps.recon.ecal.CalorimeterHitUtilities;
 import org.hps.recon.ecal.cluster.ClusterDriver;
 import org.hps.recon.ecal.cluster.ClusterType;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.ecal.cluster.Clusterer;
-import org.lcsim.conditions.ConditionsManager;
+import org.hps.util.test.TestUtil;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -32,18 +23,21 @@ import org.lcsim.event.base.BaseCluster;
 import org.lcsim.job.EventMarkerDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCIODriver;
 import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.util.test.TestUtil.TestOutputFile;
 
+import hep.aida.ICloud1D;
+import hep.aida.ICloud2D;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import junit.framework.TestCase;
+
 /**
- * This test performs basic sanity checks on the output from the various clustering algorithms, 
- * and it creates an AIDA file with some useful plots, as well as optionally writes an LCIO 
+ * This test performs basic sanity checks on the output from the various clustering algorithms,
+ * and it creates an AIDA file with some useful plots, as well as optionally writes an LCIO
  * file with the event data plus the clusters.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * 
+ *
  * @see Clusterer
  * @see org.lcsim.event.Cluster
  * @see org.lcsim.event.CalorimeterHit
@@ -51,7 +45,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 public class ClustererTest extends TestCase {
 
     static int nEvents = 100;
-    static final String fileLocation = "http://www.lcsim.org/test/hps-java/MockDataReconTest.slcio";
     File inputFile;
     File testOutputDir;
 
@@ -63,7 +56,7 @@ public class ClustererTest extends TestCase {
         boolean checkPropCalc;
         boolean checkClusterPosition;
         boolean checkNullHits;
-        boolean checkHitPositions;    
+        boolean checkHitPositions;
         boolean checkHitTime;
         double[] cuts = null;
         ClusterType clusterType;
@@ -95,7 +88,7 @@ public class ClustererTest extends TestCase {
             checkHitEnergy = true;
             return this;
         }
-        
+
         ClustererTestConfig checkHitTime() {
             checkHitTime = true;
             return this;
@@ -120,7 +113,7 @@ public class ClustererTest extends TestCase {
             this.checkHitPositions = true;
             return this;
         }
-        
+
         ClustererTestConfig checkNullHits() {
             this.checkNullHits = true;
             return this;
@@ -132,9 +125,9 @@ public class ClustererTest extends TestCase {
     }
 
     public void setUp() {
-        
-        inputFile = new TestDataUtility().getTestData("MockDataReconTest.slcio");
-        
+
+        inputFile = TestUtil.downloadTestFile("MockDataReconTest.slcio");
+
         // Create test output directory.
         testOutputDir = new TestOutputFile(getClass().getSimpleName());
         testOutputDir.mkdir();
@@ -217,7 +210,7 @@ public class ClustererTest extends TestCase {
 
     /**
      * Test the CTP clustering algorithm.
-     */    
+     */
     public void testCTPClusterer() throws Exception {
         runClustererTest(new ClustererTestConfig("CTPClusterer")
             .writeLcioFile()
@@ -245,7 +238,7 @@ public class ClustererTest extends TestCase {
 
         /**********************************************************
          * Run the job to create clusters and write to LCIO file. *
-         **********************************************************/               
+         **********************************************************/
         System.out.println("testing Clusterer " + config.clustererName + " ...");
 
         // Configure the loop.
@@ -257,11 +250,6 @@ public class ClustererTest extends TestCase {
             throw new RuntimeException(e);
         }
         DatabaseConditionsManager.reset();
-
-        // Setup event number print outs.
-        EventMarkerDriver eventMarkerDriver = new EventMarkerDriver();
-        eventMarkerDriver.setEventInterval(1);
-        loop.add(eventMarkerDriver);
 
         // Configure the ClusterDriver and add it to the loop.
         ClusterDriver clusterDriver = new ClusterDriver();
@@ -276,27 +264,27 @@ public class ClustererTest extends TestCase {
 
         // This Driver checks the Clusters for validity.
         loop.add(new ClusterCheckDriver(config));
-        
+
         // This Driver makes plots from the Cluster data.
         loop.add(new ClusterPlotsDriver(config));
-       
+
         // Setup writing of LCIO file with the output Clusters from this clustering algorithm.
         String outputFilePath = testOutputDir.getPath() + File.separator + config.clustererName + ".slcio";
         if (config.writeLcioFile) {
             loop.add(new LCIODriver(outputFilePath));
         }
-        
+
         // Run job over the input events to generate clusters, check their validity, and fill plots.
-        long startNanos = System.nanoTime();
-        loop.loop(nEvents);
-        long elapsedMillis = (System.nanoTime() - startNanos) / 1000000;
-        System.out.println(config.clustererName + " took " + elapsedMillis + "ms for " + loop.getTotalSupplied() 
-                + " events which is " + (double) loop.getTotalSupplied() / (((double) elapsedMillis) / 1000.) + " events/s");
+        //long startNanos = System.nanoTime();
+        loop.loop(nEvents, null);
+        //long elapsedMillis = (System.nanoTime() - startNanos) / 1000000;
+        //System.out.println(config.clustererName + " took " + elapsedMillis + "ms for " + loop.getTotalSupplied()
+        //        + " events which is " + (double) loop.getTotalSupplied() / (((double) elapsedMillis) / 1000.) + " events/s");
         loop.dispose();
 
         /***************************************************
          * Reread the file and run the check Driver again. *
-         ***************************************************/         
+         ***************************************************/
         File clusterFile = new File(testOutputDir.getPath() + File.separator + config.clustererName + ".slcio");
         System.out.println("rereading " + clusterFile.getPath() + "...");
         loop = new LCSimLoop();
@@ -340,7 +328,7 @@ public class ClustererTest extends TestCase {
             }
             if (config.clusterType != null) {
                 assertEquals("Cluster type is not correct.", config.clusterType, ClusterType.getClusterType(cluster.getType()));
-            }            
+            }
             if (config.checkClusterPosition) {
                 double[] position = cluster.getPosition();
                 assertTrue("Position X is invalid.", Math.abs(position[0]) < 400. && position[0] != 0.);
@@ -350,7 +338,7 @@ public class ClustererTest extends TestCase {
             for (CalorimeterHit hit : cluster.getCalorimeterHits()) {
                 if (config.checkNullHits) {
                     TestCase.assertNotNull("A hit from the cluster points to null.", hit);
-                }                
+                }
                 if (hit != null) {
                     if (config.checkHitPositions) {
                         double[] hitPosition = hit.getPosition();
@@ -360,13 +348,13 @@ public class ClustererTest extends TestCase {
                         EcalCrystal crystal = CalorimeterHitUtilities.findCrystal(hit);
                         assertTrue("Hit does not link correctly to geometry.", crystal != null);
                     }
-                    if (config.checkHitEnergy) {    
+                    if (config.checkHitEnergy) {
                         assertTrue("Hit energy " + hit.getCorrectedEnergy() + " is <= 0.", hit.getCorrectedEnergy() > 0.);
                     }
                     if (config.checkHitTime) {
                         double time = hit.getTime();
                         assertTrue("Hit time is invalid.", time != 0.);
-                    }                    
+                    }
                 }
             }
         }

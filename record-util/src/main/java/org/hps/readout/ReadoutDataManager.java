@@ -39,8 +39,6 @@ import org.lcsim.util.Driver;
  * drivers as input, for managing triggers, and for writing out data.
  * <br/><br/>
  * More information on how a readout driver should interface
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class ReadoutDataManager extends Driver {
     /**
@@ -639,7 +637,7 @@ public class ReadoutDataManager extends Driver {
     public static final void registerReadoutDriver(ReadoutDriver productionDriver) {
         // Trigger drivers are registered differently.
         if(productionDriver instanceof TriggerDriver) {
-            logger.warning(nl + "Error: Attempted to register TriggerDriver \"" + productionDriver.getClass().getSimpleName() + "\" as a readout driver."
+            logger.warning(nl + "Attempted to register TriggerDriver \"" + productionDriver.getClass().getSimpleName() + "\" as a readout driver."
                     + nl + "       Trigger drivers are registered via the method \"registerTrigger(TriggerDriver)\"."
                     + nl + "       Ignoring request.");
             return;

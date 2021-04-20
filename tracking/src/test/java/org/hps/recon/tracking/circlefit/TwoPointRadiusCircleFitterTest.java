@@ -4,17 +4,11 @@ package org.hps.recon.tracking.circlefit;
 import junit.framework.TestCase;
 import static org.hps.recon.tracking.circlefit.TwoPointRadiusCircleFitter.findCircles;
 
-/**
- *
- * @author Norman A. Graf
- */
-public class TwoPointRadiusCircleFitterTest extends TestCase
-{
+public class TwoPointRadiusCircleFitterTest extends TestCase {
 
     private boolean _debug = false;
 
-    public void testIt()
-    {
+    public void testIt() {
         int i;
         double[][] cases
                 = {{0.1234, 0.9876}, {0.8765, 0.2345},

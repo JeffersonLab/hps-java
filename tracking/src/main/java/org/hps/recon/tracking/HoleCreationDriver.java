@@ -16,13 +16,9 @@ import org.lcsim.geometry.IDDecoder;
 import org.lcsim.util.Driver;
 
 /**
- * 
- * @author Miriam Diamond <mdiamond@slac.stanford.edu> $Id:
- *         HoleCreationDriver.java, v1 05/30/2017$ Removes hits from selected
- *         layers of tracks. Writes new RawTrackerHits, HelicalTrackHits,
- *         RotatedHelicalTrackHits collections without these hits.
+ * Removes hits from selected layers of tracks. Writes new RawTrackerHits, 
+ * HelicalTrackHits, RotatedHelicalTrackHits collections without these hits.
  */
-
 public class HoleCreationDriver extends Driver {
     IDDecoder dec;
     private String inputTrackCollectionName = "MatchedTracks";

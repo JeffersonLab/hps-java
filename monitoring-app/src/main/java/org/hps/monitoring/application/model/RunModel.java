@@ -4,8 +4,6 @@ import java.util.Date;
 
 /**
  * Backing model for run information that shows in the {@link org.hps.monitoring.application.EventDashboard}.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class RunModel extends AbstractModel {
 

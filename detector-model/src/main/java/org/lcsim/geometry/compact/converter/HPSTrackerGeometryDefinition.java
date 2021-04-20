@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.lcsim.geometry.compact.converter;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -17,8 +14,6 @@ import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinit
 
 /**
  * Common geometry information for the HPS trackers
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 abstract public class HPSTrackerGeometryDefinition extends HPSTrackerBuilder {
 
@@ -272,7 +267,6 @@ abstract public class HPSTrackerGeometryDefinition extends HPSTrackerBuilder {
     /**
      * TODO This class is shared among geometry definitions but should really be in the test run class. Fix this.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class TestRunModuleBundle extends BaseModuleBundle {
 

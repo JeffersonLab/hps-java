@@ -8,8 +8,6 @@ import java.awt.Color;
  * value to the hot color and any argument value that is below its minimum value
  * to its cold color. All other argument values will be mapped somewhere between
  * the cold and hot colors using either a linear or logarithmic scale.
- * 
- * @author Kyle McCarty
  **/
 public final class GradientScale extends ColorScale {
     // The color associated with the maximum value.

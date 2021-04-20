@@ -17,8 +17,6 @@ import org.reflections.Reflections;
 
 /**
  * This is a registry providing a map between tables and their meta-data.
- *
- * @author Jeremy McCormick, SLAC
  */
 @SuppressWarnings("serial")
 public final class TableRegistry extends HashMap<String, TableMetaData> {

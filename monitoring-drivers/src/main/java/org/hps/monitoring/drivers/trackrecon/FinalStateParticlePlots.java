@@ -23,10 +23,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author mgraham
- */
 public class FinalStateParticlePlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
@@ -34,6 +30,7 @@ public class FinalStateParticlePlots extends Driver {
     String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
     String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
+
     // some counters
     int nRecoEvents = 0;
     boolean debug = false;

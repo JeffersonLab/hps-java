@@ -11,7 +11,6 @@ import org.lcsim.util.Driver;
 /**
  * Class to strip off "golden events"
  * Currently defined as e+ e- with six-hit tracks and nothing else in the event
- * @author Norman A Graf
  *
  * @todo Move to recon.filtering
  */

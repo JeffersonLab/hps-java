@@ -30,10 +30,7 @@ import org.lcsim.event.GenericObject;
  * 12.7 HPS FEE Trigger 
  * 14 Data Not Valid (empty module) 
  * 15 Filler Word (non-data)
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class VTPData implements GenericObject {
     /**
      * Setup logger.

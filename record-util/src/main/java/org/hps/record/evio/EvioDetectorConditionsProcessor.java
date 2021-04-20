@@ -10,8 +10,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  * This is an {@link EvioEventProcessor} for initializing the conditions system from EVIO events. The
  * {@link #startRun(EvioEvent)} method will setup conditions from PRESTART events. The {@link #process(EvioEvent)}
  * method will setup conditions from a head bank, if it is present in the event.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public class EvioDetectorConditionsProcessor extends EvioEventProcessor {
 

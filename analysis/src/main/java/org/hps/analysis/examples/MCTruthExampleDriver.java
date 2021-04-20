@@ -18,8 +18,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Example driver showing how to retrieve MC truth information from an lcsim event.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class MCTruthExampleDriver extends Driver {
     

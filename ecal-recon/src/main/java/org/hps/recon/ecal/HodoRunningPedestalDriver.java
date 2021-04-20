@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.ecal;
 
 import java.util.ArrayList;
@@ -22,12 +17,6 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
-
-
-/**
- *
- * @author rafopar
- */
 public class HodoRunningPedestalDriver extends Driver {
 
     private static final Logger LOGGER = Logger.getLogger(HodoRunningPedestalDriver.class.getPackage().getName());

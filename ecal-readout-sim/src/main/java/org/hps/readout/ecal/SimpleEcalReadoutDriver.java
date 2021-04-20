@@ -10,8 +10,6 @@ import org.lcsim.event.base.BaseCalorimeterHit;
 /**
  * Performs readout of ECal hits. No time evolution - this just integrates all
  * hits in a cycle.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class SimpleEcalReadoutDriver extends EcalReadoutDriver<CalorimeterHit> {
 

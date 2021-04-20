@@ -11,17 +11,18 @@ import java.util.Scanner;
 
 import org.lcsim.geometry.field.FieldOverlay;
 
-// Retrieve the magnetic field vector from the HPS field map.
-// The HPS field is down, in the -y direction in the map coordinates, or the z direction in local Kalman coordinates
-// The constructor reads the map from a text file or binary file.
-// The field map is in coordinates different from the Kalman fitter coordinates
-//     x map =  x Kalman
-//     y map = -z Kalman
-//     z map =  y Kalman
-// These map coordinates are the HPS global coordinates (not HPS tracking coordinates)
-// This class is used for standalone testing of the Kalman code. See KalmanInterface.java for how the B-field access works
-// when running in hps-java.
-
+/**
+ * This class is used for standalone testing of the Kalman code. See KalmanInterface.java for how the B-field access works
+ * when running in hps-java.
+ * Retrieve the magnetic field vector from the HPS field map.
+ * The HPS field is down, in the -y direction in the map coordinates, or the z direction in local Kalman coordinates
+ * The constructor reads the map from a text file or binary file.
+ * The field map is in coordinates different from the Kalman fitter coordinates
+ *     x map =  x Kalman
+ *     y map = -z Kalman
+ *     z map =  y Kalman
+ * These map coordinates are the HPS global coordinates (not HPS tracking coordinates)
+ */
 public class FieldMap extends FieldOverlay {
     private int nX, nY, nZ;
     private double[][][] bX, bY, bZ;
@@ -34,6 +35,9 @@ public class FieldMap extends FieldOverlay {
         // The offsets are in HPS coordinates and come from HPSDipoleFieldMap3D
 
         this.uniform = uniform; // To allow testing the effects of fitting with a uniform field
+        if (uniform) {
+            System.out.println("FieldMap.java: warning, the field map is set to be uniform!");
+        }
         if (type == "binary") { // This is far faster than scanning the text file (and the file is ~1/3 the size)!
             FileInputStream ifile = new FileInputStream(FileName);
             BufferedInputStream bis = new BufferedInputStream(ifile); // This buffering is essential!
@@ -129,7 +133,7 @@ public class FieldMap extends FieldOverlay {
         offsets.print("field map offsets");
     }
     
-    Vec getField(Vec r) { // Interpolate the 3D field map
+    double [] getField(Vec r) { // Interpolate the 3D field map
         Vec rHPS;
         if (uniform) {
             rHPS = new Vec(0., 0., 505.57);
@@ -172,20 +176,20 @@ public class FieldMap extends FieldOverlay {
         double xd = (rMag.v[0] - X[iX]) / dX;
         double yd = (rMag.v[1] - Y[iY]) / dY;
         double zd = (rMag.v[2] - Z[iZ]) / dZ;
-        double Bx = triLinear(iX, iY, iZ, xd, yd, zd, bX) * 1000.;
-        double By = triLinear(iX, iY, iZ, xd, yd, zd, bY) * 1000.;
-        double Bz = triLinear(iX, iY, iZ, xd, yd, zd, bZ) * 1000.;
-        // double Bxc = bX[iX][iY][iZ]*1000.;
-        // double Byc = bY[iX][iY][iZ]*1000.;
-        // double Bzc = bZ[iX][iY][iZ]*1000.;
-        // new Vec(-Bxc,Bzc,Byc).print("B on grid");
+        double [] Bout = new double[3];
+        Bout[0] = triLinear(iX, iY, iZ, xd, yd, zd, bX) * 1000.;  // HPS Bx
+        Bout[2] = -triLinear(iX, iY, iZ, xd, yd, zd, bY) * 1000.; // HPS By
+        Bout[1] = triLinear(iX, iY, iZ, xd, yd, zd, bZ) * 1000.;  // HPS Bz
         
         // This transforms the field from the HPS global coordinates to Kalman global coordinates
         if (uniform) {
-            return new Vec(0.,0.,-By); // constant field
+            Bout[0] = 0.; // constant field
+            Bout[1] = 0.;
         }
-        return new Vec(Bx, Bz, -By); // correct HPS field
-        // return new Vec(-Bx, -Bz, +By); // reversed field
+        //Bout[0] = 0.;
+        //Bout[1] = 0.;
+        //Bout[2] = 0.240241;
+        return Bout; 
     }
 
     private double triLinear(int i, int j, int k, double xd, double yd, double zd, double[][][] f) {

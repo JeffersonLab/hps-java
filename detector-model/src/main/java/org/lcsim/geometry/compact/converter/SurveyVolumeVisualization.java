@@ -2,8 +2,6 @@ package org.lcsim.geometry.compact.converter;
 
 /**
  * LCDD geometry visualization information
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class SurveyVolumeVisualization {
 

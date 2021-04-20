@@ -12,13 +12,10 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
-
 /**
  * Class describing a 1D cluster.  This class inherits 
  * {@link SiTrackerHitStrip1D} in lcsim but overrides methods that require the 
  * use of both SiStrips and SiStriplets. 
- *
- * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public class SiTrackerHitStrip1D extends org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D {
     

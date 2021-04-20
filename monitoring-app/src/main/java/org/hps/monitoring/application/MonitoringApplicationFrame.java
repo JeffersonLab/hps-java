@@ -13,8 +13,6 @@ import javax.swing.JTabbedPane;
 
 /**
  * This class instantiates the primary GUI components of the monitoring application.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class MonitoringApplicationFrame extends JFrame {

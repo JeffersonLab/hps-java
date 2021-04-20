@@ -9,8 +9,6 @@ import java.util.Map;
  * <p>
  * The default units are generally GeV for energy and nanoseconds 
  * for time, though this is not in any way modeled by this class. 
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public interface NumericalCuts {
 

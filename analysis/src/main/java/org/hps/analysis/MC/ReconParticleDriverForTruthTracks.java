@@ -13,11 +13,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
+import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
 import org.hps.recon.particle.SimpleParticleID;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.utils.TrackClusterMatcher;
+import org.hps.recon.utils.LegacyTrackClusterMatcher;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
@@ -34,17 +35,13 @@ import org.lcsim.util.Driver;
  * Driver used to create reconstructed particles and matching clusters and tracks.
  * This is adapted from the nominal ReconParticleDriver for the purpose of building tracks
  * with vertices that have truth hits and bad tracks.
- *
- * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a>
- * @author Mathew Graham <mgraham@slac.stanford.edu>
- * @author Matt Solt <mrsolt@slac.stanford.edu>
  */
 public abstract class ReconParticleDriverForTruthTracks extends Driver {
 
     /**
      * Utility used to determine if a track and cluster are matched
      */
-    TrackClusterMatcher matcher = new TrackClusterMatcher();
+    LegacyTrackClusterMatcher matcher = new LegacyTrackClusterMatcher();
 
     String[] trackCollectionNames = {"GBLTracks"};
 
@@ -500,9 +497,11 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
                 //before calculating nsigma.  Default is don't use corrections.  
                 Cluster originalCluster = cluster;
                 if(useCorrectedClusterPositionsForMatching){
-                    cluster = new BaseCluster(cluster);
+                    BaseCluster clusterBase = new BaseCluster(cluster);
+                    clusterBase.setNeedsPropertyCalculation(false);
+                    cluster = clusterBase;
                     double ypos = TrackUtils.getTrackStateAtECal(particle.getTracks().get(0)).getReferencePoint()[2];
-                    ClusterUtilities.applyCorrections(ecal, cluster, ypos,isMC);
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos,isMC);
                 }
                     
                 // normalized distance between this cluster and track:
@@ -585,9 +584,9 @@ public abstract class ReconParticleDriverForTruthTracks extends Driver {
                 if (clusterToTrack.containsKey(cluster)) {
                     Track matchedT = clusterToTrack.get(cluster);
                     double ypos = TrackUtils.getTrackStateAtECal(matchedT).getReferencePoint()[2];
-                    ClusterUtilities.applyCorrections(ecal, cluster, ypos, isMC);
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, ypos, isMC);
                 } else {
-                    ClusterUtilities.applyCorrections(ecal, cluster, isMC);
+                    ClusterCorrectionUtilities.applyCorrections(beamEnergy, ecal, cluster, isMC);
                 }
             }
         }

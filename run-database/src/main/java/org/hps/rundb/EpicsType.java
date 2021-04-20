@@ -5,8 +5,6 @@ import org.hps.record.epics.EpicsData;
 /**
  * Enum for representing different types of EPICS data in the run database, of which there are currently two 
  * (2s and 20s).
- *
- * @author jeremym
  */
 public enum EpicsType {
 

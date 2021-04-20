@@ -14,10 +14,6 @@ import org.lcsim.util.Driver;
 
 /**
  * Driver to skim selected events from LCIO files
- *
- * @author Norman A Graf
- *
- * @version $Id:
  */
 public class LcioEventSkimmer extends Driver
 {

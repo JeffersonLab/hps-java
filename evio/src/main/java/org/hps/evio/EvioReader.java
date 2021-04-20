@@ -6,8 +6,6 @@ import org.lcsim.event.EventHeader;
 
 /**
  *  Abstract class containing shared methods used by EVIO readers.
- *
- *  @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public abstract class EvioReader {
 

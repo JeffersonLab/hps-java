@@ -15,8 +15,6 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.constants.Constants;
 
 /**
- * @version $Id: BilliorVertexer.java,v 1.3 2013/03/13 19:24:20 mgraham Exp $
- * @version Vertex tracks using least-squares method laid out by billior etal
  * used in the HPS Java package.
  */
 public class BilliorVertexer {
@@ -968,7 +966,8 @@ public class BilliorVertexer {
         //        List<Matrix> ptildes = new ArrayList<Matrix>();
         List<Matrix> C0j = new ArrayList<Matrix>();
         List<Matrix> pfit = new ArrayList<Matrix>();
-        Matrix[][] Cij = new Matrix[2][2];//max 2 tracks...just make this bigger for more
+        //Matrix[][] Cij = new Matrix[2][2];//max 2 tracks...just make this bigger for more
+        Matrix[][] Cij = new Matrix[_ntracks][_ntracks];//max 2 tracks...just make this bigger for more
         double chisq = 0;
         for (int j = 0; j < _ntracks; j++) {
             BasicMatrix a = (BasicMatrix) As.get(j);

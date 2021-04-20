@@ -4,10 +4,7 @@ package org.hps.detector.ecal;
  * Calculate G4 position for a crystal, by it's front and back face coordinates calculates the position for the center
  * of the crystal calculates the rotation of the crystal in convention of Tait-Bryan angles, {phi, theta, psi}
  * phi-rotation around X theta-rotation around Y psi-rotation around Z
- * 
- * @author Annie Simonyan
  */
-
 public final class Geant4Position {
 
     /* center coordinates */

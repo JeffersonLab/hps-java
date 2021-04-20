@@ -11,10 +11,6 @@ import org.lcsim.fit.helicaltrack.MultipleScatter;
 import org.lcsim.fit.line.SlopeInterceptLineFit;
 import org.lcsim.fit.line.SlopeInterceptLineFitter;
 
-/**
- *
- * @author mgraham
- */
 public class StraightTrack2DFitter implements HPSFitter {
 
     SlopeInterceptLineFitter _lfitter = new SlopeInterceptLineFitter();

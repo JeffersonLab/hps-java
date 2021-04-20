@@ -8,8 +8,6 @@ import java.util.logging.LogManager;
  * Read the test logging configuration and load it into the global log manager.
  * <p>
  * This configuration will cause only warnings and errors to print.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class TestLoggingConfig {
 

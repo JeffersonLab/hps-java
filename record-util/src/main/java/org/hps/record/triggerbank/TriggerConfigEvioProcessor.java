@@ -18,8 +18,6 @@ import org.jlab.coda.jevio.EvioEvent;
  * <p>
  * When event processing is completed, the <code>triggerConfig</code> variable should reference
  * the last valid DAQ config and can be accessed using the {@link #getTriggerConfigData()} method.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class TriggerConfigEvioProcessor extends EvioEventProcessor {
 

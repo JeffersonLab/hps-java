@@ -17,8 +17,6 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
 
 /**
  * A class that collects information about a fitted GBL trajectory.
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class FittedGblTrajectory {
 
@@ -231,9 +229,56 @@ public class FittedGblTrajectory {
 
         // find the point on the trajectory from the GBLPOINT
         int iLabel = getPointIndex(point);
-
-        return getCorrectedPerigeeParameters(htf, iLabel, bfield);
-
+        
+        double pathLength = getPathLength(iLabel);
+        
+        //We already have the corrections at s=0, no need to transform the point
+        if (pathLength < 1.e-6) {
+            
+            // Get corrections from GBL fit
+            Vector locPar = new Vector(5);
+            SymMatrix locCov = new SymMatrix(5);
+            
+            // Extract the corrections to the track parameters and the covariance matrix from the GBL trajectory
+            getResults(iLabel, locPar, locCov);
+            
+            // find the corrected perigee track parameters at this point
+            double[] helixParametersCorrected = GblUtils.getCorrectedPerigeeParameters(locPar, htf, bfield);
+            
+            // Use the super class to keep track of reference point of the helix
+            HpsHelicalTrackFit helicalTrackFit = new HpsHelicalTrackFit(htf);
+            double[] refIP = helicalTrackFit.getRefPoint();
+            
+            // Form the helical track fit (redundant)
+            HpsHelicalTrackFit helicalTrackFitCorrected = new HpsHelicalTrackFit(helixParametersCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refIP);
+            
+            // Get the jacobian
+            // Calculate the updated covariance
+            Matrix jacobian = GblUtils.getCLToPerigeeJacobian(helicalTrackFit, helicalTrackFitCorrected, bfield);
+            Matrix helixCovariance = jacobian.times(locCov.times(jacobian.transpose()));
+            SymmetricMatrix cov = new SymmetricMatrix(5);
+            for (int i = 0; i < 5; i++) {
+                for (int j = 0; j < 5; j++) {
+                    if (i >= j) {
+                        cov.setElement(i, j, helixCovariance.get(i, j));
+                    }
+                }
+            }
+            double parameters_gbl[] = helicalTrackFitCorrected.parameters();
+            //System.out.printf("NEW NEW parameters_gbl for pathLength %f  - %f %f %f %f %f\n", pathLength, parameters_gbl[BaseTrack.OMEGA], parameters_gbl[BaseTrack.TANLAMBDA], parameters_gbl[BaseTrack.PHI],parameters_gbl[BaseTrack.D0],parameters_gbl[BaseTrack.Z0]);
+            
+            //System.out.printf("Jacobian and Covariance Matrix::\n");
+            //jacobian.print(5,5);
+            //System.out.println(cov.toString());
+            
+            return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
+        }
+        
+        else {
+            
+            return getCorrectedPerigeeParameters(htf, iLabel, bfield);
+        }
+        
     }
 
     /**
@@ -267,7 +312,7 @@ public class FittedGblTrajectory {
 
         //System.out.printf("iLabel %d: pathLength %f -> refPointVec %s \n", iLabel, pathLength, refPointVec.toString());
 
-        LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
+        //LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
 
         // Propagate the helix to new reference point
         double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
@@ -301,10 +346,18 @@ public class FittedGblTrajectory {
                 }
             }
         }
-        LOGGER.finest("corrected helix covariance:\n" + cov);
+        //LOGGER.finest("corrected helix covariance:\n" + cov);
 
         double parameters_gbl[] = helicalTrackFitAtIPCorrected.parameters();
-
+        
+        /*
+        System.out.printf("parameters_gbl for pathLength %f  - %f %f %f %f %f\n", pathLength, parameters_gbl[BaseTrack.OMEGA], parameters_gbl[BaseTrack.TANLAMBDA], parameters_gbl[BaseTrack.PHI],parameters_gbl[BaseTrack.D0],parameters_gbl[BaseTrack.Z0]);
+        
+        System.out.printf("Jacobian and Covariance Matrix::\n");
+        jacobian.print(5,5);
+        System.out.println(cov.toString());
+        */
+                
         return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
     }
 

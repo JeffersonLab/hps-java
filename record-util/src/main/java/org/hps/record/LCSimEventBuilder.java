@@ -6,8 +6,6 @@ import org.lcsim.event.EventHeader;
 
 /**
  * This is an interface that should be implemented by classes which build LCSim events from EVIO raw data.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public interface LCSimEventBuilder extends ConditionsListener {
 

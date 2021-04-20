@@ -34,10 +34,7 @@ import org.lcsim.util.swim.Trajectory;
 /**
  * This is the driver that takes a TrackTruthMatching object
  * and computes the full truth information including scattering angles
- *
- * @author mrsolt on Aug 31, 2017
  */
-
 public class MCFullDetectorTruth{
 
     private TrackTruthMatching _pTruth =  null;

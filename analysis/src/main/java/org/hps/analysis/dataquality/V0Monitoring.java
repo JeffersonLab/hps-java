@@ -18,7 +18,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-// import org.hps.UnusedImportCheckstyleViolation
+
+import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
@@ -35,9 +36,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 /**
  * DQM driver V0 particles (i.e. e+e- pars) plots things like number of vertex
  * position an mass
- *
- * @author mgraham on May 14, 2014
- *
  */
 public class V0Monitoring extends DataQualityMonitor {
 
@@ -164,10 +162,12 @@ public class V0Monitoring extends DataQualityMonitor {
     @Override
     protected void detectorChanged(Detector detector) {
         super.detectorChanged(detector);
-        //mg 7/28/2019 ... hard code the beam energy...it's not in the database for 2019 running yet
-        beamEnergy = 4.5;
+                
+        BeamEnergyCollection beamEnergyCollection = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
+        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        
         System.out.println("Using beamEnergy = " + beamEnergy);
-
+        
         feeMomentumCut = 0.75 * beamEnergy; // GeV
 
         v0ESumMinCut = 0.8 * beamEnergy;

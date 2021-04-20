@@ -42,8 +42,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
  * Notation follows the MillePede manual: http://www.desy.de/~blobel/Mptwo.pdf the track is measured in the
  * HelicalTrackFit frame and residuals are in the sensor frame (u,v,w) ordering of track parameters is double d0 =
  * _trk.dca(); double z0 = _trk.z0(); double slope = _trk.slope(); double phi0 = _trk.phi0(); double R = _trk.R();
- *
- * @author mgraham
  */
 public class AlignmentParameters {
 

@@ -15,8 +15,6 @@ import org.jlab.coda.et.enums.Mode;
 
 /**
  * Connection settings panel.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class ConnectionSettingsPanel extends AbstractFieldsPanel {

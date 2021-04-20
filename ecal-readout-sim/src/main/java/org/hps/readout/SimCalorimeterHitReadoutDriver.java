@@ -14,7 +14,6 @@ import org.lcsim.event.SimCalorimeterHit;
  * in input Monte Carlo files of type {@link
  * org.lcsim.event.SimCalorimeterHit SimCalorimeterHit}.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see org.hps.readout.SLICDataReadoutDriver
  */
 public class SimCalorimeterHitReadoutDriver extends SLICDataReadoutDriver<SimCalorimeterHit> {

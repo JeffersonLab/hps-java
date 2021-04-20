@@ -38,12 +38,7 @@ import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.fourvec.Lorentz4Vector;
 import org.lcsim.util.fourvec.Momentum4Vector;
 
-/**
- *
- * @author Norman A. Graf
- */
 public class APrimeMCAnalysisDriver extends Driver {
-
 
     String outputFile = "APrimeMCAnalysisDriver_" + myDate() + ".aida";
 

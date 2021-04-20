@@ -14,9 +14,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This code looks at raw FADC spectra, integrates cosmic signals, and outputs a
  * .root file containing the histogram spectra for each crystal.
- * 
- * @author holly
- *
  */
 public class CosmicCalibrationInt extends Driver {
 

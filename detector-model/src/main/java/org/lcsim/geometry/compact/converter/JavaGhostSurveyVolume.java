@@ -1,15 +1,15 @@
 package org.lcsim.geometry.compact.converter;
 
 /**
- * Interface to the JAVA converter geometry for the geometry definition. In this case no volume is built but can be used as reference in building the geometry.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
+ * Interface to the JAVA converter geometry for the geometry definition. In this case no volume is built 
+ * but can be used as reference in building the geometry.
  */
 public class JavaGhostSurveyVolume extends JavaSurveyVolume {
 
     /**
      * Initialize with base and mother. This is typically for a reference geometry object that is used for referencing coordinate systems but that doesn't have a volume itself.
      * 
+
      * @param surveyVolume - object used to get geometry definitions
      * @param mother - mother object
      */

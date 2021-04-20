@@ -14,10 +14,6 @@ import org.lcsim.event.TrackState;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author Norman A. Graf
- */
 public class SvtCalorimeterAlignmentDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

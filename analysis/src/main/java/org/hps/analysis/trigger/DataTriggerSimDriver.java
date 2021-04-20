@@ -51,7 +51,6 @@ import hep.aida.IHistogram1D;
  * that can be accessed to obtain all simulated trigger types. This
  * output object is not persisted into LCIO after runtime.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see org.hps.record.daqconfig.DAQConfigDriver
  * @see org.hps.recon.ecal.EcalOnlineRawConverterDriver
  * @see org.hps.recon.ecal.cluster.GTPOnlineClusterDriver

@@ -3,15 +3,9 @@ package org.hps.recon.tracking;
 import java.util.ArrayList;
 import java.util.Collection;
 
-
-//===>import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 
-/**
- *
- * @author Matt Graham
- */
 // FIXME: Change the name of the class to SimpleShaperFit - OM
 // TODO: Add class documentation.
 public class DumbShaperFit implements ShaperFitAlgorithm {

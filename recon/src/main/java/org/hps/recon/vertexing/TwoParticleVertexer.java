@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.vertexing;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -11,10 +7,7 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.lcsim.event.MCParticle;
 
 /**
- *
- *Class that computes the vertex of two MC particles using the line vertexer class.
- *
- * @author phansson
+ * Class that computes the vertex of two MC particles using the line vertexer class.
  */
 public class TwoParticleVertexer extends TwoLineVertexer {
     

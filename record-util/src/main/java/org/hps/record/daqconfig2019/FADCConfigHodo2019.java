@@ -25,8 +25,6 @@ import org.hps.conditions.hodoscope.HodoscopeChannel.HodoscopeChannelCollection;
  * <li>Thresholds</li>
  * <li>Pedestals</li>
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class FADCConfigHodo2019 extends IDAQConfig2019 {
     // Store basic FADC information.
@@ -45,7 +43,7 @@ public class FADCConfigHodo2019 extends IDAQConfig2019 {
     
     // Store the hodoscope condition table for converting between
     // geometric IDs and channel objects.
-    private HodoscopeChannelCollection geoMap = null;
+    private HodoscopeChannelCollection geoMap = new HodoscopeChannelCollection();
     
     @Override
     void loadConfig(EvioDAQParser2019 parser) {
@@ -301,14 +299,14 @@ public class FADCConfigHodo2019 extends IDAQConfig2019 {
     @Override
     public void printConfig(PrintStream ps) {
         // Print the basic configuration information.
-        ps.println("FADC Configuration:");
+        ps.println("Hodo FADC Configuration:");
         ps.printf("\tNSA           :: %d%n", nsa);
         ps.printf("\tNSB           :: %d%n", nsb);
         ps.printf("\tWindow Width  :: %d%n", windowWidth);
         ps.printf("\tWindow Offset :: %d%n", offset);
         
         // Output the pedestal/gain write-out header.
-        ps.println("\tix\tiy\tlayer\thole\tPedestal (ADC)\tGain (MeV/ADC)\tThreshold (ADC)");
+        ps.println("\tix\tiy\tlayer\thole\tPedestal (ADC)\tGain (TBD/ADC)\tThreshold (ADC)");
         
         Set<int[]> iGeoSet = indexChannelMap.keySet();
         Iterator<int[]> iterator = iGeoSet.iterator();                
