@@ -302,8 +302,16 @@ public class ReadoutDataManager extends Driver {
                         }
                     }
                     
-                    if(!bits.isEmpty())tsValues[4] = (int)bits.toLongArray()[0];
-                    else tsValues[4] = 0;                    
+                    if(!bits.isEmpty()) {
+                        tsValues[4] = (int)bits.toLongArray()[0];
+                        tsValues[5] = (int)bits.toLongArray()[0];
+                        tsValues[6] = (int)bits.toLongArray()[0];
+                    }
+                    else {
+                        tsValues[4] = 0;
+                        tsValues[5] = 0;
+                        tsValues[6] = 0;
+                    }
                     
                     // Filling the generic objects with the integer array
                     tsBank.setValues(tsValues);
