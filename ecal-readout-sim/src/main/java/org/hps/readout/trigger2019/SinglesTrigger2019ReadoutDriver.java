@@ -1,6 +1,7 @@
 package org.hps.readout.trigger2019;
 
 import java.util.Collection;
+import java.util.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
      * Indicates singles trigger type. Corresponding DAQ configuration is accessed by DAQ
      * configuration system, and applied into readout.
      */
-    private String triggerType = "singles3";
+    private String triggerType = "singles3";   
     
     /**
      * Indicates the name of the calorimeter geometry object. This is
@@ -120,10 +121,10 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
                 public void actionPerformed(ActionEvent e) {
                     // Get the DAQ configuration.
                     DAQConfig2019 daq = ConfigurationManager2019.getInstance();  
-                    if(triggerType.contentEquals("singles3")) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles3Config());
-                    else if(triggerType.equals("singles2")) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles2Config());
-                    else if(triggerType.equals("singles1")) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles1Config());
-                    else if(triggerType.equals("singles0")) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles0Config());                    
+                    if(triggerType.contentEquals(SINGLES3)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles3Config());
+                    else if(triggerType.equals(SINGLES2)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles2Config());
+                    else if(triggerType.equals(SINGLES1)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles1Config());
+                    else if(triggerType.equals(SINGLES0)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles0Config());
                 }
             });
         }
@@ -166,6 +167,9 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
         // regardless of the outcome.
         if(isInDeadTime()) { return; }
         
+        // Record top/bot status for singles triggers
+        List<String> topBot = new ArrayList();
+        
         // Plot the trigger distributions before trigger cuts are
         // performed.
         for(Cluster cluster : clusters) {
@@ -181,12 +185,16 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             clusterDistribution[NO_CUTS].fill(ixy.x, ixy.y);           
             
             // Perform the hit count cut.
-            if(!triggerModule.clusterHitCountCut(cluster)) {
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_HIT_COUNT_LOW_EN) && !triggerModule.clusterHitCountCut(cluster)) {
                 continue;
             }            
             
             // Perform the cluster energy cut.
-            if(!triggerModule.clusterTotalEnergyCut(cluster)) {
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_TOTAL_ENERGY_LOW_EN) && !triggerModule.clusterTotalEnergyCutLow(cluster)) {
+                continue;
+            }
+            
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_TOTAL_ENERGY_HIGH_EN) && !triggerModule.clusterTotalEnergyCutHigh(cluster)) {
                 continue;
             }
             
@@ -196,12 +204,12 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             if(clusterX < 0) clusterX++;
             
             // XMin is at least 0.
-            if(!triggerModule.clusterXMinCut(clusterX)) {
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_XMIN_EN) && !triggerModule.clusterXMinCut(clusterX)) {
                 continue;
             }
             
             // XMin cut has been applied.
-            if(!triggerModule.clusterPDECut(cluster, clusterX)) {
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_PDE_EN) && !triggerModule.clusterPDECut(cluster, clusterX)) {
                 continue;                
             }
            
@@ -214,6 +222,9 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             // Note that a trigger occurred.
             triggered = true;
             
+            if(ixy.y > 0) topBot.add(TOP);
+            else topBot.add(BOT);
+            
             // Populate the cut plots.
             clusterSeedEnergy[WITH_CUTS].fill(TriggerModule2019.getValueClusterSeedEnergy(cluster));
             clusterTotalEnergy[WITH_CUTS].fill(TriggerModule2019.getValueClusterTotalEnergy(cluster));
@@ -222,7 +233,14 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
         }
         
         if(triggered) {
-            sendTrigger();
+            boolean topStat = false;
+            boolean botStat = false;            
+            if(topBot.contains(TOP)) topStat = true;
+            if(topBot.contains(BOT)) botStat = true;
+            
+            if(topStat && botStat) sendTrigger(triggerType, TOPBOT);
+            else if(topStat) sendTrigger(triggerType, TOP);
+            else sendTrigger(triggerType, BOT);            
         }
     }
     
@@ -286,6 +304,8 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     }
     
     public void setTriggerType(String trigger) {
+        if(!trigger.equals(SINGLES0) && !trigger.equals(SINGLES1) && !trigger.equals(SINGLES2) && !trigger.equals(SINGLES3))
+            throw new IllegalArgumentException("Error: wrong trigger type name \"" + trigger + "\".");
         triggerType = trigger;
     }
     

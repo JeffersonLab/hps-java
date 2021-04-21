@@ -10,6 +10,7 @@ import java.util.Queue;
 
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.TriggerDriver;
+import org.hps.readout.util.HodoscopePattern;
 import org.hps.recon.ecal.EcalUtils;
 import org.hps.record.daqconfig2019.ConfigurationManager2019;
 import org.hps.record.daqconfig2019.DAQConfig2019;
@@ -28,10 +29,19 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * manager so that a triggered readout event may be written.
  */
 public class PairsTrigger2019ReadoutDriver extends TriggerDriver{    
+    
+    /**
+     * Indicates pair trigger type. Corresponding DAQ configuration is accessed by DAQ
+     * configuration system, and applied into readout.
+     */
+    private String triggerType = "pair0";   
+    
     // ==================================================================
     // ==== Trigger General Default Parameters ==========================
     // ==================================================================
     private String inputCollectionName = "EcalClustersGTP";       // Name for the LCIO cluster collection.
+    private String inputCollectionNameHodo = "HodoscopePatterns";    
+    
     private int pairCoincidence = 3;                              // Maximum allowed time difference between clusters. (4 ns clock-cycles)
     private String ecalGeometryName = "Ecal";                     // Name of the calorimeter geometry object.
     private TriggerModule2019 triggerModule = new TriggerModule2019();
@@ -72,7 +82,10 @@ public class PairsTrigger2019ReadoutDriver extends TriggerDriver{
                 public void actionPerformed(ActionEvent e) {
                     // Get the DAQ configuration.
                     DAQConfig2019 daq = ConfigurationManager2019.getInstance();  
-                    triggerModule.loadDAQConfiguration(daq.getVTPConfig().getPair0Config()); 
+                    if(triggerType.contentEquals(PAIR0)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getPair0Config());
+                    else if(triggerType.contentEquals(PAIR1)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getPair1Config());
+                    else if(triggerType.contentEquals(PAIR2)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getPair2Config());
+                    else if(triggerType.contentEquals(PAIR3)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getPair3Config());
                     pairCoincidence = (int)triggerModule.getCutValue(TriggerModule2019.PAIR_TIME_COINCIDENCE) / 4;
                 }
             });
@@ -133,7 +146,8 @@ public class PairsTrigger2019ReadoutDriver extends TriggerDriver{
         // Check that if a trigger exists, if the trigger is not in
         // dead time. If it is, no trigger may be issued, so this is
         // not necessary.
-        if(!isInDeadTime() && testTrigger()) { sendTrigger(); }
+        if(!isInDeadTime() && testTrigger())
+            sendTrigger(triggerType); 
         
         // Increment the local time.
         localTime += 4.0;
@@ -155,6 +169,12 @@ public class PairsTrigger2019ReadoutDriver extends TriggerDriver{
      */
     public void setInputCollectionName(String clusterCollectionName) {
         inputCollectionName = clusterCollectionName;
+    }
+    
+    public void setTriggerType(String trigger) {
+        if(!trigger.equals(PAIR0) && !trigger.equals(PAIR1) && !trigger.equals(PAIR2) && !trigger.equals(PAIR3))
+            throw new IllegalArgumentException("Error: wrong trigger type name \"" + trigger + "\".");
+        triggerType = trigger;
     }
     
     /**
@@ -266,14 +286,18 @@ public class PairsTrigger2019ReadoutDriver extends TriggerDriver{
             // ==== Cluster Hit Count Cut ==================================
             // =============================================================
             // If the cluster fails the cut, skip to the next cluster.
-            if(!triggerModule.clusterHitCountCut(cluster)) {
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_HIT_COUNT_LOW_EN) && !triggerModule.clusterHitCountCut(cluster)) {
                 continue clusterLoop;
             }
             
             // ==== Cluster Total Energy Cut ===============================
             // =============================================================
             // If the cluster fails the cut, skip to the next cluster.
-            if(!triggerModule.clusterTotalEnergyCut(cluster)) {
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_TOTAL_ENERGY_LOW_EN) && !triggerModule.clusterTotalEnergyCutLow(cluster)) {
+                continue clusterLoop;
+            }
+            
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_TOTAL_ENERGY_HIGH_EN) && !triggerModule.clusterTotalEnergyCutHigh(cluster)) {
                 continue clusterLoop;
             }
             
@@ -347,29 +371,49 @@ public class PairsTrigger2019ReadoutDriver extends TriggerDriver{
             // ==== Pair Energy Sum Cut ====================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!triggerModule.pairEnergySumCut(clusterPair)) {
+            if(triggerModule.getCutEn(TriggerModule2019.PAIR_ENERGY_SUM_EN) && !triggerModule.pairEnergySumCut(clusterPair)) {
                 continue pairLoop;
             }
             
             // ==== Pair Energy Difference Cut =============================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!triggerModule.pairEnergyDifferenceCut(clusterPair)) {
+            if(triggerModule.getCutEn(TriggerModule2019.PAIR_ENERGY_DIFFERENCE_HIGH_EN) && !triggerModule.pairEnergyDifferenceCut(clusterPair)) {
                 continue pairLoop;
             }
             
             // ==== Pair Energy Slope Cut ==================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!triggerModule.pairEnergySlopeCut(clusterPair, ixy0, ixy1)) {
+            if(triggerModule.getCutEn(TriggerModule2019.PAIR_ENERGY_SLOPE_EN) && !triggerModule.pairEnergySlopeCut(clusterPair, ixy0, ixy1)) {
                 continue pairLoop;
             }
             
             // ==== Pair Coplanarity Cut ===================================
             // =============================================================
             // If the cluster fails the cut, skip to the next pair.
-            if(!triggerModule.pairCoplanarityCut(clusterPair, ixy0, ixy1)) {
+            if(triggerModule.getCutEn(TriggerModule2019.PAIR_COPLANARITY_HIGH_EN) && !triggerModule.pairCoplanarityCut(clusterPair, ixy0, ixy1)) {
                 continue pairLoop;
+            }
+            
+            if(triggerType.equals(PAIR3)) {
+                Collection<HodoscopePattern> hodoPatterns = null;
+                ArrayList<HodoscopePattern> hodoPatternList = null;                
+                if(ReadoutDataManager.checkCollectionStatus(inputCollectionNameHodo, localTime)) {
+                    hodoPatterns = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameHodo, HodoscopePattern.class);
+                    hodoPatternList = new ArrayList<>(hodoPatterns);  
+                }
+                                
+                int clusterX0 = ixy0.x;
+                if(clusterX0 < 0) clusterX0++;
+                
+                int clusterX1 = ixy1.x;
+                if(clusterX1 < 0) clusterX1++;
+                
+                boolean cl0Stat = triggerModule.geometryMatchingCut(clusterX0, ixy0.y, hodoPatternList);
+                boolean cl1Stat = triggerModule.geometryMatchingCut(clusterX1, ixy1.y, hodoPatternList);
+                
+                if(!cl0Stat && !cl1Stat) continue pairLoop;
             }
             
             // Clusters that pass all of the pair cuts produce a trigger.
@@ -416,4 +460,5 @@ public class PairsTrigger2019ReadoutDriver extends TriggerDriver{
         // Return the cluster pair lists.
         return clusterPairs;
     }
+    
 }
