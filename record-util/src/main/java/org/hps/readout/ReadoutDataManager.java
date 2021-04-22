@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.triggerbank.TSGenericObject;
 import org.hps.readout.util.TimedList;
 import org.hps.readout.util.TriggerTime;
@@ -206,7 +207,6 @@ public class ReadoutDataManager extends Driver {
     
     @Override
     public void process(EventHeader event) {
-        // TODO: Currently only works for a single trigger. Should support multiple triggers with different offsets.
         // Check the trigger queue.
         if(!triggerQueue.isEmpty()) {
             // Check the earliest possible trigger write time.
@@ -243,10 +243,12 @@ public class ReadoutDataManager extends Driver {
                 EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(),
                         triggerEventNumber, event.getDetectorName(), (long) 4 * (Math.round(trigger.getTriggerTime() / 4)), false);
                 
-                if(!trigger.getTriggerType().equals("noSet")) {                 // For processing multi-triggers
+                // 2016 MC only process one trigger, and no TS bank is stored
+                // 2019 MC can process multi-trigger, and TS bank is stored
+                if(!trigger.getTriggerType().equals("noSet")) {   
                     List<TSGenericObject> ts_list = new ArrayList();
                     TSGenericObject tsBank = new TSGenericObject();
-                    int[] tsValues = new int[7];
+                    int[] tsValues = new int[8];
                     BitSet bits = new BitSet(32);
                     for(TriggerTime tri : triggerList) {
                         String triggerType = tri.getTriggerType();
@@ -302,13 +304,13 @@ public class ReadoutDataManager extends Driver {
                         }
                     }
                     
+                    tsValues[0] = EvioEventConstants.TS_BANK_TAG;
+                    
                     if(!bits.isEmpty()) {
-                        tsValues[4] = (int)bits.toLongArray()[0];
                         tsValues[5] = (int)bits.toLongArray()[0];
                         tsValues[6] = (int)bits.toLongArray()[0];
                     }
                     else {
-                        tsValues[4] = 0;
                         tsValues[5] = 0;
                         tsValues[6] = 0;
                     }
