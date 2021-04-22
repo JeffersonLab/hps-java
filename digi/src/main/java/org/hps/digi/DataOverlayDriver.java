@@ -68,6 +68,9 @@ public class DataOverlayDriver extends Driver {
      */
     static List<String> COLLECTION_NAMES =
             Arrays.asList("EcalReadoutHits", "HodoReadoutHits", "SVTRawTrackerHits");
+    
+    static List<String> READOUT_NAMES = 
+            Arrays.asList("EcalHits","HodoscopeHits","TrackerHits");
 
     /**
      * Thrown when events are exhausted from the overlay stream.
@@ -158,15 +161,19 @@ public class DataOverlayDriver extends Driver {
      */
     private void overlayEvent(EventHeader overlayEvent, EventHeader targetEvent) {
         LOGGER.fine("Overlaying event " + overlayEvent.getEventNumber() + " onto primary event " + targetEvent.getEventNumber());
+        int cnt=0;
         for (String collName : COLLECTION_NAMES) {
             if (!targetEvent.hasCollection(RawTrackerHit.class, collName)) {
                 // Copy raw data collection into output event.
                 LOGGER.finer("Adding new raw data collection to output event: " + collName);
                 List<RawTrackerHit> overlayColl = overlayEvent.get(RawTrackerHit.class, collName);
+                //                System.out.println( overlayEvent.get(RawTrackerHit.class, collName).getClass().getSimpleName());
+                //                System.out.println(overlayEvent.getMetaData(overlayColl).getFlags().getClass().getSimpleName());
+                // System.out.println(READOUT_NAMES.get(cnt).getClass().getSimpleName());
                 targetEvent.put(collName,
                         overlayEvent.get(RawTrackerHit.class, collName),
                         RawTrackerHit.class,
-                        overlayEvent.getMetaData(overlayColl).getFlags());
+                                overlayEvent.getMetaData(overlayColl).getFlags(),READOUT_NAMES.get(cnt));
             } else {
                 // Add ADC values for matching collections and add the new collection to the event.
                 List<RawTrackerHit> overlayHits = overlayEvent.get(RawTrackerHit.class, collName);
@@ -175,8 +182,9 @@ public class DataOverlayDriver extends Driver {
                 LOGGER.finer("Primary " + collName + ": " + hits.size());
                 List<RawTrackerHit> newHits = this.mergeRawTrackerHitCollections(overlayHits, hits);
                 LOGGER.finer("Merged " + collName + ": " + newHits.size() + '\n');
-                targetEvent.put(collName, newHits, RawTrackerHit.class, targetEvent.getMetaData(hits).getFlags());
+                targetEvent.put(collName, newHits, RawTrackerHit.class, targetEvent.getMetaData(hits).getFlags(),READOUT_NAMES.get(cnt));
             }
+            cnt++;
         }
     }
 
