@@ -445,6 +445,13 @@ public abstract class ReconParticleDriver extends Driver {
         matcher = TrackClusterMatcherFactory.create(trackClusterMatcherAlgo);
         matcher.initializeParameterization(clusterParamFileName);
         matcher.setBFieldMap(detector.getFieldMap());
+        //By default, use GBLTracks
+        if(trackCollectionNames != null){
+            for(String name : trackCollectionNames){
+                if(name.contains("Kalman"))
+                    this.trackCollectionName = "KalmanFullTracks";
+            }
+        }
         matcher.setTrackCollectionName(trackCollectionName);
         matcher.enablePlots(enableTrackClusterMatchPlots);
 
