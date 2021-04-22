@@ -2,7 +2,6 @@ package org.hps.record.daqconfig;
 
 import java.io.PrintStream;
 
-
 /**
  * Class <code>SSPConfig</code> stores SSP configuration settings
  * parsed from the an EVIO file. This class manages the following
@@ -13,10 +12,9 @@ import java.io.PrintStream;
  * <li>Pair 1 Trigger</li>
  * <li>Pair 2 Trigger</li>
  * </ul>
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SSPConfig extends IDAQConfig {
+
     // Store trigger configuration parameters.
     private PairTriggerConfig[] pairTrigger = { new PairTriggerConfig(), new PairTriggerConfig() };
     private SinglesTriggerConfig[] singlesTrigger = { new SinglesTriggerConfig(), new SinglesTriggerConfig() };

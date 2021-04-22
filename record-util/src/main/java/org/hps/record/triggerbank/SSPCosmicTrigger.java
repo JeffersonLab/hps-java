@@ -3,8 +3,6 @@ package org.hps.record.triggerbank;
 /**
  * Class <code>SSPCosmicTrigger</code> represents an SSP trigger for
  * the either the top or bottom cosmic trigger.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SSPCosmicTrigger extends SSPTrigger {
     /**

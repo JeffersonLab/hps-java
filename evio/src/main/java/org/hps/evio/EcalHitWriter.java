@@ -27,11 +27,6 @@ import org.lcsim.geometry.IDDecoder;
 import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
-/**
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: ECalHitWriter.java,v 1.6 2013/04/18 20:59:16 meeg Exp $
- */
 public class EcalHitWriter implements HitWriter {
 
     private String hitCollectionName = "EcalReadoutHits";

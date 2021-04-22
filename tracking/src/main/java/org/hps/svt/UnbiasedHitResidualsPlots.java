@@ -1,10 +1,3 @@
-/*
- * Unbiased Hit Residuals are computed
- */
-/**
- * @author mrsolt
- *
- */
 package org.hps.svt;
 
 import java.util.HashMap;

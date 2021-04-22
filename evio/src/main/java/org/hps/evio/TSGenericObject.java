@@ -1,14 +1,13 @@
 package org.hps.evio;
 
 import org.lcsim.event.GenericObject;
+
 /**
  * This was created very similarly to the VTPGenericObject
  * This is designed only to contain all trigger flags in an integer array.
- * 
- * @author tongtong
  */
-
 final class TSGenericObject implements GenericObject {
+
     private int[] values;
     
     @Override

@@ -1,7 +1,5 @@
 package org.hps.analysis.MC;
 
-
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,8 +36,6 @@ import org.lcsim.util.Driver;
 /**
  * A Driver which refits tracks using GBL, but only refit tracks with different L1 hits from TrackRefitWithFirstLayerHits. 
  * This is adapted from the nominal GBLRefitterDriver.
- * 
- * @author Matt Solt
  */
 public class FirstHitGBLRefitterDriver extends Driver {
 

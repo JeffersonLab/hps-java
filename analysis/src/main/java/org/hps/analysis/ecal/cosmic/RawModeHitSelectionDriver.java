@@ -24,8 +24,6 @@ import org.lcsim.util.aida.AIDA;
  * Then those events that have at least a minimum number of hits that pass 
  * this cut will be written into a new collection.  If there are not enough
  * hits to pass this last cut, then the event is automatically skipped. 
- *   
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class RawModeHitSelectionDriver extends Driver {
 

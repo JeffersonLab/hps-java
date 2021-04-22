@@ -6,8 +6,6 @@ package org.hps.record.triggerbank;
  * subclass depending on the trigger type and provide trigger data
  * parsing options. Unknown trigger types will always be of object type
  * <code>SSPTrigger</code>, which does not provide trigger data parsing.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class SSPTriggerFactory {
     /**

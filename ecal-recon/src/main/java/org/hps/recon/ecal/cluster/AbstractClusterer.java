@@ -21,8 +21,6 @@ import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
  * 
  * @see Clusterer
  * @see org.lcsim.event.Cluster
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public abstract class AbstractClusterer implements Clusterer {
     
@@ -135,6 +133,7 @@ public abstract class AbstractClusterer implements Clusterer {
      */
     public BaseCluster createBasicCluster() {
         BaseCluster cluster = new BaseCluster();
+        cluster.setNeedsPropertyCalculation(false);
         cluster.setType(getClusterType().getType());
         return cluster;
     }

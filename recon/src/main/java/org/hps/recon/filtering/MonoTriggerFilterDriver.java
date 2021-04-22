@@ -10,8 +10,6 @@ import org.hps.record.triggerbank.TIData;
 
 /**
  * Keep events with exactly one trigger bit. Also keep EPICS events, and Scaler events. Drop all other events.
- * 
- * @author spaul
  */
 public class MonoTriggerFilterDriver extends Driver {
 

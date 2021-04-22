@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import org.hps.record.StandardCuts;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.Track;
+import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
@@ -25,10 +26,6 @@ import org.lcsim.util.aida.AIDA;
  * resulting list of unique tracks in a new collection. Remove the original
  * track collections (this behavior can be disabled). Produce some basic plots
  * (can be disabled) in mergingPlots.aida.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
- * @version $Id: v2 05/30/2017$
  */
 public class MergeTrackCollections extends Driver {
 
@@ -42,7 +39,6 @@ public class MergeTrackCollections extends Driver {
     private AmbiguityResolver ambi;
     // private AcceptanceHelper acc;
     private StandardCuts cuts = new StandardCuts();
-
     private AIDA aida2 = AIDA.defaultInstance();
 
     private IHistogram1D trackScoresPreAmbi;
@@ -144,20 +140,50 @@ public class MergeTrackCollections extends Driver {
     public void process(EventHeader event) {
 
         List<List<Track>> trackCollections;
+        List<List<Track>> trackCollectionsForAmbi;
 
         //if (inputTrackCollectionName == "") {
         if (inputTrackCollectionName.isEmpty()) {
+            //System.out.println("PF::DEBUG:: Empty inputTrackCollectionName");
+            
             trackCollections = event.get(Track.class);
+            trackCollectionsForAmbi = new ArrayList<List<Track>>();
+            
+            for (List<Track> trkList : trackCollections) {
+                
+                List<Track> TMP_trackList = new ArrayList<Track>();
+                
+                for (Track trk : trkList) {
+                    
+                    if (trk instanceof SeedTrack) {
+                        TMP_trackList.add(trk);
+                    }
+                }
+
+                if (TMP_trackList.size()>0) { 
+                    trackCollectionsForAmbi.add(TMP_trackList);
+                }
+            }
+            
+                
         } else {
-            trackCollections = new ArrayList<List<Track>>();
+            trackCollections        = new ArrayList<List<Track>>();
+            trackCollectionsForAmbi = new ArrayList<List<Track>>();
             for(String inputTrack:inputTrackCollectionName){
                 List<Track> temp = event.get(Track.class, inputTrack);
                 trackCollections.add(temp);
+                trackCollectionsForAmbi.add(temp);
             }
             //List<Track> temp = event.get(Track.class, inputTrackCollectionName);
             //trackCollections.add(temp);
         }
-
+        
+        //System.out.println("PF::DEBUG:: CHECK TRACK COLLECTIONS");
+        //for (List<Track> trk : trackCollectionsForAmbi) {
+        //    System.out.println(trk.toString());
+        //}
+        
+        
         if (doPlots) {
             numTracksPreAmbi.fill(ambi.getTracks().size());
             for (Track trk : ambi.getTracks()) {
@@ -171,15 +197,15 @@ public class MergeTrackCollections extends Driver {
         // ((ClassicAmbiguityResolver) (ambi)).setDoChargeCheck(true);
 
         ambi.resetResolver();
-        ambi.initializeFromCollection(trackCollections);
+        ambi.initializeFromCollection(trackCollectionsForAmbi);
         // simple ambi-resolver
         ((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.DUPS);
         ambi.resolve();
         ((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.PARTIALS);
         ambi.resolve();
-        ((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.SHARED);
-        ((SimpleAmbiguityResolver) (ambi)).setShareThreshold(cuts.getMaxSharedHitsPerTrack());
-        ambi.resolve();
+        //((SimpleAmbiguityResolver) (ambi)).setMode(SimpleAmbiguityResolver.AmbiMode.SHARED);
+        //((SimpleAmbiguityResolver) (ambi)).setShareThreshold(cuts.getMaxSharedHitsPerTrack());
+        //ambi.resolve();
         List<Track> deduplicatedTracks = ambi.getTracks();
 
         // List<Track> partialTracks = ambi.getPartialTracks();
@@ -197,12 +223,15 @@ public class MergeTrackCollections extends Driver {
             }
         }
 
-        // cleanup
+        
         if (removeCollections) {
             for (List<Track> tracklist : trackCollections) {
                 event.remove(event.getMetaData(tracklist).getName());
             }
         }
+
+        //System.out.println("De-duplicated track list");
+        //System.out.println(deduplicatedTracks.toString());
 
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputCollectionName, deduplicatedTracks, Track.class, flag);
@@ -218,7 +247,7 @@ public class MergeTrackCollections extends Driver {
     protected void endOfData() {
         super.endOfData();
         if (doPlots) {
-            File outputFile2 = new File("mergingPlots.aida");
+            File outputFile2 = new File("mergingPlots.root");
             outputFile2.getParentFile().mkdirs();
             try {
                 aida2.saveAs(outputFile2);

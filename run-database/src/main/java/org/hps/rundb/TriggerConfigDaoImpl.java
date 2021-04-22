@@ -13,8 +13,6 @@ import org.hps.record.triggerbank.TriggerConfigData.Crate;
 
 /**
  * Implementation of trigger configuration database operations.
- * 
- * @author jeremym
  */
 final class TriggerConfigDaoImpl implements TriggerConfigDao {
       

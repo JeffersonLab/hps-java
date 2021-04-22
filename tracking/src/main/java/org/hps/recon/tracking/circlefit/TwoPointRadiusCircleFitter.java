@@ -6,9 +6,6 @@ import static java.lang.Math.sqrt;
 
 /**
  * Fits a circle to two points and a radius
- * @author Norman A Graf
- *
- * @version $Id:
  */
 public class TwoPointRadiusCircleFitter
 {

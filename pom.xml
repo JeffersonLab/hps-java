@@ -1,14 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <prerequisites>
-    <maven>3.0</maven>
-  </prerequisites>
 
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>4.5-SNAPSHOT</version>
+  <version>5.1-SNAPSHOT</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
@@ -18,11 +15,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>4.2-SNAPSHOT</lcsimVersion>
+    <lcsimVersion>4.3</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
     <additionalparam>-Xdoclint:none</additionalparam>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
+    <junitVersion>4.13.1</junitVersion>
   </properties>
 
   <scm>
@@ -141,56 +139,8 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>${junitVersion}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.lcsim</groupId>
-      <artifactId>lcsim-distribution</artifactId>
-      <version>${lcsimVersion}</version>
-      <type>pom</type>
-      <exclusions>
-        <exclusion>
-          <groupId>jdom</groupId>
-          <artifactId>jdom</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>commons-math</groupId>
-          <artifactId>commons-math</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>freehep-graphicsio-tests</groupId>
-          <artifactId>org.freehep</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>aida-test</groupId>
-          <artifactId>hep.aida</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-analysis</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-cal-calib</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>detector-data</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-mc</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-steering-files</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-users</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 
@@ -342,12 +292,12 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>18.0</version>
+        <version>30.1-jre</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
-        <version>0.9.9-RC1</version>
+        <version>0.9.12</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -377,8 +327,89 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.11</version>
+        <version>${junitVersion}</version>
       </dependency>      
+      <dependency>
+        <groupId>org.jdom</groupId>
+        <artifactId>jdom</artifactId>
+        <version>1.1</version>
+      </dependency>      
+      <dependency>
+        <groupId>commons-cli</groupId>
+        <artifactId>commons-cli</artifactId>
+        <version>1.3</version>
+      </dependency>
+      <!-- lcsim deps below here -->
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-event-processing</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-aida</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-math</groupId>
+            <artifactId>commons-math</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+          <groupId>org.lcsim</groupId>
+          <artifactId>lcsim-job-manager</artifactId>
+          <version>${lcsimVersion}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>jdom</groupId>
+              <artifactId>jdom</artifactId>
+            </exclusion>
+          </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-tracking</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-vertexing</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-event-heprep</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   
@@ -463,8 +494,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.1</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
           <showWarnings>true</showWarnings>
           <showDeprecation>true</showDeprecation>
         </configuration>

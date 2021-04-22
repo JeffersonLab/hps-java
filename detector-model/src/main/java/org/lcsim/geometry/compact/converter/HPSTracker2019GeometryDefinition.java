@@ -11,15 +11,10 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.jdom.Element;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseModule;
 import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.BaseSensor;
-//import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.TestRunHalfModuleBundle;
-// import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.HalfModuleComponent;
-// import org.lcsim.geometry.compact.converter.HPSTestRunTracker2014GeometryDefinition.Sensor;
 import org.lcsim.geometry.compact.converter.HPSTrackerGeometryDefinition.TestRunModuleBundle;
 
 /**
  * Updated geometry information for the HPS tracker 2019
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDefinition {
 
@@ -41,13 +36,25 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // and
         // the survey corrections based on the XML node
         // FIX THIS! //TODO
+        
         AlignmentCorrection alignmentCorrections = new AlignmentCorrection();
         alignmentCorrections.setNode(node);
-        AlignmentCorrection supBotCorr = getL13UChannelAlignmentCorrection(false);
+        
+        //AlignmentCorrection supBotCorr = getL13UChannelAlignmentCorrection(false);
+        AlignmentCorrection supBotCorr = getUChannelCorrection(false,80);
         supBotCorr.setNode(node);
-        AlignmentCorrection supTopCorr = this.getL13UChannelAlignmentCorrection(true);
+        
+        //AlignmentCorrection supTopCorr = this.getL13UChannelAlignmentCorrection(true);
+        AlignmentCorrection supTopCorr = getUChannelCorrection(true,80);
         supTopCorr.setNode(node);
 
+        AlignmentCorrection supBotCorrBack = getUChannelCorrection(false,90);
+        supBotCorrBack.setNode(node);
+        AlignmentCorrection supTopCorrBack = getUChannelCorrection(true,90);
+        supTopCorr.setNode(node);
+        
+        
+        
         // Build the geometry from the basic building blocks in the geometry
         // definition class
         // Keep the order correct.
@@ -55,12 +62,18 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         HPSTrackerGeometryDefinition.TrackingVolume tracking = new HPSTrackerGeometryDefinition.TrackingVolume(
                 "trackingVolume", null);
         surveyVolumes.add(tracking);
-
-        PSVacuumChamber chamber = new PSVacuumChamber("chamber", tracking, null);
+        
+        //System.out.println("PF::Constructed TrackingVolume: " +  tracking.toString());
+        
+        PSVacuumChamber chamber = new PSVacuumChamber("c_hamber", tracking, null);
         surveyVolumes.add(chamber);
+
+        //System.out.println("PF::Constructed PSVacuumChamber: " +  chamber.toString());
 
         SvtBox svtBox = new SvtBox("base", chamber, null);
         surveyVolumes.add(svtBox);
+
+        //System.out.println("PF::Constructed svtBox: " +  svtBox.toString());
 
         SvtBoxBasePlate svtBoxBasePlate = new SvtBoxBasePlate("base_plate", svtBox, null);
         surveyVolumes.add(svtBoxBasePlate);
@@ -68,50 +81,54 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         SupportRingL13BottomKinMount supportRingKinL13Bottom = new SupportRingL13BottomKinMount("c_support_kin_L13b",
                 svtBox, supBotCorr);
         surveyVolumes.add(supportRingKinL13Bottom);
+        
+        //System.out.println("PF::Constructed SupportRingKinL13Bottom: " +  supportRingKinL13Bottom.toString());
 
-        LOGGER.info("Construct uChannelL14Bottom");
+        //LOGGER.info("Construct uChannelL14Bottom");
         
 
         UChannelL13 uChannelL14Bottom = new UChannelL14Bottom("support_bottom_L14", svtBox, alignmentCorrections,
                 supportRingKinL13Bottom);
         surveyVolumes.add(uChannelL14Bottom);
         
-        System.out.println("Constructed uChannelL14Bottom: " + uChannelL14Bottom.toString());
+        //System.out.println("Constructed uChannelL14Bottom: " + uChannelL14Bottom.toString());
 
-        LOGGER.info("Construct uChannelL14BottomPlate");
-
+        //LOGGER.info("Construct uChannelL14BottomPlate");
+        
         UChannelL14Plate uChannelL14BottomPlate = new UChannelL14BottomPlate("support_plate_bottom_L14", svtBox, null,
                 uChannelL14Bottom);
         surveyVolumes.add(uChannelL14BottomPlate);
         
-        System.out.println("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
-
-        LOGGER.info("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
+        //System.out.println("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
+        
+        //LOGGER.info("Constructed uChannelL14BottomPlate: " + uChannelL14BottomPlate.toString());
 
         SupportRingL13TopKinMount supportRingKinL13Top = new SupportRingL13TopKinMount("c_support_kin_L13t", svtBox,
                 supTopCorr);
         surveyVolumes.add(supportRingKinL13Top);
+        //System.out.println("PF::Constructed supportRingKinL13Top: " +  supportRingKinL13Top.toString());
+        
 
         UChannelL13 uChannelL14Top = new UChannelL14Top("support_top_L14", svtBox, alignmentCorrections,
                 supportRingKinL13Top);
         surveyVolumes.add(uChannelL14Top);
         
-        System.out.println("Constructed uChannelL14Top: " + uChannelL14Top.toString());
+        //System.out.println("Constructed uChannelL14Top: " + uChannelL14Top.toString());
 
         UChannelL14Plate uChannelL14TopPlate = new UChannelL14TopPlate("support_plate_top_L14", svtBox, null,
-                uChannelL14Top);
+                                                                       uChannelL14Top);
         surveyVolumes.add(uChannelL14TopPlate);
         
-        System.out.println("Constructed uChannelL14TopPlate: " + uChannelL14TopPlate.toString());
+        //System.out.println("Constructed uChannelL14TopPlate: " + uChannelL14TopPlate.toString());
 
-        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, alignmentCorrections);
+        UChannelL46 uChannelL46Bottom = new UChannelL46Bottom("support_bottom_L46", svtBox, supBotCorrBack);
         surveyVolumes.add(uChannelL46Bottom);
 
         UChannelL46Plate uChannelL46BottomPlate = new UChannelL46BottomPlate("support_plate_bottom_L46", svtBox, null,
                 uChannelL46Bottom);
         surveyVolumes.add(uChannelL46BottomPlate);
 
-        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46", svtBox, alignmentCorrections);
+        UChannelL46 uChannelL46Top = new UChannelL46Top("support_top_L46", svtBox, supTopCorrBack);
         surveyVolumes.add(uChannelL46Top);
 
         UChannelL46Plate uChannelL46TopPlate = new UChannelL46TopPlate("support_plate_top_L46", svtBox, null,
@@ -133,17 +150,17 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
                     else
                         moduleRef = getSurveyVolume(UChannelL46Bottom.class);
 
-                    LOGGER.info("Make the bundle for layer " + l + " bottom");
+                    LOGGER.info("PF:: Make the bundle for layer " + l + " bottom with mother " + moduleMother.getName() + " and ref " + moduleRef.getName());
                     makeModuleBundle(l, "bottom", moduleMother, moduleRef);
                 }
-
+                
                 if (doTop) {
                     if (l < 5)
                         moduleRef = getSurveyVolume(UChannelL14Top.class);
                     else
                         moduleRef = getSurveyVolume(UChannelL46Top.class);
-
-                    LOGGER.info("Make the bundle for layer " + l + " top");
+                    
+                    LOGGER.info("Make the bundle for layer " + l + " top with mother " + moduleMother.getName() + " and ref " +moduleRef.getName());
                     makeModuleBundle(l, "top", moduleMother, moduleRef);
                 }
             }
@@ -234,9 +251,13 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
         // build the module name
         String volName = "module_L" + layer + (half == "bottom" ? "b" : "t");
+        boolean isTopLayer = true;
+        if (half=="bottom")
+            isTopLayer=false;
 
         // find alignment corrections
-        AlignmentCorrection alignmentCorrection = new AlignmentCorrection();
+        // The modules will have layer ID starting from 61 to 67. 
+        AlignmentCorrection alignmentCorrection = getHalfModuleAlignmentCorrection(isTopLayer,60+layer);
         alignmentCorrection.setNode(node);
 
         BaseModule module;
@@ -650,14 +671,25 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
             super(name, mother, alignmentCorrection, ref);
         }
     }
-
+    
     /*
      * (non-Javadoc)
      * @see org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition #getMillepedeLayer(java.lang.String)
+     * This function gets the millepedeLayer for a structure from the name. There is an hardcode for 
+     * module structures, i.e. module_1b, module_2t ... where the millepede id is set to 60 + X
+     * This is a workaround to use the same function but avoid checking sensor-only properties
      */
+    
     @Override
     public int getMillepedeLayer(String name) {
 
+        if (isModule(name)) { 
+            
+            int mpid = getLayerFromVolumeName(name) + 60;
+            //System.out.printf("PF::The MPII ID For %s is %d \n",name,mpid);
+            return mpid;                
+        }
+        
         boolean isTopLayer = getHalfFromName(name).equals("top") ? true : false;
 
         // find layer
@@ -681,7 +713,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Silicon sensor @SurveyVolume. The coordinate system is located at the same position and orientation as the half-module.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ShortSensor extends BaseSensor {
 
@@ -758,7 +789,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Active part of the @ShortSensor @SurveyVolume. The coordinate system is located at the same position and orientation as the sensor.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ActiveShortSensor extends SurveyVolume {
 
@@ -819,7 +849,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of module L4-6
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public abstract static class ShortModule extends BaseModule {
 
@@ -872,7 +901,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of bottom modules for L4-6 Reference: @UChannelL46Bottom coordinate system Origin: hole position on mounting surface (electron side) Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards positron side.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class ShortModuleBot extends ShortModule {
 
@@ -897,7 +925,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     /**
      * Abstract {@link SurveyVolume} volume defining the coordinate system of top modules for L4-6 Reference: @UChannelL46Top coordinate system Origin: hole position on mounting surface (electron side when installed) Orientation: u - is normal to the mounting surface pointing vertically down, v - points along module towards electron side when installed.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static abstract class ShortModuleTop extends ShortModule {
 
@@ -1296,7 +1323,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     }
 
     /**
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ShortHalfModuleBundle extends LongHalfModuleBundle {
 
@@ -1322,7 +1348,6 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     }*/
 
     /**
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ShortModuleBundle extends LongModuleBundle {
 

@@ -20,11 +20,7 @@ import org.lcsim.detector.converter.compact.subdetector.HpsTracker2;
 
 /**
  * Utility class, for evaluating acceptances of layers and sensors.
- * 
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
- * @version $id: v1 05/30/2017$
  */
-
 public class AcceptanceHelper {
     private Map<Integer, List<SvtStereoLayer>> StereoLayersMapBottom;
     private Map<Integer, List<SvtStereoLayer>> StereoLayersMapTop;

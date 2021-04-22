@@ -32,9 +32,6 @@ import org.lcsim.util.aida.AIDA;
  * 
  * Histograms are updated continously, expect those marked with *, that are updated regularly depending on the event
  * refresh rate configured in the <code> EcalMonitoringPlots </code> driver
- * 
- * @author Andrea Celentano
- *
  */
 public class EcalHitPlots extends Driver {
 

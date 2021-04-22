@@ -7,7 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import java.awt.Point;
-
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,9 @@ import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.ReadoutDriver;
 import org.hps.readout.util.collection.LCIOCollection;
 import org.hps.readout.util.collection.LCIOCollectionFactory;
+import org.hps.record.daqconfig2019.ConfigurationManager2019;
+import org.hps.record.daqconfig2019.DAQConfig2019;
+import org.hps.record.daqconfig2019.VTPConfig2019;
 import org.hps.readout.util.HodoscopePattern;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
@@ -32,13 +36,9 @@ import org.lcsim.geometry.Detector;
  * in [localTime - (persistentTime - timeEarlierThanEcal), localTime +
  * timeEarlierThanEcal + 4] are taken into account to generate hodoscope
  * patterns for all layers.
- * 
- * @author tongtongcao <caot@jlab.org>
- *
  */
 public class HodoscopePatternReadoutDriver extends ReadoutDriver {
-
-    /** Stores all channel for the hodoscope. */
+    /** Maps hodoscope channel IDs to channels. */
     private Map<Long, HodoscopeChannel> channelMap = new HashMap<Long, HodoscopeChannel>();
 
     /**
@@ -68,7 +68,9 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
     private double hodoHitThreshold = 200.0;
 
     /**
-     * Gain factor for raw energy (self-defined unit) of FADC hits
+     * Gain scaling factor for hits at two-hole tiles.
+     * Gains from database need to be scaled by the factor
+     * Gains in the DAQ configuration have been scaled by the factor. 
      */
     private double gainFactor = 1.25 / 2;
 
@@ -81,7 +83,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
      * Time for hodoscope FADC hits earlier to enter the trigger system than Ecal
      * with unit of ns
      */
-    private double timeEarlierThanEcal = 20.0;
+    private double timeEarlierThanEcal = 0.0;
 
     /**
      * The length of time by which objects produced by this driver are shifted due
@@ -109,9 +111,42 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
      * List for 8 (x, hole) points of each layer
      */
     private List<Point> xHolePointList = new ArrayList<>(8);
+    
+    private boolean daqConfigurationAppliedintoReadout = false;
+    
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfigurationAppliedintoReadout(boolean state) {
+        daqConfigurationAppliedintoReadout = state;
+        
+        // If the DAQ configuration should be read, attach a listener
+        // to track when it updates.               
+        if (state) {
+            ConfigurationManager2019.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig2019 daq = ConfigurationManager2019.getInstance();                    
+                    VTPConfig2019 config = daq.getVTPConfig();
+
+                    // Load the DAQ settings from the configuration manager.
+                    fADCHitThreshold = config.getHodoFADCHitThr();
+                    hodoHitThreshold = config.getHodoThr();
+                    persistentTime = config.getHodoDT();                    
+                }
+            });
+        }  
+    }
 
     @Override
     public void process(EventHeader event) {
+                             
         // Check the data management driver to determine whether the
         // input collection is available or not.
         if (!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + localTimeDisplacement)) {
@@ -153,7 +188,13 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
                 int hole = channelMap.get(cellID).getHole();
 
                 Point point = new Point(x, hole);
-                energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy * gainFactor);
+                // Energy of hits is scaled except hits at tiles 0 and 4
+                if(x == 0 || x == 4) energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy);
+                else {
+                    // Gains in the DAQ configuration has been scaled by the factor.
+                    if(daqConfigurationAppliedintoReadout) energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy);
+                    else energyListMapForLayerMap.get((layer + 1) * y).get(point).add(energy * gainFactor);
+                }
             }
         }
 
@@ -204,22 +245,32 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
                 flag = true;
             }
             if (maxEnergyMap.get(xHolePointList.get(0)) + maxEnergyMap.get(xHolePointList.get(1))
-                    + maxEnergyMap.get(xHolePointList.get(2)) > hodoHitThreshold) {
+                    + maxEnergyMap.get(xHolePointList.get(2)) > hodoHitThreshold
+                    && maxEnergyMap.get(xHolePointList.get(0)) != 0
+                    && (maxEnergyMap.get(xHolePointList.get(1)) != 0 || maxEnergyMap.get(xHolePointList.get(2)) != 0)) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_12, true);
                 flag = true;
             }
-            if (maxEnergyMap.get(xHolePointList.get(1)) + maxEnergyMap.get(xHolePointList.get(2)) + maxEnergyMap.get(xHolePointList.get(3))
-                    + maxEnergyMap.get(xHolePointList.get(4)) > hodoHitThreshold) {
+            if (maxEnergyMap.get(xHolePointList.get(1)) + maxEnergyMap.get(xHolePointList.get(2))
+                    + maxEnergyMap.get(xHolePointList.get(3))
+                    + maxEnergyMap.get(xHolePointList.get(4)) > hodoHitThreshold
+                    && (maxEnergyMap.get(xHolePointList.get(1)) != 0 || maxEnergyMap.get(xHolePointList.get(2)) != 0)
+                    && (maxEnergyMap.get(xHolePointList.get(3)) != 0 || maxEnergyMap.get(xHolePointList.get(4)) != 0)) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_23, true);
                 flag = true;
             }
-            if (maxEnergyMap.get(xHolePointList.get(3)) + maxEnergyMap.get(xHolePointList.get(4)) + maxEnergyMap.get(xHolePointList.get(5))
-                    + maxEnergyMap.get(xHolePointList.get(6)) > hodoHitThreshold) {
+            if (maxEnergyMap.get(xHolePointList.get(3)) + maxEnergyMap.get(xHolePointList.get(4))
+                    + maxEnergyMap.get(xHolePointList.get(5))
+                    + maxEnergyMap.get(xHolePointList.get(6)) > hodoHitThreshold
+                    && (maxEnergyMap.get(xHolePointList.get(3)) != 0 || maxEnergyMap.get(xHolePointList.get(4)) != 0)
+                    && (maxEnergyMap.get(xHolePointList.get(5)) != 0 || maxEnergyMap.get(xHolePointList.get(6)) != 0)) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_34, true);
                 flag = true;
             }
             if (maxEnergyMap.get(xHolePointList.get(5)) + maxEnergyMap.get(xHolePointList.get(6))
-                    + maxEnergyMap.get(xHolePointList.get(7)) > hodoHitThreshold) {
+                    + maxEnergyMap.get(xHolePointList.get(7)) > hodoHitThreshold
+                    && (maxEnergyMap.get(xHolePointList.get(5)) != 0 || maxEnergyMap.get(xHolePointList.get(6)) != 0)
+                    && maxEnergyMap.get(xHolePointList.get(7)) != 0) {
                 pattern.setHitStatus(HodoscopePattern.HODO_LX_CL_45, true);
                 flag = true;
             }
@@ -232,7 +283,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
     }
 
     @Override
-    public void startOfData() {
+    public void startOfData() {                      
         // Define the output LCSim collection parameters.
         LCIOCollectionFactory.setCollectionName(outputCollectionName);
         LCIOCollectionFactory.setProductionDriver(this);
@@ -286,7 +337,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
         final HodoscopeChannelCollection channels = conditions
                 .getCachedConditions(HodoscopeChannelCollection.class, "hodo_channels").getCachedData();
 
-        // Store the set of all channel IDs.
+        // Map channels to channel IDs
         for (HodoscopeChannel channel : channels) {
             channelMap.put(Long.valueOf(channel.getChannelId().intValue()), channel);
         }
@@ -361,7 +412,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
     public void setTimeEarlierThanEcal(double timeEarlierThanEcal) {
         this.timeEarlierThanEcal = timeEarlierThanEcal;
     }
-
+    
     /**
      * Set gain factor for raw energy (self-defined unit) of FADC hits
      * 

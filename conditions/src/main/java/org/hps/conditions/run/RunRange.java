@@ -15,8 +15,6 @@ import org.apache.commons.csv.CSVRecord;
  * a conditions record with a run start and end range.
  * <p>
  * Bad rows such as ones without run numbers or with invalid data values are skipped and not included in a range.
- * 
- * @author Jeremy McCormick
  */
 public final class RunRange {
 

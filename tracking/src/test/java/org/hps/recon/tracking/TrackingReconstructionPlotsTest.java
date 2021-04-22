@@ -8,6 +8,7 @@ import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
+import org.hps.util.test.TestUtil;
 import org.lcsim.util.loop.LCSimLoop;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
 import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
@@ -15,13 +16,10 @@ import org.lcsim.util.cache.FileCache;
 
 /**
  * Test class to create set of histograms (aida/root) from reco LCIO.
- * 
- * @author Miriam Diamond <mdiamond@slac.stanford.edu> 
  */
 public class TrackingReconstructionPlotsTest extends TestCase {
 
     static final String testInput = "hps_005772.0_recon_Rv4657-0-10000.slcio";
-    static final String testURLBase = "http://www.lcsim.org/test/hps-java";
 
     static final String aidaOutput = "target/test-output/TestPlots_" + testInput.replaceAll("slcio", "aida");
 
@@ -29,14 +27,7 @@ public class TrackingReconstructionPlotsTest extends TestCase {
 
     public void testTrackRecoPlots() throws Exception {
 
-        File inputFile = null;
-        if (testURLBase == null) {
-            inputFile = new File(testInput);
-        } else {
-            URL testURL = new URL(testURLBase + "/" + testInput);
-            FileCache cache = new FileCache();
-            inputFile = cache.getCachedFile(testURL);
-        }
+        File inputFile = TestUtil.downloadTestFile(testInput);
 
         final DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
         manager.addConditionsListener(new SvtDetectorSetup());

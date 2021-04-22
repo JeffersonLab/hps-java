@@ -17,8 +17,6 @@ import org.lcsim.geometry.Subdetector;
 
 /**
  * SVT EVIO reader used to convert SVT bank integer data to LCIO objects.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class SvtEvioReader extends AbstractSvtEvioReader {
 

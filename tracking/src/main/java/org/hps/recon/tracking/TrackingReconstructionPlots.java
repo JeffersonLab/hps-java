@@ -2,7 +2,6 @@ package org.hps.recon.tracking;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
-//import hep.aida.IProfile;
 import hep.physics.vec.Hep3Vector;
 
 import java.io.IOException;
@@ -32,16 +31,8 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Analysis class to check recon.
- * 
- * @author phansson
- * @author mdiamond <mdiamond@slac.stanford.edu>
- * @version $id: 2.0 06/04/17$
  */
 public class TrackingReconstructionPlots extends Driver {
-
-    //static {
-    //    hep.aida.jfree.AnalysisFactory.register();
-    //}
 
     public AIDA aida;
     private String helicalTrackHitCollectionName = "HelicalTrackHits";

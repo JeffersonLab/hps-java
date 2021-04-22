@@ -22,8 +22,6 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 
 /**
  * A class with only static utilities related to GBL
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class GblUtils {
 
@@ -38,7 +36,6 @@ public class GblUtils {
     /**
      * Store local curvilinear track parameters.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class ClParams {
 
@@ -104,7 +101,6 @@ public class GblUtils {
     /**
      * Store perigee track parameters.
      * 
-     * @author Per Hansson Adrian <phansson@slac.stanford.edu>
      */
     public static class PerigeeParams {
 
@@ -281,21 +277,93 @@ public class GblUtils {
             }
         } else {
             throw new UnsupportedOperationException(
-                    "Should not happen. This problem is only solved with the MaterialSupervisor.");
+                "Should not happen. This problem is only solved with the MaterialSupervisor.");
         }
     }
 
+
+    /**
+     * Form a virtual layer at the target location
+     * Use the helix analytical extrapolation to beamspot
+     * These computations are in tracking frame
+     */
+    
+    public static GBLBeamSpotPoint gblMakeBsPoint(HelicalTrackFit htf, double [] bsLocation, double[] udir, double [] vdir, double [] error)  {
+        //Using the GBL package for prediction and change of reference
+        //Need to use -1/R and -d0 as it uses different conventions 
+            
+        GblSimpleHelix gblHelix = new GblSimpleHelix(-1/htf.R(), htf.phi0(), -htf.dca(), htf.slope(), htf.z0());
+        GblHelixPrediction gblHelixPrediction = gblHelix.getPrediction(bsLocation, udir,vdir);
+
+        double prediction [] = new double[2];
+        gblHelixPrediction.getMeasPred(prediction);
+            
+        //Curvilinear frame, UV Plane 
+        Matrix uvDir_gbl = gblHelixPrediction.getCurvilinearDirs();
+            
+        //Global to measurement transformation
+            
+        Matrix mDir = new Matrix(2,3);
+            
+        mDir.set(0,2,udir[2]);
+        mDir.set(1,0,vdir[0]);
+        mDir.set(1,1,vdir[1]);
+
+        //measurement to global 
+        Matrix mDirT = mDir.copy().transpose();
+            
+        //measurement to curvilinear frame.
+        Matrix proM2l = uvDir_gbl.times(mDirT);
+
+        //Curvilinear to measurement. 
+        Matrix proL2m = proM2l.copy().inverse();
+            
+        //Create the jacobian point to point
+        double sArc2D = gblHelixPrediction.getArcLength();
+            
+        Hep3Vector bsLocation_3v = new BasicHep3Vector(bsLocation[0],bsLocation[1],bsLocation[2]);
+        Vector aResidual = new Vector(2);
+        //Notice the minus sign. The residual is defined as meas - pred
+        aResidual.set(0,-prediction[0]); //Y
+        aResidual.set(1,-prediction[1]); //X
+
+        Vector aPrecision = new Vector(2);
+        aPrecision.set(0,1./(error[0]*error[0])); 
+        aPrecision.set(1,1./(error[1]*error[1])); 
+           
+        return  new GBLBeamSpotPoint(bsLocation_3v, aResidual,
+                                     aPrecision, proL2m,sArc2D,htf.slope(),htf.phi0() - sArc2D/htf.R());
+            
+    }
+
+    //This method fails with singular matrices. TODO:: Check why that happens
     /**
      * Calculate the Jacobian from Curvilinear to Perigee frame.
      * 
-     * @param helicalTrackFit - original helix
+     * @param helicalTrackFit - original helix - unused. Only for backward compatibility.
      * @param helicalTrackFitAtIPCorrected - corrected helix at this point
      * @param bfield - magnitude of B-field
      * @return the Jacobian matrix from Curvilinear to Perigee frame
      */
-    public static Matrix getCLToPerigeeJacobian(HelicalTrackFit helicalTrackFit,
-            HpsHelicalTrackFit helicalTrackFitAtIPCorrected, double bfield) {
+    
+    /*
+      public static Matrix getCLToPerigeeJacobian(HelicalTrackFit helicalTrackFit, HpsHelicalTrackFit helicalTrackFitAtIPCorrected, double bfield) {
+        
+        return getCLToPerigeeJacobian(helicalTrackFitAtIPCorrected, bfield);
+    }
+    
+    */
 
+    
+    /**
+     * Calculate the Jacobian from Curvilinear to Perigee frame.
+     * 
+     * @param helicalTrackFitAtIPCorrected - corrected helix at this point
+     * @param bfield - magnitude of B-field
+     * @return the Jacobian matrix from Curvilinear to Perigee frame
+     */
+    public static Matrix getCLToPerigeeJacobian(HelicalTrackFit helicalTrackFit, HpsHelicalTrackFit helicalTrackFitAtIPCorrected, double bfield) {
+        
         /*
          * This part is taken from: // Strandlie, Wittek, NIMA 566, 2006 Matrix covariance_gbl = new Matrix(5, 5);
          * //helpers double Bz = -Constants.fieldConversion * Math.abs(bfield); // TODO sign convention and should it be
@@ -328,35 +396,92 @@ public class GblUtils {
          * alpha * Q * VdotI * NdotV / TdotI); covariance_gbl.print(15, 13);
          */
 
-        // Sho's magic below
-
         // Use projection matrix
         // TODO should this not be the corrected helix?
-        Hep3Matrix perToClPrj = getPerToClPrj(helicalTrackFit);
-        Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj);
-        double C_gbl = helicalTrackFitAtIPCorrected.curvature();
-        double lambda_gbl = Math.atan(helicalTrackFitAtIPCorrected.slope());
-        double qOverP_gbl = helicalTrackFitAtIPCorrected.curvature()
-                / (Constants.fieldConversion * Math.abs(bfield) * Math.sqrt(1 + Math.pow(
-                        helicalTrackFitAtIPCorrected.slope(), 2)));
+        // It's a very small effect, but yes since lambda gets corrected and the Projection depends on lambda (only).
+        // PF::08/07/2020
+        // However I noticed several cases where the jacobian is singular. Those cases should be investigated
+        // But for the moment revert to the old computation, although I think it is not fully correct. 
+        
+        //Hep3Matrix perToClPrj = getPerToClPrj(helicalTrackFit);
+        double tanLambda = helicalTrackFitAtIPCorrected.slope();
+        
+        
+        //Hep3Matrix perToClPrj   = getPerToClPrj(helicalTrackFitAtIPCorrected);
+        Hep3Matrix perToClPrj     = getPerToClPrj(helicalTrackFit);
+        
+        //This has been checked and is equivalent to perToClPrj. In some cases the matrix is indetermined tho. 
+        //TODO::Check those cases. For the moment back to the old computation
+        
+        //Hep3Matrix perToClPrj    = getSimplePerToClPrj(tanLambda);
+        
+        //System.out.println("PF::DEBUG:: PerTOCl");
+        //System.out.println(((BasicHep3Matrix)perToClPrj).toString());
+        
+        //System.out.println("PF::DEBUG:: PerTOCl V2");
+        //System.out.println(((BasicHep3Matrix)SperToClPrj).toString());
+        
 
+        Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj); //Transpose should work
+        double C_gbl = helicalTrackFitAtIPCorrected.curvature();
+        //double lambda_gbl = Math.atan(helicalTrackFitAtIPCorrected.slope());
+        
+        double cosLambda = 1. / Math.sqrt(1. + (tanLambda * tanLambda));
+        double babs = Math.abs(bfield);
+
+        //double qOverP_gbl = helicalTrackFitAtIPCorrected.curvature()
+        //       / (Constants.fieldConversion * babs * Math.sqrt(1 + Math.pow(
+        //              helicalTrackFitAtIPCorrected.slope(), 2)));
+        
+        double qOverP_gbl = (C_gbl * cosLambda) / (Constants.fieldConversion*babs);
+        
         Matrix jacobian = new Matrix(5, 5);
         jacobian.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), -clToPerPrj.e(1, 0));
         jacobian.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -clToPerPrj.e(1, 1));
         jacobian.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 1.0);
         jacobian.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), clToPerPrj.e(0, 1) * C_gbl);
+        //jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(),
+        //        Constants.fieldConversion * Math.abs(bfield) / Math.cos(lambda_gbl));
         jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(),
-                Constants.fieldConversion * Math.abs(bfield) / Math.cos(lambda_gbl));
+                     Constants.fieldConversion * babs / cosLambda);
+        
+        //jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(),
+        //      Constants.fieldConversion * Math.abs(bfield) * qOverP_gbl * Math.tan(lambda_gbl) / Math.cos(lambda_gbl));
         jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(),
-                Constants.fieldConversion * Math.abs(bfield) * qOverP_gbl * Math.tan(lambda_gbl) / Math.cos(lambda_gbl));
+                     Constants.fieldConversion * babs * qOverP_gbl * tanLambda / cosLambda);
+
         jacobian.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.XT.getValue(), clToPerPrj.e(2, 0));
         jacobian.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), clToPerPrj.e(2, 1));
-        jacobian.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(),
-                Math.pow(Math.cos(lambda_gbl), -2.0));
-
+        //jacobian.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(),
+        //        Math.pow(Math.cos(lambda_gbl), -2.0));
+        jacobian.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(),1./(cosLambda*cosLambda));
+                
         return jacobian;
     }
+    
+    /** 
+     * Computes the projection matrix from perigee to curvilinear frame, with reference point(0,0,0) for the perigee frame. 
+     * The projection matrix only depends on tanLambda.
+     *
+     * @param tanLambda
+     * @return 3x3 projection matrix
+     */
 
+    static Hep3Matrix getSimplePerToClPrj(double tanLambda) {
+        BasicHep3Matrix trans = new BasicHep3Matrix();
+        double cosLambda = 1. / Math.sqrt(1 + tanLambda*tanLambda);
+        double sinLambda = Math.sqrt(1. - cosLambda*cosLambda);
+        //Only filling non zero entries
+        
+        trans.setElement(0, 1, -1);
+        trans.setElement(1, 0, sinLambda);
+        trans.setElement(1, 2, cosLambda);
+        trans.setElement(2, 0, -cosLambda);
+        trans.setElement(2, 2, sinLambda);
+        return trans;
+    }
+     
+    
     /**
      * Computes the projection matrix from the perigee XY plane variables dca and z0 into the curvilinear xT,yT,zT frame
      * (U,V,T) with reference point (0,0,0) for the perigee frame.

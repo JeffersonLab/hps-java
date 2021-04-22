@@ -12,7 +12,6 @@ import org.lcsim.geometry.subdetector.BarrelEndcapFlag;
  * sensors are (mostly) along the detector 
  * y-dimension ( == HelicalTrackFit x-dimension);
  * Copied/Modified from org.lcsim.recon.tracking.helicaltrack.HelicalTrack2DHit.java
- * @author Matt Graham <mgraham@slac.stanford.edu>
  */
 public class HelicalTrack2DHit  extends HelicalTrackHit {
     private double _axmin;//min value along the bend-direction..

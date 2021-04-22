@@ -12,8 +12,6 @@ import org.lcsim.lcio.LCIOConstants;
  * writing of a rejected hit list to the LCSim event.
  * 
  * @see ReconClusterer
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ReconClusterDriver extends ClusterDriver {
     
@@ -53,6 +51,10 @@ public class ReconClusterDriver extends ClusterDriver {
     
     public void setMinTime(double minTime) {
         getClusterer().getCuts().setValue("minTime", minTime);
+    }
+    
+    public void setMaxTime(double maxTime) {
+        getClusterer().getCuts().setValue("maxTime", maxTime);
     }
     
     public void setTimeWindow(double timeWindow) {

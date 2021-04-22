@@ -4,8 +4,6 @@ package org.hps.record.scalers;
  * Utilities methods for scaler data.
  * <p>
  * Currently this is used only for computing live time measurements from standard scaler data.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class ScalerUtilities {
 

@@ -1,5 +1,7 @@
 package org.hps.readout.hodoscope;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,6 +18,9 @@ import org.hps.conditions.hodoscope.HodoscopeTimeShift;
 import org.hps.conditions.hodoscope.HodoscopeTimeShift.HodoscopeTimeShiftCollection;
 import org.hps.readout.DigitizationReadoutDriver;
 import org.hps.readout.ReadoutTimestamp;
+import org.hps.record.daqconfig2019.ConfigurationManager2019;
+import org.hps.record.daqconfig2019.DAQConfig2019;
+import org.hps.record.daqconfig2019.FADCConfigHodo2019;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.Hodoscope_v1;
 
@@ -27,11 +32,15 @@ import org.lcsim.geometry.subdetector.Hodoscope_v1;
  * org.lcsim.geometry.subdetector.Hodoscope_v1 Hodoscope_v1}. It
  * handles all of the hodoscope-specific functions needed by the
  * superclass.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  */
-public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDriver<Hodoscope_v1> {
+public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDriver<Hodoscope_v1> {    
+    // The DAQ configuration manager for FADC parameters.
+    private FADCConfigHodo2019 config = new FADCConfigHodo2019();
+    private boolean configStat = false; // Indicates if DAQ configuration is loaded
+    
+    // The number of nanoseconds in a clock-cycle (sample).
+    private static final int nsPerSample = 4;   
+    
     /** Stores the set of all channel IDs for  the hodoscope. */
     private Set<Long> channelIDSet = new HashSet<Long>();
     /** Maps hodoscope channels to the gain for that channel. */
@@ -42,6 +51,10 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
     private Map<Long, HodoscopeCalibration> channelToCalibrationsMap = new HashMap<Long, HodoscopeCalibration>();
     /** Factor for gain conversion from self-define-unit/ADC to MeV/ADC. */
     private double factorGainConversion = 0.000833333;
+    /** Gain scaling factor for raw energy (self-defined unit) of FADC hits.
+     * In DAQ configuration, gains are scaled by the gain scaling factor for two-hole tiles. 
+     * Such gains from DAQ configuration should be divided by the factor.
+     */
     
     public HodoscopeDigitizationReadoutDriver() {
         // Set the default values for each subdetector-dependent
@@ -60,8 +73,41 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
         setPhotoelectronsPerMeV(10.0);
     }
     
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfigurationAppliedintoReadout(boolean state) {
+        // If the DAQ configuration should be read, attach a listener
+        // to track when it updates.               
+        if (state) {
+            ConfigurationManager2019.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig2019 daq = ConfigurationManager2019.getInstance();
+
+                    // Load the DAQ settings from the configuration manager.
+                    numSamplesAfter = daq.getHodoFADCConfig().getNSA() / nsPerSample;
+                    numSamplesBefore = daq.getHodoFADCConfig().getNSB() / nsPerSample;
+                    readoutWindow = daq.getHodoFADCConfig().getWindowWidth() / nsPerSample;
+                    
+                    // Get the FADC configuration.
+                    config = daq.getHodoFADCConfig();
+                    configStat = true;
+                    integrationThreshold = config.getThreshold((int)10);
+                }
+            });
+        }
+        
+    }    
+    
     @Override
-    public void detectorChanged(Detector detector) {
+    public void detectorChanged(Detector detector) {        
         // Populate the channel ID collections.
         populateChannelCollections();
         
@@ -75,11 +121,12 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
     }
     
     @Override
-    protected double getGainConditions(long channelID) {
-        if(channelToGainsMap.containsKey(Long.valueOf(channelID))) {
+    protected double getGainConditions(long channelID) {        
+        if (channelToGainsMap.containsKey(Long.valueOf(channelID))) {
             return channelToGainsMap.get(Long.valueOf(channelID)).getGain() * factorGainConversion;
         } else {
-            throw new IllegalArgumentException("No gain conditions exist for hodoscope channel ID \"" + channelID + "\".");
+            throw new IllegalArgumentException(
+                    "No gain conditions exist for hodoscope channel ID \"" + channelID + "\".");
         }
     }
     
@@ -93,13 +140,17 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
     }
     
     @Override
-    protected double getPedestalConditions(long channelID) {
-        if(channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
-            return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
-        } else {
-            throw new IllegalArgumentException("No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
+    protected double getPedestalConditions(long channelID) { 
+        if(configStat == true) return config.getPedestal((int)channelID);
+        else {
+            if (channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
+                return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
+            } else {
+                throw new IllegalArgumentException(
+                        "No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
+            }
         }
-    }
+    }    
     
     @Override
     protected double getTimeShiftConditions(long channelID) {
@@ -146,7 +197,7 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
         // Store the set of all channel IDs.
         for(HodoscopeChannel channel : channels) {
             channelIDSet.add(Long.valueOf(channel.getChannelId().intValue()));
-        }
+        }        
     }
     
     /**
@@ -155,5 +206,5 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
      */
     public void setFactorGainConversion(double factor) {
         factorGainConversion = factor;
-    }
+    }    
 }

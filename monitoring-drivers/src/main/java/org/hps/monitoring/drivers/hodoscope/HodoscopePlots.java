@@ -36,10 +36,6 @@ import org.hps.recon.ecal.SimpleGenericObject;
 
 import org.lcsim.event.RawTrackerHit;
 
-/**
- *
- * @author mgraham
- */
 public class HodoscopePlots extends Driver {
 
     // Get Hodo conditions

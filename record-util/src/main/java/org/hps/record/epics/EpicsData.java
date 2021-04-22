@@ -20,8 +20,6 @@ import org.lcsim.event.GenericObject;
  * within an EVIO string data bank. The {@link #read(EventHeader)} method should be used to create one of these objects
  * from an LCIO event. The keys are stored in the string parameters of the collection, because
  * <code>GenericObject</code> cannot persist string data.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EpicsData {
 

@@ -1,15 +1,7 @@
-/*
- * Here comes the text of your license
- * Each line should be prefixed with  * 
- */
 package org.hps.recon.ecal;
 
 import org.lcsim.event.GenericObject;
 
-/**
- *
- * @author rafopar
- */
 final public class SimpleGenericObject implements GenericObject{
     
     private int[] int_values = new int[]{};

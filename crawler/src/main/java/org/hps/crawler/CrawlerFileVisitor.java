@@ -15,8 +15,6 @@ import java.util.logging.Logger;
  * <p>
  * Any number of {@link java.io.FileFilter} objects can be registered with this visitor to restrict which files are
  * accepted.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class CrawlerFileVisitor extends SimpleFileVisitor<Path> {
 

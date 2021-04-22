@@ -6,8 +6,6 @@ import org.hps.readout.ReadoutDriver;
  * Class <code>TriggerTime</code> stores the time at which a trigger
  * occurs in terms of simulation time, and also the triggering driver
  * is tracked.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class TriggerTime implements Comparable<TriggerTime> {
     /**

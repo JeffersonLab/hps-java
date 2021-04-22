@@ -8,8 +8,6 @@ import org.hps.conditions.ecal.EcalCrystalPosition;
 /**
  * Performs vector transformations to calculate center of crystal volume from front and back
  * positions as defined in the conditions database.
- *
- * @author Annie Simonyan
  */
 public final class Transformations {
 

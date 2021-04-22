@@ -29,9 +29,6 @@ import org.lcsim.util.aida.AIDA;
  * This Driver makes plots of SVT sensor occupancies across a run.
  * Based off of the monitoring plots driver
  * These will be used for the NIM paper
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Matt Solt <mrsolt@slac.stanford.edu>
  */
 public class OccupancyPlots extends Driver {
 

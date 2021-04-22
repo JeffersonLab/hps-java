@@ -2,8 +2,6 @@ package org.hps.record;
 
 /**
  * Exception thrown when maximum number of records is reached.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 // FIXME: Use loop methods instead of this for controlling number of records run.
 @SuppressWarnings("serial")

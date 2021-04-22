@@ -13,10 +13,6 @@ import org.lcsim.event.EventHeader;
  * <p>
  * This implementation makes uses a new SVT EVIO reader that was updated to 
  * parse RSSI frames. 
- * <p>
- *
- * @author Omar Moreno,    SLAC National Accelerator Laboratory
- * @author Maurik Holtrop, University of New Hampshire.  
  */
 public class LCSimPhys2019EventBuilder extends LCSimEngRunEventBuilder { 
 
@@ -37,7 +33,7 @@ public class LCSimPhys2019EventBuilder extends LCSimEngRunEventBuilder {
         // in 2019 the RF signal changed crates relative to previous runs:
         ecalReader.setRfBankTag(0x27);
 
-        svtEventFlagger = null;  
+        svtEventFlagger = new SvtEventFlagger();  
     }
     
     
@@ -66,6 +62,8 @@ public class LCSimPhys2019EventBuilder extends LCSimEngRunEventBuilder {
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Error reading TS bank", e);
         }
+
+        //if (svtEventFlagger != null) this.svtEventFlagger.writeFlags(lcsimEvent);
 
         return lcsimEvent;
     }

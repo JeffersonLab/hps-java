@@ -10,10 +10,6 @@ import org.lcsim.event.EventHeader;
 /**
  * Reads clusters and makes trigger decision using opposite quadrant criterion.
  * Prints triggers to file if file path specified.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: TestRunTriggerDriver.java,v 1.2 2013/03/20 01:21:29 meeg Exp $
  */
 public class TestRunTriggerDriver extends TriggerDriver {
 

@@ -1,13 +1,5 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.analysis.util;
 
-/**
- *
- * @author mgraham
- */
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 

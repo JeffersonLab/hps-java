@@ -2,7 +2,6 @@ package org.hps.test.it;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,8 +11,9 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.hodoscope.HodoscopeDetectorElement;
 import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
-import org.hps.test.util.TestOutputFile;
 import org.hps.util.FilterMCBunches;
+import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
@@ -28,7 +28,6 @@ import org.lcsim.geometry.Subdetector;
 import org.lcsim.job.AidaSaveDriver;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.cache.FileCache;
 import org.lcsim.util.loop.LCSimLoop;
 
 import hep.aida.ICloud1D;
@@ -39,59 +38,53 @@ import junit.framework.TestCase;
 /**
  * Integration test for running filtering and readout on simulated Hodoscope data
  * and creating plots from the final readout data.
- * 
- * @author Jeremy McCormick
  */
 public class HodoscopeReadoutTest extends TestCase {
-    
-    /** Name of remote test file with SLIC events */
-    static final String TEST_FILE_URL = "http://www.lcsim.org/test/hps-java/slicHodoTestEvents.slcio";
 
     /** Name of test detector, which does not include SVT */
     private String DETECTOR_NAME = "HPS-HodoscopeTest-v1";
-    
+
     /** Run number for conditions system initialization*/
     private Integer RUN_NUMBER = 1000000;
-    
+
     /** Event spacing to use for filtering */
     private Integer EVENT_SPACING = 300;
-        
+
     /** Set to true to run the filtering for spacing the events. */
     private static final boolean RUN_FILTERING = true;
-    
+
     /** Set to true to run the readout simulation. */
     private static final boolean RUN_READOUT = true;
-    
+
     /** Set to true to write ROOT output. */
     private static final boolean WRITE_ROOT = false;
-    
+
     /** Set to true to include Driver which writes basic plots. */
     private static final boolean INCLUDE_BASIC_PLOTS = true;
-    
+
     /** Set to true to include Driver which writes detailed plots from analysis module. */
-    private static final boolean INCLUDE_DETAILED_PLOTS = true; 
-    
+    private static final boolean INCLUDE_DETAILED_PLOTS = true;
+
     public static final AIDA aida = AIDA.defaultInstance();
-   
+
     public void testHodoscopeReadout() throws IOException, ConditionsNotFoundException {
 
         // Get remote test file
-        FileCache cache = new FileCache();
-        File testFile = cache.getCachedFile(new URL(TEST_FILE_URL));
+        File testFile = TestUtil.downloadTestFile("slicHodoTestEvents.slcio");
 
         // Event spacing
-        File filteredFile = new TestOutputFile(HodoscopeReadoutTest.class, "slicHodoTestEvents_filt.slcio");
-        if (RUN_FILTERING) {            
+        File filteredFile = new TestOutputFile(HodoscopeReadoutTest.class, "filt.slcio");
+        if (RUN_FILTERING) {
             String[] args = {testFile.getPath(), filteredFile.getPath(), "-e", EVENT_SPACING.toString()};
             FilterMCBunches.main(args);
         }
-        
+
         // Setup conditions
         DatabaseConditionsManagerSetup cond = new DatabaseConditionsManagerSetup();
         cond.setDetectorName(DETECTOR_NAME);
         cond.setRun(RUN_NUMBER);
         cond.setFreeze(true);
-        
+
         File outputFile = new TestOutputFile(HodoscopeReadoutTest.class, "HodoscopeReadoutTest");
 
         // Run readout
@@ -126,10 +119,10 @@ public class HodoscopeReadoutTest extends TestCase {
         loop.setLCIORecordSource(new File(outputFile.getPath() + ".slcio"));
         loop.loop(-1);
     }
-   
+
     /*
     Output collections:
-    
+
     Output 7 objects of type CalorimeterHit to collection "EcalClustersGTPSimHits".
     Output 6 objects of type LCRelation to collection "HodoscopeTruthRelations".
     Output 8 objects of type RawTrackerHit to collection "EcalReadoutHits".
@@ -143,16 +136,16 @@ public class HodoscopeReadoutTest extends TestCase {
     Output 14 objects of type SimTrackerHit to collection "TrackerHitsECal".
     Output 4 objects of type ReadoutTimestamp to collection "ReadoutTimestamps".
     */
-    
+
     /*
     From Kyle:
     truth hit energies and geometric distributions
-    digitized hit distributions and ADC count, 
+    digitized hit distributions and ADC count,
     converted hit energies and positions
     */
-    
+
     class HodoAnalDriver extends Driver {
-        
+
         HodoAnalDriver() {
             add(new HodoHitsDriver());
             add(new EcalClustersGTPDriver());
@@ -162,7 +155,7 @@ public class HodoscopeReadoutTest extends TestCase {
             add(new ReadoutTimestampsDriver());
             add(new MCParticleDriver());
         }
-                        
+
         public void startOfData() {
             aida.tree().mkdir("/Collections");
             for (Driver driver : this.drivers()) {
@@ -170,7 +163,7 @@ public class HodoscopeReadoutTest extends TestCase {
                 hodoDriver.mkdir();
             }
         }
-        
+
         public void process(EventHeader event) {
             for (Driver driver : this.drivers()) {
                 HodoDriver<?> hodoDriver = (HodoDriver<?>) driver;
@@ -178,66 +171,66 @@ public class HodoscopeReadoutTest extends TestCase {
                 hodoDriver.loadColl(event);
                 hodoDriver.process(event);
             }
-        }        
+        }
     }
-    
+
     abstract class HodoDriver<T> extends Driver {
-        
+
         private String collName = null;
         private String dirName = null;
         private Class<T> klass = null;
-        
+
         protected Subdetector subdet;
         protected HodoscopeDetectorElement hodo;
         protected IIdentifierHelper helper;
-        protected volatile List<T> coll; 
-        
+        protected volatile List<T> coll;
+
         public HodoDriver(Class<T> klass, String collName) {
             this.collName = collName;
             this.dirName = "/Collections/" + this.collName;
             this.klass = klass;
         }
-        
+
         public void mkdir() {
             aida.tree().mkdir(this.dirName);
         }
-        
+
         public void cd() {
             aida.tree().cd(this.dirName);
-        }               
-        
+        }
+
         public List<T> getColl(EventHeader event) {
             return event.get(klass, collName);
         }
-        
+
         public void loadColl(EventHeader event) {
             this.coll = getColl(event);
         }
-        
+
         public void detectorChanged(Detector det) {
             subdet = det.getSubdetector("Hodoscope");
             hodo = (HodoscopeDetectorElement) subdet.getDetectorElement();
             helper = hodo.getIdentifierHelper();
         }
-        
+
         public ICloud1D cloud1D(String name) {
             return aida.cloud1D(name);
         }
-        
+
         public ICloud2D cloud2D(String name) {
             return aida.cloud2D(name);
         }
-        
+
         abstract public void process(EventHeader event);
     }
-    
+
     class HodoHitsDriver extends HodoDriver<SimTrackerHit> {
-        
+
         public HodoHitsDriver() {
             super(SimTrackerHit.class, "HodoscopeHits");
         }
-                        
-        public void process(EventHeader event) {            
+
+        public void process(EventHeader event) {
             cloud1D("Hit Count").fill(coll.size());
             for (SimTrackerHit hit : coll) {
                 cloud1D("Hit Energy [MeV]").fill(hit.getdEdx() * 1000);
@@ -251,12 +244,12 @@ public class HodoscopeReadoutTest extends TestCase {
             }
         }
     }
-    
+
     class EcalClustersGTPDriver extends HodoDriver<Cluster> {
         public EcalClustersGTPDriver() {
             super(Cluster.class, "EcalClustersGTP");
         }
-        
+
         public void process(EventHeader event) {
             cloud1D("Cluster Count").fill(coll.size());
             for (Cluster clus : coll) {
@@ -269,12 +262,12 @@ public class HodoscopeReadoutTest extends TestCase {
             }
         }
     }
-    
+
     class EcalHitsDriver extends HodoDriver<CalorimeterHit> {
         public EcalHitsDriver() {
             super(CalorimeterHit.class, "EcalHits");
         }
-        
+
         public void process(EventHeader event) {
             cloud1D("Hit Count").fill(coll.size());
             for (CalorimeterHit hit : coll) {
@@ -283,22 +276,22 @@ public class HodoscopeReadoutTest extends TestCase {
                 cloud1D("Position Y [mm]").fill(hit.getPosition()[1]);
                 cloud1D("Position Z [mm]").fill(hit.getPosition()[2]);
                 cloud1D("Time [ns]").fill(hit.getTime());
-            }            
+            }
         }
     }
-    
+
     class HodoscopeReadoutHitsDriver extends HodoDriver<RawTrackerHit> {
-                
+
         public HodoscopeReadoutHitsDriver() {
             super(RawTrackerHit.class, "HodoscopeReadoutHits");
         }
-        
+
         public void process(EventHeader event) {
             cloud1D("Raw Hit Count").fill(coll.size());
             for (RawTrackerHit hit : coll) {
                 Set<Integer> uniqADC = new HashSet<Integer>();
                 for (Short adc : hit.getADCValues()) {
-                    uniqADC.add(adc.intValue());                    
+                    uniqADC.add(adc.intValue());
                     cloud1D("ADC Value").fill(adc.intValue());
                 }
                 for (Integer adc : uniqADC) {
@@ -307,19 +300,19 @@ public class HodoscopeReadoutTest extends TestCase {
             }
         }
     }
-    
+
     class EcalReadoutHitsDriver extends HodoDriver<RawTrackerHit> {
-        
+
         public EcalReadoutHitsDriver() {
             super(RawTrackerHit.class, "EcalReadoutHits");
         }
-        
+
         public void process(EventHeader event) {
             cloud1D("Raw Hit Count").fill(coll.size());
             for (RawTrackerHit hit : coll) {
                 Set<Integer> uniqADC = new HashSet<Integer>();
                 for (Short adc : hit.getADCValues()) {
-                    uniqADC.add(adc.intValue());                    
+                    uniqADC.add(adc.intValue());
                     cloud1D("ADC Value").fill(adc.intValue());
                 }
                 for (Integer adc : uniqADC) {
@@ -328,12 +321,12 @@ public class HodoscopeReadoutTest extends TestCase {
             }
         }
     }
-    
+
     class TrackerHitsECalDriver extends HodoDriver<SimTrackerHit> {
         public TrackerHitsECalDriver() {
             super(SimTrackerHit.class, "TrackerHitsECal");
         }
-        
+
         public void process(EventHeader event) {
             cloud1D("Hit Count").fill(coll.size());
             for (SimTrackerHit hit : coll) {
@@ -343,20 +336,20 @@ public class HodoscopeReadoutTest extends TestCase {
                 cloud2D("Position XY [mm]").fill(hit.getPosition()[0], hit.getPosition()[1]);
             }
         }
-    }    
-    
+    }
+
     class ReadoutTimestampsDriver extends HodoDriver<GenericObject> {
-        
+
         private double maxTimestamp = -1;
         private double minTimestamp = 999999999;
-        
+
         public ReadoutTimestampsDriver() {
             super(GenericObject.class, "ReadoutTimestamps");
         }
-        
+
         public void process(EventHeader event) {
             cloud1D("Timestamp Count").fill(coll.size());
-            for (GenericObject obj : coll) {                
+            for (GenericObject obj : coll) {
                 double timestamp = obj.getDoubleVal(0);
                 cloud1D("Timestamp").fill(timestamp);
                 if (timestamp > maxTimestamp) {
@@ -366,19 +359,19 @@ public class HodoscopeReadoutTest extends TestCase {
                 }
             }
         }
-        
+
         public void endOfData() {
             System.out.println("maxTimestamp = " + maxTimestamp);
             System.out.println("minTimestamp = " + minTimestamp);
         }
     }
-    
+
     class MCParticleDriver extends HodoDriver<MCParticle> {
-        
+
         public MCParticleDriver() {
             super(MCParticle.class, "MCParticle");
         }
-        
+
         public void process(EventHeader event) {
             cloud1D("Particle Count").fill(coll.size());
             for (MCParticle particle : coll) {

@@ -8,13 +8,11 @@ import java.util.List;
 /**
  * Class <code>ConfigurationManager2019</code> provides static access to
  * the 2019 DAQ configuration that can be parsed from EVIO files. It works
- * in conjunction with the <code>DAQConfigDriver2019</code>, which obtains
+ * in conjunction with the <code>DAQConfig2019Driver</code>, which obtains
  * the configuration parser object when available and passes it to this
  * manager, and <code>EvioDAQParser2019</code>, which parses the EVIO data.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
- * @see DAQConfigDriver2019
+ * @see DAQConfig2019Driver
  * @see EvioDAQParser2019
  */
 public class ConfigurationManager2019 {

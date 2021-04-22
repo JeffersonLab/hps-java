@@ -54,9 +54,6 @@ import org.lcsim.lcio.LCIOConstants;
  * designed with the intent to function for both the hodoscope and
  * the calorimeter. As such, it requires its implementing classes to
  * handle certain subdetector-specific tasks.
- * 
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public abstract class DigitizationReadoutDriver<D extends Subdetector> extends ReadoutDriver {
     
@@ -134,20 +131,20 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * Defines the ADC threshold needed to initiate pulse integration
      * for raw hit creation.
      */
-    private int integrationThreshold = 18;
+    protected int integrationThreshold = 18;
     /**
      * Defines the number of integration samples that should be
      * included in the pulse integral from before the sample that
      * exceeds the integration threshold.
      */
-    private int numSamplesBefore = 5;
+    protected int numSamplesBefore = 5;
     /**
      * Defines the number of integration samples that should be
      * included in the pulse integral from after the sample that
      * exceeds the integration threshold.
      * Threshold-crossing sample is part of NSA.
      */
-    private int numSamplesAfter = 25;
+    protected int numSamplesAfter = 25;
     /**
      * The format in which readout hits should be output.
      */
@@ -237,7 +234,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * org.hps.readout.ecal.updated.DigitizationReadoutDriver#readoutOffset
      * readoutOffset}.
      */
-    private int readoutWindow = 100;
+    protected int readoutWindow = 100;
     /**
      * Sets how far from the beginning of the readout window trigger
      * time should occur. A value of x, for instance would result in
@@ -274,9 +271,8 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * integration time needs to be assigned as parameter of <code>ReadoutDataManager.addData()</code>.
      * Global displacement is 0 for dependency. 
      */
-    private double integrationTime = Double.NaN;
-    
-    
+    private double integrationTime = Double.NaN;    
+        
     // ==============================================================
     // ==== To Be Re-Worked =========================================
     // ==============================================================
@@ -360,8 +356,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
     }
     
     @Override
-    public void process(EventHeader event) {
-        
+    public void process(EventHeader event) {                  
         /*
          * As a first step, truth energy depositions from SLIC must
          * be obtained and converted into voltage pulse amplitudes.
@@ -470,7 +465,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             double currentValue = voltageBuffer.getValue() * ((Math.pow(2, nBit) - 1) / maxVolt);
             
             // Get the pedestal for the channel.
-            int pedestal = (int) Math.round(getPedestalConditions(cellID));
+            int pedestal = (int) Math.round(getPedestalConditions(cellID));            
             
             // An ADC value is not allowed to exceed 4095. If a
             // larger value is observed, 4096 (overflow) is given
@@ -975,6 +970,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * <code>double</code>.
      */
     protected abstract double getPedestalConditions(long channelID);
+        
     
     @Override
     protected boolean isPersistent() {
@@ -1360,11 +1356,11 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * @return Returns <code>true</code> if the buffers were reset
      * successfully, and <code>false</code> if they were not.
      */
-    private void resetBuffers() {
+    private void resetBuffers() {                      
         // Reset each of the buffer maps.
-        adcBufferMap.clear();
         truthBufferMap.clear();
         voltageBufferMap.clear();
+        adcBufferMap.clear();
         
         // Get the set of all possible channel IDs.
         Set<Long> cells = getChannelIDs();
@@ -1373,11 +1369,12 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
         for(Long cellID : cells) {
             voltageBufferMap.put(cellID, new DoubleRingBuffer(BUFFER_LENGTH));
             truthBufferMap.put(cellID, new ObjectRingBuffer<SimCalorimeterHit>(PIPELINE_LENGTH));
-            adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(getPedestalConditions(cellID))));
             
             truthBufferMap.get(cellID).stepForward();
             
             flagStartNewIntegration.put(cellID, false);
+            
+            adcBufferMap.put(cellID, new IntegerRingBuffer(PIPELINE_LENGTH, (int) Math.round(getPedestalConditions(cellID))));
         }
     }
     
@@ -1603,7 +1600,6 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * of pulses that may be used to emulate the subdetector response
      * to incident energy.
      * 
-     * @author Sho Uemura <meeg@slac.stanford.edu>
      */
     public enum PulseShape {
         CRRC, DoubleGaussian, ThreePole

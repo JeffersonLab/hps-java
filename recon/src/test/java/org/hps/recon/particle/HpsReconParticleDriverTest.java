@@ -11,6 +11,9 @@ import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseCalorimeterHit;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.base.BaseTrack; 
+import org.lcsim.event.EventHeader;
+
+
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -18,12 +21,6 @@ import hep.physics.vec.Hep3Vector;
 import org.hps.recon.particle.HpsReconParticleDriver; 
 import org.hps.recon.tracking.CoordinateTransformations;
 
-
-/**
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
- */
 public class HpsReconParticleDriverTest extends TestCase { 
 
     private static final double B_FIELD = 0.5; // Tesla
@@ -114,11 +111,13 @@ public class HpsReconParticleDriverTest extends TestCase {
         System.out.println("\n#=== Running makeReconstructedParticles Test ===#");
         
         
+        //Create null event to pass to new makeReconstructedParticles method
+        EventHeader event = null;
         // Create two ReconstructedParticles with tracks only
         List<Cluster> emptyClusters = new ArrayList<Cluster>(); 
         List<List<Track>> trackCollections = new ArrayList<List<Track>>(0);
         trackCollections.add(tracks);
-        particleTracks = particleDriver.makeReconstructedParticles(emptyClusters, trackCollections);
+        particleTracks = particleDriver.makeReconstructedParticles(event, emptyClusters, trackCollections);
     
         //
         // The list contains two Tracks which should result in two 

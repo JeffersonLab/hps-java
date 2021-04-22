@@ -33,7 +33,6 @@ import javax.swing.JPanel;
  * Fields that exceed the minimum row size are still granted their full
  * preferred size.
  * 
- * @author Kyle McCarty
  * @see JPanel
  */
 public class ResizableFieldPanel extends JPanel {

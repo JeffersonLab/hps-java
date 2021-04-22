@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.recon.filtering;
 
 import java.util.ArrayList;
@@ -16,8 +13,6 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 
 /**
  * Filter events based on max nr of strip hits
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class SvtHitMultiplicityFilter extends EventReconFilter {
 

@@ -33,8 +33,6 @@ import java.util.logging.Logger;
  * VTP_HPS_PRESCALE               17       0   # Multiplicity-1 3 Cluster trigger
  * VTP_HPS_PRESCALE               18       0   # FEE Top       ( 2600-5200)
  * VTP_HPS_PRESCALE               19       0   # FEE Bot       ( 2600-5200)
- *
- * @author tongtong
  */
 public class TSData2019 extends AbstractIntData {
 

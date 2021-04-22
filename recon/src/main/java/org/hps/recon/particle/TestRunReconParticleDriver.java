@@ -13,9 +13,6 @@ import org.hps.recon.vertexing.TwoTrackVertexer;
  * Method creates reconstructed particles from tracks and clusters for
  * test run data. Also generates candidate A' reconstructed particles.
  * This method does not generate a separate vertex collection.
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
  */
 public class TestRunReconParticleDriver extends ReconParticleDriver {
     /**

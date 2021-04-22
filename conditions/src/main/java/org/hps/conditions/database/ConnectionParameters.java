@@ -15,8 +15,6 @@ import java.util.logging.Logger;
 /**
  * This class encapsulates the parameters for connecting to a database,
  * including host name, port, user and password.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class ConnectionParameters {
 

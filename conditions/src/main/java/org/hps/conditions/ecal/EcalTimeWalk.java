@@ -7,8 +7,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * ECal time walk conditions consisting of 5 double parameters for input to time walk correction algorithm.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"ecal_time_walk"})
 public final class EcalTimeWalk extends BaseConditionsObject {

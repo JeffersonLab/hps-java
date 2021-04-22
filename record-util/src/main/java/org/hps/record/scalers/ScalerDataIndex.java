@@ -2,8 +2,6 @@ package org.hps.record.scalers;
 
 /**
  * Represents an index into a {@link ScalerData} array from EVIO data (full 72 word integer array).
- *
- * @author Jeremy McCormick, SLAC
  */
 public enum ScalerDataIndex {
 

@@ -13,12 +13,7 @@ import org.lcsim.geometry.GeometryReader;
 
 import junit.framework.TestCase;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class HPSTracker2014Test extends TestCase {
-
     
     Detector det;
     public HPSTracker2014Test(String name) {

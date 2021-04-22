@@ -20,10 +20,10 @@ import org.lcsim.geometry.Detector;
  * is implemented. Calibrations specific to reconstruction are not
  * supported.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see org.hps.readout.rawconverter.AbstractMode3RawConverter
  */
-public class HodoscopeReadoutMode3RawConverter extends AbstractMode3RawConverter {
+public class HodoscopeReadoutMode3RawConverter extends AbstractMode3RawConverter {  
+
     /**
      * Maps hodoscope channels to the gain for that channel.
      */
@@ -61,24 +61,36 @@ public class HodoscopeReadoutMode3RawConverter extends AbstractMode3RawConverter
         // Map time shifts to channel IDs.
         for(HodoscopeTimeShift timeShift :  timeShifts) {
             channelToTimeShiftsMap.put(Long.valueOf(timeShift.getChannelId().intValue()), timeShift);
+        }        
+    }
+    
+    @Override
+    protected double getGain(long channelID) {             
+        if(configHodo != null) {
+            return configHodo.getGain((int)channelID);
+        } 
+        else {
+            if (channelToGainsMap.containsKey(Long.valueOf(channelID))) {
+                return channelToGainsMap.get(Long.valueOf(channelID)).getGain();
+            } else {
+                throw new IllegalArgumentException(
+                        "No gain conditions exist for hodoscope channel ID \"" + channelID + "\".");
+            }
         }
     }
     
     @Override
-    protected double getGain(long channelID) {
-        if(channelToGainsMap.containsKey(Long.valueOf(channelID))) {
-            return channelToGainsMap.get(Long.valueOf(channelID)).getGain();
-        } else {
-            throw new IllegalArgumentException("No gain conditions exist for hodoscope channel ID \"" + channelID + "\".");
+    protected double getPedestal(long channelID) {                
+        if(configHodo != null) {
+            return configHodo.getPedestal((int)channelID);
         }
-    }
-    
-    @Override
-    protected double getPedestal(long channelID) {
-        if(channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
-            return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
-        } else {
-            throw new IllegalArgumentException("No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
+        else {
+            if (channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
+                return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
+            } else {
+                throw new IllegalArgumentException(
+                        "No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
+            }
         }
     }
     

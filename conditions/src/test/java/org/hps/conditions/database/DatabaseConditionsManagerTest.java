@@ -11,7 +11,6 @@ import org.lcsim.conditions.ConditionsManager;
 /**
  * General test of the {@link DatabaseConditionsManager} class.
  * 
- * @author Jeremy McCormick, SLAC
  * @see DatabaseConditionsManager
  */
 public class DatabaseConditionsManagerTest extends TestCase {

@@ -1,12 +1,17 @@
 package org.hps.recon.tracking.kalman;
 
-//package kalman;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
-class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a line in the non-bending plane
-    // and a parabola in the bending plane
+/**
+ * Simultaneous fit of axial and stereo measurements to a line in the non-bending plane
+ * and a parabola in the bending plane
+ * Deprecated. The LinearHelixFit code was integrated into SeedTrack as a method of that class, for better efficiency.
+ */
+class LinearHelixFit { // 
 
-    private SquareMatrix C; // Covariance matrix of solution
-    private Vec a; // Solution vector (line coefficients followed by parabola coefficients
+    private DMatrixRMaj  C; // Covariance matrix of solution
+    private DMatrixRMaj  a; // Solution vector (line coefficients followed by parabola coefficients
     private double chi2;
     private double[] vpred;
 
@@ -18,8 +23,8 @@ class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a
         // delta = offset of the detector coordinate system from the global system (minus the nominal y value along the beam axis)
         // R2 = 2nd row of the general rotation from the global system to the local detector system
         // verbose: set true to get lots of debug printout
-        SquareMatrix A = new SquareMatrix(5);
-        Vec B = new Vec(5);
+        double [][] A = new double[5][5];
+        double [] B = new double[5];
 
         for (int i = 0; i < N; i++) {
             double R10 = R2[i][0];
@@ -27,45 +32,48 @@ class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a
             double R12 = R2[i][2];
             double w = 1.0 / (s[i] * s[i]);
 
-            A.M[0][0] += w * R12 * R12;
-            A.M[0][1] += w * y[i] * R12 * R12;
-            A.M[0][2] += w * R12 * R10;
-            A.M[0][3] += w * y[i] * R12 * R10;
-            A.M[0][4] += w * y[i] * y[i] * R12 * R10;
-            A.M[1][1] += w * y[i] * y[i] * R12 * R12;
-            A.M[1][4] += w * y[i] * y[i] * y[i] * R12 * R10;
-            A.M[2][2] += w * R10 * R10;
-            A.M[2][3] += w * y[i] * R10 * R10;
-            A.M[2][4] += w * y[i] * y[i] * R10 * R10;
-            A.M[3][4] += w * y[i] * y[i] * y[i] * R10 * R10;
-            A.M[4][4] += w * y[i] * y[i] * y[i] * y[i] * R10 * R10;
+            A[0][0] += w * R12 * R12;
+            A[0][1] += w * y[i] * R12 * R12;
+            A[0][2] += w * R12 * R10;
+            A[0][3] += w * y[i] * R12 * R10;
+            A[0][4] += w * y[i] * y[i] * R12 * R10;
+            A[1][1] += w * y[i] * y[i] * R12 * R12;
+            A[1][4] += w * y[i] * y[i] * y[i] * R12 * R10;
+            A[2][2] += w * R10 * R10;
+            A[2][3] += w * y[i] * R10 * R10;
+            A[2][4] += w * y[i] * y[i] * R10 * R10;
+            A[3][4] += w * y[i] * y[i] * y[i] * R10 * R10;
+            A[4][4] += w * y[i] * y[i] * y[i] * y[i] * R10 * R10;
             double vcorr = (v[i] + R10 * delta[i][0] + R12 * delta[i][2] + R11 * (delta[i][1] - y[i]));
-            B.v[0] += vcorr * R12 * w;
-            B.v[1] += vcorr * y[i] * R12 * w;
-            B.v[2] += vcorr * R10 * w;
-            B.v[3] += vcorr * y[i] * R10 * w;
-            B.v[4] += vcorr * y[i] * y[i] * R10 * w;
+            B[0] += vcorr * R12 * w;
+            B[1] += vcorr * y[i] * R12 * w;
+            B[2] += vcorr * R10 * w;
+            B[3] += vcorr * y[i] * R10 * w;
+            B[4] += vcorr * y[i] * y[i] * R10 * w;
         }
-        A.M[1][0] = A.M[0][1];
-        A.M[1][2] = A.M[0][3];
-        A.M[1][3] = A.M[0][4];
-        A.M[2][0] = A.M[0][2];
-        A.M[2][1] = A.M[1][2];
-        A.M[3][0] = A.M[0][3];
-        A.M[3][1] = A.M[1][3];
-        A.M[3][2] = A.M[2][3];
-        A.M[3][3] = A.M[2][4];
-        A.M[4][0] = A.M[0][4];
-        A.M[4][1] = A.M[1][4];
-        A.M[4][2] = A.M[2][4];
-        A.M[4][3] = A.M[3][4];
+        A[1][0] = A[0][1];
+        A[1][2] = A[0][3];
+        A[1][3] = A[0][4];
+        A[2][0] = A[0][2];
+        A[2][1] = A[1][2];
+        A[3][0] = A[0][3];
+        A[3][1] = A[1][3];
+        A[3][2] = A[2][3];
+        A[3][3] = A[2][4];
+        A[4][0] = A[0][4];
+        A[4][1] = A[1][4];
+        A[4][2] = A[2][4];
+        A[4][3] = A[3][4];
 
-        if (verbose) A.print("of the LinearHelixFit");
+        C = new DMatrixRMaj(A);
+        DMatrixRMaj V = new DMatrixRMaj(B);
+        
+        if (verbose) C.print();
 
         // Do the calculation
-        C = A.invert();
-        //C.multiply(A).print("unit matrix?");
-        a = B.leftMultiply(C);
+        CommonOps_DDRM.invert(C);
+        a = new DMatrixRMaj(5);
+        CommonOps_DDRM.mult(C,V,a);
 
         // Add up the chi-squared
         vpred = new double[N];
@@ -83,9 +91,10 @@ class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a
     }
 
     void print(int N, double[] x, double[] y, double[] z, double[] v, double[] s) {
-        System.out.format("LinearHelixFit2: parabola a=%10.7f   b=%10.7f   c=%10.7f\n", a.v[2], a.v[3], a.v[4]);
-        System.out.format("LinearHelixFit2:     line a=%10.7f   b=%10.7f\n", a.v[0], a.v[1]);
-        C.print("LinearHelixFit2 covariance");
+        System.out.format("LinearHelixFit2: parabola a=%10.7f   b=%10.7f   c=%10.7f\n", a.get(2,0), a.get(3,0), a.get(4,0));
+        System.out.format("LinearHelixFit2:     line a=%10.7f   b=%10.7f\n", a.get(0,0), a.get(1,0));
+        System.out.println("LinearHelixFit2 covariance:");
+        C.print();
         System.out.format(
                 "LinearHelixFit2: i  xMC   xpred       y           zMC       zpred        v    v predicted   residual   sigmas       chi^2=%8.3f\n",
                 chi2);
@@ -97,20 +106,21 @@ class LinearHelixFit { // Simultaneous fit of axial and stereo measurements to a
         }
     }
 
-    SquareMatrix covariance() {
+    DMatrixRMaj covariance() {
         return C;
     }
 
     Vec solution() {
-        return a;
+        Vec aV = new Vec(a.unsafe_get(0,0),a.unsafe_get(1,0),a.unsafe_get(2,0),a.unsafe_get(3,0),a.unsafe_get(4,0));
+        return aV;
     }
 
     double evaluateLine(double y) {
-        return a.v[0] + a.v[1] * y;
+        return a.unsafe_get(0,0) + a.unsafe_get(1,0) * y;
     }
 
     double evaluateParabola(double y) {
-        return a.v[2] + (a.v[3] + a.v[4] * y) * y;
+        return a.unsafe_get(2,0) + (a.unsafe_get(3,0) + a.unsafe_get(4,0) * y) * y;
     }
 
     double chiSquared() {

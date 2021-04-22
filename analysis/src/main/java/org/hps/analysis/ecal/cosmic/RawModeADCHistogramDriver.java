@@ -24,7 +24,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * This Driver will create a histogram for every channel in the ECAL and plot its ADC values
  * from the LCSim event collection of raw mode hits, without performing any pedestal subtraction.
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class RawModeADCHistogramDriver extends Driver {
 

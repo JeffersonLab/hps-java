@@ -10,20 +10,18 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.hps.util.CompareHistograms;
+import org.hps.util.test.TestUtil;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.cache.FileCache;
 
 /**
  * Test class to check a set of histograms against a reference set.
- * 
- * @author mdiamond <mdiamond@slac.stanford.edu>
  */
 public class ComparisonTest extends ReconTestSkeleton {
     static final List<String> histograms = Arrays.asList("Tracks per Event", "Hits per Track");
     static final double TtestAlpha = 0.05;
     static final double KStestAlpha = 0.05;
     static final String inputFileName = "ap_prompt_raw.slcio";
-    static final String testReferenceFileName = "ap_prompt-ref.aida";
 
     private AIDA aida;
 
@@ -43,10 +41,9 @@ public class ComparisonTest extends ReconTestSkeleton {
         assertTrue("No events in plots", ntracks.entries() > 0);
         assertTrue("No tracks in plots", ntracks.mean() > 0);
 
-        URL testURL = new URL(testURLBase + "/referencePlots/" + testReferenceFileName);
-        FileCache cache = new FileCache();
+        File refFile = TestUtil.downloadRefPlots("ap_prompt");
+
         final IAnalysisFactory af = aida.analysisFactory();
-        File refFile = cache.getCachedFile(testURL);
         ITree tree_cmpRef = af.createTreeFactory().create(refFile.getAbsolutePath());
 
         for (String histname : histograms) {

@@ -13,10 +13,6 @@ import org.lcsim.units.clhep.SystemOfUnits;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @version $Id: SimpleMuonAnalysis.java,v 1.1 2013/01/28 19:20:18 jeremy Exp $
- */
 public class SimpleMuonAnalysis extends Driver 
 {
     AIDA aida = AIDA.defaultInstance();

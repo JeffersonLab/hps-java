@@ -14,8 +14,6 @@ import org.lcsim.detector.Translation3D;
 
 /**
  * Class describing a simple coordinate system used to define the {@link SurveyVolume}.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class SurveyCoordinateSystem {
 
@@ -71,10 +69,12 @@ public class SurveyCoordinateSystem {
         Hep3Vector vrottrans = t.translated(vrot);
         origin = vrottrans;
         rotate(t.getRotation());
-        // System.out.printf("monkey transform\n");
-        // System.out.printf("v %s\n",v.toString());
-        // System.out.printf("vrot %s\n",vrot.toString());
-        // System.out.printf("vrottrans %s\n",vrottrans.toString());
+        /*
+        System.out.printf("Reference transform\n");
+        System.out.printf("v %s\n",v.toString());
+        System.out.printf("vrot %s\n",vrot.toString());
+        System.out.printf("vrottrans %s\n",vrottrans.toString());
+        */
         check();
     }
 

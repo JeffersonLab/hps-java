@@ -10,8 +10,6 @@ import org.srs.datacat.model.dataset.DatasetWithViewModel;
 
 /**
  * Utility class for assocating a file in the datacat to its event ID range.
- * 
- * @author jeremym
  */
 public final class FileEventRange {
     

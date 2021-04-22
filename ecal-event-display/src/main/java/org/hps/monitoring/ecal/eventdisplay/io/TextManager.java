@@ -36,8 +36,6 @@ import org.hps.monitoring.ecal.eventdisplay.event.EcalHit;
  * 
  * EndEvent
  * Indicates that the event has ended.
- * 
- * @author Kyle McCarty
  */
 public final class TextManager implements EventManager {
     // File reader for reading the input.

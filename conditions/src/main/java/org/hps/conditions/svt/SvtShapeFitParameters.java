@@ -7,9 +7,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * This class encapsulates the shape fit parameters for an SVT channel.
- *
- * @author Jeremy McCormick, SLAC
- * @author Omar Moreno, UCSC
  */
 @Table(names = {"svt_shape_fit_parameters", "test_run_svt_shape_fit_parameters"})
 public final class SvtShapeFitParameters extends BaseConditionsObject {

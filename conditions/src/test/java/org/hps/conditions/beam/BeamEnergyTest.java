@@ -7,8 +7,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 
 /**
  * Basic test of {@link BeamEnergy} condition.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class BeamEnergyTest extends TestCase {
     

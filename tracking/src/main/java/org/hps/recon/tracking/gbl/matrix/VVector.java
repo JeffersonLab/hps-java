@@ -6,9 +6,6 @@ import static java.lang.Math.min;
 
 /**
  * Simple Vector based on ArrayList
- *
- * @author Norman A. Graf
- * @version $Id$
  */
 public class VVector {
 

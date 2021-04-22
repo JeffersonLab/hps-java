@@ -14,13 +14,8 @@ import org.lcsim.geometry.FieldMap;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 
 /**
- * 
  * Class that vertexes two tracks taking into account fringe field
- * 
- * @author phansson
- *
  */
-
 public class TwoTrackFringeVertexer extends TwoTrackVertexer {
     protected HelixConverter converter = new HelixConverter(0.);
     

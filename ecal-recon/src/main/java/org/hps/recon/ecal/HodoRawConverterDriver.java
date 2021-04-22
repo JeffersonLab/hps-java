@@ -1,7 +1,3 @@
-/*
- * Here comes the text of your license
- * Each line should be prefixed with  * 
- */
 package org.hps.recon.ecal;
 
 import org.lcsim.util.Driver;
@@ -15,14 +11,9 @@ import org.lcsim.lcio.LCIOConstants;
 
 import java.util.List;
 import java.util.ArrayList;
-//import java.util.Arrays;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-/**
- *
- * @author rafopar
- */
 public class HodoRawConverterDriver extends Driver {
 
     // To import database conditions

@@ -1,6 +1,5 @@
 package org.hps.readout.svt;
 
-//--- java ---//
 import static org.hps.readout.svt.HPSSVTConstants.ADC_TEMP_COUNT;
 import static org.hps.readout.svt.HPSSVTConstants.BETA;
 import static org.hps.readout.svt.HPSSVTConstants.CONST_A;
@@ -17,18 +16,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
-
-//--- org.lcsim ---//
 import org.lcsim.event.GenericObject;
-
-//-- Constants ---//
 
 /**
  * Generic object to contain hybrid temperatures and data tail value. Converts and ADC value to a
  * temperature in celsius
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public class FpgaData implements GenericObject {
 
