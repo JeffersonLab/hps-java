@@ -265,20 +265,28 @@ public class FittedGblTrajectory {
                 }
             }
             double parameters_gbl[] = helicalTrackFitCorrected.parameters();
+            double phi0 = parameters_gbl[HelicalTrackFit.phi0Index];
+            while (phi0 > Math.PI / 2) {
+                phi0 -= Math.PI;
+            }
+            while (phi0 < -Math.PI / 2) {
+                phi0 += Math.PI;
+            }
+            parameters_gbl[HelicalTrackFit.phi0Index] = phi0;
             //System.out.printf("NEW NEW parameters_gbl for pathLength %f  - %f %f %f %f %f\n", pathLength, parameters_gbl[BaseTrack.OMEGA], parameters_gbl[BaseTrack.TANLAMBDA], parameters_gbl[BaseTrack.PHI],parameters_gbl[BaseTrack.D0],parameters_gbl[BaseTrack.Z0]);
-            
+
             //System.out.printf("Jacobian and Covariance Matrix::\n");
             //jacobian.print(5,5);
             //System.out.println(cov.toString());
-            
+
             return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
         }
-        
+
         else {
-            
+
             return getCorrectedPerigeeParameters(htf, iLabel, bfield);
         }
-        
+
     }
 
     /**
@@ -349,15 +357,15 @@ public class FittedGblTrajectory {
         //LOGGER.finest("corrected helix covariance:\n" + cov);
 
         double parameters_gbl[] = helicalTrackFitAtIPCorrected.parameters();
-        
+
         /*
         System.out.printf("parameters_gbl for pathLength %f  - %f %f %f %f %f\n", pathLength, parameters_gbl[BaseTrack.OMEGA], parameters_gbl[BaseTrack.TANLAMBDA], parameters_gbl[BaseTrack.PHI],parameters_gbl[BaseTrack.D0],parameters_gbl[BaseTrack.Z0]);
-        
+
         System.out.printf("Jacobian and Covariance Matrix::\n");
         jacobian.print(5,5);
         System.out.println(cov.toString());
         */
-                
+
         return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
     }
 

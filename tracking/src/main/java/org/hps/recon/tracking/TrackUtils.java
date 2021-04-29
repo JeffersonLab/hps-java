@@ -435,7 +435,7 @@ public class TrackUtils {
     public static double getPhi(TrackState track, Hep3Vector position) {
         double x = Math.sin(getPhi0(track)) - (1 / getR(track)) * (position.x() - getX0(track));
         double y = Math.cos(getPhi0(track)) + (1 / getR(track)) * (position.y() - getY0(track));
-        return FastMath.atan2(x, y);// mg 9/20/17...I think this is the wrong order...should be atan2(y,x)
+        return FastMath.atan2(y, x);// mg 9/20/17...I think this is the wrong order...should be atan2(y,x)
     }
 
     public static double getX0(TrackState track) {
