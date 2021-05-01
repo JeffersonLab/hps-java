@@ -1434,7 +1434,7 @@ class KalmanPatRecHPS {
                 int rF;
                 double [] tRange = {tkrCandidate.tMax - kPar.mxTdif, tkrCandidate.tMin + kPar.mxTdif}; 
                 if (prevSite == null) { // For first layer use the initializer state vector               
-                    boolean checkBounds = imod < moduleList.get(lyr).size() - 1;  // Note: boundary check is not made if hitno=-1
+                    boolean checkBounds = imod < moduleList.get(lyr).size() - 1;  // Note: boundary check is not made on last module of the layer
                     rF = newSite.makePrediction(sI, null, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, checkBounds, tRange, trial);
                     if (rF > 0) {
                         if (m.hits.get(newSite.hitID).tracks.size() > 0) tkrCandidate.nTaken++;
@@ -1458,7 +1458,7 @@ class KalmanPatRecHPS {
                         return;
                     }
                 } else {
-                    boolean checkBounds = imod < moduleList.get(lyr).size() - 1;  // Note: boundary check is not made if hitno=-1
+                    boolean checkBounds = imod < moduleList.get(lyr).size() - 1;  // Note: boundary check is not made on last module of layer
                     rF = newSite.makePrediction(prevSite.aF, prevSite.m, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, checkBounds, tRange, trial);
                     if (rF > 0) {
                         if (m.hits.get(newSite.hitID).tracks.size() > 0) tkrCandidate.nTaken++;

@@ -91,8 +91,8 @@ class HelixState implements Cloneable {
         String str;
         str = String.format("HelixState %s: helix parameters=%s,  pivot=%s\n", s, a.toString(), X0.toString());
         str = str + String.format("   Origin=%s,  B=%10.6f in direction %s\n", origin.toString(), B, tB.toString());
-        str = str + "Covariance:" + C.toString();
-        str = str + Rot.toString("from global coordinates to field coordinates");
+        if (C != null) str = str + "Covariance:" + C.toString();
+        if (Rot != null) str = str + Rot.toString("from global coordinates to field coordinates");
         str = str + "End of HelixState dump\n";
         return str;
     }

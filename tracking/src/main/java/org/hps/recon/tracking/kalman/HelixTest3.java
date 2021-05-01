@@ -37,7 +37,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 10000; // The number of test events to generate for fitting
+        int nTrials = 100; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
@@ -48,6 +48,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
 
         boolean verbose = nTrials < 2;
         double executionTime = 0.;
+        int nBadCov = 0;
         
         double eCalLoc = 1394.;
         
@@ -96,9 +97,9 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             Vec B = new Vec(3, fM.getField(new Vec(0., y, z)));
             System.out.format("x=0 y=%6.1f z=%6.1f: %s\n", y, z, B.toString());
         }
-        System.out.format("B field map vs x at ECAL:\n");
-        for (double x=-200.; x<200.; x+=5.) {
-            double y=eCalLoc + 10.;
+        System.out.format("B field map vs x at center:\n");
+        for (double x=-300.; x<300.; x+=5.) {
+            double y=505.;
             double z=20.;
             Vec B = new Vec(3, fM.getField(new Vec(x, y, z)));
             System.out.format("x=%6.1f y=%6.1f z=%6.1f: %s\n", x, y, z, B.toString());
@@ -417,7 +418,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             hResidS4[i] = new Histogram(100, -0.1, 0.002, String.format("Smoothed true residual for plane %d", i), "mm", "hits");
             hResidX[i] = new Histogram(100, -0.8, 0.016, String.format("True residual in global X for plane %d", i), "mm", "hits");
             hResidZ[i] = new Histogram(100, -0.1, 0.002, String.format("True residual in global Z for plane %d", i), "mm", "hits");
-            hUnbias[i] = new Histogram(100, -0.2, 0.004, String.format("Unbiased residual for plant %d", i), "mm", "hits");
+            hUnbias[i] = new Histogram(100, -0.2, 0.004, String.format("Unbiased residual for plane %d", i), "mm", "hits");
             hUnbiasSig[i] = new Histogram(100, -10., 0.2, String.format("Unbiased residuals for layer %d", i), "sigmas", "hits");
         }
         Histogram hpropx = new Histogram(100,-5.,0.1,"projected track-state x error","mm","track");
@@ -739,11 +740,14 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             Matrix C = new Matrix(KalmanTrack.originCovariance());
             EigenvalueDecomposition eED= new EigenvalueDecomposition(C);
             double [] ev = eED.getRealEigenvalues();
+            boolean badCov = false;
             for (int i=0; i<5; ++i) {
                 if (ev[i] < 0.) {
                     System.out.format("Event %d, eigenvalue %d of covariance is negative!", iTrial, i);
+                    badCov = true;
                 }
             }
+            if (badCov) nBadCov++;
             if (iTrial < 10) {
                 Vec evV = new Vec(5,ev);
                 evV.print("Eigenvalues of covariance");
@@ -1106,6 +1110,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             }
         }
 
+        System.out.format("Number of track fits with bad covariance matrix = %d\n", nBadCov);
         long grdef = rnd.nextLong();
         System.out.format("New seed = %d\n", grdef);
         timestamp = Instant.now();
