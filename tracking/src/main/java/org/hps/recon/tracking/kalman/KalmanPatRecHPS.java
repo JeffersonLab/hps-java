@@ -44,7 +44,7 @@ class KalmanPatRecHPS {
     private ArrayList<Double> XLscat;
 
     private int eventNumber;
-    private static boolean debug = false;
+    private static final boolean debug = false;
     private int nModules;
     private KalmanParams kPar;
     private Logger logger;
@@ -97,7 +97,7 @@ class KalmanPatRecHPS {
         // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
         
         this.eventNumber = eventNumber;      
-        debug = (eventNumber == 8882492);
+        //debug = (eventNumber == 8882492);
 
         if (debug) startTime = System.nanoTime();
         
