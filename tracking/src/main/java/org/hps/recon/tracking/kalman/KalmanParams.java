@@ -3,14 +3,9 @@ package org.hps.recon.tracking.kalman;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import org.hps.conditions.beam.BeamPosition;
-//import org.hps.conditions.beam.BeamPosition.BeamPositionCollection;
-//import org.hps.conditions.database.DatabaseConditionsManager;
 
 /**
  * Parameters used by the Kalman-Filter pattern recognition and fitting
- * @author Robert Johnson
- *
  */ 
 public class KalmanParams {
     static final int mxTrials = 2;  // Max number of iterations through the entire pattern recognition; not configurable
@@ -119,7 +114,7 @@ public class KalmanParams {
         
         minSeedE = new double[numLayers];
         for (int lyr=0; lyr<numLayers; ++lyr) {
-            minSeedE[lyr] = 1.5;
+            minSeedE[lyr] = 1.3;
         }
         
         // Set all the default values
@@ -132,12 +127,12 @@ public class KalmanParams {
         kMax[0] = 4.0;      // Maximum curvature for seed
         kMax[1] = 8.0;      
         kMin = 0.;          // Minimum curvature for seed
-        tanlMax[0] = 0.10;  // Maximum tan(lambda) for seed
+        tanlMax[0] = 0.104; // Maximum tan(lambda) for seed
         tanlMax[1] = 0.13;
         dRhoMax[0] = 15.;   // Maximum dRho at target plane for seed
         dRhoMax[1] = 25.;
-        dzMax[0] = 4.;      // Maximum z at target plane for seed
-        dzMax[1] = 10.;
+        dzMax[0] = 3.;      // Maximum z at target plane for seed
+        dzMax[1] = 7.5;
         chi2mx1[0] = 8.0;   // Maximum chi**2/#hits for good track
         chi2mx1[1] = 16.0;  
         mxChi2Vtx = 1.0;    // Maximum chi**2 for 5-hit tracks with vertex constraint
@@ -183,11 +178,13 @@ public class KalmanParams {
         addStrategy("000SABS");
         addStrategy("0BBS000");
         addStrategy("0SBB000");
+        addStrategy("0000BBS");
+        addStrategy("000SSBA");
         addStrategy("000BSSA");
         addStrategy("ABSS000");
         addStrategy("SBB0000");
         addStrategy("SABS000");
-        maxListIter1 = 14;           // The maximum index for lyrList for the first iteration
+        maxListIter1 = 16;           // The maximum index for lyrList for the first iteration
         
         beamSpot = new double[3];
         beamSpot[0] = 0.;
@@ -301,7 +298,7 @@ public class KalmanParams {
         }
         logger.log(Level.CONFIG,String.format("Setting the maximum 1/pt to %8.2f.", kMx));
         kMax[1] = kMx;
-        kMax[0] = Math.min(kMax[0], 0.6*kMx);
+        kMax[0] = Math.min(kMax[0], 0.5*kMx);
     }
     
     void setMinK(double kMn) {
@@ -349,7 +346,7 @@ public class KalmanParams {
         }
         logger.log(Level.CONFIG,String.format("Setting the maximum dz to %8.2f mm.", zMx));
         dzMax[1] = zMx;
-        dzMax[0] = Math.min(dzMax[0], 0.6*zMx);
+        dzMax[0] = Math.min(dzMax[0], 0.4*zMx);
     }
     
     public void setMaxChi2(double xMx) {
@@ -359,7 +356,7 @@ public class KalmanParams {
         }
         logger.log(Level.CONFIG,String.format("Setting the maximum chi^2/hit to %8.2f.", xMx));
         chi2mx1[1] = xMx;
-        chi2mx1[0] = Math.min(chi2mx1[0], 0.6*xMx);
+        chi2mx1[0] = Math.min(chi2mx1[0], 0.5*xMx);
     }
     
     public void setMaxChi2Vtx(double xMx) {
