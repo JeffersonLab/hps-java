@@ -99,8 +99,8 @@ public class KalTrack {
         for (int idx=firstSite; idx<=lastSite; ++idx) { 
             MeasurementSite site = SiteList.get(idx);
             if (site.aS == null) {  // This should never happen
-                logger.log(Level.WARNING, String.format("Event %d: site is missing smoothed state vector for layer %d detector %d", 
-                        eventNumber, site.m.Layer, site.m.detector));
+                logger.log(Level.SEVERE, String.format("Event %d: site of track %d is missing smoothed state vector for layer %d detector %d", 
+                        eventNumber, ID, site.m.Layer, site.m.detector));
                 logger.log(Level.WARNING, site.toString("bad site"));
                 bad = true;
                 continue;

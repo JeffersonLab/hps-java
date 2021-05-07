@@ -124,6 +124,45 @@ public class TriggerModule2019 {
      * Stores the pairs cut values.
      */
     private final Map<String, Double> pairsTriggerCuts = new HashMap<String, Double>(6);
+    
+
+    /* Indicates whether a cut is enabled */
+    
+    public static final String CLUSTER_HIT_COUNT_LOW_EN = "clusterHitCountLowEn";
+
+    public static final String CLUSTER_TOTAL_ENERGY_LOW_EN = "clusterTotalEnergyLowEn";
+
+    public static final String CLUSTER_TOTAL_ENERGY_HIGH_EN = "clusterTotalEnergyHighEn";
+
+    public static final String CLUSTER_XMIN_EN = "clusterXMINEn";
+
+    public static final String CLUSTER_PDE_EN = "clusterPDEEn";
+
+    public static final String PAIR_ENERGY_SUM_EN= "pairEnergySumEn";
+
+    public static final String PAIR_ENERGY_DIFFERENCE_HIGH_EN = "pairEnergyDifferenceHighEn";
+
+    public static final String PAIR_ENERGY_SLOPE_EN = "pairEnergySlopeEn";
+
+    public static final String PAIR_COPLANARITY_HIGH_EN = "pairCoplanarityHighEn";
+
+    public static final String PAIR_TIME_COINCIDENCE_EN = "pairTimeCoincidenceEn";
+
+    /**
+     * Stores the general cut values.
+     */
+    private final Map<String, Boolean> generalCutsEn = new HashMap<String, Boolean>(3);
+
+    /**
+     * Stores the singles cut values.
+     */
+    private final Map<String, Boolean> singlesTriggerCutsEn = new HashMap<String, Boolean>(2);
+
+    /**
+     * Stores the pairs cut values.
+     */
+    private final Map<String, Boolean> pairsTriggerCutsEn = new HashMap<String, Boolean>(5);
+    
 
     /**
      * Creates a default <code>TriggerModule</code>. The cuts are defined such that
@@ -150,7 +189,22 @@ public class TriggerModule2019 {
         pairsTriggerCuts.put(PAIR_COPLANARITY_HIGH, 180.0);
         pairsTriggerCuts.put(PAIR_ENERGY_DIFFERENCE_HIGH, Double.MAX_VALUE);
         pairsTriggerCuts.put(PAIR_TIME_COINCIDENCE, Double.MAX_VALUE);
+        
+        // If enabled for general cuts
+        generalCutsEn.put(CLUSTER_HIT_COUNT_LOW_EN, true);
+        generalCutsEn.put(CLUSTER_TOTAL_ENERGY_LOW_EN, true);
+        generalCutsEn.put(CLUSTER_TOTAL_ENERGY_HIGH_EN, true);
 
+        // If enabled for singles cuts
+        singlesTriggerCutsEn.put(CLUSTER_XMIN_EN, true);
+        singlesTriggerCutsEn.put(CLUSTER_PDE_EN, true);
+        
+        // If enabled for pairs cuts
+        pairsTriggerCutsEn.put(PAIR_ENERGY_SLOPE_EN, true);
+        pairsTriggerCutsEn.put(PAIR_ENERGY_SUM_EN, true);
+        pairsTriggerCutsEn.put(PAIR_COPLANARITY_HIGH_EN, true);
+        pairsTriggerCutsEn.put(PAIR_ENERGY_DIFFERENCE_HIGH_EN, true);
+        pairsTriggerCutsEn.put(PAIR_TIME_COINCIDENCE_EN, true);
     }
 
     /**
@@ -178,6 +232,30 @@ public class TriggerModule2019 {
         // Otherwise, throw an exception.
         else {
             throw new IllegalArgumentException(String.format("Cut \"%s\" does not exist.", cut));
+        }
+    }
+    
+    /**
+     * Get status which indicates if a cut is enabled
+     * 
+     * @param cutEn - a string for a cut status
+     * @return the value indicates if a cut is enabled
+     * @throws IllegalArgumentException if the string is not valid.
+     */
+    public boolean getCutEn(String cutEn) throws IllegalArgumentException {
+        // Make sure that the cut exists. If it does, change it to the
+        // new cut value.
+        if (generalCutsEn.containsKey(cutEn)) {
+            return generalCutsEn.get(cutEn);
+        } else if (singlesTriggerCutsEn.containsKey(cutEn)) {
+            return singlesTriggerCutsEn.get(cutEn);
+        } else if (pairsTriggerCutsEn.containsKey(cutEn)) {
+            return pairsTriggerCutsEn.get(cutEn);
+        }
+
+        // Otherwise, throw an exception.
+        else {
+            throw new IllegalArgumentException(String.format("CutEn \"%s\" does not exist.", cutEn));
         }
     }
 
@@ -208,6 +286,30 @@ public class TriggerModule2019 {
             throw new IllegalArgumentException(String.format("Cut \"%s\" does not exist.", cut));
         }
     }
+    
+    /**
+     * Set status which indicates if a cut is enabled
+     * 
+     * @param cutEn - a string for a cut status
+     * @param stat - status.
+     * @throws IllegalArgumentException if the string is not valid.
+     */
+    public void setCutEn(String cutEn, boolean stat) throws IllegalArgumentException {
+        // Make sure that the cut exists. If it does, change it to the
+        // new cut value.
+        if (generalCutsEn.containsKey(cutEn)) {
+            generalCutsEn.put(cutEn, stat);
+        } else if (singlesTriggerCutsEn.containsKey(cutEn)) {
+            singlesTriggerCutsEn.put(cutEn, stat);
+        } else if (pairsTriggerCutsEn.containsKey(cutEn)) {
+            pairsTriggerCutsEn.put(cutEn, stat);
+        }
+
+        // Otherwise, throw an exception.
+        else {
+            throw new IllegalArgumentException(String.format("CutEn \"%s\" does not exist.", cutEn));
+        }
+    }
 
     /**
      * Loads triggers settings from the DAQ configuration for a singles trigger.
@@ -225,6 +327,14 @@ public class TriggerModule2019 {
         setCutValue(CLUSTER_PDE_C1, config.getPDECutConfig().getParC1());
         setCutValue(CLUSTER_PDE_C2, config.getPDECutConfig().getParC2());
         setCutValue(CLUSTER_PDE_C3, config.getPDECutConfig().getParC3());
+        
+        setCutEn(CLUSTER_TOTAL_ENERGY_LOW_EN, config.getEnergyMinCutConfig().isEnabled());
+        setCutEn(CLUSTER_TOTAL_ENERGY_HIGH_EN, config.getEnergyMaxCutConfig().isEnabled());
+        setCutEn(CLUSTER_HIT_COUNT_LOW_EN, config.getHitCountCutConfig().isEnabled());
+        
+        setCutEn(CLUSTER_XMIN_EN, config.getXMinCutConfig().isEnabled());
+        setCutEn(CLUSTER_PDE_EN, config.getPDECutConfig().isEnabled());
+        
     }
 
     /**
@@ -245,6 +355,16 @@ public class TriggerModule2019 {
         setCutValue(PAIR_ENERGY_SLOPE_F, config.getEnergySlopeCutConfig().getParameterF());
         setCutValue(PAIR_ENERGY_SUM_HIGH, config.getEnergySumCutConfig().getUpperBound());
         setCutValue(PAIR_TIME_COINCIDENCE, config.getTimeDifferenceCutConfig().getUpperBound());
+        
+        setCutEn(CLUSTER_TOTAL_ENERGY_LOW_EN, config.getEnergyMinCutConfig().isEnabled());
+        setCutEn(CLUSTER_TOTAL_ENERGY_HIGH_EN, config.getEnergyMaxCutConfig().isEnabled());
+        setCutEn(CLUSTER_HIT_COUNT_LOW_EN, config.getHitCountCutConfig().isEnabled());
+        
+        setCutEn(PAIR_COPLANARITY_HIGH_EN, config.getCoplanarityCutConfig().isEnabled());
+        setCutEn(PAIR_ENERGY_DIFFERENCE_HIGH_EN, config.getEnergyDifferenceCutConfig().isEnabled());
+        setCutEn(PAIR_ENERGY_SLOPE_EN, config.getEnergySlopeCutConfig().isEnabled());
+        setCutEn(PAIR_ENERGY_SUM_EN, config.getEnergySumCutConfig().isEnabled());
+        setCutEn(PAIR_TIME_COINCIDENCE_EN, config.getTimeDifferenceCutConfig().isEnabled());
     }
     
     /**

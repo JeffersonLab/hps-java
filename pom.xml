@@ -712,6 +712,35 @@
       <timezone>-8</timezone>
     </developer>
     <developer>
+      <name>Cameron Bravo</name>
+      <email>bravo@slac.stanford.edu</email>
+      <organization>SLAC National Accelerator Laboratory</organization>
+      <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <name>Pierfrancesco Butti</name>
+      <email>pbutti@slac.stanford.edu</email>
+      <organization>SLAC National Accelerator Laboratory</organization>
+      <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <name>Alic Spellman</name>
+      <email>alspellm@ucsc.edu</email>
+      <organization>Santa Cruz Institute for Particle Physics</organization>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
       <name>Norman Graf</name>
       <email>Norman.Graf@slac.stanford.edu</email>
       <organization>SLAC National Accelerator Laboratory</organization>

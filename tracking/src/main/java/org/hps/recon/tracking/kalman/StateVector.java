@@ -146,6 +146,7 @@ class StateVector {
         } else {
             aPrime.helix.a = this.helix.pivotTransform(pivot, deltaEoE);
         }
+
         if (debug) { // drho and dz are indeed always zero here
             aPrime.helix.a.print("StateVector predict: pivot transformed helix; should have zero drho and dz");
             helix.a.print("old helix");
