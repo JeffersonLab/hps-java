@@ -35,10 +35,10 @@
         
         <!-- Track finding and fitting using seed tracker. -->
         <!-- 20201030 Don't yet trust layers 1&2 ngraf -->        
-<!--
-        <driver name="TrackReconSeed123Conf4Extd56"/>    
-        <driver name="TrackReconSeed123Conf5Extd46"/>
--->        
+        <!--
+                <driver name="TrackReconSeed123Conf4Extd56"/>    
+                <driver name="TrackReconSeed123Conf5Extd46"/>
+        -->        
         <driver name="TrackReconSeed567Conf4Extd123"/>
         <driver name="TrackReconSeed456Conf3Extd127"/>
         <driver name="TrackReconSeed356Conf7Extd124"/>
@@ -66,7 +66,7 @@
         <!--  DQM   -->
               
         <!-- Following are optional Analysis Drivers  -->
-<!--        
+        <!--        
         <driver name="EcalMonitoring"/>  
         <driver name="EcalMonitoringCorr"/>  
         <driver name="SVTMonitoring"/>
@@ -166,7 +166,7 @@
             <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>
             <strategyResource>HPS_s123_c4_e56_4hit.xml</strategyResource>
             <debug>false</debug>
-	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
         
@@ -174,7 +174,7 @@
             <trackCollectionName>Tracks_s123_c5_e46</trackCollectionName>
             <strategyResource>HPS_s123_c5_e46_4hit.xml</strategyResource>
             <debug>false</debug>
-	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
 
@@ -297,20 +297,20 @@
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
        
-       <!-- Resolve duplicate tracks found with different strategies -->
+        <!-- Resolve duplicate tracks found with different strategies -->
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
 
         <!-- Refit tracks using the GBL algorithm -->
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
-          <!--            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
-               <maxTrackChisq6hits> 84. </maxTrackChisq6hits>-->
-          <includeNoHitScatters>true</includeNoHitScatters>
-          <gblRefitIterations>5</gblRefitIterations>
-          <storeTrackStates>false</storeTrackStates>
-          <writeMilleBinary>false</writeMilleBinary>
-          <milleBinaryFileName>${outputFile}_millepede.bin</milleBinaryFileName>
-          <!--<maxTrackChisq5hits> 100. </maxTrackChisq5hits> -->
-          <!--<maxTrackChisq6hits> 100. </maxTrackChisq6hits> -->
+            <!--            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+            <maxTrackChisq6hits> 84. </maxTrackChisq6hits>-->
+            <includeNoHitScatters>true</includeNoHitScatters>
+            <gblRefitIterations>5</gblRefitIterations>
+            <storeTrackStates>false</storeTrackStates>
+            <writeMilleBinary>false</writeMilleBinary>
+            <milleBinaryFileName>${outputFile}_millepede.bin</milleBinaryFileName>
+            <!--<maxTrackChisq5hits> 100. </maxTrackChisq5hits> -->
+            <!--<maxTrackChisq6hits> 100. </maxTrackChisq6hits> -->
         </driver> 
         
         
@@ -319,12 +319,12 @@
             <!-- <siHitsLimit>50</siHitsLimit> -->
             <seedCompThr>0.05</seedCompThr>
             <verbose>false</verbose>
-          </driver>
+        </driver>
           
 
         <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
-          <outputPlotsFilename>${outputFile}_gblplots.root</outputPlotsFilename>
-          <trackCollectionName>GBLTracks</trackCollectionName>
+            <outputPlotsFilename>${outputFile}_gblplots.root</outputPlotsFilename>
+            <trackCollectionName>GBLTracks</trackCollectionName>
         </driver>
                 
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
@@ -341,15 +341,15 @@
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
             <beamPositionZ>-7.5</beamPositionZ>
-            <maxElectronP>7.0</maxElectronP>
+            <maxElectronP>10.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <maxVertexClusterDt> 40.0 </maxVertexClusterDt>           
             <maxMatchDt>40</maxMatchDt>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-            <applyClusterCorrections>false</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
+            <applyClusterCorrections>true</applyClusterCorrections>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
             <makeMollerCols>false</makeMollerCols>
         </driver>  
@@ -364,6 +364,7 @@
             <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
             <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
             <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+            <otherElectronsColName>OtherElectrons_KF</otherElectronsColName>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <requireClustersForV0>false</requireClustersForV0>
@@ -372,7 +373,7 @@
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
             <beamPositionZ>-7.5</beamPositionZ>
-            <maxElectronP>7.0</maxElectronP>
+            <maxElectronP>10.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>40.0</maxVertexClusterDt>           
@@ -380,9 +381,9 @@
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
             <applyClusterCorrections>false</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
-	    <makeMollerCols>false</makeMollerCols>
+            <makeMollerCols>false</makeMollerCols>
         </driver>  
         
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
@@ -436,7 +437,5 @@
         <driver name="TrackingMonitoringMatched" type="org.hps.analysis.dataquality.TrackingMonitoring">
             <triggerType>all</triggerType>           
         </driver>   
-
     </drivers>
 </lcsim>
-
