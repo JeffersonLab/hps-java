@@ -384,7 +384,7 @@ class StateVector {
         vecToM(snS.helix.a.dif(snP.helix.a), tempV);
         CommonOps_DDRM.mult(tempA, tempV, tempV2);
         sS.helix.a = helix.a.sum(mToVec(tempV2));
-        if (debug || Math.abs(tempV2.unsafe_get(1, 0))>1.5) {
+        if (debug) {
             System.out.println("StateVector:smooth, inverse of the covariance:");
             Cinv.print("%11.6e");
             CommonOps_DDRM.mult(snP.helix.C, Cinv, tempM);
