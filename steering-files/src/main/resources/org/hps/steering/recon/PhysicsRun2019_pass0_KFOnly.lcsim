@@ -31,8 +31,10 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
 
+        <!--
         <driver name="HelicalTrackHitDriver"/> 
-        
+        -->
+
         <driver name="KalmanPatRecDriver"/>
         <driver name="ReconParticleDriver_Kalman" /> 
         
