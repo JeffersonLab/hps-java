@@ -111,7 +111,9 @@
           
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
-            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>          
+            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>  
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>        
             <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
             <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
             <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
@@ -127,7 +129,7 @@
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
             <beamPositionZ>-7.5</beamPositionZ>
-            <maxElectronP>7.0</maxElectronP>
+            <maxElectronP>10.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>40.0</maxVertexClusterDt>           
@@ -135,7 +137,7 @@
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
             <applyClusterCorrections>true</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
 	    <makeMollerCols>false</makeMollerCols>
         </driver>  
