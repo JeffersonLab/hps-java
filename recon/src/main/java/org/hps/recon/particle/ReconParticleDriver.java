@@ -14,7 +14,6 @@ import java.util.Set;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.TrackUtils;
 import org.hps.record.StandardCuts;
 
 import org.hps.recon.utils.TrackClusterMatcher;
@@ -23,7 +22,6 @@ import org.hps.recon.utils.TrackClusterMatcherFactory;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseCluster;
