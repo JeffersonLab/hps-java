@@ -112,9 +112,8 @@ public class RawTrackerHitFitterDriver extends Driver {
             fitter = new ShaperLinearFitAlgorithm(1);
         else if (fitAlgorithm.equals("PileupAlways"))
             fitter = new ShaperPileupFitAlgorithm(1.0);
-        else if (fitAlgorithm.equals("Pileup")) {
+        else if (fitAlgorithm.equals("Pileup"))
             fitter = new ShaperPileupFitAlgorithm();
-        }
         else
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
     }

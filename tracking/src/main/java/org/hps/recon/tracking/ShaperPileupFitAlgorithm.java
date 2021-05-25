@@ -55,4 +55,4 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
         twoPulseFitter.setDebug(debug);
     }
 
-    }
+}
