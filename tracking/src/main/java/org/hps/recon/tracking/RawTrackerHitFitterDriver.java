@@ -25,6 +25,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String fitCollectionName = "SVTShapeFitParameters";
     private String fittedHitCollectionName = "SVTFittedRawTrackerHits";
+    private String fitTimeMinimizer = "Simplex";
     private SvtTimingConstants timingConstants;
     private SvtSyncStatusCollection syncStatusColl;
     private int genericObjectFlags = 1 << LCIOConstants.GOBIT_FIXED;
@@ -111,8 +112,9 @@ public class RawTrackerHitFitterDriver extends Driver {
             fitter = new ShaperLinearFitAlgorithm(1);
         else if (fitAlgorithm.equals("PileupAlways"))
             fitter = new ShaperPileupFitAlgorithm(1.0);
-        else if (fitAlgorithm.equals("Pileup"))
-            fitter = new ShaperPileupFitAlgorithm();
+        else if (fitAlgorithm.equals("Pileup")) {
+            fitter = new ShaperPileupFitAlgorithm(fitTimeMinimizer);
+        }
         else
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
     }
@@ -132,6 +134,10 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     public void setFittedHitCollectionName(String fittedHitCollectionName) {
         this.fittedHitCollectionName = fittedHitCollectionName;
+    }
+
+    public void setFitTimeMinimizer(String fitTimeMinimizer) {
+        this.fitTimeMinimizer = fitTimeMinimizer;
     }
 
     public void setRawHitCollectionName(String rawHitCollectionName) {

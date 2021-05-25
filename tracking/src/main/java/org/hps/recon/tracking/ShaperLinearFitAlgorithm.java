@@ -18,6 +18,7 @@ import org.apache.commons.math3.special.Gamma;
 import org.hps.minuit.FCNBase;
 import org.hps.minuit.FunctionMinimum;
 import org.hps.minuit.MnSimplex;
+import org.hps.minuit.MnMigrad;
 import org.hps.minuit.MnUserParameters;
 
 import org.hps.readout.svt.HPSSVTConstants;
@@ -43,6 +44,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
     //===> private ChannelConstants channelConstants;
     private HpsSiSensor sensor;
     private int channel;
+    private String fitTimeMinimizer;
     private PulseShape shape;
     private final double[] sigma = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
     private final double[] y = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
@@ -80,6 +82,10 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
 
     public double getPedestal() {
         return pedestal;
+    }
+
+    public void setFitTimeMinimizer(String fitTimeMinimizer) {
+        this.fitTimeMinimizer = fitTimeMinimizer;
     }
 
     @Override
@@ -357,8 +363,14 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
             }
         }
 
-        MnSimplex simplex = new MnSimplex(this, myParams, 2);
-        FunctionMinimum min = simplex.minimize(0, 0.001);
+        FunctionMinimum min = null;
+        if(fitTimeMinimizer == "Simplex") {
+            MnSimplex simplex = new MnSimplex(this, myParams, 2);
+            min = simplex.minimize(0, 0.001);
+        } else if (fitTimeMinimizer == "Migrad") {
+            MnMigrad migrad = new MnMigrad(this, myParams, 2);
+            min = migrad.minimize(0, 0.001);
+        }
         return min;
     }
     

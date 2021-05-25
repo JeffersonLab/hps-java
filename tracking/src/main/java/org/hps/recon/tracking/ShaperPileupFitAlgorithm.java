@@ -7,17 +7,20 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
 
     ShaperLinearFitAlgorithm onePulseFitter = new ShaperLinearFitAlgorithm(1);
     ShaperLinearFitAlgorithm twoPulseFitter = new ShaperLinearFitAlgorithm(2);
+    private String fitTimeMinimizer = "Simplex";
     private boolean debug = false;
     private double refitThreshold = 0.5;
     private int totalFits = 0;
     private int refitAttempts = 0;
     private int refitsAccepted = 0;
 
-    public ShaperPileupFitAlgorithm() {
-    }
-
     public ShaperPileupFitAlgorithm(double threshold) {
         refitThreshold = threshold;
+    }
+
+    public ShaperPileupFitAlgorithm(String fitTimeMinimizer) {
+        this.onePulseFitter.setFitTimeMinimizer(fitTimeMinimizer);
+        this.twoPulseFitter.setFitTimeMinimizer(fitTimeMinimizer);
     }
 
     //===> public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, HPSSVTCalibrationConstants.ChannelConstants constants) {
