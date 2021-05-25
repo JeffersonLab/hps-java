@@ -365,7 +365,6 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         }
 
         FunctionMinimum min = null;
-        System.out.println("Fitting with: "+fitTimeMinimizer);
         if(fitTimeMinimizer.equals("Simplex")) {
             MnSimplex simplex = new MnSimplex(this, myParams, 2);
             min = simplex.minimize(0, 0.001);
