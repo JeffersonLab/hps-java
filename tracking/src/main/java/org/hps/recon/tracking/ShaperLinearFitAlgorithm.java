@@ -44,7 +44,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
     //===> private ChannelConstants channelConstants;
     private HpsSiSensor sensor;
     private int channel;
-    private String fitTimeMinimizer;
+    private String fitTimeMinimizer = "Simplex";
     private PulseShape shape;
     private final double[] sigma = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
     private final double[] y = new double[HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES];
@@ -84,6 +84,7 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         return pedestal;
     }
 
+    @Override
     public void setFitTimeMinimizer(String fitTimeMinimizer) {
         this.fitTimeMinimizer = fitTimeMinimizer;
     }
@@ -364,12 +365,15 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         }
 
         FunctionMinimum min = null;
-        if(fitTimeMinimizer == "Simplex") {
+        System.out.println("Fitting with: "+fitTimeMinimizer);
+        if(fitTimeMinimizer.equals("Simplex")) {
             MnSimplex simplex = new MnSimplex(this, myParams, 2);
             min = simplex.minimize(0, 0.001);
-        } else if (fitTimeMinimizer == "Migrad") {
+        } else if(fitTimeMinimizer.equals("Migrad")) {
             MnMigrad migrad = new MnMigrad(this, myParams, 2);
             min = migrad.minimize(0, 0.001);
+        } else {
+            throw new RuntimeException("FitTimeMinimizer must be Simplex or Migrad");
         }
         return min;
     }

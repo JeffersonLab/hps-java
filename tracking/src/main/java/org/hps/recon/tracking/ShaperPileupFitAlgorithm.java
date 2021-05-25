@@ -14,11 +14,15 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
     private int refitAttempts = 0;
     private int refitsAccepted = 0;
 
+    public ShaperPileupFitAlgorithm() {
+    }
+
     public ShaperPileupFitAlgorithm(double threshold) {
         refitThreshold = threshold;
     }
 
-    public ShaperPileupFitAlgorithm(String fitTimeMinimizer) {
+    @Override
+    public void setFitTimeMinimizer(String fitTimeMinimizer) {
         this.onePulseFitter.setFitTimeMinimizer(fitTimeMinimizer);
         this.twoPulseFitter.setFitTimeMinimizer(fitTimeMinimizer);
     }
@@ -51,4 +55,4 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
         twoPulseFitter.setDebug(debug);
     }
 
-}
+    }

@@ -113,7 +113,7 @@ public class RawTrackerHitFitterDriver extends Driver {
         else if (fitAlgorithm.equals("PileupAlways"))
             fitter = new ShaperPileupFitAlgorithm(1.0);
         else if (fitAlgorithm.equals("Pileup")) {
-            fitter = new ShaperPileupFitAlgorithm(fitTimeMinimizer);
+            fitter = new ShaperPileupFitAlgorithm();
         }
         else
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
@@ -147,6 +147,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     @Override
     public void startOfData() {
         fitter.setDebug(debug);
+        fitter.setFitTimeMinimizer(fitTimeMinimizer);
         if (rawHitCollectionName == null)
             throw new RuntimeException("The parameter rawHitCollectionName1 was not set!");
     }
