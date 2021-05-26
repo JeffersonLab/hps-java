@@ -125,10 +125,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double bsZ = -7.5;
     private boolean constrainedD0Fit = false;
     private boolean constrainedZ0Fit = false;
-    private boolean usePoints = true;
     private int trackSide = -1;
+    private boolean doCOMAlignment = true;
+    private double seed_precision = 10000; // the constraint on q/p
     
     private GblTrajectoryMaker _gblTrajMaker;
+    
+    //This holds all the Alignment structures in the case one wants to use the COM alignment
+    AlignmentStructuresBuilder asb;
     
     //Calculator for Frame to Frame derivatives
     private FrameToFrameDers f2fD = new FrameToFrameDers();
@@ -153,13 +157,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
         bsZ = val;
     }
 
+    public void setSeedPrecision(double val) {
+        seed_precision = val;
+    }
+
     public void setConstrainedBSFit (boolean val) {
         constrainedBSFit = val;
     } 
-
-    public void setUsePoints (boolean val) {
-        usePoints = val;
-    }
 
     public void setDebugAlignmentDs (boolean val) {
         debugAlignmentDs = val;
@@ -330,16 +334,20 @@ public class SimpleGBLTrajAliDriver extends Driver {
         
         // Get the sensors subcomponents // This should be only HpsSiSensors
         sensors = detectorElement.findDescendants(SiSensor.class);
-
-        //Assign the mothers to the sensors
-        //TODO FIX this part. For the moment the mother of the sensors are chosen by string parsing. 
-        MakeAlignmentTree("alignable_fullmodule");
-
-        //Dump the constrain file
-        MakeAlignmentConstraintFile();
-
-        //setupPlots
         
+        if (!doCOMAlignment) {
+
+            //Assign the mothers to the sensors
+            //TODO FIX this part. For the moment the mother of the sensors are chosen by string parsing. 
+            MakeAlignmentTree("alignable_fullmodule");
+            
+            //Dump the constrain file
+            MakeAlignmentConstraintFile();
+        }
+        else {
+            asb = new AlignmentStructuresBuilder(sensors);
+            asb.MakeAlignmentConstraintFile();
+        }
     }
     
     @Override
@@ -556,74 +564,74 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
             /*
 
-            gbltraj.fit(Chi2, Ndf, lostWeight,"");
-            //System.out.println("fit result jna: Chi2=" + Chi2.getValue() + " Ndf=" + Ndf.getValue() + " Lost=" + lostWeight.getValue());
+              gbltraj.fit(Chi2, Ndf, lostWeight,"");
+              //System.out.println("fit result jna: Chi2=" + Chi2.getValue() + " Ndf=" + Ndf.getValue() + " Lost=" + lostWeight.getValue());
 
-            // Get the corrections at the IP
-            Vector localPar = new Vector(5);
-            SymMatrix localCov = new SymMatrix(5);            
-            gbltraj.getResults(2,localPar,localCov);
-            //System.out.println("GblTrajectoryJna::getResults BS constrained fit::localPar and localCov ");
-            //localPar.print(5,5);
-            //localCov.print(5,5);
+              // Get the corrections at the IP
+              Vector localPar = new Vector(5);
+              SymMatrix localCov = new SymMatrix(5);            
+              gbltraj.getResults(2,localPar,localCov);
+              //System.out.println("GblTrajectoryJna::getResults BS constrained fit::localPar and localCov ");
+              //localPar.print(5,5);
+              //localCov.print(5,5);
 
-            //The new z0 is z0 + z0_corr
+              //The new z0 is z0 + z0_corr
             
-            Hep3Matrix perToClPrj = GblUtils.getSimplePerToClPrj(htf.slope());
+              Hep3Matrix perToClPrj = GblUtils.getSimplePerToClPrj(htf.slope());
 
-            Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj);
+              Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj);
 
-            double xTCorr = localPar.get(FittedGblTrajectory.GBLPARIDX.XT.getValue());
-            double yTCorr = localPar.get(FittedGblTrajectory.GBLPARIDX.YT.getValue());
-            Hep3Vector corrPer = VecOp.mult(clToPerPrj, new BasicHep3Vector(xTCorr, yTCorr, 0.0));
+              double xTCorr = localPar.get(FittedGblTrajectory.GBLPARIDX.XT.getValue());
+              double yTCorr = localPar.get(FittedGblTrajectory.GBLPARIDX.YT.getValue());
+              Hep3Vector corrPer = VecOp.mult(clToPerPrj, new BasicHep3Vector(xTCorr, yTCorr, 0.0));
             
-            // Use the super class to keep track of reference point of the helix
-            HpsHelicalTrackFit helicalTrackFit = new HpsHelicalTrackFit(htf);
-            double[] refIP = helicalTrackFit.getRefPoint();
+              // Use the super class to keep track of reference point of the helix
+              HpsHelicalTrackFit helicalTrackFit = new HpsHelicalTrackFit(htf);
+              double[] refIP = helicalTrackFit.getRefPoint();
 
               // Calculate new reference point for this point
-            // This is the intersection of the helix with the plane
-            // The trajectory has this information already in the form of a map between GBL point and path length
-            double[] refPoint = new double[] { -7.5, 0};
+              // This is the intersection of the helix with the plane
+              // The trajectory has this information already in the form of a map between GBL point and path length
+              double[] refPoint = new double[] { -7.5, 0};
             
-            //System.out.printf("iLabel %d: pathLength %f -> refPointVec %s \n", iLabel, pathLength, refPointVec.toString());
+              //System.out.printf("iLabel %d: pathLength %f -> refPointVec %s \n", iLabel, pathLength, refPointVec.toString());
 
-            //LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
+              //LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
 
-            // Propagate the helix to new reference point
-            double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
+              // Propagate the helix to new reference point
+              double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
 
-            // Create a new helix with the new parameters and the new reference point
-            HpsHelicalTrackFit helicalTrackFitAtPoint = new HpsHelicalTrackFit(helixParametersAtPoint, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
-            //System.out.printf("raw params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPoint.dca(), helicalTrackFitAtPoint.z0());
+              // Create a new helix with the new parameters and the new reference point
+              HpsHelicalTrackFit helicalTrackFitAtPoint = new HpsHelicalTrackFit(helixParametersAtPoint, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
+              //System.out.printf("raw params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPoint.dca(), helicalTrackFitAtPoint.z0());
 
-            // find the corrected perigee track parameters at this point
-            double[] helixParametersAtPointCorrected = GblUtils.getCorrectedPerigeeParameters(localPar, helicalTrackFitAtPoint, bfield);
+              // find the corrected perigee track parameters at this point
+              double[] helixParametersAtPointCorrected = GblUtils.getCorrectedPerigeeParameters(localPar, helicalTrackFitAtPoint, bfield);
             
-            // create a new helix
-            HpsHelicalTrackFit helicalTrackFitAtPointCorrected = new HpsHelicalTrackFit(helixParametersAtPointCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
-            //System.out.printf("corrected params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPointCorrected.dca(), helicalTrackFitAtPointCorrected.z0());
+              // create a new helix
+              HpsHelicalTrackFit helicalTrackFitAtPointCorrected = new HpsHelicalTrackFit(helixParametersAtPointCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
+              //System.out.printf("corrected params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPointCorrected.dca(), helicalTrackFitAtPointCorrected.z0());
             
-            // change reference point back to the original one
-            double[] helixParametersAtIPCorrected = TrackUtils.getParametersAtNewRefPoint(refIP, helicalTrackFitAtPointCorrected);
+              // change reference point back to the original one
+              double[] helixParametersAtIPCorrected = TrackUtils.getParametersAtNewRefPoint(refIP, helicalTrackFitAtPointCorrected);
             
-            // create a new helix for the new parameters at the IP reference point
-            HpsHelicalTrackFit helicalTrackFitAtIPCorrected = new HpsHelicalTrackFit(helixParametersAtIPCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refIP);
-            //System.out.printf("params at IP: d0 %f  z0 %f \n \n", helicalTrackFitAtIPCorrected.dca(), helicalTrackFitAtIPCorrected.z0());
+              // create a new helix for the new parameters at the IP reference point
+              HpsHelicalTrackFit helicalTrackFitAtIPCorrected = new HpsHelicalTrackFit(helixParametersAtIPCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refIP);
+              //System.out.printf("params at IP: d0 %f  z0 %f \n \n", helicalTrackFitAtIPCorrected.dca(), helicalTrackFitAtIPCorrected.z0());
 
-            //aidaGBL.histogram1D("d0_vs_bs_BSC_lcsim").fill(newD0_corr);
-            //aidaGBL.histogram1D("z0_vs_bs_BSC_lcsim").fill(newZ0_corr);
+              //aidaGBL.histogram1D("d0_vs_bs_BSC_lcsim").fill(newD0_corr);
+              //aidaGBL.histogram1D("z0_vs_bs_BSC_lcsim").fill(newZ0_corr);
             
             
-            //GblTrajectory gbltraj = newTrackTraj.getSecond().get_traj();
+              //GblTrajectory gbltraj = newTrackTraj.getSecond().get_traj();
             
-            //gbltraj.getResults(1,localPar,localCov);
-            //System.out.println("GblTrajectory::getResults::localPar and localCov ");
-            //localPar.print(5,5);
-            //localCov.print(5,5);
-            //gblTraj_jna.milleOut(mille);
+              //gbltraj.getResults(1,localPar,localCov);
+              //System.out.println("GblTrajectory::getResults::localPar and localCov ");
+              //localPar.print(5,5);
+              //localCov.print(5,5);
+              //gblTraj_jna.milleOut(mille);
 
-            */
+              */
             
             //Check the rw derivatives
             //System.out.printf("Derivatives print out\n");
@@ -633,32 +641,32 @@ public class SimpleGBLTrajAliDriver extends Driver {
             /* - get TrajData is still not supported
                for (GblData gbldata : gbltraj.getTrajData()) {
                 
-                float vals[] = new float[2];
-                List<Integer> indLocal = new ArrayList<Integer>();
-                List<Double> derLocal = new ArrayList<Double>();
-                List<Integer> labGlobal = new ArrayList<Integer>();
-                List<Double> derGlobal = new ArrayList<Double>();
+               float vals[] = new float[2];
+               List<Integer> indLocal = new ArrayList<Integer>();
+               List<Double> derLocal = new ArrayList<Double>();
+               List<Integer> labGlobal = new ArrayList<Integer>();
+               List<Double> derGlobal = new ArrayList<Double>();
                 
-                gbldata.getAllData(vals, indLocal, derLocal, labGlobal, derGlobal);
+               gbldata.getAllData(vals, indLocal, derLocal, labGlobal, derGlobal);
                 
-                //Measurement
-                if  (labGlobal.size() >=6 ) {
-                    for (int itag = 3; itag<=5; itag++) {
-                        String derTag = String.valueOf(labGlobal.get(itag));
-                        aidaGBL.histogram1D(derFolder+derTag).fill(derGlobal.get(itag));
-                    }
-                }
+               //Measurement
+               if  (labGlobal.size() >=6 ) {
+               for (int itag = 3; itag<=5; itag++) {
+               String derTag = String.valueOf(labGlobal.get(itag));
+               aidaGBL.histogram1D(derFolder+derTag).fill(derGlobal.get(itag));
+               }
+               }
 
                 
                 
                 
-                //for (int i_der =0; i_der<derLocal.size();i_der++) {
+               //for (int i_der =0; i_der<derLocal.size();i_der++) {
                     
-                  //  System.out.printf("Derivative %d value %f \n:", i_der, derLocal.get(i_der));
-                //}
+               //  System.out.printf("Derivative %d value %f \n:", i_der, derLocal.get(i_der));
+               //}
                 
                 
-            }
+               }
             */
         
             if (compositeAlign) {
@@ -671,181 +679,64 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 List<GblData> data_on_traj = gbltraj.getTrajData();
 
                 if (debugAlignmentDs) {
-                    System.out.printf("Size of GBL Points %d Size of GBL Data %d\n",points_on_traj.size(), data_on_traj.size());
+                System.out.printf("Size of GBL Points %d Size of GBL Data %d\n",points_on_traj.size(), data_on_traj.size());
                     
-                    for (int idata =0; idata< data_on_traj.size(); idata++) {
-                        if (data_on_traj.get(idata).getType() == GblData.dataBlockType.InternalMeasurement) {
-                            System.out.printf("GblData %d\n",idata);
-                            data_on_traj.get(idata).printData();
-                        }
-                    }
+                for (int idata =0; idata< data_on_traj.size(); idata++) {
+                if (data_on_traj.get(idata).getType() == GblData.dataBlockType.InternalMeasurement) {
+                System.out.printf("GblData %d\n",idata);
+                data_on_traj.get(idata).printData();
+                }
+                }
                 }
                 */
                 
                 //For the moment I form the global derivatives here, but in principle I should create them when I run the trajectory creator.
                 
-                if (usePoints) {
+                for ( GblPointJna gblpoint : points_on_traj) {
                     
-                    for ( GblPointJna gblpoint : points_on_traj) {
-                        
-                        List<Integer> labels = gblpoint.getGlobalLabels();
-                        
-                        if (labels.size() >  0) {
-                            
-                            Matrix g_ders = gblpoint.getGlobalDerivatives();
-                            //The MPII ID + Volume is used to get the correct composite structure
-                            // 1 for top  2 for bottom
-                            int volume = labels.get(0) / MilleParameter.half_offset;
-                            
-                            String volname = "top";
-                            String volname_s = "t";
-                            
-                            if (volume == 2)  {
-                                volname= "bottom";
-                                volname_s = "b";
-                            }
-                            
-                            //sensor label % 100
-                            int mpid = labels.get(0) % 100;
-                            
-                            if (debugAlignmentDs) {
-                                System.out.println(labels.toString());
-                                g_ders.print(6,6);
-                            }
-
-                            
-                            HpsSiSensor mysensor = null;
-                            for (SiSensor sensor : sensors) {
+                    
+                    if (!doCOMAlignment)
+                        ComputeStructureDerivatives(gblpoint);
+                    else
+                        ComputeCOMDerivatives(gblpoint);
+                    
+                }//point loop
+                
+                
+                //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
+                
+                GblTrajectoryJna trajForMPII = null;
+                
+                if (!constrainedFit) {
+                    trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
+                }
+                
+                else {
+                    //Seed constrained fit 
+                    SymMatrix seedPrecision = new SymMatrix(5);
+                    //seed matrix q/p, yT', xT', xT, yT 
+                    
+                    //q/p constraint
+                    seedPrecision.set(0,0,seed_precision);
+                    
+                    //d0 constraint
+                    //seedPrecision.set(3,3,1000000);
+                    trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
+                }
+                
+                if (debugAlignmentDs)
+                    trajForMPII.printData();
+                
+                
+                //Fit the trajectory to get the Chi2
+                trajForMPII.fit(Chi2,Ndf, lostWeight,"");
                                 
-                                if (sensor.getName().contains(volname_s)) {
-                                    if (((HpsSiSensor) sensor).getMillepedeId() == mpid) {
-                                        mysensor = (HpsSiSensor) sensor;
-                                    }
-                                }
-                            }
-                            
-                            if (mysensor == null)
-                                throw new RuntimeException("Couldn't find HpsSensor for the volume/millepede ID " + volname_s+"/"+String.valueOf(mpid));
-                            //Get the sensor frame
-                            
-                            Hep3Matrix Rgtos = mysensor.getGeometry().getLocalToGlobal().getRotation().getRotationMatrix();
-                            Hep3Vector Tgtos = mysensor.getGeometry().getLocalToGlobal().getTranslation().getTranslationVector();
-                            
-                            if (debugAlignmentDs) {
-                                System.out.printf("PF::Print the Sensor %s Transform:\n", mysensor.getName());
-                                System.out.println(Rgtos.toString());
-                                System.out.println(Tgtos.toString());
-                            }
-                            
-
-                            //Holds the derivatives and labels buffers
-                            List<Double> derBuff = new ArrayList<Double>();
-                            List<Integer> labBuff = new ArrayList<Integer>();
-                            
-
-                            //The same sensor will be contained in multiple Composite structures. 
-                            //For the moment I'll try to align the front support and back UChannels. HARDCODED!
-                            
-                            
-                            //Modules:
-                            
-                            AlignableDetectorElement myade_Mod =  (AlignableDetectorElement) mysensor.getAdeMother();
-
-                            if (debugAlignmentDs) 
-                                System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),myade_Mod.getName());
-                            
-                            //Modules
-                            addGlobalDerivatives(derBuff, labBuff,
-                                                 Rgtos,Tgtos, g_ders,
-                                                 myade_Mod, labels);
-
-                            //UChannels:
-                            AlignableDetectorElement myade_UC = (AlignableDetectorElement) mysensor.getAdeMother().getParent();
-                            
-                            if (debugAlignmentDs)
-                                System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),myade_UC.getName());
-                            
-
-                            //UChannels
-                            addGlobalDerivatives(derBuff, labBuff,
-                                                 Rgtos,Tgtos, g_ders,
-                                                 myade_UC, labels);
-
-                            //Copy the labels for the composite structure
-                            List<Integer> c_labGlobal = new ArrayList<Integer>();
-                            c_labGlobal.addAll(labBuff);
-                            
-                            //Add the labels and the derivatives to the points.
-                            Matrix allDer = new Matrix(1, labels.size() + c_labGlobal.size());
-                            for (int ider = 0; ider< labels.size(); ider++) {
-                                allDer.set(0,ider,g_ders.get(0,ider));
-                            }
-                            
-                            for (int ider = 0; ider < c_labGlobal.size(); ider++) {
-                                allDer.set(0,ider+labels.size(),derBuff.get(ider));
-                            }
-                            
-                            //Join the two lists
-                            List<Integer> all_labels = new ArrayList<Integer>();
-                            all_labels.addAll(labels);
-                            all_labels.addAll(c_labGlobal);
-                            
-                            
-                            
-                            if (debugAlignmentDs) {
-                                System.out.println("PF:: Labels and derivatives");
-                                
-                                //Print all data to be written to the binary:
-                                System.out.println(all_labels.toString());
-                                allDer.print(18,6);
-                                System.out.println("========================");
-                            }
-                            
-                            gblpoint.addGlobals(all_labels,allDer);
-                            
-                            
-                        }//labels > 0
-                    }//point loop
-                    
-                    
-                    //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
-
-                    GblTrajectoryJna trajForMPII = null;
-                    
-                    if (!constrainedFit) {
-                        trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
-                    }
-                    
-                    else {
-                        //Seed constrained fit 
-                        SymMatrix seedPrecision = new SymMatrix(5);
-                        //seed matrix q/p, yT', xT', xT, yT 
-                        
-                        //q/p constraint
-                        seedPrecision.set(0,0,1000000);
-                        //seedPrecision.set(0,0,10000);
-                        
-                        //d0 constraint
-                        //seedPrecision.set(3,3,1000000);
-                        trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
-                    }
-                    
-                    if (debugAlignmentDs)
-                        trajForMPII.printData();
-                    
-
-                    //Fit the trajectory to get the Chi2
-                    trajForMPII.fit(Chi2,Ndf, lostWeight,"");
-                    
-                    
-                    //Avoid to use tracks with terrible Chi2
-                    if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
-                        continue;
-
-                    trajForMPII.milleOut(mille);
-                    
-                    
-                }//usePoints
+                //Avoid to use tracks with terrible Chi2
+                if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
+                    continue;
+                
+                trajForMPII.milleOut(mille);
+                
                 
             }// composite Alignment
         }//loop on tracks
@@ -857,8 +748,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
         event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
         
         if (computeGBLResiduals) {
-            event.put(trackResidualsColName,    trackResidualsCollection,  TrackResidualsData.class, 0);
-            event.put(trackResidualsRelColName, trackResidualsRelations, LCRelation.class, 0);
+        event.put(trackResidualsColName,    trackResidualsCollection,  TrackResidualsData.class, 0);
+        event.put(trackResidualsRelColName, trackResidualsRelations, LCRelation.class, 0);
         }
         
         event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
@@ -1120,19 +1011,19 @@ public class SimpleGBLTrajAliDriver extends Driver {
             }
             
             /*
-            for (SiSensor sensor : sensors) {
+              for (SiSensor sensor : sensors) {
                 
-                HpsSiSensor hpsSensor = (HpsSiSensor) sensor;
+              HpsSiSensor hpsSensor = (HpsSiSensor) sensor;
                 
-                if (hpsSensor.getMillepedeId() < 0)
-                    continue;
+              if (hpsSensor.getMillepedeId() < 0)
+              continue;
                 
-                bufferedWriter.write(hpsSensor.getName());
-                bufferedWriter.newLine();
-                bufferedWriter.write(hpsSensor.getMPIILabels().toString());
-                bufferedWriter.newLine();
+              bufferedWriter.write(hpsSensor.getName());
+              bufferedWriter.newLine();
+              bufferedWriter.write(hpsSensor.getMPIILabels().toString());
+              bufferedWriter.newLine();
                 
-                }
+              }
             */
             
             bufferedWriter.close();
@@ -1142,7 +1033,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
         }
     }
 
-
+    
+    
     //Assigns the mother to the sensors
     private void MakeAlignmentTree(String regEx) {
         
@@ -1444,6 +1336,259 @@ public class SimpleGBLTrajAliDriver extends Driver {
             return strip1.getId() - strip2.getId();
         }
     };
+
+
+    private void ComputeCOMDerivatives(GblPointJna gblpoint) {
+
+
+        List<Integer> labels = gblpoint.getGlobalLabels();
+        
+        if (labels.size() < 1) 
+            return;
+        
+        
+        
+        Matrix g_ders = gblpoint.getGlobalDerivatives();
+        //The MPII ID + Volume is used to get the correct composite structure
+        // 1 for top  2 for bottom
+        int volume = labels.get(0) / MilleParameter.half_offset;
+        
+        String volname = "top";
+        String volname_s = "t";
+        
+        if (volume == 2)  {
+            volname= "bottom";
+            volname_s = "b";
+        }
+        
+        //sensor label % 100
+        int mpid = labels.get(0) % 100;
+        
+        if (debugAlignmentDs) {
+            System.out.println(labels.toString());
+            g_ders.print(6,6);
+        }
+        
+        
+        HpsSiSensor mysensor = null;
+        for (SiSensor sensor : sensors) {
+            
+            if (sensor.getName().contains(volname_s)) {
+                if (((HpsSiSensor) sensor).getMillepedeId() == mpid) {
+                    mysensor = (HpsSiSensor) sensor;
+                }
+            }
+        }
+        
+        if (mysensor == null)
+            throw new RuntimeException("Couldn't find HpsSensor for the volume/millepede ID " + volname_s+"/"+String.valueOf(mpid));
+
+        //Holds the derivatives and labels buffers
+        List<Double> derBuff = new ArrayList<Double>();
+        List<Integer> labBuff = new ArrayList<Integer>();
+        
+        //Get the alignable sensor from the tree
+                            
+        AlignableVolume alignable_sensor = asb.getAlignableVolume(mysensor.getName()+"_AV");
+        
+        //Check against null
+                            
+        if (alignable_sensor == null)  {
+            System.out.println("Alignable Sensor " + mysensor.getName()+"_AV   Not found in the alignment tree");
+            return;
+        }
+        
+        //if (debugAlignmentDs) {
+        //    alignable_sensor.Print();
+        //}
+        
+        //Get the alignable trxee hierarchy:
+        AlignableVolume av_parent = alignable_sensor.getParent();
+        String av_d_name = alignable_sensor.getName();
+        Matrix c_derGlobal = g_ders;
+        while (av_parent != null) {
+            List <Integer> c_labels = new ArrayList<Integer>();
+            if (debugAlignmentDs) {
+                System.out.println("PARENT::" + av_parent.getName());
+            }
+            //Get the CMatrix of the parent and update the c_derGlobal
+            c_derGlobal = c_derGlobal.times(av_parent.getCMatrix(av_d_name));
+            //Check the derivatives
+            if (debugAlignmentDs) {
+                System.out.println("Derivatives for " + av_parent.getName());
+            }
+            //c_derGlobal.print(6,6);
+            //Change to the composite structure ID
+            for (int ilabel = 0; ilabel<labels.size(); ilabel++) {
+                //Integer c_label = (labels.get(ilabel) / 100) * 100 + av_parent.getMillepedeId();
+                Integer c_label = av_parent.getLabels().get(ilabel);
+                derBuff.add(c_derGlobal.get(0,ilabel));                                              
+                labBuff.add(c_label);
+            }
+            //System.out.println(c_labels.toString());
+                                    
+            //Update the daughter
+            av_d_name = av_parent.getName();
+            //Update the parent
+            av_parent = av_parent.getParent();
+        }
+                            
+        //Copy the labels for the composite structure
+        List<Integer> c_labGlobal = new ArrayList<Integer>();
+        c_labGlobal.addAll(labBuff);
+                            
+        //Add the labels and the derivatives to the points.
+        Matrix allDer = new Matrix(1, labels.size() + c_labGlobal.size());
+        for (int ider = 0; ider< labels.size(); ider++) {
+            allDer.set(0,ider,g_ders.get(0,ider));
+        }
+                            
+        for (int ider = 0; ider < c_labGlobal.size(); ider++) {
+            allDer.set(0,ider+labels.size(),derBuff.get(ider));
+        }
+                            
+        //Join the two lists
+        List<Integer> all_labels = new ArrayList<Integer>();
+        all_labels.addAll(labels);
+        all_labels.addAll(c_labGlobal);
+                            
+        if (debugAlignmentDs) {
+            System.out.println("PF:: Labels and derivatives");
+                                
+            //Print all data to be written to the binary:
+            System.out.println(all_labels.toString());
+            allDer.print(6,6);
+            System.out.println("========================");
+        }
+                            
+        gblpoint.addGlobals(all_labels,allDer);
+                            
+                            
+    }
+
+
+    //This will compute and add to the buffers the derivatives 
+    private void ComputeStructureDerivatives(GblPointJna gblpoint) {
+        
+        List<Integer> labels = gblpoint.getGlobalLabels();
+        
+        if (labels.size() < 1) 
+            return;
+        
+        Matrix g_ders = gblpoint.getGlobalDerivatives();
+        //The MPII ID + Volume is used to get the correct composite structure
+        // 1 for top  2 for bottom
+        int volume = labels.get(0) / MilleParameter.half_offset;
+        
+        String volname = "top";
+        String volname_s = "t";
+        
+        if (volume == 2)  {
+            volname= "bottom";
+            volname_s = "b";
+        }
+        
+        //sensor label % 100
+        int mpid = labels.get(0) % 100;
+        
+        if (debugAlignmentDs) {
+            System.out.println(labels.toString());
+            g_ders.print(6,6);
+        }
+        
+        
+        HpsSiSensor mysensor = null;
+        for (SiSensor sensor : sensors) {
+            
+            if (sensor.getName().contains(volname_s)) {
+                if (((HpsSiSensor) sensor).getMillepedeId() == mpid) {
+                    mysensor = (HpsSiSensor) sensor;
+                }
+            }
+        }
+        
+        if (mysensor == null)
+            throw new RuntimeException("Couldn't find HpsSensor for the volume/millepede ID " + volname_s+"/"+String.valueOf(mpid));
+        
+        
+        //Holds the derivatives and labels buffers
+        List<Double> derBuff = new ArrayList<Double>();
+        List<Integer> labBuff = new ArrayList<Integer>();
+        
+
+
+        //###############################################//
+        //Get the sensor frame
+        
+        Hep3Matrix Rgtos = mysensor.getGeometry().getLocalToGlobal().getRotation().getRotationMatrix();
+        Hep3Vector Tgtos = mysensor.getGeometry().getLocalToGlobal().getTranslation().getTranslationVector();
+        
+        if (debugAlignmentDs) {
+            System.out.printf("PF::Print the Sensor %s Transform:\n", mysensor.getName());
+            System.out.println(Rgtos.toString());
+            System.out.println(Tgtos.toString());
+        }
+        
+        
+                        
+        //Modules:
+        
+        AlignableDetectorElement myade_Mod =  (AlignableDetectorElement) mysensor.getAdeMother();
+        
+        if (debugAlignmentDs) 
+            System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),myade_Mod.getName());
+        
+        //Modules
+        addGlobalDerivatives(derBuff, labBuff,
+                             Rgtos,Tgtos, g_ders,
+                             myade_Mod, labels);
+        
+        //UChannels:
+        AlignableDetectorElement myade_UC = (AlignableDetectorElement) mysensor.getAdeMother().getParent();
+        
+        if (debugAlignmentDs)
+            System.out.printf("PF:: The sensor vol %s and mpid %s corresponds to %s is contained in the structure %s\n\n\n", volname, mpid, mysensor.getName(),myade_UC.getName());
+        
+        
+        //UChannels
+        addGlobalDerivatives(derBuff, labBuff,
+                             Rgtos,Tgtos, g_ders,
+                             myade_UC, labels);
+        
+        
+        
+        //Copy the labels for the composite structure
+        List<Integer> c_labGlobal = new ArrayList<Integer>();
+        c_labGlobal.addAll(labBuff);
+        
+        //Add the labels and the derivatives to the points.
+        Matrix allDer = new Matrix(1, labels.size() + c_labGlobal.size());
+        for (int ider = 0; ider< labels.size(); ider++) {
+            allDer.set(0,ider,g_ders.get(0,ider));
+        }
+        
+        for (int ider = 0; ider < c_labGlobal.size(); ider++) {
+            allDer.set(0,ider+labels.size(),derBuff.get(ider));
+        }
+        
+        //Join the two lists
+        List<Integer> all_labels = new ArrayList<Integer>();
+        all_labels.addAll(labels);
+        all_labels.addAll(c_labGlobal);
+        
+        
+        
+        if (debugAlignmentDs) {
+            System.out.println("PF:: Labels and derivatives");
+            
+            //Print all data to be written to the binary:
+            System.out.println(all_labels.toString());
+            allDer.print(18,6);
+            System.out.println("========================");
+        }
+        
+        gblpoint.addGlobals(all_labels,allDer);
+    }
     
 }
 

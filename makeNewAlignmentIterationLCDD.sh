@@ -6,7 +6,7 @@ if [ "$#" -ne 2 ]; then
     exit 1
     fi
 
-java -cp distribution/target/hps-distribution-4.5-SNAPSHOT-bin.jar org.hps.detector.DetectorConverter -f lcdd -i detector-data/detectors/HPS_${tag}_$iteration/compact.xml -o detector-data/detectors/HPS_${tag}_$iteration/HPS_${tag}_$iteration.lcdd
+java -cp distribution/target/hps-distribution-5.1-SNAPSHOT-bin.jar org.hps.detector.DetectorConverter -f lcdd -i detector-data/detectors/HPS_${tag}_$iteration/compact.xml -o detector-data/detectors/HPS_${tag}_$iteration/HPS_${tag}_$iteration.lcdd
 echo "name: HPS_${tag}_$iteration" > detector-data/detectors/HPS_${tag}_$iteration/detector.properties
 
 cd detector-data
