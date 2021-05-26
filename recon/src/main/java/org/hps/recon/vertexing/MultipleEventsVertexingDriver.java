@@ -94,6 +94,9 @@ public final class MultipleEventsVertexingDriver extends Driver {
         if (event.hasCollection(Track.class, trackCollectionName)) {
             trackCollection = event.get(Track.class,trackCollectionName);
         }
+        else {
+            return;
+        }
         
         for (Track track : trackCollection) {
 
