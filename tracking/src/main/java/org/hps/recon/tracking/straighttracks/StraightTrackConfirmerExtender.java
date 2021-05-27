@@ -26,8 +26,6 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
  * layers to check. The confirm phase simply outputs a list of SeedCandidates that have at least the minimum number of
  * confirm hits added to the track. The extend phases completes track finding and imposes the merge criteria to
  * eliminate inferior track candidates when a pair of candidates shares more than one hit.
- *
- * @author cozzy, Richard Partridge 
  * 
  * Modified for HPS straight track fitting by Matt Graham 10/29/2014
  */

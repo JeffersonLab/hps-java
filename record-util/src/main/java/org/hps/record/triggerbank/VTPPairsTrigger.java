@@ -11,14 +11,12 @@ import java.util.logging.Logger;
  * <li>4bit [10 : 13] pass bits</li>
  * <li>3bit [19 : 22] pair cluster trigger bit instance: 0 to 3</li> 
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class VTPPairsTrigger {
     // pairs trigger's variables.
     private int t; // in 4 ns units
-    private BitSet passBits = new BitSet(4);
+    // Bits [4 : 9] are only for pair3 trigger; Only pair3 trigger requires hodoscope and Ecal geometry matching
+    private BitSet passBits = new BitSet(10);
     private int inst;
     
     /**
@@ -38,7 +36,7 @@ public class VTPPairsTrigger {
     
     public final void decodeData(int word){
         t = word & 0x3FF;
-        passBits = BitSet.valueOf(new long [] {word >> 10 & 0x0F});
+        passBits = BitSet.valueOf(new long [] {word >> 10 & 0x03FF});
         inst = word >> 20 & 0x07;
         
         // Make sure that the input values are valid.
@@ -86,7 +84,7 @@ public class VTPPairsTrigger {
      * <code>false</code> otherwise.
      */
     public boolean checkPass(int bitIndex) {
-        if(bitIndex > 3) throw new RuntimeException("Index " + bitIndex + " is out of range (0 : 3)");
+        if(bitIndex > 9) throw new RuntimeException("Index " + bitIndex + " is out of range (0 : 9)");
         else return passBits.get(bitIndex);
     }
     
@@ -116,5 +114,53 @@ public class VTPPairsTrigger {
      */
     public boolean passCoplanarity() {
         return passBits.get(3);
-    }    
+    }  
+    
+    /**
+     * Indicate if pass both L1 and L2 coincidence for top
+     * @return
+     */
+    public boolean passL1L2CoincidenceTop() {
+        return passBits.get(4);
+    }
+    
+    /**
+     * Indicate if pass L1L2 geometry matching for top
+     * @return
+     */
+    public boolean passHodoL1L2MatchingTop() {
+        return passBits.get(5);
+    }
+    
+    /**
+     * Indicate if pass Hodo and Ecal geometry matching for top
+     * @return
+     */
+    public boolean passHodoEcalMatchingTop() {
+        return passBits.get(6);
+    }
+    
+    /**
+     * Indicate if pass both L1 and L2 coincidence for bot
+     * @return
+     */
+    public boolean passL1L2CoincidenceBot() {
+        return passBits.get(7);
+    }
+    
+    /**
+     * Indicate if pass L1L2 geometry matching for bot
+     * @return
+     */
+    public boolean passHodoL1L2MatchingBot() {
+        return passBits.get(8);
+    }
+    
+    /**
+     * Indicate if pass Hodo and Ecal geometry matching for bot
+     * @return
+     */
+    public boolean passHodoEcalMatchingBot() {
+        return passBits.get(9);
+    }
 }

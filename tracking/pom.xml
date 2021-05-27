@@ -8,7 +8,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.5-SNAPSHOT</version>
+    <version>5.1-SNAPSHOT</version>
   </parent>
   <build>
     <plugins>
@@ -17,16 +17,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <excludes>
-            <exclude>**/ReconTestSkeleton.java</exclude>
-            <exclude>**/RecoToRaw.java</exclude>
-            <exclude>**/RecoToRawMC.java</exclude>
-            <exclude>**/TrackingReconstructionPlotsTest.java</exclude>
-            <exclude>**/TrackReconWithPlotsTest.java</exclude>
-            <exclude>**/CircleFitTest.java</exclude>
-            <exclude>**/TwoPointRadiusCircleFitterTest.java</exclude>
-            <exclude>**/ComparisonTest.java</exclude>
-            <exclude>**/TruthResidualTest.java</exclude>
-            <exclude>**/ReconGBLoutputTest.java</exclude>
+            <exclude>**/*Test.java</exclude>
           </excludes>
         </configuration>
       </plugin>
@@ -44,6 +35,20 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>5.5.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ejml</groupId>
+      <artifactId>ejml-all</artifactId>
+      <version>0.39</version>
+    </dependency>
+    <dependency>
+      <groupId>org.lcsim</groupId>
+      <artifactId>lcsim-tracking</artifactId>
     </dependency>
   </dependencies>
 </project>

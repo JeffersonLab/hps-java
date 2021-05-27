@@ -1,10 +1,14 @@
 package org.hps.readout.trigger2019;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Collection;
 
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.TriggerDriver;
 import org.hps.recon.ecal.EcalUtils;
+import org.hps.record.daqconfig2019.ConfigurationManager2019;
+import org.hps.record.daqconfig2019.DAQConfig2019;
 import org.hps.record.triggerbank.TriggerModule2019;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -18,8 +22,6 @@ import org.lcsim.event.EventHeader;
  * manager so that a triggered readout event may be written.
  * 
  * Prescale for various regions are not set. 
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 
 public class FEETrigger2019ReadoutDriver extends TriggerDriver{
@@ -34,6 +36,29 @@ public class FEETrigger2019ReadoutDriver extends TriggerDriver{
     // ==== Driver Internal Variables ===================================
     // ==================================================================
     private double localTime = 0.0;                                // Stores the internal time clock for the driver.
+        
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfigurationAppliedintoReadout(boolean state) {
+        // If the DAQ configuration should be read, attach a listener
+        // to track when it updates.   
+        if (state) {
+            ConfigurationManager2019.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig2019 daq = ConfigurationManager2019.getInstance(); 
+                    triggerModule.loadDAQConfiguration(daq.getVTPConfig().getFEEConfig()); 
+                }
+            });
+        }         
+    }
     
     @Override
     public void startOfData() {

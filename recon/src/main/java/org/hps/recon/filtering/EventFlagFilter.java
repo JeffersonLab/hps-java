@@ -6,11 +6,7 @@ import java.util.logging.Logger;
 import org.lcsim.event.EventHeader;
 
 /**
- * Accept only events where all of the specified flags exist and have a value of
- * 1.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
+ * Accept only events where all of the specified flags exist and have a value of 1.
  */
 public class EventFlagFilter extends EventReconFilter {
 
@@ -29,6 +25,7 @@ public class EventFlagFilter extends EventReconFilter {
         if (flagNames != null) {
             for (String flagName : flagNames) {
                 int[] flag = event.getIntegerParameters().get(flagName);
+                //System.out.println("flag <" + flagName + ">");
                 if (flag == null || flag[0] == 0) {
                     LOGGER.log(LEVEL, "Skipping event <" + event.getEventNumber() + "> from flag <" + flagName + ">");
                     skipEvent();

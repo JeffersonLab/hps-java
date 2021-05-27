@@ -29,14 +29,8 @@ import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 
-//===> import org.hps.conditions.deprecated.SvtUtils;
 import static org.hps.recon.tracking.CoordinateTransformations.transformVectorToTracking;
 
-/**
- *
- * @author Richard Partridge & Matt Graham
- */
-// TODO: This class needs to be cleaned up
 public class TrackAnalysis {
 
     private enum HelixPar {

@@ -25,10 +25,6 @@ import org.lcsim.util.aida.AIDA;
  * 
  * When user clicks on crystal in Kyle's event viewer, the corresponding channel's
  * pedestal histogram is drawn.
- * 
- * @version $Id: EcalPedestalViewer.java,v 0.1 2015/02/20 00:00:00
- * 
- * @author <baltzell@jlab.org>
  */
 public class EcalPedestalViewer extends Driver implements CrystalListener, ActionListener {
 

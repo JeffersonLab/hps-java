@@ -31,8 +31,6 @@ import org.lcsim.geometry.compact.Subdetector;
 
 /**
  * This class puts {@link SvtConditions} data onto <code>HpsSiSensor</code> objects.
- *
- * @author Omar Moreno, SLAC National Accelerator Laboratory
  */
 public final class SvtDetectorSetup implements ConditionsListener {
 

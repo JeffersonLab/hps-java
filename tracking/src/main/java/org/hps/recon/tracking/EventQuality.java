@@ -7,8 +7,6 @@ import java.util.Map;
 
 /**
  * Singleton class to hold default cut values
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 // FIXME: Does this belong in Matt's new analysis.dataquality package instead?
 // It is used by TrackUtils so it is left here for now.

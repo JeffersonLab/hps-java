@@ -52,10 +52,8 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/*
+/**
  * This is the driver used to determine the response of each calorimeter channel after a LED run
- * 
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  */
 public class EcalLedSequenceMonitor extends Driver {
 

@@ -38,10 +38,6 @@ import org.lcsim.util.aida.AIDA;
  * TrackerHits separately, so should only be run on MC events with single
  * tracks. TODO follow the link back from the TrackerHit to the SimTrackerHit to
  * get a 1-to-1 correspondence between the hits.
- *
- * @author Norman A Graf
- *
- * @version $Id:
  */
 public class MCTrackerHitResidualAnalysisDriver extends Driver
 {

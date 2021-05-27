@@ -23,13 +23,7 @@ import org.lcsim.geometry.compact.Detector;
 import org.lcsim.geometry.compact.Subdetector;
 import org.lcsim.geometry.subdetector.HPSMuonCalorimeter;
 
-
-/**
- * @author jeremym
- * @version $Id: HPSMuonCalorimeterConverter.java,v 1.2 2013/01/25 00:13:44 jeremy Exp $
- */
-public class HPSMuonCalorimeterConverter extends AbstractSubdetectorConverter 
-{
+public class HPSMuonCalorimeterConverter extends AbstractSubdetectorConverter {
 
     public Class getSubdetectorType() 
     {

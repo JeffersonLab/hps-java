@@ -6,8 +6,6 @@ import java.awt.Point;
  * Class <code>CrystalDataSet</code> contains all of the hardware data
  * for a single calorimeter crystal as defined in the crystal hardware
  * reference sheet.
- * 
- * @author Kyle McCarty
  */
 public class CrystalDataSet {    
     // Data points.
@@ -186,7 +184,6 @@ public class CrystalDataSet {
      * of a crystal's preamplifier. It can also contain a reference
      * wire color if necessary.
      * 
-     * @author Kyle McCarty
      */
     public class Preamplifier implements Comparable<Preamplifier> {
         private final short number;
@@ -256,7 +253,6 @@ public class CrystalDataSet {
      * Enumerable <code>Motherboard</code> contains convenience methods
      * for defining the motherboard location for a particular crystal.
      * 
-     * @author Kyle McCarty
      */
     public enum Motherboard {
         /** The motherboard on the upper, left-hand side. */

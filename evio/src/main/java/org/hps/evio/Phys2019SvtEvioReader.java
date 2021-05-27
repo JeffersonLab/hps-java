@@ -16,8 +16,6 @@ import org.lcsim.geometry.Subdetector;
 /**
  * SVT EVIO reader used to convert 2019 Physics Run SVT raw data to LCIO 
  * objects.
- *
- * @author Omar Moreno, SLAC National Accelerator Laboratory 
  */
 public class Phys2019SvtEvioReader extends AbstractSvtEvioReader {
 

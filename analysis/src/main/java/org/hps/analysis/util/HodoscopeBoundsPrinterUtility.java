@@ -23,8 +23,6 @@ import org.lcsim.geometry.Detector;
  * It may be run using the command: <code>java -cp $HPS_JAVA
  * org.hps.analysis.util.HodoscopeBoundsPrinterUtility -R
  * $RUN_NUMBER -d $HODOSCOPE_DETECTOR_NAME</code>
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class HodoscopeBoundsPrinterUtility {
     public static final void main(String args[]) throws ConditionsNotFoundException {

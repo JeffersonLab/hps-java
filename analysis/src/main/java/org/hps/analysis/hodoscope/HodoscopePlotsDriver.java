@@ -28,8 +28,6 @@ import hep.aida.IHistogram2D;
  * hodoscope hits, and digitized, converted hodoscope hits. Included
  * are plots of varying levels of specificity, from general all hits
  * plots to per-channel plots.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class HodoscopePlotsDriver extends ReadoutDriver {
     /** Tracks the current simulation time for the local driver. */

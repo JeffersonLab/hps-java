@@ -42,8 +42,6 @@ import org.lcsim.util.Driver;
 /**
  * This class encapsulates all of the logic involved with processing events and managing the related state and objects
  * within the monitoring application.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 final class EventProcessing {
 

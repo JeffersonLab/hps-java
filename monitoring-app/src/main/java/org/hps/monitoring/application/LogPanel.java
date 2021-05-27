@@ -15,8 +15,6 @@ import org.hps.monitoring.application.model.ConfigurationModel;
 
 /**
  * This is a simple GUI component for the log table and its controls.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 @SuppressWarnings("serial")
 final class LogPanel extends JPanel {

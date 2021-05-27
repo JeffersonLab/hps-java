@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.recon.tracking;
 
 import java.util.ArrayList;
@@ -17,8 +13,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrackFinder;
 
 /**
  * Class extending lcsim version to allow extra flexibility
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class SeedTracker extends org.lcsim.recon.tracking.seedtracker.SeedTracker {
 

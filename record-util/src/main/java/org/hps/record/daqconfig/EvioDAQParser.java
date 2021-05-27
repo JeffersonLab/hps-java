@@ -21,8 +21,6 @@ import org.hps.conditions.ecal.EcalConditions;
  * configuration data. It is intended to be used internally by the EvIO
  * parser and the class <code>ConfigurationManager</code>. The latter
  * should be used for accessing this information for any other classes.
- * 
- * @author Nathan Baltzell <baltzell@jlab.org>
  */
 public class EvioDAQParser {
     /*

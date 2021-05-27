@@ -1,6 +1,3 @@
-/*
- * HelixFitter.java Created on January 22, 2008, 9:25 AM
- */
 package org.hps.recon.tracking.straighttracks;
 
 import java.util.List;
@@ -18,10 +15,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedStrategy;
 import org.lcsim.recon.tracking.seedtracker.TrackCheck;
 import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
 
-/**
- * @author Mathew Graham <mgraham@slac.stanford.edu> run the track fitter for tracking in 0 b-field Modified from
- *         HelixTrackFitter
- */
 public class StraightTrackFitter {
 
     // private StraightTrack2DFitter _fitter = new StraightTrack2DFitter();

@@ -3,11 +3,7 @@ package org.hps.record.daqconfig2019;
 /**
  * Class <clode>MultiplicityTriggerConfig2019</code> holds the configuration data
  * for a multiplicity trigger
- * 
- * @author Tongtong Cao <caot@jlab.org>
- *
  */
-
 public class MultiplicityTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2019<Double>> {
     private static final int CUT_ENERGY_MIN = 0;
     private static final int CUT_ENERGY_MAX = 1;

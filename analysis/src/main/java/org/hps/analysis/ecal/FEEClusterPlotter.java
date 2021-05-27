@@ -11,8 +11,6 @@ import java.util.logging.Logger;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
-//import org.hps.record.triggerbank.AbstractIntData;
-//import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -23,10 +21,7 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * This makes a bunch of plots of the FEE peak per crystal (seed).
- *
- * @author Holly Szumila <hvanc001@odu.edu>
  */
-
 public class FEEClusterPlotter extends Driver {
 
     // private AIDAFrame plotterFrame;

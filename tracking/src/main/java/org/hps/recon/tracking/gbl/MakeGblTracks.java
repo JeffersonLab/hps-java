@@ -17,7 +17,6 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MultipleScattering;
 import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
-//import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.hps.recon.tracking.SiTrackerHitStrip1D;
 import org.lcsim.constants.Constants;
 import org.lcsim.detector.ITransform3D;
@@ -40,10 +39,6 @@ import org.lcsim.recon.tracking.seedtracker.ScatterAngle;
 
 /**
  * Utilities that create track objects from fitted GBL trajectories.
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @author Miriam Diamond
- *
  */
 public class MakeGblTracks {
 
@@ -245,7 +240,7 @@ public class MakeGblTracks {
         //2) Nscatters < Nhits on track =>
         //   The hit has been associated to the track but couldn't find the scatter on the volume => create a scatter at that sensor
         //   Does this makes sense?
-
+        
         //Case (1)
         //Check if the scatter has a measurement => then use the usual way to build the HelicalTrackStripGbl
         
@@ -313,10 +308,13 @@ public class MakeGblTracks {
             for (TrackerHit stripHit : stripHits) {
                 HelicalTrackStripGbl strip;
                 if (stripHit instanceof SiTrackerHitStrip1D) {
+                    
                     strip = new HelicalTrackStripGbl(makeDigiStrip((SiTrackerHitStrip1D) stripHit), true);
+                    
                 } else {
                     SiTrackerHitStrip1D newHit = new SiTrackerHitStrip1D(stripHit);
                     strip = new HelicalTrackStripGbl(makeDigiStrip(newHit),true);
+                                                            
                 }
                 HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
                 MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
@@ -329,6 +327,8 @@ public class MakeGblTracks {
                         return null;
                     }
                 }
+
+                //Making strip data 
                 GBLStripClusterData stripData = makeStripData(sensor, strip, htf, temp);
                 if (stripData != null)
                     stripClusterDataList.add(stripData);
@@ -404,9 +404,19 @@ public class MakeGblTracks {
         // find volume of the sensor (top or bottom)
         int volume = sensor.isTopLayer() ? 0 : 1;
 
-        // Center of the sensor
+        // Center of the strip
         Hep3Vector origin = strip.origin();
+        
+        //Get the sensor frame transformations
+        //ITransform3D sensor_l2g = sensor.getGeometry().getLocalToGlobal();
+        //Hep3Vector s_org = sensor_l2g.transformed(new BasicHep3Vector(0.,0.,0.));
 
+        //This is the center of the sensor
+        Hep3Vector s_pos = sensor.getGeometry().getPosition();
+        
+        //Center of the sensor in tracking coordinates.
+        Hep3Vector s_neworigin = CoordinateTransformations.transformVectorToTracking(s_pos);
+        
         // GBLDATA
         GBLStripClusterData stripData = new GBLStripClusterData(millepedeId);
 
@@ -425,7 +435,7 @@ public class MakeGblTracks {
         stripData.setPath(temp.getScatterAngle().PathLen());
         stripData.setPath3D(s3D);
 
-        // GBLDATA
+        //GBLDATA
         stripData.setU(strip.u());
         stripData.setV(strip.v());
         stripData.setW(strip.w());
@@ -441,13 +451,52 @@ public class MakeGblTracks {
 
         // Print residual in measurement system
         // start by find the distance vector between the center and the track position
-        Hep3Vector vdiffTrk = VecOp.sub(temp.getPosition(), origin);
 
-        // then find the rotation from tracking to measurement frame
-        Hep3Matrix trkToStripRot = getTrackToStripRotation(sensor);
-
+        //DEBUG PF: check if the we return the origin or the corner of the sensors. 
+        
+        // Find the rotation from tracking to measurement frame 
+        // This matrix is just 
+        //|u1 u2 u3 | 
+        //|v1 v2 v3 |
+        //|w1 w2 w3 | 
+        
+        //OLD WAY.
+        //Hep3Matrix trkToStripRot = getTrackToStripRotation(sensor);
+        
+        //This is clearer and it's identical
+        Hep3Matrix trkToStripRot = VecOp.mult(sensor.getGeometry().getGlobalToLocal().getRotation().getRotationMatrix(),
+                                              CoordinateTransformations.getMatrixInverse());
+                        
+        Hep3Vector vdiffTrk = VecOp.sub(temp.getPosition(), s_neworigin);
+                
         // then rotate that vector into the measurement frame to get the predicted measurement position
         Hep3Vector trkpos_meas = VecOp.mult(trkToStripRot, vdiffTrk);
+                
+        
+        /*
+        //Hep3Vector vdiffTrk_old = VecOp.sub(temp.getPosition(), origin);
+        // then rotate that vector into the measurement frame to get the predicted measurement position
+        //Hep3Vector trkpos_meas_old = VecOp.mult(trkToStripRot, vdiffTrk_old);
+        System.out.printf("\n\nPF::DEBUG:: Strip coordinates check for ID %d volume %d\n",millepedeId, volume);
+        System.out.printf("ORIGIN: %s\n",((BasicHep3Vector)origin).toString());
+        System.out.printf("u: %s \n", ((BasicHep3Vector)strip.u()).toString());
+        System.out.printf("v: %s \n", ((BasicHep3Vector)strip.v()).toString());
+        System.out.printf("w: %s \n", ((BasicHep3Vector)strip.w()).toString());
+        System.out.printf("Sensor origin %s \n", ((BasicHep3Vector)s_org).toString());
+        System.out.printf("Sensor position %s \n", ((BasicHep3Vector)s_pos).toString());
+        System.out.printf("Sensor origin Tracking %s \n", ((BasicHep3Vector)s_neworigin).toString());       
+        
+        
+        System.out.printf("trkpos_glob %s \n", ((BasicHep3Vector)temp.getPosition()).toString());
+        System.out.printf("Transformation matrix \n%s \n", ((BasicHep3Matrix)trkToStripRot).toString());
+        System.out.printf("Transformation matrix sensor \n%s \n", ((BasicHep3Matrix)RTtos).toString());
+        
+        System.out.printf("trkpos_diff %s \n", ((BasicHep3Vector)vdiffTrk).toString());
+        System.out.printf("trkpos_meas %s \n", ((BasicHep3Vector)trkpos_meas).toString());
+
+        System.out.printf("trkpos_diff_old %s \n", ((BasicHep3Vector)vdiffTrk_old).toString());
+        System.out.printf("trkpos_meas_old %s \n", ((BasicHep3Vector)trkpos_meas_old).toString());
+        */
 
         // GBLDATA
         stripData.setMeas(strip.umeas());
@@ -471,8 +520,10 @@ public class MakeGblTracks {
 
         return VecOp.mult(detToStripMatrix, CoordinateTransformations.getMatrixInverse());
     }
-
+    
     private static HelicalTrackStrip makeDigiStrip(SiTrackerHitStrip1D h) {
+
+        
         SiTrackerHitStrip1D local  = new SiTrackerHitStrip1D (h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR));
         SiTrackerHitStrip1D global = new SiTrackerHitStrip1D (h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL));
 
@@ -493,7 +544,16 @@ public class MakeGblTracks {
         double dEdx = h.getdEdx();
         double time = h.getTime();
         List<RawTrackerHit> rawhits = h.getRawHits();
+
+        //Print the origins!
+        //System.out.printf("PF::Debug MakeDigiStrip For det element %d! \n", ((HpsSiSensor) det_element).getMillepedeId());
+        //System.out.printf("Strip  origin %s \n", ((BasicHep3Vector)org).toString());
+        //System.out.printf("Strip  origin Tracking %s \n", ((BasicHep3Vector)neworigin).toString());
+        
+        
+
         HelicalTrackStrip strip = new HelicalTrackStrip(neworigin, newu, newv, umeas, du, vmin, vmax, dEdx, time, rawhits, null, -1, null);
+        
 
         return strip;
     }

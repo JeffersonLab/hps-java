@@ -8,8 +8,6 @@ package org.hps.record.daqconfig2019;
  * package.
  * 
  * Code is developed referring to org.hps.record.daqconfig.ESBCutConfig by Kyle McCarty
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class ESBCutConfig2019 extends AbstractConfig2019<Double> {
     private static final int ENERGY_SLOPE_THRESHOLD = 0;

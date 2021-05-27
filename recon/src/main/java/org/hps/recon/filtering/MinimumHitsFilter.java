@@ -2,8 +2,6 @@ package org.hps.recon.filtering;
 
 import java.util.List;
 
-
-//===> import org.hps.conditions.deprecated.SvtUtils;
 import org.lcsim.detector.identifier.IIdentifier;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -13,10 +11,6 @@ import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 
-/**
- *
- * @author mgraham
- */
 public class MinimumHitsFilter extends EventReconFilter{
   
     private int minSiLayers=10;    

@@ -6,8 +6,6 @@ import org.jdom.Element;
 
 /**
  * Updated geometry information for the HPS tracker 2014
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class HPSTracker2014v1GeometryDefinition extends HPSTracker2014GeometryDefinition {
 

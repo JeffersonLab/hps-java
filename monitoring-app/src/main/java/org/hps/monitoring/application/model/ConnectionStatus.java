@@ -5,8 +5,6 @@ import java.awt.Color;
 /**
  * This is the status of the connection to the ET server from the monitoring client, and it includes a color that should
  * be displayed in the GUI for the associated text.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public enum ConnectionStatus {
 

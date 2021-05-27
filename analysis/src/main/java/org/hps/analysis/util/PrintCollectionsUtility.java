@@ -35,8 +35,6 @@ import org.lcsim.lcio.LCIOReader;
  * Additionally, users may specify that the utility should print the
  * full collection data for specific collections. This will only
  * occur if there is a print method for that object type implemented.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class PrintCollectionsUtility {
     /**

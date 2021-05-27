@@ -10,16 +10,14 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author ngraf
- */
 public class StripOneFiducialCluster extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
     private int _numberOfEventsWritten = 0;
     private boolean _writeRunAndEventNumbers = false;
     private boolean _fiducialOnly = false;
+    boolean _cutOnSeedEnergy = false;
+    double _seedCrystalMinimumEnergy = 2.7;
 
     public void process(EventHeader event) {
         boolean skipEvent = true;
@@ -51,9 +49,19 @@ public class StripOneFiducialCluster extends Driver {
                     if (isFiducial.get(0)) {
                         aida.histogram1D("Single Fiducial Cluster Energy nRawTrackerHits<250.", 100, 0., 6.).fill(energies.get(0));
                         skipEvent = false;
+                        if (_cutOnSeedEnergy) {
+                            if (clusters.get(0).getCalorimeterHits().get(0).getCorrectedEnergy() < _seedCrystalMinimumEnergy) {
+                                skipEvent = true;
+                            }
+                        }
                     } else {
                         if (!_fiducialOnly) {
-                            skipEvent=false;
+                            skipEvent = false;
+                            if (_cutOnSeedEnergy) {
+                                if (clusters.get(0).getCalorimeterHits().get(0).getCorrectedEnergy() < _seedCrystalMinimumEnergy) {
+                                    skipEvent = true;
+                                }
+                            }
                         }
                     }
                 }
@@ -76,6 +84,14 @@ public class StripOneFiducialCluster extends Driver {
 
     public void setFiducialOnly(boolean b) {
         _fiducialOnly = b;
+    }
+
+    public void setCutOnSeedEnergy(boolean b) {
+        _cutOnSeedEnergy = b;
+    }
+
+    public void setSeedCrystalMinimumEnergy(double d) {
+        _seedCrystalMinimumEnergy = d;
     }
 
     @Override

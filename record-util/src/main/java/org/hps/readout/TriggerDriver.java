@@ -15,7 +15,6 @@ package org.hps.readout;
  * implementing drivers do not need to check this condition manually.
  * <br/><br/>
  * For usage instructions, please see <code>ReadoutDriver</code>.
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see org.hps.readout.ReadoutDriver
  */
 public abstract class TriggerDriver extends ReadoutDriver {

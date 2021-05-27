@@ -10,8 +10,6 @@ import org.hps.datacat.FileFormat;
  * Filter files on their format.
  * <p>
  * Only files matching the format will be accepted by the file visitor.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class FileFormatFilter implements FileFilter {
 

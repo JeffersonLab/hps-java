@@ -24,8 +24,6 @@ import org.srs.datacat.model.DatasetModel;
 
 /**
  * Command line file crawler for populating the data catalog.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class DatacatCrawler {
 

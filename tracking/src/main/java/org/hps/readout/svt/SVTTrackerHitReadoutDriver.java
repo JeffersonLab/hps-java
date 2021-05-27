@@ -21,7 +21,6 @@ import org.lcsim.geometry.Subdetector;
  * SimTrackerHitReadoutDriver} that includes additional functionality
  * necessary for SVT data.
  * 
- * @author Kyle McCarty
  * @see org.hps.readout.SimTrackerHitReadoutDriver
  */
 public class SVTTrackerHitReadoutDriver extends SimTrackerHitReadoutDriver {

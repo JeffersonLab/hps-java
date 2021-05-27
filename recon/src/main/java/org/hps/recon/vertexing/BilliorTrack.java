@@ -1,10 +1,4 @@
 package org.hps.recon.vertexing;
-/*
- * BilliorTrack.java
- *
- *
- * $Id: BilliorTrack.java,v 1.1 2011/06/01 17:10:13 jeremy Exp $
- */
 
 import hep.physics.matrix.BasicMatrix;
 import hep.physics.matrix.Matrix;
@@ -22,9 +16,6 @@ import org.lcsim.fit.helicaltrack.MultipleScatter;
 /**
  * Converts from HelicalTrackFit formalism to formalism in Billior paper See
  * (e.g.) Billior, Qian NIM A311, 1992
- *
- * @author Matt Graham
- * @version 1.0
  */
 public class BilliorTrack {
 

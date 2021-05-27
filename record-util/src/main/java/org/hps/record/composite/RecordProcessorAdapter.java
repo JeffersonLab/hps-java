@@ -12,7 +12,6 @@ import org.hps.record.RecordProcessor;
  * are activated in the appropriate hook methods for every event.
  *
  * @param <RecordType> The concrete type of the record being processed.
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public abstract class RecordProcessorAdapter<RecordType> extends CompositeLoopAdapter {
 

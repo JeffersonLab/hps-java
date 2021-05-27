@@ -3,7 +3,6 @@ package org.hps.analysis.trigger.util;
 /**
  * Class <code>Pair</code> represents a pair of two objects.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <E> - The object type of the first element in the pair.
  * @param <F> - The object type of the second element in the pair.
  */

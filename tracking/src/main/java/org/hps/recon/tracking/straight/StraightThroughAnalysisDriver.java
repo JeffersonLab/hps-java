@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.recon.tracking.straight;
 
 import hep.aida.IAnalysisFactory;
@@ -42,8 +39,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Driver that fits {@link SiTrackerHitStrip1D} clusters to a straight line track model.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class StraightThroughAnalysisDriver extends Driver {
 

@@ -64,7 +64,6 @@ import org.lcsim.util.log.DefaultLogFormatter;
  * <p>
  * It should not be used directly. Instead the {@link Main} class should be used from the command line.
  *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 final class MonitoringApplication implements ActionListener, PropertyChangeListener {
 

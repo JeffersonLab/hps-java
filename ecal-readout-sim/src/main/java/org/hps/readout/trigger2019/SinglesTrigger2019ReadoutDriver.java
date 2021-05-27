@@ -1,10 +1,14 @@
 package org.hps.readout.trigger2019;
 
 import java.util.Collection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.TriggerDriver;
+import org.hps.record.daqconfig2019.ConfigurationManager2019;
+import org.hps.record.daqconfig2019.DAQConfig2019;
 import org.hps.record.triggerbank.TriggerModule2019;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -25,10 +29,8 @@ import hep.aida.IHistogram2D;
  * {@link HodoscopePatternReadoutDriver}, and perform the necessary trigger
  * logic on them. If a trigger is detected, it is sent to the readout data
  * manager so that a triggered readout event may be written.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
+public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {     
     // ==============================================================
     // ==== LCIO Collections ========================================
     // ==============================================================
@@ -95,6 +97,28 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     private IHistogram1D[] clusterTotalEnergy = new IHistogram1D[2];
     private IHistogram2D[] clusterDistribution = new IHistogram2D[2];
   
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfigurationAppliedintoReadout(boolean state) {
+        // If the DAQ configuration should be read, attach a listener
+        // to track when it updates.               
+        if (state) {
+            ConfigurationManager2019.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig2019 daq = ConfigurationManager2019.getInstance();  
+                    triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles3Config());                   
+                }
+            });
+        }
+    }
     
     @Override
     public void detectorChanged(Detector detector) {
@@ -194,7 +218,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     }
     
     @Override
-    public void startOfData() {
+    public void startOfData() {         
         // Define the driver collection dependencies.
         addDependency(inputCollectionNameEcal);
         
@@ -312,6 +336,5 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     
     public void setGeometryMatchingRequired(boolean geometryMatchingRequired) {
         this.geometryMatchingRequired = geometryMatchingRequired;
-    }
-        
+    }         
 }

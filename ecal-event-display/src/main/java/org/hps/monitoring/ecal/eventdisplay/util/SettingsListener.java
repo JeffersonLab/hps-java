@@ -5,8 +5,6 @@ import java.util.EventListener;
 /**
  * Interface <code>SettingsListener</code> tracks changes that occur
  * in the settings of a <code>CalorimeterPanel</code> object.
- * 
- * @author Kyle McCarty
  */
 public interface SettingsListener extends EventListener {
     /**

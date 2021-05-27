@@ -9,10 +9,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
- *
- * @author ngraf
- */
 public class EcalClusterAnalysisDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

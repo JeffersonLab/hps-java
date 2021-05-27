@@ -5,9 +5,6 @@ import java.util.ArrayList;
 
 /**
  * Simple Vector based on ArrayList
- *
- * @author Norman A. Graf
- * @version $Id$
  */
 public class VMatrix {
 

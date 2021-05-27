@@ -4,8 +4,6 @@ import java.awt.Color;
 
 /**
  * Interface <code>ColorMap</code> maps some value to a color.
- * 
- * @author Kyle McCarty
  */
 public interface ColorMap<T> {
     /**

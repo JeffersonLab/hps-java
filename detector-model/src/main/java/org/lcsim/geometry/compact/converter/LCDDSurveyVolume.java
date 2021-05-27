@@ -21,8 +21,6 @@ import org.lcsim.geometry.util.TransformationUtils;
 
 /**
  * Interface to the LCDD converter geometry for the geometry definition.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class LCDDSurveyVolume extends SurveyVolumeImpl {
 

@@ -1,9 +1,5 @@
 package org.hps.recon.tracking.gbl.matrix;
 
-/**
- * @author Norman A Graf
- * @version $Id:
- */
 public class SymMatrix extends Matrix implements java.io.Serializable {
 
     public SymMatrix(int n) {

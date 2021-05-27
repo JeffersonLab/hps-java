@@ -7,8 +7,6 @@ import java.util.Map;
  * Enum constants for different {@link org.lcsim.event.Track} objects based on what tracking
  * strategy was used.  The type is defined by comparing the tracking strategy
  * name to the name of all the enum constants.
- *  
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
 public enum StrategyType {
    

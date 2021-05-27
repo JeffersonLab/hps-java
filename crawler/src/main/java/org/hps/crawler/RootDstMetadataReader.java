@@ -15,8 +15,6 @@ import java.util.Map;
  * This is a very simple metadata reader for ROOT DST files.
  * <p>
  * It currently only sets the standard metadata for event count and run number.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class RootDstMetadataReader implements FileMetadataReader {
 
