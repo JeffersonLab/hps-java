@@ -7,12 +7,12 @@
       @author PF <pbutti@slac.stanford.edu>
     -->
     <execute>
+        <driver name="EventMarkerDriver"/>
         <!-- Enable the following if re-processing lcio files -->
         <!--        <driver name="PreCleanupDriver"/>       -->
         <!--  Event Reconstruction  -->
         <!-- Skip events with known bad conditions -->
-        <!-- Not yet defined for 2019 data -->
-        <!--        <driver name="EventFlagFilter"/>  -->
+        <driver name="EventFlagFilter"/>
         <!--RF driver-->
         <driver name="RfFitter"/>
         <!-- Ecal reconstruction drivers -->        
@@ -45,8 +45,8 @@
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="KalmanPatRecDriver"/>
-        <driver name="ReconParticleDriver" /> 
         <driver name="ReconParticleDriver_Kalman" /> 
+        <driver name="ReconParticleDriver" /> 
         <!--  DQM   -->
         <!-- Following are optional Analysis Drivers  -->
         <!--        
@@ -71,6 +71,12 @@
 	    
         <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
             <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> 
+        </driver>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>
+        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
+            <flagNames>svt_readout_overlap_good</flagNames>
         </driver>
         <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
         <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver"/>
@@ -105,6 +111,7 @@
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
+            <fitTimeMinimizer>Migrad</fitTimeMinimizer>
             <useTimestamps>false</useTimestamps>
             <correctTimeOffset>true</correctTimeOffset>
             <correctT0Shift>false</correctT0Shift>
@@ -292,6 +299,8 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>          
+            <matcherTrackCollectionName>GBLTracks</matcherTrackCollectionName>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <requireClustersForV0>false</requireClustersForV0>
@@ -300,14 +309,14 @@
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
             <beamPositionZ>-7.5</beamPositionZ>
-            <maxElectronP>10.0</maxElectronP>
+            <maxElectronP>7.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <maxVertexClusterDt> 40.0 </maxVertexClusterDt>           
             <maxMatchDt>40</maxMatchDt>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-            <applyClusterCorrections>true</applyClusterCorrections>
+            <applyClusterCorrections>false</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
             <makeMollerCols>false</makeMollerCols>
@@ -315,6 +324,8 @@
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>KalmanFullTracks</trackCollectionNames>          
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
             <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
             <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
             <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
@@ -330,14 +341,14 @@
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
             <beamPositionZ>-7.5</beamPositionZ>
-            <maxElectronP>10.0</maxElectronP>
+            <maxElectronP>7.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>40.0</maxVertexClusterDt>           
             <maxMatchDt>40</maxMatchDt>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-            <applyClusterCorrections>false</applyClusterCorrections>
+            <applyClusterCorrections>true</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
 	    <makeMollerCols>false</makeMollerCols>

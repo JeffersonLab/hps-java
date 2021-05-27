@@ -83,7 +83,7 @@ class TrackCandidate {
         return site0.aS.helix.pivotTransform();
     }
 
-    void removeHit(KalHit hit) {
+    void removeHit(KalHit hit, boolean deleteFromList) {
         MeasurementSite siteR = null;
         SiModule mod = hit.module;
         for (MeasurementSite site : sites) {
@@ -112,7 +112,7 @@ class TrackCandidate {
                 tMax = Math.min(tMax, ht.hit.time);
             }
         }
-        hits.remove(hit);
+        if (deleteFromList) hits.remove(hit);
         hit.tkrCandidates.remove(this);
         int nstr = numStereo();
         int nax = numHits() - nstr;

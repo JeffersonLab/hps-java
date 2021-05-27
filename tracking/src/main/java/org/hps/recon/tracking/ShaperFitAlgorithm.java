@@ -10,4 +10,6 @@ public interface ShaperFitAlgorithm {
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rawHit, PulseShape shape);
 
     public void setDebug(boolean debug);
+
+    public void setFitTimeMinimizer(String fitTimeMinimizer);
 }

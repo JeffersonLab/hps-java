@@ -19,6 +19,27 @@ package org.hps.readout;
  */
 public abstract class TriggerDriver extends ReadoutDriver {
     /**
+     * singles trigger types
+     */
+    public static final String SINGLES0 = "singles0";
+    public static final String SINGLES1 = "singles1";
+    public static final String SINGLES2 = "singles2";
+    public static final String SINGLES3 = "singles3";        
+    
+    public static final String TOP = "top";
+    public static final String BOT = "bot";
+    public static final String TOPBOT = "topbot";
+    
+    public static final String PAIR0 = "pair0";
+    public static final String PAIR1 = "pair1";
+    public static final String PAIR2 = "pair2";
+    public static final String PAIR3 = "pair3"; 
+    
+    public static final String PULSER = "pulser"; 
+    
+    public static final String FEE = "fee"; 
+    
+    /**
      * The amount of time that must pass after a trigger before a new
      * trigger can be issued, in units of nanoseconds.
      */
@@ -80,6 +101,31 @@ public abstract class TriggerDriver extends ReadoutDriver {
     protected void sendTrigger() {
         if(!isInDeadTime()) {
             ReadoutDataManager.sendTrigger(this);
+            lastTrigger = ReadoutDataManager.getCurrentTime();
+        }
+    }
+    
+    /**
+     * Issues a trigger to the data manager so long as the trigger is
+     * not presently in dead time.
+     * @param trigger type
+     */
+    protected void sendTrigger(String triggerType) {
+        if(!isInDeadTime()) {
+            ReadoutDataManager.sendTrigger(this, triggerType);
+            lastTrigger = ReadoutDataManager.getCurrentTime();
+        }
+    }
+    
+    /**
+     * Issues a trigger to the data manager so long as the trigger is
+     * not presently in dead time.
+     * @param trigger type
+     * @param top/bot singles trigger
+     */
+    protected void sendTrigger(String triggerType, String topBot) {
+        if(!isInDeadTime()) {
+            ReadoutDataManager.sendTrigger(this, triggerType, topBot);
             lastTrigger = ReadoutDataManager.getCurrentTime();
         }
     }

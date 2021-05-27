@@ -14,7 +14,6 @@ import java.util.Set;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.tracking.CoordinateTransformations;
-import org.hps.recon.tracking.TrackUtils;
 import org.hps.record.StandardCuts;
 
 import org.hps.recon.utils.TrackClusterMatcher;
@@ -23,7 +22,6 @@ import org.hps.recon.utils.TrackClusterMatcherFactory;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseCluster;
@@ -57,8 +55,8 @@ public abstract class ReconParticleDriver extends Driver {
     protected boolean isMC = false;
     private boolean disablePID = false;
     protected StandardCuts cuts = new StandardCuts();
-    RelationalTable hitToRotated = null;
-    RelationalTable hitToStrips = null;
+//    RelationalTable hitToRotated = null;
+//    RelationalTable hitToStrips = null;
     //Track to Cluster matching algorithms interfaced from
     //TrackClusteMatcherInter and the specific algorithm is chosen by name using
     //TrackClusterMatcherFactory 
@@ -154,7 +152,7 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * LCIO collection name for tracks.
      */
-    protected String trackCollectionName = "GBLTracks";
+    protected String matcherTrackCollectionName = "GBLTracks";
     /**
      * Track Cluster Algorithm set to Kalman or GBL Tracks
      */
@@ -353,10 +351,10 @@ public abstract class ReconParticleDriver extends Driver {
     /**
      * Sets the LCIO collection name for particle track data.
      *
-     * @param trackCollectionName - The LCIO collection name.
+     * @param matcherTrackCollectionName - The LCIO collection name.
      */
-    public void setTrackCollectionName(String trackCollectionName) {
-        this.trackCollectionName = trackCollectionName;
+    public void setMatcherTrackCollectionName(String matcherTrackCollectionName) {
+        this.matcherTrackCollectionName = matcherTrackCollectionName;
     }
 
     /**
@@ -445,7 +443,7 @@ public abstract class ReconParticleDriver extends Driver {
         matcher = TrackClusterMatcherFactory.create(trackClusterMatcherAlgo);
         matcher.initializeParameterization(clusterParamFileName);
         matcher.setBFieldMap(detector.getFieldMap());
-        matcher.setTrackCollectionName(trackCollectionName);
+        matcher.setTrackCollectionName(matcherTrackCollectionName);
         matcher.enablePlots(enableTrackClusterMatchPlots);
 
         // Set the magnetic field parameters to the appropriate values.
@@ -675,7 +673,7 @@ public abstract class ReconParticleDriver extends Driver {
         }
         
         // VERBOSE :: Note that a new event is being read.
-        printDebug("\n" + trackCollectionName+"Processing Event..." + event.getEventNumber());
+        printDebug("\n" + matcherTrackCollectionName+"Processing Event..." + event.getEventNumber());
 
         // Get the list of Ecal clusters from an event.
         List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
@@ -714,8 +712,8 @@ public abstract class ReconParticleDriver extends Driver {
             }
         }
 
-        hitToRotated = TrackUtils.getHitToRotatedTable(event);
-        hitToStrips = TrackUtils.getHitToStripsTable(event);
+//        hitToRotated = TrackUtils.getHitToRotatedTable(event);
+//        hitToStrips = TrackUtils.getHitToStripsTable(event);
 
         // Instantiate new lists to store reconstructed particles and
         // V0 candidate particles and vertices.
@@ -808,9 +806,6 @@ public abstract class ReconParticleDriver extends Driver {
         // If any of the LCIO collection names are not properly defined, define them now.
         if (ecalClustersCollectionName == null) {
             ecalClustersCollectionName = "EcalClusters";
-        }
-        if (trackCollectionName == null) {
-            trackCollectionName = "GBLTracks";
         }
         if (finalStateParticlesColName == null) {
             finalStateParticlesColName = "FinalStateParticles";

@@ -75,6 +75,7 @@ public class KalmanInterface {
     private static DMatrixRMaj Ft;
     private int maxHits;
     private int nBigEvents;
+    private int eventNumber;
     
     private static final boolean debug = false;    
     private static final double SVTcenter = 505.57;
@@ -116,7 +117,7 @@ public class KalmanInterface {
     
     static double [] getFielD(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
         // Field map for stand-alone running
-        if (FieldMap.class.isInstance(hpsFm)) { return ((FieldMap) (hpsFm)).getField(kalPos); }
+        if (FieldMap.class.isInstance(hpsFm)) return ((FieldMap) (hpsFm)).getField(kalPos);
 
         // Standard field map for running in hps-java
         //System.out.format("Accessing HPS field map for position %8.3f %8.3f %8.3f\n", kalPos.v[0], kalPos.v[1], kalPos.v[2]);
@@ -128,6 +129,8 @@ public class KalmanInterface {
         } else {
             if (hpsPos[1] > 70.0) hpsPos[1] = 70.0;   // To avoid getting a field returned that is identically equal to zero
             if (hpsPos[1] < -70.0) hpsPos[1] = -70.0;
+            if (hpsPos[0] < -225.) hpsPos[0] = -225.;
+            if (hpsPos[0] > 270.) hpsPos[0] = 270.;
         }
         double[] hpsField = hpsFm.getField(hpsPos);
         if (uniformB) {
@@ -212,6 +215,8 @@ public class KalmanInterface {
         System.out.format("KalmanInterface::summary: number of events with > 200 hits=%d.\n", nBigEvents);
         System.out.format("                          Maximum event size = %d strip hits.\n", maxHits);
         System.out.format("                          Events with > %d hits were not processed.\n", _siHitsLimit);
+        System.out.format("                          Number of tracks with bad covariance in filterTrack= %d %d\n", KalmanPatRecHPS.nBadCov[0], KalmanPatRecHPS.nBadCov[1]);
+        System.out.format("                          Number of tracks with bad covariance in KalTrack.fit=%d %d\n", KalTrack.nBadCov[0], KalTrack.nBadCov[1]);
     }
 
     // Return the reference to the parameter setting code for the driver to use
@@ -389,6 +394,7 @@ public class KalmanInterface {
     public List<GBLStripClusterData> createGBLStripClusterData(KalTrack kT) {
         List<GBLStripClusterData> rtnList = new ArrayList<GBLStripClusterData>(kT.SiteList.size());
         
+        double phiLast = 9999.;
         for (MeasurementSite site : kT.SiteList) {
             GBLStripClusterData clstr = new GBLStripClusterData(kT.SiteList.indexOf(site));
             
@@ -428,6 +434,10 @@ public class KalmanInterface {
                         site.m.Layer, site.m.detector, -tanL, tanLambda, tiltAngle, tiltAngle+tanLambda);
             }
             clstr.setTrackPhi(phi);
+            if (phiLast < 10.) {
+                if (Math.abs(phi - phiLast) > 1.2) System.out.format("Big phi change in event %d\n", eventNumber);
+            }
+            phiLast = phi;
             clstr.setTrackLambda(FastMath.atan(tanLambda));
             
             // Measured value in the sensor coordinates (u-value in the HPS system)
@@ -750,6 +760,7 @@ public class KalmanInterface {
     // Method to feed simulated hits into the pattern recognition, for testing
     private boolean fillAllSimHits(EventHeader event, IDDecoder decoder) {
         boolean success = false;
+        eventNumber = event.getEventNumber();
 
         if (debug || event.getEventNumber() < 50) System.out.format("KalmanInterface.fillAllSimHits: entering for event %d\n", event.getEventNumber());
         
@@ -829,6 +840,7 @@ public class KalmanInterface {
     // Method to fill all Si hits into the SiModule objects, to feed to the pattern recognition.
     private boolean fillAllMeasurements(EventHeader event) {
         boolean success = false;
+        eventNumber = event.getEventNumber();
 
         // Get the collection of 1D hits
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
@@ -931,7 +943,7 @@ public class KalmanInterface {
                 double time = localHit.getTime(); 
                 double xStrip = -lpos[1];    // Center of strip, i.e. ~0 except in layers 0 and 1
                 if (xStrip > module.xExtent[1] || xStrip < module.xExtent[0]) {
-                    logger.log(Level.FINE, String.format("Event %d Layer %d, local hit at %9.4f %9.4f, %9.4f is outside detector extents %8.3f->%8.3f %8.3f->%8.3f", 
+                    logger.log(Level.WARNING, String.format("Event %d Layer %d, local hit at %9.4f %9.4f, %9.4f is outside detector extents %8.3f->%8.3f %8.3f->%8.3f", 
                             event.getEventNumber(), module.Layer, lpos[0], lpos[1], lpos[2], module.yExtent[0], module.yExtent[1], module.xExtent[0], module.xExtent[1]));
                 }
                 if (debug) {
@@ -1291,6 +1303,7 @@ public class KalmanInterface {
     // This method makes a Gnuplot file to display the Kalman tracks and hits in 3D.
     public void plotKalmanEvent(String path, EventHeader event, ArrayList<KalTrack>[] patRecList) {
         
+        boolean debug = false;
         PrintWriter printWriter3 = null;
         int eventNumber = event.getEventNumber();
         String fn = String.format("%shelix3_%d.gp", path, eventNumber);
@@ -1343,6 +1356,11 @@ public class KalmanInterface {
                     Vec rLocal = aS.helix.atPhi(phiS);
                     Vec rGlobal = aS.helix.toGlobal(rLocal);
                     printWriter3.format(" %10.6f %10.6f %10.6f\n", rGlobal.v[0], rGlobal.v[1], rGlobal.v[2]);
+                    if (debug) {
+                        System.out.format("plotKalmanEvent %d: tk %d lyr %d phiS=%11.6f\n", event.getEventNumber(), tkr.ID, module.Layer, phiS);
+                        rLocal.print(" local point in B frame");
+                        rGlobal.print(" global point");
+                    }
                     // Vec rDetector = m.toLocal(rGlobal);
                     // double vPred = rDetector.v[1];
                     // if (site.hitID >= 0) {
@@ -1369,13 +1387,27 @@ public class KalmanInterface {
                             Vec rLocal = aS.helix.atPhi(phiS);        // Position in the Bfield frame
                             Vec rGlobal = aS.helix.toGlobal(rLocal);  // Position in the global frame                 
                             rLoc = module.toLocal(rGlobal);     // Position in the detector frame
+                            if (debug) {
+                                double resid = rLoc.v[1] - mm.v;
+                                System.out.format("plotKalmanEvent %d: tk %d lyr %d phiS=%11.6f resid= %11.8f vs %11.8f\n",
+                                        event.getEventNumber(), tkr.ID, module.Layer, phiS, resid, site.aS.r);
+                                aS.helix.a.print(" helix parameters ");
+                                rLocal.print(" local position in B frame");
+                                rGlobal.print(" global position ");
+                                rLoc.print(" position in detector frame");
+                            }
                         } else {
+                            if (debug) {
+                                System.out.format("plotKalmanEvent %d: tk %d lyr %d phiS is NaN.\n", event.getEventNumber(),tkr.ID, module.Layer);
+                                aS.helix.a.print(" helix parameters ");
+                            }
                             rLoc = new Vec(0.,0.,0.);
                         }
                     } else {
                         rLoc = module.toLocal(mm.rGlobal); // Use MC truth for the x and z coordinates in the detector frame
                     }
                     Vec rmG = module.toGlobal(new Vec(rLoc.v[0], mm.v, rLoc.v[2]));
+                    if (debug) System.out.format("plotKalmanEvent %d: tk %d lyr %d rmG=%s\n", event.getEventNumber(), tkr.ID, module.Layer, rmG.toString());
                     printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
                 }
                 printWriter3.format("EOD\n");
