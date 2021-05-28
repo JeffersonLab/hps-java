@@ -320,7 +320,7 @@ public class AlignmentStructuresBuilder {
         aliVolumeList.add(alignable_volumes.get("module_L7b_halfmodule_axial_hole_sensor0_AV"));
         aliVolumeList.add(alignable_volumes.get("module_L7b_halfmodule_axial_slot_sensor0_AV"));
         rot = (alignable_volumes.get("module_L7b_halfmodule_axial_hole_sensor0_AV")).getL2G().getRotation();
-        AlignableVolume doublesensor_axial_L7_Bot_AV = new AlignableVolume("doublesensor_axial_L7_Bot_AV", aliVolumeList, rot, null,73);
+        AlignableVolume doublesensor_axial_L7_Bot_AV = new AlignableVolume("doublesensor_axial_L7_Bot_AV", aliVolumeList, rot, null,75);
         alignable_volumes.put("doublesensor_axial_L7_Bot_AV",doublesensor_axial_L7_Bot_AV);
         aliVolumeList.clear();
 
@@ -329,7 +329,7 @@ public class AlignmentStructuresBuilder {
         aliVolumeList.add(alignable_volumes.get("module_L7b_halfmodule_stereo_hole_sensor0_AV"));
         aliVolumeList.add(alignable_volumes.get("module_L7b_halfmodule_stereo_slot_sensor0_AV"));
         rot = (alignable_volumes.get("module_L7b_halfmodule_stereo_hole_sensor0_AV")).getL2G().getRotation();
-        AlignableVolume doublesensor_stereo_L7_Bot_AV = new AlignableVolume("doublesensor_stereo_L7_Bot_AV", aliVolumeList, rot, null,74);
+        AlignableVolume doublesensor_stereo_L7_Bot_AV = new AlignableVolume("doublesensor_stereo_L7_Bot_AV", aliVolumeList, rot, null,6);
         alignable_volumes.put("doublesensor_stereo_L7_Bot_AV",doublesensor_stereo_L7_Bot_AV);
         aliVolumeList.clear();
 
@@ -338,7 +338,7 @@ public class AlignmentStructuresBuilder {
         aliVolumeList.add(alignable_volumes.get("doublesensor_axial_L7_Bot_AV"));
         aliVolumeList.add(alignable_volumes.get("doublesensor_stereo_L7_Bot_AV"));
         rot = (alignable_volumes.get("doublesensor_axial_L7_Bot_AV")).getL2G().getRotation();
-        AlignableVolume M7_Bot = new AlignableVolume("ModuleL7_Bot_AV", aliVolumeList, rot, null,66);
+        AlignableVolume M7_Bot = new AlignableVolume("ModuleL7_Bot_AV", aliVolumeList, rot, null,67);
         alignable_volumes.put("ModuleL7_Bot_AV",M7_Bot);
         aliVolumeList.clear();
 

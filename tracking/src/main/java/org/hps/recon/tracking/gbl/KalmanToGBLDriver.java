@@ -26,8 +26,6 @@ import org.lcsim.event.base.BaseLCRelation;
 //import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.hps.recon.tracking.TrackUtils;
 
-import org.lcsim.util.aida.AIDA;
-import java.io.IOException;
 /**
  * A Driver which refits Kalman Tracks using GBL
  * in order to get the alignment derivatives
@@ -35,7 +33,6 @@ import java.io.IOException;
 
 public class KalmanToGBLDriver extends Driver {
     
-    private AIDA aidaGBL; 
     String derFolder = "/gbl_derivatives/";
     private HpsGblTrajectoryCreator _hpsGblTrajCreator;
     private String inputCollectionName = "KalmanFullTracks";
@@ -55,10 +52,6 @@ public class KalmanToGBLDriver extends Driver {
     protected void detectorChanged(Detector detector) {
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         
-        if (aidaGBL == null)
-            aidaGBL = AIDA.defaultInstance();
-        
-        aidaGBL.tree().cd("/");
     }
 
     @Override
@@ -159,7 +152,7 @@ public class KalmanToGBLDriver extends Driver {
             
             /*
             for (GblData gbldata : gbl_fit_trajectory.getTrajData()) {
-                float vals[] = new float[2];
+            float vals[] = new float[2];
                 List<Integer> indLocal = new ArrayList<Integer>();
                 List<Double> derLocal = new ArrayList<Double>();
                 List<Integer> labGlobal = new ArrayList<Integer>();
@@ -192,14 +185,6 @@ public class KalmanToGBLDriver extends Driver {
     @Override 
     protected void endOfData() {
 
-        //Save the plots?
-        
-        try {
-            aidaGBL.saveAs("KalmanToGBLDriverplots.root");
-        }
-        catch (IOException ex) {
-        }
-        
     }
     
     static Comparator<GBLStripClusterData>  arcLComparator = new Comparator<GBLStripClusterData>() {

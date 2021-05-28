@@ -23,6 +23,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
 import org.lcsim.geometry.compact.converter.MilleParameter;
+import java.util.Locale;
 
 /**
  * Class building a new compact.xml detector based on MillepedeII input corrections
@@ -52,6 +53,8 @@ public class BuildMillepedeCompact {
     }
 
     public static void main(String[] args) {
+
+        Locale.setDefault(Locale.US);
 
         // Setup command line input
         Options options = createCmdLineOpts();

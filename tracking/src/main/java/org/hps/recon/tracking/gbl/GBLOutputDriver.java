@@ -168,8 +168,11 @@ public class GBLOutputDriver extends Driver {
             //Track matchedTrack = (Track) trackMatchTable.from(trk);
             Map<HpsSiSensor, TrackerHit> sensorHits = new HashMap<HpsSiSensor, TrackerHit>();
             Map<HpsSiSensor, Integer> sensorNums    = new HashMap<HpsSiSensor, Integer>();
-            List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(trk, hitToStrips, hitToRotated);
+            List<TrackerHit> hitsOnTrack = new ArrayList<TrackerHit>();
 
+            if (hitToStrips != null && hitToRotated != null)
+                hitsOnTrack = TrackUtils.getStripHits(trk, hitToStrips, hitToRotated);
+            
             int i = 0;
             for (TrackerHit hit : hitsOnTrack) {
                 HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());

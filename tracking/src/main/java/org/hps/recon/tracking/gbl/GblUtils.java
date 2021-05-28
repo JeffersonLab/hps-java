@@ -105,7 +105,7 @@ public class GblUtils {
     }
     
     /** returns the residuals from the trajectory fit
-     *  
+     *  fix this by passing only the trajectory!
      */
     
     public static TrackResidualsData computeGblResiduals(Track trk, FittedGblTrajectory fitGbl_traj) {

@@ -282,11 +282,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
         
         //Save the plots?
         
-        try {
-            aidaGBL.saveAs("SimpleGBLTrajAliDriverplots.root");
-        }
-        catch (IOException ex) {
-        }
+        //try {
+        //    aidaGBL.saveAs("SimpleGBLTrajAliDriverplots.root");
+        //}
+        //catch (IOException ex) {
+        //}
         
     }
 
@@ -297,12 +297,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
         bFieldMap = detector.getFieldMap();
         
-        if (aidaGBL == null)
-            aidaGBL = AIDA.defaultInstance();
+        //if (aidaGBL == null)
+        //    aidaGBL = AIDA.defaultInstance();
 
-        aidaGBL.tree().cd("/");
+        //aidaGBL.tree().cd("/");
 
-        setupPlots();
+        //setupPlots();
 
         _hpsGblTrajCreator = new HpsGblTrajectoryCreator();
 
@@ -418,7 +418,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
                                 
-                if (momentum.magnitude() < 3.8 || momentum.magnitude() > 5.2)
+                if (momentum.magnitude() < 3 || momentum.magnitude() > 6)
                     continue;
                 
                 //Align with tracks with at least 6 hits
@@ -504,6 +504,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //    continue;
 
             //This should GBL Trajectories for both the ST+GBL and KF+GBL depending on the setup.
+            
+            //I think this should take the track->trackerHits and refit those with a GBL otherwise I think I miss the momentum constraint.. ?
             
             List<GBLStripClusterData> trackGblStripClusterData  = computeGBLStripClusterData(track,TrackType,
                                                                                              temp,gblStripClusterDataRelations,event);
@@ -706,6 +708,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
                 
                 GblTrajectoryJna trajForMPII = null;
+                GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,1,1,1);
                 
                 if (!constrainedFit) {
                     trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
@@ -729,7 +732,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 
                 //Fit the trajectory to get the Chi2
-                trajForMPII.fit(Chi2,Ndf, lostWeight,"");
+                trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
                                 
                 //Avoid to use tracks with terrible Chi2
                 if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
