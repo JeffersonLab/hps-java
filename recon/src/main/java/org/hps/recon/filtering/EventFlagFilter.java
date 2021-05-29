@@ -13,7 +13,7 @@ public class EventFlagFilter extends EventReconFilter {
     private static Logger LOGGER = Logger.getLogger(EventFlagFilter.class.getPackage().getName());
     private static Level LEVEL = Level.WARNING;
 
-    String[] flagNames = {"svt_bias_good", "svt_position_good", "svt_burstmode_noise_good", "svt_event_header_good", "svt_latency_good"};
+    String[] flagNames = {"svt_bias_good", "svt_position_good", "svt_burstmode_noise_good", "svt_event_header_good", "svt_latency_good", "svt_readout_overlap_good"};
 
     public void setFlagNames(String[] flagNames) {
         this.flagNames = flagNames;
