@@ -186,7 +186,6 @@ public final class Server {
                 JSONObject params = jo.getJSONObject("parameters");
                 LOG.info("Received client command '" + command + "' with parameters: " + params);
 
-
                 // Get command handler
                 CommandHandler handler = null;
                 try {
@@ -221,7 +220,6 @@ public final class Server {
                     if (res instanceof LogStreamResult) {
                         // Stream log file back to client.
                         runTailer(res, bw, in);
-
                     } else {
                         // Send single line command result back to client.
                         bw.write(res.toString());
@@ -299,15 +297,15 @@ public final class Server {
             tailerThread.start();
             LOG.info("Done starting tailer");
 
-            // Any input from client and we assume that the tailer should stop
+            // Any input from the client will stop the tailer.
             LOG.config("Waiting for any client input...");
             in.nextLine();
             LOG.config("Stopping tailer");
-            //LOG.config("Client input: " + something);
 
             tailerThread.interrupt();
             tailerThread.join(10000L);
             if (tailerThread.isAlive()) {
+                // Forcibly stop the thread
                 LOG.warning("Stopping misbehaved tailer thread");
                 tailerThread.stop();
             }

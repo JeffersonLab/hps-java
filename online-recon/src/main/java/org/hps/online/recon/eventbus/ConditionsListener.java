@@ -2,6 +2,7 @@ package org.hps.online.recon.eventbus;
 
 import java.util.Date;
 
+import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.online.recon.properties.Property;
 import org.hps.record.evio.EventTagConstant;
 import org.hps.record.evio.EvioEventUtilities;
@@ -21,7 +22,7 @@ public class ConditionsListener {
     private OnlineEventBus eventbus;
     private Property<String> detectorProp = null;
     private Integer currentRun = null;
-    private ConditionsManager mgr;
+    private DatabaseConditionsManager mgr;
 
     ConditionsListener(OnlineEventBus eventbus) {
         this.eventbus = eventbus;
@@ -29,7 +30,7 @@ public class ConditionsListener {
         if (!detectorProp.valid()) {
             throw new IllegalArgumentException("The detector property is not valid");
         }
-        mgr = ConditionsManager.defaultInstance();
+        mgr = (DatabaseConditionsManager) ConditionsManager.defaultInstance();
     }
 
     @Subscribe
@@ -44,7 +45,7 @@ public class ConditionsListener {
             }
         }
 
-        if (currentRun != null && !currentRun.equals(mgr.getRun())) {
+        if (currentRun != null && !currentRun.equals(mgr.getRun()) && !mgr.isFrozen()) {
             try {
                 eventbus.getLogger().info("Setting conditions from EVIO: " + detectorProp.value() + ":" + currentRun);
                 ConditionsManager.defaultInstance().setDetector(detectorProp.value(), currentRun);

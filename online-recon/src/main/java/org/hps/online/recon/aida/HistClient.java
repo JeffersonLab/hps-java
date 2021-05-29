@@ -40,7 +40,6 @@ import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
  * Displays plots from the <code>RemoteChronoDriver</code>
  * through an RMI connection
  */
-// TODO: Move to plotting package
 public class HistClient {
 
     static {

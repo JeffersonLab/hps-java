@@ -13,6 +13,7 @@ import com.google.common.eventbus.Subscribe;
 public class EtListener {
 
     private OnlineEventBus eventbus;
+
     EtListener(OnlineEventBus eventbus) {
         this.eventbus = eventbus;
     }

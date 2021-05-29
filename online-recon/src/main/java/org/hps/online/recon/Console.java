@@ -55,10 +55,9 @@ public class Console {
      * Run the console, accepting and executing user input.
      */
     void run() {
+
         String userInput;
-
         Scanner sn = new Scanner(System.in);
-
 
         System.out.println("HPS Online Reconstruction");
         System.out.println("Type 'help' or 'help [command]' for more information or 'exit' to quit.");

@@ -11,8 +11,7 @@ import org.lcsim.event.EventHeader;
 import com.google.common.eventbus.Subscribe;
 
 /**
- * Receive EVIO events, build raw events,
- * and do recon processing.
+ * Receive EVIO events, build raw events, and perform physics reconstruction.
  */
 public class EvioListener {
 

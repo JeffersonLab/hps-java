@@ -173,7 +173,7 @@ public class StationManager {
         // Create the directory for this station's files
         File dir = createStationDir(stationName);
 
-        // Copy the server's properties and set some station-specific properties
+        // Copy the server's properties and set some additional station-specific properties
         StationProperties props = new StationProperties(this.server.getStationProperties());
         props.get("et.stationName").set(stationName);
         props.get("station.outputName").set(stationName.toLowerCase());

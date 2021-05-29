@@ -8,6 +8,7 @@ import java.util.List;
  */
 @SuppressWarnings("serial")
 public class PropertyValidationException extends Exception {
+
     PropertyValidationException(List<Property<?>> badProps) {
         super("The following properties are not valid:" + propsToString(badProps));
     }

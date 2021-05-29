@@ -18,8 +18,8 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 import org.lcsim.job.ConditionsSetup;
 
 /**
- * Online reconstruction station which processes events from the ET system
- * and writes intermediate plot files.
+ * Online reconstruction station which processes EVIO events from the ET system
+ * by running LCIO reconstruction on them
  */
 public class Station {
 
@@ -151,7 +151,7 @@ public class Station {
         }
         LOG.config("Station properties validated");
 
-        // Get all the properties we will need
+        // Get all the properties needed to configure the station
         Property<String> detector = props.get("lcsim.detector");
         Property<Integer> run = props.get("lcsim.run");
         Property<String> outputDir = props.get("station.outputDir");

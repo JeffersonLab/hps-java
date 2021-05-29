@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.util.logging.LogManager;
 
 /**
- * Logging config for online reconstruction stations and other misc components
+ * Logging configuration for online reconstruction stations and other miscellaneous components
  */
 public class LoggingConfig {
 

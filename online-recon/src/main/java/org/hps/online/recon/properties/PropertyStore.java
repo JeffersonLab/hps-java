@@ -53,7 +53,7 @@ public class PropertyStore {
         for (Object keyObj : propFile.keySet()) {
             String key = keyObj.toString();
             if (has(key)) {
-                Property prop = props.get(key);
+                Property<?> prop = props.get(key);
                 Object rawVal = propFile.get(key);
                 prop.from(rawVal);
             }

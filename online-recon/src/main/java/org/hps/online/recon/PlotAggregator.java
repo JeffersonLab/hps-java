@@ -42,7 +42,7 @@ import hep.aida.ref.xml.AidaXMLStore;
 
 /**
  * Creates an AIDA tree that is used to combine histograms from multiple
- * online recon {@link Station}s by connecting to their remote trees
+ * online recon {@link Station} instances by connecting to their remote trees
  * and adding histogram objects with the same paths together
  *
  * The resulting combined plots can then be viewed in a remote AIDA client,

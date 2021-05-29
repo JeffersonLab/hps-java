@@ -21,7 +21,7 @@ public abstract class CommandHandler {
     protected Logger logger = null;
 
     /**
-     * Connection that handlers can throw if there is a command
+     * Exception that handlers can throw if there is a command
      * processing error
      */
     @SuppressWarnings("serial")

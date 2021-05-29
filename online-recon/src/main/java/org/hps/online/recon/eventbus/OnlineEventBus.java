@@ -11,15 +11,13 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 /**
- * An event bus to read ET events, convert to EVIO,
- * and generate LCIO recon events using an event
- * builder and job manager.
+ * An event bus to read ET events, convert to EVIO, and generate reconstructed
+ * LCIO events using an event builder and job manager.
  *
- * Special objects are used for error handling,
- * signaling end of run, and stopping the ET event loop.
+ * Special objects are used for error handling, signaling end of run, and stopping
+ * the ET event loop.
  *
- * Event processing is run on a separate thread so that
- * it can be stopped easily.
+ * Event processing is run on a separate thread, so that it can be stopped easily.
  */
 public class OnlineEventBus extends EventBus {
 

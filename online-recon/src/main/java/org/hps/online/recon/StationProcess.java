@@ -417,7 +417,7 @@ public class StationProcess {
         command = new ArrayList<String>();
 
         command.add("java");
-        command.add("-Xmx1g");
+        command.add("-Xmx1g"); // FIXME: Hard-coded memory limit
 
         // Logging configuration
         if (logConfigFile.valid()) {
