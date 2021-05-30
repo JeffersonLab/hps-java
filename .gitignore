@@ -36,8 +36,8 @@ target
 # name of ET mem map file
 ETBuffer
 
-# local repo
 .m2repo
 
-# ignore output from Maven dependency tree
-deps.txt
+deps.txt 
+
+scratch/

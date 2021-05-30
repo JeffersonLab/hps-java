@@ -72,9 +72,9 @@
               <goal>assemble</goal>
             </goals>
             <configuration>
-              <binFileExtensions>
-                <unix>.sh</unix>
-              </binFileExtensions>
+              <platforms>
+                <platform>unix</platform>
+              </platforms>
               <extraJvmArguments>-Xmx2g
                 -Djava.util.logging.config.class=org.hps.logging.config.DefaultLoggingConfig</extraJvmArguments>
               <programs>
