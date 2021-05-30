@@ -25,7 +25,7 @@ import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.readout.util.collection.ManagedLCIOCollection;
 import org.hps.readout.util.collection.ManagedLCIOData;
 import org.hps.readout.util.collection.TriggeredLCIOData;
-import org.hps.record.triggerbank.TestRunTriggerData;
+import org.hps.record.triggerbank.BaseTriggerData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.MCParticle;
@@ -386,7 +386,7 @@ public class ReadoutDataManager extends Driver {
                 
                 // Create the dummy trigger bank data and store it.
                 TriggeredLCIOData<GenericObject> triggerBankData = new TriggeredLCIOData<GenericObject>(triggerBankParams);
-                triggerBankData.getData().add(new TestRunTriggerData(new int[8]));
+                triggerBankData.getData().add(new BaseTriggerData(new int[8]));
                 addDataToMap(triggerBankData, triggerBankData.getCollectionParameters().getObjectType(), triggeredDataMap);
                 
                 // Readout timestamps should be generated for both

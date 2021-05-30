@@ -688,12 +688,7 @@ public final class EvioToLcio {
      * @return The LCSimEventBuilder for the Test Run or Engineering Run.
      */
     private void setupEventBuilder(final int runNumber) {
-        // Is this run number from the Test Run?
-        if (DatabaseConditionsManager.isTestRun(runNumber)) {
-            // Configure conditions system for Test Run.
-            LOGGER.info("using Test Run event builder");
-            eventBuilder = new LCSimTestRunEventBuilder();
-        } else if (DatabaseConditionsManager.isPhys2019Run(runNumber)) { 
+        if (DatabaseConditionsManager.isPhys2019Run(runNumber)) { 
             LOGGER.info("using 2019 Physics Run builder."); 
             eventBuilder = new LCSimPhys2019EventBuilder(); 
         } else {

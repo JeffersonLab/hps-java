@@ -16,7 +16,7 @@ import org.lcsim.geometry.Subdetector;
  * Test run SVT EVIO reader used to convert SVT bank integer data to LCIO
  * objects.
  */
-public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
+public class BaseSvtEvioReader extends AbstractSvtEvioReader {
 
     // -----------------//
     // --- Constants ---//
@@ -32,7 +32,7 @@ public class TestRunSvtEvioReader extends AbstractSvtEvioReader {
     /**
      * Default Constructor
      */
-    public TestRunSvtEvioReader() {
+    public BaseSvtEvioReader() {
     };
 
     /**
