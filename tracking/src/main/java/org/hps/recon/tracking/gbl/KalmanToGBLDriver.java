@@ -6,11 +6,12 @@ import java.util.Set;
 import java.util.Collections;
 import java.util.Comparator;
 
-import hep.physics.vec.Hep3Vector;
-import hep.physics.vec.BasicHep3Vector;
+//import hep.physics.vec.Hep3Vector;
+//import hep.physics.vec.BasicHep3Vector;
+//import org.lcsim.event.TrackState;
 
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackState;
+
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.geometry.Detector;
@@ -38,6 +39,8 @@ public class KalmanToGBLDriver extends Driver {
     private String inputCollectionName = "KalmanFullTracks";
     private String trackResidualsColName = "TrackResidualsKFtoGBL";
     private String trackResidualsRelColName = "TrackResidualsKFtoGBLRelations";
+    private String kinkDataCollectionName = GBLKinkData.DATA_COLLECTION;
+    private String kinkDataRelationsName  = GBLKinkData.DATA_RELATION_COLLECTION;
     private Boolean _debug = false;
     private Boolean constrainedBSFit = false;
     private double bfield;
@@ -60,6 +63,11 @@ public class KalmanToGBLDriver extends Driver {
         //Hit on Track Residuals
         List<TrackResidualsData> trackResidualsCollection =  new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations          = new ArrayList<LCRelation>();
+
+
+        //Kinks 
+        List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
+        List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
         
         //Get the track collection from the event
 
@@ -77,15 +85,15 @@ public class KalmanToGBLDriver extends Driver {
         for (Track trk : tracks ) {
             
             //Remove tracks with less than 10 hits
-            if (trk.getTrackerHits().size() < 10)
-                continue;
+            //if (trk.getTrackerHits().size() < 10)
+            //    continue;
             
-            Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
+            //Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
             
             //Remove tracks where there is high mis-tracking rate
-            TrackState trackState = trk.getTrackStates().get(0);
-            if (Math.abs(trackState.getTanLambda()) < 0.02)
-                continue;
+            //TrackState trackState = trk.getTrackStates().get(0);
+            //if (Math.abs(trackState.getTanLambda()) < 0.02)
+            //    continue;
             
                         
             //Get the GBLStripClusterData
@@ -130,8 +138,8 @@ public class KalmanToGBLDriver extends Driver {
                     
             double bfac = Constants.fieldConversion * bfield;
 
-            //OLD way to refit. I'll use this for the moment.
-
+            //I'm using the OLD way to refit for the moment.
+            
             FittedGblTrajectory fitGbl_traj = HpsGblRefitter.fit(list_kfSCDs, bfac, false);
             GblTrajectory gbl_fit_trajectory =  fitGbl_traj.get_traj();
             
@@ -145,7 +153,13 @@ public class KalmanToGBLDriver extends Driver {
                 //For the moment I associate the residuals to the old KF track (They should be associated to the GBL Track)
                 trackResidualsRelations.add(new BaseLCRelation(resData,trk));
                 
+                // Get the kinks
+                GBLKinkData kinkData = fitGbl_traj.getKinks();
+                kinkDataCollection.add(kinkData);
+                kinkDataRelations.add(new BaseLCRelation(kinkData,trk));
+                                      
             }//computeGBLResiduals
+            
             
             
             // Get the derivatives
@@ -175,6 +189,9 @@ public class KalmanToGBLDriver extends Driver {
         if (computeGBLResiduals) {
             event.put(trackResidualsColName,    trackResidualsCollection,  TrackResidualsData.class, 0);
             event.put(trackResidualsRelColName, trackResidualsRelations, LCRelation.class, 0);
+            event.put(kinkDataCollectionName, kinkDataCollection, GBLKinkData.class, 0);
+            event.put(kinkDataRelationsName, kinkDataRelations, LCRelation.class, 0);
+            
         }
     }
 

@@ -129,6 +129,8 @@ public class GBLOutputDriver extends Driver {
     public void process(EventHeader event) {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
 
+        //System.out.println("Running on "+trackCollectionName);
+
         //RelationalTable trackMatchTable = null;
         //trackMatchTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
         //List<LCRelation> trackMatchRelation = event.get(LCRelation.class, "MatchedToGBLTrackRelations");
@@ -165,6 +167,16 @@ public class GBLOutputDriver extends Driver {
             
 
             GenericObject gblKink = GBLKinkData.getKinkData(event, trk);
+
+            if (gblKink == null) {
+                System.out.println("Failed finding gblKink object");
+                System.out.println("Looked for: "+GBLKinkData.DATA_RELATION_COLLECTION);
+                System.out.println("Event has "+GBLKinkData.DATA_RELATION_COLLECTION+" "+event.hasCollection(LCRelation.class, GBLKinkData.DATA_RELATION_COLLECTION));
+            }
+            
+            
+            
+
             //Track matchedTrack = (Track) trackMatchTable.from(trk);
             Map<HpsSiSensor, TrackerHit> sensorHits = new HashMap<HpsSiSensor, TrackerHit>();
             Map<HpsSiSensor, Integer> sensorNums    = new HashMap<HpsSiSensor, Integer>();
