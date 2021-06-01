@@ -22,7 +22,7 @@ import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.detector.tracker.silicon.SiStrips;
+import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
@@ -164,7 +164,7 @@ public class ClusterOccupancyPlotsDriver extends Driver {
         Map<Integer, Hep3Vector> positionMap = new HashMap<Integer, Hep3Vector>();
         for (ChargeCarrier carrier : ChargeCarrier.values())
             if (sensor.hasElectrodesOnSide(carrier)) {
-                SiStrips strips = (SiStrips) sensor.getReadoutElectrodes(carrier);
+                SiSensorElectrodes strips = (SiSensorElectrodes) sensor.getReadoutElectrodes(carrier);
                 ITransform3D parentToLocal = sensor.getReadoutElectrodes(carrier).getParentToLocal();
                 ITransform3D localToGlobal = sensor.getReadoutElectrodes(carrier).getLocalToGlobal();
                 for (int physicalChannel = 0; physicalChannel < 640; physicalChannel++) {

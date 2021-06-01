@@ -27,9 +27,7 @@ public class FinalStateParticlePlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
     String finalStateParticlesColName = "FinalStateParticles";
-    String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
-    String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
-    String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
+  
 
     // some counters
     int nRecoEvents = 0;
@@ -82,6 +80,10 @@ public class FinalStateParticlePlots extends Driver {
 
     public void setPi0EdifCut(double cut) {
         this.pi0EdifCut = cut;
+    }
+
+    public void setFinalStateParticlesColName(String name){
+        this.finalStateParticlesColName=name;
     }
 
     @Override
@@ -156,13 +158,7 @@ public class FinalStateParticlePlots extends Driver {
     public void process(EventHeader event) {
         /* make sure everything is there */
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
-            return;
-        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
-            return;
-        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName))
-            return;
-        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName))
-            return;
+            return;       
         nRecoEvents++;
 
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class,

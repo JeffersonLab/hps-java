@@ -28,7 +28,7 @@ public class V0ReconPlots extends Driver {
     String finalStateParticlesColName = "FinalStateParticles";
     String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
-    String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
+    String targetConV0CandidatesColName = "TargetConstrainedV0Candidates";
     // some counters
     int nRecoEvents = 0;
     boolean debug = false;
@@ -52,6 +52,19 @@ public class V0ReconPlots extends Driver {
     IHistogram2D pyEleVspyPos;
     IHistogram2D pxEleVspxPos;
     IHistogram2D massVsVtxZ;
+
+    public void setFinalStateParticlesColName(String name){
+        this.finalStateParticlesColName=name;
+    }
+    public void setUnconstrainedV0CandidatesColName(String name){
+        this.unconstrainedV0CandidatesColName=name;
+    }
+    public void setBeamConV0CandidatesColName(String name){
+        this.beamConV0CandidatesColName=name;
+    }
+    public void setTargetConV0CandidatesColName(String name){
+        this.targetConV0CandidatesColName=name;
+    }
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -108,7 +121,7 @@ public class V0ReconPlots extends Driver {
             return;
         if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName))
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName))
+        if (!event.hasCollection(ReconstructedParticle.class, targetConV0CandidatesColName))
             return;
         nRecoEvents++;
 
