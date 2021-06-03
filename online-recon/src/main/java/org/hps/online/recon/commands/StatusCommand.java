@@ -9,20 +9,20 @@ import org.hps.online.recon.Command;
  * Show status summary of online reconstruction server and ET system.
  */
 public class StatusCommand extends Command {
-           
-    StatusCommand() {
+
+    public StatusCommand() {
         super("status", "Show server and station status", "[options]", "");
     }
-    
+
     protected Options getOptions() {
         options.addOption(new Option("v", "verbose", false, "show verbose station info"));
         return options;
     }
-    
+
     void setVerbose(boolean verbose) {
         setParameter("verbose", verbose);
     }
-    
+
     public void process(CommandLine cl) {
         if (cl.hasOption("v")) {
             setVerbose(true);
@@ -30,4 +30,4 @@ public class StatusCommand extends Command {
             setVerbose(false);
         }
     }
-}    
+}

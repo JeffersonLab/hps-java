@@ -117,7 +117,7 @@ public class KalmanInterface {
     
     static double [] getFielD(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
         // Field map for stand-alone running
-        if (FieldMap.class.isInstance(hpsFm)) { return ((FieldMap) (hpsFm)).getField(kalPos); }
+        if (FieldMap.class.isInstance(hpsFm)) return ((FieldMap) (hpsFm)).getField(kalPos);
 
         // Standard field map for running in hps-java
         //System.out.format("Accessing HPS field map for position %8.3f %8.3f %8.3f\n", kalPos.v[0], kalPos.v[1], kalPos.v[2]);
@@ -129,6 +129,8 @@ public class KalmanInterface {
         } else {
             if (hpsPos[1] > 70.0) hpsPos[1] = 70.0;   // To avoid getting a field returned that is identically equal to zero
             if (hpsPos[1] < -70.0) hpsPos[1] = -70.0;
+            if (hpsPos[0] < -225.) hpsPos[0] = -225.;
+            if (hpsPos[0] > 270.) hpsPos[0] = 270.;
         }
         double[] hpsField = hpsFm.getField(hpsPos);
         if (uniformB) {

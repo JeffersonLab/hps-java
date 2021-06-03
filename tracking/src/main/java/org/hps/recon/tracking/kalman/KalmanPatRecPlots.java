@@ -92,10 +92,9 @@ class KalmanPatRecPlots {
         
         // arguments to histogram1D: name, nbins, min, max
         aida.histogram1D("Kalman number of tracks", 10, 0., 10.);
-        aida.histogram1D("Kalman Track Chi2", 50, 0., 100.);
-        aida.histogram1D("Kalman Track Chi2, >=12 hits", 50, 0., 100.);
+        aida.histogram1D("Kalman Track Chi2", 100, 0., 200.);
+        aida.histogram1D("Kalman Track Chi2, >=12 hits", 100, 0., 200.);
         aida.histogram1D("Kalman Track simple Chi2, >=12 hits", 50, 0., 100.);
-        aida.histogram1D("Kalman Track Chi2 with >=12 good hits", 50, 0., 100.);
         aida.histogram2D("number tracks Kalman vs GBL", 20, 0., 5., 20, 0., 5.);
         aida.histogram1D("helix chi-squared at origin", 100, 0., 25.);
         aida.histogram1D("GBL track chi^2", 50, 0., 100.);
@@ -183,6 +182,16 @@ class KalmanPatRecPlots {
         hnh = aida.histogram1D("MC number hits",15,0.,15.);
         hnhf = aida.histogram1D("MC number hits, found",15,0.,15.);
         pEff = new Efficiency(40,0.,0.1,"Track efficency vs momentum","momentum (GeV)","efficiency");
+        aida.histogram1D("Bad/Number of hits on bad tracks", 20, 0., 20.);
+        aida.histogram1D("Bad/Chi-squared of bad tracks", 100, 0., 200.);
+        aida.histogram1D("Bad/drho of bad tracks", 50, -8., 8.);
+        aida.histogram1D("Bad/dz of bad tracks", 50, -4., 4.);
+        aida.histogram1D("Bad/momentum of bad tracks", 60, 0., 6.);
+        aida.histogram1D("Bad/Number of MC particles associated", 10, 0., 10.);
+        aida.histogram1D("Bad/Number of wrong hits on track", 20, 0., 20.);
+        aida.histogram1D("seed slope",100,0.,0.3);
+        aida.histogram1D("seed z intercept",100,0.,10.);
+        aida.histogram1D("seed y intercept",100,-100.,100.);
     }
     
     void process(EventHeader event, List<HpsSiSensor> sensors, ArrayList<KalTrack>[] kPatList, 
@@ -416,15 +425,52 @@ class KalmanPatRecPlots {
                 aida.histogram1D("Kalman track drho").fill(kTk.originHelixParms()[0]);
                 aida.histogram1D("Kalman track dz").fill(kTk.originHelixParms()[3]);
                 aida.histogram1D("Kalman track time range (ns)").fill(kTk.tMax - kTk.tMin);
+                
+                // Use good tracks to analyze seed cuts
+                if (kTk.nHits >=10) {
+                    if (kTk.chi2 < 15.) {
+                        for (MeasurementSite site : kTk.SiteList) {
+                            if (site.m.isStereo) continue;
+                            if (site.hitID < 0) continue;
+                            Measurement hit1 = site.m.hits.get(site.hitID);
+                            double z1 = site.m.toGlobal(new Vec(0.,hit1.v,0.)).v[2];
+                            double y1 = site.m.p.X().v[1];
+                            for (MeasurementSite site2 : kTk.SiteList) {
+                                if (site2.m.isStereo) continue;
+                                if (site.m.Layer == site2.m.Layer) continue;
+                                if (site2.hitID < 0) continue;
+                                Measurement hit2 = site2.m.hits.get(site2.hitID);
+                                double z2 = site2.m.toGlobal(new Vec(0.,hit2.v,0.)).v[2];
+                                double y2 = site2.m.p.X().v[1];   
+                                double slope = (z2 - z1) / (y2 - y1);
+                                double zIntercept = z1 - slope * y1;
+                                double yIntercept = -(zIntercept/slope);
+                                aida.histogram1D("seed slope").fill(Math.abs(slope));
+                                aida.histogram1D("seed z intercept").fill(Math.abs(zIntercept));
+                                aida.histogram1D("seed y intercept").fill(yIntercept);
+                            }
+                        }
+                    }
+                }
 
                 // Check the covariance matrix
+                boolean badCov = false;
                 Matrix C = new Matrix(kTk.originCovariance());
                 EigenvalueDecomposition eED= new EigenvalueDecomposition(C);
                 double [] e = eED.getRealEigenvalues();
                 for (int i=0; i<5; ++i) {
                     if (e[i] < 0.) {
                         logger.warning(String.format("Event %d, eigenvalue %d of covariance is negative!", event.getEventNumber(), i));
+                        System.out.format("Event %d, eigenvalue %d of covariance is negative for track %d!", event.getEventNumber(), i, kTk.ID);
+                        badCov = true;
                     }
+                }
+                if (badCov || kTk.bad) {
+                    aida.histogram1D("Bad/Number of hits on bad tracks").fill(kTk.nHits);
+                    aida.histogram1D("Bad/Chi-squared of bad tracks").fill(kTk.chi2);
+                    aida.histogram1D("Bad/drho of bad tracks").fill(kTk.originHelixParms()[0]);
+                    aida.histogram1D("Bad/dz of bad tracks").fill(kTk.originHelixParms()[3]);
+                    aida.histogram1D("Bad/momentum of bad tracks").fill(pMag);
                 }
                 if (kTk.nHits >= 10) {
                     DMatrixRMaj thisCov = kTk.SiteList.get(0).aS.helix.C;
@@ -515,6 +561,7 @@ class KalmanPatRecPlots {
                 }
                 aida.histogram1D("Kalman track number of shared hits").fill(nShared);
                 aida.histogram1D("Kalman track number MC particles").fill(mcParts.size());
+
                 // Which MC particle is the best match?
                 int idBest = -1;
                 int nMatch = 0;
@@ -547,6 +594,10 @@ class KalmanPatRecPlots {
                     if (!goodHit) nBad++;
                 }
                 aida.histogram1D("Kalman number of wrong hits on track").fill(nBad);
+                if (badCov || kTk.bad) {
+                    aida.histogram1D("Bad/Number of MC particles associated").fill(mcParts.size());
+                    aida.histogram1D("Bad/Number of wrong hits on track").fill(nBad);
+                }
             
                 if (kTk.nHits >= 10) aida.histogram1D("Kalman number of wrong hits on track, >= 10 hits").fill(nBad);
                 MCParticle mcBest = null;
@@ -823,21 +874,31 @@ class KalmanPatRecPlots {
             } //loop on GBL Tracks
         } //check if event has GBLTracks
         
+        //int [] badEvents = {51753, 52531, 56183, 57958, 58050, 60199, 80324, 83798, 84933, 86351, 88796, 96749, 97230, 102986, 105578, 106654, 
+        //        107191, 108542, 108886, 110453, 120457, 121129, 121311, 121525, 124355, 124910, 127335, 129360, 133951};
+        //int [] badEvents = {8788317, 8730045, 8724483, 8716465, 8697779, 8696553, 8565879, 8566151, 8563109, 196192, 155656, 144460, 135200,
+        //        110480, 69464, 20665, 9000031, 8882086, 8878414, 8750999};
+        int [] badEvents = {};
         if (nPlotted < numEvtPlots) { // && sharedHitTrack) {
-            KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
-            //KI.plotGBLtracks(outputGnuPlotDir, event);
-            nPlotted++;
-        }
-        
-        double maxTruErr = simHitRes(event);
-        if (maxTruErr < 0.02) {
-            for (int topBottom=0; topBottom<2; ++topBottom) {
-                for (KalTrack kTk : kPatList[topBottom]) {
-                    if (kTk.nHits < 12) continue;                    
-                    aida.histogram1D("Kalman Track Chi2 with >=12 good hits").fill(kTk.chi2);                    
-                }
+            boolean plotIt = false;
+            if (badEvents.length > 0) {
+                for (int i=0; i<badEvents.length; ++i) {
+                    if (event.getEventNumber() == badEvents[i]) {
+                        plotIt = true;
+                        break;
+                    }
+                } 
+            } else {
+                plotIt = true;
+            }
+            if (plotIt) {
+                KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
+                //KI.plotGBLtracks(outputGnuPlotDir, event);
+                nPlotted++;
             }
         }
+        
+        simHitRes(event);
     }
     
     // Make histograms of the MC hit resolution

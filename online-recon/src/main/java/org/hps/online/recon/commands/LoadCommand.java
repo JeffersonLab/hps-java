@@ -10,19 +10,19 @@ import org.hps.online.recon.Command;
 
 /**
  * Set server configuration properties from a local file.
- * 
+ *
  * Running this command with no arguments returns the current configuration.
  */
-public class ConfigCommand extends Command {
+public class LoadCommand extends Command {
 
     private Properties prop;
-            
-    ConfigCommand() {
+
+    public LoadCommand() {
         super("config", "Set new server configuration properties", "[config.properties]",
                 "Configuration will take effect for newly created stations."
                 + " If no new config is provided the existing config will be printed.");
     }
-            
+
     /**
      * Load properties file into command parameters.
      * @param propFile The properties file
@@ -39,10 +39,10 @@ public class ConfigCommand extends Command {
             this.setParameter(key, this.prop.get(key).toString());
         }
     }
-            
+
     @Override
     protected void process(CommandLine cl) {
-        if (cl.getArgList().size() > 0) {                
+        if (cl.getArgList().size() > 0) {
             File propFile = new File(cl.getArgList().get(0));
             try {
                 loadProperties(propFile);
@@ -50,5 +50,5 @@ public class ConfigCommand extends Command {
                 throw new RuntimeException("Error loading prop file: " + propFile.getPath(), e);
             }
         }
-    }          
+    }
 }

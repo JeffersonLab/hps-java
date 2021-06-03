@@ -19,6 +19,16 @@ public class TriggerTime implements Comparable<TriggerTime> {
     private final ReadoutDriver trigger;
     
     /**
+     * Trigger type
+     */
+    private String triggerType = "noSet";
+    
+    /**
+     * Top/bot singles trigger
+     */
+    private String topBot = "noSet";
+    
+    /**
      * Instantiates a new <code>TriggerTime</code> object.
      * @param time - The simulation time (corrected for time offsets)
      * at which a trigger occurs.
@@ -26,6 +36,34 @@ public class TriggerTime implements Comparable<TriggerTime> {
      */
     public TriggerTime(double time, ReadoutDriver trigger) {
         this.time = time;
+        this.trigger = trigger;
+    }
+    
+    /**
+     * Instantiates a new <code>TriggerTime</code> object.
+     * @param time - The simulation time (corrected for time offsets)
+     * at which a trigger occurs.
+     * @param triggerType - trigger type
+     * @param trigger - The driver that produced the trigger.
+     */
+    public TriggerTime(double time, String triggerType, ReadoutDriver trigger) {
+        this.time = time;
+        this.trigger = trigger;
+        this.triggerType = triggerType;
+    }
+    
+    /**
+     * Instantiates a new <code>TriggerTime</code> object.
+     * @param time - The simulation time (corrected for time offsets)
+     * at which a trigger occurs.
+     * @param triggerType - trigger type
+     * @param topBot - top/Bot singles trigger
+     * @param trigger - The driver that produced the trigger.
+     */
+    public TriggerTime(double time, String triggerType, String topBot, ReadoutDriver trigger) {
+        this.time = time;
+        this.triggerType = triggerType;
+        this.topBot = topBot;
         this.trigger = trigger;
     }
     
@@ -56,5 +94,19 @@ public class TriggerTime implements Comparable<TriggerTime> {
      */
     public double getTriggerTime() {
         return time;
+    }
+    
+    /**
+     * Gets trigger type
+     */
+    public String getTriggerType() {
+        return triggerType;
+    }
+    
+    /**
+     * Gets top/bot status
+     */
+    public String getTopBotStat() {
+        return topBot;
     }
 }

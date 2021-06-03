@@ -169,21 +169,6 @@ class MeasurementSite {
                     check);
         }
 
-        // Check whether the intersection is within the bounds of the detector, with some margin
-        // If not, then the pattern recognition may look in another detector in the layer
-        // Don't do the check if the hit number is already specified. Also, the check will not
-        // be called for in the last sensor of the layer, because we need to run the Kalman prediction
-        // to this layer before moving to the next, even if there is no hit.
-        
-        double tol = kPar.edgeTolerance; // Tolerance on the check, in mm
-        Vec rLocal = null;
-        if (checkBounds && hitNumber < 0) {
-            Vec rGlobal = pS.helix.toGlobal(X0); // Transform from field coordinates to global coordinates
-            rLocal = m.toLocal(rGlobal); // Rotate into the detector coordinate system
-            if (rLocal.v[0] < m.xExtent[0] - tol || rLocal.v[0] > m.xExtent[1] + tol) { return -2; }
-            if (rLocal.v[1] < m.yExtent[0] - tol || rLocal.v[1] > m.yExtent[1] + tol) { return -2; }
-        }
-
         double deltaE = 0.; // dEdx*thickness/ct;
 
         Vec origin = m.p.X();
@@ -196,6 +181,7 @@ class MeasurementSite {
         }
 
         // Move pivot point to X0 to generate the predicted helix
+        // First we need the momentum direction to calculate how much silicon we pass through
         Vec pMom = pS.helix.Rot.inverseRotate(pS.helix.getMom(0.));
         double XL;
         if (mPs == null) {
@@ -215,6 +201,29 @@ class MeasurementSite {
             }
         }
         aP = pS.predict(thisSite, X0, B, tB, origin, XL, deltaE);
+        
+        // This calculates the H corresponding to using aP in h( , , ). It is kind of trivial, because
+        // aP are helix parameters for a pivot right at the predicted intersection point, on the helix. 
+        // Hence the prediction at that point does not depend on the helix parameters at all.
+        buildH(aP, H);
+        CommonOps_DDRM.mult(aP.helix.C, H, tempV);
+        double Rextrap = CommonOps_DDRM.dot(H, tempV);
+        
+        // Check whether the intersection is within the bounds of the detector, with some margin
+        // If not, then the pattern recognition may look in another detector in the layer.
+        // Don't do the check if the hit number is already specified. Also, the check will not
+        // be called for in the last sensor of the layer, because we need to run the Kalman prediction
+        // to this layer before moving to the next, even if there is no hit.       
+        double tol = kPar.edgeTolerance + FastMath.sqrt(Rextrap); // Tolerance on the check, in mm
+        if (debug) System.out.format("MeasurementSite.predict: edge tolerance = %10.4f mm\n", tol);
+        Vec rLocal = null;
+        if (checkBounds && hitNumber < 0) {
+            Vec rGlobal = pS.helix.toGlobal(X0); // Transform from field coordinates to global coordinates
+            rLocal = m.toLocal(rGlobal); // Rotate into the detector coordinate system
+            if (rLocal.v[0] < m.xExtent[0] - tol || rLocal.v[0] > m.xExtent[1] + tol) return -2;
+            if (rLocal.v[1] < m.yExtent[0] - tol || rLocal.v[1] > m.yExtent[1] + tol) return -2;
+        }
+        
         if (debug) {
             pS.helix.a.print("original helix in MeasurementSite.makePrediction");
             pS.helix.X0.print("original helix pivot point");
@@ -229,9 +238,6 @@ class MeasurementSite {
             // Vec X02 = aP.atPhi(phi2);
             // X02.print("intersection in local coordinates from new helix");
             // aP.toGlobal(X02).print("intersection in global coordinates from new helix");
-        }
-
-        if (debug) {
             System.out.format("MeasurementSite.makePrediction: old helix intersects plane at phi=%10.7f\n", phi);
             Vec rGlobalOld = pS.helix.toGlobal(pS.helix.atPhi(phi));
             rGlobalOld.print("global intersection with old helix from measurementSite.makePrediction");
@@ -243,11 +249,6 @@ class MeasurementSite {
 
         aP.mPred = h(pS, m, phi);
 
-        // This calculates the H corresponding to using aP in h( , , ). It is kind of trivial, because
-        // aP are helix parameters for a pivot right at the predicted intersection point, on the helix. 
-        // Hence the prediction at that point does not depend on the helix parameters at all.
-        buildH(aP, H);
-        
         // Test of the H vector, by comparing with a numerical difference. If this is done with the H
         // calculated from aP, comparing with h calculated from aP, then the difference is always zero.
         // By comparing with the less trivial case of h and H calculated from pS, we verify here that
@@ -379,8 +380,7 @@ class MeasurementSite {
                     System.out.format("MeasurementSite.makePrediction: intersection with new helix is at phi=%10.7f, z=%10.7f\n", phi2, mPred2);
                 }
 
-                CommonOps_DDRM.mult(aP.helix.C, H, tempV);
-                aP.R = m.hits.get(theHit).sigma * m.hits.get(theHit).sigma + CommonOps_DDRM.dot(H, tempV);
+                aP.R = m.hits.get(theHit).sigma * m.hits.get(theHit).sigma + Rextrap;
 
                 chi2inc = aP.r * aP.r / aP.R;
                 double cutVal = Math.abs(aP.r / m.hits.get(theHit).sigma);

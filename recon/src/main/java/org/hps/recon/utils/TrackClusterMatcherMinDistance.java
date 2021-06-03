@@ -36,7 +36,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
     protected HashMap<Cluster, Track> clusterToTrack;
     protected RelationalTable hitToRotated = null;
     protected RelationalTable hitToStrips = null;
-    protected RelationalTable trackToData = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+    protected RelationalTable trackToData;
     protected String trackClusterCollectionName = "GBLTracks";
     protected String rootFile = String.format("%s_TrackClusterMatching.root",this.trackCollectionName);
     //Keep false. May be used in future 03.19.21
@@ -328,6 +328,11 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
         else {
             TrackData trackdata = (TrackData) trackToData.from(track);
             TrackState ts_ecal = track.getTrackStates().get(track.getTrackStates().size()-1);
+            //If trackstate is null, upstream extrapolation error. Skip this
+            //Track
+            if(ts_ecal == null){
+                return null;
+            }
             double[] ts_ecalPos = ts_ecal.getReferencePoint();
             trackx = ts_ecalPos[1];
             tracky = ts_ecalPos[2];
@@ -364,6 +369,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
          * This matcher works for both GBL and KF Tracks.
          * Returns Map of Tracks matched do unique Clusters
          */
+        trackToData = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
 
         //define cuts
         this.maxMatchDt = cuts.getMaxMatchDt();
@@ -424,6 +430,12 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
 
                 //Track positions depend on GBL or KF
                 List<Double> trackPos = this.getTrackPositionAtEcal(track);
+                //If trackPos null, Track extrapolation to Ecal failed. Skip.
+                if(trackPos == null){
+                    //
+                    trackClusterResidualsMap.put(track, null);
+                    continue;
+                }
                 double trackx = trackPos.get(0);
                 double tracky = trackPos.get(1);
                 double trackz = trackPos.get(2);
@@ -566,6 +578,10 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
             double trackPmag = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum()).magnitude();
             //Track position
             List<Double> trackPos = this.getTrackPositionAtEcal(track);
+            //If trackPos is null, Track extrapolation to Ecal failed. Skip.
+            if(trackPos == null){
+                continue;
+            }
             double trackx = trackPos.get(0);
             double tracky = trackPos.get(1);
             double trackz = trackPos.get(2);
@@ -701,6 +717,10 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
             double smallestdr = 99999.0;
             Cluster smallestdrCluster = null;
             Map<Cluster, Double> cluster_dr_Map = trackClusterResidualsMap.get(track);
+            if(trackClusterResidualsMap == null){
+                Map.put(track, null);
+                continue;
+            }
             for(Cluster c : cluster_dr_Map.keySet()){
                 double dr = cluster_dr_Map.get(c);
                 if(dr < smallestdr){
@@ -727,6 +747,9 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
         boolean isTop;
 
         List<Double> trackPos = getTrackPositionAtEcal(track);
+        //If trackPos null, failed Track extrapolation. Skip Track
+        if(trackPos == null)
+            return;
         double trackx = trackPos.get(0);
         double tracky = trackPos.get(1);
         double trackz = trackPos.get(2);

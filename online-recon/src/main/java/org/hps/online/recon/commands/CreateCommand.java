@@ -6,16 +6,16 @@ import org.apache.commons.cli.Options;
 import org.hps.online.recon.Command;
 
 /**
- * Create one or more new stations using the current configuration properties 
- * of the server.  
+ * Create one or more new stations using the current configuration properties
+ * of the server.
  */
 public class CreateCommand extends Command {
 
-    CreateCommand() {
+    public CreateCommand() {
         super("create", "Create a new station", "[options] [number_of_stations]",
                 "Stations are not started by default.");
     }
-    
+
     /**
      * Set the number of stations to create
      * @param count The number of stations to create
@@ -23,7 +23,7 @@ public class CreateCommand extends Command {
     void setCount(Integer count) {
         this.setParameter("count", count.toString());
     }
-    
+
     /**
      * Set whether or not the stations should be started automatically.
      * @param start True if stations should be started automatically
@@ -31,12 +31,12 @@ public class CreateCommand extends Command {
     void setStart(Boolean start) {
         this.setParameter("start", start);
     }
-    
+
     protected Options getOptions() {
         options.addOption(new Option("s", "start", false, "automatically start the new stations"));
         return options;
     }
-            
+
     @Override
     protected void process(CommandLine cl) {
         if (cl.getArgList().size() == 1) {
@@ -50,4 +50,4 @@ public class CreateCommand extends Command {
             setStart(false);
         }
     }
-}    
+}

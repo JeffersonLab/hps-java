@@ -114,7 +114,7 @@ public class KalmanParams {
         
         minSeedE = new double[numLayers];
         for (int lyr=0; lyr<numLayers; ++lyr) {
-            minSeedE[lyr] = 1.5;
+            minSeedE[lyr] = 1.3;
         }
         
         // Set all the default values
@@ -127,12 +127,12 @@ public class KalmanParams {
         kMax[0] = 4.0;      // Maximum curvature for seed
         kMax[1] = 8.0;      
         kMin = 0.;          // Minimum curvature for seed
-        tanlMax[0] = 0.10;  // Maximum tan(lambda) for seed
+        tanlMax[0] = 0.104; // Maximum tan(lambda) for seed
         tanlMax[1] = 0.13;
         dRhoMax[0] = 15.;   // Maximum dRho at target plane for seed
         dRhoMax[1] = 25.;
-        dzMax[0] = 4.;      // Maximum z at target plane for seed
-        dzMax[1] = 10.;
+        dzMax[0] = 3.;      // Maximum z at target plane for seed
+        dzMax[1] = 7.5;
         chi2mx1[0] = 8.0;   // Maximum chi**2/#hits for good track
         chi2mx1[1] = 16.0;  
         mxChi2Vtx = 1.0;    // Maximum chi**2 for 5-hit tracks with vertex constraint
@@ -152,7 +152,7 @@ public class KalmanParams {
         mxTdif = 30.;       // Maximum time difference of hits in a track
         firstLayer = 0;     // First layer in the tracking system (2 for pre-2019 data)
         lowPhThresh = 0.25; // Residual improvement ratio necessary to use a low-ph hit instead of high-ph
-        seedCompThr = -1.;  // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
+        seedCompThr = 0.05;  // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
         
         // Load the default search strategies
         // Index 0 is for the bottom tracker (+z), 1 for the top (-z)
@@ -164,43 +164,27 @@ public class KalmanParams {
         //                 A S A S A S A S A S A  S  A  S   top
         //                 0,1,2,3,4,5,6,7,8,9,10,11,12,13
         //                 S A S A S A S A S A S  A  S  A  bottom
-        final int[] list0 = {6, 7, 8, 9, 10};
-        final int[] list1 = {4, 5, 6, 7, 8};
-        final int[] list2 = {5, 6, 8, 9, 10};
-        final int[] list3 = {5, 6, 7, 8, 10};
-        final int[] list4 = { 3, 6, 8, 9, 10 };
-        final int[] list5 = { 4, 5, 8, 9, 10 };
-        final int[] list6 = { 4, 6, 7, 8, 9 };
-        final int[] list7 = { 4, 6, 7, 9, 10 };
-        final int[] list8 = { 2, 5, 8, 9, 12};
-        final int[] list9 = { 8, 10, 11, 12, 13};
-        final int[] list10 = {6, 9, 10, 11, 12};
-        final int[] list11 = {6, 7, 9, 10, 12};
-        final int[] list12 = {2, 3, 4, 5, 6};
-        final int[] list13 = {2, 4, 5, 6, 7};
-        final int[] list14 = {6, 7, 8, 10, 11};
-        final int[] list15 = {1, 2, 3, 4, 6};
-        final int[] list16 = {0, 2, 3, 4, 5};
-        final int[] list17 = {0, 3, 4, 5, 6};
-        lyrList[0].add(list0);
-        lyrList[0].add(list1);
-        lyrList[0].add(list2);
-        lyrList[0].add(list3);
-        lyrList[0].add(list4);
-        lyrList[0].add(list5);
-        lyrList[0].add(list6);
-        lyrList[0].add(list7);
-        lyrList[0].add(list8);
-        lyrList[0].add(list9);
-        lyrList[0].add(list10);
-        lyrList[0].add(list11);
-        lyrList[0].add(list12);
-        lyrList[0].add(list13);
-        lyrList[0].add(list14);
-        lyrList[0].add(list15);
-        lyrList[0].add(list16);
-        lyrList[0].add(list17);
-        maxListIter1 = 14;           // The maximum index for lyrList for the first iteration
+        addStrategy("000BBS0");
+        addStrategy("00BBS00");
+        addStrategy("00ASBS0");
+        addStrategy("00ABSS0");
+        addStrategy("0A0SBS0");
+        addStrategy("00B0BS0");
+        addStrategy("00SBSA0");
+        addStrategy("00SBB00");
+        addStrategy("00SBAS0");
+        addStrategy("0SA0BS0");
+        addStrategy("0000SBB");
+        addStrategy("000SABS");
+        addStrategy("0BBS000");
+        addStrategy("0SBB000");
+        addStrategy("0000BBS");
+        addStrategy("000SSBA");
+        addStrategy("000BSSA");
+        addStrategy("ABSS000");
+        addStrategy("SBB0000");
+        addStrategy("SABS000");
+        maxListIter1 = 16;           // The maximum index for lyrList for the first iteration
         
         beamSpot = new double[3];
         beamSpot[0] = 0.;
@@ -226,22 +210,6 @@ public class KalmanParams {
 //            beamSpot[1] = beamPosKal.v[1];
 //            beamSpot[2] = beamPosKal.v[2];
 //        }            
-        
-        // Swap axial/stereo in list entries for the top tracker
-        for (int[] list: lyrList[0]) {
-            int [] listTop = new int[5];
-            for (int i=0; i<5; ++i) {
-                listTop[i] = Swap[list[i]];
-            }
-            for (int i=0; i<4; ++i) {
-                if (listTop[i] > listTop[i+1]) { // Sorting entries. No more than one swap should be necessary.
-                    int tmp = listTop[i];
-                    listTop[i] = listTop[i+1];
-                    listTop[i+1] = tmp;
-                }
-            }
-            lyrList[1].add(listTop);
-        }       
     }
     
     public void setLowPhThreshold(double cut) {
@@ -330,7 +298,7 @@ public class KalmanParams {
         }
         logger.log(Level.CONFIG,String.format("Setting the maximum 1/pt to %8.2f.", kMx));
         kMax[1] = kMx;
-        kMax[0] = Math.min(kMax[0], 0.6*kMx);
+        kMax[0] = Math.min(kMax[0], 0.5*kMx);
     }
     
     void setMinK(double kMn) {
@@ -378,7 +346,7 @@ public class KalmanParams {
         }
         logger.log(Level.CONFIG,String.format("Setting the maximum dz to %8.2f mm.", zMx));
         dzMax[1] = zMx;
-        dzMax[0] = Math.min(dzMax[0], 0.6*zMx);
+        dzMax[0] = Math.min(dzMax[0], 0.4*zMx);
     }
     
     public void setMaxChi2(double xMx) {
@@ -388,7 +356,7 @@ public class KalmanParams {
         }
         logger.log(Level.CONFIG,String.format("Setting the maximum chi^2/hit to %8.2f.", xMx));
         chi2mx1[1] = xMx;
-        chi2mx1[0] = Math.min(chi2mx1[0], 0.6*xMx);
+        chi2mx1[0] = Math.min(chi2mx1[0], 0.5*xMx);
     }
     
     public void setMaxChi2Vtx(double xMx) {
@@ -482,6 +450,10 @@ public class KalmanParams {
         }
         logger.config(String.format("The number of seeds used in iteration 1 is set to %d", n));
         maxListIter1 = n-1;
+    }
+    
+    private boolean addStrategy(String strategy) {
+        return addStrategy(strategy,"top") && addStrategy(strategy,"bottom");
     }
     
     // Add a seed search strategy for the bottom or top tracker

@@ -2,258 +2,276 @@ package org.hps.online.recon;
 
 import java.io.File;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.evio.LCSimEngRunEventBuilder;
 import org.hps.job.DatabaseConditionsManagerSetup;
 import org.hps.job.JobManager;
+import org.hps.online.recon.eventbus.OnlineEventBus;
+import org.hps.online.recon.properties.Property;
+import org.hps.online.recon.properties.PropertyValidationException;
 import org.hps.record.LCSimEventBuilder;
-import org.hps.record.composite.CompositeLoop;
-import org.hps.record.composite.CompositeLoopConfiguration;
-import org.hps.record.composite.CompositeEventPrintLoopAdapter;
-import org.hps.record.enums.DataSourceType;
 import org.hps.record.et.EtConnection;
-import org.hps.record.evio.EvioDetectorConditionsProcessor;
 import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
-import org.lcsim.util.Driver;
+import org.lcsim.job.ConditionsSetup;
 
 /**
- * Online reconstruction station which processes events from the ET system
- * and writes intermediate plot files.
+ * Online reconstruction station which processes EVIO events from the ET system
+ * by running LCIO reconstruction on them
  */
 public class Station {
-       
+
     /**
-     * Class logger.
+     * Class logger
      */
-    private static Logger LOGGER = Logger.getLogger(Station.class.getPackage().getName());
-                
+    private static Logger LOG = Logger.getLogger(Station.class.getPackage().getName());
+
     /**
-     * The station configuration.
+     * The station properties
      */
-    private StationConfiguration config = null;
-       
+    private StationProperties props = new StationProperties();
+
     /**
-     * Create new online reconstruction station with a configuration.
-     * @param config The station configuration
+     * Reference to the lcsim job manager
      */
-    Station(StationConfiguration config) {
-        this.config = config;
+    private JobManager mgr;
+
+    /**
+     * Reference to the EVIO event builder
+     */
+    private LCSimEventBuilder builder;
+
+    /**
+     * The ET connection for managing the station
+     */
+    private EtConnection conn;
+
+    /**
+     * The name of the station in the ET system
+     */
+    private String stationName;
+
+    /**
+     * The conditions system setup
+     */
+    private DatabaseConditionsManagerSetup conditionsSetup;
+
+    /**
+     * Create new online reconstruction station with given properties
+     * @param config The station properties
+     */
+    Station(StationProperties props) {
+        this.props = props;
     }
-           
+
     /**
-     * Get the configuration of the station.
-     * @return The configuration of the station.
+     * Get the configuration properties of the station
+     * @return The configuration of the station
      */
-    StationConfiguration getConfiguration() {
-        return this.config;
+    public StationProperties getProperties() {
+        return this.props;
     }
-    
+
     /**
-     * Run from the command line.
+     * Get the job manager
+     * @return The job manager
+     */
+    public JobManager getJobManager() {
+        return mgr;
+    }
+
+    /**
+     * Get the event builder
+     * @return The event builder
+     */
+    public LCSimEventBuilder getEventBuilder() {
+        return builder;
+    }
+
+    /**
+     * Get the conditions setup for the station
+     * @return The conditions setup for the station
+     */
+    public ConditionsSetup getConditionsSetup() {
+        return this.conditionsSetup;
+    }
+
+    /**
+     * Get the name of the station in the ET system
+     * @return The name of the station in the ET system
+     */
+    public String getStationName() {
+        return stationName;
+    }
+
+    /**
+     * Get the ET connection
+     * @return The ET connection
+     */
+    public EtConnection getEtConnection() {
+        return this.conn;
+    }
+
+    /**
+     * Run from the command line
      * @param args The command line arguments
      */
-    public static void main(String args[]) {        
+    public static void main(String args[]) {
         if (args.length == 0) {
-            throw new RuntimeException("Missing config properties file");
-        }         
-        StationConfiguration sc = new StationConfiguration(new File(args[0]));
-        if (!sc.isValid()) {
-            throw new RuntimeException("Station configuration is not valid (see log messages).");
+            throw new RuntimeException("Missing configuration properties file");
         }
-        Station recon = new Station(sc);
-        recon.run();
+        StationProperties props = new StationProperties();
+        props.load(new File(args[0]));
+        Station stat = new Station(props);
+        stat.setup();
+        stat.run();
     }
-        
+
     /**
-     * Run the online reconstruction station.
+     * Perform setup of the station using the supplied {@link StationProperties}
      */
-    void run() {
-       
-        // Print start messages.
-        LOGGER.info("Started: " + new Date().toString());
-        LOGGER.config("Running station <" + this.getConfiguration().getStation() + 
-                "> with config " + this.config.toString());
-        
-        // Composite loop configuration.
-        CompositeLoopConfiguration loopConfig = new CompositeLoopConfiguration();
-                
-        // Setup the condition system.
-        DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
-        DatabaseConditionsManagerSetup conditionsSetup = new DatabaseConditionsManagerSetup();
-        boolean activateConditions = true;        
-        if (config.getRunNumber() != null) {
-            // Run number from configuration.
-            conditionsSetup.setDetectorName(config.getDetectorName());
-            conditionsSetup.setRun(config.getRunNumber());
-            conditionsSetup.setFreeze(true);
-        } else {
-            // No run number in configuration so read from EVIO data.
-            EvioDetectorConditionsProcessor evioConditions = new EvioDetectorConditionsProcessor(config.getDetectorName());
-            loopConfig.add(evioConditions);
-            activateConditions = false;
-            LOGGER.config("No run number was set so conditions will be initialized from EVIO data.");
+    void setup() {
+
+        LOG.info("Started setup: " + new Date().toString());
+
+        this.stationName = props.get("et.stationName").value().toString();
+        LOG.config("Initializing station: " + stationName);
+
+        LOG.config("Station properties: " + props.toJSON().toString());
+
+        try {
+            LOG.config("Validating station properties...");
+            props.validate();
+        } catch (PropertyValidationException e) {
+            // Station cannot be started with invalid properties.
+            LOG.log(Level.SEVERE, "Station properties are not valid", e);
+            throw new RuntimeException(e);
+        }
+        LOG.config("Station properties validated");
+
+        // Get all the properties needed to configure the station
+        Property<String> detector = props.get("lcsim.detector");
+        Property<Integer> run = props.get("lcsim.run");
+        Property<String> outputDir = props.get("station.outputDir");
+        Property<String> outputName = props.get("station.outputName");
+        Property<String> steering = props.get("lcsim.steering");
+        Property<String> tag = props.get("lcsim.tag");
+        Property<String> builderClass = props.get("lcsim.builder");
+        Property<String> conditionsUrl = props.get("lcsim.conditions");
+        Property<String> remoteTreeBind = props.get("lcsim.remoteTreeBind");
+
+        // Conditions URL
+        if (conditionsUrl.valid()) {
+            System.setProperty("org.hps.conditions.url", conditionsUrl.value());
+            LOG.config("Conditions URL: " + conditionsUrl.value());
         }
 
+        // Setup the condition system from properties.
+        conditionsSetup = new DatabaseConditionsManagerSetup();
+        conditionsSetup.setDetectorName(detector.value());
+        if (run.value() != null) {
+            conditionsSetup.setRun(run.value());
+            conditionsSetup.setFreeze(true);
+        }
+
+        // Condition tag
+        if (tag.valid()) {
+            Set<String> tags = new HashSet<String>();
+            tags.add(tag.value());
+            conditionsSetup.setTags(tags);
+        }
+        LOG.config("Conditions will be initialized: detector=" + detector.value()
+                + ", run=" + run.value() + ", tag=" + tag.value());
+
         // Setup event builder and register with conditions system.
-        LCSimEventBuilder builder = new LCSimEngRunEventBuilder();
-        conditionsManager.addConditionsListener(builder);
-        loopConfig.setLCSimEventBuilder(builder);
-        
+        LOG.config("Creating event builder: " + builderClass.value());
+        this.builder = null;
+        try {
+            builder = LCSimEventBuilder.class.cast(Class.forName(builderClass.value()).getConstructor().newInstance());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to create event builder: " + builderClass.value(), e);
+        }
+        conditionsSetup.addConditionsListener(builder);
+        LOG.config("Done creating event builder");
+
         // Setup the lcsim job manager.
-        JobManager mgr = new JobManager();
+        LOG.config("Initializing job manager...");
+        this.mgr = new JobManager();
         mgr.setDryRun(true);
-        final String outputFilePath = config.getOutputDir() + File.separator + config.getOutputName();
-        LOGGER.config("Output file path: " + outputFilePath);
+        final String outputFilePath = outputDir.value() + File.separator + outputName.value();
+        LOG.config("Output file path: " + outputFilePath);
         mgr.addVariableDefinition("outputFile", outputFilePath);
-        mgr.setConditionsSetup(conditionsSetup); // FIXME: Is this even needed since not calling the run() method?
-        mgr.setup(config.getSteeringResource());
-               
-        // Add drivers from the job manager to the loop.
-        for (Driver driver : mgr.getDriverExecList()) {
-            LOGGER.config("Adding driver " + driver.getClass().getCanonicalName());
-            loopConfig.add(driver);
-        }
-        
-        // Configure and add the AIDA driver for intermediate plot saving.
-        int plotSaveInterval = config.getPlotSaveInterval();
-        if (plotSaveInterval > 0) {
-            PlotDriver aidaDriver = new PlotDriver();
-            aidaDriver.setStationName(config.getStation());
-            aidaDriver.setOutputDir(config.getOutputDir());
-            aidaDriver.setResetAfterSave(config.getResetPlots());
-            aidaDriver.setEventSaveInterval(plotSaveInterval);
-            LOGGER.config("Adding AIDA driver to save plots every " + config.getPlotSaveInterval() + " events");
-            loopConfig.add(aidaDriver);
+
+        // Remote AIDA tree bind
+        if (remoteTreeBind.valid()) {
+            String rtb = remoteTreeBind.value();
+            mgr.addVariableDefinition("remoteTreeBind", rtb);
+            LOG.config("remoteTreeBind: " + remoteTreeBind.value());
         } else {
-            LOGGER.config("Automatic plot saving is disabled.");
+            LOG.warning("remoteTreeBind is not valid");
         }
-        
-        // Enable event statistics printing.
-        if (config.getEventStatisticsInterval() > 0) {
-            EventStatisticsDriver esd = new EventStatisticsDriver();
-            esd.setEventPrintInterval(config.getEventStatisticsInterval());
-            loopConfig.add(esd);
-            LOGGER.config("Added event statistics driver with event interval: " + config.getEventStatisticsInterval());
+
+        if (steering.value().startsWith("file://")) {
+            String steeringPath = steering.value().replace("file://", "");
+            LOG.config("Setting up steering file: " + steeringPath);
+            mgr.setup(new File(steeringPath));
         } else {
-            LOGGER.config("Event statistics disabled.");
+            LOG.config("Setting up steering resource: " + steering.value());
+            mgr.setup(steering.value());
         }
-                
-        // Activate the conditions system, if possible.
-        if (activateConditions) {
-            LOGGER.config("Activating conditions system");
-            conditionsSetup.configure();
-            try {
-                conditionsSetup.setup();
-            } catch (ConditionsNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            conditionsSetup.postInitialize();
+
+        // Activate the conditions system.
+        LOG.config("Initializing conditions system...");
+        conditionsSetup.configure();
+        try {
+            conditionsSetup.setup();
+        } catch (ConditionsNotFoundException e) {
+            throw new RuntimeException(e);
         }
-        
+        conditionsSetup.postInitialize();
+        LOG.config("Conditions system initialized successfully");
+
         // Try to connect to the ET system, retrying up to the configured number of max attempts.
-        LOGGER.config("Configuring ET system");
-        EtConnection conn = null;
-        final int maxConnectionAttempts = this.config.getConnectionAttempts();
-        int connectionAttempt = 0;
-        Exception error = null;
-        while (true) {
-            connectionAttempt++;
-            LOGGER.info("Attempting connection to ET system: " + connectionAttempt);
-            try {
-                conn = createEtConnection(config);
-                LOGGER.info("Successfully connected to ET system");
-                break;
-            } catch (Exception e) {
-                error = e;
-                e.printStackTrace();
-            }
-            if (connectionAttempt >= maxConnectionAttempts) {
-                LOGGER.warning("Reached max ET connection attempts: " + maxConnectionAttempts);
-                break;
-            }
-            // Sleep for one second between retry attempts.
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                break;
-            }
+        LOG.config("Connecting to ET system...");
+        try {
+            this.conn = new EtParallelStation(props);
+            LOG.config("Successfully connected to ET system");
+        } catch (Exception e) {
+            LOG.severe("Failed to create ET station");
+            throw new RuntimeException(e);
         }
-        if (conn == null) {
-            throw new RuntimeException("Error creating ET connection", error);
-        }
-                
-        // Cleanly shutdown the ET station on exit.
+
+        // Close the ET station on shutdown.
         final EtConnection shutdownConn = conn;
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 if (shutdownConn != null && shutdownConn.getEtStation() != null) {
-                    LOGGER.info("Cleaning up ET station: " + shutdownConn.getEtStation().getName());
+                    LOG.info("Cleaning up ET station: " + shutdownConn.getEtStation().getName());
                     shutdownConn.cleanup();
                 }
             }
         });
-        
-        // Configure more settings on the loop.
-        loopConfig.setDataSourceType(DataSourceType.ET_SERVER);    
-        loopConfig.setEtConnection(conn);
-        loopConfig.setMaxQueueSize(1); // Should this be increased for EVIO conditions activation???
-        loopConfig.setTimeout(-1L);
-        loopConfig.setStopOnEndRun(true);
-        loopConfig.setStopOnErrors(true);
-               
-        // Create the record loop.
-        CompositeLoop loop = new CompositeLoop(loopConfig);
 
-        // Enable event printing.
-        if (this.config.getEventPrintInterval() > 0) {
-            LOGGER.config("Enabling event printing with interval: " + this.config.getEventPrintInterval());
-            CompositeEventPrintLoopAdapter eventPrinter = new CompositeEventPrintLoopAdapter();
-            eventPrinter.setPrintInterval(this.config.getEventPrintInterval());
-            eventPrinter.setPrintEt(this.config.getPrintEt());
-            eventPrinter.setPrintEvio(this.config.getPrintEvio());
-            eventPrinter.setPrintLcio(this.config.getPrintLcio());
-            LOGGER.config("ET event printing enabled: " + this.config.getPrintEt());
-            LOGGER.config("EVIO event printing enabled: " + this.config.getPrintEvio());
-            LOGGER.config("LCIO event printing enabled: " + this.config.getPrintLcio());
-            eventPrinter.setPrintEvio(this.config.getPrintEvio());
-            eventPrinter.setPrintLcio(this.config.getPrintLcio());
-            loop.addRecordListener(eventPrinter);
-        } else {
-            LOGGER.config("Event printing is disabled.");
-        }
-        
-        // Run the event loop.
-        LOGGER.info("Running record loop for station: " + this.getConfiguration().getStation());
+        LOG.info("Finished station setup: " + new Date().toString());
+    }
+
+    /**
+     * Run the online reconstruction station by streaming ET events
+     * using the {@link org.hps.online.recon.eventbus.OnlineEventBus}
+     */
+    void run() {
+        LOG.info("Started processing: " + new Date().toString());
+        OnlineEventBus eventbus = new OnlineEventBus(this);
+        eventbus.startProcessing();
+        final Thread ept = eventbus.getEventProcessingThread();
         try {
-            loop.loop(-1);
-        } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Event processing error", e);
+            ept.join();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        LOGGER.info("Ended: " + new Date().toString());
-    }
-    
-    /**
-     * Create an ET connection appropriate for parallel stations.
-     * @param config The station configuration with ET parameters
-     * @return The <code>EtConnection</code>
-     * @throws Exception If there are ET system errors when connecting
-     */
-    private EtConnection createEtConnection(StationConfiguration config) throws Exception {
-        return new EtParallelStation(
-                config.getBufferName(),
-                config.getHost(),
-                config.getPort(),
-                config.getQueueSize(),
-                config.getPrescale(),
-                config.getStation(),
-                config.getWaitMode(),
-                config.getWaitTime(),
-                config.getChunkSize(),
-                config.getEtLogLevel());
+        LOG.info("Ended processing: " + new Date().toString());
     }
 }

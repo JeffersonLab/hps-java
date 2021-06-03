@@ -31,9 +31,9 @@ class KalHit {
         if (s=="short") {
             int idx = module.hits.indexOf(hit);
             if (module.isStereo) {
-                str = String.format(" {%d %d %d %d %5.1f} ", module.Layer, module.detector, idx, ntks, hit.time);
+                str = String.format(" {%d %d %d %d %5.1f %6.3f} ", module.Layer, module.detector, idx, ntks, hit.time, hit.energy);
             } else {
-                str = String.format(" (%d %d %d %d %5.1f) ", module.Layer, module.detector, idx, ntks, hit.time);
+                str = String.format(" (%d %d %d %d %5.1f %6.3f) ", module.Layer, module.detector, idx, ntks, hit.time, hit.energy);
             }
         } else {
             str = String.format("Hit %s in layer %d, detector %d, hit %d, value=%10.5f, #tkrs=%d, candidate chi2=", s, module.Layer, module.detector, module.hits.indexOf(hit), hit.v, ntks);
