@@ -50,7 +50,7 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     private double tsCorrectionScale = 240;
 
-    private boolean _dropOutOfTimeFits = true;
+    private boolean _dropOutOfTimeFits = false;
     private double _minT0 = -50;
     private double _maxT0 = 50.;
 
