@@ -11,8 +11,8 @@ import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventConstants;
 import org.hps.record.evio.EvioEventUtilities;
 import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.BaseTriggerData;
 import org.hps.record.triggerbank.AbstractIntData.IntBankDefinition;
-import org.hps.record.triggerbank.TestRunTriggerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
@@ -24,7 +24,7 @@ import org.lcsim.event.base.BaseLCSimEvent;
 /**
  * Build LCSim events from Test Run 2012 EVIO data.
  */
-public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsListener {
+public class BaseEventBuilder implements LCSimEventBuilder, ConditionsListener {
 
     protected VTPEvioReader vtpReader = null;
     protected EcalEvioReader ecalReader = null;
@@ -33,18 +33,17 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     protected long time = 0; //most recent event time (ns), taken from prestart and end events, and trigger banks (if any)
     protected int sspCrateBankTag = 0x1; //bank ID of the crate containing the SSP
     protected int sspBankTag = 0xe106; //SSP bank's tag
-    //protected static Logger LOGGER = Logger.getLogger(LCSimTestRunEventBuilder.class.getPackage().getName());
-    private static Logger LOGGER = Logger.getLogger(LCSimTestRunEventBuilder.class.getCanonicalName());
+    private static Logger LOGGER = Logger.getLogger(BaseEventBuilder.class.getCanonicalName());
     protected List<IntBankDefinition> intBanks = null;
 
-    public LCSimTestRunEventBuilder() {
+    public BaseEventBuilder() {
         ecalReader = new EcalEvioReader(0x1, 0x2);
 
         vtpReader = new VTPEvioReader();
 
-        svtReader = new TestRunSvtEvioReader();
+        svtReader = new BaseSvtEvioReader();
         intBanks = new ArrayList<IntBankDefinition>();
-        intBanks.add(new IntBankDefinition(TestRunTriggerData.class, new int[]{sspCrateBankTag, sspBankTag}));
+        intBanks.add(new IntBankDefinition(BaseTriggerData.class, new int[]{sspCrateBankTag, sspBankTag}));
     }
 
     public void setEcalHitCollectionName(String ecalHitCollectionName) {
@@ -171,11 +170,13 @@ public class LCSimTestRunEventBuilder implements LCSimEventBuilder, ConditionsLi
     }
 
     protected long getTime(List<AbstractIntData> triggerList) {
+        /*
         for (AbstractIntData data : triggerList) {
             if (data instanceof TestRunTriggerData) {
                 return (((TestRunTriggerData) data).getTime()) * 1000000000L;
             }
         }
+        */
         return 0;
     }
 
