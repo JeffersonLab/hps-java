@@ -7,7 +7,6 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <!-- Ecal reconstruction drivers -->        
-        <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
@@ -43,9 +42,6 @@
             <eventInterval>10</eventInterval>
         </driver>
         <!-- Ecal reconstruction drivers -->
-        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
-            <logLevel>CONFIG</logLevel>
-        </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver"/>
         <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
@@ -173,6 +169,7 @@
             <maxElectronP>7.0</maxElectronP> 
             <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
+	    <applyClusterCorrections>true</applyClusterCorrections>
         </driver>         
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
@@ -196,6 +193,7 @@
             <maxElectronP>7.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
+	    <applyClusterCorrections>false</applyClusterCorrections>
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
