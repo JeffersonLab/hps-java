@@ -23,7 +23,6 @@ import org.hps.readout.ReadoutDriver;
  * either outputting on-triggered or defining their output to the
  * readout manager.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see org.hps.readout.util.collection.LCIOCollection
  * @see org.hps.readout.util.collection.ManagedLCIOCollection
  */

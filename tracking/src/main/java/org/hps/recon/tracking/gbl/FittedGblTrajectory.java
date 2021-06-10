@@ -17,8 +17,6 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
 
 /**
  * A class that collects information about a fitted GBL trajectory.
- *
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class FittedGblTrajectory {
 
@@ -231,7 +229,7 @@ public class FittedGblTrajectory {
 
         // find the point on the trajectory from the GBLPOINT
         int iLabel = getPointIndex(point);
-
+        
         return getCorrectedPerigeeParameters(htf, iLabel, bfield);
 
     }
@@ -267,7 +265,7 @@ public class FittedGblTrajectory {
 
         //System.out.printf("iLabel %d: pathLength %f -> refPointVec %s \n", iLabel, pathLength, refPointVec.toString());
 
-        LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
+        //LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
 
         // Propagate the helix to new reference point
         double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
@@ -301,9 +299,17 @@ public class FittedGblTrajectory {
                 }
             }
         }
-        LOGGER.finest("corrected helix covariance:\n" + cov);
+        //LOGGER.finest("corrected helix covariance:\n" + cov);
 
         double parameters_gbl[] = helicalTrackFitAtIPCorrected.parameters();
+
+        /*
+        System.out.printf("parameters_gbl for pathLength %f  - %f %f %f %f %f\n", pathLength, parameters_gbl[BaseTrack.OMEGA], parameters_gbl[BaseTrack.TANLAMBDA], parameters_gbl[BaseTrack.PHI],parameters_gbl[BaseTrack.D0],parameters_gbl[BaseTrack.Z0]);
+
+        System.out.printf("Jacobian and Covariance Matrix::\n");
+        jacobian.print(5,5);
+        System.out.println(cov.toString());
+        */
 
         return new Pair<double[], SymmetricMatrix>(parameters_gbl, cov);
     }

@@ -2,7 +2,6 @@ package org.hps.recon.filtering;
 
 import java.util.List;
 
-// ===> import org.hps.conditions.deprecated.SvtUtils;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 
 import org.lcsim.detector.identifier.IIdentifier;
@@ -14,9 +13,6 @@ import org.lcsim.detector.tracker.silicon.SiTrackerIdentifierHelper;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 
-/**
- * @author mgraham
- */
 public class InTimeHitsFilter extends EventReconFilter {
 
     private int minSiLayers = 10;

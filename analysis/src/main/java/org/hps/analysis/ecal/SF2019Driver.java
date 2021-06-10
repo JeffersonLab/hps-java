@@ -24,7 +24,6 @@ import org.lcsim.event.SimTrackerHit;
 
 import org.lcsim.event.base.BaseCluster;
 
-
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
@@ -36,10 +35,7 @@ import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
 /**
  * This driver is used to check the Sampling Fraction correction for the 2019
  * run, using MC
- *
- * @author Andrea Celentano <andrea.celentano@ge.infn.it>
  */
-
 public class SF2019Driver extends Driver {
 
     // private AIDAFrame plotterFrame;

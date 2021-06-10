@@ -1,10 +1,5 @@
 package org.hps.analysis.util;
 
-/**
- *
- * @author mgraham borrowed liberally from hep.lcio.util.StdhepConverter
- * created on 7/27/2019
- */
 import hep.aida.IHistogram1D;
 import java.io.IOException;
 import java.util.ArrayList;

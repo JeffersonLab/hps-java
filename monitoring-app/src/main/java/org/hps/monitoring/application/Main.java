@@ -13,8 +13,6 @@ import org.hps.monitoring.application.model.Configuration;
 
 /**
  * This is the front-end for running the monitoring application via a {@link #main(String[])} method.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class Main {
 

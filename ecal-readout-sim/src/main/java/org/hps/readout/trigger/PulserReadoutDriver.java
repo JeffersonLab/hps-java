@@ -12,10 +12,11 @@ import org.lcsim.event.EventHeader;
  * org.hps.readout.TriggerDriver#setDeadTime(int) setDeadTime(int)},
  * as its rate is defined entirely via the pulse rate. Thus, its dead
  * time is always, effectively, zero.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class PulserReadoutDriver extends TriggerDriver {
+    
+    
+    
     private int events = 0;
     private int pulserRate = 200;
     
@@ -33,7 +34,7 @@ public class PulserReadoutDriver extends TriggerDriver {
         events++;
         if(events == pulserRate) {
             events = 0;
-            sendTrigger();
+            sendTrigger(PULSER);
         }
     }
     

@@ -21,8 +21,6 @@ import org.lcsim.util.xml.ElementFactory;
 
 /**
  * Unit test for the HPSTracker2Converter.
- * 
- * @author SA annie@jlab.org
  */
 public class HPSEcal4ConverterTest extends TestCase {
 

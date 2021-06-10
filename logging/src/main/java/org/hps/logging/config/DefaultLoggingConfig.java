@@ -6,8 +6,6 @@ import java.util.logging.LogManager;
 
 /**
  * Read the default logging configuration and load it into the global log manager.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class DefaultLoggingConfig {
 

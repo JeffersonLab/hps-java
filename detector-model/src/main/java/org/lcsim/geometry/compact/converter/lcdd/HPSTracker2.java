@@ -19,9 +19,6 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 
 /**
  * SVT geometry for HPS Test Run.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Matt Graham <mgraham@slac.stanford.edu>
  */
 public class HPSTracker2 extends LCDDSubdetector {
 

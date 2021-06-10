@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.analysis.examples;
 
 import hep.aida.IAnalysisFactory;
@@ -53,10 +49,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
-/**
-
- @author partridge
- */
 public class DetailedAnalysisDriver extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();

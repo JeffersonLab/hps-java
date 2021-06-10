@@ -12,10 +12,7 @@ import java.util.logging.Logger;
  * <li>4bit [18 : 21] total ECal cluster multiplicity </li>
  * <li>1bit [22 : 22] cluster multiplicity trigger bit instance: 0 or 1</li>
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class VTPMultiplicityTrigger {    
     // Multiplicity trigger's variables.
     private int t; // in 4 ns units

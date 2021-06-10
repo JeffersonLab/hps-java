@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      Steering file for running 2019 Reconstruction on readout data (LCIO or EVIO)
+      created:  9/24/19
+      @author Norman Graf <Norman.Graf@slac.stanford.edu>
+      @author PF <pbutti@slac.stanford.edu>
+    -->
+    <execute>
+        <!-- Enable the following if re-processing lcio files -->
+        <!--        <driver name="PreCleanupDriver"/>       -->
+        <!--  Event Reconstruction  -->
+        <!-- Skip events with known bad conditions -->
+        <!-- Not yet defined for 2019 data -->
+        <!--        <driver name="EventFlagFilter"/>  -->
+        <!--RF driver-->
+        <driver name="RfFitter"/>
+        <!-- Ecal reconstruction drivers -->        
+        <driver name="EcalRunningPedestal"/> 
+        <driver name="EcalRawConverter" />
+        <driver name="EcalTimeCorrection"/> 
+        <driver name="ReconClusterer" /> 
+        <driver name="CopyCluster" />
+
+        <!-- Hodoscope drivers -->
+        <driver name="HodoRunningPedestal"/>
+        <driver name="HodoRawConverter"/>
+ 
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+
+        <!--
+        <driver name="HelicalTrackHitDriver"/> 
+        -->
+
+        <driver name="KalmanPatRecDriver"/>
+        <driver name="ReconParticleDriver_Kalman" /> 
+        
+        <driver name="LCIOWriter"/>
+        <!-- Toggle between saving in aida or root format -->
+        <!-- <driver name="AidaToRootSaveDriver"/> -->
+        <!-- <driver name="AidaSaveDriver"/> -->
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>    
+	    
+      <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
+        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver"/>
+  
+        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
+
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+            <!-- ecalCollectionName>EcalCalHits</ecalCollectionName -->
+            <!-- fixShapeParameter>true</fixShapeParameter -->
+            <!-- globalFixedPulseWidth>2.4</globalFixedPulseWidth -->
+        </driver> 
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/> 
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver> 
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+        
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>false</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>true</subtractTriggerTime>
+            <correctChanT0>false</correctChanT0>
+            <debug>false</debug>
+        </driver>
+       
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+            <saveMonsterEvents>true</saveMonsterEvents>
+            <thresholdMonsterEvents>200</thresholdMonsterEvents>
+            <debug>false</debug>
+        </driver>
+        
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+          <debug>false</debug>
+          <clusterTimeCut>40.0</clusterTimeCut>
+          <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+          <maxDt>20.0</maxDt>
+          <saveAxialHits>false</saveAxialHits>
+        </driver>   
+      
+        <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+          <!--<doDebugPlots>false</doDebugPlots>-->
+            <!-- <siHitsLimit>50</siHitsLimit> -->
+            <seedCompThr>0.05</seedCompThr>
+            <verbose>false</verbose>
+          </driver>
+          
+        <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
+            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>  
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>        
+            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
+            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+            <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
+            <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
+            <requireClustersForV0>false</requireClustersForV0>
+            <beamPositionX>0.180</beamPositionX>
+            <beamSigmaX>0.05</beamSigmaX>
+            <beamPositionY>0.04</beamPositionY>
+            <beamSigmaY>0.020</beamSigmaY>
+            <beamPositionZ>-7.5</beamPositionZ>
+            <maxElectronP>10.0</maxElectronP>
+            <maxVertexP>7.0</maxVertexP>
+            <minVertexChisqProb>0.0</minVertexChisqProb>
+            <maxVertexClusterDt>40.0</maxVertexClusterDt>           
+            <maxMatchDt>40</maxMatchDt>
+            <trackClusterTimeOffset>40</trackClusterTimeOffset>
+            <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
+            <applyClusterCorrections>true</applyClusterCorrections>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
+            <debug>false</debug>
+	    <makeMollerCols>false</makeMollerCols>
+        </driver>  
+        
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>       
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+        <driver name="AidaToRootSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+
+      </drivers>
+</lcsim>
+

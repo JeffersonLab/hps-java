@@ -17,7 +17,6 @@ import org.lcsim.geometry.IDDecoder;
  * It is also responsible for performing any special actions needed
  * when a triggered event is written, if necessary.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <E> - The object type for the SLIC objects managed by this
  * driver.
  */

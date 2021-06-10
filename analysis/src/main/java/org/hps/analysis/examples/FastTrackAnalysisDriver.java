@@ -42,10 +42,6 @@ import org.lcsim.recon.tracking.seedtracker.SeedCandidate;
 import org.lcsim.recon.tracking.seedtracker.SeedTrack;
 import org.lcsim.util.Driver;
 
-/**
-
- @author mgraham
- */
 public class FastTrackAnalysisDriver extends Driver {
 
     String[] detNames = {"Tracker"};

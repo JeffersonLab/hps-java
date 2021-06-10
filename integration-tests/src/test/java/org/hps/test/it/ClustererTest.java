@@ -38,8 +38,6 @@ import junit.framework.TestCase;
  * and it creates an AIDA file with some useful plots, as well as optionally writes an LCIO
  * file with the event data plus the clusters.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- *
  * @see Clusterer
  * @see org.lcsim.event.Cluster
  * @see org.lcsim.event.CalorimeterHit
@@ -253,11 +251,6 @@ public class ClustererTest extends TestCase {
         }
         DatabaseConditionsManager.reset();
 
-        // Setup event number print outs.
-        EventMarkerDriver eventMarkerDriver = new EventMarkerDriver();
-        eventMarkerDriver.setEventInterval(1);
-        loop.add(eventMarkerDriver);
-
         // Configure the ClusterDriver and add it to the loop.
         ClusterDriver clusterDriver = new ClusterDriver();
         clusterDriver.setClustererName(config.clustererName);
@@ -282,11 +275,11 @@ public class ClustererTest extends TestCase {
         }
 
         // Run job over the input events to generate clusters, check their validity, and fill plots.
-        long startNanos = System.nanoTime();
-        loop.loop(nEvents);
-        long elapsedMillis = (System.nanoTime() - startNanos) / 1000000;
-        System.out.println(config.clustererName + " took " + elapsedMillis + "ms for " + loop.getTotalSupplied()
-                + " events which is " + (double) loop.getTotalSupplied() / (((double) elapsedMillis) / 1000.) + " events/s");
+        //long startNanos = System.nanoTime();
+        loop.loop(nEvents, null);
+        //long elapsedMillis = (System.nanoTime() - startNanos) / 1000000;
+        //System.out.println(config.clustererName + " took " + elapsedMillis + "ms for " + loop.getTotalSupplied()
+        //        + " events which is " + (double) loop.getTotalSupplied() / (((double) elapsedMillis) / 1000.) + " events/s");
         loop.dispose();
 
         /***************************************************

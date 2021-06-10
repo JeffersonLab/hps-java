@@ -7,9 +7,6 @@ import org.lcsim.event.GenericObject;
 
 /**
  * A class providing for storing strip clusters for GBL
- * 
- * @author phansson
- * @version $Id:
  */
 public class GBLStripClusterData implements GenericObject {
 
@@ -69,6 +66,17 @@ public class GBLStripClusterData implements GenericObject {
      */
     public GBLStripClusterData(int id) {
         setId(id);
+    }
+
+
+    public void print() {
+        for (int i = 0; i < GBLINT.BANK_INT_SIZE; ++i) {
+            System.out.println("bank int " + i+ " "+bank_int[i]);
+        }
+        for (int i = 0; i < GBLDOUBLE.BANK_DOUBLE_SIZE; ++i) {
+            System.out.println("bank double " + i+ " "+bank_double[i]);
+        }
+        
     }
 
     /*

@@ -21,7 +21,6 @@ import org.hps.record.triggerbank.TDCData;
 import org.hps.record.triggerbank.TIData;
 import org.jlab.coda.jevio.EvioEvent;
 import org.lcsim.conditions.ConditionsEvent;
-//import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.event.EventHeader;
 
 /**
@@ -34,11 +33,8 @@ import org.lcsim.event.EventHeader;
  * Additionally, this builder will write DAQ config information, EPICS control
  * data, and scalar bank data into the output LCSim events if these banks are
  * present in the EVIO data.
- *
- * @author Sho Uemura, SLAC
- * @author Jeremy McCormick, SLAC
  */
-public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
+public class LCSimEngRunEventBuilder extends BaseEventBuilder {
 
     /**
      * Setup logger.

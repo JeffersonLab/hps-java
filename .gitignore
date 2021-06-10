@@ -36,5 +36,8 @@ target
 # name of ET mem map file
 ETBuffer
 
-# local repo
 .m2repo
+
+deps.txt 
+
+scratch/

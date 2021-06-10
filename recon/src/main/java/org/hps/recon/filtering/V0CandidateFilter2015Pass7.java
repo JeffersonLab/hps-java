@@ -13,9 +13,6 @@ import org.lcsim.event.ReconstructedParticle;
  * Class to strip off trident candidates for the 2015 Pass7 Reconstruction.
  * pairs1 trigger. SVT bias on. SVT at 0.5 mm. no DAQ errors. demand top/bottom
  * e+e- pair.
- *
- * @author Norman A Graf
- * @version $Id:
  */
 public class V0CandidateFilter2015Pass7 extends EventReconFilter {
 

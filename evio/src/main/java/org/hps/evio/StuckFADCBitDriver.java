@@ -32,8 +32,6 @@ import org.lcsim.util.Driver;
  * WARNING: While this is generic to which crate/slot/channel and the channel's
  * bit/state is stuck, this will need modification if more than one combination
  * is affected.
- * 
- * @author baltzell
  */
 public class StuckFADCBitDriver extends Driver {
    

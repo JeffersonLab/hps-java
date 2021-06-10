@@ -19,8 +19,6 @@ import junit.framework.TestCase;
 /**
  * Basic test of converting EVIO to LCIO using the {@link org.hps.evio.EvioToLcio} command line utility on Engineering
  * Run 2015 data.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class EvioToLcioTest extends TestCase {
 
@@ -47,7 +45,7 @@ public final class EvioToLcioTest extends TestCase {
 
         CheckDriver() {
             for (String collectionName : COLLECTION_NAMES) {
-                emptyCollections.put(collectionName, new Integer(0));
+                emptyCollections.put(collectionName, 0);
             }
         }
 

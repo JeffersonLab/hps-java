@@ -32,14 +32,10 @@ import org.lcsim.util.Driver;
  * Driver used to persist additional {@link org.lcsim.event.Track} information via a 
  * {@link org.lcsim.event.GenericObject} collection. This driver is only useful for 
  * refitting the truth hits on a track.
- *
- * @author Omar Moreno, UCSC
- * @author Sho Uemura, SLAC
  */
 public final class TrackDataDriverWithTruth extends Driver {
 
     /** logger **/
-
     private static final Logger LOGGER = Logger.getLogger(TrackDataDriver.class.getPackage().getName());
 
     /** The B field map */

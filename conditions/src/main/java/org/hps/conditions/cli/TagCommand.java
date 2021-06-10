@@ -25,8 +25,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  * <p>
  * The tag groups together conditions records from the <i>conditions</i> database table with a run validity range that 
  * is between a specified starting and ending run.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class TagCommand extends AbstractCommand {
 

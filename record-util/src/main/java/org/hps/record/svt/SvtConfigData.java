@@ -16,8 +16,6 @@ import org.xml.sax.InputSource;
 
 /**
  * Represents the four SVT status banks from EVIO sync events containing XML config data.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class SvtConfigData {
         

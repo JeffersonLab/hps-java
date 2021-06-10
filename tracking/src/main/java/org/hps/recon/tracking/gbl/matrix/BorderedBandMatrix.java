@@ -5,10 +5,6 @@ import static java.lang.Math.min;
 import static java.lang.Math.max;
 import java.util.List;
 
-/**
- * @author Norman A. Graf
- * @version $Id$
- */
 // / (Symmetric) Bordered Band Matrix.
 /**
  * Separate storage of border, mixed and band parts (as vector<double>).
@@ -187,13 +183,13 @@ public class BorderedBandMatrix {
                 if (theBand.get(0, i) < 0.) {
                     //mg added this theBand.set(0,i,0.0); on 5/14/2018
                     theBand.set(0, i, 0.0);
-                    System.out.println("BorderedBandMatrix::decomposeBand not positive definite");
-//                    throw new RuntimeException("BorderedBandMatrix decomposeBand not positive definite");
+                    //System.out.println("BorderedBandMatrix::decomposeBand not positive definite");
+                    throw new RuntimeException("BorderedBandMatrix decomposeBand not positive definite");
                 }
             } else {
                 theBand.set(0, i, 0.00001);
-                System.out.println("BorderedBandMatrix::decomposeBand singular");
-//                throw new RuntimeException("BorderedBandMatrix decomposeBand singular");
+                //System.out.println("BorderedBandMatrix::decomposeBand singular");
+                throw new RuntimeException("BorderedBandMatrix decomposeBand singular");
             }
             for (int j = 1; j < min(nRow, nCol - i); ++j) {
                 double rxw = theBand.get(j, i) * theBand.get(0, i);

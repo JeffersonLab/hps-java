@@ -38,8 +38,6 @@ import junit.framework.TestCase;
 /**
  * Integration test for running filtering and readout on simulated Hodoscope data
  * and creating plots from the final readout data.
- *
- * @author Jeremy McCormick
  */
 public class HodoscopeReadoutTest extends TestCase {
 

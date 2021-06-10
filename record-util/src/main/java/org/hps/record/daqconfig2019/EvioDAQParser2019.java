@@ -29,9 +29,7 @@ import org.hps.conditions.hodoscope.HodoscopeConditions;
  * <code>ConfigurationManager</code>. The latter should be used for accessing
  * this information for any other classes.
  * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class EvioDAQParser2019 {
     /** The EvIO bank identification tag for DAQ configuration banks. */
     public static final int BANK_TAG = 0xE10E;

@@ -5,9 +5,7 @@ import org.lcsim.event.base.BaseCluster;
 import org.lcsim.util.Driver;
 
 /**
- * applies a time-dependent global correction factor to the energies of all ecal clusters.
- * @author spaul
- *
+ * Applies a time-dependent global correction factor to the energies of all ecal clusters.
  */
 public abstract class TimeDependentEcalGains extends Driver{
     private String ecalClusterCollectionName = "EcalClustersCorr";

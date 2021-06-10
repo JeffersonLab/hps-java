@@ -32,6 +32,12 @@
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+            <numKalmanIteration>1</numKalmanIteration>
+            <maxPtInverse>6.0</maxPtInverse>
+            <maxZ0>10.0</maxZ0>
+            <maxResidual>100.</maxResidual>
+            <doDebugPlots>true</doDebugPlots>
+            <numEvtPlots>20</numEvtPlots>
         </driver>
         
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>

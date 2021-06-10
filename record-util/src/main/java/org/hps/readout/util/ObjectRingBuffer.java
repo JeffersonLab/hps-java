@@ -13,7 +13,6 @@ import java.util.Set;
  * addToCell(int, Object)} method simply adds the indicated object to
  * the set stored in the specified cell.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The type of object that is stored in each of the
  * buffer's cells.
  */

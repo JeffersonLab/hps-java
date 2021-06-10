@@ -6,8 +6,6 @@ package org.hps.record.daqconfig;
  * stores both the cut lower bound and the parameter F used in the slope
  * equation. These values may also be set by classes within the same
  * package.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class ESBCutConfig extends AbstractConfig<Double> {
     private static final int ENERGY_SLOPE_THRESHOLD = 0;

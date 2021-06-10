@@ -7,10 +7,6 @@ import org.lcsim.util.loop.LCSimLoop;
 
 import junit.framework.TestCase;
 
-/**
- *
- * @author Norman A. Graf
- */
 public class APrimeMCVertexAnalysisDriverTest extends TestCase {
 
     static final String testFileName = "apsignalv2_displaced_100mm_epsilon-6_HPS-EngRun2015-Nominal-v5-0-fieldmap_3.11-SNAPSHOT_pairs1_V0Skim.slcio";

@@ -6,7 +6,6 @@ package org.hps.record.triggerbank;
  * of that type in the SSP. It requires extending classes to support
  * the ability to return which trigger created the object.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @see SSPTrigger
  */
 public abstract class SSPNumberedTrigger extends SSPTrigger {

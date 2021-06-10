@@ -2,7 +2,9 @@ package org.hps.readout.trigger2019;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.TriggerDriver;
@@ -22,8 +24,6 @@ import org.lcsim.event.EventHeader;
  * manager so that a triggered readout event may be written.
  * 
  * Prescale for various regions are not set. 
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 
 public class FEETrigger2019ReadoutDriver extends TriggerDriver{
@@ -90,10 +90,53 @@ public class FEETrigger2019ReadoutDriver extends TriggerDriver{
         // Otherwise, get the input clusters from the present time.
         Collection<Cluster> clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, Cluster.class); 
         
-        // Check that if a trigger exists, if the trigger is not in
-        // dead time. If it is, no trigger may be issued, so this is
-        // not necessary.
-        if(!isInDeadTime() && testTrigger(clusters)) { sendTrigger(); }
+        // There is no need to perform the trigger cuts if the
+        // trigger is in dead time, as no trigger may be issued
+        // regardless of the outcome.
+        if(isInDeadTime()) { return; }
+        
+        // Track whether a trigger has occurred.
+        boolean triggered = false;
+        
+        // Record top/bot status for singles triggers
+        List<String> topBot = new ArrayList();
+        
+        // Sort through the cluster list and add clusters that pass
+        // the single cluster cuts to the good list.
+        clusterLoop:
+        for(Cluster cluster : clusters) {
+            
+            // ==== Cluster Hit Count Cut ==================================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next cluster.
+            if(!triggerModule.clusterHitCountCut(cluster)) {
+                continue clusterLoop;
+            }
+            
+            // ==== Cluster Total Energy Cut ===============================
+            // =============================================================
+            // If the cluster fails the cut, skip to the next cluster.
+            if(!triggerModule.clusterTotalEnergyCut(cluster)) {
+                continue clusterLoop;
+            }
+            
+            // Clusters that pass all of the pair cuts produce a trigger.
+            triggered = true;            
+            
+            if(cluster.getPosition()[1] > 0) topBot.add(TOP);
+            else topBot.add(BOT);
+        }
+        
+        if(triggered) { 
+            boolean topStat = false;
+            boolean botStat = false;            
+            if(topBot.contains(TOP)) topStat = true;
+            if(topBot.contains(BOT)) botStat = true;
+            
+            if(topStat && botStat) sendTrigger(FEE, TOPBOT);
+            else if(topStat) sendTrigger(FEE, TOP);
+            else sendTrigger(FEE, BOT); 
+        }
         
         // Increment the local time.
         localTime += 4.0;

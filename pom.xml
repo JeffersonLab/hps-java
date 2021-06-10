@@ -1,37 +1,30 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
   <modelVersion>4.0.0</modelVersion>
-  <prerequisites>
-    <maven>3.0</maven>
-  </prerequisites>
-
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>4.5-SNAPSHOT</version>
+  <version>5.1-SNAPSHOT</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
-
   <properties>
     <project.scm.id>hps-java-github</project.scm.id>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>4.2-SNAPSHOT</lcsimVersion>
+    <lcsimVersion>4.3</lcsimVersion>
     <skipSite>false</skipSite>
     <skipPlugin>false</skipPlugin>
     <additionalparam>-Xdoclint:none</additionalparam>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
+    <junitVersion>4.13.1</junitVersion>
   </properties>
-
   <scm>
     <connection>scm:git:git://github.com/jeffersonlab/hps-java.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jeffersonlab/hps-java.git</developerConnection>
     <url>http://github.com/jeffersonlab/hps-java</url>
     <tag>HEAD</tag>
   </scm>
-
   <distributionManagement>
     <site>
       <id>lcsim-site</id>
@@ -48,7 +41,6 @@
       <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
     </snapshotRepository>
   </distributionManagement>
-
   <repositories>
     <repository>
       <id>maven-central-repo</id>
@@ -94,7 +86,6 @@
       </releases>
     </repository>
   </repositories>
-  
   <pluginRepositories>
     <pluginRepository>
       <id>freehep-maven-plugin-repo</id>
@@ -107,12 +98,9 @@
       <url>https://repo1.maven.org/maven2/</url>
     </pluginRepository>
   </pluginRepositories>
-  
   <modules>
     <module>analysis</module>
     <module>conditions</module>
-    <module>crawler</module>
-    <module>datacat</module>
     <module>detector-data</module>
     <module>detector-model</module>
     <module>distribution</module>
@@ -129,70 +117,19 @@
     <module>plugin</module>
     <module>recon</module>
     <module>record-util</module>
-    <module>run-database</module>
     <module>steering-files</module>
     <module>tracking</module>
     <module>util</module>
     <module>integration-tests</module>
   </modules>
-  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>${junitVersion}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.lcsim</groupId>
-      <artifactId>lcsim-distribution</artifactId>
-      <version>${lcsimVersion}</version>
-      <type>pom</type>
-      <exclusions>
-        <exclusion>
-          <groupId>jdom</groupId>
-          <artifactId>jdom</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>commons-math</groupId>
-          <artifactId>commons-math</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>freehep-graphicsio-tests</groupId>
-          <artifactId>org.freehep</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>aida-test</groupId>
-          <artifactId>hep.aida</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-analysis</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-cal-calib</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>detector-data</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-mc</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-steering-files</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-users</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
   </dependencies>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -292,16 +229,6 @@
       </dependency>
       <dependency>
         <groupId>org.hps</groupId>
-        <artifactId>hps-run-database</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-crawler</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
         <artifactId>hps-job</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -313,11 +240,6 @@
       <dependency>
         <groupId>org.hps</groupId>
         <artifactId>hps-integration-tests</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-datacat</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -336,12 +258,12 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>18.0</version>
+        <version>30.1-jre</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>
         <artifactId>reflections</artifactId>
-        <version>0.9.9-RC1</version>
+        <version>0.9.12</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -364,18 +286,93 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>srs</groupId>
-        <artifactId>org-srs-datacat-client</artifactId>
-        <version>0.5-TEST3</version>
-      </dependency>
-      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.11</version>
+        <version>${junitVersion}</version>
       </dependency>      
+      <dependency>
+        <groupId>org.jdom</groupId>
+        <artifactId>jdom</artifactId>
+        <version>1.1</version>
+      </dependency>      
+      <dependency>
+        <groupId>commons-cli</groupId>
+        <artifactId>commons-cli</artifactId>
+        <version>1.3</version>
+      </dependency>
+      <!-- lcsim deps below here -->
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-event-processing</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-aida</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>commons-math</groupId>
+            <artifactId>commons-math</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+          <groupId>org.lcsim</groupId>
+          <artifactId>lcsim-job-manager</artifactId>
+          <version>${lcsimVersion}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>jdom</groupId>
+              <artifactId>jdom</artifactId>
+            </exclusion>
+          </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-tracking</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-vertexing</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-event-heprep</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
     </dependencies>
   </dependencyManagement>
-  
   <build>
     <defaultGoal>install</defaultGoal>
     <extensions>
@@ -457,8 +454,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.6.1</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
           <showWarnings>true</showWarnings>
           <showDeprecation>true</showDeprecation>
         </configuration>
@@ -548,7 +545,6 @@
       </plugin>
     </plugins>
   </build>
-
   <reporting>
     <plugins>
       <plugin>
@@ -667,7 +663,6 @@
       </plugin>
     </plugins>
   </reporting>
-
   <developers>
     <developer>
       <name>Jeremy McCormick</name>
@@ -677,6 +672,35 @@
       <roles>
         <role>developer</role>
         <role>release manager</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <name>Cameron Bravo</name>
+      <email>bravo@slac.stanford.edu</email>
+      <organization>SLAC National Accelerator Laboratory</organization>
+      <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <name>Pierfrancesco Butti</name>
+      <email>pbutti@slac.stanford.edu</email>
+      <organization>SLAC National Accelerator Laboratory</organization>
+      <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <name>Alic Spellman</name>
+      <email>alspellm@ucsc.edu</email>
+      <organization>Santa Cruz Institute for Particle Physics</organization>
+      <roles>
+        <role>developer</role>
       </roles>
       <timezone>-8</timezone>
     </developer>
@@ -783,7 +807,6 @@
       </properties>
     </developer>
   </developers>
-
   <mailingLists>
     <mailingList>
       <name>hps-software</name>
@@ -793,17 +816,14 @@
       <archive>https://listserv.slac.stanford.edu/cgi-bin/wa?A0=HPS-SOFTWARE</archive>
     </mailingList>
   </mailingLists>
-
   <issueManagement>
     <system>Github</system>
     <url>https://github.com/JeffersonLab/hps-java/issues/</url>
   </issueManagement>
-
   <ciManagement>
     <system>Jenkins</system>
     <url>http://srs.slac.stanford.edu/hudson/view/HPS/</url>
   </ciManagement>
-
   <profiles>
     <profile>
       <id>default-cache-dir</id>
@@ -826,5 +846,4 @@
       </properties>
     </profile>
   </profiles>
-
 </project>

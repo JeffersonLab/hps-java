@@ -42,7 +42,6 @@ import org.lcsim.util.aida.AIDA;
  * <code>IHistogram1D</code>) are shown in the last panel of the monitoring application, as well as a 2D histogram (hit
  * time vs. hit energy). Finally, if available, the raw waveshape (in mV) is displayed.</li>
  * 
- * @author Andrea Celentano
  */
 public class EcalEventDisplayWithRawWaveform extends Driver implements CrystalListener, ActionListener {
 

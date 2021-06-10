@@ -25,10 +25,6 @@ import org.lcsim.geometry.subdetector.HPSEcal3.NeighborMap;
  * 
  * One can also set calorimeter-only cuts if one is interested in understanding
  * tracking issues.
- *
- * @author Norman A Graf
- *
- * @version $Id:
  */
 public class MollerCandidateFilter extends EventReconFilter
 {

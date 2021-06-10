@@ -5,10 +5,7 @@ import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
 /**
- * include edge corrections and sampling fractions derived from data.
- *
- * @author Holly Vance <hvanc001@odu.edu>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
+ * Include edge corrections and sampling fractions derived from data.
  */
 public final class ClusterEnergyCorrection {
 

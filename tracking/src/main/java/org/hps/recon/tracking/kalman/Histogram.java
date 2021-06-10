@@ -5,9 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-//This is for testing only and is not part of the Kalman fitting code
-class Histogram { // Very light interface into Gnuplot to make histograms while testing the fitting package.
-                  // The output histograms are just text files that can be displayed by Gnuplot.
+/**
+ * This is for stand-alone testing only and is not part of the HPS Kalman fitting code package.
+ * Very light interface into Gnuplot to make histograms while testing the Kalman fitting package.
+ * The output histograms are just text files that can be displayed by Gnuplot.
+ */
+class Histogram { 
     int N;
     double BW, B0;
     ArrayList<Integer> counts;
@@ -27,7 +30,9 @@ class Histogram { // Very light interface into Gnuplot to make histograms while 
         sumX2 = 0.;
         nEntry = 0;
         counts = new ArrayList<Integer>(nBins);
-        for (int i = 0; i < nBins; ++i) { counts.add(i, 0); }
+        for (int i = 0; i < nBins; ++i) {
+            counts.add(i, 0);
+        }
     }
 
     String Title() {
@@ -86,7 +91,7 @@ class Histogram { // Very light interface into Gnuplot to make histograms while 
             Y.add(i, (double) counts.get(i));
             Ex.add(i, BW / 2.);
             Ey.add(i, Math.sqrt(counts.get(i)));
-            if (counts.get(i)>mxY) mxY = counts.get(i);
+            if (counts.get(i) > mxY) mxY = counts.get(i);
         }
         double mean = -999.;
         double rms = -999.;
@@ -123,29 +128,35 @@ class Histogram { // Very light interface into Gnuplot to make histograms while 
         pW.format("set nokey\n");
         pW.format("$hist << EOD\n");
         if (choice == "errors") {
-            for (int i = 0; i < N; i++) { pW.format("%8.3e %8.3e %8.3e %8.3e\n", X.get(i), Y.get(i), Ex.get(i), Ey.get(i)); }
+            for (int i = 0; i < N; i++) {
+                pW.format("%8.3e %8.3e %8.3e %8.3e\n", X.get(i), Y.get(i), Ex.get(i), Ey.get(i));
+            }
             pW.format("EOD\n");
             pW.format("set xrange[%7.4f : %7.4f]\n", B0, B0 + N * BW);
             pW.format("plot $hist with xyerrorbars\n");
         } else if (choice == "gaus") {
-            for (int i = 0; i < N; i++) { pW.format("%8.3e %8.3e\n", X.get(i), Y.get(i)); }
+            for (int i = 0; i < N; i++) {
+                pW.format("%8.3e %8.3e\n", X.get(i), Y.get(i));
+            }
             pW.format("EOD\n");
             pW.format("a = %d\n", mxY);
-            pW.format("b = %11.6f\n", mean);  // Lots of digits to be sure it doesn't get printed as zero, which Gnuplot chokes on.
+            pW.format("b = %11.6f\n", mean); // Lots of digits to be sure it doesn't get printed as zero, which Gnuplot chokes on.
             pW.format("c = %8.3f\n", rms);
             pW.format("f(x) = a*exp(-(x-b)**2/(2*c**2))\n");
-            double xmn= mean - 3.0*rms;
-            double xmx = mean + 3.0*rms;
-            pW.format("set xrange[%7.4f : %7.4f]\n", xmn, xmx );
+            double xmn = mean - 3.0 * rms;
+            double xmx = mean + 3.0 * rms;
+            pW.format("set xrange[%7.4f : %7.4f]\n", xmn, xmx);
             pW.format("fit f(x) $hist via a, b, c\n");
             pW.format("set label 783 'Gaussian fit:' at graph 0.67, 0.70 left font 'Verdana,12'\n");
             pW.format("set label 780 gprintf('A=   %%.1f', a) at graph 0.67, 0.65 left font 'Verdana,12'\n");
             pW.format("set label 781 gprintf('mu=   %%.3f', b) at graph 0.67, 0.60 left font 'Verdana,12'\n");
             pW.format("set label 782 gprintf('s=   %%.3f', c) at graph 0.67, 0.55 left font 'Verdana,12'\n");
             pW.format("set xrange[%7.4f : %7.4f]\n", B0, B0 + N * BW);
-            pW.format("plot $hist with boxes, f(x) with line\n");            
+            pW.format("plot $hist with boxes, f(x) with line\n");
         } else {
-            for (int i = 0; i < N; i++) { pW.format("%8.3e %8.3e\n", X.get(i), Y.get(i)); }
+            for (int i = 0; i < N; i++) {
+                pW.format("%8.3e %8.3e\n", X.get(i), Y.get(i));
+            }
             pW.format("EOD\n");
             pW.format("set xrange[%7.4f : %7.4f]\n", B0, B0 + N * BW);
             pW.format("plot $hist with boxes\n");

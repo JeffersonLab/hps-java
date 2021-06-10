@@ -38,10 +38,6 @@ import org.lcsim.event.base.BaseCluster;
  * 
  * @see AbstractClusterer
  * @see Clusterer
- * 
- * @author Holly Szumila-Vance <hvanc001@odu.edu>
- * @author Kyle McCarty <mccaky@gmail.com>
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class ReconClusterer extends AbstractClusterer {
 

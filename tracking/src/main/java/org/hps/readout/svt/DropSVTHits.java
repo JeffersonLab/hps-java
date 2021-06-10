@@ -12,10 +12,7 @@ import java.util.List;
 
 /**
  * Removes raw tracker hits based on SVT Inefficiencies.
- *
- * @author Matt Solt <mrsolt@slac.stanford.edu>
  */
-
 public class DropSVTHits extends Driver {
 
     //Hit Efficiencies

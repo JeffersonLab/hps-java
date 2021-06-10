@@ -14,7 +14,6 @@ import java.util.StringTokenizer;
 
 /**
  * Reads in text file in LUND format and creates events in stdhep file format.
- *
  */
 /* Header Format:
 /* 1 Number of particles in event, blah, blah blah (user defined)
@@ -35,7 +34,6 @@ import java.util.StringTokenizer;
  /* 13 y vertex (cm) 
  /* 14 z vertex (cm)
  /*
- * @author Norman A. Graf
  */
 public class LundToStdhepConverter {
 

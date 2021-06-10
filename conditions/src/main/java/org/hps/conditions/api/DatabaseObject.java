@@ -5,8 +5,6 @@ import java.sql.SQLException;
 
 /**
  * This is a simple ORM interface for mapping Java objects to a database.
- *
- * @author Jeremy McCormick, SLAC
  */
 public interface DatabaseObject {
 

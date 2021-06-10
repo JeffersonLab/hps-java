@@ -20,8 +20,6 @@ import org.lcsim.geometry.compact.converter.lcdd.util.Volume;
 /**
  * An LCDD converter for a Silicon endcap tracker model based on Bill Cooper's design from 
  * <a href= "http://ilcagenda.linearcollider.org/materialDisplay.py?contribId=58&sessionId=1&materialId=slides&confId=2784" >Boulder SiD Workshop 2008</a>.
- * 
- * @author jeremym
  */
 public class HPSTracker extends LCDDSubdetector {
 

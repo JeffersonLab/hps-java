@@ -22,8 +22,6 @@ import org.lcsim.geometry.Detector;
 
 /**
  * DQM driver for track residuals in position and time
- *
- * @author mgraham on June 5, 2014
  */
 // TODO:  Add some quantities for DQM monitoring: 
 public class TrackingResiduals extends DataQualityMonitor {

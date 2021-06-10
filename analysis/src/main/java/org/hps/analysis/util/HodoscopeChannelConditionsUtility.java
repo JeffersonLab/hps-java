@@ -26,8 +26,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
  * It may be run using the command: <code>java -cp $HPS_JAVA
  * org.hps.analysis.util.HodoscopeChannelConditionsUtility -R
  * $RUN_NUMBER -d $HODOSCOPE_DETECTOR_NAME</code>
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public class HodoscopeChannelConditionsUtility {
     /**

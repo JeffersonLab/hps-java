@@ -32,13 +32,11 @@ import org.lcsim.geometry.subdetector.Hodoscope_v1;
  * org.lcsim.geometry.subdetector.Hodoscope_v1 Hodoscope_v1}. It
  * handles all of the hodoscope-specific functions needed by the
  * superclass.
- * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDriver<Hodoscope_v1> {    
     // The DAQ configuration manager for FADC parameters.
     private FADCConfigHodo2019 config = new FADCConfigHodo2019();
+    private boolean configStat = false; // Indicates if DAQ configuration is loaded
     
     // The number of nanoseconds in a clock-cycle (sample).
     private static final int nsPerSample = 4;   
@@ -100,6 +98,7 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
                     
                     // Get the FADC configuration.
                     config = daq.getHodoFADCConfig();
+                    configStat = true;
                     integrationThreshold = config.getThreshold((int)10);
                 }
             });
@@ -141,19 +140,17 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
     }
     
     @Override
-    protected double getPedestalConditions(long channelID) {        
-        if (channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
-            return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
-        } else {
-            throw new IllegalArgumentException(
-                    "No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
+    protected double getPedestalConditions(long channelID) { 
+        if(configStat == true) return config.getPedestal((int)channelID);
+        else {
+            if (channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
+                return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
+            } else {
+                throw new IllegalArgumentException(
+                        "No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
+            }
         }
-    }
-    
-    @Override
-    protected double getDAQPedestalConditions(long channelID) {        
-        return config.getPedestal((int)channelID);
-    }
+    }    
     
     @Override
     protected double getTimeShiftConditions(long channelID) {

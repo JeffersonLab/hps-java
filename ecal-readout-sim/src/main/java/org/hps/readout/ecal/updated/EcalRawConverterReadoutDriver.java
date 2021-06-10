@@ -19,8 +19,6 @@ import org.lcsim.geometry.subdetector.HPSEcal3;
  * {@link org.hps.readout.RawConverterReadoutDriver
  * RawConverterReadoutDriver} for the calorimeter subdetector.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  * @see org.hps.readout.RawConverterReadoutDriver
  */
 public class EcalRawConverterReadoutDriver extends RawConverterReadoutDriver {    

@@ -13,7 +13,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.5-SNAPSHOT</version>
+    <version>5.1-SNAPSHOT</version>
   </parent>
   <build>
     <defaultGoal>install</defaultGoal>
@@ -72,9 +72,9 @@
               <goal>assemble</goal>
             </goals>
             <configuration>
-              <binFileExtensions>
-                <unix>.sh</unix>
-              </binFileExtensions>
+              <platforms>
+                <platform>unix</platform>
+              </platforms>
               <extraJvmArguments>-Xmx2g
                 -Djava.util.logging.config.class=org.hps.logging.config.DefaultLoggingConfig</extraJvmArguments>
               <programs>
@@ -89,10 +89,6 @@
                 <program>
                   <mainClass>org.hps.conditions.cli.CommandLineTool</mainClass>
                   <id>conditions-cli</id>
-                </program>
-                <program>
-                  <mainClass>org.hps.run.database.RunDatabaseCommandLine</mainClass>
-                  <id>run-database-cli</id>
                 </program>
                 <program>
                   <mainClass>org.hps.monitoring.application.Main</mainClass>
@@ -152,14 +148,6 @@
     <dependency>
       <groupId>org.hps</groupId>
       <artifactId>hps-detector-model</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
-      <artifactId>hps-run-database</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
-      <artifactId>hps-crawler</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>

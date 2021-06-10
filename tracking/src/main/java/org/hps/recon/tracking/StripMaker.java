@@ -28,10 +28,6 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
 import org.hps.readout.svt.HPSSVTConstants;
 
-/**
- *
- * @author Matt Graham
- */
 // TODO: Add class documentation.
 public class StripMaker {
 
@@ -118,8 +114,7 @@ public class StripMaker {
             IIdentifier id = hit.getIdentifier();
             int strip = _sid_helper.getElectrodeValue(id); 
             
-            // Drop the unbonded channel
-            if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) continue;
+            
 
             stripMap_.put(fittedHit, _sid_helper.getElectrodeValue(id));
 
@@ -127,19 +122,31 @@ public class StripMaker {
             ChargeCarrier carrier = ChargeCarrier.getCarrier(_sid_helper.getSideValue(id));
             SiSensorElectrodes electrodes = ((SiSensor) hit.getDetectorElement()).getReadoutElectrodes(carrier);
 
+            //TODO:: This is deprecated and should be removed
             if (electrodes instanceof ThinSiStrips) {
+
+                // Drop the unbonded channel in thin sensors: 511 and 0
+                if ((strip == (HPSSVTConstants.TOTAL_STRIPS_PER_THIN_SENSOR - 1)) || strip == 0) continue;
+
                 if (thin_hits.get(electrodes) == null)
                     thin_hits.put(electrodes, new ArrayList<LCRelation>());                    
                 thin_hits.get(electrodes).add(fittedHit);
             } else if (electrodes instanceof SiStriplets) {
-
+                
+                // Drop the unbonded channel in thin sensors: 511 and 0
+                if ( (strip == (HPSSVTConstants.TOTAL_STRIPS_PER_THIN_SENSOR - 1)) || strip == 0) continue;
+                
                 if (_debug) System.out.println("StripMaker::makeHits : Electrodes are of SiStriplets"); 
                 
                 if (stripletHits.get(electrodes) == null) stripletHits.put(electrodes, new ArrayList<LCRelation>()); 
-
+                
                 stripletHits.get(electrodes).add(fittedHit);
-
+                
             } else {
+
+                // Drop the unbonded channel in sensors
+                if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) continue;
+                
                 if (electrode_hits.get(electrodes) == null)
                     electrode_hits.put(electrodes, new ArrayList<LCRelation>());
                 electrode_hits.get(electrodes).add(fittedHit);

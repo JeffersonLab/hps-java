@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.hps.record.triggerbank.TestRunTriggerData;
+import org.hps.record.triggerbank.BaseTriggerData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.lcio.LCIOWriter;
 
@@ -19,9 +19,6 @@ import org.lcsim.lcio.LCIOWriter;
  * to file if file path specified. Writes trigger events to LCIO if file path
  * specified. To implement: extend this class and write your own
  * triggerDecision().
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: TriggerDriver.java,v 1.7 2013/09/02 21:56:56 phansson Exp $
  */
 public abstract class TriggerDriver extends TriggerableDriver {
 
@@ -174,10 +171,10 @@ public abstract class TriggerDriver extends TriggerableDriver {
      * Make a dummy TriggerData
      */
     protected void makeTriggerData(EventHeader event, String collectionName) {
-        TestRunTriggerData tData = new TestRunTriggerData(new int[8]);
-        List<TestRunTriggerData> triggerList = new ArrayList<TestRunTriggerData>();
+        BaseTriggerData tData = new BaseTriggerData(new int[8]);
+        List<BaseTriggerData> triggerList = new ArrayList<BaseTriggerData>();
         triggerList.add(tData);
-        event.put(collectionName, triggerList, TestRunTriggerData.class, 0);
+        event.put(collectionName, triggerList, BaseTriggerData.class, 0);
     }
 
     @Override

@@ -16,10 +16,6 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Matt Graham
- */
 // TODO: Add class documentation.
 public class RawTrackerHitFitterDriver extends Driver {
 
@@ -29,6 +25,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String fitCollectionName = "SVTShapeFitParameters";
     private String fittedHitCollectionName = "SVTFittedRawTrackerHits";
+    private String fitTimeMinimizer = "Simplex";
     private SvtTimingConstants timingConstants;
     private SvtSyncStatusCollection syncStatusColl;
     private int genericObjectFlags = 1 << LCIOConstants.GOBIT_FIXED;
@@ -43,6 +40,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean correctChanT0 = true;
     private boolean subtractRFTime = false;
     private Boolean syncGood = true;
+    private Boolean isMC = false;
 
     private double trigTimeScale = 43.0;//  the mean time of the trigger...changes with run period!!!  43.0 is for 2015 Eng. Run
 
@@ -103,6 +101,10 @@ public class RawTrackerHitFitterDriver extends Driver {
         this.trigTimeOffset = offset;
     }
 
+    public void setIsMC(boolean isMc) {
+        this.isMC = isMc;
+    }
+
     public void setFitAlgorithm(String fitAlgorithm) {
         if (fitAlgorithm.equals("Analytic"))
             fitter = new ShaperAnalyticFitAlgorithm();
@@ -133,6 +135,10 @@ public class RawTrackerHitFitterDriver extends Driver {
         this.fittedHitCollectionName = fittedHitCollectionName;
     }
 
+    public void setFitTimeMinimizer(String fitTimeMinimizer) {
+        this.fitTimeMinimizer = fitTimeMinimizer;
+    }
+
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
     }
@@ -140,6 +146,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     @Override
     public void startOfData() {
         fitter.setDebug(debug);
+        fitter.setFitTimeMinimizer(fitTimeMinimizer);
         if (rawHitCollectionName == null)
             throw new RuntimeException("The parameter rawHitCollectionName1 was not set!");
     }
@@ -149,13 +156,11 @@ public class RawTrackerHitFitterDriver extends Driver {
         try {
             syncStatusColl = DatabaseConditionsManager.getInstance().getCachedConditions(SvtSyncStatusCollection.class, "svt_sync_statuses").getCachedData();
             syncGood = syncStatusColl.get(0).isGood();
-        } 
+        }
         catch (Exception e) {
             syncGood = true;
-            System.out.println("[RawTrackerHitFitterDriver] svt_sync_statuses was not found: " + e);
-            //e.printStackTrace();
+            getLogger().config("svt_sync_statuses was not found.");
         }
-
     }
 
     @Override
@@ -204,6 +209,9 @@ public class RawTrackerHitFitterDriver extends Driver {
                     double tt = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - trigTimeOffset);
                     if (!syncGood) tt = tt - 8;
                     if (!syncGood && (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24)/8 < 1)) {
+                        tt = tt + 24;
+                    }
+                    if (isMC && (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24)/8 == 1)) {
                         tt = tt + 24;
                     }
                     if (debug) {

@@ -17,9 +17,6 @@ import org.lcsim.geometry.Detector;
  * better than values defined by cuts, and track times must be within trackDtCut of each other. If the tight constraint
  * is enabled, tracks must be matched to clusters, the Ecal cluster times must be within _timingCut [2.5ns] of each
  * other, and there must be exactly one V0 passing all cuts. Only GBL vertices are considered.
- *
- * @author Norman A Graf
- * @version $Id:
  */
 public class V0CandidateFilter extends EventReconFilter {
 

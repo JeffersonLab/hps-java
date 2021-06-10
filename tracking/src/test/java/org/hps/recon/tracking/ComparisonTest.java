@@ -16,8 +16,6 @@ import org.lcsim.util.cache.FileCache;
 
 /**
  * Test class to check a set of histograms against a reference set.
- *
- * @author mdiamond <mdiamond@slac.stanford.edu>
  */
 public class ComparisonTest extends ReconTestSkeleton {
     static final List<String> histograms = Arrays.asList("Tracks per Event", "Hits per Track");

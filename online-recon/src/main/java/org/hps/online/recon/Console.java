@@ -17,8 +17,6 @@ import org.hps.online.recon.commands.CommandFactory;
 
 /**
  * Interactive console for online reconstruction client.
- * 
- * @author jeremym
  */
 public class Console {
 
@@ -31,12 +29,12 @@ public class Console {
      * True to echo commands as they are executed.
      */
     private boolean echo = false;
-    
+
     /**
      * Factory class for creating <code>Command</code> objects.
      */
     private CommandFactory cf = new CommandFactory();
-    
+
     /**
      * Class constructor.
      * @param client The reference to the client object
@@ -44,7 +42,7 @@ public class Console {
     Console(Client client) {
         this.client = client;
     }
-    
+
     /**
      * Set whether to echo commands back to the terminal.
      * @param echo True to echo commands back to the terminal
@@ -52,42 +50,41 @@ public class Console {
     void setEcho(boolean echo) {
         this.echo = echo;
     }
-    
+
     /**
      * Run the console, accepting and executing user input.
      */
     void run() {
+
         String userInput;
-        
         Scanner sn = new Scanner(System.in);
 
         System.out.println("HPS Online Reconstruction");
         System.out.println("Type 'help' or 'help [command]' for more information or 'exit' to quit.");
-        
+
         while (true) {
             System.out.print("online> ");
             userInput = sn.nextLine().trim();
-            boolean exit = false;
+            if (userInput.split(" ")[0].equals("exit")) {
+                break;
+            }
             try {
-                exit = exec(userInput);
+                exec(userInput);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            if (exit) {
-                break;
-            }
-
         }
-        
+
         sn.close();
     }
-    
+
     /**
      * Execute a line of input.
      * @param userInput The user input to execute
      * @return True if console should exit after this command
+     * @throws ParseException
      */
-    private boolean exec(String userInput) {
+    private void exec(String userInput) throws ParseException {
         if (echo) {
             System.out.println(userInput);
         }
@@ -100,13 +97,10 @@ public class Console {
                 if (args.size() > 0) {
                     args.remove(0);
                 }
-
-                if (cmdStr.equals("exit")) {
-                    return true;
-                } else if (cmdStr.equals("help")) {
+                if (cmdStr.equals("help")) {
                     if (args.size() == 0) {
                         printHelp();
-                    } else {                        
+                    } else {
                         printCommandHelp(args.get(0));
                     }
                 } else if (cmdStr.equals("port")) {
@@ -135,8 +129,8 @@ public class Console {
                             System.out.println("Output is being written to the terminal.");
                         }
                     } else {
-                        String filename = args.get(0);                        
-                        client.setOutputFile(filename);                        
+                        String filename = args.get(0);
+                        client.setOutputFile(filename);
                     }
                 } else if (cmdStr.equals("terminal")) {
                     if (client.getOutputFile() != null) {
@@ -150,37 +144,24 @@ public class Console {
                         System.out.println(client.getAppend());
                     }
                 } else {
-                    if (cf.has(cmdStr)) {
-                        Command cmd = cf.create(cmdStr);
-                        DefaultParser parser = new DefaultParser();
-                        try {
-                            String cmdArr[] = args.toArray(new String[0]);
-                            CommandLine cl = parser.parse(cmd.getOptionsNoHelp(), cmdArr);
-                            try {
-                                cmd.process(cl);
-                                client.send(cmd);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        System.err.println("Unknown client commnd: " + cmdStr);
-                    }
+                    Command cmd = cf.create(cmdStr);
+                    DefaultParser parser = new DefaultParser();
+                    String cmdArr[] = args.toArray(new String[0]);
+                    CommandLine cl = parser.parse(cmd.getOptionsNoHelp(), cmdArr);
+                    cmd.process(cl);
+                    client.send(cmd);
                 }
             }
         }
-        return false;
     }
-    
+
     /**
      * Execute a file containing commands.
      * @param file The path to the file
      * @throws FileNotFoundException If the file does not exist
      * @throws IOException If there is a problem reading the file
      */
-    void execFile(File file) throws FileNotFoundException, IOException {
+    void execFile(File file) throws FileNotFoundException, IOException, ParseException {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -188,7 +169,7 @@ public class Console {
             }
         }
     }
-    
+
     /**
      * Print help for the interactive console.
      */
@@ -204,20 +185,16 @@ public class Console {
         System.out.println("    append [true|false] - true to append to output file or false to overwrite");
         System.out.println("    terminal - redirect server output back to the terminal");
         System.out.println('\n' + "COMMANDS" + '\n');
-        for (String command : cf.getCommandNames()) {
+        for (String command : cf.getCommandNamesSorted()) {
             System.out.println("    " + command + " - " + cf.create(command).getDescription());
         }
     }
-    
+
     /**
      * Print the help for a specific command.
      * @param command The name of the command to print
      */
     void printCommandHelp(String command) {
-        if (cf.has(command)) {
-            cf.create(command).printUsageNoHelp();
-        } else {
-            System.err.println("Unknown command: " + command);
-        }
+        cf.create(command).printUsageNoHelp();
     }
 }

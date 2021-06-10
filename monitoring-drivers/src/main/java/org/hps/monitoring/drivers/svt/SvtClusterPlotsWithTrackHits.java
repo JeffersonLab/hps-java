@@ -9,13 +9,11 @@ import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
 import hep.aida.ITree;
 import hep.aida.ref.rootwriter.RootFileStore;
-//import hep.physics.vec.BasicHep3Vector;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-//import java.util.Set;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtTimingConstants;
 
@@ -25,7 +23,6 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
-//import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.fit.helicaltrack.HelicalTrackCross;
@@ -38,23 +35,16 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Monitoring driver that looks at the SVT cluster charge.
- *
- * @author Omar Moreno <omoreno1@ucsc.edu>
- *
  */
 public class SvtClusterPlotsWithTrackHits extends Driver {
 
-    // TODO: Add documentation
-    //static {
-    //    hep.aida.jfree.AnalysisFactory.register();
-    //}
-    // Plotting
     private static ITree tree = null;
     private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
     private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Clusters");
     private IHistogramFactory histogramFactory = null;
     private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
     private static int nmodlayers = 7;
+
     // Histogram Maps
     private static Map<String, IHistogram1D> clusterChargePlots = new HashMap<String, IHistogram1D>();
     private static Map<String, IHistogram1D> singleHitClusterChargePlots = new HashMap<String, IHistogram1D>();

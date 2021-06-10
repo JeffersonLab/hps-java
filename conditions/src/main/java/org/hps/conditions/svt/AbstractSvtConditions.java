@@ -9,8 +9,6 @@ import org.hps.conditions.svt.AbstractSvtT0Shift.AbstractSvtT0ShiftCollection;
 
 /**
  * Abstract class providing some of the common functionality used to define an SVT conditions object.
- *
- * @author Omar Moreno, UCSC
  */
 public abstract class AbstractSvtConditions {
 

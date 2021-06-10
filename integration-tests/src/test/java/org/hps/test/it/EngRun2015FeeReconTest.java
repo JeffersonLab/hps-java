@@ -1,99 +1,212 @@
 package org.hps.test.it;
 
-import static java.lang.Math.abs;
+import java.util.List;
 
-import java.io.File;
-import java.io.IOException;
+import org.hps.recon.ecal.cluster.ClusterUtilities;
+import org.hps.recon.tracking.TrackData;
+import org.hps.recon.tracking.TrackType;
+import org.hps.recon.tracking.TrackUtils;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TIData;
+import org.lcsim.event.Cluster;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
+import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.Track;
+import org.lcsim.math.chisq.ChisqProb;
 
-import org.hps.evio.EvioToLcio;
-import org.hps.util.test.TestUtil;
-import org.hps.util.test.TestOutputFile;
-import org.lcsim.util.aida.AIDA;
-import org.lcsim.util.loop.LCSimLoop;
-
-import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
-import hep.aida.ITree;
-import junit.framework.TestCase;
+import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
 
 /**
- *
- * @author ngraf
+ * Test FEE recon for 2015 engineering run
  */
-public class EngRun2015FeeReconTest extends TestCase {
+public class EngRun2015FeeReconTest extends ReconTest {
 
-    static final String testFileName = "hps_005772_feeskim_10k.evio";
-    private final int nEvents = 5000;
-    static final String fieldmapName = "HPS-EngRun2015-Nominal-v6-0-fieldmap_v3";
-    static final String steeringFileName = "/org/hps/steering/recon/legacy_drivers/EngineeringRun2015FullRecon.lcsim";
-    private String aidaOutputFile = "target/test-output/EngRun2015FeeReconTest/EngRun2015FeeReconTest";
+    static final String DETECTOR = "HPS-EngRun2015-Nominal-v6-0-fieldmap_v3";
+    static final String TEST_FILE_NAME = "hps_005772_feeskim_10k.evio";
+    static final String STEERING = "/org/hps/steering/recon/legacy_drivers/EngineeringRun2015FullRecon.lcsim";
+    static final int NEVENTS = 5000;
+    static final long MAX_EVENT_TIME = -1L;
 
-    public void testIt() throws Exception {
-        File evioInputFile = TestUtil.downloadTestFile(testFileName);
-        File outputFile = new TestOutputFile(EngRun2015FeeReconTest.class, "recon");
-        String args[] = {"-r", "-x", steeringFileName, "-d",
-            fieldmapName, "-D", "outputFile=" + outputFile.getPath(), "-n", String.format("%d", nEvents),
-            evioInputFile.getPath(), "-e", "1000"};
-        System.out.println("Writing to: " + outputFile.getPath());
-        long startTime = System.currentTimeMillis();
-        EvioToLcio.main(args);
-        long endTime = System.currentTimeMillis();
-        System.out.println("That took " + (endTime - startTime) + " milliseconds");
-        // Read in the LCIO event file and print out summary information.
-        LCSimLoop loop = new LCSimLoop();
-        EngRun2015FeeRecon reconDriver = new EngRun2015FeeRecon();
-        aidaOutputFile = new TestOutputFile(getClass().getSimpleName()).getPath() + File.separator + this.getClass().getSimpleName();
-        reconDriver.setAidaFileName(aidaOutputFile);
-        loop.add(reconDriver);
-        try {
-            loop.setLCIORecordSource(new File(outputFile.getPath() + ".slcio"));
-            loop.loop(-1);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("Loop processed " + loop.getTotalSupplied() + " events.");
-        System.out.println("writing aida file to: " + aidaOutputFile);
-        System.out.println("Comparing plots...");
-        comparePlots();
-        System.out.println("Done!");
+    public EngRun2015FeeReconTest() {
+        super(EngRun2015FeeReconTest.class,
+                DETECTOR,
+                TEST_FILE_NAME,
+                STEERING,
+                NEVENTS,
+                new PlotDriver(),
+                DEFAULT_TOLERANCE,
+                MAX_EVENT_TIME,
+                true,
+                true);
     }
 
-    public void comparePlots() throws Exception {
-        AIDA aida = AIDA.defaultInstance();
-        final IAnalysisFactory af = aida.analysisFactory();
+    private static class PlotDriver extends RefDriver {
 
-        File aidaRefFile = TestUtil.downloadRefPlots("EngRun2015FeeReconTest");
+        IHistogram1D trkChisqNdfTop = aida.histogram1D("Top Track Chisq per DoF", 100, 0., 100.);
+        IHistogram1D trkChisqProbTop = aida.histogram1D("Top Track Chisq Prob", 100, 0., 1.);
+        IHistogram1D trkNhitsTop = aida.histogram1D("Top Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkMomentumTop = aida.histogram1D("Top Track Momentum", 200, 0., 3.);
+        IHistogram1D trkMomentumTop5 = aida.histogram1D("Top 5 Hit Track Momentum", 200, 0., 3.);
+        IHistogram1D trkMomentumTop6 = aida.histogram1D("Top 6 Hit Track Momentum", 200, 0., 3.);
+        IHistogram1D trkdEdXTop5 = aida.histogram1D("Top 5 Track dEdx", 100, 0., .00015);
+        IHistogram1D trkdEdXTop6 = aida.histogram1D("Top 6 Track dEdx", 100, 0., .00015);
+        IHistogram1D trkthetaTop = aida.histogram1D("Top Track theta", 100, 0.01, 0.05);
+        IHistogram1D trkX0Top = aida.histogram1D("Top Track X0", 100, -0.5, 0.5);
+        IHistogram1D trkY0Top = aida.histogram1D("Top Track Y0", 100, -5.0, 5.0);
+        IHistogram1D trkZ0Top = aida.histogram1D("Top Track Z0", 100, -1.0, 1.0);
 
-        File aidaTstFile = new File(aidaOutputFile+".aida");
+        IHistogram1D trkChisqNdfBottom = aida.histogram1D("Bottom Track Chisq per DoF", 100, 0., 100.);
+        IHistogram1D trkChisqProbBottom = aida.histogram1D("Bottom Track Chisq Prob", 100, 0., 1.);
+        IHistogram1D trkNhitsBottom = aida.histogram1D("Bottom Track Number of Hits", 7, -0.5, 6.5);
+        IHistogram1D trkMomentumBottom = aida.histogram1D("Bottom Track Momentum", 200, 0., 3.);
+        IHistogram1D trkMomentumBottom5 = aida.histogram1D("Bottom 5 Hit Track Momentum", 200, 0., 3.);
+        IHistogram1D trkMomentumBottom6 = aida.histogram1D("Bottom 6 Hit Track Momentum", 200, 0., 3.);
+        IHistogram1D trkdEdXBottom5 = aida.histogram1D("Bottom 5 Track dEdx", 100, 0., .00015);
+        IHistogram1D trkdEdXBottom6 = aida.histogram1D("Bottom 6 Track dEdx", 100, 0., .00015);
+        IHistogram1D trkthetaBottom = aida.histogram1D("Bottom Track theta", 100, 0.01, 0.05);
+        IHistogram1D trkX0Bottom = aida.histogram1D("Bottom Track X0", 100, -0.5, 0.5);
+        IHistogram1D trkY0Bottom = aida.histogram1D("Bottom Track Y0", 100, -5.0, 5.0);
+        IHistogram1D trkZ0Bottom = aida.histogram1D("Bottom Track Z0", 100, -1.0, 1.0);
 
-        ITree ref = af.createTreeFactory().create(aidaRefFile.getAbsolutePath());
-        ITree tst = af.createTreeFactory().create(aidaTstFile.getAbsolutePath());
+        final String finalStateParticlesColName = "OtherElectrons";
 
-        String[] histoNames = ref.listObjectNames();
-        String[] histoTypes = ref.listObjectTypes();
-        System.out.println("comparing " + histoNames.length + " managed objects");
-        double tolerance = 5E-3;
-        for (int i = 0; i < histoNames.length; ++i) {
-            String histoName = histoNames[i];
-            if (histoTypes[i].equals("IHistogram1D")) {
-                System.out.println("Checking entries, means and rms for " + histoName);
-                IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
-                IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
-                //System.out.println("           Found              Expected");
-                System.out.println("Entries: "+h1_r.entries()+" "+ h1_t.entries());
-                System.out.println("Mean: "+h1_r.mean()+" "+ h1_t.mean());
-                System.out.println("RMS "+h1_r.rms()+" "+ h1_t.rms());
+        Double beamEnergy = 1.056;
+
+        //Set min seed energy value, default to 2015 run
+        double seedCut = 0.4; //= 0.4
+
+        //set min cluster energy value, default to 2015 run
+        double clusterCut = 0.6;
+
+        //minimum number of hits per cluster
+        int minHits = 3; // = 3;
+
+        double ctMin = 40.;
+        double ctMax = 49.;
+
+        protected void process(EventHeader event) {
+            // only keep singles triggers:
+            if (!event.hasCollection(GenericObject.class, "TriggerBank")) {
+                return;
             }
-        }
-        for (int i = 0; i < histoNames.length; ++i) {
-            String histoName = histoNames[i];
-            if (histoTypes[i].equals("IHistogram1D")) {
-                System.out.println("checking entries, means and rms for " + histoName);
-                IHistogram1D h1_r = (IHistogram1D) ref.find(histoName);
-                IHistogram1D h1_t = (IHistogram1D) tst.find(histoName);
-                assertEquals(h1_r.entries(), h1_t.entries());
-                assertEquals(h1_r.mean(), h1_t.mean(), tolerance * abs(h1_r.mean()));
-                assertEquals(h1_r.rms(), h1_t.rms(), tolerance * abs(h1_r.rms()));
+            boolean isSingles = false;
+            for (GenericObject gob : event.get(GenericObject.class, "TriggerBank")) {
+                if (!(AbstractIntData.getTag(gob) == TIData.BANK_TAG)) {
+                    continue;
+                }
+                TIData tid = new TIData(gob);
+                if (tid.isSingle0Trigger() || tid.isSingle1Trigger()) {
+                    isSingles = true;
+                    break;
+                }
+            }
+            if (!isSingles) {
+                return;
+            }
+            if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
+                return;
+            }
+            super.process(event);
+            List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, finalStateParticlesColName);
+            for (ReconstructedParticle rp : rpList) {
+                if (!TrackType.isGBL(rp.getType())) {
+                    continue;
+                }
+                if (rp.getMomentum().magnitude() > 1.5 * beamEnergy) {
+                    continue;
+                }
+                // require both track and cluster
+                if (rp.getClusters().size() != 1) {
+                    continue;
+                }
+
+                if (rp.getTracks().size() != 1) {
+                    continue;
+                }
+
+                Track t = rp.getTracks().get(0);
+                double p = rp.getMomentum().magnitude();
+                Cluster c = rp.getClusters().get(0);
+                // debug diagnostics to set cuts
+                if (debug) {
+                    aida.cloud1D("clusterSeedHit energy").fill(ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+                    aida.cloud1D("cluster nHits").fill(c.getCalorimeterHits().size());
+                    aida.cloud2D("clusterSeedHit energy vs p").fill(p, ClusterUtilities.findSeedHit(c).getCorrectedEnergy());
+                    aida.cloud2D("cluster nHits vs p").fill(p, c.getCalorimeterHits().size());
+                    aida.cloud2D("cluster time vs p").fill(p, ClusterUtilities.getSeedHitTime(c));
+                }
+                double ct = ClusterUtilities.getSeedHitTime(c);
+
+                if (c.getEnergy() > clusterCut
+                        && ClusterUtilities.findSeedHit(c).getCorrectedEnergy() > seedCut
+                        && c.getCalorimeterHits().size() >= minHits
+                        && ct > ctMin
+                        && ct < ctMax) {
+                    double chiSquared = t.getChi2();
+                    int ndf = t.getNDF();
+                    double chi2Ndf = t.getChi2() / t.getNDF();
+                    double chisqProb = ChisqProb.gammp(ndf, chiSquared);
+                    int nHits = t.getTrackerHits().size();
+                    double dEdx = t.getdEdx();
+                    //rotate into physiscs frame of reference
+                    Hep3Vector rprot = VecOp.mult(BEAM_AXIS_ROTATION, rp.getMomentum());
+                    double theta = Math.acos(rprot.z() / rprot.magnitude());
+
+                    // debug diagnostics to set cuts
+                    if (debug) {
+                        aida.cloud1D("Track chisq per df").fill(chiSquared / ndf);
+                        aida.cloud1D("Track chisq prob").fill(chisqProb);
+                        //aida.cloud1D("Track nHits").fill(t.getTrackerHits().size());
+                        aida.cloud1D("Track momentum").fill(p);
+                        aida.cloud1D("Track deDx").fill(t.getdEdx());
+                        aida.cloud1D("Track theta").fill(theta);
+                        aida.cloud2D("Track theta vs p").fill(theta, p);
+                        aida.cloud1D("rp x0").fill(TrackUtils.getX0(t));
+                        aida.cloud1D("rp y0").fill(TrackUtils.getY0(t));
+                        aida.cloud1D("rp z0").fill(TrackUtils.getZ0(t));
+                    }
+
+                    double trackDataTime = TrackData.getTrackTime(TrackData.getTrackData(event, t));
+                    aida.cloud1D("track data time").fill(trackDataTime);
+                    if (isTopTrack(t)) {
+                        trkChisqNdfTop.fill(chi2Ndf);
+                        trkChisqProbTop.fill(chisqProb);
+                        trkNhitsTop.fill(nHits);
+                        trkMomentumTop.fill(p);
+                        trkthetaTop.fill(theta);
+                        trkX0Top.fill(TrackUtils.getX0(t));
+                        trkY0Top.fill(TrackUtils.getY0(t));
+                        trkZ0Top.fill(TrackUtils.getZ0(t));
+
+                        if (nHits == 5) {
+                            trkMomentumTop5.fill(p);
+                            trkdEdXTop5.fill(dEdx);
+                        } else if (nHits == 6) {
+                            trkMomentumTop6.fill(p);
+                            trkdEdXTop6.fill(dEdx);
+                        }
+                    } else {
+                        trkChisqNdfBottom.fill(chi2Ndf);
+                        trkChisqProbBottom.fill(chisqProb);
+                        trkNhitsBottom.fill(nHits);
+                        trkMomentumBottom.fill(p);
+                        trkthetaBottom.fill(theta);
+                        trkX0Bottom.fill(TrackUtils.getX0(t));
+                        trkY0Bottom.fill(TrackUtils.getY0(t));
+                        trkZ0Bottom.fill(TrackUtils.getZ0(t));
+
+                        if (nHits == 5) {
+                            trkMomentumBottom5.fill(p);
+                            trkdEdXBottom5.fill(dEdx);
+                        } else if (nHits == 6) {
+                            trkMomentumBottom6.fill(p);
+                            trkdEdXBottom6.fill(dEdx);
+                        }
+                    }
+                } // End of cluster cuts
             }
         }
     }

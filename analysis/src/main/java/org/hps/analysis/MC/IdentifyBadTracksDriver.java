@@ -9,7 +9,7 @@ import java.util.Set;
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.particle.SimpleParticleID;
 import org.hps.recon.tracking.TrackUtils;
-import org.hps.recon.utils.TrackClusterMatcher;
+import org.hps.recon.utils.LegacyTrackClusterMatcher;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -31,19 +31,16 @@ import org.lcsim.util.Driver;
 /**
  * Driver to skim selected events from LCIO files based on 
  * track picking up the wrong hit.
+ *
  * It outputs the bad track, the MCParticle associated with the bad hit,
  * the truth hits associated with the truth match, and the track of the 
  * other particle associated with the bad hit (if any)
  * This driver can only be run on MC readout with full truth.
- *
- * @author Matt Solt
- *
- * @version $Id:
  */
 public class IdentifyBadTracksDriver extends Driver{
 
 
-    TrackClusterMatcher matcher = new TrackClusterMatcher();
+    LegacyTrackClusterMatcher matcher = new LegacyTrackClusterMatcher();
     //Collection name
     //TODO Make these names configurable by steering file
     private final String trackColName = "GBLTracks";

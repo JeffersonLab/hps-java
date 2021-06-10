@@ -89,6 +89,7 @@
             <subtractTriggerTime>true</subtractTriggerTime>           
             <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
             <correctChanT0>true</correctChanT0>          
+            <isMC>true</isMC>
             <debug>false</debug>
         </driver>
         <!-- 

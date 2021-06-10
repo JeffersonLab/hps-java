@@ -2,12 +2,6 @@ package org.hps.recon.particle;
 
 import org.lcsim.event.ParticleID;
 
-/**
- * 
- * @author Omar Moreno <omoreno1@ucsc.edu>
- * @version $Id$
- *
- */
 public class SimpleParticleID implements ParticleID {
     
     int algorithmType = 0; 

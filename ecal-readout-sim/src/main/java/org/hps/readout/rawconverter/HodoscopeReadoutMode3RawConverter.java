@@ -20,11 +20,10 @@ import org.lcsim.geometry.Detector;
  * is implemented. Calibrations specific to reconstruction are not
  * supported.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
- * @author Tongtong Cao <caot@jlab.org>
  * @see org.hps.readout.rawconverter.AbstractMode3RawConverter
  */
 public class HodoscopeReadoutMode3RawConverter extends AbstractMode3RawConverter {  
+
     /**
      * Maps hodoscope channels to the gain for that channel.
      */

@@ -2,6 +2,7 @@ package org.hps.online.recon;
 
 import java.util.logging.Logger;
 
+import org.hps.online.recon.properties.Property;
 import org.hps.record.et.EtConnection;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStationConfig;
@@ -10,91 +11,116 @@ import org.jlab.coda.et.EtSystemOpenConfig;
 import org.jlab.coda.et.enums.Mode;
 
 /**
- * Create a parallel ET connection appropriate for a pool of stations to 
- * process reconstruction jobs.
- * 
- * Sub-class {@link org.hps.record.et.EtConnection} so we don't accidentally 
- * screw up the monitoring application. 
+ * Create an ET connection for a pool of stations to process
+ * reconstruction jobs in parallel.
  */
 class EtParallelStation extends EtConnection {
-    
-    private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
-    
-    /**
-     * Class constructor.
-     * @param name The file buffer name
-     * @param host The ET system hostname
-     * @param port The ET system port
-     * @param queueSize The queue size when reading events
-     * @param prescale The prescale factor
-     * @param stationName The name of the new station
-     * @param waitMode The wait mode (see ET documentation)
-     * @param waitTime The wait time if using timed mode
-     * @param chunkSize The chunk size when reading events
-     * @param logLevel The ET system log level
-     * @throws Exception If there is an error initializing and connecting to the ET system
-     */
-    EtParallelStation(
-            final String name, 
-            final String host,
-            final int port, 
-            final int queueSize, 
-            final int prescale, 
-            final String stationName, 
-            final Mode waitMode, 
-            final int waitTime, 
-            final int chunkSize,
-            final int logLevel) throws Exception {
 
-        // make a direct connection to ET system's tcp server
-        final EtSystemOpenConfig etConfig = new EtSystemOpenConfig(name, host, port);
-        
-        // create ET system object with verbose debugging output
-        sys = new EtSystem(etConfig, logLevel);
-        sys.open();
-                        
-        // configuration of a new station
+    private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
+
+    private static final int STATION_POSITION = 1;
+
+    /**
+     * Create an ET connection from station properties
+     * @param props The station properties
+     * @throws Exception If there is an error opening the ET system
+     */
+    EtParallelStation(StationProperties props) throws Exception {
+
+        Property<String> host = props.get("et.host");
+        Property<String> buffer = props.get("et.buffer");
+        Property<Integer> port = props.get("et.port");
+        Property<Integer> connAttempts = props.get("et.connectionAttempts");
+        Property<Integer> logLevel = props.get("et.logLevel");
+        Property<Integer> prescale = props.get("et.prescale");
+        Property<String> stationName = props.get("et.stationName");
+        Property<Integer> waitMode = props.get("et.mode");
+        Property<Integer> waitTime = props.get("et.waitTime");
+        Property<Integer> chunk = props.get("et.chunk");
+
+        LOGGER.config("Opening ET system: " + host.value() + ":" + port.value() + buffer.value());
+        EtSystemOpenConfig etConfig =
+                new EtSystemOpenConfig(buffer.value(), host.value(), port.value());
+
+        for (int i = 1; i <= connAttempts.value(); i++) {
+            LOGGER.config("Attempting ET connection: " + i);
+            try {
+                sys = new EtSystem(etConfig, logLevel.value());
+                sys.open();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (sys.alive()) {
+                LOGGER.config("Connection successful!");
+                break;
+            }
+
+            Thread.sleep(1000L);
+        }
+        if (!sys.alive()) {
+            LOGGER.severe("Failed to connect to ET system after "
+                    + connAttempts.value() + " attempts!");
+            throw new RuntimeException("Failed to connect to ET system!");
+        }
+
         final EtStationConfig stationConfig = new EtStationConfig();
         stationConfig.setFlowMode(EtConstants.stationParallel);
         stationConfig.setBlockMode(EtConstants.stationBlocking);
         stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
-        
-        // Set prescale.
-        if (prescale > 0) {
-            stationConfig.setPrescale(prescale);
+
+        if (prescale.value() > 0) {
+            stationConfig.setPrescale(prescale.value());
         }
 
-        // Position relative to grand central.
-        int position = 1;
-        
-        // Parallel position of station which is always after the last one.
-        int pposition = EtConstants.end;
-
-        // Create the station.
-        stat = sys.createStation(stationConfig, stationName, position, pposition);
-
-        // attach to new station
+        stat = sys.stationNameToObject(stationName.value());
+        if (stat != null) {
+            throw new IllegalStateException("ET station already exists: " + stationName.value());
+        }
+        stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
+        LOGGER.info("Created new ET station: " + stationName.value());
         att = sys.attach(stat);
-        
-        // These are used when getting events later.
-        this.waitMode = waitMode;
-        this.waitTime = waitTime;
-        this.chunkSize = chunkSize;
+
+        LOGGER.info("Initialized station: " + stat.getName());
+        LOGGER.info("Station pos: " + sys.getStationPosition(stat));
+        LOGGER.info("Station parallel pos: " + sys.getStationParallelPosition(stat));
+        LOGGER.info("Num stations: " + sys.getNumStations());
+
+        this.waitMode = Mode.getMode(waitMode.value());
+        this.waitTime = waitTime.value();
+        this.chunkSize = chunk.value();
+
+        LOGGER.config("Station waitMode, waitTime, chunkSize: " + this.waitMode + ", " + this.waitTime +
+                ", " + this.chunkSize);
     }
-    
+
     /**
      * Cleanup the connection by detaching the station and removing it from the ET system.
      */
-    public void cleanup() {
+    synchronized public void cleanup() {
+        LOGGER.info("Cleaning up ET connection");
         try {
+            LOGGER.info("Checking if sys is alive");
             if (!this.sys.alive()) {
+                LOGGER.fine("sys is not alive!");
                 return;
             }
+            LOGGER.info("Waking up attachment");
+            try {
+                this.sys.wakeUpAttachment(att);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            LOGGER.info("Detaching from sys");
             this.sys.detach(this.att);
+            LOGGER.info("Removing station");
             this.sys.removeStation(this.stat);
+            LOGGER.info("Closing station");
             this.sys.close();
         } catch (final Exception e) {
+            LOGGER.warning("Error during cleanup");
             e.printStackTrace();
         }
+        LOGGER.info("Done cleaning up ET connection!");
     }
 }

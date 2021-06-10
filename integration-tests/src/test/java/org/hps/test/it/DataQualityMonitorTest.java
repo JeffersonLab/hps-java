@@ -9,9 +9,6 @@ import junit.framework.TestCase;
 
 /**
  * Test package for data quality monitoring of reconstructed data
- *
- * @author mgraham <mgraham@slac.stanford.edu>
- * created on 10/16/2014
  */
 public class DataQualityMonitorTest extends TestCase {
 

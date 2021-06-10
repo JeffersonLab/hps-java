@@ -8,9 +8,6 @@ import org.lcsim.util.Driver;
 
 import org.lcsim.geometry.Detector;
 
-/**
- * @author mgraham
- */
 public class EventReconFilter extends Driver {
 
     private static final Logger LOGGER = Logger.getLogger(EventReconFilter.class.getPackage().getName());
