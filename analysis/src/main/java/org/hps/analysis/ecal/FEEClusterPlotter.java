@@ -42,12 +42,12 @@ public class FEEClusterPlotter extends Driver {
     private String outputPlots = null;
 
     // Set min energy in histo
-    private double minHistoE = 0.5;
-    private double minHistoEseed = 0.5;
+    private double minHistoE = 1.5;
+    private double minHistoEseed = 1.5;
 
     // Set max energy in histo
-    private double maxHistoE = 1.3;
-    private double maxHistoEseed = 1.3;
+    private double maxHistoE = 2.8;
+    private double maxHistoEseed = 2.8;
     /**
      * Set the minimum histogram energy
      * 
