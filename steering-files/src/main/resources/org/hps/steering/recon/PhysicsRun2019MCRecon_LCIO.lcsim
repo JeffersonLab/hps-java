@@ -14,7 +14,7 @@
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
-	    <driver name="CopyCluster" />
+        <driver name="CopyCluster" />
 
         <driver name="HodoRunningPedestal"/>
         <driver name="HodoRawConverter"/> -->
@@ -31,25 +31,21 @@
         
         <driver name="TrackReconSeed123Conf4Extd56"/>    
         <driver name="TrackReconSeed123Conf5Extd46"/>
-	    <driver name="TrackReconSeed567Conf4Extd123"/> 
+        <driver name="TrackReconSeed567Conf4Extd123"/> 
         <driver name="TrackReconSeed456Conf3Extd127"/> 
         <driver name="TrackReconSeed356Conf7Extd124"/>  
         <driver name="TrackReconSeed235Conf6Extd147"/> 
         
         <!-- <driver name="TrackReconSeed234Conf6Extd157"/> -->
         
-        
-        
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="TrackTruthMatching_GBL" /> 
-        <driver name="ReconParticleDriver" />
-        
-        
         <driver name="KalmanPatRecDriver"/> 
         <driver name="TrackTruthMatching_KF" />
         <driver name="ReconParticleDriver_Kalman" />
+        <driver name="ReconParticleDriver" />
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     
@@ -152,7 +148,7 @@
             <clusterTimeCut>100.0</clusterTimeCut>
             <maxDt>100.0</maxDt>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-	    </driver>
+        </driver>
         
 
         <!-- 
@@ -163,7 +159,7 @@
             <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>
             <strategyResource>HPS_s123_c4_e56_4hit.xml</strategyResource>
             <debug>false</debug>
-	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
         
@@ -171,7 +167,7 @@
             <trackCollectionName>Tracks_s123_c5_e46</trackCollectionName>
             <strategyResource>HPS_s123_c5_e46_4hit.xml</strategyResource>
             <debug>false</debug>
-	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
 
@@ -179,7 +175,7 @@
             <trackCollectionName>Tracks_s567_c4_e123</trackCollectionName>
             <strategyResource>HPS_s567_c4_e123.xml</strategyResource>
             <debug>false</debug>
-	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
 
@@ -211,7 +207,7 @@
             <trackCollectionName>Tracks_s234_c5_e157</trackCollectionName>
             <strategyResource>HPS_s234_c5_e167_4hit.xml</strategyResource>
             <debug>false</debug>
-	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
 
@@ -222,6 +218,8 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
+            <matcherTrackCollectionName>GBLTracks</matcherTrackCollectionName>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
             <beamPositionX> 0 </beamPositionX>
             <beamSigmaX> 0.05 </beamSigmaX>
             <beamPositionY> 0 </beamPositionY>
@@ -231,6 +229,7 @@
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <requireClustersForV0>false</requireClustersForV0>
+            <applyClusterCorrections>false</applyClusterCorrections>
             <disablePID>true</disablePID>
         </driver>         
 
@@ -238,12 +237,15 @@
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
             <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
             <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
             <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
             <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
             <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
             <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
+            <otherElectronsColName>OtherElectrons_KF</otherElectronsColName>
             <beamPositionX> 0  </beamPositionX>
             <beamSigmaX> 0.05 </beamSigmaX>
             <beamPositionY> 0 </beamPositionY>
@@ -253,6 +255,7 @@
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <requireClustersForV0>false</requireClustersForV0>
+            <applyClusterCorrections>true</applyClusterCorrections>
             <disablePID>true</disablePID>
         </driver>         
 
