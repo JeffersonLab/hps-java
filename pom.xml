@@ -104,15 +104,12 @@
     <module>detector-data</module>
     <module>detector-model</module>
     <module>distribution</module>
-    <module>ecal-event-display</module>
     <module>ecal-readout-sim</module>
     <module>ecal-recon</module>
     <module>evio</module>
     <module>job</module>
     <module>logging</module>
-    <module>monitoring-util</module>
-    <module>monitoring-drivers</module>
-    <module>monitoring-app</module>
+    <module>online-monitoring</module>
     <module>online-recon</module>
     <module>plugin</module>
     <module>recon</module>
@@ -189,17 +186,12 @@
       </dependency>
       <dependency>
         <groupId>org.hps</groupId>
-        <artifactId>hps-monitoring-drivers</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-monitoring-app</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
         <artifactId>hps-online-recon</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-online-monitoring</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -214,17 +206,7 @@
       </dependency>
       <dependency>
         <groupId>org.hps</groupId>
-        <artifactId>hps-ecal-event-display</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
         <artifactId>hps-record-util</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-monitoring-util</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
