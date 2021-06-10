@@ -32,8 +32,8 @@
         <driver name="KalmanPatRecDriver"/> 
         <driver name="TrackTruthMatching_KF" />
         <driver name="TrackTruthMatching_GBL" /> 
-        <driver name="ReconParticleDriver" />
         <driver name="ReconParticleDriver_Kalman" />
+        <driver name="ReconParticleDriver" />
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -169,7 +169,7 @@
             <maxElectronP>7.0</maxElectronP> 
             <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
-	    <applyClusterCorrections>true</applyClusterCorrections>
+            <applyClusterCorrections>false</applyClusterCorrections>
         </driver>         
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
@@ -193,7 +193,7 @@
             <maxElectronP>7.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
-	    <applyClusterCorrections>false</applyClusterCorrections>
+            <applyClusterCorrections>true</applyClusterCorrections>
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
