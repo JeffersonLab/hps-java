@@ -229,9 +229,7 @@ public class FittedGblTrajectory {
 
         // find the point on the trajectory from the GBLPOINT
         int iLabel = getPointIndex(point);
-        
         return getCorrectedPerigeeParameters(htf, iLabel, bfield);
-
     }
 
     /**
@@ -289,7 +287,15 @@ public class FittedGblTrajectory {
         //System.out.printf("params at IP: d0 %f  z0 %f \n \n", helicalTrackFitAtIPCorrected.dca(), helicalTrackFitAtIPCorrected.z0());
 
         // Calculate the updated covariance
-        Matrix jacobian = GblUtils.getCLToPerigeeJacobian(helicalTrackFit, helicalTrackFitAtIPCorrected, bfield);
+        Matrix jacobian = null;
+        
+        try {
+            jacobian = GblUtils.getCLToPerigeeJacobian(helicalTrackFit, helicalTrackFitAtIPCorrected, bfield);
+        }
+        catch (RuntimeException e) {
+            return null;
+        }
+        
         Matrix helixCovariance = jacobian.times(locCov.times(jacobian.transpose()));
         SymmetricMatrix cov = new SymmetricMatrix(5);
         for (int i = 0; i < 5; i++) {
