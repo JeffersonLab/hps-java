@@ -25,12 +25,10 @@ import org.hps.conditions.api.TableMetaData;
 import org.hps.conditions.api.TableRegistry;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalConditionsConverter;
-import org.hps.conditions.ecal.TestRunEcalConditionsConverter;
 import org.hps.conditions.hodoscope.HodoscopeConditions;
 import org.hps.conditions.hodoscope.HodoscopeConditionsConverter;
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtConditionsConverter;
-import org.hps.conditions.svt.TestRunSvtConditionsConverter;
 import org.lcsim.conditions.ConditionsConverter;
 import org.lcsim.conditions.ConditionsManager;
 import org.lcsim.conditions.ConditionsManagerImplementation;
@@ -204,16 +202,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Utility method to determine if a run number is from the 2012 Test Run.
-     *
-     * @param runNumber the run number
-     * @return <code>true</code> if run number is from the Test Run
-     */
-    public static boolean isTestRun(final int runNumber) {
-        return runNumber > 0 && runNumber <= TEST_RUN_MAX_RUN;
-    }
-
-    /**
      * Utility method to determine if a run number is from the 2019 Physics Run.
      *
      * @param runNumber The run number.
@@ -260,11 +248,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
      * {@link #setDetector(String, int)} method was called.
      */
     private boolean isInitialized = false;
-
-    /**
-     * True if current run number is from Test Run.
-     */
-    private boolean isTestRun = false;
 
     /**
      * The converter for creating the combined SVT conditions object.
@@ -668,15 +651,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
     }
 
     /**
-     * Return <code>true</code> if Test Run configuration is active
-     *
-     * @return <code>true</code> if Test Run configuration is active
-     */
-    public boolean isTestRun() {
-        return this.isTestRun;
-    }
-
-    /**
      * Create a new collection with the given type.
      *
      * @param collectionType the collection type
@@ -757,17 +731,11 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             this.removeConditionsConverter(this.hodoscopeConverter);
         }
 
-        // Is configured for TestRun?
-        if (this.isTestRun()) {
-            // Load Test Run specific converters.
-            this.svtConverter = new TestRunSvtConditionsConverter();
-            this.ecalConverter = new TestRunEcalConditionsConverter();
-        } else {
-            // Load the default converters.
-            this.svtConverter = new SvtConditionsConverter();
-            this.ecalConverter = new EcalConditionsConverter();
-            this.hodoscopeConverter = new HodoscopeConditionsConverter();
-        }
+        // Load the default converters.
+        this.svtConverter = new SvtConditionsConverter();
+        this.ecalConverter = new EcalConditionsConverter();
+        this.hodoscopeConverter = new HodoscopeConditionsConverter();
+
         this.registerConditionsConverter(this.svtConverter);
         this.registerConditionsConverter(this.ecalConverter);
         if (this.hodoscopeConverter != null) {
@@ -808,11 +776,6 @@ public final class DatabaseConditionsManager extends ConditionsManagerImplementa
             if (!this.isFrozen) {
 
                 LOG.config("Initializing conditions system with detector '" + detectorName + "' and run " + runNumber);
-
-                // Set flag if run number is from Test Run 2012 data.
-                if (isTestRun(runNumber)) {
-                    this.isTestRun = true;
-                }
 
                 // Register the converters for this initialization.
                 this.registerConverters();
