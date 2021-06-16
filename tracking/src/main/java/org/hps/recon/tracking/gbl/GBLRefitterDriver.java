@@ -24,6 +24,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
+import org.lcsim.event.base.BaseTrack;
 
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
@@ -73,7 +74,7 @@ public class GBLRefitterDriver extends Driver {
     private List<AlignableDetectorElement>  Alignabledes = new ArrayList<AlignableDetectorElement>();
     private List<SiSensor> sensors = new ArrayList<SiSensor>();
     private boolean usePoints = true;
-    
+        
     //Calculator for Frame to Frame derivatives
     private FrameToFrameDers f2fD = new FrameToFrameDers();
         
@@ -216,7 +217,7 @@ public class GBLRefitterDriver extends Driver {
 
         List<Track> refittedTracks = new ArrayList<Track>();
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
-
+        
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
         List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
 
@@ -256,10 +257,18 @@ public class GBLRefitterDriver extends Driver {
                 
                 if (momentum.magnitude() < 1)
                     continue;
-                //At least 6 hits
-                if (gblTrk.getTrackerHits().size() < 6) 
-                    continue;
                 
+                ////At least 6 hits
+                //if (gblTrk.getTrackerHits().size() < 6) 
+                //continue;
+                
+                double[] trk_prms = track.getTrackParameters();
+                double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
+                
+                //Align with tracks without hole on track
+                if ((tanLambda > 0 && track.getTrackerHits().size() < 5) || (tanLambda < 0 && track.getTrackerHits().size() < 5 )) 
+                    continue;
+
             }
             
             //System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));
@@ -366,7 +375,7 @@ public class GBLRefitterDriver extends Driver {
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputCollectionName, refittedTracks, Track.class, flag);
         event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
-        
+
         if (computeGBLResiduals) {
             event.put(trackResidualsColName,    trackResidualsCollection,  TrackResidualsData.class, 0);
             event.put(trackResidualsRelColName, trackResidualsRelations, LCRelation.class, 0);

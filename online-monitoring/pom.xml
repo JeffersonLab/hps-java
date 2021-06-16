@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>hps-monitoring-app</artifactId>
-  <name>monitoring-app</name>
-  <description>online monitoring application</description>
+  <artifactId>hps-online-monitoring</artifactId>
+  <name>online-monitoring</name>
+  <description>online monitoring tools</description>
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
@@ -33,19 +33,24 @@
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
-      <artifactId>hps-monitoring-drivers</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
-      <artifactId>hps-monitoring-util</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
       <artifactId>hps-steering-files</artifactId>
     </dependency>
     <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-analysis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jfreechart-aida-experimental</groupId>
+      <artifactId>jfreechart-aida-experimental</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>itextpdf</artifactId>
+      <version>5.5.5</version>
     </dependency>
   </dependencies>
 </project>

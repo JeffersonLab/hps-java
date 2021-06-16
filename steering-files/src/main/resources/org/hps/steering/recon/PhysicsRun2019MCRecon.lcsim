@@ -7,7 +7,6 @@
     <execute>
         <driver name="EventMarkerDriver"/>
         <!-- Ecal reconstruction drivers -->        
-        <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
@@ -33,8 +32,8 @@
         <driver name="KalmanPatRecDriver"/> 
         <driver name="TrackTruthMatching_KF" />
         <driver name="TrackTruthMatching_GBL" /> 
-        <driver name="ReconParticleDriver" />
         <driver name="ReconParticleDriver_Kalman" />
+        <driver name="ReconParticleDriver" />
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
     </execute>    
@@ -43,9 +42,6 @@
             <eventInterval>10</eventInterval>
         </driver>
         <!-- Ecal reconstruction drivers -->
-        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
-            <logLevel>CONFIG</logLevel>
-        </driver>
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver"/>
         <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
@@ -161,6 +157,8 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
+            <matcherTrackCollectionName>GBLTracks</matcherTrackCollectionName>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
             <beamPositionX> 0 </beamPositionX>
             <beamSigmaX> 0.05 </beamSigmaX>
             <beamPositionY> 0 </beamPositionY>
@@ -173,10 +171,13 @@
             <maxElectronP>7.0</maxElectronP> 
             <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
+            <applyClusterCorrections>false</applyClusterCorrections>
         </driver>         
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
             <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
             <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
             <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
@@ -184,6 +185,7 @@
             <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
             <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
             <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+            <otherElectronsColName>OtherElectrons_KF</otherElectronsColName>
             <beamPositionX> 0  </beamPositionX>
             <beamSigmaX> 0.05 </beamSigmaX>
             <beamPositionY> 0 </beamPositionY>
@@ -196,6 +198,7 @@
             <maxElectronP>7.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
+            <applyClusterCorrections>true</applyClusterCorrections>
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
