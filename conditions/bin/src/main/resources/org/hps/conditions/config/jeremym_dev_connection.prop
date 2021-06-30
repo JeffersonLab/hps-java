@@ -1,0 +1,4 @@
+hostname = localhost
+user = root
+password = derp
+database = hps_conditions_dev
