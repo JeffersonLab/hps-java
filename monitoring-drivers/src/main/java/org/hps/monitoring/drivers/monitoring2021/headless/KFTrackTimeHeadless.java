@@ -1,4 +1,4 @@
-package org.hps.monitoring.drivers.monitoring2021;
+package org.hps.monitoring.drivers.monitoring2021.headless;
 
 import java.util.HashMap;
 import java.util.List;

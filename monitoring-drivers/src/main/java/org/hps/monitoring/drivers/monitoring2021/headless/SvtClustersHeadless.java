@@ -1,4 +1,4 @@
-package org.hps.monitoring.drivers.monitoring2021;
+package org.hps.monitoring.drivers.monitoring2021.headless;
 
 import java.io.IOException;
 import java.util.HashMap;
