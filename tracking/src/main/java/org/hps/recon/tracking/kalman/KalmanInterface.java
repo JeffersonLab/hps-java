@@ -1205,6 +1205,65 @@ public class KalmanInterface {
         return outList;
     }
     
+    public void printAllTracks(String trackCollectionName, EventHeader event) {
+        if (!event.hasCollection(Track.class, trackCollectionName)) {
+            System.out.format("\nKalmanInterface.printAllTracks: the track collection %s is missing. Abort.\n",trackCollectionName);
+            return;
+        }
+        String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+        if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
+            System.out.format("\nKalmanInterface.printAllTracks: the hit collection %s is missing. Abort.\n",stripHitInputCollectionName);
+            return;
+        }    
+        List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
+        System.out.format("\nPrinting %s tracks for event %d\n", trackCollectionName, event.getEventNumber());
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        System.out.format("   relation tables: %s %d  %s %d\n", hitToStrips.toString(), hitToStrips.size(), hitToRotated.toString(), hitToRotated.size());
+        for (Track tkr : tracksGBL) {
+            double [] a = new double[5];
+            for (int i=0; i<5; ++i) {
+                a[i] = tkr.getTrackStates().get(0).getParameter(i);
+            }
+            double Q = tkr.getCharge();
+            double chi2 = tkr.getChi2();
+            int nHits = tkr.getTrackerHits().size();
+            System.out.format("Track %d, Q=%4.1f, %d 3D hits, chi^2=%7.1f, helix=%8.3f %9.6f %9.6f %8.4f %8.4f\n", tracksGBL.indexOf(tkr),  
+                    Q, nHits, chi2, a[0], a[1], a[2], a[3], a[4]);
+            for (TrackerHit hit3D : tkr.getTrackerHits()) {
+                double [] hitPos3D = hit3D.getPosition();
+                System.out.format("printAllTracks: tracker 3D hit %10.6f %10.6f %10.6f\n", hitPos3D[0], hitPos3D[1], hitPos3D[2]);
+                List<TrackerHit> hits = new ArrayList<TrackerHit>();
+                hits.addAll(hitToStrips.allFrom(hit3D));
+                System.out.format("     hits = %s, %d\n", hits.toString(), hits.size());
+                for (TrackerHit ht : hits) {                
+                    double [] pnt = ht.getPosition();
+                    System.out.format("    Hit global position: %10.6f %10.6f %10.6f\n", pnt[0], pnt[1], pnt[2]);
+                    List<RawTrackerHit> rawHits = ht.getRawHits();
+                    for (RawTrackerHit rawHit : rawHits) {
+                        int chan = rawHit.getIdentifierFieldValue("strip");
+                        HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                        int Layer = sensor.getLayerNumber();
+                        System.out.format("      Raw hit in layer %d, channel %d\n", Layer, chan);
+                    }
+                }
+            }
+            List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkr, hitToStrips, hitToRotated);
+            System.out.format("    hitsOnTrack = %s, %d\n", hitsOnTrack.toString(), hitsOnTrack.size());
+            for (TrackerHit ht : hitsOnTrack) {                
+                double [] pnt = ht.getPosition();
+                System.out.format("    Hit global position: %10.6f %10.6f %10.6f\n", pnt[0], pnt[1], pnt[2]);
+                List<RawTrackerHit> rawHits = ht.getRawHits();
+                for (RawTrackerHit rawHit : rawHits) {
+                    int chan = rawHit.getIdentifierFieldValue("strip");
+                    HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                    int Layer = sensor.getLayerNumber();
+                    System.out.format("      Raw hit in layer %d, channel %d\n", Layer, chan);
+                }
+            }
+        }
+    }
+    
     public void plotGBLtracks(String path, EventHeader event) {
         
         String trackCollectionName = "GBLTracks";
@@ -1487,6 +1546,25 @@ public class KalmanInterface {
             }
         }
         printWriter3.format("EOD\n");
+        
+        // Plot strips not on tracks
+        int nStrips = 0;
+        for (SiModule si : SiMlist) {
+            for (Measurement mm : si.hits) {
+                if (mm.tracks.size() > 0) continue;
+                if (mm.energy < kPar.minSeedE[si.Layer]) continue;
+                printWriter3.format("$strip_%d << EOD\n", nStrips);
+                Vec rLoc = new Vec(si.yExtent[0], mm.v, 0.);
+                Vec rmG = si.toGlobal(rLoc);
+                printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
+                rLoc = new Vec(si.yExtent[1], mm.v, 0.);
+                rmG = si.toGlobal(rLoc);
+                printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
+                printWriter3.format("EOD\n");
+                nStrips++;
+            }
+        }
+        
         printWriter3.format("$pntsL << EOD\n");
         for (SiModule si : SiMlist) {
             for (Measurement mm : si.hits) {    // Plotting low-amplitude hits not on tracks
@@ -1507,6 +1585,9 @@ public class KalmanInterface {
         printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2 lc %d", idx);
         idx++;
         printWriter3.format(", $pntsL u 1:2:3 with points pt 4 ps 1 lc %d", idx);
+        for (int i=0; i<nStrips; ++i) {
+            printWriter3.format(", $strip_%d u 1:2:3 with lines lw 3 lc 1", i); 
+        }
         for (int topBottom=0; topBottom<2; ++topBottom) {
             for (KalTrack tkr : patRecList[topBottom]) { 
                 idx++;

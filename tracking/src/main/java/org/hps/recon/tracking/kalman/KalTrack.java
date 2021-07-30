@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +19,9 @@ import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
 import org.hps.util.Pair;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.TrackerHit;
 /**
  * Track followed and fitted by the Kalman filter
  * @author Robert Johnson
@@ -369,6 +373,27 @@ public class KalTrack {
             varResid = site.aS.R;
         }
         return new Pair<Double,Double>(resid, varResid);
+    }
+    
+    public void printRawHits(KalmanInterface KI) {
+        StateVector aS = SiteList.get(0).aS;
+        System.out.format("Kalman track %d, params=%s\n", ID, aS.helix.a.toString());
+        for (MeasurementSite site : SiteList) {
+            if (site.hitID < 0) continue;
+            SiModule mod = site.m;
+            if (aS != null && mod != null) {
+                TrackerHit ht = KI.getHpsHit(mod.hits.get(site.hitID));
+                double [] pnt = ht.getPosition();
+                System.out.format("    Hit global position: %10.6f %10.6f %10.6f\n", pnt[0], pnt[1], pnt[2]);
+                List<RawTrackerHit> rawHits = ht.getRawHits();
+                for (RawTrackerHit rawHit : rawHits) {
+                    int chan = rawHit.getIdentifierFieldValue("strip");
+                    HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                    int Layer = sensor.getLayerNumber();
+                    System.out.format("      Raw hit in layer %d, channel %d\n", Layer, chan);
+                }
+            }
+        }
     }
     
     public void print(String s) {
@@ -1252,8 +1277,8 @@ public class KalTrack {
             if (!t1.SiteList.get(0).aS.helix.goodCov()) penalty1 = 10.;
             if (!t2.SiteList.get(0).aS.helix.goodCov()) penalty2 = 10.;
 
-            Double chi1 = new Double((penalty1*t1.chi2) / t1.nHits + 10.0*(1.0 - (double)t1.nHits/14.));
-            Double chi2 = new Double((penalty2*t2.chi2) / t2.nHits + 10.0*(1.0 - (double)t2.nHits/14.));
+            Double chi1 = new Double((penalty1*t1.chi2) / t1.nHits + 100.0*(1.0 - (double)t1.nHits/14.));
+            Double chi2 = new Double((penalty2*t2.chi2) / t2.nHits + 100.0*(1.0 - (double)t2.nHits/14.));
             return chi1.compareTo(chi2);
         }
     };
