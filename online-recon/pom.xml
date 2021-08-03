@@ -72,7 +72,7 @@
           <programs>
             <program>
               <mainClass>org.hps.online.recon.Server</mainClass>
-              <id>hps-recon-server</id>
+              <id>online-recon-server</id>
               <jvmSettings>
                 <maxMemorySize>1g</maxMemorySize>
                 <systemProperties>
@@ -82,7 +82,7 @@
             </program>
             <program>
               <mainClass>org.hps.online.recon.Client</mainClass>
-              <id>hps-recon-client</id>
+              <id>online-recon-client</id>
               <jvmSettings>
                 <maxMemorySize>500m</maxMemorySize>
                 <systemProperties>

@@ -3,7 +3,7 @@ package org.hps.evio;
 import java.util.List;
 
 import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TestRunTriggerData;
+import org.hps.record.triggerbank.BaseTriggerData;
 import org.jlab.coda.jevio.BaseStructure;
 import org.jlab.coda.jevio.DataType;
 import org.jlab.coda.jevio.EventBuilder;
@@ -17,7 +17,7 @@ public class TriggerDataWriter implements HitWriter {
 
     @Override
     public boolean hasData(EventHeader event) {
-        return event.hasCollection(TestRunTriggerData.class, TestRunTriggerData.TRIG_COLLECTION);
+        return event.hasCollection(BaseTriggerData.class, BaseTriggerData.TRIG_COLLECTION);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class TriggerDataWriter implements HitWriter {
             }
         }
 
-        List<AbstractIntData> triggerList = event.get(AbstractIntData.class, TestRunTriggerData.TRIG_COLLECTION);
+        List<AbstractIntData> triggerList = event.get(AbstractIntData.class, BaseTriggerData.TRIG_COLLECTION);
         EvioBank triggerBank = new EvioBank(EventConstants.TRIGGER_BANK_TAG, DataType.UINT32, EventConstants.TRIGGER_BANK_NUMBER);
         try {
             triggerBank.appendIntData(triggerList.get(0).getBank());
@@ -53,7 +53,7 @@ public class TriggerDataWriter implements HitWriter {
 
     @Override
     public void writeData(EventHeader event, EventHeader toEvent) {
-        toEvent.put(TestRunTriggerData.TRIG_COLLECTION, event.get(AbstractIntData.class, TestRunTriggerData.TRIG_COLLECTION));
+        toEvent.put(BaseTriggerData.TRIG_COLLECTION, event.get(AbstractIntData.class, BaseTriggerData.TRIG_COLLECTION));
     }
 
     @Override
