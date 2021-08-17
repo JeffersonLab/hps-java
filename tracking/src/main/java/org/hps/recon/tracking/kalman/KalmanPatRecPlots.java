@@ -378,8 +378,11 @@ class KalmanPatRecPlots {
             }
         }
         
-        hitToStrips = TrackUtils.getHitToStripsTable(event);
-        hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        boolean doGBL = true;
+        if (doGBL) {
+            hitToStrips = TrackUtils.getHitToStripsTable(event);
+            hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        }
         
         int minHits = 999;
         int nKalTracks = 0;
@@ -773,7 +776,7 @@ class KalmanPatRecPlots {
         
         // Analysis of helix+GBL tracks, for comparison
         int nGBL = 0;
-        if (event.hasCollection(Track.class, trackCollectionName)) {
+        if (doGBL && event.hasCollection(Track.class, trackCollectionName)) {
             List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
             nGBL = tracksGBL.size();
             aida.histogram2D("number tracks Kalman vs GBL").fill(nKalTracks, nGBL);
@@ -890,6 +893,7 @@ class KalmanPatRecPlots {
                 } 
             } else {
                 plotIt = true;
+                KI.compareAllTracks("GBLTracks", event, kPatList);
             }
             if (plotIt) {
                 KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);

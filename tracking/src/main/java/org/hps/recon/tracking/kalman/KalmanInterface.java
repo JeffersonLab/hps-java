@@ -42,6 +42,7 @@ import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
+import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
@@ -52,6 +53,8 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
  *  However, both cannot be done at the same time. The interface must be reset between doing one and the other. 
  */
 public class KalmanInterface {
+    private Detector det;
+    private List<HpsSiSensor> sensors;
     private Map<Measurement, TrackerHit> hitMap;
     private Map<Measurement, SimTrackerHit> simHitMap;
     private Map<SiModule, SiStripPlane> moduleMap;
@@ -153,6 +156,8 @@ public class KalmanInterface {
 
     public KalmanInterface(boolean uniformB, KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
         
+        this.det = det;
+        this.sensors = sensors;
         this.fM = fM;
         this.kPar = kPar;
         logger = Logger.getLogger(KalmanInterface.class.getName());
@@ -1158,7 +1163,7 @@ public class KalmanInterface {
         if (debug) { System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); }
 
         DMatrixRMaj cov = seed.covariance().copy();
-        CommonOps_DDRM.scale(100., cov);
+        CommonOps_DDRM.scale(10., cov);
 
         return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, kPar, fM);
     }
@@ -1184,7 +1189,7 @@ public class KalmanInterface {
 
         int startIndex = 0;
         if (debug) System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); 
-        CommonOps_DDRM.scale(100., cov);
+        CommonOps_DDRM.scale(10., cov);
         return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, pivot, helixParams, cov, kPar, fM);
     }
 
@@ -1232,10 +1237,197 @@ public class KalmanInterface {
                 }
                 System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             }
-            outList[topBottom] = kPat.kalmanPatRec(SiMoccupied, topBottom, evtNum);
+            outList[topBottom] = kPat.kalmanPatRec(event, hitMap, SiMoccupied, topBottom);
         }
         return outList;
     }
+
+    // The following method is a debugging aid for comparing SeedTracker/GBL tracks to the Kalman counterparts.
+    public void compareAllTracks(String trackCollectionName, EventHeader event, ArrayList<KalTrack>[] kPatList) {
+        if (!event.hasCollection(Track.class, trackCollectionName)) {
+            System.out.format("\nKalmanInterface.compareAllTracks: the track collection %s is missing. Abort.\n",trackCollectionName);
+            return;
+        }
+        String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+        if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
+            System.out.format("\nKalmanInterface.compareAllTracks: the hit collection %s is missing. Abort.\n",stripHitInputCollectionName);
+            return;
+        }    
+        List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
+        System.out.format("\nPrinting %s tracks for event %d\n", trackCollectionName, event.getEventNumber());
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        //System.out.format("   relation tables: %s %d  %s %d\n", hitToStrips.toString(), hitToStrips.size(), hitToRotated.toString(), hitToRotated.size());
+        for (Track tkr : tracksGBL) {
+            double minz = 999.;
+            TrackState ts1 = null;
+            for (TrackState state : tkr.getTrackStates()) {
+                //System.out.format("Track state %d: location=%d\n", tkr.getTrackStates().indexOf(state), state.getLocation());
+                if (state.getLocation() == TrackState.AtIP) {
+                    ts1 = state;
+                    break;
+                }
+            }
+            if (ts1 == null) {
+                System.out.format("Track %d, missing TrackState.\n", tracksGBL.indexOf(tkr));
+                continue;
+            }
+            double [] a = new double[5];
+            for (int i=0; i<5; ++i) {
+                a[i] = ts1.getParameter(i);
+            }
+            double[] covHPS = ts1.getCovMatrix();
+            double Q = tkr.getCharge();
+            double chi2 = tkr.getChi2();
+            int nHits = tkr.getTrackerHits().size();
+            System.out.format("Track %d, Q=%4.1f, %d 3D hits, chi^2=%7.1f, helix=%8.3f %9.6f %9.6f %8.4f %8.4f\n", tracksGBL.indexOf(tkr),  
+                    Q, nHits, chi2, a[0], a[1], a[2], a[3], a[4]);
+            Vec kalParms = new Vec(5,unGetLCSimParams(a, alphaCenter));
+            System.out.format("     Helix in Kalman parameterization = %s\n", kalParms.toString());
+/*            for (TrackerHit hit3D : tkr.getTrackerHits()) {
+                double [] hitPos3D = hit3D.getPosition();
+                System.out.format("compareAllTracks: tracker 3D hit %10.6f %10.6f %10.6f\n", hitPos3D[0], hitPos3D[1], hitPos3D[2]);
+                List<TrackerHit> hits = new ArrayList<TrackerHit>();
+                hits.addAll(hitToStrips.allFrom(hit3D));
+                System.out.format("     hits = %s, %d\n", hits.toString(), hits.size());
+                for (TrackerHit ht : hits) {                
+                    double [] pnt = ht.getPosition();
+                    System.out.format("    Hit global position: %10.6f %10.6f %10.6f\n", pnt[0], pnt[1], pnt[2]);
+                    List<RawTrackerHit> rawHits = ht.getRawHits();
+                    for (RawTrackerHit rawHit : rawHits) {
+                        int chan = rawHit.getIdentifierFieldValue("strip");
+                        HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                        int Layer = sensor.getLayerNumber();
+                        System.out.format("      Raw hit in layer %d, channel %d\n", Layer, chan);
+                    }
+                }
+            }
+            */
+            List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkr, hitToStrips, hitToRotated);
+            //System.out.format("    hitsOnTrack = %s, %d\n", hitsOnTrack.toString(), hitsOnTrack.size());
+            int [] chanGBL = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+            int [] chanKAL = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+            for (TrackerHit ht : hitsOnTrack) {                
+                double [] pnt = ht.getPosition();
+                System.out.format("    Hit global position: %10.6f %10.6f %10.6f\n", pnt[0], pnt[1], pnt[2]);
+                List<RawTrackerHit> rawHits = ht.getRawHits();
+                for (RawTrackerHit rawHit : rawHits) {
+                    int chan = rawHit.getIdentifierFieldValue("strip");
+                    HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                    int Layer = sensor.getLayerNumber();
+                    int sensorID = sensor.getModuleNumber();
+                    System.out.format("      Raw hit in layer %d, sensor %d, channel %d\n", Layer, sensorID, chan);
+                    if (sensorID*10000 + chan > chanGBL[Layer-1]) chanGBL[Layer-1] = sensorID*10000 + chan;
+                }
+            }
+            //double [] pnt0 = hitsOnTrack.get(0).getPosition();
+            //Vec newPivot = KalmanInterface.vectorGlbToKalman(pnt0);
+            //DMatrixRMaj cov = new DMatrixRMaj(KalmanInterface.ungetLCSimCov(covHPS, alphaCenter));
+            //KalmanTrackFit2 ktf2 = this.createKalmanTrackFit(event.getEventNumber(), kalParms, newPivot, cov, tkr, hitToStrips, hitToRotated, 2);
+            //if (ktf2 != null) {
+            //    HelixState hx = ktf2.sites.get(0).aS.helix;
+            //    System.out.format("    Kalman fit of hits: chi2=%9.4f, helix=%s\n", ktf2.chi2s, hx.a.toString());
+            //}
+            int topBottom = 0;
+            int nGood = 0;
+            if (kalParms.v[4] < 0.) topBottom = 1;
+            KalTrack kMatch = null;
+            for (KalTrack ktk : kPatList[topBottom]) {
+                int nMatch = 0;
+                for (MeasurementSite site : ktk.SiteList) {
+                    if (site.hitID < 0) continue;
+                    SiModule mod = site.m;
+                    if (mod != null) {
+                        TrackerHit ht = this.getHpsHit(mod.hits.get(site.hitID));
+                        List<RawTrackerHit> rawHits = ht.getRawHits();
+                        for (RawTrackerHit rawHit : rawHits) {
+                            int chan = rawHit.getIdentifierFieldValue("strip");
+                            HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                            int Layer = sensor.getLayerNumber();
+                            int sensorID = sensor.getModuleNumber();
+                            if (chanGBL[Layer-1] == 10000*sensorID + chan) {
+                                nMatch++;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (nMatch > nGood) {
+                    kMatch = ktk;
+                    nGood = nMatch;
+                }
+            }
+            if (kMatch != null) {
+                int nKalHits = 0;
+                for (MeasurementSite site : kMatch.SiteList) {
+                    if (site.hitID < 0) continue;
+                    nKalHits++;
+                    SiModule mod = site.m;
+                    if (mod != null) {
+                        TrackerHit ht = this.getHpsHit(mod.hits.get(site.hitID));
+                        List<RawTrackerHit> rawHits = ht.getRawHits();
+                        for (RawTrackerHit rawHit : rawHits) {
+                            int chan = rawHit.getIdentifierFieldValue("strip");
+                            HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                            int Layer = sensor.getLayerNumber();
+                            int sensorID = sensor.getModuleNumber();
+                            if (10000*sensorID + chan > chanKAL[Layer-1]) chanKAL[Layer-1] = 10000*sensorID + chan;
+                        }
+                    }
+                }
+                System.out.format("GBL/Kalman match, ID=%d, %d hits, with %d matching layers\n", kMatch.ID, nKalHits, nGood);
+                for (int lyr=0; lyr<14; ++lyr) {
+                    System.out.format("    Layer %d: GBL=%d   KAL=%d\n", lyr, chanGBL[lyr], chanKAL[lyr]);
+                }
+                boolean refit = false;
+                HelixState hx = null;
+                for (MeasurementSite site : kMatch.SiteList) {
+                    if (site.hitID >= 0) {
+                        if (site.aS != null) {
+                            refit = true;
+                            hx = site.aS.helix;
+                            break;
+                        }
+                    }
+                }
+                if (refit) {
+                    ArrayList<SiModule> modList = new ArrayList<SiModule>(nGood);
+                    ArrayList<Integer> hits = new ArrayList<Integer>(nGood);
+                    for (int lyr=0; lyr<14; ++lyr) {
+                        if (chanGBL[lyr] >= 0) {
+                            for (SiModule mod : SiMlist) {
+                                if (mod.Layer != lyr) continue;
+                                int sensorID = mod.detector;
+                                HitLoop: for (Measurement kalHt : mod.hits) {
+                                    TrackerHit ht = this.getHpsHit(kalHt);
+                                    List<RawTrackerHit> rawHits = ht.getRawHits();
+                                    for (RawTrackerHit rawHit : rawHits) {
+                                        if (10000*sensorID + rawHit.getIdentifierFieldValue("strip") == chanGBL[lyr]) {
+                                            modList.add(mod);
+                                            hits.add(mod.hits.indexOf(kalHt));
+                                            break HitLoop;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } 
+                    
+                    // The following is for testing by refitting the existing Kalman track
+                    //for (MeasurementSite site : kMatch.SiteList) {
+                    //    if (site.hitID < 0) continue;
+                    //    modList.add(site.m);
+                    //    hits.add(site.hitID);
+                    //}
+                    DMatrixRMaj cov = hx.C.copy();
+                    CommonOps_DDRM.scale(10., cov);
+                    KalmanTrackFit2 kft2 = new KalmanTrackFit2(event.getEventNumber(), modList, hits, 0, 2, hx.X0, hx.a, cov, kPar, fM);
+                    if (kft2 != null) kft2.printFit("refit with GBL hits");
+                }
+                kMatch.print("matching Kalman track");
+            }
+        }
+    }    
     
     public void plotGBLtracks(String path, EventHeader event) {
         

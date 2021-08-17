@@ -25,6 +25,7 @@ class KalmanTrackFit2 {
     KalTrack tkr;
     private Logger logger;
 
+    // Use the first constructor when each SiModule in the list has only a single hit
     KalmanTrackFit2(int evtNumb, ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
             int start, // Starting point in the list
             int nIterations, // Number of fit iterations requested
@@ -33,7 +34,28 @@ class KalmanTrackFit2 {
             DMatrixRMaj C, // Full covariance matrix for the starting "guess" helix
             KalmanParams kPar,
             org.lcsim.geometry.FieldMap fM) {
+        ArrayList<Integer> hits = new ArrayList<Integer>(data.size());
+        for (int i=0; i<data.size(); ++i) {
+            hits.add(0);
+        }
+        fitIt(evtNumb, data, hits, start, nIterations, pivot, helixParams, C, kPar, fM);
+    }
+    
+    KalmanTrackFit2(int evtNumb, ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
+            ArrayList<Integer> hits, // Which hit to use in each SiModule
+            int start, // Starting point in the list
+            int nIterations, // Number of fit iterations requested
+            Vec pivot, // Pivot point for the starting "guess" helix
+            Vec helixParams, // 5 helix parameters for the starting "guess" helix
+            DMatrixRMaj C, // Full covariance matrix for the starting "guess" helix
+            KalmanParams kPar,
+            org.lcsim.geometry.FieldMap fM) {
+        
+        fitIt(evtNumb, data, hits, start, nIterations, pivot, helixParams, C, kPar, fM);
+    }
 
+    void fitIt(int evtNumb, ArrayList<SiModule> data, ArrayList<Integer> hits, int start, int nIterations, Vec pivot, Vec helixParams,
+                   DMatrixRMaj C, KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
         logger = Logger.getLogger(KalmanTrackFit2.class.getName());
         boolean verbose = logger.getLevel() == Level.FINER;
         success = true;
@@ -73,7 +95,7 @@ class KalmanTrackFit2 {
                 }
                 thisSite++;
                 newSite = new MeasurementSite(idx, m, kPar);
-                int hitNumber = 0;
+                int hitNumber = hits.get(idx);
                 if (m.hits.size() == 0) hitNumber = -1;
                 if (idx == start) {
                     if (newSite.makePrediction(sI, hitNumber, false, false) < 0) {
@@ -159,7 +181,7 @@ class KalmanTrackFit2 {
                     continue;
                 }
                 thisSite++;
-                int hitNumber = 0;
+                int hitNumber = hits.get(data.indexOf(m));
                 if (m.hits.size() == 0) hitNumber = -1;
                 MeasurementSite newSite = new MeasurementSite(thisSite, m, kPar);
                 if (thisSite == 0) {
@@ -326,7 +348,7 @@ class KalmanTrackFit2 {
     }
 
     public void printFit(String s) {
-        System.out.format("KalmanTrackFit2: dump of track information for %s\n", s);
+        System.out.format("\nKalmanTrackFit2: dump of track information for %s\n", s);
         System.out.format("    Final fit chi^2 after filtering = %12.4e\n", chi2f);
         StateVector fS = sites.get(finalSite).aF;
         double[] a = fS.helix.a.v;
@@ -336,6 +358,7 @@ class KalmanTrackFit2 {
         System.out.format("        B-field at the outermost layer=%10.6f,  direction=%8.6f %8.6f %8.6f\n", Bmag, tB[0], tB[1], tB[2]);
         System.out.format("    Final fit chi^2 after smoothing = %12.4e\n", chi2s);
         StateVector iS = sites.get(initialSite).aS;
+        if (iS == null) return;
         a = iS.helix.a.v;
         System.out.format("    Helix parameters at the innermost layer=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", a[0], a[1], a[2], a[3], a[4]);
         Bmag = iS.helix.B;
@@ -345,6 +368,13 @@ class KalmanTrackFit2 {
             tkr.originHelix();
             double[] aO = tkr.originHelixParms();
             System.out.format("    Helix parameters at the origin=%f10.7 %f10.7 %f10.7 %f10.7 %f10.7\n", aO[0], aO[1], aO[2], aO[3], aO[4]);
+        }
+        for (MeasurementSite site : sites) {
+            if (site.hitID < 0) continue;
+            SiModule m = site.m;
+            StateVector S = site.aS;
+            System.out.format("    Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f, predicted=%10.6f, measured=%10.6f, residual=%10.6f\n", m.Layer, m.detector, m.isStereo,
+                    site.chi2inc, S.mPred, m.hits.get(site.hitID).v, S.r);
         }
     }
 

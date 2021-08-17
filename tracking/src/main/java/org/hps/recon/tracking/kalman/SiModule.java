@@ -97,7 +97,7 @@ class SiModule {
             str = str + String.format("This is an axial detector layer");
         }
         str = str + p.X().toString("origin of Si layer coordinates in the global system");
-        if (split) str = str + "The strips are split at the detector center.\n";
+        if (split) str = str + "  The strips are split at the detector center.\n";
         Vec Bf = KalmanInterface.getField(p.X(), Bfield);
         Vec tBf = Bf.unitVec();
         str = str + String.format("      At this origin, B=%10.6f Tesla with direction = %10.7f %10.7f %10.7f\n",Bf.mag(),tBf.v[0],tBf.v[1],tBf.v[2]);
