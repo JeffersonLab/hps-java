@@ -55,6 +55,10 @@ public abstract class RemoteAidaDriver extends Driver {
     }
 
     protected void startOfData() {
+        initialize();
+    }
+
+    protected void initialize() {
 
         // HACK: Fixes exceptions from missing AIDA converters
         final RmiStoreFactory rsf = new RmiStoreFactory();
@@ -79,7 +83,7 @@ public abstract class RemoteAidaDriver extends Driver {
 
     synchronized final void connect() throws IOException {
         if (rmiTreeServer != null) {
-            LOG.warning("Already connected (rmi tree server is not null)");
+            LOG.warning("Already connected (RMI tree server is not null)");
             return;
         }
         if (remoteTreeBind == null) {
