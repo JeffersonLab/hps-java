@@ -45,12 +45,12 @@
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>google-guava-eventbus</artifactId>
       <version>3.2.0-01</version>
-  </dependency>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
       <!-- https://www.mojohaus.org/appassembler/appassembler-maven-plugin/ -->
-    <plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>appassembler-maven-plugin</artifactId>
         <version>1.10</version>
@@ -92,7 +92,7 @@
             </program>
             <program>
               <mainClass>org.hps.record.evio.EvioFileProducer</mainClass>
-              <id>hps-recon-producer</id>
+              <id>evio-producer</id>
               <jvmSettings>
                 <maxMemorySize>2g</maxMemorySize>
                 <systemProperties>
@@ -102,7 +102,7 @@
             </program>
           </programs>
         </configuration>
-    </plugin>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
