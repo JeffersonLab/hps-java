@@ -66,6 +66,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
     private static final String SVTHITS_DIR = "/svtHits";
     private static final String FINALSTATE_DIR = "/finalState";
     private static final String V0_DIR = "/V0";
+    private static final String V0PI0_DIR = "/V0/V0Pi0";
     private static final String PERF_DIR = "/perf";
     /* this is just for testing...remove when running online */
     protected AIDA aida = AIDA.defaultInstance();
@@ -385,6 +386,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
          */
         tree.mkdirs(FINALSTATE_DIR);
         tree.mkdirs(V0_DIR);
+        tree.mkdirs(V0PI0_DIR);
         tree.cd(FINALSTATE_DIR);
         nEle = aida.histogram1D("Number of Electrons per event", 5, 0, 5);
         elePx = aida.histogram1D("Electron Px (GeV)", 50, -0.2, 0.2);
@@ -399,7 +401,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         posPz = aida.histogram1D("Positron Pz (GeV)", 50, 0.0, pMax);
         posProjXYEcalMatch = aida.histogram2D("Positron ECal Projection: Matched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         posProjXYEcalNoMatch = aida.histogram2D("Positron ECal Projection: Unmatched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
-        tree.cd(V0_DIR);
+        tree.cd(V0PI0_DIR);
         nPhot = aida.histogram1D("Number of Photons per event", 5, 0, 5);
         photEne = aida.histogram1D("Photon Energy (GeV)", 50, 0.0, pMax);
         photXYECal = aida.histogram2D("ECal Position", 50, -300, 400, 50, -ecalYRange, ecalYRange);
@@ -412,10 +414,10 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         tree.cd(V0_DIR);
         nV0 = aida.histogram1D("Number of V0 per event", 5, 0, 5);
         unconMass = aida.histogram1D("Unconstrained Mass (GeV)", 100, 0, 0.200);
-        unconVx = aida.histogram1D("Unconstrained Vx (mm)", 50, -1, 1);
-        unconVy = aida.histogram1D("Unconstrained Vy (mm)", 50, -0.6, 0.6);
-        unconVz = aida.histogram1D("Unconstrained Vz (mm)", 50, -10, 10);
-        unconChi2 = aida.histogram1D("Unconstrained Chi2", 25, 0, 25);
+        unconVx = aida.histogram1D("Unconstrained Vx (mm)", 50, -5, 5);
+        unconVy = aida.histogram1D("Unconstrained Vy (mm)", 50, -1.0, 1.0);
+        unconVz = aida.histogram1D("Unconstrained Vz (mm)", 50, -15, 10);
+        unconChi2 = aida.histogram1D("Unconstrained Chi2", 50, 0, 25);
         pEleVspPos = aida.histogram2D("P(e) vs P(p)", 50, 0, 2.5, 50, 0, 2.5);
         pyEleVspyPos = aida.histogram2D("Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
