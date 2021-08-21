@@ -1,4 +1,4 @@
-package org.hps.monitoring.drivers.monitoring2021;
+package org.hps.monitoring.drivers.shifters;
 
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
@@ -33,34 +33,31 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
-import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 
 /**
- * Monitoring plots driver with the basic plots.  Intended for use by worker shifters
+ * Monitoring plots driver with the basic plots. Intended for use by worker
+ * shifters
  *
- * 7/5/21: Created...takes a lot of code from drivers in org.hps.monitoring.svt/trackrecon/ecal
+ * 7/5/21: Created...takes a lot of code from drivers in
+ * org.hps.monitoring.svt/trackrecon/ecal
  */
 public class MonitoringPlotsForShifters extends Driver {
 
     // Logger
     private static Logger LOGGER = Logger.getLogger(MonitoringPlotsForShifters.class.getCanonicalName());
-    
+
     // Plotting
     private static ITree tree = null;
     private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
-    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Occupancy");
+    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("Plots For Shifters");
     private IHistogramFactory histogramFactory = null;
 
     // Histogram maps
     private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
     private static Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
-    private static Map<String, IHistogram1D> positionPlots = new HashMap<String, IHistogram1D>();
-    private static Map<String, IHistogram1D> clusterPositionPlots = new HashMap<String, IHistogram1D>();
-    private static Map<String, IHistogram1D> clusterPositionPlotCounts = new HashMap<String, IHistogram1D>();
     private static Map<String, int[]> occupancyMap = new HashMap<String, int[]>();
     private static Map<String, IHistogram1D> maxSamplePositionPlots = new HashMap<String, IHistogram1D>();
 
@@ -79,7 +76,6 @@ public class MonitoringPlotsForShifters extends Driver {
     private int runNumber = -1;
     private int resetPeriod = -1;
 
-    private boolean enablePositionPlots = false;
     private boolean enableMaxSamplePlots = false;
     private boolean enableTriggerFilter = false;
     private boolean filterPulserTriggers = false;
@@ -103,9 +99,9 @@ public class MonitoringPlotsForShifters extends Driver {
     private boolean enableClusterTimeCuts = true;
     private double clusterTimeCutMax = 4.0;
     private double clusterTimeCutMin = -4.0;
-       
+
     private boolean saveRootFile = true;
-    
+
     // Max Y range for occupancy plots.
     private double occupancyYRange1 = 0.03;
     private double occupancyYRange2 = 0.003;
@@ -131,10 +127,6 @@ public class MonitoringPlotsForShifters extends Driver {
 
     public void setResetPeriod(int resetPeriod) {
         this.resetPeriod = resetPeriod;
-    }
-
-    public void setEnablePositionPlots(boolean enablePositionPlots) {
-        this.enablePositionPlots = enablePositionPlots;
     }
 
     public void setEnableMaxSamplePlots(boolean enableMaxSamplePlots) {
@@ -204,11 +196,11 @@ public class MonitoringPlotsForShifters extends Driver {
     public void setOccupancyYRange1(double occupancyYRange1) {
         this.occupancyYRange1 = occupancyYRange1;
     }
-    
+
     public void setOccupancyYRange2(double occupancyYRange2) {
         this.occupancyYRange2 = occupancyYRange2;
     }
-    
+
     /**
      * Get the global strip position of a physical channel number for a given
      * sensor.
@@ -323,12 +315,6 @@ public class MonitoringPlotsForShifters extends Driver {
             // Clear the occupancy plots.
             occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
 
-            if (enablePositionPlots) {
-                positionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-                clusterPositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-                clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-            }
-
             if (enableMaxSamplePlots)
                 maxSamplePositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
 
@@ -373,13 +359,6 @@ public class MonitoringPlotsForShifters extends Driver {
 
         occupancyStatus.setStatus(StatusCode.UNKNOWN, "Not enough statistics yet.");
 
-        if (enablePositionPlots) {
-            plotters.put("Occupancy vs Position", plotterFactory.create("Occupancy vs Position"));
-            plotters.get("Occupancy vs Position").createRegions(6, 6);
-            plotters.put("Cluster occupancy vs Position", plotterFactory.create("Cluster occupancy vs Position"));
-            plotters.get("Cluster occupancy vs Position").createRegions(6, 6);
-        }
-
         if (enableMaxSamplePlots) {
             plotters.put("Max Sample Number: L0-L3", plotterFactory.create("Max Sample Number: L0-L3"));
             plotters.get("Max Sample Number: L0-L3").createRegions(4, 4);
@@ -405,32 +384,6 @@ public class MonitoringPlotsForShifters extends Driver {
                         .plot(occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
                                 this.createOccupancyPlotStyle("Physical Channel", sensor, false));
 
-            if (enablePositionPlots) {
-                if (sensor.isTopLayer()) {
-                    positionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Occupancy vs Position", 1000, 0, 60));
-                    clusterPositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Cluster occupancy vs Position", 1000, 0, 60));
-                    clusterPositionPlotCounts.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Cluster count vs Position", 1000, 0, 60));
-                } else {
-                    positionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Occupancy vs Position", 1000, -60, 0));
-                    clusterPositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Cluster occupancy vs Position", 1000, -60, 0));
-                    clusterPositionPlotCounts.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Cluster count vs Position", 1000, -60, 0));
-                }
-
-                plotters.get("Occupancy vs Position")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(positionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                this.createOccupancyPlotStyle("Distance from Beam [mm]", sensor, false));
-                plotters.get("Cluster occupancy vs Position")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(clusterPositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                this.createOccupancyPlotStyle("Distance from Beam [mm]", sensor, false));
-            }
             occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
 
             if (enableMaxSamplePlots) {
@@ -450,15 +403,13 @@ public class MonitoringPlotsForShifters extends Driver {
         }
 
         IPlotter plotter = plotters.get("Occupancy: L0-L3");
-        for (int i = 0; i < plotter.numberOfRegions(); i++) {
+        for (int i = 0; i < plotter.numberOfRegions(); i++)
             plotter.region(i).setYLimits(occupancyYRange1);
-        }
 
         plotter = plotters.get("Occupancy: L4-L6");
-        for (int i = 0; i < plotter.numberOfRegions(); i++) {
+        for (int i = 0; i < plotter.numberOfRegions(); i++)
             plotter.region(i).setYLimits(occupancyYRange2);
-        }
-                
+
         for (IPlotter plotterShow : plotters.values())
             plotterShow.show();
     }
@@ -548,23 +499,6 @@ public class MonitoringPlotsForShifters extends Driver {
                         maxSamplePositionFound);
         }
 
-        // Fill the strip cluster counts if available
-        if (event.hasCollection(SiTrackerHitStrip1D.class, stripClusterCollectionName)) {
-            List<SiTrackerHitStrip1D> stripHits1D = event.get(SiTrackerHitStrip1D.class, stripClusterCollectionName);
-            for (SiTrackerHitStrip1D h : stripHits1D) {
-                SiTrackerHitStrip1D global = h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
-                Hep3Vector pos_global = global.getPositionAsVector();
-                if (enableClusterTimeCuts) {
-                    if (h.getTime() < clusterTimeCutMax && h.getTime() > clusterTimeCutMin)
-                        clusterPositionPlotCounts.get(
-                                SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName())).fill(
-                                pos_global.y());
-                } else
-                    clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) h.getRawHits().get(0).getDetectorElement()).getName()))
-                            .fill(pos_global.y());
-            }
-        }
-
         if (enableMaxSamplePlots && eventCount > maxSampleMonitorStart && eventCount % maxSampleMonitorPeriod == 0)
             checkMaxSample();
 
@@ -576,8 +510,7 @@ public class MonitoringPlotsForShifters extends Driver {
             for (HpsSiSensor sensor : sensors) {
                 int[] strips = occupancyMap.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()));
                 occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-                if (enablePositionPlots)
-                    positionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
+
                 for (int channel = 0; channel < strips.length; channel++) {
                     double stripOccupancy = (double) strips[channel] / (double) eventCount;
 
@@ -585,20 +518,6 @@ public class MonitoringPlotsForShifters extends Driver {
                     //                  System.out.println("channel " + channel + " occupancy = " + stripOccupancy);
                     occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(channel, stripOccupancy);
 
-                    if (enablePositionPlots) {
-                        double stripPosition = this.getStripPosition(sensor, channel).y();
-                        positionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(stripPosition, stripOccupancy);
-                    }
-                }
-                if (enablePositionPlots) {
-                    clusterPositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-                    IHistogram1D h = clusterPositionPlotCounts.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()));
-                    for (int bin = 0; bin < h.axis().bins(); ++bin) {
-                        int y = h.binEntries(bin);
-                        double stripClusterOccupancy = (double) y / (double) eventCount;
-                        double x = h.axis().binCenter(bin);
-                        clusterPositionPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(x, stripClusterOccupancy);
-                    }
                 }
 
             }
