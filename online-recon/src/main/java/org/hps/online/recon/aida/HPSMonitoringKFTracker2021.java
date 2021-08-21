@@ -259,9 +259,7 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
     protected void detectorChanged(Detector detector) {
 
         // Initialize remote AIDA using parent Driver
-        System.out.println("init remote AIDA...");
         initialize();
-        System.out.println("done with remote AIDA init!");
 
         // Get the HpsSiSensor objects from the geometry
         sensors = detector.getSubdetector(TRACKER_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
@@ -475,8 +473,6 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
 
     public void process(EventHeader event) {
 
-        System.out.println("proc event " + event.getEventNumber());
-
         eventCountH1D.fill(0.5);
         eventCount++;
         this.clearHitMaps();
@@ -501,7 +497,6 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
 
         // If the event doesn't have a collection of RawTrackerHit's, skip it.
         if (!event.hasCollection(RawTrackerHit.class, RAW_TRACKER_HITS)) {
-            System.out.println("skipping event with no raw tracker hits");
             return;
         }
         // Get RawTrackerHit collection from event.
