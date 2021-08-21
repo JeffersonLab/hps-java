@@ -92,6 +92,7 @@
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
             <!--<doDebugPlots>false</doDebugPlots>-->
             <!-- <siHitsLimit>50</siHitsLimit> -->
+            <minHits>10</minHits>
             <seedCompThr>0.05</seedCompThr>
             <verbose>false</verbose>
         </driver>

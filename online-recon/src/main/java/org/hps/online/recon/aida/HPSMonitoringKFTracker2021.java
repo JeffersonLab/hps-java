@@ -45,6 +45,8 @@ import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
+import org.lcsim.event.base.BaseTrackState;
+import org.lcsim.geometry.FieldMap;
 
 /**
  * Create example histograms and data points in a remote AIDA tree
@@ -120,14 +122,13 @@ public class HPSMonitoringKFTracker2021 extends Driver {
      */
     private IHistogram1D tracksPerEventH1D;
     private IHistogram1D rawHitsPerTrackH1D;
-    private IHistogram1D rawTrackerHitsPerEventH1D;
+
     private IHistogram1D chi2H1D;
     private IHistogram1D d0H1D;
     private IHistogram1D omegaH1D;
     private IHistogram1D phiH1D;
     private IHistogram1D tanLambdaH1D;
-    private IHistogram1D z0H1D;
-    private IHistogram1D hthLayerH1D;
+    private IHistogram1D z0H1D;   
     private IHistogram1D fittedTrackerHitsPerEventH1D;
 
     /* 
@@ -190,6 +191,10 @@ public class HPSMonitoringKFTracker2021 extends Driver {
     IHistogram2D pxEleVspxPos;
     IHistogram2D massVsVtxZ;
 
+    //The field map for extrapolation
+    private FieldMap bFieldMap;
+    private double targetZ = -7.5;
+
     private static final String TRACKER_NAME = "Tracker";
     /*
      * Collection names
@@ -203,14 +208,13 @@ public class HPSMonitoringKFTracker2021 extends Driver {
     private static final String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private String finalStateParticlesColName = "FinalStateParticles_KF";
     private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates_KF";
-
     /*
      * Event timing
      */
     private int eventsProcessed = 0;
     private long start = -1L;
     private Timer timer;
-    private double targetZ = -7.5;
+
 
     /* SVT Occupancy setters */
     public void setEnableMaxSamplePlots(boolean enableMaxSamplePlots) {
@@ -290,7 +294,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         tree.mkdirs(SVTOCC_DIR);
         tree.cd(SVTOCC_DIR);
         tree.mkdir(SVTMAX_DIR);
-        for (HpsSiSensor sensor : sensors) {            
+        for (HpsSiSensor sensor : sensors) {
             tree.cd(SVTOCC_DIR);
             occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
             occupancyPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), aida
@@ -404,7 +408,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         pi0Mass = aida.histogram1D("pi0 Mass (GeV)", 50, 0.0, 0.3);
         /* V0 Quantities */
  /* Mass, vertex, chi^2 of fit */
- /* unconstrained  */        
+ /* unconstrained  */
         tree.cd(V0_DIR);
         nV0 = aida.histogram1D("Number of V0 per event", 5, 0, 5);
         unconMass = aida.histogram1D("Unconstrained Mass (GeV)", 100, 0, 0.200);
@@ -416,7 +420,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         pyEleVspyPos = aida.histogram2D("Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         massVsVtxZ = aida.histogram2D("Mass vs Vz", 50, 0, 0.15, 50, -10, 10);
-        
+
         tree.mkdir(PERF_DIR);
         tree.cd(PERF_DIR);
 
@@ -453,6 +457,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         };
         Timer timer = new Timer("Event Timer");
         timer.scheduleAtFixedRate(task, 0, 5000L);
+        bFieldMap = detector.getFieldMap();
 
     }
 
@@ -593,12 +598,14 @@ public class HPSMonitoringKFTracker2021 extends Driver {
             chi2H1D.fill(track.getChi2());
             //I don't think this is at the target...need to get @target included as track state
             TrackState ts = TrackStateUtils.getTrackStateAtIP(track);
-            if (ts != null) {
-                d0H1D.fill(ts.getD0());
-                omegaH1D.fill(ts.getOmega());
-                phiH1D.fill(ts.getPhi());
-                tanLambdaH1D.fill(ts.getTanLambda());
-                z0H1D.fill(ts.getZ0());
+            BaseTrackState ts_bs = TrackUtils.getTrackExtrapAtVtxSurfRK(ts, bFieldMap, 0., targetZ);
+
+            if (ts_bs != null) {
+                d0H1D.fill(ts_bs.getReferencePoint()[1]);//the way the extrapolation/new reference point is done, the d0==0
+                omegaH1D.fill(ts_bs.getOmega());
+                phiH1D.fill(ts_bs.getPhi());
+                tanLambdaH1D.fill(ts_bs.getTanLambda());
+                z0H1D.fill(ts_bs.getZ0());               
             }
             this.rawHitsPerTrackH1D.fill(track.getTrackerHits().size());
         }
