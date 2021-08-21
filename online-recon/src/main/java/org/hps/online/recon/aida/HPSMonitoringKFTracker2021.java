@@ -1,59 +1,54 @@
 package org.hps.online.recon.aida;
 
+import static java.lang.Math.sqrt;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
-import org.lcsim.util.Driver;
-import org.lcsim.util.aida.AIDA;
-import static java.lang.Math.sqrt;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.recon.tracking.SvtPlotUtils;
-import org.lcsim.detector.ITransform3D;
-import org.lcsim.detector.tracker.silicon.ChargeCarrier;
-import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
-import org.lcsim.detector.tracker.silicon.DopedSilicon;
+import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
+import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.recon.tracking.TrackStateUtils;
-import org.hps.conditions.svt.SvtTimingConstants;
-import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.detector.ITransform3D;
+import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.detector.tracker.silicon.DopedSilicon;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
-import org.lcsim.geometry.Detector;
-
-import hep.aida.IAnalysisFactory;
-import hep.aida.IDataPoint;
-import hep.aida.IDataPointSet;
-import hep.aida.IDataPointSetFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogram2D;
-import hep.aida.IHistogramFactory;
-import hep.aida.dev.IDevTree;
-import hep.physics.vec.BasicHep3Vector;
-import hep.physics.vec.Hep3Vector;
-import org.hps.recon.tracking.TrackUtils;
-
-import org.lcsim.detector.tracker.silicon.SiSensor;
-import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseTrackState;
+import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
+import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+
+import hep.aida.IDataPoint;
+import hep.aida.IDataPointSet;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogram2D;
+import hep.physics.vec.BasicHep3Vector;
+import hep.physics.vec.Hep3Vector;
 
 /**
  * Create example histograms and data points in a remote AIDA tree
  */
 //public class HPSMonitoringSeedTracker2021 extends RemoteAidaDriver {
 /* this is just for testing...change to extends RemoteAidaDriver for online */
-public class HPSMonitoringKFTracker2021 extends Driver {
+public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
 
     /*
      * AIDA paths
@@ -67,12 +62,6 @@ public class HPSMonitoringKFTracker2021 extends Driver {
     private static final String FINALSTATE_DIR = "/finalState";
     private static final String V0_DIR = "/V0";
     private static final String PERF_DIR = "/perf";
-    /* this is just for testing...remove when running online */
-    protected AIDA aida = AIDA.defaultInstance();
-    protected IAnalysisFactory af = aida.analysisFactory();
-    protected IDevTree tree = (IDevTree) aida.tree();
-    protected IHistogramFactory hf = aida.analysisFactory().createHistogramFactory(tree);
-    protected IDataPointSetFactory dpsf = aida.analysisFactory().createDataPointSetFactory(tree);
 
     /*
      * Performance plots
@@ -128,10 +117,10 @@ public class HPSMonitoringKFTracker2021 extends Driver {
     private IHistogram1D omegaH1D;
     private IHistogram1D phiH1D;
     private IHistogram1D tanLambdaH1D;
-    private IHistogram1D z0H1D;   
+    private IHistogram1D z0H1D;
     private IHistogram1D fittedTrackerHitsPerEventH1D;
 
-    /* 
+    /*
      *   Track Time plots
      */
     private static final Map<String, IHistogram1D> t0 = new HashMap<String, IHistogram1D>();
@@ -262,8 +251,17 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         this.finalStateParticlesColName = name;
     }
 
+    protected void startOfData() {
+        // Override super method so we can initialize remote AIDA in detectorChanged() instead.
+    }
+
     @Override
     protected void detectorChanged(Detector detector) {
+
+        // Initialize remote AIDA using parent Driver
+        System.out.println("init remote AIDA...");
+        initialize();
+        System.out.println("done with remote AIDA init!");
 
         // Get the HpsSiSensor objects from the geometry
         sensors = detector.getSubdetector(TRACKER_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
@@ -303,6 +301,14 @@ public class HPSMonitoringKFTracker2021 extends Driver {
             maxSamplePositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), aida.histogram1D(
                     SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Max Sample Number", 6, -0.5, 5.5));
         }
+
+        /**
+         * Turn off aggregation for occupancy plots (JM)
+         */
+        for (Entry<String, IHistogram1D> entry : occupancyPlots.entrySet()) {
+            entry.getValue().annotation().addItem("aggregate", "false");
+        }
+
         /*
          * SVT Hits
          */
@@ -469,6 +475,8 @@ public class HPSMonitoringKFTracker2021 extends Driver {
 
     public void process(EventHeader event) {
 
+        System.out.println("proc event " + event.getEventNumber());
+
         eventCountH1D.fill(0.5);
         eventCount++;
         this.clearHitMaps();
@@ -492,8 +500,10 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         clustersPerEventH1D.fill(clusterList.size());
 
         // If the event doesn't have a collection of RawTrackerHit's, skip it.
-        if (!event.hasCollection(RawTrackerHit.class, RAW_TRACKER_HITS))
+        if (!event.hasCollection(RawTrackerHit.class, RAW_TRACKER_HITS)) {
+            System.out.println("skipping event with no raw tracker hits");
             return;
+        }
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, RAW_TRACKER_HITS);
         //System.out.println(rawHits.size());
@@ -605,12 +615,12 @@ public class HPSMonitoringKFTracker2021 extends Driver {
                 omegaH1D.fill(ts_bs.getOmega());
                 phiH1D.fill(ts_bs.getPhi());
                 tanLambdaH1D.fill(ts_bs.getTanLambda());
-                z0H1D.fill(ts_bs.getZ0());               
+                z0H1D.fill(ts_bs.getZ0());
             }
             this.rawHitsPerTrackH1D.fill(track.getTrackerHits().size());
         }
 
-        /* 
+        /*
         *  Track and hit times
          */
         int trigTime = (int) (event.getTimeStamp() % 24);
@@ -776,7 +786,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         ++eventsProcessed;
     }
 
-    public static Map<Integer, Hep3Vector> createStripPositionMap(HpsSiSensor sensor) {
+    private static Map<Integer, Hep3Vector> createStripPositionMap(HpsSiSensor sensor) {
         Map<Integer, Hep3Vector> positionMap = new HashMap<Integer, Hep3Vector>();
         for (ChargeCarrier carrier : ChargeCarrier.values())
             if (sensor.hasElectrodesOnSide(carrier)) {
@@ -799,7 +809,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
             hitsPerSensor.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()))[0] = 0;
     }
 
-    public double getClusterPairMass(Cluster clu1, Cluster clu2) {
+    private double getClusterPairMass(Cluster clu1, Cluster clu2) {
         double x0 = clu1.getPosition()[0];
         double y0 = clu1.getPosition()[1];
         double z0 = clu1.getPosition()[2];
