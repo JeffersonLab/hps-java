@@ -6,8 +6,7 @@
       @author Matt Graham
       Copied and modified from recon/PhysicsRun2019_pass0_recon_evio.lcsim
     -->
-    <execute>
-        <driver name="EventMarkerDriver"/>
+    <execute>       
         <!-- Enable the following if re-processing lcio files -->
         <!--        <driver name="PreCleanupDriver"/>       -->
         <!--  Event Reconstruction  -->
@@ -31,7 +30,7 @@
         <driver name="ReconParticleDriver_Kalman" /> 
         <!--  DQM   -->
         <!-- Following are optional Analysis Drivers  -->
-        <!--        
+           
         <driver name="HPSMonitoringKFTracker2021"/>         
         <!-- Toggle between saving in aida or root format -->
         <driver name="AidaToRootSaveDriver"/>
@@ -133,7 +132,15 @@
        
         <driver name="HPSMonitoringKFTracker2021" type="org.hps.online.recon.aida.HPSMonitoringKFTracker2021">
             <!-- AIDA tree bind provided using external variable -->
-            <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>
+              <!-- SVT Occupancy -->
+           <!-- <eventRefreshRate>50</eventRefreshRate>     -->       
+            <enableMaxSamplePlots>true</enableMaxSamplePlots>
+            <maxSamplePosition>3</maxSamplePosition> 
+            <timeWindowWeight>3</timeWindowWeight>
+            <!-- SVT Hits Info -->
+            <!-- <doPerChannelsSampleplots>true</doPerChannelsSampleplots> -->
+            <cutOutLowChargeHits>true</cutOutLowChargeHits>    
+           <!-- <remoteTreeBind>${remoteTreeBind}</remoteTreeBind> -->
         </driver>
        
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
