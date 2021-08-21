@@ -417,7 +417,10 @@ public class StationProcess {
         command = new ArrayList<String>();
 
         command.add("java");
-        command.add("-Xmx1g"); // FIXME: Hard-coded memory limit
+
+        // Set JVM arguments from the station properties
+        Property<String> jvmArgs = props.get("lcsim.jvm_args");
+        command.add(jvmArgs.value());
 
         // Logging configuration
         if (logConfigFile.valid()) {

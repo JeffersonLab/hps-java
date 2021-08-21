@@ -51,6 +51,7 @@ public class StationProperties extends PropertyStore {
                 new StringProperty ( "lcsim.conditions",      "Conditions URL",                 null,           false),
                 new StringProperty ( "lcsim.tag",             "Conditions tag",                 null,           false),
                 new StringProperty ( "lcsim.builder",         "LCIO event builder",             BUILDER,        true),
+                new StringProperty ( "lcsim.jvm_args",        "JVM args for the lcsim process", "-Xmx1g",       false),
                 new StringProperty ( "station.outputName",    "Base name for output files",     "output",       true),
                 new StringProperty ( "station.outputDir",     "Directory for output files",     DIR,            true),
                 new StringProperty ( "station.loggingConfig", "Logging config file",            null,           false),

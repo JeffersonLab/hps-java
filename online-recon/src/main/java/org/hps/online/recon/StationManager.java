@@ -201,7 +201,7 @@ public class StationManager {
         // Build the command to run the station
         info.buildCommand();
 
-        LOG.config("Command: " + String.join(" ", info.getCommand()));
+        LOG.config("Station command: " + String.join(" ", info.getCommand()));
 
         // Register the station info
         add(info);

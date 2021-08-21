@@ -1,6 +1,5 @@
 package org.hps.online.recon.commands;
 
-import org.apache.commons.cli.CommandLine;
 import org.hps.online.recon.Command;
 
 /**
@@ -14,7 +13,7 @@ public class ListCommand extends Command {
                 "Provide a list of IDs or none to list information for all");
     }
 
-    protected void process(CommandLine cl) {
+    protected void process() {
         readStationIDs(cl);
     }
 }

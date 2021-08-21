@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -77,6 +78,21 @@ public final class Client {
     private PrintWriter pw = null;
 
     /**
+     * Command line arguments for the client
+     */
+    String[] clientArgs = null;
+
+    /**
+     * Arguments for the command to run on the server
+     */
+    String[] cmdArgs = null;
+
+    /**
+     * The client command (which may be null when opening a console or executing a file)
+     */
+    Command command = null;
+
+    /**
      * The base options (commands have their own Options objects).
      */
     private static Options OPTIONS = new Options();
@@ -84,9 +100,9 @@ public final class Client {
         OPTIONS.addOption(new Option("h", "help", false, "print help"));
         OPTIONS.addOption(new Option("p", "port", true, "server port"));
         OPTIONS.addOption(new Option("H", "host", true, "server hostname"));
-        OPTIONS.addOption(new Option("o", "output", true, "output file (default writes server responses to System.out)"));
+        OPTIONS.addOption(new Option("o", "output", true, "output file (default writes server responses to the console)"));
         OPTIONS.addOption(new Option("a", "append", false, "append if writing to output file (default will overwrite)"));
-        OPTIONS.addOption(new Option("i", "interactive", false, "start interactive console after executing command file"));
+        OPTIONS.addOption(new Option("i", "interactive", false, "start interactive console after executing a command file"));
     }
 
     /**
@@ -101,80 +117,98 @@ public final class Client {
     private void printUsage() {
         final HelpFormatter help = new HelpFormatter();
         final String commands = String.join(" ", cf.getCommandNamesSorted());
-        help.printHelp(80, "Client [options] [[file] | [command] [command_options]]", "Send commands to the online reconstruction server",
+        help.printHelp(80, "Client [options] [[file] | [command] [command_options]]",
+                "Send commands to the online reconstruction server",
                 OPTIONS, "Commands: " + commands + '\n'
-                    + "Use 'Client [command] --help' for information about a specific command." + '\n'
                     + "Run with no client arguments to start the interactive console." + '\n'
                     + "Provide a file with commands as a single argument to execute it.");
     }
 
+    private void execFile(File file) {
+        // If there is a single argument, see if it looks like a command file to execute.
+        Console cn = new Console(this);
+        try {
+            cn.setEcho(true);
+            cn.execFile(file);
+            if (this.interactive) {
+                cn.setEcho(false);
+                cn.run();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error executing command file: " + file.getPath(), e);
+        }
+    }
+
     /**
-     * Run the client using command line arguments
+     * Setup state from the command line including possible client command, argument arrays, etc.
+     *
+     * @param args
+     */
+    private void setup(String args[]) {
+        int cmdIdx = findCommand(args);
+        clientArgs = args;
+        if (cmdIdx > 0) {
+            String commandName = args[cmdIdx];
+            command = cf.create(commandName);
+            if (cmdIdx > 0) {
+                clientArgs = new String[cmdIdx];
+                System.arraycopy(args, 0, clientArgs, 0, cmdIdx + 1);
+            } else {
+                clientArgs = new String[0];
+            }
+
+            cmdArgs = new String[args.length - cmdIdx];
+            System.arraycopy(args, cmdIdx, cmdArgs, 0, args.length - cmdIdx);
+        }
+
+        if (clientArgs.length > 0) {
+            List<String> clientArgList = Arrays.asList(clientArgs);
+            LOG.info("Client arg list: " + String.join(" ", clientArgList));
+        }
+
+        if (cmdArgs != null) {
+            List<String> cmdArgList = Arrays.asList(cmdArgs);
+            LOG.info("Command arg list: " + String.join(" ", cmdArgList));
+        }
+    }
+
+    /**
+     * Run the client using command line arguments.
+     *
      * @param args The command line arguments
      */
     void run(String args[]) {
 
-        List<String> argList = parseOptions(args);
+        // Find the client command to run if provided and set various other state
+        setup(args);
 
-        // If extra arguments are provided then try to run a command.
-        if (argList.size() != 0) {
+        // Parse the client options
+        List<String> extraArgs = parseOptions(clientArgs);
 
-            // See if a command was provided.
-            String commandName = argList.get(0);
+        if (command != null) {
+            // Run a client command if one was provided
 
-            if (cf.commandExists(commandName)) {
+            LOG.info("Executing client command " + command.getName());
 
-                Command command = cf.create(commandName);
-
-                // Remove command from arg list.
-                argList.remove(0);
-
-                // Convert command list to array.
-                String[] argArr = argList.toArray(new String[0]);
-
-                // Parse command options.
-                DefaultParser commandParser = new DefaultParser();
-                CommandLine cmdResult = null;
-                try {
-                    cmdResult = commandParser.parse(command.getOptions(), argArr);
-
-                    // Print usage of the command and exit.
-                    if (cmdResult.hasOption("help")) {
-                        command.printUsage();
-                        System.exit(0);
-                    }
-                } catch (ParseException e) {
-                    command.printUsage();
-                    throw new RuntimeException("Error parsing command options", e);
-                }
-
-                // Setup the command parameters from the parsed options.
-                command.process(cmdResult);
-
-                // Send the command to server.
-                LOG.info("Sending command " + command.toString());
-                send(command);
-            } else {
-                // If there is a single argument, see if it looks like a command file to execute.
-                File execFile = new File(argList.get(0));
-                if (argList.size() == 1 && execFile.exists()) {
-                    Console cn = new Console(this);
-                    try {
-                        cn.setEcho(true);
-                        cn.execFile(execFile);
-                        if (this.interactive) {
-                            cn.setEcho(false);
-                            cn.run();
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException("Error executing command file: " + execFile.getPath(), e);
-                    }
-                } else {
-                    // Could not parse command line options.
-                    printUsage();
-                    throw new IllegalArgumentException("Unknown command: " + commandName);
-                }
+            try {
+                command.parse(cmdArgs);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
             }
+
+            // Setup the command parameters from the parsed options.
+            command.process();
+
+            // Send the command to server.
+            LOG.info("Sending command " + command.toString());
+            send(command);
+
+        } else if (extraArgs.size() > 0) {
+            // Execute a file with client commands using the Console
+
+            LOG.info("Extra args: " + String.join(" ", extraArgs));
+
+            execFile(new File(extraArgs.get(0)));
         } else {
             // No command was provided so run the interactive console.
             Console cn = new Console(this);
@@ -182,7 +216,24 @@ public final class Client {
         }
     }
 
+    /**
+     * Find a client command in the raw arguments
+     * @param args
+     * @return
+     */
+    private int findCommand(String[] args) {
+        int idx = -1;
+        for (int i = 0; i < args.length; i++) {
+            if (cf.commandExists(args[i])) {
+                idx = i;
+                break;
+            }
+        }
+        return idx;
+    }
+
     private List<String> parseOptions(String[] args) {
+
         // Parse base options.
         CommandLine cl;
         try {
@@ -196,9 +247,6 @@ public final class Client {
             this.printUsage();
             System.exit(0);
         }
-
-        // Get extra arg list.
-        List<String> argList = cl.getArgList();
 
         if (cl.hasOption("p")) {
             this.port = Integer.parseInt(cl.getOptionValue("p"));
@@ -231,7 +279,8 @@ public final class Client {
             this.interactive = true;
             LOG.config("Interactive mode enable: " + this.interactive);
         }
-        return argList;
+
+        return cl.getArgList();
     }
 
     /**
