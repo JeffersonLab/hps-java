@@ -91,12 +91,12 @@ public class SVTPulseFitPlots extends Driver {
                     histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + "_amplitude", 50, 0, 2000.0));
 
             chiprobPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                    histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + "_chiprob", 100, 0, 1.0));
+                    histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + "_chiprob", 50, 0, 1.0));
 
             t0aPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
                     histogramFactory.createHistogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " A vs. T0", 100, -100, 100, 100, 0, 2000));
 
-            shapePlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " Shape", 200, -1
+            shapePlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " Shape", 100, -1
                     * SAMPLING_INTERVAL, 6 * SAMPLING_INTERVAL, 100, -0.5, 1.5));
             if (sensor.getLayerNumber() < 9) {
                 plotters.get("Timing:  L0-L3").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
