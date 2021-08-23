@@ -1,9 +1,9 @@
 package org.hps.online.recon.aida;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -55,33 +55,33 @@ public abstract class RemoteAidaDriver extends Driver {
     }
 
     protected void startOfData() {
-        initialize();
-    }
-
-    protected void initialize() {
-
-        // HACK: Fixes exceptions from missing AIDA converters
-        final RmiStoreFactory rsf = new RmiStoreFactory();
-
         try {
             connect();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to connect remote AIDA tree", e);
         }
     }
 
     synchronized final void disconnect() {
-        if (rmiTreeServer != null) {
-            ((RmiServerImpl) rmiTreeServer).disconnect();
-            rmiTreeServer = null;
-        }
-        if (treeServer != null) {
-            treeServer.close();
-            treeServer = null;
+        try {
+            if (rmiTreeServer != null) {
+                ((RmiServerImpl) rmiTreeServer).disconnect();
+                rmiTreeServer = null;
+            }
+            if (treeServer != null) {
+                treeServer.close();
+                treeServer = null;
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Error disconnecting remote AIDA tree", e);
         }
     }
 
     synchronized final void connect() throws IOException {
+
+        // HACK: Fixes exceptions from missing AIDA converters
+        final RmiStoreFactory rsf = new RmiStoreFactory();
+
         if (rmiTreeServer != null) {
             LOG.warning("Already connected (RMI tree server is not null)");
             return;
@@ -89,12 +89,10 @@ public abstract class RemoteAidaDriver extends Driver {
         if (remoteTreeBind == null) {
             throw new IllegalStateException("remoteTreeBind is not set");
         }
-        LOG.info("Connecting tree server: " + remoteTreeBind);
+        LOG.info("RemoteAidaDriver setting up tree: " + remoteTreeBind);
         boolean serverDuplex = true;
         treeServer = new RemoteServer(tree, serverDuplex);
         rmiTreeServer = new RmiServerImpl(treeServer, remoteTreeBind);
-        LOG.info("Done connecting tree server: " + remoteTreeBind);
+        LOG.info("RemoteAidDriver done setting up tree: " + remoteTreeBind);
     }
-
-    protected abstract void process(EventHeader event);
 }

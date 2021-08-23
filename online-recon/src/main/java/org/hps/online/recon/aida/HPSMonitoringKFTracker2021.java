@@ -44,10 +44,8 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
 /**
- * Create example histograms and data points in a remote AIDA tree
+ * Make plots for remote AIDA display based on Kalman Filter track reconstruction
  */
-//public class HPSMonitoringSeedTracker2021 extends RemoteAidaDriver {
-/* this is just for testing...change to extends RemoteAidaDriver for online */
 public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
 
     /*
@@ -69,6 +67,7 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
     private IHistogram1D eventCountH1D;
     private IDataPointSet eventRateDPS;
     private IDataPointSet millisPerEventDPS;
+
     /*
      * Ecal plots
      */
@@ -134,51 +133,51 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
     private static final Map<String, IHistogram2D> trackHit2D = new HashMap<String, IHistogram2D>();
     private static final Map<String, IHistogram2D> trackTimeMinMax = new HashMap<String, IHistogram2D>();
 
-    double minTime = -40;
-    double maxTime = 40;
+    private double minTime = -40;
+    private double maxTime = 40;
 
     /*
     *  Final state particle and V0 plots
      */
-    IHistogram1D nEle;
-    IHistogram1D elePx;
-    IHistogram1D elePy;
-    IHistogram1D elePz;
-    IHistogram2D eleProjXYEcalMatch;
-    IHistogram2D eleProjXYEcalNoMatch;
+    private IHistogram1D nEle;
+    private IHistogram1D elePx;
+    private IHistogram1D elePy;
+    private IHistogram1D elePz;
+    private IHistogram2D eleProjXYEcalMatch;
+    private IHistogram2D eleProjXYEcalNoMatch;
 
-    IHistogram1D nPos;
-    IHistogram1D posPx;
-    IHistogram1D posPy;
-    IHistogram1D posPz;
-    IHistogram2D posProjXYEcalMatch;
-    IHistogram2D posProjXYEcalNoMatch;
+    private IHistogram1D nPos;
+    private IHistogram1D posPx;
+    private IHistogram1D posPy;
+    private IHistogram1D posPz;
+    private IHistogram2D posProjXYEcalMatch;
+    private IHistogram2D posProjXYEcalNoMatch;
 
-    IHistogram1D nPhot;
-    IHistogram1D photEne;
-    IHistogram2D photXYECal;
-    IHistogram1D pi0Ene;
-    IHistogram1D pi0Diff;
-    IHistogram1D pi0Mass;
+    private IHistogram1D nPhot;
+    private IHistogram1D photEne;
+    private IHistogram2D photXYECal;
+    private IHistogram1D pi0Ene;
+    private IHistogram1D pi0Diff;
+    private IHistogram1D pi0Mass;
 
-    double ecalXRange = 500;
-    double ecalYRange = 100;
+    private double ecalXRange = 500;
+    private double ecalYRange = 100;
 
-    double pMax = 7.0;
-    double pi0EsumCut = 3.0;//GeV
-    double pi0EdifCut = 2.0;//GeV
+    private double pMax = 7.0;
+    private double pi0EsumCut = 3.0;//GeV
+    private double pi0EdifCut = 2.0;//GeV
 
-    IHistogram1D nV0;
-    IHistogram1D unconMass;
-    IHistogram1D unconVx;
-    IHistogram1D unconVy;
-    IHistogram1D unconVz;
-    IHistogram1D unconChi2;
+    private IHistogram1D nV0;
+    private IHistogram1D unconMass;
+    private IHistogram1D unconVx;
+    private IHistogram1D unconVy;
+    private IHistogram1D unconVz;
+    private IHistogram1D unconChi2;
 
-    IHistogram2D pEleVspPos;
-    IHistogram2D pyEleVspyPos;
-    IHistogram2D pxEleVspxPos;
-    IHistogram2D massVsVtxZ;
+    private IHistogram2D pEleVspPos;
+    private IHistogram2D pyEleVspyPos;
+    private IHistogram2D pxEleVspxPos;
+    private IHistogram2D massVsVtxZ;
 
     //The field map for extrapolation
     private FieldMap bFieldMap;
@@ -203,7 +202,6 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
     private int eventsProcessed = 0;
     private long start = -1L;
     private Timer timer;
-
 
     /* SVT Occupancy setters */
     public void setEnableMaxSamplePlots(boolean enableMaxSamplePlots) {
@@ -251,15 +249,8 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
         this.finalStateParticlesColName = name;
     }
 
-    protected void startOfData() {
-        // Override super method so we can initialize remote AIDA in detectorChanged() instead.
-    }
-
     @Override
     protected void detectorChanged(Detector detector) {
-
-        // Initialize remote AIDA using parent Driver
-        initialize();
 
         // Get the HpsSiSensor objects from the geometry
         sensors = detector.getSubdetector(TRACKER_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
