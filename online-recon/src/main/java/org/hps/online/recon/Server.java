@@ -252,7 +252,7 @@ public final class Server {
                     LOG.log(Level.SEVERE, "Error closing socket", e);
                 }
             }
-            LOG.fine("Done running client thread");
+            LOG.finest("Done running client thread");
 
             // Handle special shutdown command
             if (res != null && res instanceof CommandResult.Shutdown) {
