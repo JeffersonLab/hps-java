@@ -88,7 +88,6 @@ public class HPSMonitoringSeedTracker2021 extends Driver {
     private boolean dropSmallHitEvents = false;
     private static final Map<String, IHistogram1D> hitsPerSensorPlots = new HashMap<String, IHistogram1D>();
     private static final Map<String, int[]> hitsPerSensor = new HashMap<String, int[]>();
-    private static final Map<String, IHistogram1D> layersHitPlots = new HashMap<String, IHistogram1D>();
     private static final Map<String, IHistogram1D> hitCountPlots = new HashMap<String, IHistogram1D>();
     private static final Map<String, IHistogram1D> t0Plots = new HashMap<String, IHistogram1D>();
 
@@ -202,7 +201,6 @@ public class HPSMonitoringSeedTracker2021 extends Driver {
             t0Plots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
                     aida.histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - t0", 100, -100, 100.0));
         }
-        layersHitPlots.put("Top", aida.histogram1D("Top Layers Hit", 15, 0, 15));
         hitCountPlots.put("Raw hit counts", aida.histogram1D("Raw hit counts", 100, 0, 500));
         hitCountPlots.put("SVT top raw hit counts", aida.histogram1D("SVT top raw hit counts", 100, 0, 300));
         hitCountPlots.put("SVT bottom raw hit counts",

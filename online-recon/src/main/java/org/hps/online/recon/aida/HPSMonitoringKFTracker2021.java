@@ -46,6 +46,8 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseTrackState;
+import org.lcsim.fit.helicaltrack.HelicalTrackCross;
+import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.FieldMap;
 
 /**
@@ -129,7 +131,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
     private IHistogram1D omegaH1D;
     private IHistogram1D phiH1D;
     private IHistogram1D tanLambdaH1D;
-    private IHistogram1D z0H1D;   
+    private IHistogram1D z0H1D;
     private IHistogram1D fittedTrackerHitsPerEventH1D;
 
     /* 
@@ -197,16 +199,17 @@ public class HPSMonitoringKFTracker2021 extends Driver {
     private double targetZ = -7.5;
 
     private static final String TRACKER_NAME = "Tracker";
+    private boolean isSeedTracker = false;
     /*
      * Collection names
      */
     private static final String CLUSTERS = "EcalClusters";
     private static final String RAW_TRACKER_HITS = "SVTRawTrackerHits";
     private static final String FITTED_HITS = "SVTFittedRawTrackerHits";
-    private static final String TRACKS = "KalmanFullTracks";
     private static final String ECAL_READOUT_HITS = "EcalReadoutHits";
     private static final String triggerBankCollectionName = "TriggerBank";
     private static final String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+    private String trackColName = "KalmanFullTracks";
     private String finalStateParticlesColName = "FinalStateParticles_KF";
     private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates_KF";
     /*
@@ -261,6 +264,18 @@ public class HPSMonitoringKFTracker2021 extends Driver {
 
     public void setFinalStateParticlesColName(String name) {
         this.finalStateParticlesColName = name;
+    }
+
+    public void setUnconstrainedV0CandidatesColName(String name) {
+        this.unconstrainedV0CandidatesColName = name;
+    }
+
+    public void setTrackColName(String name) {
+        this.trackColName = name;
+    }
+
+    public void setIsSeedTracker(boolean isST) {
+        this.isSeedTracker = isST;
     }
 
     @Override
@@ -591,7 +606,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
         hitCountPlots.get("SVT top raw hit counts").fill(topEventHitCount);
         hitCountPlots.get("SVT bottom raw hit counts").fill(botEventHitCount);
 
-        List<Track> tracks = event.get(Track.class, TRACKS);
+        List<Track> tracks = event.get(Track.class, trackColName);
         aida.tree().cd(TRACKER_DIR);
 
         tracksPerEventH1D.fill(tracks.size());
@@ -607,7 +622,7 @@ public class HPSMonitoringKFTracker2021 extends Driver {
                 omegaH1D.fill(ts_bs.getOmega());
                 phiH1D.fill(ts_bs.getPhi());
                 tanLambdaH1D.fill(ts_bs.getTanLambda());
-                z0H1D.fill(ts_bs.getZ0());               
+                z0H1D.fill(ts_bs.getZ0());
             }
             this.rawHitsPerTrackH1D.fill(track.getTrackerHits().size());
         }
@@ -643,34 +658,64 @@ public class HPSMonitoringKFTracker2021 extends Driver {
             double maxTime = Double.NEGATIVE_INFINITY;
             int hitCount = 0;
             double trackTime = 0;
-            for (TrackerHit hitTH : track.getTrackerHits()) {
-                SiTrackerHitStrip1D hit = (SiTrackerHitStrip1D) hitTH;
-                SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
-                trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime());
-                trackTime += hit.getTime();
-                hitCount++;
-                if (hit.getTime() > maxTime)
-                    maxTime = hit.getTime();
-                if (hit.getTime() < minTime)
-                    minTime = hit.getTime();
-            }
-            trackTimeMinMax.get(moduleName).fill(minTime, maxTime);
-            trackTimeRange.get(moduleName).fill(maxTime - minTime);
-            trackTime /= hitCount;
-            trackT0.get(moduleName).fill(trackTime);
-            trackTrigTime.get(moduleName).fill(trackTime, trigTime);
 
-            for (TrackerHit hitTH : track.getTrackerHits()) {
-                SiTrackerHitStrip1D hit = (SiTrackerHitStrip1D) hitTH;
-                int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber();
-                int module = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("module");
-                SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
-                trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime);
-                trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime, event.getTimeStamp() % 24);
-                //trackHitDtChan.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getMeasuredCoordinate().x(), hit.getTime() - trackTime);
+            if (isSeedTracker) {
+                for (TrackerHit hitCross : track.getTrackerHits())
+                    for (HelicalTrackStrip hit : ((HelicalTrackCross) hitCross).getStrips()) {
+                        SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.rawhits().get(0)).getDetectorElement();
+                        trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.time());
+                        trackTime += hit.time();
+                        hitCount++;
+                        if (hit.time() > maxTime)
+                            maxTime = hit.time();
+                        if (hit.time() < minTime)
+                            minTime = hit.time();
+                    }
+                trackTimeMinMax.get(moduleName).fill(minTime, maxTime);
+                trackTimeRange.get(moduleName).fill(maxTime - minTime);
+                trackTime /= hitCount;
+                trackT0.get(moduleName).fill(trackTime);
+                trackTrigTime.get(moduleName).fill(trackTime, trigTime);
+
+                for (TrackerHit hitCross : track.getTrackerHits())
+                    for (HelicalTrackStrip hit : ((HelicalTrackCross) hitCross).getStrips()) {
+                        int layer = hit.layer();
+                        int module = ((RawTrackerHit) hit.rawhits().get(0)).getIdentifierFieldValue("module");
+                        SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.rawhits().get(0)).getDetectorElement();
+                        trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.time() - trackTime);
+                        trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.time() - trackTime, event.getTimeStamp() % 24);
+                    }
+
+            } else {
+                for (TrackerHit hitTH : track.getTrackerHits()) {
+
+                    SiTrackerHitStrip1D hit = (SiTrackerHitStrip1D) hitTH;
+                    SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
+                    trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime());
+                    trackTime += hit.getTime();
+                    hitCount++;
+                    if (hit.getTime() > maxTime)
+                        maxTime = hit.getTime();
+                    if (hit.getTime() < minTime)
+                        minTime = hit.getTime();
+                }
+                trackTimeMinMax.get(moduleName).fill(minTime, maxTime);
+                trackTimeRange.get(moduleName).fill(maxTime - minTime);
+                trackTime /= hitCount;
+                trackT0.get(moduleName).fill(trackTime);
+                trackTrigTime.get(moduleName).fill(trackTime, trigTime);
+
+                for (TrackerHit hitTH : track.getTrackerHits()) {
+                    SiTrackerHitStrip1D hit = (SiTrackerHitStrip1D) hitTH;
+                    int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber();
+                    int module = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("module");
+                    SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
+                    trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime);
+                    trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime, event.getTimeStamp() % 24);
+                    //trackHitDtChan.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getMeasuredCoordinate().x(), hit.getTime() - trackTime);
+                }
             }
         }
-
         /*
         *  Final state particle plots
          */

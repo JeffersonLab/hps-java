@@ -26,9 +26,7 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/> 
-        <!-- Track finding and fitting using seed tracker. -->
-        <driver name="TrackReconSeed123Conf4Extd56"/>    
-        <driver name="TrackReconSeed123Conf5Extd46"/>
+        <!-- Track finding and fitting using seed tracker. -->       
         <driver name="TrackReconSeed567Conf4Extd123"/>
         <driver name="TrackReconSeed456Conf3Extd127"/>
         <driver name="TrackReconSeed356Conf7Extd124"/>
@@ -289,9 +287,14 @@
             <makeMollerCols>false</makeMollerCols>
         </driver>       
  
-        <driver name="HPSMonitoringSeedTracker2021" type="org.hps.online.recon.aida.HPSMonitoringSeedTracker2021">
+        <driver name="HPSMonitoringSeedTracker2021" type="org.hps.online.recon.aida.HPSMonitoringKFTracker2021">
             <!-- AIDA tree bind provided using external variable -->
         <!--    <remoteTreeBind>${remoteTreeBind}</remoteTreeBind> -->
+        <!-- collection names --> 
+            <isSeedTracker>True</isSeedTracker>
+            <trackColName>GBLTracks</trackColName>
+            <finalStateParticlesColName>FinalStateParticles</finalStateParticlesColName>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates</unconstrainedV0CandidatesColName>
             <!-- SVT Occupancy -->
             <eventRefreshRate>50</eventRefreshRate>            
             <enableMaxSamplePlots>true</enableMaxSamplePlots>
