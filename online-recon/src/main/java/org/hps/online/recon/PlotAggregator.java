@@ -31,7 +31,6 @@ import hep.aida.IProfile2D;
 import hep.aida.ITree;
 import hep.aida.ITreeFactory;
 import hep.aida.dev.IDevTree;
-//import hep.aida.ref.remote.RemoteConnectionException;
 import hep.aida.ref.remote.RemoteServer;
 import hep.aida.ref.remote.rmi.client.RmiStoreFactory;
 import hep.aida.ref.remote.rmi.interfaces.RmiServer;
@@ -260,7 +259,7 @@ public class PlotAggregator implements Runnable {
                 if (obj instanceof IBaseHistogram) {
                     IBaseHistogram hist = (IBaseHistogram) obj;
                     if (hist.entries() > 0) {
-                        LOG.finer("Clearing " + hist.title() + " with entries: " + hist.entries());
+                        LOG.finest("Clearing " + hist.title() + " with entries: " + hist.entries());
                         ((IBaseHistogram) obj).reset();
                     }
                 } else if (obj instanceof IDataPointSet) {
@@ -277,53 +276,79 @@ public class PlotAggregator implements Runnable {
      * trees together
      */
     private synchronized void update() {
-        LOG.fine("Plot aggregator is updating...");
-        try {
-            String[] dirs = this.listObjectNames(REMOTES_DIR, false, null);
 
-            // Add src to target objects
-            for (String dir : dirs) {
+        LOG.fine("Plot aggregator is updating...");
+
+        String[] dirs = null;
+        try {
+            dirs = this.listObjectNames(REMOTES_DIR, false, null);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get remote object dirs from server tree", e);
+        }
+
+        // Loop over each remote tree directory
+        for (String dir : dirs) {
+
+            LOG.finer("Updating remote: " + dir);
+
+            try {
+                // Loop over all the objects in the remote tree
                 String[] remoteObjects = serverTree.listObjectNames(dir, true);
                 for (String remoteName : remoteObjects) {
 
-                    LOG.finer("Updating: " + remoteName);
+                    // LOG.finer("Updating remote object: " + remoteName);
 
                     // Get the source object
                     if (!objectExists(remoteName)) {
-                        // The path is a directory and should be skipped.
+
+                        // The path is a directory and should not be aggregated
                         continue;
                     }
-                    IManagedObject srcObject = serverTree.find(remoteName);
 
-                    // Check flag whether object should be aggregated
-                    if (shouldAggregate(srcObject)) {
+                    // Get the target object
+                    String targetPath = toAggregateName(remoteName);
 
-                        // Get the target object
-                        String targetPath = toAggregateName(remoteName);
-                        IManagedObject targetObject = null;
+                    // Try to aggregate the remote object
+                    try {
+                        IManagedObject srcObject = serverTree.find(remoteName);
 
-                        // Only histograms are aggregated.
-                        if (srcObject instanceof IBaseHistogram) {
-                            try {
-                                // Get object from the tree
-                                targetObject = serverTree.find(targetPath);
+                        // Check flag whether object should be aggregated
+                        if (shouldAggregate(srcObject)) {
 
-                                // Add source to target
-                                add((IBaseHistogram) srcObject, (IBaseHistogram) targetObject);
-                            } catch (IllegalArgumentException e) {
-                                // Create a new target histogram by copying one of the remote objects
-                                LOG.finer("Copying: " + remoteName + " -> " + targetPath);
-                                serverTree.cp(remoteName, targetPath, false);
-                                LOG.finer("Copied object " + srcObject.name() + " entries: "
-                                        + ((IBaseHistogram) srcObject).entries());
+                            IManagedObject targetObject = null;
+
+                            // LOG.finer("Target path: " + targetPath);
+
+                            // Only histograms are aggregated.
+                            if (srcObject instanceof IBaseHistogram) {
+                                try {
+                                    // Get object from the tree
+                                    targetObject = serverTree.find(targetPath);
+
+                                    // Add source to target
+                                    add((IBaseHistogram) srcObject, (IBaseHistogram) targetObject);
+                                } catch (IllegalArgumentException e) {
+
+                                    String dirName = new File(targetPath).getParentFile().getPath();
+                                    LOG.finest("Creating agg dir: " + dirName);
+                                    serverTree.mkdirs(dirName);
+
+                                    // Create a new target histogram by copying one of the remote objects
+                                    LOG.finest("Copying: " + remoteName + " -> " + targetPath);
+                                    serverTree.cp(remoteName, targetPath, false);
+                                    LOG.finest("Copied object " + srcObject.name() + " entries: "
+                                            + ((IBaseHistogram) srcObject).entries());
+                                }
                             }
                         }
-                        LOG.finer("Done updating: " + remoteName);
+                    } catch (Exception e) {
+                        LOG.log(Level.SEVERE, "Error updating aggregate plot: " + targetPath, e);
                     }
+                    LOG.finest("Done updating: " + remoteName);
                 }
+            } catch (Exception e) {
+                LOG.log(Level.SEVERE, "Error aggregating remote dir: " + dir, e);
             }
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error updating plots", e);
         }
         LOG.fine("Plot aggregator is done updating");
     }
@@ -704,13 +729,14 @@ public class PlotAggregator implements Runnable {
     }
 
     /**
-     *
-     * @param remoteTreeBindStr
-     * @param maxAttempts
-     * @param initialWaitMillis
-     * @param backoffMillis
-     * @return
-     * @throws InterruptedException
+     * Add a remote tree binding for aggregation
+     * @param remoteTreeBindStr The URL of the remote tree
+     * @param maxAttempts The max number of connection attempts
+     * @param initialWaitMillis The initial wait in milliseconds
+     * @param backoffMillis The back-off wait multiplier in milliseconds
+     * @return True if adding the remote tree was successful
+     * @throws InterruptedException If the method is interrupted
+     * @throw IOException If there is a problem adding the remote tree
      */
     boolean addRemoteTree(String remoteTreeBindStr, int maxAttempts, long initialWaitMillis, long backoffMillis)
             throws InterruptedException, IOException {
@@ -726,29 +752,32 @@ public class PlotAggregator implements Runnable {
         for (long attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 long waitMillis = attempt * backoffMillis;
-                LOG.config("Waiting before attempt: " + waitMillis / 1000L + " sec");
+                LOG.config("Waiting before connection attempt...");
                 Thread.sleep(waitMillis);
-                LOG.info("Remote tree connection attempt: " + attempt + "/" + maxAttempts);
+                LOG.info("Connection attempt: " + attempt + "/" + maxAttempts);
                 mount(remoteTreeBindStr);
-                LOG.info("Successfully added remote tree: " + remoteTreeBindStr);
+                LOG.info("Successfully connected: " + remoteTreeBindStr);
                 mounted = true;
                 break;
             } catch (InterruptedException e) {
-                LOG.warning("Remote connection attempt Interrupted");
+                LOG.warning("Remote connection attempt was interrupted");
                 break;
             } catch (Exception e) {
-                LOG.warning("Connection attempt failed: " + remoteTreeBindStr);
+                LOG.log(Level.WARNING, "Connection attempt failed: " + remoteTreeBindStr, e);
             }
+        }
+        if (mounted == false) {
+            LOG.severe("Failed to connect: " + remoteTreeBindStr);
         }
         return mounted;
     }
 
     /**
      * Mount tree with default arguments
-     * @param remoteTreeBindStr
-     * @throws InterruptedException
-     * @throws RemoteConnectionException
-     * @throws IllegalStateException
+     * @param remoteTreeBindStr The URL of the remote tree
+     * @return True if adding the remote tree was successful
+     * @throws InterruptedException If the method is interrupted
+     * @throw IOException If there is a problem adding the remote tree
      */
     boolean addRemoteTree(String remoteTreeBindStr)
         throws InterruptedException, IOException {
