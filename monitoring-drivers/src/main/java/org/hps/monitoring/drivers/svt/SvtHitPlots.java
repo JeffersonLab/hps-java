@@ -285,7 +285,7 @@ public class SvtHitPlots extends Driver {
 
             t0Plots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - t0", 100, -100, 100.0));
             t0VsTriggerTime.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + "Hit Time vs. Trigger Phase",
-                    120, -60, 60, 30, -15, 15));
+                    60, -60, 60, 6, -12, 12));
 //            t0VsTriggerBank.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + "Hit Time vs. Trigger Bank",
 //                    100, -100, 100, 10, 5,12));
             t0VsChannel.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + "Hit Time vs. Channel",

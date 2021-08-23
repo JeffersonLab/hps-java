@@ -61,7 +61,7 @@
             <subtractTriggerTime>false</subtractTriggerTime>            -->
             <correctTimeOffset>true</correctTimeOffset>
             <subtractTriggerTime>true</subtractTriggerTime>            
-            <trigTimeScale>55.0</trigTimeScale>
+<!--            <trigTimeScale>55.0</trigTimeScale>-->
             <subtractRFTime>false</subtractRFTime> 
 <!--            <subtractTOF>false</subtractTOF>-->
               <subtractTOF>true</subtractTOF>
