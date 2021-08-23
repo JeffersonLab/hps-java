@@ -1,7 +1,5 @@
 package org.hps.online.recon;
 
-import org.hps.evio.LCSimEngRunEventBuilder;
-//import org.hps.online.recon.properties.BooleanProperty;
 import org.hps.online.recon.properties.IntegerProperty;
 import org.hps.online.recon.properties.Property;
 import org.hps.online.recon.properties.PropertyStore;
@@ -37,7 +35,7 @@ public class StationProperties extends PropertyStore {
 
     private final static String BUFFER = "/tmp/ETBuffer";
 
-    private final static String BUILDER = LCSimEngRunEventBuilder.class.getCanonicalName();
+    private final static String BUILDER = org.hps.evio.LCSimPhys2019EventBuilder.class.getCanonicalName();
 
     /**
      * Defines a set of properties specific to configuring and running an online reconstruction {@link Station}
