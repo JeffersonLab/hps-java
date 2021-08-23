@@ -64,21 +64,22 @@ class EtParallelStation extends EtConnection {
             throw new RuntimeException("Failed to connect to ET system!");
         }
 
-        final EtStationConfig stationConfig = new EtStationConfig();
-        stationConfig.setFlowMode(EtConstants.stationParallel);
-        stationConfig.setBlockMode(EtConstants.stationBlocking);
-        stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
-
-        if (prescale.value() > 0) {
-            stationConfig.setPrescale(prescale.value());
-        }
-
         stat = sys.stationNameToObject(stationName.value());
-        if (stat != null) {
-            throw new IllegalStateException("ET station already exists: " + stationName.value());
+
+        if (stat == null) {
+            LOGGER.info("Creating new ET station: " + stationName.value());
+            final EtStationConfig stationConfig = new EtStationConfig();
+            stationConfig.setFlowMode(EtConstants.stationParallel);
+            stationConfig.setBlockMode(EtConstants.stationBlocking);
+            stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
+            stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
+            if (prescale.value() > 0) {
+                stationConfig.setPrescale(prescale.value());
+            }
+        } else {
+            LOGGER.info("Connected to existing ET station: " + stationName.value());
         }
-        stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
-        LOGGER.info("Created new ET station: " + stationName.value());
+
         att = sys.attach(stat);
 
         LOGGER.info("Initialized station: " + stat.getName());

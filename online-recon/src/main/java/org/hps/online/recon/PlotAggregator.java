@@ -296,28 +296,31 @@ public class PlotAggregator implements Runnable {
                     }
                     IManagedObject srcObject = serverTree.find(remoteName);
 
-                    // Get the target object
-                    String targetPath = toAggregateName(remoteName);
-                    IManagedObject targetObject = null;
-                    try {
-                        // Get object from the tree
-                        targetObject = serverTree.find(targetPath);
+                    // Check flag whether object should be aggregated
+                    if (shouldAggregate(srcObject)) {
 
-                        // Add source to target
+                        // Get the target object
+                        String targetPath = toAggregateName(remoteName);
+                        IManagedObject targetObject = null;
+
+                        // Only histograms are aggregated.
                         if (srcObject instanceof IBaseHistogram) {
-                            add((IBaseHistogram) srcObject, (IBaseHistogram) targetObject);
+                            try {
+                                // Get object from the tree
+                                targetObject = serverTree.find(targetPath);
+
+                                // Add source to target
+                                add((IBaseHistogram) srcObject, (IBaseHistogram) targetObject);
+                            } catch (IllegalArgumentException e) {
+                                // Create a new target histogram by copying one of the remote objects
+                                LOG.finer("Copying: " + remoteName + " -> " + targetPath);
+                                serverTree.cp(remoteName, targetPath, false);
+                                LOG.finer("Copied object " + srcObject.name() + " entries: "
+                                        + ((IBaseHistogram) srcObject).entries());
+                            }
                         }
-                    } catch (IllegalArgumentException e) {
-                        if (srcObject instanceof IBaseHistogram) {
-                            // Create a new target histogram by copying one of the remote objects
-                            LOG.finer("Copying: " + remoteName + " -> " + targetPath);
-                            serverTree.cp(remoteName, targetPath, false);
-                            LOG.finer("Copied object " + srcObject.name() + " entries: "
-                                    + ((IBaseHistogram) srcObject).entries());
-                        }
+                        LOG.finer("Done updating: " + remoteName);
                     }
-
-                    LOG.finer("Done updating: " + remoteName);
                 }
             }
         } catch (Exception e) {
@@ -359,6 +362,24 @@ public class PlotAggregator implements Runnable {
         }
 
         LOG.finest("Target entries after: " + target.entries());
+    }
+
+    /**
+     * Check whether plot should be aggregated by looking at an annotation flag
+     * @param obj The object to check
+     * @return True if plot should be aggregated
+     */
+    static private boolean shouldAggregate(IManagedObject obj) {
+        if (obj instanceof IBaseHistogram) {
+            IBaseHistogram hist = (IBaseHistogram) obj;
+            if (hist.annotation().hasKey("aggregate")) {
+                if (hist.annotation().value("aggregate").toLowerCase().equals("false")) {
+                    LOG.fine("Skipping aggregation of histogram: " + hist.title());
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
