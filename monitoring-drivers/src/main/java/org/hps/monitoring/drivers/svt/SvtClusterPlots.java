@@ -244,10 +244,10 @@ public class SvtClusterPlots extends Driver {
         for (HpsSiSensor sensor : sensors) {
 
             clusterChargePlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                    histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Cluster Charge", 100, 0, 5000));
+                    histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Cluster Charge", 100, 0, 2000));
             singleHitClusterChargePlots
                     .put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
-                            + " - Single Hit Cluster Charge", 100, 0, 5000));
+                            + " - Single Hit Cluster Charge", 100, 0, 2000));
             clusterTimePlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
                     histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Cluster Time", 100, -75, 75));
 
@@ -318,7 +318,7 @@ public class SvtClusterPlots extends Driver {
                         .plot(hitTimeTrigTimePlots1D[i][j], this.createStyle(null, "Cluster Time [ns]", ""));
                 hitTimeTrigTimePlots2D[i][j] = histogramFactory.createHistogram2D(
                         String.format("Cluster Amplitude vs. Time for Phase %d, %s", i, j == TOP ? "Top" : "Bottom"),
-                        100, -75, 50, 100, 0, 5000.0);
+                        100, -75, 50, 100, 0, 2000.0);
                 plotters.get("SVT-trigger timing and amplitude by phase")
                         .region(i + 6 * j)
                         .plot(hitTimeTrigTimePlots2D[i][j],
