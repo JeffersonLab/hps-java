@@ -57,11 +57,14 @@
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
+<!--            <correctTimeOffset>false</correctTimeOffset>
+            <subtractTriggerTime>false</subtractTriggerTime>            -->
             <correctTimeOffset>true</correctTimeOffset>
             <subtractTriggerTime>true</subtractTriggerTime>            
             <trigTimeScale>55.0</trigTimeScale>
             <subtractRFTime>false</subtractRFTime> 
-            <subtractTOF>true</subtractTOF>
+<!--            <subtractTOF>false</subtractTOF>-->
+              <subtractTOF>true</subtractTOF>
             <correctChanT0>false</correctChanT0>
             <debug>false</debug>
         </driver>
@@ -69,7 +72,9 @@
             <neighborDeltaT>8.0</neighborDeltaT>
             <debug>false</debug>
         </driver>
-        <driver name="SVTPulseFitPlots" type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots" />
+        <driver name="SVTPulseFitPlots" type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots">
+            <correctForT0Offset>false</correctForT0Offset>
+        </driver>
         <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
             <dropSmallHitEvents>false</dropSmallHitEvents>
             <cutOutLowChargeClusters>true</cutOutLowChargeClusters>

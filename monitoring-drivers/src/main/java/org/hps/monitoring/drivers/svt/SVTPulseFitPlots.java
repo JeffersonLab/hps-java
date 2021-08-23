@@ -43,7 +43,10 @@ public class SVTPulseFitPlots extends Driver {
 
     private static final String subdetectorName = "Tracker";
     private SvtTimingConstants timingConstants;
-
+    private boolean correctForT0Offset=false;
+    public void setCorrectForT0Offset(boolean correct){
+        this.correctForT0Offset=correct;
+    }
     @Override
     protected void detectorChanged(Detector detector) {
         timingConstants = DatabaseConditionsManager.getInstance()
@@ -171,6 +174,8 @@ public class SVTPulseFitPlots extends Driver {
             double offset = timingConstants.getOffsetTime()
                     + (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12)
                     + sensor.getShapeFitParameters(strip)[HpsSiSensor.T0_INDEX] + sensor.getT0Shift() + tof;
+            if(!correctForT0Offset)
+                 offset=0.0;
 
             t0Plots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(fittedT0);
             ampPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(fittedAmp);
