@@ -83,7 +83,7 @@ public abstract class RemoteAidaDriver extends Driver {
         final RmiStoreFactory rsf = new RmiStoreFactory();
 
         if (rmiTreeServer != null) {
-            LOG.warning("Already connected (RMI tree server is not null)");
+            LOG.warning("Already connected -- RMI tree server is not null");
             return;
         }
         if (remoteTreeBind == null) {
