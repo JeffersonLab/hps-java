@@ -329,6 +329,7 @@ public class PlotAggregator implements Runnable {
                                     add((IBaseHistogram) srcObject, (IBaseHistogram) targetObject);
                                 } catch (IllegalArgumentException e) {
 
+                                    // HACK: Always make sure target directory exists (could be improved)
                                     String dirName = new File(targetPath).getParentFile().getPath();
                                     LOG.finest("Creating agg dir: " + dirName);
                                     serverTree.mkdirs(dirName);
@@ -344,7 +345,7 @@ public class PlotAggregator implements Runnable {
                     } catch (Exception e) {
                         LOG.log(Level.SEVERE, "Error updating aggregate plot: " + targetPath, e);
                     }
-                    LOG.finest("Done updating: " + remoteName);
+                    //LOG.finest("Done updating: " + remoteName);
                 }
             } catch (Exception e) {
                 LOG.log(Level.SEVERE, "Error aggregating remote dir: " + dir, e);
@@ -398,7 +399,7 @@ public class PlotAggregator implements Runnable {
             IBaseHistogram hist = (IBaseHistogram) obj;
             if (hist.annotation().hasKey("aggregate")) {
                 if (hist.annotation().value("aggregate").toLowerCase().equals("false")) {
-                    LOG.fine("Skipping aggregation of histogram: " + hist.title());
+                    LOG.finest("Skipping aggregation of histogram: " + hist.title());
                     return false;
                 }
             }
@@ -763,7 +764,8 @@ public class PlotAggregator implements Runnable {
                 LOG.warning("Remote connection attempt was interrupted");
                 break;
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Connection attempt failed: " + remoteTreeBindStr, e);
+                //LOG.log(Level.WARNING, "Connection attempt failed: " + remoteTreeBindStr, e);
+                LOG.warning("Connection attempt failed -- will retry");
             }
         }
         if (mounted == false) {
