@@ -42,6 +42,7 @@ public abstract class RemoteAidaDriver extends Driver {
     protected IDataPointSetFactory dpsf = aida.analysisFactory().createDataPointSetFactory(tree);
 
     private String remoteTreeBind = null;
+    private boolean runLocal=false; // set the to true for testing; bypasses remote connections
 
     public RemoteAidaDriver() {
     }
@@ -50,12 +51,20 @@ public abstract class RemoteAidaDriver extends Driver {
         this.remoteTreeBind = remoteTreeBind;
     }
 
+    public void setRunLocal(boolean run){
+        this.runLocal=run;
+    }
+    
     protected void endOfData() {
         disconnect();
     }
 
     protected void startOfData() {
+        initialize();
+    }
 
+    protected void initialize() {
+        if(runLocal)return;
         // HACK: Fixes exceptions from missing AIDA converters
         final RmiStoreFactory rsf = new RmiStoreFactory();
 
@@ -67,6 +76,7 @@ public abstract class RemoteAidaDriver extends Driver {
     }
 
     synchronized final void disconnect() {
+        if(runLocal)return;
         if (rmiTreeServer != null) {
             ((RmiServerImpl) rmiTreeServer).disconnect();
             rmiTreeServer = null;
@@ -78,8 +88,9 @@ public abstract class RemoteAidaDriver extends Driver {
     }
 
     synchronized final void connect() throws IOException {
+        if(runLocal)return;
         if (rmiTreeServer != null) {
-            LOG.warning("Already connected (rmi tree server is not null)");
+            LOG.warning("Already connected (RMI tree server is not null)");
             return;
         }
         if (remoteTreeBind == null) {

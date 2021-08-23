@@ -287,7 +287,7 @@
             <makeMollerCols>false</makeMollerCols>
         </driver>       
  
-        <driver name="HPSMonitoringSeedTracker2021" type="org.hps.online.recon.aida.HPSMonitoringKFTracker2021">
+        <driver name="HPSMonitoringSeedTracker2021" type="org.hps.online.recon.aida.HPSMonitoring2021">
             <!-- AIDA tree bind provided using external variable -->
         <!--    <remoteTreeBind>${remoteTreeBind}</remoteTreeBind> -->
         <!-- collection names --> 
@@ -303,7 +303,8 @@
             <!-- SVT Hits Info -->
             <!-- <doPerChannelsSampleplots>true</doPerChannelsSampleplots> -->
             <cutOutLowChargeHits>true</cutOutLowChargeHits>           
-            
+            <!--<remoteTreeBind>${remoteTreeBind}</remoteTreeBind>-->
+            <runLocal>true</runLocal>
         
         </driver>
  
