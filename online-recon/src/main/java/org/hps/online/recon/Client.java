@@ -140,9 +140,9 @@ public final class Client {
     }
 
     /**
-     * Setup state from the command line including possible client command, argument arrays, etc.
+     * Setup state from the raw command line arguments
      *
-     * @param args
+     * @param args The raw command line arguments
      */
     private void setup(String args[]) {
         int cmdIdx = findCommand(args);
@@ -150,17 +150,22 @@ public final class Client {
         if (cmdIdx > 0) {
             String commandName = args[cmdIdx];
             command = cf.create(commandName);
+            clientArgs = new String[0];
             if (cmdIdx > 0) {
                 clientArgs = new String[cmdIdx];
-                System.arraycopy(args, 0, clientArgs, 0, cmdIdx + 1);
+                System.arraycopy(args, 0, clientArgs, 0, cmdIdx);
             } else {
                 clientArgs = new String[0];
             }
 
-            cmdArgs = new String[args.length - cmdIdx];
-            System.arraycopy(args, cmdIdx, cmdArgs, 0, args.length - cmdIdx);
+            cmdArgs = new String[0];
+            if (args.length - cmdIdx - 1 > 0) {
+                cmdArgs = new String[args.length - cmdIdx];
+                System.arraycopy(args, cmdIdx + 1, cmdArgs, 0, args.length - cmdIdx);
+            }
         }
 
+        /*
         if (clientArgs.length > 0) {
             List<String> clientArgList = Arrays.asList(clientArgs);
             LOG.info("Client arg list: " + String.join(" ", clientArgList));
@@ -170,6 +175,7 @@ public final class Client {
             List<String> cmdArgList = Arrays.asList(cmdArgs);
             LOG.info("Command arg list: " + String.join(" ", cmdArgList));
         }
+        */
     }
 
     /**
