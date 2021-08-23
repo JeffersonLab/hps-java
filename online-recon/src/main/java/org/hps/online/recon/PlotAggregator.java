@@ -275,7 +275,7 @@ public class PlotAggregator implements Runnable {
      * Update the aggregated plots by adding all the histograms from the remote
      * trees together
      */
-    private synchronized void update() {
+    private void update() {
 
         LOG.fine("Plot aggregator is updating...");
 
@@ -622,7 +622,6 @@ public class PlotAggregator implements Runnable {
      * Unmount a remote tree e.g. when a station goes inactive
      * @param remoteTreeBind The URL of the remote tree
      */
-    //synchronized
     void unmount(String remoteTreeBind) {
         LOG.info("Unmounting remote tree: " + remoteTreeBind);
         if (remoteTreeBind == null) {
@@ -739,7 +738,7 @@ public class PlotAggregator implements Runnable {
      * @throws InterruptedException If the method is interrupted
      * @throw IOException If there is a problem adding the remote tree
      */
-    boolean addRemoteTree(String remoteTreeBindStr, int maxAttempts, long initialWaitMillis, long backoffMillis)
+    synchronized boolean addRemoteTree(String remoteTreeBindStr, int maxAttempts, long initialWaitMillis, long backoffMillis)
             throws InterruptedException, IOException {
         LOG.info("Mounting remote tree: " + remoteTreeBindStr);
         if (remoteTreeBindStr == null) {
