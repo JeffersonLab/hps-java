@@ -388,7 +388,15 @@ public class StationProcess {
         }
 
         command.add("-cp");
-        command.add(System.getProperty("java.class.path"));
+        if (props.get("lcsim.classpath").valid()) {
+            // Set classpath from user setting
+            Property<String> cp = props.get("lcsim.classpath");
+            command.add(cp.value());
+        } else {
+            // Use default classpath from system
+            command.add(System.getProperty("java.class.path"));
+        }
+
         command.add(Station.class.getCanonicalName());
         command.add(configFile.getPath());
     }
