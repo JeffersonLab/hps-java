@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtTimingConstants;
@@ -36,8 +34,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 
-import hep.aida.IDataPoint;
-import hep.aida.IDataPointSet;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.physics.vec.BasicHep3Vector;
@@ -59,14 +55,6 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
     private static final String SVTHITS_DIR = "/svtHits";
     private static final String FINALSTATE_DIR = "/finalState";
     private static final String V0_DIR = "/V0";
-    private static final String PERF_DIR = "/perf";
-
-    /*
-     * Performance plots
-     */
-    private IHistogram1D eventCountH1D;
-    private IDataPointSet eventRateDPS;
-    private IDataPointSet millisPerEventDPS;
 
     /*
      * Ecal plots
@@ -84,7 +72,6 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
      */
     private int maxSamplePosition = -1;
     private int timeWindowWeight = 1;
-    private int eventCount = 0;
     private int eventRefreshRate = 10;
     private boolean enableMaxSamplePlots = false;
     private static Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
@@ -196,12 +183,6 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
     private static final String stripClusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private String finalStateParticlesColName = "FinalStateParticles_KF";
     private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates_KF";
-    /*
-     * Event timing
-     */
-    private int eventsProcessed = 0;
-    private long start = -1L;
-    private Timer timer;
 
     /* SVT Occupancy setters */
     public void setEnableMaxSamplePlots(boolean enableMaxSamplePlots) {
@@ -416,56 +397,13 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
         pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         massVsVtxZ = aida.histogram2D("Mass vs Vz", 50, 0, 0.15, 50, -10, 10);
 
-        tree.mkdir(PERF_DIR);
-        tree.cd(PERF_DIR);
-
-        /*
-         * Performance plots
-         */
-        eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
-        eventRateDPS = dpsf.create("Event Rate", "Event Rate", 1);
-        millisPerEventDPS = dpsf.create("Millis Per Event", 1);
-
-        TimerTask task = new TimerTask() {
-            public void run() {
-                if (eventsProcessed > 0 && start > 0) {
-                    long elapsed = System.currentTimeMillis() - start;
-                    double eps = (double) eventsProcessed / ((double) elapsed / 1000L);
-                    double mpe = (double) elapsed / (double) eventsProcessed;
-//                    LOG.fine("Event Timer: " + eps + " Hz");
-
-                    IDataPoint dp = eventRateDPS.addPoint();
-                    dp.coordinate(0).setValue(eps);
-                    while (eventRateDPS.size() > 10) {
-                        eventRateDPS.removePoint(0);
-                    }
-
-                    dp = millisPerEventDPS.addPoint();
-                    dp.coordinate(0).setValue(mpe);
-                    while (millisPerEventDPS.size() > 10) {
-                        millisPerEventDPS.removePoint(0);
-                    }
-                }
-                start = System.currentTimeMillis();
-                eventsProcessed = 0;
-            }
-        };
-        Timer timer = new Timer("Event Timer");
-        timer.scheduleAtFixedRate(task, 0, 5000L);
         bFieldMap = detector.getFieldMap();
-
-    }
-
-    public void endOfData() {
-
-//        timer.cancel();
-        super.endOfData();
     }
 
     public void process(EventHeader event) {
 
-        eventCountH1D.fill(0.5);
-        eventCount++;
+        super.process(event);
+
         this.clearHitMaps();
 
         List<RawTrackerHit> ecalHits = event.get(RawTrackerHit.class, ECAL_READOUT_HITS);
@@ -768,8 +706,6 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
             pxEleVspxPos.fill(ele.getTrackStates().get(0).getMomentum()[1],
                     pos.getTrackStates().get(0).getMomentum()[1]);
         }
-
-        ++eventsProcessed;
     }
 
     private static Map<Integer, Hep3Vector> createStripPositionMap(HpsSiSensor sensor) {
@@ -824,7 +760,6 @@ public class HPSMonitoringKFTracker2021 extends RemoteAidaDriver {
     }
 
     private double getMomentum(Track trk) {
-
         double px = trk.getTrackStates().get(0).getMomentum()[0];
         double py = trk.getTrackStates().get(0).getMomentum()[1];
         double pz = trk.getTrackStates().get(0).getMomentum()[2];
