@@ -31,8 +31,8 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 import org.lcsim.event.Cluster;
-
-import org.hps.recon.ecal.SimpleGenericObject;
+import org.lcsim.event.CalorimeterHit;
+//import org.hps.recon.ecal.SimpleGenericObject;
 
 import org.lcsim.event.RawTrackerHit;
 
@@ -100,7 +100,8 @@ public class HodoscopePlots extends Driver {
     private String rawCollectionName = "HodoReadoutHits";
     private String hodoCollectionName = "HodoCalHits";
     private final String hodoReadoutCollectionName = "HodoscopeHits";
-    private String hodoHitsCollectionName = "HodoGenericHits";
+    //private String hodoHitsCollectionName = "HodoGenericHits";
+    private String hodoHitsCollectionName = "HodoCalHits";
     private String hodoClustersCollectionName = "HodoGenericClusters";
 
     private String ecalClusterName = "EcalClusters";
@@ -329,19 +330,22 @@ public class HodoscopePlots extends Driver {
             return;
         }
         // Get RawTrackerHit collection from event.
-        List<SimpleGenericObject> reconHits = event.get(SimpleGenericObject.class, hodoHitsCollectionName);
-
+        //List<SimpleGenericObject> reconHits = event.get(SimpleGenericObject.class, hodoHitsCollectionName);
+        List<CalorimeterHit> reconHits = event.get(CalorimeterHit.class, hodoHitsCollectionName);
         //System.out.println("Size of reconHits is " + reconHits.size());
-        int n_hits = reconHits.get(0).getNInt();
+        //int n_hits = reconHits.get(0).getNInt();
+
+        int n_hits = reconHits.size();
 
         // ======= Loop over hits, and fill corresponding histogram =======
         for (int ihit = 0; ihit < n_hits; ihit++) {
-            int ix = reconHits.get(0).getIntVal(ihit);
-            int iy = reconHits.get(1).getIntVal(ihit);
-            int layer = reconHits.get(2).getIntVal(ihit);
-            int hole = reconHits.get(3).getIntVal(ihit);
-            double Energy = reconHits.get(4).getDoubleVal(ihit);
-            double hit_time = reconHits.get(5).getDoubleVal(ihit);
+
+            int ix = reconHits.get(ihit).getIdentifierFieldValue("ix");
+            int iy = reconHits.get(ihit).getIdentifierFieldValue("iy");
+            int layer = reconHits.get(ihit).getIdentifierFieldValue("layer");
+            int hole = reconHits.get(ihit).getIdentifierFieldValue("hole");
+            double Energy = reconHits.get(ihit).getRawEnergy();
+            double hit_time = reconHits.get(ihit).getTime();
 
             //if( iy < 0 ){Energy = 4.*Energy;}
             String histname = hitEnergyHistName(ix, iy, layer, hole);
