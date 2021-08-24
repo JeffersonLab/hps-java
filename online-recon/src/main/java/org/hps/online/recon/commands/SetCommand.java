@@ -22,7 +22,7 @@ public final class SetCommand extends Command {
         }
         String name = argList.get(0);
         String value = String.join(" ", argList.subList(1, argList.size()));
-        System.out.println("value="+value);
+        //System.out.println("value="+value);
         setParameter("name", name);
         setParameter("value", value);
     }
