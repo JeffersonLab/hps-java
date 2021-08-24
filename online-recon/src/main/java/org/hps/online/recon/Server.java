@@ -638,6 +638,9 @@ public final class Server {
         // Startup the plot aggregation engine
         startPlotAggregator();
 
+        // Startup the notifier to broadcast when plots are refreshed
+        PlotNotifier.instance().start();
+
         // Add the shutdown hook
         addShutdownHook();
 
@@ -711,10 +714,17 @@ public final class Server {
             e.printStackTrace();
         }
 
-        LOG.info("Done shutting down server");
+        LOG.info("Shutting down aggregator");
         try {
             agg.disconnect();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        LOG.info("Shutting down notifier");
+        try {
+            PlotNotifier.instance().stop();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 

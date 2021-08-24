@@ -1,5 +1,7 @@
 package org.hps.online.recon;
 
+import java.util.logging.Logger;
+
 import org.hps.online.recon.properties.IntegerProperty;
 import org.hps.online.recon.properties.Property;
 import org.hps.online.recon.properties.PropertyStore;
@@ -14,6 +16,8 @@ import org.jlab.coda.et.enums.Mode;
 public class StationProperties extends PropertyStore {
 
     private final static String DIR = System.getProperty("user.dir");
+
+    private final static Logger LOG = Logger.getLogger(StationProperties.class.getPackage().getName());
 
     /*
     From EtConstants.java
@@ -49,7 +53,8 @@ public class StationProperties extends PropertyStore {
                 new StringProperty ( "lcsim.conditions",      "Conditions URL",                 null,           false),
                 new StringProperty ( "lcsim.tag",             "Conditions tag",                 null,           false),
                 new StringProperty ( "lcsim.builder",         "LCIO event builder",             BUILDER,        true),
-                new StringProperty ( "lcsim.jvm_args",        "JVM args for the lcsim process", "-Xmx1g",       false),
+                new StringProperty ( "lcsim.jvm_args",        "JVM args for the lcsim process", "-Xmx512m",     false),
+                new StringProperty ( "lcsim.classpath",       "Classpath for running lcsim",    null,           false),
                 new StringProperty ( "station.outputName",    "Base name for output files",     "output",       true),
                 new StringProperty ( "station.outputDir",     "Directory for output files",     DIR,            true),
                 new StringProperty ( "station.loggingConfig", "Logging config file",            null,           false),
@@ -73,6 +78,7 @@ public class StationProperties extends PropertyStore {
      */
     public StationProperties(StationProperties sp) {
         for (Property<?> p : sp.props.values()) {
+            LOG.info("Clone prop: " + p.name() + "=" + p.value());
             add((Property<?>) p.clone());
         }
     }
