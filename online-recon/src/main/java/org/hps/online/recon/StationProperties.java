@@ -78,7 +78,6 @@ public class StationProperties extends PropertyStore {
      */
     public StationProperties(StationProperties sp) {
         for (Property<?> p : sp.props.values()) {
-            LOG.info("Clone prop: " + p.name() + "=" + p.value());
             add((Property<?>) p.clone());
         }
     }
