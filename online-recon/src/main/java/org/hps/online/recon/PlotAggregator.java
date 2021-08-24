@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -351,6 +352,10 @@ public class PlotAggregator implements Runnable {
                 LOG.log(Level.SEVERE, "Error aggregating remote dir: " + dir, e);
             }
         }
+
+        // Broadcast a message to clients (e.g. the web application) that update occurred
+        PlotNotifier.instance().broadcast("updated at " + new Date().toString());
+
         LOG.fine("Plot aggregator is done updating");
     }
 
