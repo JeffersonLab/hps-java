@@ -11,7 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FilenameUtils;
-//import org.hps.online.recon.PlotAggregator.RemoteTreeBindThread;
 import org.hps.online.recon.logging.LoggingConfig;
 import org.hps.online.recon.properties.Property;
 import org.json.JSONObject;
