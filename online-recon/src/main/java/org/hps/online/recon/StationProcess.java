@@ -386,6 +386,12 @@ public class StationProcess {
             command.add("-Djava.util.logging.config.class=" + LoggingConfig.class.getCanonicalName());
         }
 
+        // Set the station name
+        command.add("-D" + Station.STAT_NAME_KEY + "=" + this.stationName);
+
+        // Set the AIDA remote tree binding
+        command.add("-D" + Station.RTB_KEY + "=" + this.getRemoteTreeBind());
+
         command.add("-cp");
         if (props.get("lcsim.classpath").valid()) {
             // Set classpath from user setting

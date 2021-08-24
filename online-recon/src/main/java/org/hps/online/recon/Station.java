@@ -59,6 +59,16 @@ public class Station {
     private DatabaseConditionsManagerSetup conditionsSetup;
 
     /**
+     * Attribute for setting station name in the environment
+     */
+    public static final String STAT_NAME_KEY = "org.hps.online.recon.stationName";
+
+    /**
+     * Attribute for setting the remote tree bind in a Driver
+     */
+    public static final String RTB_KEY = "org.hps.online.recon.remoteTreeBind";
+
+    /**
      * Create new online reconstruction station with given properties
      * @param config The station properties
      */
