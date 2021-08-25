@@ -111,6 +111,11 @@ public class PlotAggregator implements Runnable {
      */
     private final String updating = "updating";
 
+    private static final Set<String> DIR_TYPE = new HashSet<String>();
+    static {
+        DIR_TYPE.add("dir");
+    }
+
     /**
      * Create an instance of the plot aggregator
      */
@@ -260,7 +265,7 @@ public class PlotAggregator implements Runnable {
                 if (obj instanceof IBaseHistogram) {
                     IBaseHistogram hist = (IBaseHistogram) obj;
                     if (hist.entries() > 0) {
-                        LOG.finest("Clearing " + hist.title() + " with entries: " + hist.entries());
+                        //LOG.finest("Clearing " + hist.title() + " with entries: " + hist.entries());
                         ((IBaseHistogram) obj).reset();
                     }
                 } else if (obj instanceof IDataPointSet) {
@@ -272,6 +277,21 @@ public class PlotAggregator implements Runnable {
         LOG.fine("Done clearing tree");
     }
 
+    private void makeCombinedDirs() {
+        String[] remoteDirNames = listObjectNames("/remotes", true, DIR_TYPE);
+        String[] combinedDirNames = listObjectNames("/combined", true, DIR_TYPE);
+        HashSet<String> combinedDirs = new HashSet<String>();
+        combinedDirs.addAll(Arrays.asList(combinedDirNames));
+        for (String dirName : remoteDirNames) {
+            String combinedName = toAggregateName(dirName);
+            if (!combinedDirs.contains(combinedName)) {
+                LOG.fine("Making missing aggregation dir: " + combinedName);
+                serverTree.mkdirs(combinedName);
+                combinedDirs.add(combinedName);
+            }
+        }
+    }
+
     /**
      * Update the aggregated plots by adding all the histograms from the remote
      * trees together
@@ -280,6 +300,10 @@ public class PlotAggregator implements Runnable {
 
         LOG.fine("Plot aggregator is updating...");
 
+        // Create combined directories in case any are missing
+        makeCombinedDirs();
+
+        // Get the directories for the remote trees
         String[] dirs = null;
         try {
             dirs = this.listObjectNames(REMOTES_DIR, false, null);
@@ -330,31 +354,22 @@ public class PlotAggregator implements Runnable {
                                     add((IBaseHistogram) srcObject, (IBaseHistogram) targetObject);
                                 } catch (IllegalArgumentException e) {
 
-                                    // HACK: Always make sure target directory exists (could be improved)
-                                    String dirName = new File(targetPath).getParentFile().getPath();
-                                    LOG.finest("Creating agg dir: " + dirName);
-                                    serverTree.mkdirs(dirName);
-
                                     // Create a new target histogram by copying one of the remote objects
-                                    LOG.finest("Copying: " + remoteName + " -> " + targetPath);
+                                    //LOG.finest("Copying: " + remoteName + " -> " + targetPath);
                                     serverTree.cp(remoteName, targetPath, false);
-                                    LOG.finest("Copied object " + srcObject.name() + " entries: "
-                                            + ((IBaseHistogram) srcObject).entries());
+                                    //LOG.finest("Copied object " + srcObject.name() + " entries: "
+                                    //        + ((IBaseHistogram) srcObject).entries());
                                 }
                             }
                         }
                     } catch (Exception e) {
                         LOG.log(Level.SEVERE, "Error updating aggregate plot: " + targetPath, e);
                     }
-                    //LOG.finest("Done updating: " + remoteName);
                 }
             } catch (Exception e) {
                 LOG.log(Level.SEVERE, "Error aggregating remote dir: " + dir, e);
             }
         }
-
-        // Broadcast a message to clients (e.g. the web application) that update occurred
-        PlotNotifier.instance().broadcast("updated at " + new Date().toString());
 
         LOG.fine("Plot aggregator is done updating");
     }
@@ -374,24 +389,23 @@ public class PlotAggregator implements Runnable {
      * @param target The target AIDA object (the combined histogram)
      */
     private static void add(IBaseHistogram src, IBaseHistogram target) {
-        LOG.finest("Adding plots: " + src.title() + " -> " + target.title());
-        LOG.finest("Source entries: " + src.entries());
-        LOG.finest("Target entries before: " + target.entries());
+        //LOG.finest("Adding plots: " + src.title() + " -> " + target.title());
+        //LOG.finest("Source entries: " + src.entries());
+        //LOG.finest("Target entries before: " + target.entries());
         if (src instanceof IHistogram) {
             // Add two histograms
-            LOG.finest("Adding histograms");
+            //LOG.finest("Adding histograms");
             add((IHistogram) src, (IHistogram) target);
         } else if (src instanceof ICloud) {
             // Add two clouds
-            LOG.finest("Adding clouds");
+            //LOG.finest("Adding clouds");
             add((ICloud) src, (ICloud) target);
         } else if (src instanceof IProfile) {
             // Add two profile histograms
-            LOG.finest("Adding profile histograms");
+            //LOG.finest("Adding profile histograms");
             add((IProfile) src, (IProfile) target);
         }
-
-        LOG.finest("Target entries after: " + target.entries());
+        //LOG.finest("Target entries after: " + target.entries());
     }
 
     /**
@@ -404,7 +418,7 @@ public class PlotAggregator implements Runnable {
             IBaseHistogram hist = (IBaseHistogram) obj;
             if (hist.annotation().hasKey("aggregate")) {
                 if (hist.annotation().value("aggregate").toLowerCase().equals("false")) {
-                    LOG.finest("Skipping aggregation of histogram: " + hist.title());
+                    //LOG.finest("Skipping aggregation of histogram: " + hist.title());
                     return false;
                 }
             }
@@ -462,8 +476,8 @@ public class PlotAggregator implements Runnable {
             LOG.warning("Skipping add of converted src cloud: " + src.title());
             return;
         }
-        LOG.finest("Cloud src entries: " + ((ICloud1D)src).entries());
-        LOG.finest("Cloud target entries before: " + ((ICloud1D)target).entries());
+        //LOG.finest("Cloud src entries: " + ((ICloud1D)src).entries());
+        //LOG.finest("Cloud target entries before: " + ((ICloud1D)target).entries());
         if (src instanceof ICloud1D) {
             for (int i=0; i<src.entries(); i++) {
                 ((ICloud1D)target).fill(
@@ -471,7 +485,7 @@ public class PlotAggregator implements Runnable {
                         ((ICloud1D) src).weight(i));
             }
         }
-        LOG.finest("Cloud target entries after: " + ((ICloud1D)src).entries());
+        //LOG.finest("Cloud target entries after: " + ((ICloud1D)src).entries());
     }
 
     /**
@@ -608,9 +622,8 @@ public class PlotAggregator implements Runnable {
 
         String remoteDir = toMountName(remoteTreeBind);
         LOG.fine("Adding dirs for: " + remoteDir);
-        Set<String> dirType = new HashSet<String>();
-        dirType.add("dir");
-        String[] dirNames = listObjectNames(remoteDir, true, dirType);
+
+        String[] dirNames = listObjectNames(remoteDir, true, DIR_TYPE);
         for (String dirName : dirNames) {
             String aggName = toAggregateName(dirName);
             LOG.fine("Making aggregation dir: " + aggName);
@@ -666,8 +679,12 @@ public class PlotAggregator implements Runnable {
             }
             double elapsed = ((double) System.currentTimeMillis()) - start;
             LOG.info("Plot update took: " + elapsed/1000. + " sec");
+
+            // Broadcast a message to clients (e.g. the web application) that update occurred
+            PlotNotifier.instance().broadcast("updated at " + new Date().toString());
+
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error updating plots", e);
+            LOG.log(Level.SEVERE, "Error updating plots", e);
         }
     }
 
@@ -737,11 +754,11 @@ public class PlotAggregator implements Runnable {
      * Add a remote tree binding for aggregation
      * @param remoteTreeBindStr The URL of the remote tree
      * @param maxAttempts The max number of connection attempts
-     * @param initialWaitMillis The initial wait in milliseconds
-     * @param backoffMillis The back-off wait multiplier in milliseconds
+     * @param initialWaitMillis The initial wait in milliseconds before trying to connect
+     * @param backoffMillis The back-off wait multiplier in milliseconds between attempts
      * @return True if adding the remote tree was successful
      * @throws InterruptedException If the method is interrupted
-     * @throw IOException If there is a problem adding the remote tree
+     * @throw IOException If there is an error adding the remote tree
      */
     synchronized boolean addRemoteTree(String remoteTreeBindStr, int maxAttempts, long initialWaitMillis, long backoffMillis)
             throws InterruptedException, IOException {
@@ -789,6 +806,4 @@ public class PlotAggregator implements Runnable {
         throws InterruptedException, IOException {
         return addRemoteTree(remoteTreeBindStr, 5, 5000, 2000);
     }
-
-
 }
