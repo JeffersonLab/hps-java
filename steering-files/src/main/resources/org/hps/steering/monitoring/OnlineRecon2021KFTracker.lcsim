@@ -131,7 +131,7 @@
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
 
-        <driver name="HPSMonitoringKFTracker2021" type="org.hps.online.recon.aida.HPSMonitoringKFTracker2021">
+        <driver name="HPSMonitoringKFTracker2021" type="org.hps.online.recon.aida.HPSMonitoring2021">
             <!-- AIDA tree bind provided using external variable -->
               <!-- SVT Occupancy -->
            <!-- <eventRefreshRate>50</eventRefreshRate>     -->
@@ -141,7 +141,8 @@
             <!-- SVT Hits Info -->
             <!-- <doPerChannelsSampleplots>true</doPerChannelsSampleplots> -->
             <cutOutLowChargeHits>true</cutOutLowChargeHits>
-            <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>
+<!--            <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>-->
+            <runLocal>true</runLocal>
         </driver>
 
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
