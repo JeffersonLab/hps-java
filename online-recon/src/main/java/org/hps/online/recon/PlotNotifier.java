@@ -34,7 +34,7 @@ public class PlotNotifier extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
-        LOG.info("PlotNotifier got new connection from " + RemoteSocketAddress().getHostString() + " on port "
+        LOG.info("PlotNotifier got new connection from " + conn.getRemoteSocketAddress().getHostString() + " on port "
                 + conn.getRemoteSocketAddress().getPort());
     }
 
