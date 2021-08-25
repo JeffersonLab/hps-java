@@ -26,9 +26,6 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
 
 /**
  * Abstract driver for providing remote AIDA functionality
- *
- * The property <code>remoteTreeBind</code> can be used to set the
- * RMI binding name.
  */
 public abstract class RemoteAidaDriver extends Driver {
 
@@ -70,6 +67,8 @@ public abstract class RemoteAidaDriver extends Driver {
     protected int eventCount = 0;
 
     public RemoteAidaDriver() {
+
+        // Set the station name from the system property
         if (System.getProperties().containsKey(Station.STAT_NAME_KEY)) {
             stationName = System.getProperty(Station.STAT_NAME_KEY);
             LOG.info("Station name set from system prop: " + stationName);
@@ -77,16 +76,18 @@ public abstract class RemoteAidaDriver extends Driver {
             throw new RuntimeException("Station name not set in system props: " + Station.STAT_NAME_KEY);
         }
 
+        // Set the station number
         stationNum = Integer.valueOf(stationName.substring(stationName.lastIndexOf("_") + 1));
         LOG.info("Station num set from name: " + stationNum);
 
+        // Set the RMI URL for the remote AIDA connection
         if (System.getProperties().containsKey(Station.RTB_KEY)) {
             remoteTreeBind = System.getProperty(Station.RTB_KEY);
             LOG.info("Station remote tree binding set from system prop: " + this.remoteTreeBind);
         }
 
         // Do not allow object overwriting
-        //tree.setOverwrite(false);
+        tree.setOverwrite(false);
     }
 
     public String getStationName() {
