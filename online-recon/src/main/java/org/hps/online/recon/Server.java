@@ -656,7 +656,8 @@ public final class Server {
             throw new RuntimeException("Failed to connect aggregator", e);
         }
         // Run the plot aggregator every N seconds
-        exec.scheduleAtFixedRate(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
+        //exec.scheduleAtFixedRate(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
+        exec.scheduleWithFixedDelay(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
     }
 
     // This will never exit unless an external kill signal is received or the ET ring goes down.
