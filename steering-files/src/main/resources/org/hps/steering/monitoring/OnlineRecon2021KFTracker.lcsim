@@ -141,8 +141,7 @@
             <!-- SVT Hits Info -->
             <!-- <doPerChannelsSampleplots>true</doPerChannelsSampleplots> -->
             <cutOutLowChargeHits>true</cutOutLowChargeHits>
-<!--            <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>-->
-            <runLocal>true</runLocal>
+            <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>
         </driver>
 
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">

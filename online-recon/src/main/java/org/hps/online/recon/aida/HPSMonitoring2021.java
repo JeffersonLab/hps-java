@@ -316,11 +316,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     }
 
     @Override
-    protected void startOfData() {
-        // Override super method so we can initialize remote AIDA in detectorChanged() instead.
-    }
-
-    @Override
     protected void detectorChanged(Detector detector) {
 
         // Get the HpsSiSensor objects from the geometry
@@ -616,7 +611,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
     }
 
-    @Override
     public void endOfData() {
 
 //        timer.cancel();
