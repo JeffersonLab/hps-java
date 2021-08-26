@@ -69,7 +69,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private static final String TRACKER_DIR = "/tracks";
     private static final String TRACKTIME_DIR = "/tracks/time";
     private static final String SVTHITS_DIR = "/svtHits";
-    private static final String SVTRAW_DIR = "/perSensor/svtHitscounts";
+    private static final String SVTRAW_DIR = "/perSensor/svtHits/counts";
     private static final String SVTT0_DIR = "/perSensor/svtHits/time";
     private static final String FINALSTATE_DIR = "/finalState";
     private static final String TRACKTIMEHOT_DIR = "/perSensor/tracks/trkTime";
@@ -210,16 +210,11 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private IHistogram1D nPhot;
     private IHistogram1D photEne;
     private IHistogram2D photXYECal;
-    private IHistogram1D pi0Ene;
-    private IHistogram1D pi0Diff;
-    private IHistogram1D pi0Mass;
 
     private double ecalXRange = 500;
     private double ecalYRange = 100;
 
     private double pMax = 7.0;
-    private double pi0EsumCut = 3.0;//GeV
-    private double pi0EdifCut = 2.0;//GeV
 
     private IHistogram1D nV0;
     private IHistogram1D unconMass;
@@ -294,14 +289,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
     public void setPMax(double pmax) {
         this.pMax = pmax;
-    }
-
-    public void setPi0EsumCut(double cut) {
-        this.pi0EsumCut = cut;
-    }
-
-    public void setPi0EdifCut(double cut) {
-        this.pi0EdifCut = cut;
     }
 
     public void setFinalStateParticlesColName(String name) {
@@ -567,6 +554,10 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         posPz = aida.histogram1D("Positron Pz (GeV)", 50, 0.0, pMax);
         posProjXYEcalMatch = aida.histogram2D("Positron ECal Projection: Matched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         posProjXYEcalNoMatch = aida.histogram2D("Positron ECal Projection: Unmatched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
+
+        nPhot = aida.histogram1D("Number of Photons per event", 5, 0, 5);
+        photEne = aida.histogram1D("Photon Energy (GeV)", 50, 0.0, pMax);
+        photXYECal = aida.histogram2D("ECal Position", 50, -300, 400, 50, -ecalYRange, ecalYRange);
         /* V0 Quantities */
  /* Mass, vertex, chi^2 of fit */
  /* unconstrained  */

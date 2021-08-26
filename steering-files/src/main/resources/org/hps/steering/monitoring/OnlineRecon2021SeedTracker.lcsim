@@ -303,8 +303,8 @@
             <!-- SVT Hits Info -->
             <!-- <doPerChannelsSampleplots>true</doPerChannelsSampleplots> -->
             <cutOutLowChargeHits>true</cutOutLowChargeHits>   
-            <enableTrackTimesPerSensorPlots>false</enableTrackTimesPerSensorPlots>
-            <enableMaxSamplePlots>false</enableMaxSamplePlots>        
+            <enableTrackTimesPerSensorPlots>true</enableTrackTimesPerSensorPlots>
+            <enableMaxSamplePlots>true</enableMaxSamplePlots>        
             <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>           
         </driver>
  
