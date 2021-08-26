@@ -114,14 +114,14 @@
             <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>
             <strategyResource>HPS_s123_c4_e56_4hit.xml</strategyResource>
             <debug>false</debug>
-	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
         <driver name="TrackReconSeed123Conf5Extd46" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s123_c5_e46</trackCollectionName>
             <strategyResource>HPS_s123_c5_e46_4hit.xml</strategyResource>
             <debug>false</debug>
-	        <rmsTimeCut>1000.0</rmsTimeCut>
+            <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
         <driver name="TrackReconSeed567Conf4Extd123" type="org.hps.recon.tracking.TrackerReconDriver">
@@ -245,15 +245,15 @@
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
         <!-- Refit tracks using the GBL algorithm -->
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
-          <!--            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
-          <maxTrackChisq6hits> 84. </maxTrackChisq6hits>-->
-          <includeNoHitScatters>true</includeNoHitScatters>
-          <gblRefitIterations>5</gblRefitIterations>
-          <storeTrackStates>false</storeTrackStates>
-          <writeMilleBinary>false</writeMilleBinary>
-          <milleBinaryFileName>${outputFile}_millepede.bin</milleBinaryFileName>
-          <!--<maxTrackChisq5hits> 100. </maxTrackChisq5hits> -->
-          <!--<maxTrackChisq6hits> 100. </maxTrackChisq6hits> -->
+            <!--            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
+            <maxTrackChisq6hits> 84. </maxTrackChisq6hits>-->
+            <includeNoHitScatters>true</includeNoHitScatters>
+            <gblRefitIterations>5</gblRefitIterations>
+            <storeTrackStates>false</storeTrackStates>
+            <writeMilleBinary>false</writeMilleBinary>
+            <milleBinaryFileName>${outputFile}_millepede.bin</milleBinaryFileName>
+            <!--<maxTrackChisq5hits> 100. </maxTrackChisq5hits> -->
+            <!--<maxTrackChisq6hits> 100. </maxTrackChisq6hits> -->
         </driver>        
         <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
             <outputPlotsFilename>${outputFile}_gblplots.root</outputPlotsFilename>
@@ -289,8 +289,8 @@
  
         <driver name="HPSMonitoringSeedTracker2021" type="org.hps.online.recon.aida.HPSMonitoring2021">
             <!-- AIDA tree bind provided using external variable -->
-        <!--    <remoteTreeBind>${remoteTreeBind}</remoteTreeBind> -->
-        <!-- collection names --> 
+            <!--    <remoteTreeBind>${remoteTreeBind}</remoteTreeBind> -->
+            <!-- collection names --> 
             <isSeedTracker>True</isSeedTracker>
             <trackColName>GBLTracks</trackColName>
             <finalStateParticlesColName>FinalStateParticles</finalStateParticlesColName>
@@ -302,7 +302,9 @@
             <timeWindowWeight>3</timeWindowWeight>
             <!-- SVT Hits Info -->
             <!-- <doPerChannelsSampleplots>true</doPerChannelsSampleplots> -->
-            <cutOutLowChargeHits>true</cutOutLowChargeHits>           
+            <cutOutLowChargeHits>true</cutOutLowChargeHits>   
+            <enableTrackTimesPerSensorPlots>false</enableTrackTimesPerSensorPlots>
+            <enableMaxSamplePlots>false</enableMaxSamplePlots>        
             <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>           
         </driver>
  
