@@ -73,9 +73,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private static final String SVTT0_DIR = "/xperSensor/svtHits/time";   
     private static final String ELECTRON_DIR = "/electrons";
     private static final String POSITRON_DIR = "/positrons";
-    private static final String TRACKTIMEHOT_DIR = "/perSensor/tracks/trkHitTime";
-    private static final String TRACKTIMEDTVSPHASE_DIR = "/perSensor/tracks/deltaTvsPhase";
-    private static final String TRACKTIMEDT_DIR = "/perSensor/tracks/deltaT";
+    private static final String TRACKTIMEHOT_DIR = "/xperSensor/tracks/trkHitTime";
+    private static final String TRACKTIMEDTVSPHASE_DIR = "/xperSensor/tracks/deltaTvsPhase";
+    private static final String TRACKTIMEDT_DIR = "/xperSensor/tracks/deltaT";
     private static final String SVTOCC_DIR = "/svtOccupancy";
     private static final String SVTMAX_DIR = "/xperSensor/svtHits/svtMaxSample";
     private static final String V01D_DIR = "/v01DPlots";
