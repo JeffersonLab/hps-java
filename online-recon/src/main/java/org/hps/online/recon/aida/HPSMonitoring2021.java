@@ -69,8 +69,8 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private static final String TRACKER_DIR = "/trackPars";
     private static final String TRACKTIME_DIR = "/trackTime";
     private static final String SVTHITS_DIR = "/svtHits";
-    private static final String SVTRAW_DIR = "/perSensor/svtHits/counts";
-    private static final String SVTT0_DIR = "/perSensor/svtHits/time";   
+    private static final String SVTRAW_DIR = "/xperSensor/svtHits/counts";
+    private static final String SVTT0_DIR = "/xperSensor/svtHits/time";   
     private static final String ELECTRON_DIR = "/electrons";
     private static final String POSITRON_DIR = "/positrons";
     private static final String TRACKTIMEHOT_DIR = "/perSensor/tracks/trkHitTime";
@@ -432,7 +432,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
          */
         tree.mkdirs(SVTOCC_DIR);
         tree.cd(SVTOCC_DIR);
-        tree.mkdir(SVTMAX_DIR);
+        tree.mkdirs(SVTMAX_DIR);
         for (HpsSiSensor sensor : sensors) {
             tree.cd(SVTOCC_DIR);
             occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
@@ -577,7 +577,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         massVsVtxZ = aida.histogram2D("Mass vs Vz", 50, 0, 0.15, 50, -10, 10);
 
-        tree.mkdir(PERF_DIR);
+        tree.mkdirs(PERF_DIR);
         tree.cd(PERF_DIR);
 
         /*
