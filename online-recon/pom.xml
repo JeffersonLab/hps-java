@@ -14,6 +14,10 @@
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
+      <artifactId>hps-online-monitoring</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
       <artifactId>hps-recon</artifactId>
     </dependency>
     <dependency>
