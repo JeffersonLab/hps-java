@@ -63,22 +63,24 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     /*
      * AIDA paths
      */
-    private static final String ECAL_HITS_DIR = "/ecal/hits";
-    private static final String ECAL_CLUSTERS_DIR = "/ecal/clusters";
-    private static final String ECAL_PAIRS_DIR = "/ecal/pairs";
-    private static final String TRACKER_DIR = "/tracks";
-    private static final String TRACKTIME_DIR = "/tracks/time";
+    private static final String ECAL_HITS_DIR = "/ecalHits";
+    private static final String ECAL_CLUSTERS_DIR = "/ecalClusters";
+    private static final String ECAL_PAIRS_DIR = "/ecalPairs";
+    private static final String TRACKER_DIR = "/trackPars";
+    private static final String TRACKTIME_DIR = "/trackTime";
     private static final String SVTHITS_DIR = "/svtHits";
     private static final String SVTRAW_DIR = "/perSensor/svtHits/counts";
-    private static final String SVTT0_DIR = "/perSensor/svtHits/time";
-    private static final String FINALSTATE_DIR = "/finalState";
-    private static final String TRACKTIMEHOT_DIR = "/perSensor/tracks/trkTime";
+    private static final String SVTT0_DIR = "/perSensor/svtHits/time";   
+    private static final String ELECTRON_DIR = "/electrons";
+    private static final String POSITRON_DIR = "/positrons";
+    private static final String TRACKTIMEHOT_DIR = "/perSensor/tracks/trkHitTime";
     private static final String TRACKTIMEDTVSPHASE_DIR = "/perSensor/tracks/deltaTvsPhase";
     private static final String TRACKTIMEDT_DIR = "/perSensor/tracks/deltaT";
-    private static final String SVTOCC_DIR = "/perSensor/svtHits/svtOccupancy";
-    private static final String SVTMAX_DIR = "/perSensor/svtHits/svtMaxSample";
-    private static final String V0_DIR = "/V0";
-    private static final String PERF_DIR = "/perf";
+    private static final String SVTOCC_DIR = "/svtOccupancy";
+    private static final String SVTMAX_DIR = "/xperSensor/svtHits/svtMaxSample";
+    private static final String V01D_DIR = "/v01DPlots";
+    private static final String V02D_DIR = "/v02DPlots";
+    private static final String PERF_DIR = "/EventsProcessed";
     private static final String TEMP_DIR = "/tmp";
 
     /*
@@ -430,14 +432,13 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
          */
         tree.mkdirs(SVTOCC_DIR);
         tree.cd(SVTOCC_DIR);
-
+        tree.mkdir(SVTMAX_DIR);
         for (HpsSiSensor sensor : sensors) {
             tree.cd(SVTOCC_DIR);
             occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
             occupancyPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), aida
                     .histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Occupancy", 640, 0, 640));
-            if (this.enableMaxSamplePlots) {
-                tree.mkdir(SVTMAX_DIR);
+            if (this.enableMaxSamplePlots) {               
                 tree.cd(SVTMAX_DIR);
                 maxSamplePositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), aida.histogram1D(
                         SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Max Sample Number", 6, -0.5, 5.5));
@@ -477,7 +478,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         tree.mkdirs(TRACKER_DIR);
         tree.cd(TRACKER_DIR);
 
-        tracksPerEventH1D = aida.histogram1D("Tracks Per Event", 20, 0., 20.);
+        tracksPerEventH1D = aida.histogram1D("Tracks Per Event", 20, 0., 10.);
         // tracksPerEventH1D.annotation().addItem("xAxisLabel", "Tracks / Event");
         // tracksPerEventH1D.annotation().addItem("yAxisLabel", "Count");
 
@@ -538,16 +539,18 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         /*
         *  Final state particle and V0 plots
          */
-        tree.mkdirs(FINALSTATE_DIR);
-        tree.mkdirs(V0_DIR);
-        tree.cd(FINALSTATE_DIR);
+        tree.mkdirs(ELECTRON_DIR);
+        tree.mkdirs(POSITRON_DIR);
+        tree.mkdirs(V01D_DIR);
+        tree.mkdirs(V02D_DIR);
+        tree.cd(ELECTRON_DIR);
         nEle = aida.histogram1D("Number of Electrons per event", 5, 0, 5);
         elePx = aida.histogram1D("Electron Px (GeV)", 50, -0.2, 0.2);
         elePy = aida.histogram1D("Electron Py (GeV)", 50, -0.2, 0.2);
         elePz = aida.histogram1D("Electron Pz (GeV)", 50, 0.0, pMax);
         eleProjXYEcalMatch = aida.histogram2D("Electron ECal Projection: Matched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         eleProjXYEcalNoMatch = aida.histogram2D("Electron ECal Projection: Unmatched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
-
+        tree.cd(POSITRON_DIR);
         nPos = aida.histogram1D("Number of Positrons per event", 5, 0, 5);
         posPx = aida.histogram1D("Positron Px (GeV)", 50, -0.2, 0.2);
         posPy = aida.histogram1D("Positron Py (GeV)", 50, -0.2, 0.2);
@@ -555,19 +558,20 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         posProjXYEcalMatch = aida.histogram2D("Positron ECal Projection: Matched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         posProjXYEcalNoMatch = aida.histogram2D("Positron ECal Projection: Unmatched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
 
-        nPhot = aida.histogram1D("Number of Photons per event", 5, 0, 5);
-        photEne = aida.histogram1D("Photon Energy (GeV)", 50, 0.0, pMax);
-        photXYECal = aida.histogram2D("ECal Position", 50, -300, 400, 50, -ecalYRange, ecalYRange);
+//        nPhot = aida.histogram1D("Number of Photons per event", 5, 0, 5);
+//        photEne = aida.histogram1D("Photon Energy (GeV)", 50, 0.0, pMax);
+//        photXYECal = aida.histogram2D("ECal Position", 50, -300, 400, 50, -ecalYRange, ecalYRange);
         /* V0 Quantities */
  /* Mass, vertex, chi^2 of fit */
  /* unconstrained  */
-        tree.cd(V0_DIR);
+        tree.cd(V01D_DIR);
         nV0 = aida.histogram1D("Number of V0 per event", 5, 0, 5);
         unconMass = aida.histogram1D("Unconstrained Mass (GeV)", 100, 0, 0.200);
         unconVx = aida.histogram1D("Unconstrained Vx (mm)", 50, -5, 5);
         unconVy = aida.histogram1D("Unconstrained Vy (mm)", 50, -1.0, 1.0);
         unconVz = aida.histogram1D("Unconstrained Vz (mm)", 50, -15, 10);
         unconChi2 = aida.histogram1D("Unconstrained Chi2", 50, 0, 25);
+        tree.cd(V02D_DIR);
         pEleVspPos = aida.histogram2D("P(e) vs P(p)", 50, 0, 2.5, 50, 0, 2.5);
         pyEleVspyPos = aida.histogram2D("Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
@@ -1169,11 +1173,11 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                 } else {
                     posProjXYEcalNoMatch.fill(tPos.y(), tPos.z());
                 }
-            } else if (fsp.getClusters().size() != 0) {
-                photCnt++;
-                Cluster clu = fsp.getClusters().get(0);
-                photEne.fill(clu.getEnergy());
-                photXYECal.fill(clu.getPosition()[0], clu.getPosition()[1]);
+//            } else if (fsp.getClusters().size() != 0) {
+//                photCnt++;
+//                Cluster clu = fsp.getClusters().get(0);
+//                photEne.fill(clu.getEnergy());
+//                photXYECal.fill(clu.getPosition()[0], clu.getPosition()[1]);
             } else {
                 System.out.println("This FSP had no tracks or clusters???");
             }
@@ -1183,7 +1187,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
         nPos.fill(posCnt);
 
-        nPhot.fill(photCnt);
+//        nPhot.fill(photCnt);
 
         /*
         *  V0 plots
