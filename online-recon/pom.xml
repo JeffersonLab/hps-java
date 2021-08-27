@@ -51,6 +51,7 @@
       <artifactId>Java-WebSocket</artifactId>
       <version>1.5.2</version>
     </dependency>
+    <!--
     <dependency>
        <groupId>org.slf4j</groupId>
        <artifactId>slf4j-api</artifactId>
@@ -61,6 +62,7 @@
        <artifactId>slf4j-log4j12</artifactId>
        <version>1.7.5</version>
    </dependency>
+   -->
   </dependencies>
   <build>
     <plugins>
@@ -83,23 +85,34 @@
           <platforms>
             <platform>unix</platform>
           </platforms>
-          <extraJvmArguments>-server</extraJvmArguments>
+          <extraJvmArguments>-server</extraJvmArguments> 
           <programs>
             <program>
               <mainClass>org.hps.online.recon.Server</mainClass>
               <id>online-recon-server</id>
               <jvmSettings>
-                <maxMemorySize>1g</maxMemorySize>
+                <maxMemorySize>2g</maxMemorySize>
+                <initialMemorySize>1g</initialMemorySize>
+                <maxStackSize>128m</maxStackSize>
                 <systemProperties>
                   <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.ServerLoggingConfig</systemProperty>
                 </systemProperties>
+                <extraArguments>
+                  <extraArgument>-XX:+UnlockExperimentalVMOptions</extraArgument>
+                  <extraArgument>-XX:+UseConcMarkSweepGC</extraArgument>
+                  <extraArgument>-XX:MaxGCPauseMillis=50</extraArgument>
+                  <extraArgument>-XX:G1HeapRegionSize=32M</extraArgument>
+                  <extraArgument>-XX:G1NewSizePercent=20</extraArgument>
+                  <extraArgument>-XX:G1ReservePercent=20</extraArgument>
+                  <extraArgument>-XX:SoftRefLRUPolicyMSPerMB=1</extraArgument>
+                </extraArguments>
               </jvmSettings>
             </program>
             <program>
               <mainClass>org.hps.online.recon.Client</mainClass>
               <id>online-recon-client</id>
               <jvmSettings>
-                <maxMemorySize>500m</maxMemorySize>
+                <maxMemorySize>200m</maxMemorySize>
                 <systemProperties>
                   <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.ClientLoggingConfig</systemProperty>
                 </systemProperties>
@@ -109,7 +122,7 @@
               <mainClass>org.hps.record.evio.EvioFileProducer</mainClass>
               <id>evio-producer</id>
               <jvmSettings>
-                <maxMemorySize>2g</maxMemorySize>
+                <maxMemorySize>512m</maxMemorySize>
                 <systemProperties>
                   <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.LoggingConfig</systemProperty>
                 </systemProperties>
