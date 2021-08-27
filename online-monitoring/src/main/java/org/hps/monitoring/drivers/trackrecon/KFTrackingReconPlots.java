@@ -19,20 +19,20 @@ import org.hps.detector.hodoscope.HodoscopePixelDetectorElement;
 
 import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.plot;
 import org.hps.recon.ecal.HodoUtils;
-import org.hps.recon.ecal.SimpleGenericObject;
-import org.hps.recon.tracking.CoordinateTransformations;
 
 import org.hps.recon.tracking.TrackUtils;
 import org.lcsim.detector.DetectorElement;
 import org.lcsim.detector.identifier.IIdentifier;
-import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCIOParameters.ParameterName;
+import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
+import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -47,7 +47,7 @@ public class KFTrackingReconPlots extends Driver {
     private String outputPlots = null;
     private boolean debug = false;
 
-    double feeMomentumCut = 3.5;
+    double feeMomentumCut = 3.2;
     int nmodules = 7;
 
     IPlotter plotter;
@@ -109,7 +109,7 @@ public class KFTrackingReconPlots extends Driver {
 //    private String hodoHitsCollectionName = "HodoGenericHits";
     private String hodoClustersCollectionName = "HodoGenericClusters";
 
-    double pMax = 7.0;
+    double pMax = 6.0;
 
     public void setFeeMomentumCut(double cut) {
         this.feeMomentumCut = cut;
@@ -141,7 +141,7 @@ public class KFTrackingReconPlots extends Driver {
         plotter.createRegions(2, 3);
         // plotterFrame.addPlotter(plotter);
 
-        nhits = aida.histogram1D("Hits per Track", 4, 4, 8);
+        nhits = aida.histogram1D("Hits per Track", 11, 4, 15);
 
         charge = aida.histogram1D("Track Charge", 3, -1, 2);
         trkPx = aida.histogram1D("Track Momentum (Px)", 50, -0.1, 0.2);
@@ -239,11 +239,10 @@ public class KFTrackingReconPlots extends Driver {
             plot(plotterXvsYHOT, xvsyTopHOT[i], null, computePlotterRegion(i, true));
             plot(plotterXvsYHOT, xvsyBotHOT[i], null, computePlotterRegion(i, false));
         }
-        */
+         */
         //        plotterHTH.show();
         // plotterXvsY.show();
         //        plotterXvsYHOT.show();
-
         htopLay = aida.histogram1D("Top Layers on Track", 7, 0, 7);
         hbotLay = aida.histogram1D("Bottom Layers on Track", 7, 0, 7);
         plotterLayers = pfac.create("Layers Hit on Track");
@@ -252,27 +251,26 @@ public class KFTrackingReconPlots extends Driver {
         plot(plotterLayers, hbotLay, null, 1);
         plotterLayers.show();
 
-        plotterHodo = pfac.create("Hodoscope Matching");
-        plotterHodo.createRegions(2, 4);
-        htrkProjH1TopMatch = aida.histogram2D("Top Hodoscope L1 Projection Match", 50, 0, 350, 50, 0, 100);
-        htrkProjH2TopMatch = aida.histogram2D("Top Hodoscope L2 Projection Match", 50, 0, 350, 50, 0, 100);
-        htrkProjH1BotMatch = aida.histogram2D("Bottom Hodoscope L1 Projection Match", 50, 0, 350, 50, 0, 100);
-        htrkProjH2BotMatch = aida.histogram2D("Bottom Hodoscope L2 Projection Match", 50, 0, 350, 50, 0, 100);
-        htrkProjH1TopNoMatch = aida.histogram2D("Top Hodoscope L1 Projection No Match", 50, 0, 350, 50, 0, 100);
-        htrkProjH2TopNoMatch = aida.histogram2D("Top Hodoscope L2 Projection No Match", 50, 0, 350, 50, 0, 100);
-        htrkProjH1BotNoMatch = aida.histogram2D("Bottom Hodoscope L1 Projection No Match", 50, 0, 350, 50, 0, 100);
-        htrkProjH2BotNoMatch = aida.histogram2D("Bottom Hodoscope L2 Projection No Match", 50, 0, 350, 50, 0, 100);
-        plot(plotterHodo, htrkProjH1TopMatch, null, 0);
-        plot(plotterHodo, htrkProjH1BotMatch, null, 2);
-        plot(plotterHodo, htrkProjH2TopMatch, null, 4);
-        plot(plotterHodo, htrkProjH2BotMatch, null, 6);
-        plot(plotterHodo, htrkProjH1TopNoMatch, null, 1);
-        plot(plotterHodo, htrkProjH1BotNoMatch, null, 3);
-        plot(plotterHodo, htrkProjH2TopNoMatch, null, 5);
-        plot(plotterHodo, htrkProjH2BotNoMatch, null, 7);
-        setZAxis(plotterHodo);
-        plotterHodo.show();
-
+//        plotterHodo = pfac.create("Hodoscope Matching");
+//        plotterHodo.createRegions(2, 4);
+//        htrkProjH1TopMatch = aida.histogram2D("Top Hodoscope L1 Projection Match", 50, 0, 350, 50, 0, 100);
+//        htrkProjH2TopMatch = aida.histogram2D("Top Hodoscope L2 Projection Match", 50, 0, 350, 50, 0, 100);
+//        htrkProjH1BotMatch = aida.histogram2D("Bottom Hodoscope L1 Projection Match", 50, 0, 350, 50, 0, 100);
+//        htrkProjH2BotMatch = aida.histogram2D("Bottom Hodoscope L2 Projection Match", 50, 0, 350, 50, 0, 100);
+//        htrkProjH1TopNoMatch = aida.histogram2D("Top Hodoscope L1 Projection No Match", 50, 0, 350, 50, 0, 100);
+//        htrkProjH2TopNoMatch = aida.histogram2D("Top Hodoscope L2 Projection No Match", 50, 0, 350, 50, 0, 100);
+//        htrkProjH1BotNoMatch = aida.histogram2D("Bottom Hodoscope L1 Projection No Match", 50, 0, 350, 50, 0, 100);
+//        htrkProjH2BotNoMatch = aida.histogram2D("Bottom Hodoscope L2 Projection No Match", 50, 0, 350, 50, 0, 100);
+//        plot(plotterHodo, htrkProjH1TopMatch, null, 0);
+//        plot(plotterHodo, htrkProjH1BotMatch, null, 2);
+//        plot(plotterHodo, htrkProjH2TopMatch, null, 4);
+//        plot(plotterHodo, htrkProjH2BotMatch, null, 6);
+//        plot(plotterHodo, htrkProjH1TopNoMatch, null, 1);
+//        plot(plotterHodo, htrkProjH1BotNoMatch, null, 3);
+//        plot(plotterHodo, htrkProjH2TopNoMatch, null, 5);
+//        plot(plotterHodo, htrkProjH2BotNoMatch, null, 7);
+//        setZAxis(plotterHodo);
+//        plotterHodo.show();
     }
 
     public KFTrackingReconPlots() {
@@ -301,28 +299,6 @@ public class KFTrackingReconPlots extends Driver {
 
         //        if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName))
         //    return;
-
-        /*
-        int[] topHits = {0, 0, 0, 0, 0, 0, 0};
-        int[] botHits = {0, 0, 0, 0, 0, 0, 0};        
-        List<TrackerHit> hth = event.get(TrackerHit.class, helicalTrackHitCollectionName);
-        for (TrackerHit hit : hth) {
-            int module = getModuleNumber(hit);
-            if (hit.getPosition()[1] > 0) {
-                topHits[module - 1]++;
-                xvsyTop[module - 1].fill(hit.getPosition()[0], hit.getPosition()[1]);
-            } else {
-                botHits[module - 1]++;
-                xvsyBot[module - 1].fill(hit.getPosition()[0], -1 * hit.getPosition()[1]);
-            }
-        }
-
-        for (int i = 0; i < nmodules; i++) {
-            hthTop[i].fill(topHits[i]);
-            hthBot[i].fill(botHits[i]);
-        }
-
-        */
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         nTracks.fill(tracks.size());
 
@@ -351,18 +327,16 @@ public class KFTrackingReconPlots extends Driver {
                 hfeeTheta.fill(theta);
             }
 
-            //            List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
-            //for (TrackerHit hthOnTrack : hitsOnTrack) {
-            //    int module = getModuleNumber(hthOnTrack) - 1;
-            //    HelicalTrackHit htc = (HelicalTrackHit) hthOnTrack;
-            //    if (htc.getPosition()[2] > 0) {
-            //        htopLay.fill(module);
-            //        xvsyTopHOT[module].fill(htc.getCorrectedPosition().y(), htc.getCorrectedPosition().z());
-            //    } else {
-            //        hbotLay.fill(module);
-            //        xvsyBotHOT[module].fill(htc.getCorrectedPosition().y(), -1 * htc.getCorrectedPosition().z());
-            //    }
-            // }
+            List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
+            for (TrackerHit hthOnTrack : hitsOnTrack) {
+                int module = getModuleNumber(hthOnTrack) - 1;
+                SiTrackerHitStrip1D htc = (SiTrackerHitStrip1D) hthOnTrack;
+                if (htc.getPosition()[1] > 0) {
+                    htopLay.fill(module);
+                } else {
+                    hbotLay.fill(module);
+                }
+            }
 
             TrackState stateAtEcal = TrackUtils.getTrackStateAtECal(trk);
             if (stateAtEcal == null) {
@@ -375,12 +349,14 @@ public class KFTrackingReconPlots extends Driver {
             // event.getDetector().getFieldMap())[0];
             List<Cluster> clusters = event.get(Cluster.class, ecalCollectionName);
             if (clusters != null) {
-                if (debug)
+                if (debug) {
                     System.out.println("Found " + clusters.size() + " clusters");
+                }
                 Cluster clust = findClosestCluster(posAtEcal, clusters);
                 if (clust != null) {
-                    if (debug)
+                    if (debug) {
                         System.out.println("\t\t\t Found the best clusters");
+                    }
                     Hep3Vector clusterPos = new BasicHep3Vector(clust.getPosition());
                     double zCluster = clusterPos.z();
                     double eOverP = clust.getEnergy() / pmag;
@@ -400,11 +376,10 @@ public class KFTrackingReconPlots extends Driver {
 
             //////   Do Track-Hodoscope Matching  //// 
             // Get RawTrackerHit collection from event.
-            List<SimpleGenericObject> reconHits = event.get(SimpleGenericObject.class, hodoClustersCollectionName);
-
-            //System.out.println("Size of reconHitsi is " + reconHits.size());
-            int n_hits = reconHits.get(0).getNInt();
-
+//            List<SimpleGenericObject> reconHits = event.get(SimpleGenericObject.class, hodoClustersCollectionName);
+//
+//            //System.out.println("Size of reconHitsi is " + reconHits.size());
+//            int n_hits = reconHits.get(0).getNInt();
 //            // ======= Loop over hits, and fill corresponding histogram =======
 //            for (int ihit = 0; ihit < n_hits; ihit++) {
 //                int ix = reconHits.get(0).getIntVal(ihit);
@@ -414,48 +389,54 @@ public class KFTrackingReconPlots extends Driver {
 //                double hit_time = reconHits.get(4).getDoubleVal(ihit);
 //                int detid = reconHits.get(5).getIntVal(ihit);
 //            }
-            TrackState stateAtHodo1 = TrackUtils.getTrackStateAtHodoL1(trk);
-            TrackState stateAtHodo2 = TrackUtils.getTrackStateAtHodoL2(trk);
-            if (stateAtHodo1 != null && stateAtHodo2 != null) {
-                Hep3Vector posAtH1 = new BasicHep3Vector(stateAtHodo1.getReferencePoint());
-                Hep3Vector posAtH2 = new BasicHep3Vector(stateAtHodo2.getReferencePoint());
-                boolean isMatchHL1 = false;
-                boolean isMatchHL2 = false;
-                for (int ihit = 0; ihit < n_hits; ihit++) {
-                    int detid = reconHits.get(5).getIntVal(ihit);
-                    int layer = reconHits.get(2).getIntVal(ihit);
-                    DetectorElement thisTile = hodoMap.get(new Identifier(detid));
-                    if (thisTile == null) {
-                        System.out.println("Could not find this tile~~~~");
-                        continue;
-                    }
-                    if (layer == 0)
-                        isMatchHL1 = isMatchHL1 || TrackUtils.detectorElementContainsPoint(CoordinateTransformations.transformVectorToDetector(posAtH1),
-                                (DetectorElement) thisTile, 20.0);
-                    if (layer == 1)
-                        isMatchHL2 = isMatchHL2 || TrackUtils.detectorElementContainsPoint(CoordinateTransformations.transformVectorToDetector(posAtH2),
-                                (DetectorElement) thisTile, 20.0);
-                }
-                if (posAtH1.z() > 0)
-                    if (isMatchHL1)
-                        htrkProjH1TopMatch.fill(posAtH1.y(), posAtH1.z());
-                    else
-                        htrkProjH1TopNoMatch.fill(posAtH1.y(), posAtH1.z());
-                else if (isMatchHL1)
-                    htrkProjH1BotMatch.fill(posAtH1.y(), -1 * posAtH1.z());
-                else
-                    htrkProjH1BotNoMatch.fill(posAtH1.y(), -1 * posAtH1.z());
-
-                if (posAtH2.z() > 0)
-                    if (isMatchHL2)
-                        htrkProjH2TopMatch.fill(posAtH2.y(), posAtH2.z());
-                    else
-                        htrkProjH2TopNoMatch.fill(posAtH2.y(), posAtH2.z());
-                else if (isMatchHL2)
-                    htrkProjH2BotMatch.fill(posAtH2.y(), -1 * posAtH2.z());
-                else
-                    htrkProjH2BotNoMatch.fill(posAtH2.y(), -1 * posAtH2.z());
-            }
+//            TrackState stateAtHodo1 = TrackUtils.getTrackStateAtHodoL1(trk);
+//            TrackState stateAtHodo2 = TrackUtils.getTrackStateAtHodoL2(trk);
+//            if (stateAtHodo1 != null && stateAtHodo2 != null) {
+//                Hep3Vector posAtH1 = new BasicHep3Vector(stateAtHodo1.getReferencePoint());
+//                Hep3Vector posAtH2 = new BasicHep3Vector(stateAtHodo2.getReferencePoint());
+//                boolean isMatchHL1 = false;
+//                boolean isMatchHL2 = false;
+//                for (int ihit = 0; ihit < n_hits; ihit++) {
+//                    int detid = reconHits.get(5).getIntVal(ihit);
+//                    int layer = reconHits.get(2).getIntVal(ihit);
+//                    DetectorElement thisTile = hodoMap.get(new Identifier(detid));
+//                    if (thisTile == null) {
+//                        System.out.println("Could not find this tile~~~~");
+//                        continue;
+//                    }
+//                    if (layer == 0) {
+//                        isMatchHL1 = isMatchHL1 || TrackUtils.detectorElementContainsPoint(CoordinateTransformations.transformVectorToDetector(posAtH1),
+//                                (DetectorElement) thisTile, 20.0);
+//                    }
+//                    if (layer == 1) {
+//                        isMatchHL2 = isMatchHL2 || TrackUtils.detectorElementContainsPoint(CoordinateTransformations.transformVectorToDetector(posAtH2),
+//                                (DetectorElement) thisTile, 20.0);
+//                    }
+//                }
+//                if (posAtH1.z() > 0) {
+//                    if (isMatchHL1) {
+//                        htrkProjH1TopMatch.fill(posAtH1.y(), posAtH1.z());
+//                    } else {
+//                        htrkProjH1TopNoMatch.fill(posAtH1.y(), posAtH1.z());
+//                    }
+//                } else if (isMatchHL1) {
+//                    htrkProjH1BotMatch.fill(posAtH1.y(), -1 * posAtH1.z());
+//                } else {
+//                    htrkProjH1BotNoMatch.fill(posAtH1.y(), -1 * posAtH1.z());
+//                }
+//
+//                if (posAtH2.z() > 0) {
+//                    if (isMatchHL2) {
+//                        htrkProjH2TopMatch.fill(posAtH2.y(), posAtH2.z());
+//                    } else {
+//                        htrkProjH2TopNoMatch.fill(posAtH2.y(), posAtH2.z());
+//                    }
+//                } else if (isMatchHL2) {
+//                    htrkProjH2BotMatch.fill(posAtH2.y(), -1 * posAtH2.z());
+//                } else {
+//                    htrkProjH2BotNoMatch.fill(posAtH2.y(), -1 * posAtH2.z());
+//                }
+//            }
         }
 //                for (HodoscopePixelDetectorElement pix : pixels) {
 ////                    System.out.println("This pixel has hits = "+pix.getReadout().getHits(RawTrackerHit.class).size());
@@ -465,7 +446,7 @@ public class KFTrackingReconPlots extends Driver {
 
     @Override
     public void endOfData() {
-        if (outputPlots != null)
+        if (outputPlots != null) {
             try {
                 plotter.writeToFile(outputPlots + "-mom.gif");
                 plotter22.writeToFile(outputPlots + "-trkparams.gif");
@@ -474,6 +455,7 @@ public class KFTrackingReconPlots extends Driver {
                 Logger.getLogger(KFTrackingReconPlots.class
                         .getName()).log(Level.SEVERE, null, ex);
             }
+        }
 
         // plotterFrame.dispose();
         // topFrame.dispose();
@@ -504,19 +486,20 @@ public class KFTrackingReconPlots extends Driver {
     private int computePlotterRegion(int i, boolean istop) {
 
         int region = -99;
-        if (i < 3)
-            if (istop)
+        if (i < 3) {
+            if (istop) {
                 region = i * 4;
-            else
+            } else {
                 region = i * 4 + 1;
-        else if (istop)
+            }
+        } else if (istop) {
             region = (i - 3) * 4 + 2;
-        else
+        } else {
             region = (i - 3) * 4 + 3;
+        }
         // System.out.println("Setting region to "+region);
         return region;
     }
-  
 
     private void setZAxis(IPlotter plotter) {
         for (int i = 0; i < plotter.numberOfRegions(); i++) {
@@ -526,6 +509,27 @@ public class KFTrackingReconPlots extends Driver {
             plotter.region(i).style().zAxisStyle().setParameter("scale", "log");
 
         }
+    }
+
+    private int getModuleNumber(TrackerHit hit) {
+        int module = -666;
+        int layer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
+        if (layer < 2) {
+            module = 1;
+        } else if (layer < 4) {
+            module = 2;
+        } else if (layer < 6) {
+            module = 3;
+        } else if (layer < 8) {
+            module = 4;
+        } else if (layer < 10) {
+            module = 5;
+        } else if (layer < 12) {
+            module = 6;
+        } else {
+            module = 7;
+        }
+        return module;
     }
 
 }

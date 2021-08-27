@@ -39,8 +39,8 @@
         <!-- Toggle between saving in aida or root format -->
         <!-- <driver name="AidaToRootSaveDriver"/> -->
         <!-- <driver name="AidaSaveDriver"/> -->
-         <driver name="TrackingMonitoring" />
-<!--        <driver name="TrackingResiduals"/>   -->
+        <driver name="TrackingMonitoring" />
+        <!--        <driver name="TrackingResiduals"/>   -->
         <driver name="TrackTime"/>  
         <driver name="FinalStateMonitoring" />
         <driver name="V0Monitoring"/>   
@@ -49,7 +49,7 @@
     </execute>    
     <drivers>    
 	    
-      <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
+        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
         <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver"/>
   
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
@@ -98,19 +98,20 @@
         </driver>
         
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
-          <debug>false</debug>
-          <clusterTimeCut>40.0</clusterTimeCut>
-          <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-          <maxDt>20.0</maxDt>
-          <saveAxialHits>false</saveAxialHits>
+            <debug>false</debug>
+            <clusterTimeCut>40.0</clusterTimeCut>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+            <maxDt>20.0</maxDt>
+            <saveAxialHits>false</saveAxialHits>
         </driver>   
       
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
-          <!--<doDebugPlots>false</doDebugPlots>-->
+            <!--<doDebugPlots>false</doDebugPlots>-->
             <!-- <siHitsLimit>50</siHitsLimit> -->
             <seedCompThr>0.05</seedCompThr>
+            <minHits>10</minHits>            
             <verbose>false</verbose>
-          </driver>
+        </driver>
           
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
@@ -140,27 +141,27 @@
             <applyClusterCorrections>true</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
             <debug>false</debug>
-	    <makeMollerCols>false</makeMollerCols>
+            <makeMollerCols>false</makeMollerCols>
         </driver>  
         
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-         <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.KFTrackingReconPlots"> 
+        <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.KFTrackingReconPlots"> 
             <trackCollectionName>KalmanFullTracks</trackCollectionName>
         </driver>
 
         <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">   
-          <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
-          <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
-          <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
-          <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+            <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
         </driver>   
         <driver name="FinalStateMonitoring" type="org.hps.monitoring.drivers.trackrecon.FinalStateParticlePlots"> 
-          <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+            <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
         </driver>      
         <driver name="TrackTime" type="org.hps.monitoring.drivers.trackrecon.KFTrackTimePlots">                
             <trackCollectionName>KalmanFullTracks</trackCollectionName>
         </driver>
 
-      </drivers>
+    </drivers>
 </lcsim>
 

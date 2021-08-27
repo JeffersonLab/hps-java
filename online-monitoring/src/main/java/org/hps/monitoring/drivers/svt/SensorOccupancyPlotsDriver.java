@@ -111,6 +111,8 @@ public class SensorOccupancyPlotsDriver extends Driver {
     // Max Y range for occupancy plots.
     private double occupancyYRange1 = 0.03;
     private double occupancyYRange2 = 0.003;
+    
+    private boolean enableAlarms=false;
 
     public SensorOccupancyPlotsDriver() {
         maxSampleStatus = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT is timed in (max sample plot)", true);
@@ -209,6 +211,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
     
     public void setOccupancyYRange2(double occupancyYRange2) {
         this.occupancyYRange2 = occupancyYRange2;
+    }
+    
+    public void setEnableAlarms(boolean enable){
+        this.enableAlarms=enable;
     }
     
     /**
@@ -630,7 +636,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                     && maxSamplePlot.binEntries(maxSamplePosition) > maxSamplePlot.binEntries(maxSamplePosition + 1);
             if (!isSensorOK) {
                 isSystemOK = false;
-                if (oldStatus != StatusCode.ALARM)
+                if (oldStatus != StatusCode.ALARM && enableAlarms)
                     maxSampleStatus.setStatus(StatusCode.ALARM, "Sensor " + SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " looks out of time.");
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, true);
                 // region.clear();
@@ -677,7 +683,7 @@ public class SensorOccupancyPlotsDriver extends Driver {
                         SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), apvOccupancy[0], apvOccupancy[1],
                         apvOccupancy[2], apvOccupancy[3], apvOccupancy[4]));
                 isSystemOK = false;
-                if (oldStatus != StatusCode.ALARM)
+                if (oldStatus != StatusCode.ALARM && enableAlarms)
                     occupancyStatus.setStatus(StatusCode.ALARM, "Sensor " + SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " occupancy abnormal.");
                 IPlotterStyle plotterStyle = createOccupancyPlotStyle("Max Sample Number", sensor, true);
                 // region.clear();

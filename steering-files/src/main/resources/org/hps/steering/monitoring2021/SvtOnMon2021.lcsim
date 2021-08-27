@@ -44,6 +44,7 @@
             <timeWindowWeight>3</timeWindowWeight>
             <resetPeriod>50000</resetPeriod>
             <saveRootFile>false</saveRootFile>
+            <enableAlarms>false</enableAlarms>
         </driver>
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
             <doPerChannelsSampleplots>true</doPerChannelsSampleplots>

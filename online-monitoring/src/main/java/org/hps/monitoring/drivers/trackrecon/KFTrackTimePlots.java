@@ -57,14 +57,13 @@ public class KFTrackTimePlots extends Driver {
     private static final Map<String, IHistogram1D> trackTimeRange = new HashMap<String, IHistogram1D>();
 
     private static final Map<String, IHistogram2D> trackTrigTime = new HashMap<String, IHistogram2D>();
-    private static final Map<String, IHistogram2D> trackHitDtChan = new HashMap<String, IHistogram2D>();
     private static final Map<String, IHistogram2D> trackHit2D = new HashMap<String, IHistogram2D>();
     private static final Map<String, IHistogram2D> trackTimeMinMax = new HashMap<String, IHistogram2D>();
 
     private static final String subdetectorName = "Tracker";
-    double minTime=-40;
-    double maxTime=40;
-    
+    double minTime = -40;
+    double maxTime = 40;
+
     public void setTrackCollectionName(String name) {
         this.trackCollectionName = name;
     }
@@ -113,17 +112,11 @@ public class KFTrackTimePlots extends Driver {
         plotters.put("Track Time vs. dt: L4-L6", plotterFactory.create("Track Time vs. dt: L4-L6"));
         plotters.get("Track Time vs. dt: L4-L6").createRegions(6, 4);
 
-        plotters.put("Track dt vs. Position (u): L0-L3", plotterFactory.create("Track dt vs. Position (u): L0-L3"));
-        plotters.get("Track dt vs. Position (u): L0-L3").createRegions(4, 4);
-        plotters.put("Track dt vs. Position (u): L4-L6", plotterFactory.create("Track dt vs. Position (u): L4-L6"));
-        plotters.get("Track dt vs. Position (u): L4-L6").createRegions(6, 4);
-
         plotters.put("Track Time", plotterFactory.create("Track Time"));
         plotters.get("Track Time").createRegions(2, 2);
 
 //        plotters.put("Track Trig Time", plotterFactory.create("Track Trig Time"));
 //        plotters.get("Track Trig Time").createRegions(2, 2);
-
         plotters.put("Track Hit Time Range", plotterFactory.create("Track Hit Time Range"));
         plotters.get("Track Hit Time Range").createRegions(2, 2);
 
@@ -137,8 +130,6 @@ public class KFTrackTimePlots extends Driver {
 
             trackHit2D.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
                     histogramFactory.createHistogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - trigger phase vs dt", 80, -20, 20.0, 6, 0, 24.0));
-            trackHitDtChan.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                    histogramFactory.createHistogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - dt vs position", 200, -20, 20, 50, -20, 20.0));
             if (sensor.getLayerNumber() < 9) {
                 plotters.get("Hit Times: L0-L3").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "hit t0 (ns)", ""));
@@ -148,8 +139,6 @@ public class KFTrackTimePlots extends Driver {
                         .plot(trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "track hit dt (ns)", ""));
                 plotters.get("Track Time vs. dt: L0-L3").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "track hit dt (ns)", "event time%24 (ns)"));
-                plotters.get("Track dt vs. Position (u): L0-L3").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(trackHitDtChan.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "u position (mm)", "dt (ns)"));
             } else {
                 plotters.get("Hit Times: L4-L6").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(t0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "t0 (ns)", ""));
@@ -159,9 +148,6 @@ public class KFTrackTimePlots extends Driver {
                         .plot(trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "track hit dt (ns)", ""));
                 plotters.get("Track Time vs. dt: L4-L6").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "track hit dt (ns)", "event time%24 (ns)"));
-                plotters.get("Track dt vs. Position (u): L4-L6").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(trackHitDtChan.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor,"u position (mm)", "dt (ns)"));
-
             }
         }
 
@@ -212,10 +198,11 @@ public class KFTrackTimePlots extends Driver {
                 histogramFactory.createHistogram2D("Bottom Earliest vs Latest Track Hit Times", 80, -25, 25.0, 80, -25, 25.0));
         plotters.get("Track Hit Time Range")
                 .region(3)
-                .plot(trackTimeMinMax.get("Bottom"), SvtPlotUtils.createStyle(plotterFactory,"Earliest Time (ns)", "Latest Time (ns)"));
+                .plot(trackTimeMinMax.get("Bottom"), SvtPlotUtils.createStyle(plotterFactory, "Earliest Time (ns)", "Latest Time (ns)"));
 
-        for (IPlotter plotter : plotters.values())
+        for (IPlotter plotter : plotters.values()) {
             plotter.show();
+        }
 
     }
 
@@ -246,9 +233,9 @@ public class KFTrackTimePlots extends Driver {
         for (Track track : tracks) {
             int trackModule;
             String moduleName = "Top";
-            if (track.getTrackerHits().get(0).getPosition()[2] > 0)
+            if (track.getTrackerHits().get(0).getPosition()[1] > 0) {
                 trackModule = 0;
-            else {
+            } else {
                 moduleName = "Bottom";
                 trackModule = 1;
             }
@@ -256,16 +243,18 @@ public class KFTrackTimePlots extends Driver {
             double maxTime = Double.NEGATIVE_INFINITY;
             int hitCount = 0;
             double trackTime = 0;
-            for (TrackerHit hitTH: track.getTrackerHits()){
-                SiTrackerHitStrip1D hit=(SiTrackerHitStrip1D) hitTH;
+            for (TrackerHit hitTH : track.getTrackerHits()) {
+                SiTrackerHitStrip1D hit = (SiTrackerHitStrip1D) hitTH;
                 SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
                 trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime());
                 trackTime += hit.getTime();
                 hitCount++;
-                if (hit.getTime() > maxTime)
+                if (hit.getTime() > maxTime) {
                     maxTime = hit.getTime();
-                if (hit.getTime() < minTime)
+                }
+                if (hit.getTime() < minTime) {
                     minTime = hit.getTime();
+                }
             }
             trackTimeMinMax.get(moduleName).fill(minTime, maxTime);
             trackTimeRange.get(moduleName).fill(maxTime - minTime);
@@ -273,14 +262,13 @@ public class KFTrackTimePlots extends Driver {
             trackT0.get(moduleName).fill(trackTime);
             trackTrigTime.get(moduleName).fill(trackTime, trigTime);
 
-            for (TrackerHit hitTH: track.getTrackerHits()){
-                SiTrackerHitStrip1D hit=(SiTrackerHitStrip1D) hitTH;
+            for (TrackerHit hitTH : track.getTrackerHits()) {
+                SiTrackerHitStrip1D hit = (SiTrackerHitStrip1D) hitTH;
                 int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber();
                 int module = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("module");
                 SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
                 trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime);
                 trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime, event.getTimeStamp() % 24);
-                trackHitDtChan.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getMeasuredCoordinate().x(), hit.getTime() - trackTime);
             }
         }
     }
@@ -306,42 +294,57 @@ public class KFTrackTimePlots extends Driver {
     // and assume plotter is split in 3 columns, 4 rows...L0-5 on top 2 rows; L6-11 on bottom 2
     private int computePlotterRegion(int layer) {
 
-        if (layer == 0)
+        if (layer == 0) {
             return 0;
-        if (layer == 1)
+        }
+        if (layer == 1) {
             return 1;
-        if (layer == 2)
+        }
+        if (layer == 2) {
             return 4;
-        if (layer == 3)
+        }
+        if (layer == 3) {
             return 5;
-        if (layer == 4)
+        }
+        if (layer == 4) {
             return 8;
-        if (layer == 5)
+        }
+        if (layer == 5) {
             return 9;
+        }
 
-        if (layer == 6)
+        if (layer == 6) {
             return 2;
-        if (layer == 7)
+        }
+        if (layer == 7) {
             return 3;
-        if (layer == 8)
+        }
+        if (layer == 8) {
             return 6;
-        if (layer == 9)
+        }
+        if (layer == 9) {
             return 7;
-        if (layer == 10)
+        }
+        if (layer == 10) {
             return 10;
-        if (layer == 11)
+        }
+        if (layer == 11) {
             return 11;
+        }
         return -1;
     }
 
     private String getColor(int module) {
         String color = "Black";
-        if (module == 1)
+        if (module == 1) {
             color = "Green";
-        if (module == 2)
+        }
+        if (module == 2) {
             color = "Blue";
-        if (module == 3)
+        }
+        if (module == 3) {
             color = "Red";
+        }
         return color;
     }
 
