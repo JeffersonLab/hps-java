@@ -10,23 +10,15 @@ import org.hps.conditions.svt.AbstractSvtDaqMapping;
 import org.hps.conditions.svt.ChannelConstants;
 import org.hps.conditions.svt.SvtChannel;
 import org.hps.conditions.svt.SvtDaqMapping;
-import org.hps.conditions.svt.TestRunSvtDaqMapping;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtT0Shift;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
-import org.hps.conditions.svt.TestRunSvtChannel;
-import org.hps.conditions.svt.TestRunSvtChannel.TestRunSvtChannelCollection;
-import org.hps.conditions.svt.TestRunSvtConditions;
-import org.hps.conditions.svt.TestRunSvtDaqMapping.TestRunSvtDaqMappingCollection;
-import org.hps.conditions.svt.TestRunSvtT0Shift;
-import org.hps.conditions.svt.TestRunSvtT0Shift.TestRunSvtT0ShiftCollection;
 import org.hps.util.Pair;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
-import org.lcsim.detector.tracker.silicon.HpsTestRunSiSensor;
 import org.lcsim.geometry.compact.Subdetector;
 
 /**
@@ -85,17 +77,10 @@ public final class SvtDetectorSetup implements ConditionsListener {
             final DatabaseConditionsManager manager = (DatabaseConditionsManager) event.getConditionsManager();
             final Subdetector subdetector = manager.getDetectorObject().getSubdetector(this.svtName);
             if (subdetector != null) {
-                if (manager.isTestRun()) {
-                    LOGGER.info("activating Test Run setup");
-                    final TestRunSvtConditions svtConditions = manager.getCachedConditions(TestRunSvtConditions.class,
-                            "test_run_svt_conditions").getCachedData();
-                    this.loadTestRun(subdetector, svtConditions);
-                } else {
-                    LOGGER.info("activating default setup");
-                    final SvtConditions svtConditions = manager.getCachedConditions(SvtConditions.class,
-                            "svt_conditions").getCachedData();
-                    this.loadDefault(subdetector, svtConditions);
-                }
+                LOGGER.info("activating default setup");
+                final SvtConditions svtConditions = manager.getCachedConditions(SvtConditions.class,
+                        "svt_conditions").getCachedData();
+                this.loadDefault(subdetector, svtConditions);
             } else {
                 LOGGER.warning("no SVT detector was found so setup was NOT activated");
                 this.enabled = false;
@@ -197,93 +182,6 @@ public final class SvtDetectorSetup implements ConditionsListener {
     }
 
     /**
-     * Load conditions from Test Run detector.
-     *
-     * @param subdetector the SVT subdetector object
-     * @param conditions the Test Run conditions
-     */
-    void loadTestRun(final Subdetector subdetector, final TestRunSvtConditions conditions) {
-
-        LOGGER.info("loading Test Run SVT conditions onto subdetector " + subdetector.getName());
-
-        // Find sensor objects.
-        final List<HpsSiSensor> sensors = subdetector.getDetectorElement().findDescendants(HpsSiSensor.class);
-        LOGGER.info("setting up " + sensors.size() + " SVT sensors");
-        final TestRunSvtChannelCollection channelMap = conditions.getChannelMap();
-        LOGGER.info("channel map has " + channelMap.size() + " entries");
-        final TestRunSvtDaqMappingCollection daqMap = conditions.getDaqMap();
-        final TestRunSvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
-
-        // Loop over sensors.
-        for (final HpsSiSensor sensor : sensors) {
-
-            // Reset possible existing conditions data on sensor.
-            sensor.reset();
-
-            // Get DAQ pair (FPGA ID, Hybrid ID) corresponding to this sensor
-            final Pair<Integer, Integer> daqPair = SvtDetectorSetup.getTestRunDaqPair(daqMap, sensor);
-            if (daqPair == null) {
-                throw new RuntimeException("Failed to find DAQ pair for sensor: " + sensor.getName());
-            }
-
-            // Set the FPGA ID of the sensor
-            ((HpsTestRunSiSensor) sensor).setFpgaID(daqPair.getFirstElement());
-
-            // Set the hybrid ID of the sensor
-            ((HpsTestRunSiSensor) sensor).setHybridID(daqPair.getSecondElement());
-
-            // Set the orientation of the sensor
-            final String orientation = daqMap.getOrientation(daqPair);
-            if (orientation != null && orientation.contentEquals(AbstractSvtDaqMapping.AXIAL)) {
-                sensor.setAxial(true);
-            } else if (orientation != null && orientation.contains(AbstractSvtDaqMapping.STEREO)) {
-                sensor.setStereo(true);
-            }
-
-            // Find all the channels for this sensor.
-            final Collection<TestRunSvtChannel> channels = channelMap.find(daqPair);
-
-            // Loop over the channels of the sensor.
-            for (final TestRunSvtChannel channel : channels) {
-
-                // Get conditions data for this channel.
-                final ChannelConstants constants = conditions.getChannelConstants(channel);
-                final int channelNumber = channel.getChannel();
-
-                //
-                // Set conditions data for this channel on the sensor object:
-                //
-                // Check if the channel was flagged as bad
-                if (constants.isBadChannel()) {
-                    sensor.setBadChannel(channelNumber);
-                }
-
-                // Set the pedestal and noise of each of the samples for the
-                // channel
-                final double[] pedestal = new double[6];
-                final double[] noise = new double[6];
-                for (int sampleN = 0; sampleN < HpsSiSensor.NUMBER_OF_SAMPLES; sampleN++) {
-                    pedestal[sampleN] = constants.getCalibration().getPedestal(sampleN);
-                    noise[sampleN] = constants.getCalibration().getNoise(sampleN);
-                }
-                sensor.setPedestal(channelNumber, pedestal);
-                sensor.setNoise(channelNumber, noise);
-
-                // Set the gain and offset for the channel
-                sensor.setGain(channelNumber, constants.getGain().getGain());
-                sensor.setOffset(channelNumber, constants.getGain().getOffset());
-
-                // Set the shape fit parameters
-                sensor.setShapeFitParameters(channelNumber, constants.getShapeFitParameters().toArray());
-            }
-
-            // Set the t0 shift for the sensor.
-            final TestRunSvtT0Shift sensorT0Shift = t0Shifts.getT0Shift(daqPair);
-            sensor.setT0Shift(sensorT0Shift.getT0Shift());
-        }
-    }
-
-    /**
      * Set whether this class is enabled to be activated on conditions changes.
      *
      * @param enabled <code>true</code> to enable
@@ -330,24 +228,4 @@ public final class SvtDetectorSetup implements ConditionsListener {
         }
         return null;
     }
-    
-    /**
-     * Get a test run DAQ pair (FPGA and Hybrid ID) for the given {@linkplain HpsTestRunSiSensor}.
-     *
-     * @param sensor a sensor of type {@link HpsTestRunSiSensor}
-     * @return the DAQ pair associated with the sensor
-     */
-    static Pair<Integer, Integer> getTestRunDaqPair(TestRunSvtDaqMappingCollection daqMap, final HpsSiSensor sensor) {
-
-        final String svtHalf = sensor.isTopLayer() ? AbstractSvtDaqMapping.TOP_HALF : AbstractSvtDaqMapping.BOTTOM_HALF;
-        for (final TestRunSvtDaqMapping daqMapping : daqMap) {
-
-            if (svtHalf.equals(daqMapping.getSvtHalf()) && daqMapping.getLayerNumber() == sensor.getLayerNumber()) {
-
-                return new Pair<Integer, Integer>(daqMapping.getFpgaID(), daqMapping.getHybridID());
-            }
-        }
-        return null;
-    }
-    
 }

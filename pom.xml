@@ -1,7 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
   <modelVersion>4.0.0</modelVersion>
-
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
@@ -9,7 +7,6 @@
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
-
   <properties>
     <project.scm.id>hps-java-github</project.scm.id>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,14 +19,12 @@
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
     <junitVersion>4.13.1</junitVersion>
   </properties>
-
   <scm>
     <connection>scm:git:git://github.com/jeffersonlab/hps-java.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jeffersonlab/hps-java.git</developerConnection>
     <url>http://github.com/jeffersonlab/hps-java</url>
     <tag>HEAD</tag>
   </scm>
-
   <distributionManagement>
     <site>
       <id>lcsim-site</id>
@@ -46,7 +41,6 @@
       <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
     </snapshotRepository>
   </distributionManagement>
-
   <repositories>
     <repository>
       <id>maven-central-repo</id>
@@ -92,7 +86,6 @@
       </releases>
     </repository>
   </repositories>
-  
   <pluginRepositories>
     <pluginRepository>
       <id>freehep-maven-plugin-repo</id>
@@ -105,35 +98,27 @@
       <url>https://repo1.maven.org/maven2/</url>
     </pluginRepository>
   </pluginRepositories>
-  
   <modules>
     <module>analysis</module>
     <module>conditions</module>
-    <module>crawler</module>
-    <module>datacat</module>
     <module>detector-data</module>
     <module>detector-model</module>
     <module>distribution</module>
-    <module>ecal-event-display</module>
     <module>ecal-readout-sim</module>
     <module>ecal-recon</module>
     <module>evio</module>
     <module>job</module>
     <module>logging</module>
-    <module>monitoring-util</module>
-    <module>monitoring-drivers</module>
-    <module>monitoring-app</module>
+    <module>online-monitoring</module>
     <module>online-recon</module>
     <module>plugin</module>
     <module>recon</module>
     <module>record-util</module>
-    <module>run-database</module>
     <module>steering-files</module>
     <module>tracking</module>
     <module>util</module>
     <module>integration-tests</module>
   </modules>
-  
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -142,7 +127,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -202,17 +186,12 @@
       </dependency>
       <dependency>
         <groupId>org.hps</groupId>
-        <artifactId>hps-monitoring-drivers</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-monitoring-app</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
         <artifactId>hps-online-recon</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hps</groupId>
+        <artifactId>hps-online-monitoring</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -227,27 +206,7 @@
       </dependency>
       <dependency>
         <groupId>org.hps</groupId>
-        <artifactId>hps-ecal-event-display</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
         <artifactId>hps-record-util</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-monitoring-util</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-run-database</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-crawler</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -263,11 +222,6 @@
       <dependency>
         <groupId>org.hps</groupId>
         <artifactId>hps-integration-tests</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-datacat</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -312,11 +266,6 @@
             <artifactId>commons-math</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>srs</groupId>
-        <artifactId>org-srs-datacat-client</artifactId>
-        <version>0.5-TEST3</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -406,7 +355,6 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-  
   <build>
     <defaultGoal>install</defaultGoal>
     <extensions>
@@ -579,7 +527,6 @@
       </plugin>
     </plugins>
   </build>
-
   <reporting>
     <plugins>
       <plugin>
@@ -698,7 +645,6 @@
       </plugin>
     </plugins>
   </reporting>
-
   <developers>
     <developer>
       <name>Jeremy McCormick</name>
@@ -843,7 +789,6 @@
       </properties>
     </developer>
   </developers>
-
   <mailingLists>
     <mailingList>
       <name>hps-software</name>
@@ -853,17 +798,14 @@
       <archive>https://listserv.slac.stanford.edu/cgi-bin/wa?A0=HPS-SOFTWARE</archive>
     </mailingList>
   </mailingLists>
-
   <issueManagement>
     <system>Github</system>
     <url>https://github.com/JeffersonLab/hps-java/issues/</url>
   </issueManagement>
-
   <ciManagement>
     <system>Jenkins</system>
     <url>http://srs.slac.stanford.edu/hudson/view/HPS/</url>
   </ciManagement>
-
   <profiles>
     <profile>
       <id>default-cache-dir</id>
@@ -886,5 +828,4 @@
       </properties>
     </profile>
   </profiles>
-
 </project>
