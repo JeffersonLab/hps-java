@@ -1,21 +1,15 @@
 package org.hps.online.recon.aida;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.online.recon.Station;
-import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 import hep.aida.IAnalysisFactory;
-import hep.aida.IDataPoint;
-import hep.aida.IDataPointSet;
 import hep.aida.IDataPointSetFactory;
-import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.aida.dev.IDevTree;
 import hep.aida.ref.BatchAnalysisFactory;
@@ -54,17 +48,21 @@ public abstract class RemoteAidaDriver extends Driver {
      * Performance plots
      */
     private static String PERF_DIR = "/perf";
+    /*
     private IHistogram1D eventCountH1D;
     private IDataPointSet eventRateDPS;
     private IDataPointSet millisPerEventDPS;
+    *
 
     /*
      * Event timing
      */
+    /*
     private int eventsProcessed = 0;
     private long start = -1L;
     private Timer timer;
     protected int eventCount = 0;
+    */
 
     public RemoteAidaDriver() {
 
@@ -101,7 +99,7 @@ public abstract class RemoteAidaDriver extends Driver {
     @Override
     protected void endOfData() {
 
-        timer.cancel();
+        //timer.cancel();
 
         disconnect();
     }
@@ -114,12 +112,15 @@ public abstract class RemoteAidaDriver extends Driver {
             throw new RuntimeException("Failed to connect remote AIDA tree", e);
         }
 
+        /*
         tree.mkdir(PERF_DIR);
         tree.cd(PERF_DIR);
+        */
 
         /*
          * Performance plots
          */
+        /*
         eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
         eventCountH1D.annotation().setValue("xAxisLimit", "0");
 
@@ -127,8 +128,10 @@ public abstract class RemoteAidaDriver extends Driver {
         millisPerEventDPS = dpsf.create("Millis Per Event", 1);
 
         startEventTimer();
+        */
     }
 
+    /*
     private void startEventTimer() {
         TimerTask task = new TimerTask() {
             public void run() {
@@ -157,6 +160,7 @@ public abstract class RemoteAidaDriver extends Driver {
         timer = new Timer("Event Timer");
         timer.scheduleAtFixedRate(task, 0, 5000L);
     }
+    */
 
     synchronized final void disconnect() {
         try {
@@ -192,10 +196,11 @@ public abstract class RemoteAidaDriver extends Driver {
         LOG.info("Done setting up remote AIDA tree: " + remoteTreeBind);
     }
 
-    @Override
+    /*
     public void process(EventHeader event) {
         eventCountH1D.fill(0.5);
         eventCount++;
         eventsProcessed++;
     }
+    */
 }
