@@ -70,12 +70,12 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private static final String TRACKTIME_DIR = "/trackTime";
     private static final String SVTHITS_DIR = "/svtHits";
     private static final String SVTRAW_DIR = "/xperSensor/svtHits/counts";
-    private static final String SVTT0_DIR = "/xperSensor/svtHits/time";   
+    private static final String SVTT0_DIR = "/xperSensor/svtHits/time";
     private static final String ELECTRON_DIR = "/electrons";
     private static final String POSITRON_DIR = "/positrons";
-    private static final String TRACKTIMEHOT_DIR = "/perSensor/tracks/trkHitTime";
-    private static final String TRACKTIMEDTVSPHASE_DIR = "/perSensor/tracks/deltaTvsPhase";
-    private static final String TRACKTIMEDT_DIR = "/perSensor/tracks/deltaT";
+    private static final String TRACKTIMEHOT_DIR = "/xperSensor/tracks/trkHitTime";
+    private static final String TRACKTIMEDTVSPHASE_DIR = "/xperSensor/tracks/deltaTvsPhase";
+    private static final String TRACKTIMEDT_DIR = "/xperSensor/tracks/deltaT";
     private static final String SVTOCC_DIR = "/svtOccupancy";
     private static final String SVTMAX_DIR = "/xperSensor/svtHits/svtMaxSample";
     private static final String V01D_DIR = "/v01DPlots";
@@ -106,8 +106,8 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private IHistogram1D hitEnergyPlot;
     private IHistogram1D hitMaxEnergyPlot;
     private IHistogram1D topTimePlot, botTimePlot, orTimePlot;
-    private IHistogram1D topTrigTimePlot, botTrigTimePlot, orTrigTimePlot;
-    private IHistogram2D topTimePlot2D, botTimePlot2D, orTimePlot2D;
+    private IHistogram1D orTrigTimePlot;
+    private IHistogram2D orTimePlot2D;
 
     private IHistogram1D clusterCountPlot;
     private IHistogram1D clusterSizePlot;
@@ -120,7 +120,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private IHistogram1D pairEnergySum;
     private IHistogram1D pairEnergyDifference;
     private IHistogram1D pairCoplanarity;
-    private IHistogram1D pairEnergySlope;
+//    private IHistogram1D pairEnergySlope;
     private IHistogram1D pairEnergyPositionMeanX;
     private IHistogram1D pairEnergyPositionMeanY;
     private IHistogram1D pairMassOppositeHalf;
@@ -367,17 +367,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
         hitTimePlot = aida.histogram1D(RAW_ECAL_HITS + " : Hit Time", 100,
                 0 * 4.0, 100 * 4.0);
-        topTrigTimePlot = aida.histogram1D(RAW_ECAL_HITS
-                + " : Trigger Time, Top", 101, -2, 402);
-        botTrigTimePlot = aida.histogram1D(RAW_ECAL_HITS
-                + " : Trigger Time, Bottom", 101, -2, 402);
         orTrigTimePlot = aida.histogram1D(RAW_ECAL_HITS + " : Trigger Time, Or",
                 1024, 0, 4096);
 
-        topTimePlot2D = aida.histogram2D(RAW_ECAL_HITS
-                + " : Hit Time vs. Trig Time, Top", 100, 0, 100 * 4.0, 101, -2, 402);
-        botTimePlot2D = aida.histogram2D(RAW_ECAL_HITS
-                + " : Hit Time vs. Trig Time, Bottom", 100, 0, 100 * 4.0, 101, -2, 402);
         orTimePlot2D = aida.histogram2D(RAW_ECAL_HITS
                 + " : Hit Time vs. Trig Time, Or", 100, 0, 100 * 4.0, 101, -2, 402);
 
@@ -408,7 +400,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         pairEnergySum = aida.histogram1D("Pair Energy Sum Distribution", 176, 0.0, maxE);
         pairEnergyDifference = aida.histogram1D("Pair Energy Difference Distribution", 176, 0.0, 2.2);
         pairCoplanarity = aida.histogram1D("Pair Coplanarity Distribution", 90, 0.0, 180.0);
-        pairEnergySlope = aida.histogram1D("Pair Energy Slope Distribution", 150, 0.0, 3.0);
+//        pairEnergySlope = aida.histogram1D("Pair Energy Slope Distribution", 150, 0.0, 3.0);
         pairEnergyPositionMeanX = aida.histogram1D("Cluster Pair Weighted Energy Position (x-Index)", 100, -250, 250);
         pairEnergyPositionMeanY = aida.histogram1D("Cluster Pair Weighted Energy Position (y-Index)", 100, -100, 100);
         pairMassSameHalf = aida.histogram1D("Cluster Pair Mass: Same Half", 100, 0.0, 0.35);
@@ -438,7 +430,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
             occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
             occupancyPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), aida
                     .histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Occupancy", 640, 0, 640));
-            if (this.enableMaxSamplePlots) {               
+            if (this.enableMaxSamplePlots) {
                 tree.cd(SVTMAX_DIR);
                 maxSamplePositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), aida.histogram1D(
                         SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Max Sample Number", 6, -0.5, 5.5));
@@ -650,8 +642,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                     botTrigTime = 0; // ((SSPData)triggerData).getBotTrig();
 
                     orTrigTimePlot.fill(orTrigTime);
-                    topTrigTimePlot.fill(topTrigTime);
-                    botTrigTimePlot.fill(botTrigTime);
 
                 }
 
@@ -699,11 +689,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
             }
             if (topTime != Double.POSITIVE_INFINITY) {
                 topTimePlot.fill(topTime);
-                topTimePlot2D.fill(topTime, topTrigTime);
             }
             if (botTime != Double.POSITIVE_INFINITY) {
                 botTimePlot.fill(botTime);
-                botTimePlot2D.fill(botTime, botTrigTime);
             }
             hitMaxEnergyPlot.fill(maxEnergy);
         }
@@ -818,7 +806,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                 pairEnergySum.fill(energySumValue, 1);
                 ;
                 pairEnergyDifference.fill(energyDifferenceValue, 1);
-                pairEnergySlope.fill(energySlopeValue, 1);
+//                pairEnergySlope.fill(energySlopeValue, 1);
                 pairCoplanarity.fill(coplanarityValue, 1);
                 pairEnergyPositionMeanX.fill(xMean);
                 pairEnergyPositionMeanY.fill(yMean);
