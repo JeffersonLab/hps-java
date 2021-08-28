@@ -2,29 +2,34 @@ package org.hps.online.recon.aida;
 
 import static java.lang.Math.sqrt;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
 
+import org.apache.commons.math.stat.StatUtils;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtTimingConstants;
+import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.record.triggerbank.SSPData;
+import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
+import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.Cluster;
-
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
@@ -33,26 +38,16 @@ import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseTrackState;
+import org.lcsim.fit.helicaltrack.HelicalTrackCross;
+import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 
-import hep.aida.IDataPoint;
-import hep.aida.IDataPointSet;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
-import java.util.ArrayList;
-import org.apache.commons.math.stat.StatUtils;
-import org.hps.monitoring.ecal.plots.EcalMonitoringUtilities;
-import org.hps.recon.ecal.EcalUtils;
-import org.hps.record.triggerbank.SSPData;
-import org.hps.record.triggerbank.TriggerModule;
-import org.lcsim.event.CalorimeterHit;
-import org.lcsim.event.GenericObject;
-import org.lcsim.fit.helicaltrack.HelicalTrackCross;
-import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 
 /**
  * Make plots for remote AIDA display based on Kalman Filter track
@@ -80,15 +75,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private static final String SVTMAX_DIR = "/xperSensor/svtHits/svtMaxSample";
     private static final String V01D_DIR = "/v01DPlots";
     private static final String V02D_DIR = "/v02DPlots";
-    private static final String PERF_DIR = "/EventsProcessed";
     private static final String TEMP_DIR = "/tmp";
-
-    /*
-     * Performance plots
-     */
-    private IHistogram1D eventCountH1D;
-    private IDataPointSet eventRateDPS;
-    private IDataPointSet millisPerEventDPS;
 
     /*
      * Ecal plots
@@ -128,12 +115,13 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private IHistogram1D pairMassOppositeHalfFid;
     private IHistogram1D pairMassSameHalfFid;
 
-    int eventn = 0;
-    int thisEventN, prevEventN;
+    //private int eventn = 0;
+    private int thisEventN, prevEventN;
 
-    long thisTime, prevTime;
-    double thisEventTime, prevEventTime;
-    double maxE = 5000 * EcalUtils.MeV;
+    private long thisTime, prevTime;
+    private double thisEventTime, prevEventTime;
+    private double maxE = 5000 * EcalUtils.MeV;
+
     /*
      * SVT Raw hit plots
      */
@@ -248,12 +236,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private String trackColName = "KalmanFullTracks";
     private String finalStateParticlesColName = "FinalStateParticles_KF";
     private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates_KF";
-    /*
-     * Event timing
-     */
-    private int eventsProcessed = 0;
-    private long start = -1L;
-    private Timer timer;
 
     /* SVT Occupancy setters */
     public void setEnableMaxSamplePlots(boolean enableMaxSamplePlots) {
@@ -569,42 +551,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         massVsVtxZ = aida.histogram2D("Mass vs Vz", 50, 0, 0.15, 50, -10, 10);
 
-        tree.mkdirs(PERF_DIR);
-        tree.cd(PERF_DIR);
-
-        /*
-         * Performance plots
-         */
-        eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
-        eventRateDPS = dpsf.create("Event Rate", "Event Rate", 1);
-        millisPerEventDPS = dpsf.create("Millis Per Event", 1);
-
-        TimerTask task = new TimerTask() {
-            public void run() {
-                if (eventsProcessed > 0 && start > 0) {
-                    long elapsed = System.currentTimeMillis() - start;
-                    double eps = (double) eventsProcessed / ((double) elapsed / 1000L);
-                    double mpe = (double) elapsed / (double) eventsProcessed;
-//                    LOG.fine("Event Timer: " + eps + " Hz");
-
-                    IDataPoint dp = eventRateDPS.addPoint();
-                    dp.coordinate(0).setValue(eps);
-                    while (eventRateDPS.size() > 10) {
-                        eventRateDPS.removePoint(0);
-                    }
-
-                    dp = millisPerEventDPS.addPoint();
-                    dp.coordinate(0).setValue(mpe);
-                    while (millisPerEventDPS.size() > 10) {
-                        millisPerEventDPS.removePoint(0);
-                    }
-                }
-                start = System.currentTimeMillis();
-                eventsProcessed = 0;
-            }
-        };
-        Timer timer = new Timer("Event Timer");
-        timer.scheduleAtFixedRate(task, 0, 5000L);
         bFieldMap = detector.getFieldMap();
 
     }
@@ -617,8 +563,8 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
     public void process(EventHeader event) {
 
-        eventCountH1D.fill(0.5);
-        eventCount++;
+        super.process(event);
+
         this.clearHitMaps();
 
         int nhits = 0;
@@ -1208,8 +1154,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
             pxEleVspxPos.fill(ele.getTrackStates().get(0).getMomentum()[1],
                     pos.getTrackStates().get(0).getMomentum()[1]);
         }
-
-        ++eventsProcessed;
     }
 
     private static Map<Integer, Hep3Vector> createStripPositionMap(HpsSiSensor sensor) {

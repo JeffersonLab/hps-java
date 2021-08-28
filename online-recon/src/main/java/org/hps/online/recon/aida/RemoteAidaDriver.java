@@ -1,15 +1,21 @@
 package org.hps.online.recon.aida;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.online.recon.Station;
+import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 import hep.aida.IAnalysisFactory;
+import hep.aida.IDataPoint;
+import hep.aida.IDataPointSet;
 import hep.aida.IDataPointSetFactory;
+import hep.aida.IHistogram1D;
 import hep.aida.IHistogramFactory;
 import hep.aida.dev.IDevTree;
 import hep.aida.ref.BatchAnalysisFactory;
@@ -21,7 +27,7 @@ import hep.aida.ref.remote.rmi.server.RmiServerImpl;
 /**
  * Abstract driver for providing remote AIDA functionality
  */
-public abstract class RemoteAidaDriver extends Driver {
+public class RemoteAidaDriver extends Driver {
 
     static final Logger LOG = Logger.getLogger(RemoteAidaDriver.class.getPackage().getName());
 
@@ -34,11 +40,11 @@ public abstract class RemoteAidaDriver extends Driver {
     protected RmiServer rmiTreeServer;
     private boolean serverDuplex = true;
 
-    protected AIDA aida = AIDA.defaultInstance();
-    protected IAnalysisFactory af = aida.analysisFactory();
-    protected IDevTree tree = (IDevTree) aida.tree();
-    protected IHistogramFactory hf = aida.analysisFactory().createHistogramFactory(tree);
-    protected IDataPointSetFactory dpsf = aida.analysisFactory().createDataPointSetFactory(tree);
+    protected final AIDA aida = AIDA.defaultInstance();
+    protected final IAnalysisFactory af = aida.analysisFactory();
+    protected final IDevTree tree = (IDevTree) aida.tree();
+    protected final IHistogramFactory hf = af.createHistogramFactory(tree);
+    protected final IDataPointSetFactory dpsf = af.createDataPointSetFactory(tree);
 
     private String remoteTreeBind = null;
     private String stationName = null;
@@ -47,22 +53,19 @@ public abstract class RemoteAidaDriver extends Driver {
     /*
      * Performance plots
      */
-    private static String PERF_DIR = "/perf";
-    /*
+    private static String PERF_DIR = "/EventsProcessed";
     private IHistogram1D eventCountH1D;
     private IDataPointSet eventRateDPS;
     private IDataPointSet millisPerEventDPS;
-    *
 
     /*
      * Event timing
      */
-    /*
     private int eventsProcessed = 0;
     private long start = -1L;
     private Timer timer;
     protected int eventCount = 0;
-    */
+    private int NPOINTS = 25;
 
     public RemoteAidaDriver() {
 
@@ -99,7 +102,7 @@ public abstract class RemoteAidaDriver extends Driver {
     @Override
     protected void endOfData() {
 
-        //timer.cancel();
+        timer.cancel();
 
         disconnect();
     }
@@ -112,26 +115,19 @@ public abstract class RemoteAidaDriver extends Driver {
             throw new RuntimeException("Failed to connect remote AIDA tree", e);
         }
 
-        /*
         tree.mkdir(PERF_DIR);
         tree.cd(PERF_DIR);
-        */
 
         /*
          * Performance plots
          */
-        /*
         eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
-        eventCountH1D.annotation().setValue("xAxisLimit", "0");
-
         eventRateDPS = dpsf.create("Event Rate", "Event Rate", 1);
         millisPerEventDPS = dpsf.create("Millis Per Event", 1);
 
         startEventTimer();
-        */
     }
 
-    /*
     private void startEventTimer() {
         TimerTask task = new TimerTask() {
             public void run() {
@@ -143,13 +139,13 @@ public abstract class RemoteAidaDriver extends Driver {
 
                     IDataPoint dp = eventRateDPS.addPoint();
                     dp.coordinate(0).setValue(eps);
-                    while (eventRateDPS.size() > 10) {
+                    while (eventRateDPS.size() > NPOINTS) {
                         eventRateDPS.removePoint(0);
                     }
 
                     dp = millisPerEventDPS.addPoint();
                     dp.coordinate(0).setValue(mpe);
-                    while (millisPerEventDPS.size() > 10) {
+                    while (millisPerEventDPS.size() > NPOINTS) {
                         millisPerEventDPS.removePoint(0);
                     }
                 }
@@ -160,7 +156,6 @@ public abstract class RemoteAidaDriver extends Driver {
         timer = new Timer("Event Timer");
         timer.scheduleAtFixedRate(task, 0, 5000L);
     }
-    */
 
     synchronized final void disconnect() {
         try {
@@ -196,11 +191,9 @@ public abstract class RemoteAidaDriver extends Driver {
         LOG.info("Done setting up remote AIDA tree: " + remoteTreeBind);
     }
 
-    /*
     public void process(EventHeader event) {
         eventCountH1D.fill(0.5);
         eventCount++;
         eventsProcessed++;
     }
-    */
 }

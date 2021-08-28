@@ -143,7 +143,6 @@
             <cutOutLowChargeHits>true</cutOutLowChargeHits>
             <enableTrackTimesPerSensorPlots>true</enableTrackTimesPerSensorPlots>
             <enableMaxSamplePlots>true</enableMaxSamplePlots>
-            <remoteTreeBind>${remoteTreeBind}</remoteTreeBind>
         </driver>
 
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
