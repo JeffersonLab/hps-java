@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
+import org.hps.online.recon.properties.Property;
 import org.hps.online.recon.properties.PropertyValidationException;
 import org.jlab.coda.et.EtStation;
 import org.jlab.coda.et.EtSystem;
@@ -67,6 +68,8 @@ public class StationManager {
      */
     StationMonitor stationMonitor = new StationMonitor();
 
+    Object updatingStations = new Object();
+
     /**
      * Create a new instance of this class
      *
@@ -118,12 +121,30 @@ public class StationManager {
      * @param station The station to start
      * @throws IOException If there is a problem starting the station's process
      */
-    void startStation(final StationProcess station) throws IOException {
+    void startStation(final StationProcess station) throws IOException, InterruptedException {
         LOG.info("Starting station: " + station.stationName);
         if (!station.isActive()) {
-            synchronized (station) {
-                station.activate();
-                station.mountRemoteTree(server.agg);
+
+            // Do not bother activating if AIDA remote tree bind is invalid
+            Property<String> remoteTreeBindProp =
+                    station.getProperties().get("lcsim.remoteTreeBind");
+            if (!remoteTreeBindProp.valid()) {
+                throw new IOException("Remote tree bind is not valid");
+            }
+
+            // Activate the station
+            station.activate();
+
+            // Attempt to mount the station's remote tree into the aggregator
+            boolean mounted = server.agg.addRemoteTree(station.getRemoteTreeBind());
+
+            // If mounting failed then deactivate the station
+            if (!mounted) {
+                LOG.info("Failed to mount remote tree while starting - station will be deactivated");
+                station.deactivate();
+                LOG.info("Station deactivated");
+
+                throw new IOException("Failed to mount station's remote AIDA tree");
             }
             LOG.info("Successfully started station: " + station.stationName);
         } else {
@@ -272,7 +293,7 @@ public class StationManager {
     boolean stopStation(StationProcess station) {
         LOG.info("Stopping station: " + station.stationName);
         try {
-            station.unmountRemoteTree(server.agg);
+            server.agg.unmount(station.getRemoteTreeBind());
             wakeUp(station);
             station.deactivate();
         } catch (Exception e) {
@@ -425,7 +446,7 @@ public class StationManager {
                 LOG.info("Starting station: " + station.stationName);
                 startStation(station);
                 ++started;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOG.log(Level.SEVERE, "Failed to start station: " + station.stationName, e);
             }
         }
@@ -527,7 +548,7 @@ public class StationManager {
                 if (station.isActive() && process != null && !process.isAlive()) {
                     LOG.info("Deactivating station: " + station.stationName);
                     station.setExitValue(process.exitValue());
-                    station.unmountRemoteTree(server.agg);
+                    server.agg.unmount(station.getRemoteTreeBind());
                     station.deactivate();
                     LOG.info("StationMonitor set station " + station.stationName + " to inactive with exit value: "
                             + station.getExitValue());

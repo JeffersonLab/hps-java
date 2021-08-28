@@ -55,25 +55,32 @@ import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.fit.helicaltrack.HelicalTrackStrip;
 
 /**
- * Create example histograms and data points in a remote AIDA tree
+ * Make plots for remote AIDA display based on Kalman Filter track
+ * reconstruction
  */
 public class HPSMonitoring2021 extends RemoteAidaDriver {
 
     /*
      * AIDA paths
      */
-    private static final String ECAL_HITS_DIR = "/ecal/hits";
-    private static final String ECAL_CLUSTERS_DIR = "/ecal/clusters";
-    private static final String ECAL_PAIRS_DIR = "/ecal/pairs";
-    private static final String TRACKER_DIR = "/tracks";
-    private static final String TRACKTIME_DIR = "/tracks/trkTime";
-    private static final String SVTOCC_DIR = "/svtOccupancy";
-    private static final String SVTMAX_DIR = "/svtMaxSample";
+    private static final String ECAL_HITS_DIR = "/ecalHits";
+    private static final String ECAL_CLUSTERS_DIR = "/ecalClusters";
+    private static final String ECAL_PAIRS_DIR = "/ecalPairs";
+    private static final String TRACKER_DIR = "/trackPars";
+    private static final String TRACKTIME_DIR = "/trackTime";
     private static final String SVTHITS_DIR = "/svtHits";
-    private static final String FINALSTATE_DIR = "/finalState";
-    private static final String V0_DIR = "/V0";
-    private static final String V0PI0_DIR = "/V0/V0Pi0";
-    private static final String PERF_DIR = "/perf";
+    private static final String SVTRAW_DIR = "/xperSensor/svtHits/counts";
+    private static final String SVTT0_DIR = "/xperSensor/svtHits/time";
+    private static final String ELECTRON_DIR = "/electrons";
+    private static final String POSITRON_DIR = "/positrons";
+    private static final String TRACKTIMEHOT_DIR = "/xperSensor/tracks/trkHitTime";
+    private static final String TRACKTIMEDTVSPHASE_DIR = "/xperSensor/tracks/deltaTvsPhase";
+    private static final String TRACKTIMEDT_DIR = "/xperSensor/tracks/deltaT";
+    private static final String SVTOCC_DIR = "/svtOccupancy";
+    private static final String SVTMAX_DIR = "/xperSensor/svtHits/svtMaxSample";
+    private static final String V01D_DIR = "/v01DPlots";
+    private static final String V02D_DIR = "/v02DPlots";
+    private static final String PERF_DIR = "/EventsProcessed";
     private static final String TEMP_DIR = "/tmp";
 
     /*
@@ -82,10 +89,10 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private IHistogram1D eventCountH1D;
     private IDataPointSet eventRateDPS;
     private IDataPointSet millisPerEventDPS;
+
     /*
      * Ecal plots
      */
-
     private IHistogram2D hitCountFillPlot;
     private IHistogram2D hitCountDrawPlot;
 
@@ -99,8 +106,8 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private IHistogram1D hitEnergyPlot;
     private IHistogram1D hitMaxEnergyPlot;
     private IHistogram1D topTimePlot, botTimePlot, orTimePlot;
-    private IHistogram1D topTrigTimePlot, botTrigTimePlot, orTrigTimePlot;
-    private IHistogram2D topTimePlot2D, botTimePlot2D, orTimePlot2D;
+    private IHistogram1D orTrigTimePlot;
+    private IHistogram2D orTimePlot2D;
 
     private IHistogram1D clusterCountPlot;
     private IHistogram1D clusterSizePlot;
@@ -113,7 +120,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private IHistogram1D pairEnergySum;
     private IHistogram1D pairEnergyDifference;
     private IHistogram1D pairCoplanarity;
-    private IHistogram1D pairEnergySlope;
+//    private IHistogram1D pairEnergySlope;
     private IHistogram1D pairEnergyPositionMeanX;
     private IHistogram1D pairEnergyPositionMeanY;
     private IHistogram1D pairMassOppositeHalf;
@@ -170,7 +177,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     /*
      *   Track Time plots
      */
-    private static final Map<String, IHistogram1D> t0 = new HashMap<String, IHistogram1D>();
     private static final Map<String, IHistogram1D> trackHitDt = new HashMap<String, IHistogram1D>();
     private static final Map<String, IHistogram1D> trackHitT0 = new HashMap<String, IHistogram1D>();
     private static final Map<String, IHistogram1D> trackT0 = new HashMap<String, IHistogram1D>();
@@ -181,51 +187,48 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private static final Map<String, IHistogram2D> trackHit2D = new HashMap<String, IHistogram2D>();
     private static final Map<String, IHistogram2D> trackTimeMinMax = new HashMap<String, IHistogram2D>();
 
-    double minTime = -40;
-    double maxTime = 40;
+    private double minTime = -40;
+    private double maxTime = 40;
+
+    private boolean enableTrackTimesPerSensorPlots = false;
 
     /*
     *  Final state particle and V0 plots
      */
-    IHistogram1D nEle;
-    IHistogram1D elePx;
-    IHistogram1D elePy;
-    IHistogram1D elePz;
-    IHistogram2D eleProjXYEcalMatch;
-    IHistogram2D eleProjXYEcalNoMatch;
+    private IHistogram1D nEle;
+    private IHistogram1D elePx;
+    private IHistogram1D elePy;
+    private IHistogram1D elePz;
+    private IHistogram2D eleProjXYEcalMatch;
+    private IHistogram2D eleProjXYEcalNoMatch;
 
-    IHistogram1D nPos;
-    IHistogram1D posPx;
-    IHistogram1D posPy;
-    IHistogram1D posPz;
-    IHistogram2D posProjXYEcalMatch;
-    IHistogram2D posProjXYEcalNoMatch;
+    private IHistogram1D nPos;
+    private IHistogram1D posPx;
+    private IHistogram1D posPy;
+    private IHistogram1D posPz;
+    private IHistogram2D posProjXYEcalMatch;
+    private IHistogram2D posProjXYEcalNoMatch;
 
-    IHistogram1D nPhot;
-    IHistogram1D photEne;
-    IHistogram2D photXYECal;
-    IHistogram1D pi0Ene;
-    IHistogram1D pi0Diff;
-    IHistogram1D pi0Mass;
+    private IHistogram1D nPhot;
+    private IHistogram1D photEne;
+    private IHistogram2D photXYECal;
 
-    double ecalXRange = 500;
-    double ecalYRange = 100;
+    private double ecalXRange = 500;
+    private double ecalYRange = 100;
 
-    double pMax = 6.0;
-    double pi0EsumCut = 2.5;//GeV
-    double pi0EdifCut = 1.0;//GeV
+    private double pMax = 7.0;
 
-    IHistogram1D nV0;
-    IHistogram1D unconMass;
-    IHistogram1D unconVx;
-    IHistogram1D unconVy;
-    IHistogram1D unconVz;
-    IHistogram1D unconChi2;
+    private IHistogram1D nV0;
+    private IHistogram1D unconMass;
+    private IHistogram1D unconVx;
+    private IHistogram1D unconVy;
+    private IHistogram1D unconVz;
+    private IHistogram1D unconChi2;
 
-    IHistogram2D pEleVspPos;
-    IHistogram2D pyEleVspyPos;
-    IHistogram2D pxEleVspxPos;
-    IHistogram2D massVsVtxZ;
+    private IHistogram2D pEleVspPos;
+    private IHistogram2D pyEleVspyPos;
+    private IHistogram2D pxEleVspxPos;
+    private IHistogram2D massVsVtxZ;
 
     //The field map for extrapolation
     private FieldMap bFieldMap;
@@ -252,10 +255,13 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     private long start = -1L;
     private Timer timer;
 
-
     /* SVT Occupancy setters */
     public void setEnableMaxSamplePlots(boolean enableMaxSamplePlots) {
         this.enableMaxSamplePlots = enableMaxSamplePlots;
+    }
+
+    public void setEnableTrackTimesPerSensorPlots(boolean enable) {
+        this.enableTrackTimesPerSensorPlots = enable;
     }
 
     public void setEventRefreshRate(int eventRefreshRate) {
@@ -287,14 +293,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         this.pMax = pmax;
     }
 
-    public void setPi0EsumCut(double cut) {
-        this.pi0EsumCut = cut;
-    }
-
-    public void setPi0EdifCut(double cut) {
-        this.pi0EdifCut = cut;
-    }
-
     public void setFinalStateParticlesColName(String name) {
         this.finalStateParticlesColName = name;
     }
@@ -316,22 +314,15 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     }
 
     @Override
-    protected void startOfData() {
-        // Override super method so we can initialize remote AIDA in detectorChanged() instead.
-    }
-
-    @Override
     protected void detectorChanged(Detector detector) {
-
-        // Initialize remote AIDA using parent Driver
-        initialize();
 
         // Get the HpsSiSensor objects from the geometry
         sensors = detector.getSubdetector(TRACKER_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
         timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
         // If there were no sensors found, throw an exception
-        if (sensors.isEmpty())
+        if (sensors.isEmpty()) {
             throw new RuntimeException("There are no sensors associated with this detector");
+        }
 
         /*
          * Ecal plots
@@ -376,17 +367,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
         hitTimePlot = aida.histogram1D(RAW_ECAL_HITS + " : Hit Time", 100,
                 0 * 4.0, 100 * 4.0);
-        topTrigTimePlot = aida.histogram1D(RAW_ECAL_HITS
-                + " : Trigger Time, Top", 101, -2, 402);
-        botTrigTimePlot = aida.histogram1D(RAW_ECAL_HITS
-                + " : Trigger Time, Bottom", 101, -2, 402);
         orTrigTimePlot = aida.histogram1D(RAW_ECAL_HITS + " : Trigger Time, Or",
                 1024, 0, 4096);
 
-        topTimePlot2D = aida.histogram2D(RAW_ECAL_HITS
-                + " : Hit Time vs. Trig Time, Top", 100, 0, 100 * 4.0, 101, -2, 402);
-        botTimePlot2D = aida.histogram2D(RAW_ECAL_HITS
-                + " : Hit Time vs. Trig Time, Bottom", 100, 0, 100 * 4.0, 101, -2, 402);
         orTimePlot2D = aida.histogram2D(RAW_ECAL_HITS
                 + " : Hit Time vs. Trig Time, Or", 100, 0, 100 * 4.0, 101, -2, 402);
 
@@ -412,12 +395,12 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                 + " : Cluster Time Mean", 400, 0, 4.0 * 100);
         clusterTimeSigma = aida.histogram1D(ECAL_CLUSTERS
                 + " : Cluster Time Sigma", 100, 0, 40);
-        
+
         tree.cd(ECAL_PAIRS_DIR);
         pairEnergySum = aida.histogram1D("Pair Energy Sum Distribution", 176, 0.0, maxE);
         pairEnergyDifference = aida.histogram1D("Pair Energy Difference Distribution", 176, 0.0, 2.2);
         pairCoplanarity = aida.histogram1D("Pair Coplanarity Distribution", 90, 0.0, 180.0);
-        pairEnergySlope = aida.histogram1D("Pair Energy Slope Distribution", 150, 0.0, 3.0);
+//        pairEnergySlope = aida.histogram1D("Pair Energy Slope Distribution", 150, 0.0, 3.0);
         pairEnergyPositionMeanX = aida.histogram1D("Cluster Pair Weighted Energy Position (x-Index)", 100, -250, 250);
         pairEnergyPositionMeanY = aida.histogram1D("Cluster Pair Weighted Energy Position (y-Index)", 100, -100, 100);
         pairMassSameHalf = aida.histogram1D("Cluster Pair Mass: Same Half", 100, 0.0, 0.35);
@@ -441,40 +424,45 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
          */
         tree.mkdirs(SVTOCC_DIR);
         tree.cd(SVTOCC_DIR);
-        tree.mkdir(SVTMAX_DIR);
+        tree.mkdirs(SVTMAX_DIR);
         for (HpsSiSensor sensor : sensors) {
             tree.cd(SVTOCC_DIR);
             occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
             occupancyPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), aida
                     .histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Occupancy", 640, 0, 640));
-            tree.cd(SVTMAX_DIR);
-            maxSamplePositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), aida.histogram1D(
-                    SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Max Sample Number", 6, -0.5, 5.5));
+            if (this.enableMaxSamplePlots) {
+                tree.cd(SVTMAX_DIR);
+                maxSamplePositionPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), aida.histogram1D(
+                        SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Max Sample Number", 6, -0.5, 5.5));
+            }
         }
-
         /**
          * Turn off aggregation for occupancy plots (JM)
          */
-        for (Entry<String, IHistogram1D> entry : occupancyPlots.entrySet())
+        for (Entry<String, IHistogram1D> entry : occupancyPlots.entrySet()) {
             entry.getValue().annotation().addItem("aggregate", "false");
+        }
 
         /*
          * SVT Hits
          */
-        tree.mkdirs(SVTHITS_DIR);
-        tree.cd(SVTHITS_DIR);
+        tree.mkdirs(SVTRAW_DIR);
+        tree.mkdirs(SVTT0_DIR);
+
         for (HpsSiSensor sensor : sensors) {
+            tree.cd(SVTRAW_DIR);
             hitsPerSensorPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
                     aida.histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Raw Hits", 50, 0, 50));
             hitsPerSensor.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[1]);
+            tree.cd(SVTT0_DIR);
             t0Plots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
                     aida.histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - t0", 100, -100, 100.0));
         }
-        layersHitPlots.put("Top", aida.histogram1D("Top Layers Hit", 15, 0, 15));
+        tree.mkdirs(SVTHITS_DIR);
+        tree.cd(SVTHITS_DIR);
         hitCountPlots.put("Raw hit counts", aida.histogram1D("Raw hit counts", 100, 0, 500));
         hitCountPlots.put("SVT top raw hit counts", aida.histogram1D("SVT top raw hit counts", 100, 0, 300));
-        hitCountPlots.put("SVT bottom raw hit counts",
-                aida.histogram1D("SVT bottom raw hit counts", 100, 0, 300));
+        hitCountPlots.put("SVT bottom raw hit counts", aida.histogram1D("SVT bottom raw hit counts", 100, 0, 300));
         /*
          * Tracking plots
          */
@@ -482,7 +470,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         tree.mkdirs(TRACKER_DIR);
         tree.cd(TRACKER_DIR);
 
-        tracksPerEventH1D = aida.histogram1D("Tracks Per Event", 20, 0., 20.);
+        tracksPerEventH1D = aida.histogram1D("Tracks Per Event", 20, 0., 10.);
         // tracksPerEventH1D.annotation().addItem("xAxisLabel", "Tracks / Event");
         // tracksPerEventH1D.annotation().addItem("yAxisLabel", "Count");
 
@@ -502,21 +490,26 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
          *  Track time plots
          */
         tree.mkdirs(TRACKTIME_DIR);
-        tree.cd(TRACKTIME_DIR);
-        for (HpsSiSensor sensor : sensors) {
-            t0.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                    aida.histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - t0", 100, minTime, maxTime));
-            trackHitT0.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                    aida.histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - track hit t0", 100, minTime, maxTime));
-            trackHitDt.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                    aida.histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - track hit dt", 100, minTime, maxTime));
+        if (enableTrackTimesPerSensorPlots) {
+            tree.mkdirs(TRACKTIMEHOT_DIR);
+            tree.mkdirs(TRACKTIMEDT_DIR);
+            tree.mkdirs(TRACKTIMEDTVSPHASE_DIR);
 
-            trackHit2D.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                    aida.histogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - trigger phase vs dt", 80, -20, 20.0, 6, 0, 24.0));
-            //trackHitDtChan.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-            //        aida.histogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - dt vs position", 200, -20, 20, 50, -20, 20.0));
+            for (HpsSiSensor sensor : sensors) {
+                tree.cd(TRACKTIMEHOT_DIR);
+                trackHitT0.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
+                        aida.histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - track hit t0", 100, minTime, maxTime));
+                tree.cd(TRACKTIMEDT_DIR);
+                trackHitDt.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
+                        aida.histogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - track hit dt", 100, minTime, maxTime));
+                tree.cd(TRACKTIMEDTVSPHASE_DIR);
+                trackHit2D.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
+                        aida.histogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - trigger phase vs dt", 80, -20, 20.0, 6, 0, 24.0));
+                //trackHitDtChan.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
+                //        aida.histogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - dt vs position", 200, -20, 20, 50, -20, 20.0));
+            }
         }
-
+        tree.cd(TRACKTIME_DIR);
         trackT0.put("Top",
                 aida.histogram1D("Top Track Time", 80, -40, 40.0));
         trackT0.put("Bottom",
@@ -538,46 +531,45 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         /*
         *  Final state particle and V0 plots
          */
-        tree.mkdirs(FINALSTATE_DIR);
-        tree.mkdirs(V0_DIR);
-        tree.mkdirs(V0PI0_DIR);
-        tree.cd(FINALSTATE_DIR);
+        tree.mkdirs(ELECTRON_DIR);
+        tree.mkdirs(POSITRON_DIR);
+        tree.mkdirs(V01D_DIR);
+        tree.mkdirs(V02D_DIR);
+        tree.cd(ELECTRON_DIR);
         nEle = aida.histogram1D("Number of Electrons per event", 5, 0, 5);
         elePx = aida.histogram1D("Electron Px (GeV)", 50, -0.2, 0.2);
         elePy = aida.histogram1D("Electron Py (GeV)", 50, -0.2, 0.2);
         elePz = aida.histogram1D("Electron Pz (GeV)", 50, 0.0, pMax);
         eleProjXYEcalMatch = aida.histogram2D("Electron ECal Projection: Matched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         eleProjXYEcalNoMatch = aida.histogram2D("Electron ECal Projection: Unmatched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
-
+        tree.cd(POSITRON_DIR);
         nPos = aida.histogram1D("Number of Positrons per event", 5, 0, 5);
         posPx = aida.histogram1D("Positron Px (GeV)", 50, -0.2, 0.2);
         posPy = aida.histogram1D("Positron Py (GeV)", 50, -0.2, 0.2);
         posPz = aida.histogram1D("Positron Pz (GeV)", 50, 0.0, pMax);
         posProjXYEcalMatch = aida.histogram2D("Positron ECal Projection: Matched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
         posProjXYEcalNoMatch = aida.histogram2D("Positron ECal Projection: Unmatched", 50, -ecalXRange, ecalXRange, 50, -ecalYRange, ecalYRange);
-        tree.cd(V0PI0_DIR);
-        nPhot = aida.histogram1D("Number of Photons per event", 5, 0, 5);
-        photEne = aida.histogram1D("Photon Energy (GeV)", 50, 0.0, pMax);
-        photXYECal = aida.histogram2D("ECal Position", 50, -300, 400, 50, -ecalYRange, ecalYRange);
-        pi0Ene = aida.histogram1D("pi0 Energy (GeV)", 50, pi0EsumCut, pMax);
-        pi0Diff = aida.histogram1D("pi0 E-Diff (GeV)", 50, 0, pi0EdifCut);
-        pi0Mass = aida.histogram1D("pi0 Mass (GeV)", 50, 0.0, 0.3);
+
+//        nPhot = aida.histogram1D("Number of Photons per event", 5, 0, 5);
+//        photEne = aida.histogram1D("Photon Energy (GeV)", 50, 0.0, pMax);
+//        photXYECal = aida.histogram2D("ECal Position", 50, -300, 400, 50, -ecalYRange, ecalYRange);
         /* V0 Quantities */
  /* Mass, vertex, chi^2 of fit */
  /* unconstrained  */
-        tree.cd(V0_DIR);
+        tree.cd(V01D_DIR);
         nV0 = aida.histogram1D("Number of V0 per event", 5, 0, 5);
         unconMass = aida.histogram1D("Unconstrained Mass (GeV)", 100, 0, 0.200);
         unconVx = aida.histogram1D("Unconstrained Vx (mm)", 50, -5, 5);
         unconVy = aida.histogram1D("Unconstrained Vy (mm)", 50, -1.0, 1.0);
         unconVz = aida.histogram1D("Unconstrained Vz (mm)", 50, -15, 10);
         unconChi2 = aida.histogram1D("Unconstrained Chi2", 50, 0, 25);
+        tree.cd(V02D_DIR);
         pEleVspPos = aida.histogram2D("P(e) vs P(p)", 50, 0, 2.5, 50, 0, 2.5);
         pyEleVspyPos = aida.histogram2D("Py(e) vs Py(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         pxEleVspxPos = aida.histogram2D("Px(e) vs Px(p)", 50, -0.1, 0.1, 50, -0.1, 0.1);
         massVsVtxZ = aida.histogram2D("Mass vs Vz", 50, 0, 0.15, 50, -10, 10);
 
-        tree.mkdir(PERF_DIR);
+        tree.mkdirs(PERF_DIR);
         tree.cd(PERF_DIR);
 
         /*
@@ -617,7 +609,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
     }
 
-    @Override
     public void endOfData() {
 
 //        timer.cancel();
@@ -651,8 +642,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                     botTrigTime = 0; // ((SSPData)triggerData).getBotTrig();
 
                     orTrigTimePlot.fill(orTrigTime);
-                    topTrigTimePlot.fill(topTrigTime);
-                    botTrigTimePlot.fill(botTrigTime);
 
                 }
 
@@ -680,14 +669,18 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                 hitEnergyPlot.fill(hit.getRawEnergy());
                 hitTimePlot.fill(hit.getTime());
 
-                if (hit.getTime() < orTime)
+                if (hit.getTime() < orTime) {
                     orTime = hit.getTime();
-                if (hit.getIdentifierFieldValue("iy") > 0 && hit.getTime() < topTime)
+                }
+                if (hit.getIdentifierFieldValue("iy") > 0 && hit.getTime() < topTime) {
                     topTime = hit.getTime();
-                if (hit.getIdentifierFieldValue("iy") < 0 && hit.getTime() < botTime)
+                }
+                if (hit.getIdentifierFieldValue("iy") < 0 && hit.getTime() < botTime) {
                     botTime = hit.getTime();
-                if (hit.getRawEnergy() > maxEnergy)
+                }
+                if (hit.getRawEnergy() > maxEnergy) {
                     maxEnergy = hit.getRawEnergy();
+                }
             }
 
             if (orTime != Double.POSITIVE_INFINITY) {
@@ -696,19 +689,19 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
             }
             if (topTime != Double.POSITIVE_INFINITY) {
                 topTimePlot.fill(topTime);
-                topTimePlot2D.fill(topTime, topTrigTime);
             }
             if (botTime != Double.POSITIVE_INFINITY) {
                 botTimePlot.fill(botTime);
-                botTimePlot2D.fill(botTime, botTrigTime);
             }
             hitMaxEnergyPlot.fill(maxEnergy);
         }
 
-        if (nhits > 0)
+        if (nhits > 0) {
             for (int ii = 0;
-                    ii < (11 * 47); ii++)
+                    ii < (11 * 47); ii++) {
                 occupancyFill[ii] += (1. * chits[ii]) / nhits;
+            }
+        }
 
         // calorimeter and the bottom.
         List<Cluster> topList = new ArrayList<Cluster>();
@@ -722,8 +715,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                 clusterCountFillPlot.fill(cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix"), cluster
                         .getCalorimeterHits().get(0).getIdentifierFieldValue("iy"));
 
-                if (cluster.getEnergy() > maxEnergy)
+                if (cluster.getEnergy() > maxEnergy) {
                     maxEnergy = cluster.getEnergy();
+                }
 
                 // Get the list of calorimeter hits and its size.
                 List<CalorimeterHit> hitList = cluster.getCalorimeterHits();
@@ -760,22 +754,24 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                 // Cluster pairs are formed from all top/bottom cluster
                 // combinations. To create these pairs, separate the
                 // clusters into two lists based on their y-indices.
-                if (cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix") > 0)
+                if (cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix") > 0) {
                     topList.add(cluster);
-                else
+                } else {
                     bottomList.add(cluster);
+                }
             }
             // Populate the event plots.
             clusterCountPlot.fill(clusters.size());
-            if (maxEnergy > 0)
+            if (maxEnergy > 0) {
                 clusterMaxEnergyPlot.fill(maxEnergy);
+            }
 
             // Create a list to store cluster pairs.
             List<Cluster[]> pairList = new ArrayList<Cluster[]>(topList.size() * bottomList.size());
 
             // Form pairs from all possible combinations of clusters
             // from the top and bottom lists.
-            for (Cluster topCluster : topList)
+            for (Cluster topCluster : topList) {
                 for (Cluster bottomCluster : bottomList) {
                     // Make a cluster pair array.
                     Cluster[] pair = new Cluster[2];
@@ -792,6 +788,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                     // Add the pair to the pair list.
                     pairList.add(pair);
                 }
+            }
 
             // Iterate over each pair and calculate the pair cut values.
             for (Cluster[] pair : pairList) {
@@ -809,7 +806,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                 pairEnergySum.fill(energySumValue, 1);
                 ;
                 pairEnergyDifference.fill(energyDifferenceValue, 1);
-                pairEnergySlope.fill(energySlopeValue, 1);
+//                pairEnergySlope.fill(energySlopeValue, 1);
                 pairCoplanarity.fill(coplanarityValue, 1);
                 pairEnergyPositionMeanX.fill(xMean);
                 pairEnergyPositionMeanY.fill(yMean);
@@ -817,8 +814,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
                 int idx0 = pair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
                 int idx1 = pair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
-                if (Math.abs(idx0) > 2 && Math.abs(idx1) > 2)
+                if (Math.abs(idx0) > 2 && Math.abs(idx1) > 2) {
                     pairMassOppositeHalfFid.fill(getClusterPairMass(pair));
+                }
 
             }
             // Create a list to store cluster pairs.
@@ -826,7 +824,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
             // Form pairs from all possible combinations of clusters
             // from the top and bottom lists.
-            for (Cluster topCluster : topList)
+            for (Cluster topCluster : topList) {
                 for (Cluster topCluster2 : topList) {
                     // Make a cluster pair array.
                     Cluster[] pair = new Cluster[2];
@@ -843,8 +841,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                     // Add the pair to the pair list.
                     pairListSameHalf.add(pair);
                 }
+            }
 
-            for (Cluster cluster : bottomList)
+            for (Cluster cluster : bottomList) {
                 for (Cluster cluster2 : bottomList) {
                     // Make a cluster pair array.
                     Cluster[] pair = new Cluster[2];
@@ -861,18 +860,21 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                     // Add the pair to the pair list.
                     pairListSameHalf.add(pair);
                 }
+            }
             // Iterate over each pair and calculate the pair cut values.
             for (Cluster[] pair : pairListSameHalf) {
                 // Get the energy slope value.
                 pairMassSameHalf.fill(getClusterPairMass(pair));
                 int idx0 = pair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
                 int idx1 = pair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
-                if (Math.abs(idx0) > 2 && Math.abs(idx1) > 2)
+                if (Math.abs(idx0) > 2 && Math.abs(idx1) > 2) {
                     pairMassSameHalfFid.fill(getClusterPairMass(pair));
+                }
             }
 
-        } else
+        } else {
             clusterCountPlot.fill(0);
+        }
 
         thisTime = System.currentTimeMillis() / 1000;
         thisEventN = event.getEventNumber();
@@ -897,14 +899,16 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
             prevEventN = thisEventN;
             prevEventTime = thisEventTime;
             NoccupancyFill = 0;
-        } else
+        } else {
             NoccupancyFill++;
+        }
 
         // If the event doesn't have a collection of RawTrackerHit's, skip it.
         if (!event.hasCollection(RawTrackerHit.class,
                 RAW_TRACKER_HITS
-        ))
+        )) {
             return;
+        }
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, RAW_TRACKER_HITS);
         //System.out.println(rawHits.size());
@@ -928,22 +932,25 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
             // to 0.
             int maxAmplitude = 0;
             int maxSamplePositionFound = -1;
-            for (int sampleN = 0; sampleN < 6; sampleN++)
+            for (int sampleN = 0; sampleN < 6; sampleN++) {
                 if (adcValues[sampleN] > maxAmplitude) {
                     maxAmplitude = adcValues[sampleN];
                     maxSamplePositionFound = sampleN;
                 }
-            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound)
+            }
+            if (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound) {
                 occupancyMap.get(
                         SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName()))[rawHit
                         .getIdentifierFieldValue("strip")]++; // System.out.println("Filling occupancy");
-
-            maxSamplePositionPlots
-                    .get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName()))
-                    .fill(maxSamplePositionFound);
+            }
+            if (this.enableMaxSamplePlots) {
+                maxSamplePositionPlots
+                        .get(SvtPlotUtils.fixSensorNumberLabel(((HpsSiSensor) rawHit.getDetectorElement()).getName()))
+                        .fill(maxSamplePositionFound);
+            }
         }
         // Plot strip occupancies.
-        if (eventCount % eventRefreshRate == 0)
+        if (eventCount % eventRefreshRate == 0) {
             for (HpsSiSensor sensor : sensors) {
                 int[] strips = occupancyMap.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()));
                 occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
@@ -956,6 +963,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                             stripOccupancy);
                 }
             }
+        }
 
         for (LCRelation fittedHit : fittedHits) {
             // Obtain the SVT raw hit associated with this relation
@@ -966,9 +974,11 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
             double t0 = FittedRawTrackerHit.getT0(fittedHit);
             double amplitude = FittedRawTrackerHit.getAmp(fittedHit);
             double chi2Prob = ShapeFitParameters.getChiProb(FittedRawTrackerHit.getShapeFitParameters(fittedHit));
-            if (cutOutLowChargeHits)
-                if (amplitude / DopedSilicon.ENERGY_EHPAIR < hitChargeCut)
+            if (cutOutLowChargeHits) {
+                if (amplitude / DopedSilicon.ENERGY_EHPAIR < hitChargeCut) {
                     continue;
+                }
+            }
             t0Plots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(t0);
             double trigPhase = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
 //            t0VsTriggerTime.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(t0, trigPhase);
@@ -990,7 +1000,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
             eventHitCount += hitCount;
 
-            if (hitsPerSensor.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()))[0] > 0)
+            if (hitsPerSensor.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()))[0] > 0) {
                 if (sensor.isTopLayer()) {
                     topLayersHit[sensor.getLayerNumber() - 1]++;
                     topEventHitCount += hitCount;
@@ -998,19 +1008,16 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                     botLayersHit[sensor.getLayerNumber() - 1]++;
                     botEventHitCount += hitCount;
                 }
+            }
         }
 
-        hitCountPlots.get(
-                "Raw hit counts").fill(eventHitCount);
-        hitCountPlots.get(
-                "SVT top raw hit counts").fill(topEventHitCount);
-        hitCountPlots.get(
-                "SVT bottom raw hit counts").fill(botEventHitCount);
+        hitCountPlots.get("Raw hit counts").fill(eventHitCount);
+        hitCountPlots.get("SVT top raw hit counts").fill(topEventHitCount);
+        hitCountPlots.get("SVT bottom raw hit counts").fill(botEventHitCount);
 
         List<Track> tracks = event.get(Track.class, trackColName);
 
-        aida.tree()
-                .cd(TRACKER_DIR);
+        aida.tree().cd(TRACKER_DIR);
 
         tracksPerEventH1D.fill(tracks.size());
 
@@ -1035,25 +1042,12 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
          */
         int trigTime = (int) (event.getTimeStamp() % 24);
 
-        // ===> IIdentifierHelper helper = SvtUtils.getInstance().getHelper();
-        List<SiTrackerHitStrip1D> hits = event.get(SiTrackerHitStrip1D.class, STRIP_CLUSTERS);
-        for (SiTrackerHitStrip1D hit : hits) {
-            // ===> IIdentifier id = hit.getSensor().getIdentifier();
-            // ===> int layer = helper.getValue(id, "layer");
-            int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber();
-            int module = ((HpsSiSensor) hit.getSensor()).getModuleNumber();
-            // ===> int module = helper.getValue(id, "module");
-            // System.out.format("%d, %d, %d\n",hit.getCellID(),layer,module);
-            SiSensor sensor = hit.getSensor();
-            t0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime());
-        }
-
         for (Track track : tracks) {
             int trackModule;
             String moduleName = "Top";
-            if (track.getTrackerHits().get(0).getPosition()[1] > 0)
+            if (track.getTrackerHits().get(0).getPosition()[1] > 0) {
                 trackModule = 0;
-            else {
+            } else {
                 moduleName = "Bottom";
                 trackModule = 1;
             }
@@ -1063,59 +1057,70 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
             double trackTime = 0;
 
             if (isSeedTracker) {
-                for (TrackerHit hitCross : track.getTrackerHits())
+                for (TrackerHit hitCross : track.getTrackerHits()) {
                     for (HelicalTrackStrip hit : ((HelicalTrackCross) hitCross).getStrips()) {
                         SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.rawhits().get(0)).getDetectorElement();
-                        trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.time());
+                        if (enableTrackTimesPerSensorPlots) {
+                            trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.time());
+                        }
                         trackTime += hit.time();
                         hitCount++;
-                        if (hit.time() > maxTime)
+                        if (hit.time() > maxTime) {
                             maxTime = hit.time();
-                        if (hit.time() < minTime)
+                        }
+                        if (hit.time() < minTime) {
                             minTime = hit.time();
+                        }
                     }
-                trackTimeMinMax.get(moduleName).fill(minTime, maxTime);
-                trackTimeRange.get(moduleName).fill(maxTime - minTime);
-                trackTime /= hitCount;
-                trackT0.get(moduleName).fill(trackTime);
-                trackTrigTime.get(moduleName).fill(trackTime, trigTime);
-
-                for (TrackerHit hitCross : track.getTrackerHits())
-                    for (HelicalTrackStrip hit : ((HelicalTrackCross) hitCross).getStrips()) {
-                        int layer = hit.layer();
-                        int module = ((RawTrackerHit) hit.rawhits().get(0)).getIdentifierFieldValue("module");
-                        SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.rawhits().get(0)).getDetectorElement();
-                        trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.time() - trackTime);
-                        trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.time() - trackTime, event.getTimeStamp() % 24);
-                    }
-
-            } else {
-                for (TrackerHit hitTH : track.getTrackerHits()) {
-
-                    SiTrackerHitStrip1D hit = (SiTrackerHitStrip1D) hitTH;
-                    SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
-                    trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime());
-                    trackTime += hit.getTime();
-                    hitCount++;
-                    if (hit.getTime() > maxTime)
-                        maxTime = hit.getTime();
-                    if (hit.getTime() < minTime)
-                        minTime = hit.getTime();
                 }
                 trackTimeMinMax.get(moduleName).fill(minTime, maxTime);
                 trackTimeRange.get(moduleName).fill(maxTime - minTime);
                 trackTime /= hitCount;
                 trackT0.get(moduleName).fill(trackTime);
                 trackTrigTime.get(moduleName).fill(trackTime, trigTime);
-
+                if (enableTrackTimesPerSensorPlots) {
+                    for (TrackerHit hitCross : track.getTrackerHits()) {
+                        for (HelicalTrackStrip hit : ((HelicalTrackCross) hitCross).getStrips()) {
+                            int layer = hit.layer();
+                            int module = ((RawTrackerHit) hit.rawhits().get(0)).getIdentifierFieldValue("module");
+                            SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.rawhits().get(0)).getDetectorElement();
+                            trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.time() - trackTime);
+                            trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.time() - trackTime, event.getTimeStamp() % 24);
+                        }
+                    }
+                }
+            } else {
                 for (TrackerHit hitTH : track.getTrackerHits()) {
+
                     SiTrackerHitStrip1D hit = (SiTrackerHitStrip1D) hitTH;
-                    int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber();
-                    int module = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("module");
                     SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
-                    trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime);
-                    trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime, event.getTimeStamp() % 24);
-                    //trackHitDtChan.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getMeasuredCoordinate().x(), hit.getTime() - trackTime);
+                    if (enableTrackTimesPerSensorPlots) {
+                        trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime());
+                    }
+                    trackTime += hit.getTime();
+                    hitCount++;
+                    if (hit.getTime() > maxTime) {
+                        maxTime = hit.getTime();
+                    }
+                    if (hit.getTime() < minTime) {
+                        minTime = hit.getTime();
+                    }
+                }
+                trackTimeMinMax.get(moduleName).fill(minTime, maxTime);
+                trackTimeRange.get(moduleName).fill(maxTime - minTime);
+                trackTime /= hitCount;
+                trackT0.get(moduleName).fill(trackTime);
+                trackTrigTime.get(moduleName).fill(trackTime, trigTime);
+                if (enableTrackTimesPerSensorPlots) {
+                    for (TrackerHit hitTH : track.getTrackerHits()) {
+                        SiTrackerHitStrip1D hit = (SiTrackerHitStrip1D) hitTH;
+                        int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber();
+                        int module = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue("module");
+                        SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
+                        trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime);
+                        trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime, event.getTimeStamp() % 24);
+                        //trackHitDtChan.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getMeasuredCoordinate().x(), hit.getTime() - trackTime);
+                    }
                 }
             }
         }
@@ -1138,10 +1143,11 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                 elePz.fill(mom.z());
                 TrackState stateAtEcal = TrackUtils.getTrackStateAtECal((fsp.getTracks().get(0)));
                 Hep3Vector tPos = new BasicHep3Vector(stateAtEcal.getReferencePoint());
-                if (fsp.getClusters().size() != 0)
+                if (fsp.getClusters().size() != 0) {
                     eleProjXYEcalMatch.fill(tPos.y(), tPos.z());
-                else
+                } else {
                     eleProjXYEcalNoMatch.fill(tPos.y(), tPos.z());
+                }
             } else if (charge > 0) {
                 posCnt++;
                 Hep3Vector mom = fsp.getMomentum();
@@ -1150,42 +1156,18 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                 posPz.fill(mom.z());
                 TrackState stateAtEcal = TrackUtils.getTrackStateAtECal((fsp.getTracks().get(0)));
                 Hep3Vector tPos = new BasicHep3Vector(stateAtEcal.getReferencePoint());
-                if (fsp.getClusters().size() != 0)
+                if (fsp.getClusters().size() != 0) {
                     posProjXYEcalMatch.fill(tPos.y(), tPos.z());// tracking frame!
-                else
+                } else {
                     posProjXYEcalNoMatch.fill(tPos.y(), tPos.z());
-            } else if (fsp.getClusters().size() != 0) {
-                photCnt++;
-                Cluster clu = fsp.getClusters().get(0);
-                photEne.fill(clu.getEnergy());
-                photXYECal.fill(clu.getPosition()[0], clu.getPosition()[1]);
-            } else
-                System.out.println("This FSP had no tracks or clusters???");
-        }
-        for (ReconstructedParticle fsp1 : fspList) {
-            if (fsp1.getCharge() != 0)
-                continue;
-            for (ReconstructedParticle fsp2 : fspList) {
-                if (fsp1 == fsp2)
-                    continue;
-                if (fsp2.getCharge() != 0)
-                    continue;
-//                if (fsp1.getClusters().get(0) == null || fsp2.getClusters().get(0) == null)
-//                    continue;//this should never happen
-                Cluster clu1 = fsp1.getClusters().get(0);
-                Cluster clu2 = fsp2.getClusters().get(0);
-                double pi0ene = clu1.getEnergy() + clu2.getEnergy();
-                double pi0diff = Math.abs(clu1.getEnergy() - clu2.getEnergy());
-                double pi0mass = getClusterPairMass(clu1, clu2);
-                if (pi0diff > pi0EdifCut)
-                    continue;
-                if (pi0ene < pi0EsumCut)
-                    continue;
-                if (clu1.getPosition()[1] * clu2.getPosition()[1] < 0) {//top bottom
-                    pi0Ene.fill(pi0ene);
-                    pi0Diff.fill(pi0diff);
-                    pi0Mass.fill(pi0mass);
                 }
+//            } else if (fsp.getClusters().size() != 0) {
+//                photCnt++;
+//                Cluster clu = fsp.getClusters().get(0);
+//                photEne.fill(clu.getEnergy());
+//                photXYECal.fill(clu.getPosition()[0], clu.getPosition()[1]);
+            } else {
+                System.out.println("This FSP had no tracks or clusters???");
             }
         }
 
@@ -1193,7 +1175,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
         nPos.fill(posCnt);
 
-        nPhot.fill(photCnt);
+//        nPhot.fill(photCnt);
 
         /*
         *  V0 plots
@@ -1232,7 +1214,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 
     private static Map<Integer, Hep3Vector> createStripPositionMap(HpsSiSensor sensor) {
         Map<Integer, Hep3Vector> positionMap = new HashMap<Integer, Hep3Vector>();
-        for (ChargeCarrier carrier : ChargeCarrier.values())
+        for (ChargeCarrier carrier : ChargeCarrier.values()) {
             if (sensor.hasElectrodesOnSide(carrier)) {
                 // SiSensorElectrodes electrodes = sensor.getReadoutElectrodes();
                 SiSensorElectrodes strips = (SiSensorElectrodes) sensor.getReadoutElectrodes(carrier);
@@ -1245,12 +1227,14 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
                     positionMap.put(physicalChannel, globalStripPosition);
                 }
             }
+        }
         return positionMap;
     }
 
     private void clearHitMaps() {
-        for (HpsSiSensor sensor : sensors)
+        for (HpsSiSensor sensor : sensors) {
             hitsPerSensor.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()))[0] = 0;
+        }
     }
 
     private double getClusterPairMass(Cluster clu1, Cluster clu2) {
@@ -1275,10 +1259,11 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         double psum = Math.sqrt(pxsum * pxsum + pysum * pysum + pzsum * pzsum);
         double evtmass = esum * esum - psum * psum;
 
-        if (evtmass > 0)
+        if (evtmass > 0) {
             return Math.sqrt(evtmass);
-        else
+        } else {
             return -99;
+        }
     }
 
     private double getMomentum(Track trk) {
@@ -1312,8 +1297,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
             double mean = occupancyFill[id] / NoccupancyFill;
 
             occupancyFill[id] = 0;
-            if ((row != 0) && (column != 0) && (!EcalMonitoringUtilities.isInHole(row, column)))
+            if ((row != 0) && (column != 0) && (!EcalMonitoringUtilities.isInHole(row, column))) {
                 occupancyDrawPlot.fill(column, row, mean);
+            }
         }
 
     }
@@ -1340,9 +1326,10 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         double psum = Math.sqrt(pxsum * pxsum + pysum * pysum + pzsum * pzsum);
         double evtmass = esum * esum - psum * psum;
 
-        if (evtmass > 0)
+        if (evtmass > 0) {
             return Math.sqrt(evtmass);
-        else
+        } else {
             return -99;
+        }
     }
 }

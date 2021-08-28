@@ -11,7 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FilenameUtils;
-import org.hps.online.recon.PlotAggregator.RemoteTreeBindThread;
 import org.hps.online.recon.logging.LoggingConfig;
 import org.hps.online.recon.properties.Property;
 import org.json.JSONObject;
@@ -82,11 +81,6 @@ public class StationProcess {
      * The station's key-value properties
      */
     private StationProperties props;
-
-    /**
-     * Thread for asynchronously binding to the server tree
-     */
-    RemoteTreeBindThread rtbThread = null;
 
     /**
      * Create a station process
@@ -170,35 +164,7 @@ public class StationProcess {
 
         setActive(true);
 
-        LOG.info("Setting station to active (connection to remote tree might be delayed)");
-    }
-
-    /**
-     * Mount this station's AIDA tree into the server tree asynchronously
-     * by using a <code>RemoteTreeBindThread</code>s
-     * @param agg The aggregator containing the server tree
-     */
-    synchronized void mountRemoteTree(PlotAggregator agg) {
-        if (this.props.get("lcsim.remoteTreeBind").valid()) {
-            LOG.fine("Starting remoteTreeBind connection thread");
-            rtbThread = agg.new RemoteTreeBindThread(this, null);
-            rtbThread.start();
-        }
-    }
-
-    /**
-     * Kill the remote tree bind thread if it is active
-     */
-    synchronized void killRemoteTreeBindThread() {
-        if (rtbThread != null && rtbThread.isAlive()) {
-            rtbThread.interrupt();
-            try {
-                rtbThread.join();
-            } catch (InterruptedException e) {
-                LOG.log(Level.WARNING, "Interrupted", e);
-            }
-        }
-        rtbThread = null;
+        LOG.info("Activated station successfully: " + this.stationName);
     }
 
     /**
@@ -216,8 +182,6 @@ public class StationProcess {
         }
 
         setActive(false);
-
-        killRemoteTreeBindThread();
 
         destroyProcess();
 
@@ -271,22 +235,6 @@ public class StationProcess {
             LOG.fine("Exit value: " + exitValue);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Error destroying station system process", e);
-        }
-    }
-
-    /**
-     * Unmount the remote tree for this station
-     * @param agg The aggregator containing the remote tree
-     */
-    synchronized void unmountRemoteTree(PlotAggregator agg) {
-        // Unmount the remote tree for this station
-        if (props.get("lcsim.remoteTreeBind").valid()) {
-            Property<String> remoteTreeBind = props.get("lcsim.remoteTreeBind");
-            try {
-                agg.unmount(remoteTreeBind.value());
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Error unmounting AIDA tree", e);
-            }
         }
     }
 
@@ -408,6 +356,15 @@ public class StationProcess {
     }
 
     /**
+     * Get the AIDA remote tree bind
+     * @return The AIDA remote tree bind
+     */
+    public String getRemoteTreeBind() {
+        Property<String> prop = props.get("lcsim.remoteTreeBind");
+        return prop.value();
+    }
+
+    /**
      * Build the command for running the station
      */
     void buildCommand() {
@@ -430,7 +387,15 @@ public class StationProcess {
         }
 
         command.add("-cp");
-        command.add(System.getProperty("java.class.path"));
+        if (props.get("lcsim.classpath").valid()) {
+            // Set classpath from user setting
+            Property<String> cp = props.get("lcsim.classpath");
+            command.add(cp.value());
+        } else {
+            // Use default classpath from system
+            command.add(System.getProperty("java.class.path"));
+        }
+
         command.add(Station.class.getCanonicalName());
         command.add(configFile.getPath());
     }
