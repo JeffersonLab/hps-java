@@ -65,7 +65,7 @@ public class RemoteAidaDriver extends Driver {
     private long start = -1L;
     private Timer timer;
     protected int eventCount = 0;
-    private int NPOINTS = 25;
+    private int NPOINTS = 20;
 
     public RemoteAidaDriver() {
 
@@ -122,8 +122,8 @@ public class RemoteAidaDriver extends Driver {
          * Performance plots
          */
         eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
-        eventRateDPS = dpsf.create("Event Rate", "Event Rate", 1);
-        millisPerEventDPS = dpsf.create("Millis Per Event", 1);
+        eventRateDPS = dpsf.create("Event Rate", "Event Rate", 2);
+        millisPerEventDPS = dpsf.create("Millis Per Event", 2);
 
         startEventTimer();
     }
@@ -137,14 +137,18 @@ public class RemoteAidaDriver extends Driver {
                     double eps = (double) eventsProcessed / ((double) elapsed / 1000L);
                     double mpe = (double) elapsed / (double) eventsProcessed;
 
+                    long currTimeSec = System.currentTimeMillis() / 1000L;
+
                     IDataPoint dp = eventRateDPS.addPoint();
-                    dp.coordinate(0).setValue(eps);
+                    dp.coordinate(0).setValue(currTimeSec);
+                    dp.coordinate(1).setValue(eps);
                     while (eventRateDPS.size() > NPOINTS) {
                         eventRateDPS.removePoint(0);
                     }
 
                     dp = millisPerEventDPS.addPoint();
-                    dp.coordinate(0).setValue(mpe);
+                    dp.coordinate(0).setValue(currTimeSec);
+                    dp.coordinate(1).setValue(mpe);
                     while (millisPerEventDPS.size() > NPOINTS) {
                         millisPerEventDPS.removePoint(0);
                     }
