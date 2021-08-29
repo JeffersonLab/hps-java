@@ -115,12 +115,11 @@ public class RemoteAidaDriver extends Driver {
             throw new RuntimeException("Failed to connect remote AIDA tree", e);
         }
 
-        tree.mkdir(PERF_DIR);
-        tree.cd(PERF_DIR);
-
         /*
          * Performance plots
          */
+        tree.mkdir(PERF_DIR);
+        tree.cd(PERF_DIR);
         eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
         eventRateDPS = dpsf.create("Event Rate", "Event Rate", 2);
         millisPerEventDPS = dpsf.create("Millis Per Event", 2);
@@ -132,7 +131,7 @@ public class RemoteAidaDriver extends Driver {
         TimerTask task = new TimerTask() {
             public void run() {
                 if (eventsProcessed > 0 && start > 0) {
-                    LOG.info("Event timer is updating -- start=" + start + "; eventsProcessed=" + eventsProcessed);
+                    //LOG.info("Event timer is updating -- start=" + start + "; eventsProcessed=" + eventsProcessed);
                     long elapsed = System.currentTimeMillis() - start;
                     double eps = (double) eventsProcessed / ((double) elapsed / 1000L);
                     double mpe = (double) elapsed / (double) eventsProcessed;
@@ -196,8 +195,9 @@ public class RemoteAidaDriver extends Driver {
     }
 
     public void process(EventHeader event) {
+        //LOG.info("RemoteAidaDriver::process - " + event.getEventNumber());
         eventCountH1D.fill(0.5);
-        eventCount++;
-        eventsProcessed++;
+        eventCount += 1;
+        eventsProcessed += 1;
     }
 }

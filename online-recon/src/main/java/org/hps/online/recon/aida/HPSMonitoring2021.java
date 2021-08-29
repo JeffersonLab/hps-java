@@ -127,7 +127,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
      */
     private int maxSamplePosition = -1;
     private int timeWindowWeight = 1;
-    private int eventCount = 0;
     private int eventRefreshRate = 10;
     private boolean enableMaxSamplePlots = false;
     private static Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
