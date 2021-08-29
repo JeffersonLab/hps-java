@@ -53,7 +53,8 @@ public class RemoteAidaDriver extends Driver {
     /*
      * Performance plots
      */
-    private static String PERF_DIR = "/EventsProcessed";
+    public static String PERF_DIR = "/EventsProcessed";
+    private static final long UPDATE_INTERVAL = 5000L;
     private IHistogram1D eventCountH1D;
     private IDataPointSet eventRateDPS;
     private IDataPointSet millisPerEventDPS;
@@ -120,6 +121,7 @@ public class RemoteAidaDriver extends Driver {
          */
         tree.mkdir(PERF_DIR);
         tree.cd(PERF_DIR);
+
         eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
         eventRateDPS = dpsf.create("Event Rate", "Event Rate", 2);
         millisPerEventDPS = dpsf.create("Millis Per Event", 2);
@@ -157,7 +159,7 @@ public class RemoteAidaDriver extends Driver {
             }
         };
         timer = new Timer("Event Timer");
-        timer.scheduleAtFixedRate(task, 0, 5000L);
+        timer.scheduleAtFixedRate(task, 0, UPDATE_INTERVAL);
     }
 
     synchronized final void disconnect() {
