@@ -26,6 +26,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.input.Tailer;
+import org.apache.log4j.BasicConfigurator;
 import org.hps.online.recon.CommandResult.Error;
 import org.hps.online.recon.CommandResult.LogStreamResult;
 import org.hps.online.recon.handlers.CommandHandlerFactory;
@@ -395,6 +396,11 @@ public final class Server {
      * @param args The command line args
      */
     public static void main(String args[]) {
+
+        // Fix log4j warnings and turn messages off
+        BasicConfigurator.configure();
+        org.apache.log4j.Logger.getRootLogger().setLevel(org.apache.log4j.Level.OFF);
+
         Server server = new Server();
         try {
             server.parse(args);
