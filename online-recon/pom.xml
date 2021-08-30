@@ -93,7 +93,7 @@
               <mainClass>org.hps.online.recon.Server</mainClass>
               <id>online-recon-server</id>
               <jvmSettings>
-                <maxMemorySize>2g</maxMemorySize>
+                <maxMemorySize>4g</maxMemorySize>
                 <initialMemorySize>1g</initialMemorySize>
                 <maxStackSize>128m</maxStackSize>
                 <systemProperties>
