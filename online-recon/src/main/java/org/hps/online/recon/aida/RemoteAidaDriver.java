@@ -53,7 +53,6 @@ public class RemoteAidaDriver extends Driver {
     /*
      * Performance plots
      */
-    public static String PERF_DIR = "/EventsProcessed";
     private static final long UPDATE_INTERVAL = 5000L;
     private IHistogram1D eventCountH1D;
     private IDataPointSet eventRateDPS;
@@ -66,7 +65,7 @@ public class RemoteAidaDriver extends Driver {
     private long start = -1L;
     private Timer timer;
     protected int eventCount = 0;
-    private int NPOINTS = 20;
+    private int NPOINTS = 25;
 
     public RemoteAidaDriver() {
 
@@ -119,8 +118,8 @@ public class RemoteAidaDriver extends Driver {
         /*
          * Performance plots
          */
-        tree.mkdir(PERF_DIR);
-        tree.cd(PERF_DIR);
+        tree.mkdir("/EventsProcessed");
+        tree.cd("/EventsProcessed");
 
         eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
         eventRateDPS = dpsf.create("Event Rate", "Event Rate", 2);

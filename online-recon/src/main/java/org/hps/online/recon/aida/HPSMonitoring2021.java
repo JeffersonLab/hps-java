@@ -555,8 +555,6 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
     }
 
     public void endOfData() {
-
-//        timer.cancel();
         super.endOfData();
     }
 
