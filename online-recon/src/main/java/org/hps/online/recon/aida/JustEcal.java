@@ -225,7 +225,7 @@ public class JustEcal extends RemoteAidaDriver {
     public void process(EventHeader event) {
 
         super.process(event);
-        
+
         int nhits = 0;
         int chits[] = new int[11 * 47];
 
@@ -507,7 +507,7 @@ public class JustEcal extends RemoteAidaDriver {
         } else {
             NoccupancyFill++;
         }
-     
+
     }
 
     private static Map<Integer, Hep3Vector> createStripPositionMap(HpsSiSensor sensor) {
