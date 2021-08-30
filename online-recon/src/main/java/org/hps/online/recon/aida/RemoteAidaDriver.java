@@ -25,7 +25,9 @@ import hep.aida.ref.remote.rmi.interfaces.RmiServer;
 import hep.aida.ref.remote.rmi.server.RmiServerImpl;
 
 /**
- * Abstract driver for providing remote AIDA functionality
+ * Driver for providing remote AIDA functionality
+ *
+ * Some basic event performance plots are also implemented.
  */
 public class RemoteAidaDriver extends Driver {
 
@@ -53,7 +55,7 @@ public class RemoteAidaDriver extends Driver {
     /*
      * Performance plots
      */
-    private static final long UPDATE_INTERVAL = 5000L;
+    private static final long UPDATE_INTERVAL = 1000L;
     private IHistogram1D eventCountH1D;
     private IDataPointSet eventRateDPS;
     private IDataPointSet millisPerEventDPS;
@@ -196,7 +198,6 @@ public class RemoteAidaDriver extends Driver {
     }
 
     public void process(EventHeader event) {
-        //LOG.info("RemoteAidaDriver::process - " + event.getEventNumber());
         eventCountH1D.fill(0.5);
         eventCount += 1;
         eventsProcessed += 1;
