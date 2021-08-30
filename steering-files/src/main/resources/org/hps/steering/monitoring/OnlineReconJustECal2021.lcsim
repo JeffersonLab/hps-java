@@ -45,7 +45,7 @@
      
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
 
-        <driver name="JustECal2021" type="org.hps.online.recon.aida.JustECal">
+        <driver name="JustECal2021" type="org.hps.online.recon.aida.JustEcal">
             <!-- AIDA tree bind provided using external variable -->
           
         </driver>
