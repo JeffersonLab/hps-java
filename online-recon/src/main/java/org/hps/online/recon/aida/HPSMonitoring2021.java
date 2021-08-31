@@ -1109,9 +1109,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
 //                Cluster clu = fsp.getClusters().get(0);
 //                photEne.fill(clu.getEnergy());
 //                photXYECal.fill(clu.getPosition()[0], clu.getPosition()[1]);
-            } else {
+            } /*else {
                 System.out.println("This FSP had no tracks or clusters???");
-            }
+            }*/
         }
 
         nEle.fill(eleCnt);
