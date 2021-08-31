@@ -22,7 +22,6 @@ class EtParallelStation extends EtConnection {
 
     /**
      * Create an ET connection from station properties
-     *
      * @param props The station properties
      * @throws Exception If there is an error opening the ET system
      */
@@ -40,8 +39,8 @@ class EtParallelStation extends EtConnection {
         Property<Integer> chunk = props.get("et.chunk");
 
         LOGGER.config("Opening ET system: " + host.value() + ":" + port.value() + buffer.value());
-        EtSystemOpenConfig etConfig
-                = new EtSystemOpenConfig(buffer.value(), host.value(), port.value());
+        EtSystemOpenConfig etConfig =
+                new EtSystemOpenConfig(buffer.value(), host.value(), port.value());
 
         for (int i = 1; i <= connAttempts.value(); i++) {
             LOGGER.config("Attempting ET connection: " + i);
@@ -71,9 +70,8 @@ class EtParallelStation extends EtConnection {
             LOGGER.info("Creating new ET station: " + stationName.value());
             final EtStationConfig stationConfig = new EtStationConfig();
             stationConfig.setFlowMode(EtConstants.stationParallel);
-            stationConfig.setBlockMode(EtConstants.stationNonBlocking);
-            stationConfig.setSelectMode(EtConstants.stationSelectAll);
-            stationConfig.setRestoreMode(EtConstants.stationRestoreOut);
+            stationConfig.setBlockMode(EtConstants.stationBlocking);
+            stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
             stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
             if (prescale.value() > 0) {
                 stationConfig.setPrescale(prescale.value());
@@ -93,13 +91,12 @@ class EtParallelStation extends EtConnection {
         this.waitTime = waitTime.value();
         this.chunkSize = chunk.value();
 
-        LOGGER.config("Station waitMode, waitTime, chunkSize: " + this.waitMode + ", " + this.waitTime
-                + ", " + this.chunkSize);
+        LOGGER.config("Station waitMode, waitTime, chunkSize: " + this.waitMode + ", " + this.waitTime +
+                ", " + this.chunkSize);
     }
 
     /**
-     * Cleanup the connection by detaching the station and removing it from the
-     * ET system.
+     * Cleanup the connection by detaching the station and removing it from the ET system.
      */
     synchronized public void cleanup() {
         LOGGER.info("Cleaning up ET connection");
