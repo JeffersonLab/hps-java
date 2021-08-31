@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import hep.aida.IAnalysisFactory;
+import hep.aida.IAxis;
 import hep.aida.IBaseHistogram;
 import hep.aida.ICloud;
 import hep.aida.ICloud1D;
@@ -27,6 +28,7 @@ import hep.aida.IHistogram;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IHistogram3D;
+import hep.aida.IHistogramFactory;
 import hep.aida.IManagedObject;
 import hep.aida.IProfile;
 import hep.aida.IProfile1D;
@@ -82,6 +84,15 @@ public class PlotAggregator implements Runnable {
     /** Event rate plot name */
     private static final String EVENT_RATE = "Event Rate";
 
+    /** Event processing timing plot name */
+    private static final String EVENT_TIME = "Event Time";
+
+    /** Event count plot name in the remote */
+    private static final String EVENT_COUNT = "Event Count";
+
+    /** Combined station event count histogram */
+    private static final String STATION_EVENT_COUNTS = "Station Event Counts";
+
     /** Number of bins to use for converting clouds to histograms */
     private static final int CLOUD_BINS = 100;
 
@@ -108,8 +119,11 @@ public class PlotAggregator implements Runnable {
     private final ITreeFactory tf = af.createTreeFactory();
     private final IDevTree serverTree = (IDevTree) tf.create();
     private final IDataPointSetFactory dpsf = af.createDataPointSetFactory(serverTree);
+    private final IHistogramFactory hf = af.createHistogramFactory(serverTree);
 
     private IDataPointSet eventRateDPS = null;
+    private IDataPointSet eventTimeDPS = null;
+    private IHistogram1D statEventCountsH1D = null;
 
     /**
      * RMI server objects
@@ -126,6 +140,9 @@ public class PlotAggregator implements Runnable {
     static {
         DIR_TYPE.add("dir");
     }
+
+    int minStatNum = Integer.MAX_VALUE;
+    int maxStatNum = Integer.MIN_VALUE;
 
     /**
      * Create an instance of the plot aggregator
@@ -193,6 +210,8 @@ public class PlotAggregator implements Runnable {
         treeServer = new RemoteServer(serverTree, serverDuplex);
         rmiTreeServer = new RmiServerImpl(treeServer, treeBindName);
 
+        serverTree.setOverwrite(true);
+
         serverTree.mkdir(COMBINED_DIR);
         serverTree.mkdir(REMOTES_DIR);
 
@@ -200,6 +219,8 @@ public class PlotAggregator implements Runnable {
         serverTree.mkdirs(COMBINED_DIR + EVENTS_DIR);
         serverTree.cd(COMBINED_DIR + EVENTS_DIR);
         eventRateDPS = dpsf.create(EVENT_RATE, EVENT_RATE, 2);
+        eventTimeDPS = dpsf.create(EVENT_TIME, EVENT_TIME, 2);
+        statEventCountsH1D = hf.createHistogram1D(STATION_EVENT_COUNTS, 4, 1, 5);
     }
 
     /**
@@ -493,28 +514,30 @@ public class PlotAggregator implements Runnable {
         }
     }
 
-    private void addEventRatePlots() {
-
-        List<IDataPointSet> srcObjects = new ArrayList<IDataPointSet>();
+    private List<IDataPointSet> getDataPointSets(String dir, String name) {
+        List<IDataPointSet> objects = new ArrayList<IDataPointSet>();
         for (String remoteName : this.remotes) {
             String dpsPath = toMountName(remoteName) +
-                    EVENTS_DIR + "/" + EVENT_RATE;
+                    dir + "/" + name;
             try {
                 IManagedObject obj = serverTree.find(dpsPath);
-                srcObjects.add((IDataPointSet) obj);
+                objects.add((IDataPointSet) obj);
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to find: " + dpsPath);
             }
         }
+        return objects;
+    }
 
+    private void addEventRatePlots() {
+        List<IDataPointSet> srcObjects = getDataPointSets(EVENTS_DIR, EVENT_RATE);
         if (srcObjects.size() == 0) {
             return;
         }
-
-        add(srcObjects, this.eventRateDPS);
+        add(srcObjects, this.eventRateDPS, false);
     }
 
-    private static void add(List<IDataPointSet> sources, IDataPointSet target) {
+    private static void add(List<IDataPointSet> sources, IDataPointSet target, boolean average) {
         for (int i = 0;; i++) {
             double xVal = 0;
             double yVal = 0;
@@ -528,12 +551,72 @@ public class PlotAggregator implements Runnable {
                     break;
                 }
             }
-            if (yVal == 0) {
+            if (xVal == 0) {
                 break;
+            }
+            if (average) {
+                yVal = yVal / sources.size();
             }
             IDataPoint targetPoint = target.addPoint();
             targetPoint.coordinate(0).setValue(xVal);
             targetPoint.coordinate(1).setValue(yVal);
+        }
+    }
+
+    private void addEventTimePlots() {
+        List<IDataPointSet> srcObjects = getDataPointSets(EVENTS_DIR, EVENT_TIME);
+        if (srcObjects.size() == 0) {
+            return;
+        }
+        add(srcObjects, this.eventTimeDPS, true);
+    }
+
+    private void updateStationNumbers() {
+        for (String remote: this.remotes) {
+            String mountName = toMountName(remote);
+            Integer statNum = Integer.valueOf(mountName.substring(mountName.lastIndexOf("_") + 1));
+            if (statNum < minStatNum) {
+                minStatNum = statNum;
+                LOG.info("Min station num set to: " + minStatNum);
+            }
+            if (statNum > maxStatNum) {
+                maxStatNum = statNum;
+                LOG.info("Max station num set to: " + maxStatNum);
+            }
+        }
+    }
+
+    private void addStationEventCounts() {
+
+        if (this.remotes.size() == 0) {
+            return;
+        }
+
+        // Check if the plot should be recreated
+        int nbins = (maxStatNum - minStatNum) + 1;
+        int lower = minStatNum;
+        int upper = maxStatNum + 1;
+        IAxis ax = statEventCountsH1D.axis();
+        if (ax.bins() != nbins || ax.binLowerEdge(0) != lower || ax.binUpperEdge(ax.bins() - 1) != upper) {
+            LOG.info("Recreating stat event counts H1D");
+            serverTree.cd(COMBINED_DIR + EVENTS_DIR);
+            statEventCountsH1D = hf.createHistogram1D("Station Event Counts", nbins, lower, upper);
+        }
+
+        statEventCountsH1D.reset();
+
+        // Update the combined plot with each station's event count
+        for (String remote : this.remotes) {
+            String mountName = toMountName(remote);
+            Integer statNum = Integer.valueOf(mountName.substring(mountName.lastIndexOf("_") + 1));
+            String eventCountPath = mountName + EVENTS_DIR + "/" + EVENT_COUNT;
+            try {
+                IHistogram1D eventCount = (IHistogram1D) serverTree.find(eventCountPath);
+                int nevents = eventCount.entries();
+                statEventCountsH1D.fill(statNum, nevents);
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to find object: " + eventCountPath, e);
+            }
         }
     }
 
@@ -704,6 +787,7 @@ public class PlotAggregator implements Runnable {
             LOG.fine("Unmounting: " + path);
             this.serverTree.unmount(path);
             remotes.remove(remoteTreeBind);
+            updateStationNumbers();
             LOG.info("Number of remotes after remove: " + remotes.size());
             LOG.info("Done unmounting remote tree: " + remoteTreeBind);
         } catch (Exception e) {
@@ -714,6 +798,8 @@ public class PlotAggregator implements Runnable {
     /**
      * Clear the aggregated plots and then add all the remote plots together
      * into combined plots
+     *
+     * Also update event processing plots
      */
     @Override
     public void run() {
@@ -723,18 +809,40 @@ public class PlotAggregator implements Runnable {
         try {
             double start = (double) System.currentTimeMillis();
             synchronized (updating) {
+
+                // Clear the combined tree
                 clearTree();
+
+                // Add event rate plots
                 try {
                     addEventRatePlots();
                 } catch (Exception e) {
                     LOG.log(Level.WARNING, "Failed to add event rate plots", e);
                 }
+
+                // Add event time plots
+                try {
+                    addEventTimePlots();
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Failed to add event time plots", e);
+                }
+
+                // Update the combined plots
                 update();
+
+                // Add the station event counts plot
+                try {
+                    addStationEventCounts();
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Failed to add station event count plot", e);
+                }
             }
+
+            // Print how long the update took
             double elapsed = ((double) System.currentTimeMillis()) - start;
             LOG.info("Plot update took: " + elapsed/1000. + " sec");
 
-            // Broadcast a message to clients (e.g. the web application) that update occurred
+            // Broadcast a message to clients (e.g. the web application) that an update occurred
             PlotNotifier.instance().broadcast("updated at " + new Date().toString());
 
         } catch (Exception e) {
@@ -846,6 +954,9 @@ public class PlotAggregator implements Runnable {
         }
         if (mounted == false) {
             LOG.severe("Failed to connect: " + remoteTreeBindStr);
+        } else {
+            // Keep track of station numbers for plotting
+            updateStationNumbers();
         }
 
         return mounted;
