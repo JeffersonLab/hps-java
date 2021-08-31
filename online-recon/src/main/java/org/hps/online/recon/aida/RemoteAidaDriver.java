@@ -120,12 +120,18 @@ public class RemoteAidaDriver extends Driver {
         /*
          * Performance plots
          */
+
         tree.mkdir("/EventsProcessed");
         tree.cd("/EventsProcessed");
 
         eventCountH1D = aida.histogram1D("Event Count", 1, 0., 1.0);
+        eventCountH1D.annotation().addItem("yAxisLabel", "Total Events");
+
         eventRateDPS = dpsf.create("Event Rate", "Event Rate", 2);
-        millisPerEventDPS = dpsf.create("Millis Per Event", 2);
+        eventRateDPS.annotation().addItem("yAxisLabel", "Events / Second");
+
+        millisPerEventDPS = dpsf.create("Event Time", 2);
+        millisPerEventDPS.annotation().addItem("yAxisLabel", "Millis / Event");
 
         startEventTimer();
     }
