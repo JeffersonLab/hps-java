@@ -847,20 +847,18 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         }
 
         // If the event doesn't have a collection of RawTrackerHit's, skip it.
-        if (!event.hasCollection(RawTrackerHit.class,
-                RAW_TRACKER_HITS
-        )) {
+        if (!event.hasCollection(RawTrackerHit.class, RAW_TRACKER_HITS)) {
             return;
         }
         // Get RawTrackerHit collection from event.
         List<RawTrackerHit> rawHits = event.get(RawTrackerHit.class, RAW_TRACKER_HITS);
         //System.out.println(rawHits.size());
+        if (!event.hasCollection(LCRelation.class, FITTED_HITS)) {
+            return;
+        }
         List<LCRelation> fittedHits = event.get(LCRelation.class, FITTED_HITS);
 
-        fittedTrackerHitsPerEventH1D.fill(event.get(LCRelation.class,
-                FITTED_HITS
-        ).size()
-        );
+        fittedTrackerHitsPerEventH1D.fill(event.get(LCRelation.class, FITTED_HITS).size());
 
         // Increment strip hit count.
         for (RawTrackerHit rawHit : rawHits) {
@@ -957,7 +955,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         hitCountPlots.get("Raw hit counts").fill(eventHitCount);
         hitCountPlots.get("SVT top raw hit counts").fill(topEventHitCount);
         hitCountPlots.get("SVT bottom raw hit counts").fill(botEventHitCount);
-
+        if (!event.hasCollection(Track.class, trackColName)) {
+            return;
+        }
         List<Track> tracks = event.get(Track.class, trackColName);
 
         aida.tree().cd(TRACKER_DIR);
@@ -1070,6 +1070,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         /*
         *  Final state particle plots
          */
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
+            return;
+        }
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class,
                 finalStateParticlesColName);
 
@@ -1123,6 +1126,9 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         /*
         *  V0 plots
          */
+        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
+            return;
+        }
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class,
                 unconstrainedV0CandidatesColName);
 
