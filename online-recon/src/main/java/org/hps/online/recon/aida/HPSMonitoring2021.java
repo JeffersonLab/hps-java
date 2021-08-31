@@ -955,7 +955,7 @@ public class HPSMonitoring2021 extends RemoteAidaDriver {
         hitCountPlots.get("Raw hit counts").fill(eventHitCount);
         hitCountPlots.get("SVT top raw hit counts").fill(topEventHitCount);
         hitCountPlots.get("SVT bottom raw hit counts").fill(botEventHitCount);
-        if (!event.hasCollection(LCRelation.class, trackColName)) {
+        if (!event.hasCollection(Track.class, trackColName)) {
             return;
         }
         List<Track> tracks = event.get(Track.class, trackColName);
