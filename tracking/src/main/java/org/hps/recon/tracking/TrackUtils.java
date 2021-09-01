@@ -294,12 +294,15 @@ public class TrackUtils {
 
             // calculate new dca
             dcanew += dx * sinphi - dy * cosphi + (dx * cosphi + dy * sinphi) * Math.tan(dphi / 2.);
-
+            
             // path length from old to new point
             double s = -1.0 * dphi / curvature;
-
+            double dz = 0.; 
+            if (newRefPoint.length == 3)
+                dz = newRefPoint[2] - __refPoint[2];
             // new z0
-            z0new += s * slope;
+            z0new += s * slope - dz;
+            //z0new += s * slope;
         } else {
             dcanew += dx * sinphi - dy * cosphi;
             double dz = newRefPoint[2] - __refPoint[2];
@@ -581,13 +584,13 @@ public class TrackUtils {
     
     //For the moment I use IP, but I should use first sensor!!
     public static BaseTrackState getTrackExtrapAtVtxSurfRK(Track trk, FieldMap fM, double stepSize, double distanceZ) {
-        BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtIP(trk);
+        BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtFirst(trk);
         if (ts != null)
             return getTrackExtrapAtVtxSurfRK(ts, fM, stepSize,distanceZ);
         return null;
     }
     
-    //For the moment I do an extrapolation to 0 using the IP TSOS. TODO::Improve this.
+    
     public static BaseTrackState getTrackExtrapAtVtxSurfRK(TrackState ts, FieldMap fM, double stepSize, double distanceZ) {
         //Change of charge
         Hep3Vector startPos = extrapolateHelixToXPlane(ts, 0.);
@@ -1929,7 +1932,80 @@ public class TrackUtils {
         return detectorElementContainsPoint( trackPosition,  sensor,0.0);
     }
     
-    
+
+    //This method return the layer number and the module number of a sensor given the volume and the millepedeID 
+    public static org.hps.util.Pair<Integer,Integer> getLayerSide(int volume, int millepedeID) {
+        
+        Integer retLy,retMod;
+        //top
+        if (volume == 1) {
+            if (millepedeID < 9) {
+                retLy=millepedeID;
+                retMod=0;
+            }
+            else {
+                if (millepedeID == 9 || millepedeID == 10) {
+                    retLy=millepedeID;
+                    retMod=0;
+                }
+                else if (millepedID == 11 | millepedeID== 12) {
+                    retLy = millepedeID - 2;
+                    retMod = 2;
+                }
+                else if (millepedeID == 13 | millepedeID == 14) {
+                    retLy = millepedeID - 2;
+                    retMod = 0;
+                }
+                else if (millepedeID == 15 | millepedeID == 16) {
+                    retLy = millepedeID - 4;
+                    retMod = 2;
+                }
+                else if (millepedeID == 17 | millepedeID == 18 ) {
+                    retLy = millepedeID - 4;
+                    retMod = 0;
+                }
+                else if (millepedeID == 19 | millepedeID == 20 ) {
+                    retLy = millepedeID - 6;
+                    retMod = 2;
+                }
+            }
+        }
+        //bottom
+        else {
+            if (millepedeID < 9) {
+                retLy=millepedeID;
+                retMod=1;
+            }
+            else {
+                if (millepedeID == 9 || millepedeID == 10) {
+                    retLy=millepedeID;
+                    retMod=1;
+                }
+                else if (millepedID == 11 | millepedeID== 12) {
+                    retLy = millepedeID - 2;
+                    retMod = 3;
+                }
+                else if (millepedeID == 13 | millepedeID == 14) {
+                    retLy = millepedeID - 2;
+                    retMod = 1;
+                }
+                else if (millepedeID == 15 | millepedeID == 16) {
+                    retLy = millepedeID - 4;
+                    retMod = 3;
+                }
+                else if (millepedeID == 17 | millepedeID == 18 ) {
+                    retLy = millepedeID - 4;
+                    retMod = 1;
+                }
+                else if (millepedeID == 19 | millepedeID == 20 ) {
+                    retLy = millepedeID - 6;
+                    retMod = 3;
+                }
+            }
+        }
+        
+        return new Pair<Integer,Integer>(retLy,retMod);
+    }            
     //This methods checks if a track has only hole hits in the back of the detector
     //return true if all back layers have hole hits, false if all back layers have slot hits
     
