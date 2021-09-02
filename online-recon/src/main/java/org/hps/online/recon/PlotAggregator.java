@@ -62,9 +62,6 @@ import hep.aida.ref.xml.AidaXMLStore;
  * This class implements <code>Runnable</code> and is designed to be run
  * periodically using a scheduled thread executor by the {@code Server}.
  *
- * The <code>RemoteTreeBindThread</code> is used to connect asynchronously
- * to a station that has been activated for event processing.
- *
  * When saving plots to ROOT, all combined clouds are automatically converted
  * to histograms, as an error will occur otherwise.
  */
