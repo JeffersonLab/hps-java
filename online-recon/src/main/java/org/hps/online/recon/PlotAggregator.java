@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -110,7 +111,7 @@ public class PlotAggregator implements Runnable {
 
     /** URLs of the remote AIDA trees that are currently mounted
      * e.g. <pre>//localhost:4321/MyTree</pre> */
-    private Set<String> remotes = new HashSet<String>();
+    private TreeSet<String> remotes = new TreeSet<String>();
 
     /**
      * AIDA objects for the primary server tree
@@ -335,7 +336,7 @@ public class PlotAggregator implements Runnable {
      * Update the aggregated plots by adding all the histograms from the remote
      * trees together
      */
-    private void update() {
+    private void aggregateHistograms() {
 
         LOG.fine("Plot aggregator is updating...");
 
@@ -694,13 +695,33 @@ public class PlotAggregator implements Runnable {
     }
 
     /**
+     * Copy occupancy plots from the first remote into the combined output
+     */
+    void copyOccupancyPlots() {
+        String remote = remotes.first();
+        String srcDir = toMountName(remote) + "/svtOccupancy";
+        String targetDir = COMBINED_DIR;
+        try {
+            serverTree.listObjectNames(srcDir);
+        } catch (Exception e) {
+            LOG.warning("No occupancy plots to copy");
+            return;
+        }
+        try {
+            LOG.info("Copying occupancy plots from: " + srcDir);
+            serverTree.cp(srcDir, targetDir, true);
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to copy occupancy plots from: " + srcDir, e);
+        }
+    }
+
+    /**
      * Disconnect the object's remote tree server
      *
      * The object is unusable after this unless {@link #connect()}
      * is called again.
      */
     synchronized void disconnect() {
-
         LOG.info("Disconnecting aggregator ...");
         if (rmiTreeServer != null) {
             try {
@@ -796,13 +817,14 @@ public class PlotAggregator implements Runnable {
     }
 
     /**
-     * Clear the aggregated plots and then add all the remote plots together
-     * into combined plots
-     *
-     * Also update event processing plots
+     * Update the aggregator within a running thread
      */
     @Override
     public void run() {
+        update();
+    }
+
+    private void update() {
         if (remotes.size() == 0) {
             return;
         }
@@ -827,14 +849,21 @@ public class PlotAggregator implements Runnable {
                     LOG.log(Level.WARNING, "Failed to add event time plots", e);
                 }
 
-                // Update the combined plots
-                update();
+                // Update the combined histograms
+                aggregateHistograms();
 
                 // Add the station event counts plot
                 try {
                     addStationEventCounts();
                 } catch (Exception e) {
                     LOG.log(Level.WARNING, "Failed to add station event count plot", e);
+                }
+
+                // Copy SVT occupancy plots
+                try {
+                    copyOccupancyPlots();
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Failed to copy occupancy plots", e);
                 }
             }
 
