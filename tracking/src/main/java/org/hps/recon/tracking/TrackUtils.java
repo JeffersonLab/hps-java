@@ -1934,9 +1934,10 @@ public class TrackUtils {
     
 
     //This method return the layer number and the module number of a sensor given the volume and the millepedeID 
-    public static org.hps.util.Pair<Integer,Integer> getLayerSide(int volume, int millepedeID) {
+    public static Pair<Integer,Integer> getLayerSide(int volume, int millepedeID) {
         
-        Integer retLy,retMod;
+        Integer retLy=null;
+        Integer retMod=null;
         //top
         if (volume == 1) {
             if (millepedeID < 9) {
@@ -1948,7 +1949,7 @@ public class TrackUtils {
                     retLy=millepedeID;
                     retMod=0;
                 }
-                else if (millepedID == 11 | millepedeID== 12) {
+                else if (millepedeID == 11 | millepedeID== 12) {
                     retLy = millepedeID - 2;
                     retMod = 2;
                 }
@@ -1981,7 +1982,7 @@ public class TrackUtils {
                     retLy=millepedeID;
                     retMod=1;
                 }
-                else if (millepedID == 11 | millepedeID== 12) {
+                else if (millepedeID == 11 | millepedeID== 12) {
                     retLy = millepedeID - 2;
                     retMod = 3;
                 }

@@ -93,12 +93,13 @@ class KalmanPatRecPlots {
         // arguments to histogram1D: name, nbins, min, max
         aida.histogram1D("Kalman number of tracks", 10, 0., 10.);
         aida.histogram1D("Kalman Track Chi2", 100, 0., 200.);
+        aida.histogram1D("Kalman Track Chi2, >=10 hits", 100, 0., 200.);
         aida.histogram1D("Kalman Track Chi2, >=12 hits", 100, 0., 200.);
-        aida.histogram1D("Kalman Track simple Chi2, >=12 hits", 50, 0., 100.);
+        aida.histogram1D("Kalman Track simple Chi2, >=10 hits", 50, 0., 100.);
         aida.histogram2D("number tracks Kalman vs GBL", 20, 0., 5., 20, 0., 5.);
         aida.histogram1D("helix chi-squared at origin", 100, 0., 25.);
-        aida.histogram1D("GBL track chi^2", 50, 0., 100.);
-        aida.histogram1D("GBL >=12-hit track chi^2", 50, 0., 100.);
+        aida.histogram1D("GBL track chi^2", 100, 0., 200.);
+        aida.histogram1D("GBL >=12-hit track chi^2", 100, 0., 200.);
         aida.histogram1D("Kalman Track Number Hits", 20, 0., 20.);
         aida.histogram1D("GBL number tracks", 10, 0., 10.);
         aida.histogram1D("Kalman missed hit residual", 100, -1.0, 1.0);
@@ -399,10 +400,11 @@ class KalmanPatRecPlots {
                 HelixState constrained = kTk.originConstraint(vtx, vtxCov);
                 if (constrained == null) continue;
                 double pConstrained = constrained.getMom(0.).mag(); 
-                if (kTk.nHits >= 12) {
-                    aida.histogram1D("Kalman Track Chi2, >=12 hits").fill(kTk.chi2);
-                    aida.histogram1D("Kalman Track simple Chi2, >=12 hits").fill(kTk.chi2prime());
+                if (kTk.nHits >= 10) {
+                    aida.histogram1D("Kalman Track Chi2, >=10 hits").fill(kTk.chi2);
+                    aida.histogram1D("Kalman Track simple Chi2, >=10 hits").fill(kTk.chi2prime());
                 }
+                if (kTk.nHits >= 12) aida.histogram1D("Kalman Track Chi2, >=12 hits").fill(kTk.chi2);
                 aida.histogram1D("Kalman Track Chi2").fill(kTk.chi2);
                 aida.histogram1D("Kalman arc length to first measurement").fill(kTk.originArcLength());
                 double[] momentum = kTk.originP();

@@ -25,24 +25,8 @@ class KalmanTrackFit2 {
     KalTrack tkr;
     private Logger logger;
 
-    // Use the first constructor when each SiModule in the list has only a single hit
     KalmanTrackFit2(int evtNumb, ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
-            int start, // Starting point in the list
-            int nIterations, // Number of fit iterations requested
-            Vec pivot, // Pivot point for the starting "guess" helix
-            Vec helixParams, // 5 helix parameters for the starting "guess" helix
-            DMatrixRMaj C, // Full covariance matrix for the starting "guess" helix
-            KalmanParams kPar,
-            org.lcsim.geometry.FieldMap fM) {
-        ArrayList<Integer> hits = new ArrayList<Integer>(data.size());
-        for (int i=0; i<data.size(); ++i) {
-            hits.add(0);
-        }
-        fitIt(evtNumb, data, hits, start, nIterations, pivot, helixParams, C, kPar, fM);
-    }
-    
-    KalmanTrackFit2(int evtNumb, ArrayList<SiModule> data, // List of Si modules with data points to be included in the fit
-            ArrayList<Integer> hits, // Which hit to use in each SiModule
+            ArrayList<Integer> hits, // Which hit to use in each SiModule. Can be null if each module has only 1 hit.
             int start, // Starting point in the list
             int nIterations, // Number of fit iterations requested
             Vec pivot, // Pivot point for the starting "guess" helix
@@ -51,11 +35,12 @@ class KalmanTrackFit2 {
             KalmanParams kPar,
             org.lcsim.geometry.FieldMap fM) {
         
-        fitIt(evtNumb, data, hits, start, nIterations, pivot, helixParams, C, kPar, fM);
-    }
-
-    void fitIt(int evtNumb, ArrayList<SiModule> data, ArrayList<Integer> hits, int start, int nIterations, Vec pivot, Vec helixParams,
-                   DMatrixRMaj C, KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
+        if (hits == null) {
+            hits = new ArrayList<Integer>(data.size());
+            for (int i=0; i<data.size(); ++i) {
+                hits.add(0);
+            }
+        }
         logger = Logger.getLogger(KalmanTrackFit2.class.getName());
         boolean verbose = logger.getLevel() == Level.FINER;
         success = true;
