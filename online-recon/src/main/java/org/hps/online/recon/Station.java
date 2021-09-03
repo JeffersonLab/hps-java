@@ -58,6 +58,9 @@ public class Station {
      */
     private DatabaseConditionsManagerSetup conditionsSetup;
 
+
+    private OnlineEventBus eventbus;
+
     /**
      * Attribute for setting station name in the environment
      */
@@ -136,7 +139,7 @@ public class Station {
         props.load(new File(args[0]));
         Station stat = new Station(props);
         stat.setup();
-        stat.run();
+        stat.process();
     }
 
     /**
@@ -144,10 +147,10 @@ public class Station {
      */
     void setup() {
 
-        LOG.info("Started setup: " + new Date().toString());
+        LOG.info("Started station setup: " + new Date().toString());
 
         this.stationName = props.get("et.stationName").value().toString();
-        LOG.config("Initializing station: " + stationName);
+        LOG.info("Initializing station: " + stationName);
 
         LOG.config("Station properties: " + props.toJSON().toString());
 
@@ -170,7 +173,6 @@ public class Station {
         Property<String> tag = props.get("lcsim.tag");
         Property<String> builderClass = props.get("lcsim.builder");
         Property<String> conditionsUrl = props.get("lcsim.conditions");
-        Property<String> remoteTreeBind = props.get("lcsim.remoteTreeBind");
 
         // Conditions URL
         if (conditionsUrl.valid()) {
@@ -214,15 +216,7 @@ public class Station {
         LOG.config("Output file path: " + outputFilePath);
         mgr.addVariableDefinition("outputFile", outputFilePath);
 
-        // Remote AIDA tree bind
-        if (remoteTreeBind.valid()) {
-            String rtb = remoteTreeBind.value();
-            mgr.addVariableDefinition("remoteTreeBind", rtb);
-            LOG.config("remoteTreeBind: " + remoteTreeBind.value());
-        } else {
-            LOG.warning("remoteTreeBind is not valid");
-        }
-
+        // Setup job steering
         if (steering.value().startsWith("file://")) {
             String steeringPath = steering.value().replace("file://", "");
             LOG.config("Setting up steering file: " + steeringPath);
@@ -243,24 +237,32 @@ public class Station {
         conditionsSetup.postInitialize();
         LOG.config("Conditions system initialized successfully");
 
-        // Try to connect to the ET system, retrying up to the configured number of max attempts.
+        // Try to connect to the ET system.
         LOG.config("Connecting to ET system...");
         try {
             this.conn = new EtParallelStation(props);
             LOG.config("Successfully connected to ET system");
         } catch (Exception e) {
-            LOG.severe("Failed to create ET station");
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to create ET station");
         }
 
-        // Close the ET station on shutdown.
-        final EtConnection shutdownConn = conn;
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                if (shutdownConn != null && shutdownConn.getEtStation() != null) {
-                    LOG.info("Cleaning up ET station: " + shutdownConn.getEtStation().getName());
-                    shutdownConn.cleanup();
+
+                /**
+                 * The end hook is activated here. This is an odd place to put it
+                 * but if the process is killed the event bus would not do it.
+                 */
+                try {
+                    Station.this.getJobManager().getDriverAdapter().finish(null);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                // Cleanup the ET connection
+                if (conn != null) {
+                    conn.cleanup();
                 }
             }
         });
@@ -272,16 +274,10 @@ public class Station {
      * Run the online reconstruction station by streaming ET events
      * using the {@link org.hps.online.recon.eventbus.OnlineEventBus}
      */
-    void run() {
+    void process() {
         LOG.info("Started processing: " + new Date().toString());
-        OnlineEventBus eventbus = new OnlineEventBus(this);
-        eventbus.startProcessing();
-        final Thread ept = eventbus.getEventProcessingThread();
-        try {
-            ept.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        eventbus = new OnlineEventBus(this);
+        eventbus.loop();
         LOG.info("Ended processing: " + new Date().toString());
     }
 }

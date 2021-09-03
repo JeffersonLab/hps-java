@@ -6,7 +6,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,10 +21,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
-import org.hps.online.recon.properties.Property;
 import org.hps.online.recon.properties.PropertyValidationException;
-import org.jlab.coda.et.EtStation;
-import org.jlab.coda.et.EtSystem;
 import org.json.JSONObject;
 
 /**
@@ -116,43 +120,6 @@ public class StationManager {
     }
 
     /**
-     * Start an online reconstruction station's system process.
-     *
-     * @param station The station to start
-     * @throws IOException If there is a problem starting the station's process
-     */
-    void startStation(final StationProcess station) throws IOException, InterruptedException {
-        LOG.info("Starting station: " + station.stationName);
-        if (!station.isActive()) {
-
-            // Do not bother activating if AIDA remote tree bind is invalid
-            Property<String> remoteTreeBindProp =
-                    station.getProperties().get("lcsim.remoteTreeBind");
-            if (!remoteTreeBindProp.valid()) {
-                throw new IOException("Remote tree bind is not valid");
-            }
-
-            // Activate the station
-            station.activate();
-
-            // Attempt to mount the station's remote tree into the aggregator
-            boolean mounted = server.agg.addRemoteTree(station.getRemoteTreeBind());
-
-            // If mounting failed then deactivate the station
-            if (!mounted) {
-                LOG.info("Failed to mount remote tree while starting - station will be deactivated");
-                station.deactivate();
-                LOG.info("Station deactivated");
-
-                throw new IOException("Failed to mount station's remote AIDA tree");
-            }
-            LOG.info("Successfully started station: " + station.stationName);
-        } else {
-            LOG.warning("Station is already active: " + station.stationName);
-        }
-    }
-
-    /**
      * Write station configuration properties to a file.
      *
      * @param sc          The station configuration properties
@@ -185,11 +152,9 @@ public class StationManager {
             throw new IllegalArgumentException("Station ID already exists: " + stationID);
         }
 
-        LOG.info("New station ID: " + stationID);
-
         // Get unique name for this station
         String stationName = this.server.getStationBaseName() + "_" + String.format("%03d", stationID);
-        LOG.info("New station name: " + stationName);
+        LOG.info("Creating new station: " + stationName);
 
         // Create the directory for this station's files
         File dir = createStationDir(stationName);
@@ -206,7 +171,6 @@ public class StationManager {
         // Set the AIDA remote tree bind information
         final String remoteTreeBind = "//" + this.hostName + ":" + (this.remoteAidaPortStart + stationID) + "/"
                 + stationName;
-        LOG.info("remoteTreeBind: " + remoteTreeBind);
         props.get("lcsim.remoteTreeBind").from(remoteTreeBind);
 
         try {
@@ -222,7 +186,7 @@ public class StationManager {
         // Build the command to run the station
         info.buildCommand();
 
-        LOG.config("Station command: " + String.join(" ", info.getCommand()));
+        LOG.info("Station properties: " + props.toString());
 
         // Register the station info
         add(info);
@@ -284,7 +248,7 @@ public class StationManager {
     /**
      * Stop a station.
      *
-     * This does not remove it from the station list. The "remove" command must be
+     * This does not remove it from the station list. The remove command must be
      * used to do this separately.
      *
      * @param info The station info
@@ -293,31 +257,11 @@ public class StationManager {
     boolean stopStation(StationProcess station) {
         LOG.info("Stopping station: " + station.stationName);
         try {
-            server.agg.unmount(station.getRemoteTreeBind());
-            wakeUp(station);
-            station.deactivate();
+            station.deactivate(this.server);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Error stopping station: " + station.stationName, e);
         }
         return station.isActive();
-    }
-
-    /**
-     * Wake up an ET station
-     * @param station The station to wake up
-     */
-    private void wakeUp(StationProcess station) {
-        try {
-            EtSystem sys = this.server.getEtSystem();
-            EtStation stat = sys.stationNameToObject(station.getStationName());
-            if (stat != null) {
-                sys.wakeUpAll(stat);
-            } else {
-                LOG.log(Level.WARNING, "No ET station named: " + station.getStationName());
-            }
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error waking up attachment: " + station.getStationName(), e);
-        }
     }
 
     /**
@@ -368,20 +312,6 @@ public class StationManager {
                 } catch (IOException e) {
                     LOG.log(Level.WARNING, "Error deleting station work dir: " + info.getDirectory().getPath(), e);
                 }
-
-                try {
-                    EtSystem sys = server.getEtSystem();
-                    EtStation stat = sys.stationNameToObject(info.stationName);
-                    if (stat != null) {
-                        LOG.config("Removing ET station: " + info.stationName);
-                        sys.removeStation(stat);
-                        LOG.config("Done removing ET station: " + info.stationName);
-                    }
-                    stat = null;
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Error removing ET station", e);
-                }
-
                 this.stations.remove(info);
                 LOG.info("Removed recon station: " + info.stationName);
                 return true;
@@ -435,22 +365,70 @@ public class StationManager {
     }
 
     /**
-     * Start all inactive stations.
+     * Start a station and return the results as a <code>Future</code>
+     * @param exec The executor service
+     * @param station The station to start
+     * @return A <code>Future</code> with the results as a <code>Boolean</code>
+     */
+    private Future<Boolean> startStation(ExecutorService exec, StationProcess station) {
+        return exec.submit(() -> {
+            return station.activate(this.server);
+        });
+    }
+
+    /**
+     * Start a list of stations using a thread execution pool
      *
-     * @return The number of stations started
+     * @param stations The list of stations to start
+     * @return How many stations were actually started
      */
     public int startStations(List<StationProcess> stations) {
-        int started = 0;
+
+        // Activate stations simultaneously using a thread execution pool
+        final ExecutorService exec = Executors.newFixedThreadPool(stations.size());
+        final Map<StationProcess, Future<Boolean>> results =
+                new HashMap<StationProcess, Future<Boolean>>();
         for (StationProcess station : stations) {
-            try {
-                LOG.info("Starting station: " + station.stationName);
-                startStation(station);
-                ++started;
-            } catch (Exception e) {
-                LOG.log(Level.SEVERE, "Failed to start station: " + station.stationName, e);
+            if (!station.isActive()) {
+                LOG.info("Starting station: " + station.getStationName());
+                results.put(station, startStation(exec, station));
+            } else {
+                LOG.log(Level.WARNING, "Station is already active: " + station.getStationName());
             }
         }
-        return started;
+
+        // Wait for all stations to activate
+        try {
+            LOG.info("Waiting for station activations...");
+            double start = (double) System.currentTimeMillis();
+            exec.shutdown();
+            // Allow up to 5 minutes for all stations to activate (normally < 1 minute wait here)
+            exec.awaitTermination(5, TimeUnit.MINUTES);
+            double elapsed = ((double) System.currentTimeMillis()) - start;
+            LOG.info("Station activations completed in " + elapsed/1000. + " sec");
+        } catch (InterruptedException e) {
+            LOG.log(Level.SEVERE, "Station activation execution was interrupted", e);
+        }
+
+        // Determine how many stations were activated successfully
+        int activated = 0;
+        for (Entry<StationProcess, Future<Boolean>> result : results.entrySet()) {
+            try {
+                if (result.getValue().get()) {
+                    activated++;
+                }
+            } catch (InterruptedException e) {
+                LOG.log(Level.SEVERE, e.getMessage(), e);
+            } catch (ExecutionException e) {
+                // Some error occurred when activating the station
+                LOG.log(Level.SEVERE, "Station "
+                        + result.getKey().getStationName()
+                        + " had error during activation: " + e.getMessage(),
+                        e);
+            }
+        }
+        LOG.info("Station activations: " + activated + "/" + stations.size());
+        return activated;
     }
 
     /**
@@ -498,7 +476,7 @@ public class StationManager {
         if (!station.isActive()) {
             throw new RuntimeException("Station is not active: " + station.stationName);
         }
-        File logFile = station.log;
+        File logFile = station.getLogFile();
         if (!logFile.exists()) {
             throw new RuntimeException("Station log file does not exist: " + logFile.getPath());
         }
@@ -538,23 +516,18 @@ public class StationManager {
      */
     class StationMonitor implements Runnable {
 
-        StationManager mgr = StationManager.this;
-
         public void run() {
-            LOG.finest("StationMonitor is running...");
-            for (StationProcess station : mgr.getStations()) {
-                // Set inactive state on stations that have stopped (possibly due to errors)
+            for (StationProcess station : StationManager.this.getStations()) {
+                // Set inactive state on stations whose processes have stopped
                 Process process = station.getProcess();
                 if (station.isActive() && process != null && !process.isAlive()) {
-                    LOG.info("Deactivating station: " + station.stationName);
-                    station.setExitValue(process.exitValue());
-                    server.agg.unmount(station.getRemoteTreeBind());
-                    station.deactivate();
-                    LOG.info("StationMonitor set station " + station.stationName + " to inactive with exit value: "
+                    LOG.info("Station monitor deactivating station: " + station.stationName);
+                    station.deactivate(StationManager.this.server);
+                    LOG.info("Station monitoring deactivated station " + station.stationName
+                            + " with exit value: "
                             + station.getExitValue());
                 }
             }
-            LOG.finest("StationMonitor is done running");
         }
     }
 }

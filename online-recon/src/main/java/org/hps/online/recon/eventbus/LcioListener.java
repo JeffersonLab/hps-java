@@ -39,8 +39,6 @@ public class LcioListener {
 
     @Subscribe
     public void receiveStart(Start start) {
-        if (this.eventsReceived > 0) {
-            this.eventsReceived = 0;
-        }
+        this.eventsReceived = 0;
     }
 }

@@ -22,11 +22,11 @@ class SetCommandHandler extends CommandHandler {
         StationProperties statProp = server.getStationProperties();
         if (statProp.has(name)) {
             statProp.get(name).from(value);
-            logger.info("Set prop: " + name + "=" + value);
+            //logger.info("Set property: " + name + "=" + value);
         } else {
             throw new CommandException("Property does not exist: " + name);
         }
-        return new Success("Set prop: " + name + "=" + value);
+        return new Success("Set property: " + name + "=" + value);
     }
 
     @Override

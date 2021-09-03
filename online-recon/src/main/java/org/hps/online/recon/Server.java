@@ -135,7 +135,7 @@ public final class Server {
     /**
      * Remote AIDA plot aggregator
      */
-    final PlotAggregator agg = new PlotAggregator();
+    private final PlotAggregator agg = new PlotAggregator();
 
     /**
      * Factory for creating a command handler for a client command
@@ -191,11 +191,9 @@ public final class Server {
                 CommandHandler handler = null;
                 try {
                     // Find the handler for the command.
-                    LOG.config("Getting handler for command: " + command);
                     handler = handlers.getCommandHandler(command);
-                    LOG.config("Got command handler: " + handler.getClass().getCanonicalName());
                 } catch (IllegalArgumentException e) {
-                    // Command name is invalid. This shouldn't happen normally.
+                    // Not a valid command
                     res = new Error("Unknown command: " + command);
                 }
 
@@ -362,15 +360,6 @@ public final class Server {
             jo.put("error", e.getMessage());
         }
     }
-
-    /**
-     * Get whether the ET system is alive or not.
-     * @return True if ET system is alive; false if fail to connect
-     */
-    boolean isEtAlive() {
-        return etSystem.alive();
-    }
-
 
     /**
      * Get ET station status from code.
@@ -588,7 +577,7 @@ public final class Server {
      * @throws IOException If there is an IO error
      * @throws EtTooManyException If there are too many ET connections already
      */
-    synchronized void openEtConnection() throws EtException, IOException, EtTooManyException {
+    private void openEtConnection() throws EtException, IOException, EtTooManyException {
 
         LOG.config("Opening ET system...");
         Property<String> buffer = stationProperties.get("et.buffer");
@@ -626,10 +615,6 @@ public final class Server {
         return etSystem;
     }
 
-    public void save(File file) throws IOException {
-        this.agg.save(file);
-    }
-
     /**
      * Setup and run the server connection loop (from main)
      */
@@ -661,12 +646,16 @@ public final class Server {
         } catch (Exception e) {
             throw new RuntimeException("Failed to connect aggregator", e);
         }
-        // Run the plot aggregator every N seconds
-        //exec.scheduleAtFixedRate(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
+        // Run the plot aggregator every N seconds without piling up executions
         exec.scheduleWithFixedDelay(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
     }
 
-    // This will never exit unless an external kill signal is received or the ET ring goes down.
+    /**
+     * Main server execution loop
+     *
+     * This will execute indefinitely until an external kill signal is received, a shutdown
+     * command is issued, or the ET ring goes down.
+     */
     private void loop() {
         LOG.info("Starting server: " + this.host.getHostName() + ":" + this.port);
         try (ServerSocket serverSocket = new ServerSocket(port, 0, this.host)) {
@@ -679,6 +668,10 @@ public final class Server {
         }
     }
 
+    /**
+     * Set the host from the <code>hostName</code> variable
+     * @throws UnknownHostException If there is a problem initializing the host setup
+     */
     private void setHost() throws UnknownHostException {
         if (this.hostName != null) {
             this.host = InetAddress.getByName(this.hostName);
@@ -687,6 +680,30 @@ public final class Server {
         }
     }
 
+    /**
+     * Wake up an ET station
+     * @param station The station to wake up
+     */
+    void wakeUp(StationProcess station) {
+        try {
+            LOG.info("Waking up ET station: " + station.getStationName());
+            EtSystem sys = getEtSystem();
+            EtStation stat = sys.stationNameToObject(station.getStationName());
+            if (stat != null) {
+                sys.wakeUpAll(stat);
+            } else {
+                LOG.log(Level.WARNING, "No ET station named: " + station.getStationName());
+            }
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Error waking up station attachments for: " + station.getStationName(), e);
+        }
+    }
+
+    /**
+     * Shutdown the server
+     *
+     * @param doExit True to perform a system exit
+     */
     public synchronized void shutdown(boolean doExit) {
 
         if (this.isShutdown) {
@@ -762,6 +779,9 @@ public final class Server {
         }
     }
 
+    /**
+     * Create the server shutdown hook
+     */
     private Thread shutdownHook = new Thread("Shutdown Hook") {
         @Override
         public void run() {
@@ -769,20 +789,31 @@ public final class Server {
         }
     };
 
+    /**
+     * Add the server shutdown hook
+     */
     private void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
     /**
-     * Continuously monitor the ET system and exit the application
-     * if it goes down (run on a scheduled thread executor)
+     * Get the plot aggregator
+     * @return The plot aggregator
+     */
+    public PlotAggregator getAggregator() {
+        return this.agg;
+    }
+
+    /**
+     * This is run on a thread executor to continuously monitor the ET system
+     * and exit the application if it goes down.
      */
     class EtMonitor implements Runnable {
 
         @Override
         public void run() {
-            if (!Server.this.isEtAlive()) {
-                LOG.severe("ET connection went down! Server will exit...");
+            if (!Server.this.etSystem.alive()) {
+                LOG.severe("ET connection went down! Server will exit now...");
                 System.exit(Server.DISCONNECTED);
             }
         }

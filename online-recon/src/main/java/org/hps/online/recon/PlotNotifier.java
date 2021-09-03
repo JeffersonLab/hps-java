@@ -29,7 +29,7 @@ public class PlotNotifier extends WebSocketServer {
 
     private PlotNotifier(int port) throws UnknownHostException {
         super(new InetSocketAddress(port));
-        LOG.info("PlotNotifier starting on port: " + port);
+        LOG.info("Plot notifier starting on port: " + port);
     }
 
     @Override
