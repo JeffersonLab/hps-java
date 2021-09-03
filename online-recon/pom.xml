@@ -124,7 +124,7 @@
               <mainClass>org.hps.record.evio.EvioFileProducer</mainClass>
               <id>evio-producer</id>
               <jvmSettings>
-                <maxMemorySize>512m</maxMemorySize>
+                <maxMemorySize>1g</maxMemorySize>
                 <systemProperties>
                   <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.LoggingConfig</systemProperty>
                 </systemProperties>
