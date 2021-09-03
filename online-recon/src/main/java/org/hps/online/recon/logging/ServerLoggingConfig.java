@@ -9,6 +9,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import org.apache.log4j.BasicConfigurator;
 import org.hps.online.recon.Server;
 
 /**
@@ -38,6 +39,11 @@ public class ServerLoggingConfig {
     }
 
     private final void setup(String fileName) throws IOException {
+
+        // Fix stupid log4j warnings and turn all messages off
+        BasicConfigurator.configure();
+        org.apache.log4j.Logger.getRootLogger().setLevel(org.apache.log4j.Level.OFF);
+
         LogManager.getLogManager().reset();
         Logger rootLogger = Logger.getLogger("");
         File dir = new File(LOG_FILE_PATH);
