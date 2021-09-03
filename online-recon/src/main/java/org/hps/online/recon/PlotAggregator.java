@@ -310,6 +310,7 @@ public class PlotAggregator implements Runnable {
      * since they are read-only.
      */
     private synchronized void clearTree() {
+        LOG.fine("Clearing tree...");
         String[] objectNames = listObjectNames(COMBINED_DIR, true, null);
         for (String name : objectNames) {
             try {
@@ -791,20 +792,19 @@ public class PlotAggregator implements Runnable {
         ITree remoteTree = tf.create(remoteTreeBind, RmiStoreFactory.storeType, true, false, options);
         String mountName = toMountName(remoteTreeBind);
 
-        LOG.fine("Aggregator mounting remote tree to: " + mountName);
         serverTree.mount(mountName, remoteTree, "/");
 
         String remoteDir = toMountName(remoteTreeBind);
-        LOG.fine("Aggregator adding dirs for: " + remoteDir);
 
         String[] dirNames = listObjectNames(remoteDir, true, DIR_TYPE);
         for (String dirName : dirNames) {
             String aggName = toAggregateName(dirName);
-            LOG.fine("Making aggregation dir: " + aggName);
             this.serverTree.mkdirs(aggName);
         }
 
         remotes.add(remoteTreeBind);
+
+        updateStationNumbers();
 
         LOG.info("Aggregator is done creating remote tree: " + remoteTreeBind);
         LOG.info("Number of remotes after add: " + remotes.size());
@@ -815,13 +815,13 @@ public class PlotAggregator implements Runnable {
      * @param remoteTreeBind The URL of the remote tree
      */
     synchronized void unmount(String remoteTreeBind) {
-        LOG.info("Unmounting remote tree: " + remoteTreeBind);
+        LOG.info("Unmounting remote: " + remoteTreeBind);
         if (remoteTreeBind == null) {
-            LOG.warning("Remote tree bind is null");
+            LOG.warning("remoteTreeBind is null");
             return;
         }
         if (!remotes.contains(remoteTreeBind)) {
-            LOG.warning("No registered remote with name: " + remoteTreeBind);
+            LOG.warning("No registered remote: " + remoteTreeBind);
             return;
         }
         try {
@@ -832,9 +832,9 @@ public class PlotAggregator implements Runnable {
             remotes.remove(remoteTreeBind);
             updateStationNumbers();
             LOG.info("Number of remotes after remove: " + remotes.size());
-            LOG.info("Done unmounting remote tree: " + remoteTreeBind);
+            LOG.info("Done unmounting remote: " + remoteTreeBind);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error unmounting remote tree: " + remoteTreeBind, e);
+            LOG.log(Level.WARNING, "Error unmounting remote: " + remoteTreeBind, e);
         }
     }
 
@@ -872,13 +872,6 @@ public class PlotAggregator implements Runnable {
                 LOG.log(Level.WARNING, "Failed to copy occupancy plots", e);
             }
 
-            // Update the combined histograms
-            try {
-                aggregateHistograms();
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Error during histogram aggregation", e);
-            }
-
             // Add event rate plots
             try {
                 addEventRatePlots();
@@ -900,11 +893,18 @@ public class PlotAggregator implements Runnable {
                 LOG.log(Level.WARNING, "Failed to add station event count plot", e);
             }
 
+            // Update the combined histograms
+            try {
+                aggregateHistograms();
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Error during histogram aggregation", e);
+            }
+
             // Broadcast a message to clients (e.g. the web application) that an update occurred
             String updateMsg = "updated at " + new Date().toString();
             PlotNotifier.instance().broadcast(updateMsg);
 
-            LOG.info("Aggregator broadcasted to clients: " + updateMsg);
+            //LOG.info("Aggregator broadcasted to clients: " + updateMsg);
 
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error updating plots", e);
