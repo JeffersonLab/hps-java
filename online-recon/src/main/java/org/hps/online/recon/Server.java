@@ -26,7 +26,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.input.Tailer;
-import org.apache.log4j.BasicConfigurator;
 import org.hps.online.recon.CommandResult.Error;
 import org.hps.online.recon.CommandResult.LogStreamResult;
 import org.hps.online.recon.handlers.CommandHandlerFactory;
@@ -251,21 +250,27 @@ public final class Server {
                     LOG.log(Level.SEVERE, "Error closing socket", e);
                 }
             }
-            LOG.finest("Done running client thread");
 
             // Handle special shutdown command
-            if (res != null && res instanceof CommandResult.Shutdown) {
+            if (res instanceof CommandResult.Shutdown) {
                 LOG.info("Got shutdown command");
-                int wait = ((CommandResult.Shutdown) res).getWait();
-                if (wait > 0) {
-                    LOG.info("Waiting before shutdown: " + wait + " sec");
-                    try {
-                        Thread.sleep(1000L*wait);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                final int waitTime = ((CommandResult.Shutdown) res).getWait();
+                Thread shutdownThread = new Thread() {
+                    @Override
+                    public void run() {
+                        if (waitTime > 0) {
+                            LOG.info("Waiting before shutdown: " + waitTime + " sec");
+                            try {
+                                Thread.sleep(1000L*waitTime);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        Server.this.shutdown(true);
                     }
-                }
-                Server.this.shutdown(true);
+
+                };
+                shutdownThread.start();
             }
         }
 
@@ -641,7 +646,7 @@ public final class Server {
         } catch (Exception e) {
             throw new RuntimeException("Failed to connect aggregator", e);
         }
-        // Run the plot aggregator every N seconds without piling up executions
+        // Run the plot aggregator with a fixed delay between executions
         exec.scheduleWithFixedDelay(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
     }
 
@@ -677,6 +682,10 @@ public final class Server {
 
     /**
      * Wake up an ET station
+     *
+     * This is used as an external signal to reconstruction station's that
+     * they should stop processing events and exit.
+     *
      * @param station The station to wake up
      */
     void wakeUp(StationProcess station) {
@@ -706,41 +715,41 @@ public final class Server {
             return;
         }
 
-        LOG.info("Shutting down server");
+        LOG.info("Shutting down server...");
 
         //LOG.config("Killing client connections");
         //clientProcessingPool.shutdown();
 
-        LOG.config("Stopping all stations");
+        //LOG.info("Stopping all stations");
         try {
             stationManager.stopAll();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        LOG.config("Removing all stations");
+        //LOG.info("Removing all stations");
         try {
             stationManager.removeAll();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        LOG.config("Shutting down monitoring threads");
+        //LOG.info("Shutting down monitoring threads");
         try {
-            //exec.shutdownNow();
-            exec.shutdown();
+            // exec.shutdown();
+            exec.shutdownNow();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        LOG.info("Shutting down aggregator");
+        //LOG.info("Shutting down aggregator");
         try {
             agg.disconnect();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        LOG.info("Shutting down notifier");
+        //LOG.info("Shutting down notifier");
         try {
             PlotNotifier.instance().stop();
         } catch (InterruptedException e) {
@@ -751,11 +760,11 @@ public final class Server {
         try {
             if (etSystem != null) {
                 if (etSystem.alive()) {
-                    LOG.info("Closing ET system...");
+                    //LOG.info("Closing ET system...");
                     etSystem.close();
                     etSystem = null;
                     etConfig = null;
-                    LOG.info("ET system closed!");
+                    //LOG.info("ET system closed!");
                 }
             }
         } catch (Exception e) {
@@ -764,9 +773,10 @@ public final class Server {
 
         this.isShutdown = true;
 
-        LOG.info("Done shutting down server");
+        LOG.info("Done shutting down server!");
 
         if (doExit) {
+            // Remove the shutdown hook and exit directly here
             LOG.info("Exiting application");
             Runtime.getRuntime().removeShutdownHook(shutdownHook);
             shutdownHook = null;
