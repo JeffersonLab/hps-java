@@ -99,7 +99,6 @@ public class StationManager {
      * @param station The station information
      */
     void add(StationProcess station) {
-        LOG.info("Adding station: " + station.stationName);
         stations.add(station);
     }
 

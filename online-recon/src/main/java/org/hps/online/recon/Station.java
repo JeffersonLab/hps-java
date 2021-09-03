@@ -238,29 +238,16 @@ public class Station {
         LOG.config("Conditions system initialized successfully");
 
         // Try to connect to the ET system.
-        LOG.config("Connecting to ET system...");
         try {
             this.conn = new EtParallelStation(props);
-            LOG.config("Successfully connected to ET system");
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create ET station");
+            throw new RuntimeException("Failed to create ET station", e);
         }
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-
-                /**
-                 * The end hook is activated here. This is an odd place to put it
-                 * but if the process is killed the event bus would not do it.
-                 */
-                try {
-                    Station.this.getJobManager().getDriverAdapter().finish(null);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                // Cleanup the ET connection
+                // Cleanup the ET connection on exit
                 if (conn != null) {
                     conn.cleanup();
                 }

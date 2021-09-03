@@ -43,8 +43,11 @@ public class OnlineEventBus extends EventBus {
      * @throws Exception If there is an error reading ET events
      */
     public void loop() {
+
         halt = false;
+
         post(new Start());
+
         logger.info("Event loop starting");
         while (true) {
             EtEvent[] events = null;
@@ -57,15 +60,25 @@ public class OnlineEventBus extends EventBus {
                 }
                 conn.getEtSystem().dumpEvents(conn.getEtAttachment(), events);
             } catch (EtWakeUpException e) {
+                // This is used as an external signal by the server to stop processing
                 post(new Stop("ET wake up received"));
             } catch (Exception e) {
                 // Errors when reading ET data are considered fatal
                 post(new EventProcessingError(e, true));
             }
             if (halt) {
+                // Halt flag will be set if a stop was received
                 break;
             }
         }
+
+        // Activate end of data hook
+        try {
+            station.getJobManager().getDriverAdapter().finish(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         logger.info("Event loop exiting");
     }
 

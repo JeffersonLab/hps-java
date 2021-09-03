@@ -385,11 +385,6 @@ public final class Server {
      * @param args The command line args
      */
     public static void main(String args[]) {
-
-        // Fix log4j warnings and turn messages off
-        BasicConfigurator.configure();
-        org.apache.log4j.Logger.getRootLogger().setLevel(org.apache.log4j.Level.OFF);
-
         Server server = new Server();
         try {
             server.parse(args);
@@ -416,7 +411,7 @@ public final class Server {
      * Create a new server instance.
      */
     private Server() {
-        this.stationManager = new StationManager(this);
+        stationManager = new StationManager(this);
         handlers = new CommandHandlerFactory(this);
     }
 

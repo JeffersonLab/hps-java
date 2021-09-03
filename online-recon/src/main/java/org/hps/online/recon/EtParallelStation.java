@@ -84,7 +84,7 @@ class EtParallelStation extends EtConnection {
             }
         }
 
-        // It failed :(
+        // Failed to connect to the ET system
         if (!sys.alive()) {
             RuntimeException rte = new RuntimeException(
                     "Failed to connect to ET system after "

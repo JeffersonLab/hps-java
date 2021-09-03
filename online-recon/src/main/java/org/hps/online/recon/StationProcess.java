@@ -169,8 +169,9 @@ public class StationProcess {
     }
 
     /**
-     * Deactivate a station by killing its system process, removing its ET station,
-     * and unmounting its remote AIDA tree
+     * Deactivate a station by unmounting its remote AIDA tree and killing its system process.
+     *
+     * The ET station will be removed when the {@link Station} process actually exits.
      *
      * This is called by {@link StationManager#stopStation(StationProcess)}.
      */
@@ -193,13 +194,12 @@ public class StationProcess {
             LOG.log(Level.SEVERE, "Error unmounting remote tree: " + getRemoteTreeBind(), e);
         }
 
+        // Wake up the ET station which signals the event loop to exit
+        server.wakeUp(this);
+
         // Destroy the station's system process
-        try {
-            LOG.info("Destroying station's system process: " + this.getPid());
-            destroyProcess();
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error destroying system process for station: " + getStationName());
-        }
+        LOG.info("Destroying station's system process: " + this.getPid());
+        destroyProcess();
 
         LOG.info("Done deactivating station: " + stationName);
     }
@@ -226,19 +226,24 @@ public class StationProcess {
     private void destroyProcess() {
         try {
             if (process != null) {
+                // Wait a little bit, given that process is probably exiting already
+                process.waitFor(10, TimeUnit.SECONDS);
                 if (process.isAlive()) {
                     LOG.fine("Destroying process: " + pid);
+                    // First try gentle exit
                     process.destroy();
                     try {
                         process.waitFor(30, TimeUnit.SECONDS);
                         if (process.isAlive()) {
                             LOG.fine("Destroying process forcibly: " + pid);
+                            // Destroy forcibly e.g. using kill -9
                             process.destroyForcibly();
                             process.waitFor(10, TimeUnit.SECONDS);
                         }
                         if (!process.isAlive()) {
                             exitValue = process.exitValue();
                         } else {
+                            // It really shouldn't ever get here
                             LOG.warning("Failed to stop process: " + pid);
                         }
                     } catch (InterruptedException e) {

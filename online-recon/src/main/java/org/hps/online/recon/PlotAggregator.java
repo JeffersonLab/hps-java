@@ -310,7 +310,6 @@ public class PlotAggregator implements Runnable {
      * since they are read-only.
      */
     private synchronized void clearTree() {
-        LOG.fine("Clearing tree...");
         String[] objectNames = listObjectNames(COMBINED_DIR, true, null);
         for (String name : objectNames) {
             try {
@@ -352,8 +351,6 @@ public class PlotAggregator implements Runnable {
      * trees together
      */
     private void aggregateHistograms() {
-
-        LOG.fine("Aggregator is updating histograms...");
 
         // Create combined directories in case any are missing
         makeCombinedDirs();
@@ -850,6 +847,7 @@ public class PlotAggregator implements Runnable {
         if (remotes.size() == 0) {
             return;
         }
+        LOG.info("Aggregator is updating...");
         double start = (double) System.currentTimeMillis();
         synchronized (updating) {
             update();
@@ -867,6 +865,20 @@ public class PlotAggregator implements Runnable {
             // Clear the combined tree
             clearTree();
 
+            // Copy SVT occupancy plots
+            try {
+                copyOccupancyPlots();
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to copy occupancy plots", e);
+            }
+
+            // Update the combined histograms
+            try {
+                aggregateHistograms();
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Error during histogram aggregation", e);
+            }
+
             // Add event rate plots
             try {
                 addEventRatePlots();
@@ -881,21 +893,11 @@ public class PlotAggregator implements Runnable {
                 LOG.log(Level.WARNING, "Failed to add event time plots", e);
             }
 
-            // Update the combined histograms
-            aggregateHistograms();
-
             // Add the station event counts plot
             try {
                 addStationEventCounts();
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to add station event count plot", e);
-            }
-
-            // Copy SVT occupancy plots
-            try {
-                copyOccupancyPlots();
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to copy occupancy plots", e);
             }
 
             // Broadcast a message to clients (e.g. the web application) that an update occurred
@@ -986,7 +988,7 @@ public class PlotAggregator implements Runnable {
     void addRemoteTree(String remoteTreeBind, int maxAttempts, long backoffMillis)
             throws InterruptedException, IOException {
         boolean mounted = false;
-        LOG.info("Adding remote tree: " + remoteTreeBind);
+        LOG.info("Adding remote: " + remoteTreeBind);
         if (remoteTreeBind == null) {
             throw new IllegalArgumentException("The remoteTreeBind points to null");
         }
