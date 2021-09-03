@@ -48,13 +48,13 @@ import org.json.JSONObject;
  */
 public final class Server {
 
-    // Return codes
+    // System return codes
     final static int OKAY = 0;
     final static int ERROR = 1001;
     final static int PARSE_ERROR = 1002;
     final static int DISCONNECTED = 1003; // ET disconnected
     final static int RUNTIME_ERROR = 1004;
-    final public static int SHUTDOWN = 1005;
+    final static int SHUTDOWN = 1005;
 
     /**
      * When streaming data, client sends to server to keep connection alive.
@@ -107,9 +107,24 @@ public final class Server {
     private StationProperties stationProperties = new StationProperties();
 
     /**
+     * Executor for executing various tasks such as the ET and station monitors
+     */
+    final ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
+
+    /**
      * The station manager.
      */
-    private final StationManager stationManager;
+    private final StationManager stationManager = new StationManager(this);
+
+    /**
+     * Remote AIDA plot aggregator
+     */
+    private final PlotAggregator agg = new PlotAggregator();
+
+    /**
+     * Factory for creating a command handler for a client command
+     */
+    CommandHandlerFactory handlers = new CommandHandlerFactory(this);
 
     /**
      * The server work directory.
@@ -127,21 +142,6 @@ public final class Server {
     private EtSystemOpenConfig etConfig;
 
     /**
-     * Executor for executing various tasks such as the ET and station monitors
-     */
-    final ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
-
-    /**
-     * Remote AIDA plot aggregator
-     */
-    private final PlotAggregator agg = new PlotAggregator();
-
-    /**
-     * Factory for creating a command handler for a client command
-     */
-    CommandHandlerFactory handlers = null;
-
-    /**
      * Internet host
      */
     InetAddress host;
@@ -150,8 +150,6 @@ public final class Server {
      * Host name which can be set with a command line option
      */
     String hostName = null;
-
-    boolean isShutdown = false;
 
     /**
      * Handles a single client request.
@@ -253,7 +251,7 @@ public final class Server {
 
             // Handle special shutdown command
             if (res instanceof CommandResult.Shutdown) {
-                LOG.info("Got shutdown command");
+                LOG.info("Initiating server shutdown");
                 final int waitTime = ((CommandResult.Shutdown) res).getWait();
                 Thread shutdownThread = new Thread() {
                     @Override
@@ -261,14 +259,13 @@ public final class Server {
                         if (waitTime > 0) {
                             LOG.info("Waiting before shutdown: " + waitTime + " sec");
                             try {
-                                Thread.sleep(1000L*waitTime);
+                                Thread.sleep(1000L * waitTime);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
                         }
-                        Server.this.shutdown(true);
+                        System.exit(SHUTDOWN);
                     }
-
                 };
                 shutdownThread.start();
             }
@@ -285,7 +282,7 @@ public final class Server {
         private void runTailer(CommandResult res, final BufferedWriter bw, final Scanner in)
                 throws IOException, InterruptedException {
 
-            LOG.fine("Sending log tail back to client");
+            //LOG.fine("Sending log tail back to client");
 
             LogStreamResult logStreamResult = (LogStreamResult) res;
             SimpleLogListener listener = logStreamResult.listener;
@@ -295,22 +292,22 @@ public final class Server {
 
             final Tailer tailer = logStreamResult.tailer;
 
-            LOG.info("Running tailer");
+            //LOG.info("Running tailer");
 
             Thread tailerThread = new Thread(tailer);
             tailerThread.start();
-            LOG.info("Done starting tailer");
+            //LOG.info("Done starting tailer");
 
             // Any input from the client will stop the tailer.
-            LOG.config("Waiting for any client input...");
+            //LOG.config("Waiting for any client input...");
             in.nextLine();
-            LOG.config("Stopping tailer");
+            //LOG.config("Stopping tailer");
 
             tailerThread.interrupt();
             tailerThread.join(10000L);
             if (tailerThread.isAlive()) {
                 // Forcibly stop the thread
-                LOG.warning("Stopping misbehaved tailer thread");
+                //LOG.warning("Stopping misbehaved tailer thread");
                 tailerThread.stop();
             }
         }
@@ -400,24 +397,24 @@ public final class Server {
         }
 
         try {
-            server.run();
+            server.initialize();
         } catch (EtException|IOException|EtTooManyException etEx) {
             System.err.println("Failed to open ET system");
             etEx.printStackTrace();
             System.exit(DISCONNECTED);
         } catch (Exception e) {
-            System.err.println("Server runtime error");
+            System.err.println("Error initializing server");
             e.printStackTrace();
-            System.exit(RUNTIME_ERROR);
+            System.exit(ERROR);
         }
+
+        server.loop();
     }
 
     /**
      * Create a new server instance.
      */
     private Server() {
-        stationManager = new StationManager(this);
-        handlers = new CommandHandlerFactory(this);
     }
 
     /**
@@ -580,10 +577,12 @@ public final class Server {
     private void openEtConnection() throws EtException, IOException, EtTooManyException {
 
         LOG.config("Opening ET system...");
+
         Property<String> buffer = stationProperties.get("et.buffer");
         Property<String> host = stationProperties.get("et.host");
         Property<Integer> port = stationProperties.get("et.port");
         Property<Integer> maxAttempts = stationProperties.get("et.connectionAttempts");
+
         etConfig = new EtSystemOpenConfig(buffer.value(), host.value(), port.value());
         etSystem = new EtSystem(etConfig, EtConstants.debugWarn);
 
@@ -616,9 +615,9 @@ public final class Server {
     }
 
     /**
-     * Setup and run the server connection loop (from main)
+     * Initialize the server before looping
      */
-    private void run() throws Exception {
+    private void initialize() throws Exception {
 
         // Set the host name
         setHost();
@@ -633,10 +632,11 @@ public final class Server {
         PlotNotifier.instance().start();
 
         // Add the shutdown hook
-        addShutdownHook();
-
-        // Client connection loop
-        loop();
+        Runtime.getRuntime().addShutdownHook(new Thread("Shutdown Hook") {
+            public void run() {
+                Server.this.shutdown();
+            }
+        });
     }
 
     private void startPlotAggregator() {
@@ -708,33 +708,25 @@ public final class Server {
      *
      * @param doExit True to perform a system exit
      */
-    public synchronized void shutdown(boolean doExit) {
+    private void shutdown() {
 
-        if (this.isShutdown) {
-            LOG.warning("Server is already shutdown");
-            return;
-        }
-
-        LOG.info("Shutting down server...");
+        System.err.println("Shutting down server...");
 
         //LOG.config("Killing client connections");
         //clientProcessingPool.shutdown();
 
-        //LOG.info("Stopping all stations");
         try {
             stationManager.stopAll();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        //LOG.info("Removing all stations");
         try {
             stationManager.removeAll();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        //LOG.info("Shutting down monitoring threads");
         try {
             // exec.shutdown();
             exec.shutdownNow();
@@ -742,14 +734,12 @@ public final class Server {
             e.printStackTrace();
         }
 
-        //LOG.info("Shutting down aggregator");
         try {
             agg.disconnect();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        //LOG.info("Shutting down notifier");
         try {
             PlotNotifier.instance().stop();
         } catch (InterruptedException e) {
@@ -760,46 +750,18 @@ public final class Server {
         try {
             if (etSystem != null) {
                 if (etSystem.alive()) {
-                    //LOG.info("Closing ET system...");
                     etSystem.close();
                     etSystem = null;
                     etConfig = null;
-                    //LOG.info("ET system closed!");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        this.isShutdown = true;
-
-        LOG.info("Done shutting down server!");
-
-        if (doExit) {
-            // Remove the shutdown hook and exit directly here
-            LOG.info("Exiting application");
-            Runtime.getRuntime().removeShutdownHook(shutdownHook);
-            shutdownHook = null;
-            System.exit(SHUTDOWN);
-        }
+        System.err.println("Done shutting down server!");
     }
 
-    /**
-     * Create the server shutdown hook
-     */
-    private Thread shutdownHook = new Thread("Shutdown Hook") {
-        @Override
-        public void run() {
-            Server.this.shutdown(false);
-        }
-    };
-
-    /**
-     * Add the server shutdown hook
-     */
-    private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
-    }
 
     /**
      * Get the plot aggregator
@@ -822,6 +784,5 @@ public final class Server {
                 System.exit(Server.DISCONNECTED);
             }
         }
-
     }
 }
