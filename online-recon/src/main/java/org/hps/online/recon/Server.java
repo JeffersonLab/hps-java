@@ -57,11 +57,6 @@ public final class Server {
     final static int SHUTDOWN = 1005;
 
     /**
-     * When streaming data, client sends to server to keep connection alive.
-     */
-    //private static final String KEEPALIVE_RESPONSE = "<KEEPALIVE>";
-
-    /**
      * The default server port.
      */
     static final int DEFAULT_PORT = 22222;
@@ -282,8 +277,6 @@ public final class Server {
         private void runTailer(CommandResult res, final BufferedWriter bw, final Scanner in)
                 throws IOException, InterruptedException {
 
-            //LOG.fine("Sending log tail back to client");
-
             LogStreamResult logStreamResult = (LogStreamResult) res;
             SimpleLogListener listener = logStreamResult.listener;
             listener.setBufferedWriter(bw);
@@ -292,22 +285,16 @@ public final class Server {
 
             final Tailer tailer = logStreamResult.tailer;
 
-            //LOG.info("Running tailer");
-
             Thread tailerThread = new Thread(tailer);
             tailerThread.start();
-            //LOG.info("Done starting tailer");
 
             // Any input from the client will stop the tailer.
-            //LOG.config("Waiting for any client input...");
             in.nextLine();
-            //LOG.config("Stopping tailer");
 
             tailerThread.interrupt();
             tailerThread.join(10000L);
             if (tailerThread.isAlive()) {
                 // Forcibly stop the thread
-                //LOG.warning("Stopping misbehaved tailer thread");
                 tailerThread.stop();
             }
         }
@@ -502,6 +489,7 @@ public final class Server {
      * @throws ParseException If there is a problem parsing the command line
      */
     private void parse(String args[]) throws ParseException {
+
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "print help"));
         options.addOption(new Option("H", "host", true, "server host name"));
@@ -715,7 +703,9 @@ public final class Server {
         } catch (InterruptedException e) {
             LOG.log(Level.WARNING, "Interrupted while waiting for wakeup thread", e);
         }
+
         if (wakeupThread.isAlive()) {
+            // This shouldn't happen normally but kill thread if it failed to complete
             LOG.severe("Failed to wakeup ET station: " + station.getStationName());
             wakeupThread.stop();
             try {

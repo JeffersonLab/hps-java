@@ -134,9 +134,8 @@ public class PlotAggregator implements Runnable {
     private RmiServer rmiTreeServer;
 
     /**
-     * Dummy object used for internal synchronization on update operations
+     * Lock for update synchronization
      */
-    //private final String updating = "updating";
     private final ReentrantLock lock = new ReentrantLock();
 
     /**
@@ -459,7 +458,7 @@ public class PlotAggregator implements Runnable {
      * @param obj The object to check
      * @return True if plot should be aggregated
      */
-    static private boolean shouldAggregate(IManagedObject obj) {
+    private static boolean shouldAggregate(IManagedObject obj) {
         if (obj instanceof IBaseHistogram) {
             IBaseHistogram hist = (IBaseHistogram) obj;
             if (hist.annotation().hasKey("aggregate")) {
@@ -839,7 +838,7 @@ public class PlotAggregator implements Runnable {
             LOG.info("Number of remotes after remove: " + remotes.size());
             LOG.info("Done unmounting remote: " + remoteTreeBind);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error unmounting remote: " + remoteTreeBind, e);
+            LOG.log(Level.SEVERE, "Error unmounting remote: " + remoteTreeBind, e);
         }
     }
 
@@ -852,16 +851,13 @@ public class PlotAggregator implements Runnable {
         if (remotes.size() == 0) {
             return;
         }
-        LOG.info("Aggregator is updating...");
-        double start = (double) System.currentTimeMillis();
         lock.lock();
         try {
+            // The entire update is wrapped in a lock
             update();
         } finally {
             lock.unlock();
         }
-        double elapsed = ((double) System.currentTimeMillis()) - start;
-        LOG.info("Aggregator update took " + elapsed/1000. + " sec");
     }
 
     /**
@@ -870,8 +866,15 @@ public class PlotAggregator implements Runnable {
     private void update() {
         try {
 
+            LOG.info("Aggregator is updating...");
+            double start = (double) System.currentTimeMillis();
+
             // Clear the combined tree
-            clearTree();
+            try {
+                clearTree();
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Error clearing AIDA tree", e);
+            }
 
             // Copy SVT occupancy plots
             try {
@@ -912,6 +915,9 @@ public class PlotAggregator implements Runnable {
             String updateMsg = "updated at " + new Date().toString();
             PlotNotifier.instance().broadcast(updateMsg);
 
+            double elapsed = ((double) System.currentTimeMillis()) - start;
+            LOG.info("Aggregator update took " + elapsed/1000. + " sec");
+
             //LOG.info("Aggregator broadcasted to clients: " + updateMsg);
 
         } catch (Exception e) {
@@ -941,9 +947,7 @@ public class PlotAggregator implements Runnable {
              * only the combined outputs.
              */
             IDevTree outputTree = (IDevTree) tf.create();
-            synchronized (this.serverTree) {
-                copy(serverTree, outputTree, PlotAggregator.COMBINED_DIR);
-            }
+            copy(serverTree, outputTree, PlotAggregator.COMBINED_DIR);
 
             // Modified code from AIDA class in lcsim
             if (path.endsWith(".root")) {
@@ -1011,13 +1015,18 @@ public class PlotAggregator implements Runnable {
                 LOG.info("Connection attempt: " + attempt + "/" + maxAttempts);
                 lock.lock();
                 try {
+                    // Make sure no other updates are occurring while mounting
+
                     mount(remoteTreeBind);
+
+                    // Will only reach here if attempt succeeded
+                    updateStationNumbers();
+                    LOG.info("Connected remote tree: " + remoteTreeBind);
+                    mounted = true;
+                    break;
                 } finally {
                     lock.unlock();
                 }
-                LOG.info("Connected remote tree: " + remoteTreeBind);
-                mounted = true;
-                break;
             } catch (InterruptedException e) {
                 // Re-throw if interrupted
                 throw e;
@@ -1025,12 +1034,9 @@ public class PlotAggregator implements Runnable {
                 LOG.warning("Connection attempt " + attempt + " failed");
             }
         }
-        if (mounted == false) {
-            // Throw an exception if the connection attempt failed due to timeout or other reason
+        if (!mounted) {
+            // Throw an exception if the connection failed
             throw new IOException("Failed to add remote tree: " + remoteTreeBind);
-        } else {
-            // Keep track of station numbers for plotting
-            updateStationNumbers();
         }
     }
 
