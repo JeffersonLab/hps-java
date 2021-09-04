@@ -105,6 +105,7 @@ public class IterateGainFactorDriver extends Driver {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("ECAL Gain Factors were read");
     }
 
     @Override
