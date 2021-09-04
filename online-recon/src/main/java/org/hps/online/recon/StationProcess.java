@@ -195,7 +195,7 @@ public class StationProcess {
         }
 
         // Wake up the ET station which signals the event loop to exit
-        server.wakeUp(this);
+        server.wakeUp(this, 30000);
 
         // Destroy the station's system process
         LOG.info("Destroying station's system process: " + this.getPid());

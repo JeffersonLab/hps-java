@@ -110,7 +110,7 @@ class EtParallelStation extends EtConnection {
         stationConfig.setFlowMode(EtConstants.stationParallel);
         stationConfig.setBlockMode(EtConstants.stationBlocking);
         stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
-        //stationConfig.setRestoreMode(EtConstants.stationRestoreGC);
+        stationConfig.setRestoreMode(EtConstants.stationRestoreGC);
         stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
         if (prescale.value() > 0) {
             stationConfig.setPrescale(prescale.value());

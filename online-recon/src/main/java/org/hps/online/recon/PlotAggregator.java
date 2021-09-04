@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -135,7 +136,8 @@ public class PlotAggregator implements Runnable {
     /**
      * Dummy object used for internal synchronization on update operations
      */
-    private final String updating = "updating";
+    //private final String updating = "updating";
+    private final ReentrantLock lock = new ReentrantLock();
 
     /**
      * Searching for dir type
@@ -777,7 +779,7 @@ public class PlotAggregator implements Runnable {
      * @param remoteTreeBind The URL of the remote tree
      * @throws IOException If there is an exception opening the remote tree
      */
-    synchronized void mount(String remoteTreeBind) throws IOException {
+    void mount(String remoteTreeBind) throws IOException {
         if (remoteTreeBind == null) {
             throw new IOException("The remoteTreeBind is null");
         }
@@ -814,7 +816,7 @@ public class PlotAggregator implements Runnable {
      * Unmount a remote tree e.g. when a station goes inactive
      * @param remoteTreeBind The URL of the remote tree
      */
-    synchronized void unmount(String remoteTreeBind) {
+    void unmount(String remoteTreeBind) {
         LOG.info("Unmounting remote: " + remoteTreeBind);
         if (remoteTreeBind == null) {
             LOG.warning("remoteTreeBind is null");
@@ -826,11 +828,14 @@ public class PlotAggregator implements Runnable {
         }
         try {
             String path = toMountName(remoteTreeBind);
-            synchronized (updating) {
+            lock.lock();
+            try {
                 this.serverTree.unmount(path);
+                remotes.remove(remoteTreeBind);
+                updateStationNumbers();
+            } finally {
+                lock.unlock();
             }
-            remotes.remove(remoteTreeBind);
-            updateStationNumbers();
             LOG.info("Number of remotes after remove: " + remotes.size());
             LOG.info("Done unmounting remote: " + remoteTreeBind);
         } catch (Exception e) {
@@ -849,8 +854,11 @@ public class PlotAggregator implements Runnable {
         }
         LOG.info("Aggregator is updating...");
         double start = (double) System.currentTimeMillis();
-        synchronized (updating) {
+        lock.lock();
+        try {
             update();
+        } finally {
+            lock.unlock();
         }
         double elapsed = ((double) System.currentTimeMillis()) - start;
         LOG.info("Aggregator update took " + elapsed/1000. + " sec");
@@ -924,7 +932,8 @@ public class PlotAggregator implements Runnable {
 
         String path = file.getCanonicalPath();
 
-        synchronized (updating) {
+        lock.lock();
+        try {
             // Make sure no updates are occurring while saving the file
 
             /*
@@ -972,6 +981,9 @@ public class PlotAggregator implements Runnable {
 
             outputTree.close();
             outputTree = null;
+
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -997,8 +1009,11 @@ public class PlotAggregator implements Runnable {
                 long waitMillis = attempt * backoffMillis;
                 Thread.sleep(waitMillis);
                 LOG.info("Connection attempt: " + attempt + "/" + maxAttempts);
-                synchronized (updating) {
+                lock.lock();
+                try {
                     mount(remoteTreeBind);
+                } finally {
+                    lock.unlock();
                 }
                 LOG.info("Connected remote tree: " + remoteTreeBind);
                 mounted = true;

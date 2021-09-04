@@ -59,7 +59,7 @@ public final class Server {
     /**
      * When streaming data, client sends to server to keep connection alive.
      */
-    static final String KEEPALIVE_RESPONSE = "<KEEPALIVE>";
+    //private static final String KEEPALIVE_RESPONSE = "<KEEPALIVE>";
 
     /**
      * The default server port.
@@ -109,7 +109,7 @@ public final class Server {
     /**
      * Executor for executing various tasks such as the ET and station monitors
      */
-    final ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
+    final ScheduledExecutorService exec = Executors.newScheduledThreadPool(5);
 
     /**
      * The station manager.
@@ -124,7 +124,7 @@ public final class Server {
     /**
      * Factory for creating a command handler for a client command
      */
-    CommandHandlerFactory handlers = new CommandHandlerFactory(this);
+    private CommandHandlerFactory handlers = new CommandHandlerFactory(this);
 
     /**
      * The server work directory.
@@ -137,19 +137,19 @@ public final class Server {
     private EtSystem etSystem;
 
     /**
-     * Reference to the current ET config
+     * Reference to the current ET configuration
      */
     private EtSystemOpenConfig etConfig;
 
     /**
      * Internet host
      */
-    InetAddress host;
+    private InetAddress host;
 
     /**
      * Host name which can be set with a command line option
      */
-    String hostName = null;
+    private String hostName = null;
 
     /**
      * Handles a single client request.
@@ -681,25 +681,48 @@ public final class Server {
     }
 
     /**
-     * Wake up an ET station
+     * Wake up an ET station using a separate thread to allow a timeout
      *
-     * This is used as an external signal to reconstruction station's that
-     * they should stop processing events and exit.
+     * This is used as an external signal to the reconstruction station
+     * that it should stop processing and exit by breaking out of the
+     * event processing loop.
      *
      * @param station The station to wake up
      */
-    void wakeUp(StationProcess station) {
-        try {
-            LOG.info("Waking up ET station: " + station.getStationName());
-            EtSystem sys = getEtSystem();
-            EtStation stat = sys.stationNameToObject(station.getStationName());
-            if (stat != null) {
-                sys.wakeUpAll(stat);
-            } else {
-                LOG.log(Level.WARNING, "No ET station named: " + station.getStationName());
+    void wakeUp(StationProcess station, int timeoutMillis) {
+        final Thread wakeupThread = new Thread() {
+            public void run() {
+                try {
+                    EtSystem sys = getEtSystem();
+                    EtStation stat = sys.stationNameToObject(station.getStationName());
+                    if (stat != null) {
+                        LOG.info("Waking up ET station: name=" + stat.getName()
+                                + "; status=" + Server.getStatusString(stat.getStatus())
+                                + "; usable=" + stat.isUsable());
+                        sys.wakeUpAll(stat);
+                        LOG.info("Woke up ET station: " + station.getStationName());
+                    } else {
+                        LOG.log(Level.WARNING, "No ET station named: " + station.getStationName());
+                    }
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Error waking up: " + station.getStationName(), e);
+                }
             }
-        } catch (Exception e) {
-            LOG.log(Level.WARNING, "Error waking up station attachments for: " + station.getStationName(), e);
+        };
+        wakeupThread.start();
+        try {
+            wakeupThread.join(timeoutMillis);
+        } catch (InterruptedException e) {
+            LOG.log(Level.WARNING, "Interrupted while waiting for wakeup thread", e);
+        }
+        if (wakeupThread.isAlive()) {
+            LOG.severe("Failed to wakeup ET station: " + station.getStationName());
+            wakeupThread.stop();
+            try {
+                wakeupThread.join();
+            } catch (InterruptedException e) {
+                LOG.log(Level.WARNING, "Interrupted while killing wake up thread", e);
+            }
         }
     }
 
@@ -761,7 +784,6 @@ public final class Server {
 
         System.err.println("Done shutting down server!");
     }
-
 
     /**
      * Get the plot aggregator
