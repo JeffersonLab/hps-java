@@ -5,7 +5,6 @@ import java.util.List;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
-import org.hps.recon.tracking.gbl.GBLStripClusterData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
@@ -46,10 +45,6 @@ public class KalmanKinkFitDriver extends Driver {
     @Override
     public void process(EventHeader event) {
                 
-        String stripDataInputCollectionName = "KFGBLStripClusterData";
-        if (!event.hasCollection(GBLStripClusterData.class, stripDataInputCollectionName)) {
-            System.out.format("\nKalmanKinkFitDriver: the data collection %s is missing.\n",stripDataInputCollectionName);
-        }
         String stripDataRelationsInputCollectionName = "KFGBLStripClusterDataRelations";
         if (!event.hasCollection(LCRelation.class, stripDataRelationsInputCollectionName)) {
             System.out.format("\nKalmanKinkFitDriver: the data collection %s is missing.\n",stripDataRelationsInputCollectionName);

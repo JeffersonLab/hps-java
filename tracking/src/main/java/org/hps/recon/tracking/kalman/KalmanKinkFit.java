@@ -10,10 +10,13 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
-import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.event.RelationalTable;
+import java.util.Set;
+import org.lcsim.event.GenericObject;
+
 
 // Break a Kalman track into two halves and fit them separately.
 // Find the kink angle between the two halves
@@ -41,12 +44,6 @@ public class KalmanKinkFit {
             System.out.format("KalmanKinkFit: the SiModule instances have not yet been created in KalmanInterface.");
             return false;
         }
-        String stripDataInputCollectionName = "KFGBLStripClusterData";
-        if (!event.hasCollection(GBLStripClusterData.class, stripDataInputCollectionName)) {
-            System.out.format("\nKalmanKinkFit: the data collection %s is missing. Abort.\n",stripDataInputCollectionName);
-            return false;
-        }
-        List<GBLStripClusterData> clstrs = event.get(GBLStripClusterData.class, stripDataInputCollectionName);
         String stripDataRelationsInputCollectionName = "KFGBLStripClusterDataRelations";
         if (!event.hasCollection(LCRelation.class, stripDataRelationsInputCollectionName)) {
             System.out.format("\nKalmanKinkFit: the data collection %s is missing. Abort.\n",stripDataRelationsInputCollectionName);
@@ -63,14 +60,28 @@ public class KalmanKinkFit {
             System.out.format("KalmanKinkFit event %d, trackstate at first hit is missing\n", event.getEventNumber());
             return false;
         }
-        List<LCRelation> relations = event.get(LCRelation.class, stripDataRelationsInputCollectionName);
-        RelationalTable trkToStrips = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
-        for (LCRelation relation : relations) {
-            if (relation != null && relation.getFrom() != null && relation.getTo() != null)
-                trkToStrips.add(relation.getFrom(), relation.getTo());
+        
+        RelationalTable kfSCDsRT = null;
+        List<LCRelation> kfSCDRelation = new ArrayList<LCRelation>();
+        if (event.hasCollection(LCRelation.class, stripDataRelationsInputCollectionName)) { 
+            kfSCDsRT = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+            kfSCDRelation = event.get(LCRelation.class,stripDataRelationsInputCollectionName);
+            for (LCRelation relation : kfSCDRelation) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) { 
+                    kfSCDsRT.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        } else {
+            System.out.println("null KFGBLStripCluster Data Relations.");
+            return false; 
         }
-        List<GBLStripClusterData> stripsOnTrack = new ArrayList<GBLStripClusterData>();
-        stripsOnTrack.addAll(trkToStrips.allFrom(KalmanFullTrack));
+        
+        //Get the strip cluster data
+        Set<GenericObject> kfSCDs = kfSCDsRT.allFrom(KalmanFullTrack);
+        
+        //Convert the set to a list for sorting it
+        List<GenericObject> stripsOnTrack = new ArrayList<GenericObject>(kfSCDs);        
+        
         if (debug) System.out.format("Event %d, Track chi^2=%9.3f, ndof=%d \n", event.getEventNumber(), KalmanFullTrack.getChi2(), KalmanFullTrack.getNDF());
         ArrayList<SiModule> innerList = new ArrayList<SiModule>(7);
         ArrayList<Integer> innerHits = new ArrayList<Integer>(7);
@@ -79,7 +90,9 @@ public class KalmanKinkFit {
         innerStereo = 0;
         outerStereo = 0;
         int lyrBreak = 7;
-        for (GBLStripClusterData strpClrst : stripsOnTrack) {
+
+        for (GenericObject strpClrst_go : stripsOnTrack) {
+            GBLStripClusterData strpClrst = new GBLStripClusterData(strpClrst_go);
             int ID = strpClrst.getId();
             int vol = strpClrst.getVolume();
             // Hack for the volume (upper or lower tracker) since it wasn't filled in the data tapes
