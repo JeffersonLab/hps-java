@@ -65,7 +65,7 @@ public class SvtClusterPlots extends Driver {
     // Collections
     private String clusterCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
-
+    private boolean doClusterYPlots=false;
     private int runNumber = -1;
 
     private boolean saveRootFile = true;
@@ -90,7 +90,9 @@ public class SvtClusterPlots extends Driver {
     public void setSaveRootFile(boolean saveRootFile) {
         this.saveRootFile = saveRootFile;
     }
-
+    public void setDoClusterY(boolean doit) {
+        this.doClusterYPlots=doit; 
+    }
     private int computePlotterRegion(HpsSiSensor sensor) {
 
         if (sensor.getLayerNumber() < 7)
@@ -235,12 +237,12 @@ public class SvtClusterPlots extends Driver {
         plotters.get("Cluster Time: L0-L3").createRegions(4, 4);
         plotters.put("Cluster Time: L4-L6", plotterFactory.create("Cluster Time: L4-L6"));
         plotters.get("Cluster Time: L4-L6").createRegions(6, 4);
-
-        plotters.put("L0-L3 Cluster Y", plotterFactory.create("L0-L3 Cluster Y"));
-        plotters.get("L0-L3 Cluster Y").createRegions(4, 4);
-        plotters.put("L4-L6 Cluster Y", plotterFactory.create("L4-L6 Cluster Y"));
-        plotters.get("L4-L6 Cluster Y").createRegions(6, 4);
-
+        if(this.doClusterYPlots) {
+            plotters.put("L0-L3 Cluster Y", plotterFactory.create("L0-L3 Cluster Y"));
+            plotters.get("L0-L3 Cluster Y").createRegions(4, 4);
+            plotters.put("L4-L6 Cluster Y", plotterFactory.create("L4-L6 Cluster Y"));
+            plotters.get("L4-L6 Cluster Y").createRegions(6, 4);
+        }
         for (HpsSiSensor sensor : sensors) {
 
             clusterChargePlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
@@ -274,18 +276,19 @@ public class SvtClusterPlots extends Driver {
                 plotters.get("Cluster Time: L4-L6").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(clusterTimePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(null, "Cluster Time [ns]", ""));
             }
-
-            clusterYPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Cluster Y", 100, 0, 25.0));
-            if (sensor.getLayerNumber() < 9)
-                plotters.get("L0-L3 Cluster Y")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(clusterYPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                this.createStyle(sensor, "Hit Cluster abs(Y)", ""));
-            else
-                plotters.get("L4-L6 Cluster Y")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(clusterYPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                this.createStyle(sensor, "Hit Cluster abs(Y)", ""));
+            if(this.doClusterYPlots) {
+                clusterYPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Cluster Y", 100, 0, 25.0));
+                if (sensor.getLayerNumber() < 9)
+                    plotters.get("L0-L3 Cluster Y")
+                    .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                    .plot(clusterYPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
+                            this.createStyle(sensor, "Hit Cluster abs(Y)", ""));
+                else    
+                    plotters.get("L4-L6 Cluster Y")
+                    .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                    .plot(clusterYPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
+                            this.createStyle(sensor, "Hit Cluster abs(Y)", ""));
+            }
         }
 
         plotters.put("SVT-trigger timing top-bottom", plotterFactory.create("SVT-trigger timing top-bottom"));
@@ -319,7 +322,7 @@ public class SvtClusterPlots extends Driver {
                 hitTimeTrigTimePlots2D[i][j] = histogramFactory.createHistogram2D(
                         String.format("Cluster Amplitude vs. Time for Phase %d, %s", i, j == TOP ? "Top" : "Bottom"),
                         100, -75, 50, 100, 0, 2000.0);
-                plotters.get("SVT-trigger timing and amplitude by phase")
+                plotters.get("Cluster-trigger timing and amplitude by phase")
                         .region(i + 6 * j)
                         .plot(hitTimeTrigTimePlots2D[i][j],
                                 this.createStyle(null, "Cluster Time [ns]", "Cluster Amplitude [ADC Counts]"));
@@ -356,9 +359,9 @@ public class SvtClusterPlots extends Driver {
             double absClY = Math.abs(cluster.getPosition()[1]);
             // Fill all plots
             clusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
-
-            clusterYPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(absClY);
-
+            if(this.doClusterYPlots) {
+                clusterYPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(absClY);
+            }
             if (cluster.getRawHits().size() == 1)
                 singleHitClusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
             double trigPhase = (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12);
