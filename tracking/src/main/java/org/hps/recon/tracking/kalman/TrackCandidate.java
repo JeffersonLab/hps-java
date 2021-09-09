@@ -2,12 +2,20 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.math.util.FastMath;
 import org.ejml.dense.row.CommonOps_DDRM;
+import org.hps.recon.tracking.TrackUtils;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.Track;
+import org.lcsim.event.TrackerHit;
 
 /**
  * Used by KalmanPatRecHPS Kalman-Filter based pattern recognition to store information for candidate tracks
@@ -29,10 +37,10 @@ class TrackCandidate {
     int eventNumber;
     private Logger logger;
 
-    TrackCandidate(int IDset, ArrayList<KalHit> seedHits, KalmanParams kPar, Map<Measurement, KalHit> hitMap, int event) {
+    TrackCandidate(int ID, ArrayList<KalHit> seedHits, KalmanParams kPar, Map<Measurement, KalHit> hitMap, int eventNumber) {
         logger = Logger.getLogger(TrackCandidate.class.getName());
-        ID = IDset;
-        eventNumber = event;
+        this.ID = ID;
+        this.eventNumber = eventNumber;
         this.kPar = kPar;
         filtered = false;
         smoothed = false;
@@ -54,6 +62,97 @@ class TrackCandidate {
         good = true;
         this.hitMap = hitMap;
         kalTkrID = -1;
+    }
+    
+    TrackCandidate(int ID, KalmanParams kPar, Map<Measurement, KalHit> hitMap, int eventNumber) {
+        logger = Logger.getLogger(TrackCandidate.class.getName());
+        this.ID = ID;
+        this.eventNumber = eventNumber;
+        this.kPar = kPar;
+        hits = new ArrayList<KalHit>(12);
+        seedLyrs = new ArrayList<Integer>(5);
+        this.hitMap = hitMap;
+    }
+    
+    // Creating a copy for the bad-candidate list just to avoid refinding this candidate over and over
+    // This candidate should always remain "bad" and should not be modified further (e.g. refit)
+    TrackCandidate copy() {
+        TrackCandidate newCand = new TrackCandidate(ID + 1000000, kPar, hitMap, eventNumber);
+        int nsd = 0;
+        for (KalHit hit : hits) {
+            if (nsd < 5) {
+                newCand.seedLyrs.add(hit.module.Layer);
+                nsd++;
+            }
+            newCand.hits.add(hit);
+        }
+        newCand.good = false;
+        newCand.chi2f = chi2f;
+        newCand.chi2s = chi2s;
+        newCand.nTaken = nTaken;
+        newCand.tMin = tMin;
+        newCand.tMax = tMax;
+        newCand.filtered = filtered;
+        newCand.smoothed = smoothed;
+        newCand.kalTkrID = kalTkrID;
+        newCand.sites = sites;        // Careful -- don't change any sites in this list from this new candidate!
+        return newCand;
+    }
+    
+    // Method to compare this candidate's hits with the hits of the SeedTracker/GBL track, for debugging purposes only.
+    int compareGBL(EventHeader event, Map<Measurement, TrackerHit> hitMap) {
+        String trackCollectionName = "GBLTracks";
+        if (!event.hasCollection(Track.class, trackCollectionName)) {
+            System.out.format("\nKalmanInterface.compareAllTracks: the track collection %s is missing. Abort.\n",trackCollectionName);
+            return -1;
+        }
+        String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+        if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
+            System.out.format("\nKalmanInterface.compareAllTracks: the hit collection %s is missing. Abort.\n",stripHitInputCollectionName);
+            return -1;
+        }    
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
+        for (Track tkr : tracksGBL) {
+            List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkr, hitToStrips, hitToRotated);
+            int [] chanGBL = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+            int nHitGBL = hitsOnTrack.size();
+            for (TrackerHit ht : hitsOnTrack) {                
+                double [] pnt = ht.getPosition();
+                List<RawTrackerHit> rawHits = ht.getRawHits();
+                for (RawTrackerHit rawHit : rawHits) {
+                    int chan = rawHit.getIdentifierFieldValue("strip");
+                    HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                    int Layer = sensor.getLayerNumber();
+                    int sensorID = sensor.getModuleNumber();
+                    if (sensorID*10000 + chan > chanGBL[Layer-1]) chanGBL[Layer-1] = sensorID*10000 + chan;
+                }
+            }
+            int nMatch = 0;
+            int nHitKal = 0;
+            for (MeasurementSite site : sites) {
+                if (site.hitID < 0) continue;
+                SiModule mod = site.m;
+                if (mod != null) {
+                    nHitKal++;
+                    TrackerHit ht = hitMap.get(mod.hits.get(site.hitID));
+                    List<RawTrackerHit> rawHits = ht.getRawHits();
+                    for (RawTrackerHit rawHit : rawHits) {
+                        int chan = rawHit.getIdentifierFieldValue("strip");
+                        HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                        int Layer = sensor.getLayerNumber();
+                        int sensorID = sensor.getModuleNumber();
+                        if (chanGBL[Layer-1] == 10000*sensorID + chan) {
+                            nMatch++;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (nMatch == nHitGBL && nHitGBL == nHitKal) return tracksGBL.indexOf(tkr); 
+        }        
+        return -1;
     }
     
     boolean contains(ArrayList<KalHit> hitList) {
@@ -363,8 +462,8 @@ class TrackCandidate {
             double p2 = 1.;
             if (!t2.good) p2 = 9.9e3; 
             
-            Double chi1 = new Double(p1*t1.chi2s / t1.hits.size() + 10.*(1.0 - (double)t1.hits.size()/14.));
-            Double chi2 = new Double(p2*t2.chi2s / t2.hits.size() + 10.*(1.0 - (double)t2.hits.size()/14.));
+            Double chi1 = new Double(p1*t1.chi2s / t1.hits.size() + 300.*(1.0 - (double)t1.hits.size()/14.));
+            Double chi2 = new Double(p2*t2.chi2s / t2.hits.size() + 300.*(1.0 - (double)t2.hits.size()/14.));
             
             return chi1.compareTo(chi2);
         }
@@ -379,7 +478,10 @@ class TrackCandidate {
         if (this.hits.size() != o.hits.size()) return false;
 
         for (KalHit ht1 : this.hits) {
-            if (!o.hits.contains(ht1)) return false;
+            if (!o.hits.contains(ht1)) {
+                //System.out.format("Candidate %d hit (%d %d %d) not found in candidate %d\n", this.ID, ht1.module.detector, ht1.module.Layer, ht1.module.hits.indexOf(ht1.hit), o.ID);
+                return false;
+            }
         }
         return true;
     }
