@@ -3,7 +3,7 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
 
-    <info name="HPS-v2019-3pt7GeV">
+    <info name="HPS-v2019-3pt7GeV-1mm">
         <comment>
             HPS detector based on the layout used for the 2019 run but with the
             fieldmap scaled to -.84 for running at 3.7 GeV. The tracker is at the 
