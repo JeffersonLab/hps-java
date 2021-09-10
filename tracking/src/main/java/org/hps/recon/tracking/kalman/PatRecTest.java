@@ -505,7 +505,7 @@ class PatRecTest {
             patRec.patRecSetVtx(vtx.v, vtxCov.M);
             long startTimeF = System.nanoTime();
             int topBottom = 0;
-            ArrayList<KalTrack> kPat = patRec.kalmanPatRec(SiModules, topBottom, eventNumber);
+            ArrayList<KalTrack> kPat = patRec.kalmanPatRec(null, null, SiModules, topBottom);
             long endTimeF = System.nanoTime();
             double runTime = (double)(endTimeF - startTimeF)/1000000.;
             executionTime += runTime;

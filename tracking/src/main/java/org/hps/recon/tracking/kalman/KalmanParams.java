@@ -133,13 +133,13 @@ public class KalmanParams {
         dRhoMax[1] = 25.;
         dzMax[0] = 3.;      // Maximum z at target plane for seed
         dzMax[1] = 7.5;
-        chi2mx1[0] = 8.0;   // Maximum chi**2/#hits for good track
-        chi2mx1[1] = 16.0;  
+        chi2mx1[0] = 16.0;   // Maximum chi**2/#hits for good track
+        chi2mx1[1] = 32.0;  
         mxChi2Vtx = 1.0;    // Maximum chi**2 for 5-hit tracks with vertex constraint
         minHits0 = 5;       // Minimum number of hits in the initial outward filtering (including 5 from the seed)
         minHits1[0] = 7;    // Minimum number of hits for a good track
         minHits1[1] = 6;
-        mxChi2Inc = 5.;     // Maximum increment to the chi^2 to add a hit to a completed track 
+        mxChi2Inc = 10.;     // Maximum increment to the chi^2 to add a hit to a completed track 
         minChi2IncBad = 10.; // Threshold for removing a bad hit from a track candidate
         mxResid[0] = 50.;   // Maximum residual, in units of detector resolution, for picking up a hit
         mxResid[1] = 100.;

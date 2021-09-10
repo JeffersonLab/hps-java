@@ -116,19 +116,6 @@ class HelixState implements Cloneable {
         return new Vec(x, y, z);
     }
 
-    // Returns the particle momentum at the helix angle phi
-    // Warning! This is returned in the B-Field coordinate system.
-    Vec getMom(double phi) {
-        return getMom(phi, a);
-    }
-    
-    static Vec getMom(double phi, Vec a) {
-        double px = -FastMath.sin(a.v[1] + phi) / Math.abs(a.v[2]);
-        double py = FastMath.cos(a.v[1] + phi) / Math.abs(a.v[2]);
-        double pz = a.v[4] / Math.abs(a.v[2]);
-        return new Vec(px, py, pz);
-    }
-
     // Calculate the phi angle to propagate on helix to the intersection with a
     // measurement plane
     double planeIntersect(Plane pIn) { // pIn is assumed to be defined in the global reference frame
@@ -164,6 +151,19 @@ class HelixState implements Cloneable {
         F.unsafe_set(4, 4, 1.0);
 
         // All other values are always zero
+    }
+ 
+    // Returns the particle momentum at the helix angle phi
+    // Warning! This is returned in the B-Field coordinate system.
+    Vec getMom(double phi) {
+        return getMom(phi, a);
+    }
+    
+    static Vec getMom(double phi, Vec a) {
+        double px = -FastMath.sin(a.v[1] + phi) / Math.abs(a.v[2]);
+        double py = FastMath.cos(a.v[1] + phi) / Math.abs(a.v[2]);
+        double pz = a.v[4] / Math.abs(a.v[2]);
+        return new Vec(px, py, pz);
     }
     
     // Momentum at the start of the given helix (point closest to the pivot)
