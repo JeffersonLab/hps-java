@@ -177,39 +177,44 @@ public class KalmanKinkFit {
                 innerTrack = new KalmanTrackFit2(event.getEventNumber(), innerList, innerHits, 0, 2, pivot, helixKal, covKal, KI.kPar, KI.fM);
                 outerTrack = new KalmanTrackFit2(event.getEventNumber(), outerList, outerHits, 0, 2, pivot, helixKal, covKal, KI.kPar, KI.fM);
                 if (innerTrack.success && outerTrack.success) {
-                    MeasurementSite siteInner = innerTrack.sites.get(innerTrack.finalSite);
-                    HelixState helixInner = siteInner.aS.helix;
-                    if (debug) {
-                        helixInner.a.print("Inner helix parameters");
-                        helixInner.X0.print("Inner helix pivot point");
-                        helixInner.origin.print("Inner helix origin");
+                    if (innerTrack.finalSite < innerTrack.sites.size() && outerTrack.initialSite < outerTrack.sites.size()) {
+                        MeasurementSite siteInner = innerTrack.sites.get(innerTrack.finalSite);
+                        MeasurementSite siteOuter = outerTrack.sites.get(outerTrack.initialSite);
+                        if (siteInner.aS != null && siteOuter.aS != null) {
+                            HelixState helixInner = siteInner.aS.helix;
+                            if (debug) {
+                                helixInner.a.print("Inner helix parameters");
+                                helixInner.X0.print("Inner helix pivot point");
+                                helixInner.origin.print("Inner helix origin");
+                            }
+                            
+                            HelixState helixOuter = siteOuter.aS.helix;
+                            if (debug) {
+                                helixOuter.a.print("Outer helix parameters");
+                                helixOuter.X0.print("Outer helix pivot point");
+                                helixOuter.origin.print("Outer helix origin");
+                            }
+                            double yAvg = (siteInner.m.p.X().v[1] + siteOuter.m.p.X().v[1])/2.;
+                            Plane pln = new Plane(new Vec(0.,yAvg,0.), new Vec(0.,1.,0.));
+                            if (debug) pln.print("midway between helices");
+                            double innerPhi = helixInner.planeIntersect(pln);
+                            if (Double.isNaN(innerPhi)) {
+                                System.out.format("KalmanKinkFit event %d, inner helix does not intersect plane!\n", event.getEventNumber());
+                                return false;
+                            }
+                            double outerPhi = helixOuter.planeIntersect(pln);
+                            if (Double.isNaN(outerPhi)) {
+                                System.out.format("KalmanKinkFit event %d, outer helix does not intersect plane!\n", event.getEventNumber());
+                                return false;
+                            }
+                            if (debug) System.out.format("   Extrapolation angles to plane: %10.6f %10.6f radians\n", innerPhi, outerPhi);
+                            innerP = helixInner.Rot.inverseRotate(helixInner.getMom(innerPhi));
+                            if (debug) innerP.print("inner helix momentum");
+                            outerP = helixOuter.Rot.inverseRotate(helixOuter.getMom(outerPhi));
+                            if (debug) outerP.print("outer helix momentum");
+                            return true;
+                        }
                     }
-                    MeasurementSite siteOuter = outerTrack.sites.get(outerTrack.initialSite);
-                    HelixState helixOuter = siteOuter.aS.helix;
-                    if (debug) {
-                        helixOuter.a.print("Outer helix parameters");
-                        helixOuter.X0.print("Outer helix pivot point");
-                        helixOuter.origin.print("Outer helix origin");
-                    }
-                    double yAvg = (siteInner.m.p.X().v[1] + siteOuter.m.p.X().v[1])/2.;
-                    Plane pln = new Plane(new Vec(0.,yAvg,0.), new Vec(0.,1.,0.));
-                    if (debug) pln.print("midway between helices");
-                    double innerPhi = helixInner.planeIntersect(pln);
-                    if (Double.isNaN(innerPhi)) {
-                        System.out.format("KalmanKinkFit event %d, inner helix does not intersect plane!\n", event.getEventNumber());
-                        return false;
-                    }
-                    double outerPhi = helixOuter.planeIntersect(pln);
-                    if (Double.isNaN(outerPhi)) {
-                        System.out.format("KalmanKinkFit event %d, outer helix does not intersect plane!\n", event.getEventNumber());
-                        return false;
-                    }
-                    if (debug) System.out.format("   Extrapolation angles to plane: %10.6f %10.6f radians\n", innerPhi, outerPhi);
-                    innerP = helixInner.Rot.inverseRotate(helixInner.getMom(innerPhi));
-                    if (debug) innerP.print("inner helix momentum");
-                    outerP = helixOuter.Rot.inverseRotate(helixOuter.getMom(outerPhi));
-                    if (debug) outerP.print("outer helix momentum");
-                    return true;
                 }
             }         
         }
