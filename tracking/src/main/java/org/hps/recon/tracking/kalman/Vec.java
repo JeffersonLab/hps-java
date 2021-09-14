@@ -3,11 +3,11 @@ package org.hps.recon.tracking.kalman;
 /**
  * Simple N-vector for the Kalman filter
  */
-class Vec {
+public class Vec {
     double[] v;
     int N;
 
-    Vec(int N, double[] vin) {
+    public Vec(int N, double[] vin) {
         v = new double[N];
         for (int i = 0; i < N; i++) {
             v[i] = vin[i];
