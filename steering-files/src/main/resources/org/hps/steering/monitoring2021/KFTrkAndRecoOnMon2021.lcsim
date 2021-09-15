@@ -14,7 +14,7 @@
         <!-- Not yet defined for 2019 data -->
         <!--        <driver name="EventFlagFilter"/>  -->
         <!--RF driver-->
-        <driver name="RfFitter"/>
+<!--        <driver name="RfFitter"/>  -->
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/> 
         <driver name="EcalRawConverter" />
@@ -40,6 +40,7 @@
         <!-- <driver name="AidaToRootSaveDriver"/> -->
         <!-- <driver name="AidaSaveDriver"/> -->
         <driver name="TrackingMonitoring" />
+        <driver name="OpeningAngleMonitoring"/>
         <!--        <driver name="TrackingResiduals"/>   -->
         <driver name="TrackTime"/>  
         <driver name="FinalStateMonitoring" />
@@ -148,6 +149,7 @@
         <driver name="TrackingMonitoring" type="org.hps.monitoring.drivers.trackrecon.KFTrackingReconPlots"> 
             <trackCollectionName>KalmanFullTracks</trackCollectionName>
         </driver>
+        <driver name="OpeningAngleMonitoring" type="org.hps.monitoring.drivers.trackrecon.KFSVTOpeningAlignment"/> 
 
         <driver name="V0Monitoring" type="org.hps.monitoring.drivers.trackrecon.V0ReconPlots">   
             <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>

@@ -1,7 +1,5 @@
 package org.hps.monitoring.drivers.trackrecon;
 
-import static org.hps.monitoring.drivers.trackrecon.PlotAndFitUtilities.fitAndPutParameters;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,12 +7,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.MaterialSupervisor;
+import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.kalman.KalmanInterface;
 import org.hps.recon.tracking.kalman.KalmanKinkFit;
 import org.hps.recon.tracking.kalman.KalmanParams;
 import org.hps.recon.tracking.kalman.Vec;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
@@ -40,7 +40,10 @@ public class KFSVTOpeningAlignment extends Driver {
   
     private KalmanInterface KI;
     private static final boolean debug = false;
-       
+    private ArrayList<SiStripPlane> detPlanes;
+    private MaterialSupervisor _materialManager;
+    private org.lcsim.geometry.FieldMap fm;
+    private KalmanParams kPar;
     private String outputPlots = null;
     IPlotter plotterTop;
     IPlotter plotterParsTop;
@@ -48,10 +51,8 @@ public class KFSVTOpeningAlignment extends Driver {
     IPlotter plotterParsBot;
     IPlotter plotterHinge;
 
-    IHistogram1D nTracks46Top;
-    IHistogram1D nTracks03Top;
-    IHistogram1D nTracks46Bot;
-    IHistogram1D nTracks03Bot;
+    IHistogram1D nTracksTop;
+    IHistogram1D nTracksBot;
     IHistogram1D nHits03Top;
     IHistogram1D nHits46Top;
     IHistogram1D nHits03Bot;
@@ -110,19 +111,10 @@ public class KFSVTOpeningAlignment extends Driver {
 
     IFitter jminChisq;
 
-    boolean matchFullTracks = false;
-    String fullTrackCollectionName = "s234_c5_e167";
+   
     double targetPosition = -5.0; //mm
 
     public KFSVTOpeningAlignment() {
-    }
-
-    public void setMatchFullTracks(boolean match) {
-        this.matchFullTracks = match;
-    }
-
-    public void setFullTrackCollectionName(String name) {
-        this.fullTrackCollectionName = name;
     }
 
     public void setOutputPlots(String output) {
@@ -131,8 +123,8 @@ public class KFSVTOpeningAlignment extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        aida.tree().cd("/");
-
+        aida.tree().cd("/");        
+        
         IAnalysisFactory fac = aida.analysisFactory();
         IPlotterFactory pfac = fac.createPlotterFactory("SVT Alignment");
         functionFactory = aida.analysisFactory().createFunctionFactory(null);
@@ -155,16 +147,16 @@ public class KFSVTOpeningAlignment extends Driver {
         functionStyle.dataStyle().markerStyle().setShape("dot");
         functionStyle.dataStyle().markerStyle().setSize(2);
 
-        nTracks03Top = aida.histogram1D("Number of L0-3 Tracks: Top ", 7, 0, 7);
-        nTracks46Top = aida.histogram1D("Number of L4-6 Tracks: Top ", 7, 0, 7);      
+        nTracksTop = aida.histogram1D("Number of Tracks: Top ", 7, 0, 7);            
         deld0Top = aida.histogram1D("Delta d0: Top", 50, -20.0, 20.0);
         delphiTop = aida.histogram1D("Delta sin(phi): Top", 50, -0.1, 0.1);              
         delz0Top = aida.histogram1D("Delta yTarget: Top", 50, -2.5, 2.5);
+        delwTop = aida.histogram1D("Delta curvature: Top", 50, -0.0002, 0.0002);
         
-        hChiInTop = aida.histogram1D("Inner helix chi^2",100,0.,100.);
-        hDofInTop = aida.histogram1D("Inner helix #dof",10,0.,10.);
-        hChiOutTop = aida.histogram1D("Outer helix chi^2",100,0.,100.);
-        hDofOutTop = aida.histogram1D("Outer helix #dof",10,0.,10.);
+        hChiInTop = aida.histogram1D("Top Inner helix chi^2",100,0.,100.);
+        hDofInTop = aida.histogram1D("Top Inner helix #dof",5,0.,5.);
+        hChiOutTop = aida.histogram1D("Top Outer helix chi^2",100,0.,100.);
+        hDofOutTop = aida.histogram1D("Top Outer helix #dof",5,0.,5.);
 
         hAngTop = aida.histogram1D("Kalman kink angle top", 100, 0., 0.15);
         hProjAngTop = aida.histogram1D("Kalman projected kink angle top", 100, -0.03, 0.03);
@@ -180,10 +172,10 @@ public class KFSVTOpeningAlignment extends Driver {
         plotterTop.region(0).plot(deld0Top);
         plotterTop.region(3).plot(delphiTop);
         plotterTop.region(6).plot(hProjAngTop);
-        plotterTop.region(1).plot(hAngTop);
+        plotterTop.region(1).plot(delwTop);
         plotterTop.region(4).plot(delz0Top);
-        plotterTop.region(2).plot(nTracks03Top);
-        plotterTop.region(5).plot(nTracks46Top);
+        plotterTop.region(2).plot(nTracksTop);
+        plotterTop.region(5).plot(hAngTop);
         plotterTop.region(7).plot(hDofInTop);
         plotterTop.region(8).plot(hDofOutTop);
         plotterTop.region(0).plot(fd0Top, functionStyle);
@@ -222,10 +214,7 @@ public class KFSVTOpeningAlignment extends Driver {
         styleBot.dataStyle().outlineStyle().setVisible(false);
         plotterBot.createRegions(3, 3);
 
-        nTracks03Bot = aida.histogram1D("Number of L0-3 Tracks: Bot ", 7, 0, 7);
-        nTracks46Bot = aida.histogram1D("Number of L4-6 Tracks: Bot ", 7, 0, 7);
-        nHits03Bot = aida.histogram1D("Number of L0-3 Hits: Bot ", 6, 3, 9);
-        nHits46Bot = aida.histogram1D("Number of L4-6 Hits: Bot ", 6, 3, 9);
+        nTracksBot = aida.histogram1D("Number of Tracks: Bot ", 7, 0, 7);    
         deld0Bot = aida.histogram1D("Delta d0: Bot", 50, -20.0, 20.0);
         delphiBot = aida.histogram1D("Delta sin(phi): Bot", 50, -0.1, 0.1);
         delwBot = aida.histogram1D("Delta curvature: Bot", 50, -0.0002, 0.0002);        
@@ -238,16 +227,21 @@ public class KFSVTOpeningAlignment extends Driver {
         fwBot = functionFactory.createFunctionByName("Gaussian", "G");
         flambdaBot = functionFactory.createFunctionByName("Gaussian", "G");
         fz0Bot = functionFactory.createFunctionByName("Gaussian", "G");
+        
+        hChiInBot = aida.histogram1D("Bottom Inner helix chi^2",100,0.,100.);
+        hDofInBot = aida.histogram1D("Bottom Inner helix #dof",5,0.,5.);
+        hChiOutBot = aida.histogram1D("Bottom Outer helix chi^2",100,0.,100.);
+        hDofOutBot = aida.histogram1D("Bottom Outer helix #dof",5,0.,5.);
 
         plotterBot.region(0).plot(deld0Bot);
         plotterBot.region(3).plot(delphiBot);
         plotterBot.region(6).plot(hProjAngBot);
-        plotterBot.region(1).plot(hAngBot);
+        plotterBot.region(1).plot(delwBot);
         plotterBot.region(4).plot(delz0Bot);
-        plotterBot.region(2).plot(nTracks03Bot);
-        plotterBot.region(5).plot(nTracks46Bot);
-        plotterBot.region(7).plot(nHits03Bot);
-        plotterBot.region(8).plot(nHits46Bot);
+        plotterBot.region(2).plot(nTracksBot);
+        plotterBot.region(5).plot(hAngBot);
+        plotterBot.region(7).plot(hDofInBot);
+        plotterBot.region(8).plot(hDofOutBot);
         plotterBot.region(0).plot(fd0Bot, functionStyle);
         plotterBot.region(3).plot(fphi0Bot, functionStyle);
         plotterBot.region(6).plot(fwBot, functionStyle);
@@ -255,6 +249,26 @@ public class KFSVTOpeningAlignment extends Driver {
         plotterBot.region(4).plot(fz0Bot, functionStyle);
         plotterBot.show();
 
+        
+        _materialManager = new MaterialSupervisor();
+        _materialManager.buildModel(detector);
+
+        fm = detector.getFieldMap();
+             
+        
+        detPlanes = new ArrayList<SiStripPlane>();
+        List<ScatteringDetectorVolume> materialVols = ((MaterialSupervisor) (_materialManager)).getMaterialVolumes();
+        for (ScatteringDetectorVolume vol : materialVols) {
+            detPlanes.add((SiStripPlane) (vol));
+        }
+        
+        // Instantiate the interface to the Kalman-Filter code and set up the geometry
+        kPar = new KalmanParams();
+        kPar.print();
+        
+        KI = new KalmanInterface(false, kPar, fm);
+        KI.createSiModules(detPlanes);
+        
 //        plotterParsBot = pfac.create("Bot Track Pars");
 //        plotterParsBot.createRegions(2, 4);
 //        lambdaBotL03 = aida.histogram1D("slope: Bot L0-3", 50, -0.06, 0.0);
@@ -300,7 +314,8 @@ public class KFSVTOpeningAlignment extends Driver {
     @Override
     public void process(EventHeader event) {
         aida.tree().cd("/");
-        
+        int nTrkTop=0;
+        int nTrkBot=0;       
         String stripDataRelationsInputCollectionName = "KFGBLStripClusterDataRelations";
         if (!event.hasCollection(LCRelation.class, stripDataRelationsInputCollectionName)) {
             System.out.format("\nKalmanKinkFitDriver: the data collection %s is missing.\n",stripDataRelationsInputCollectionName);
@@ -312,20 +327,30 @@ public class KFSVTOpeningAlignment extends Driver {
                 if (trk.getNDF() >= 7) {                    
                     KalmanKinkFit knkFt = new KalmanKinkFit(event, KI, trk);
                     if (knkFt.doFits()) {
-                        if (knkFt.innerMomentum()[2] < 0.) {
+                        if (knkFt.innerMomentum()[2] < 0.) {             
+                            nTrkBot++;
                             hProjAngBot.fill(knkFt.projectedAngle());
                             hAngBot.fill(knkFt.scatteringAngle());
                             hChiInBot.fill(knkFt.innerChi2());
                             hDofInBot.fill(knkFt.innerDOF());
                             hChiOutBot.fill(knkFt.outerChi2());
                             hDofOutBot.fill(knkFt.outerDOF());  
+                            deld0Bot.fill(knkFt.outerHelix()[ParameterName.d0.ordinal()]-knkFt.innerHelix()[ParameterName.d0.ordinal()]);
+                            delphiBot.fill(knkFt.outerHelix()[ParameterName.phi0.ordinal()]-knkFt.innerHelix()[ParameterName.phi0.ordinal()]);
+                            delz0Bot.fill(knkFt.outerHelix()[ParameterName.z0.ordinal()]-knkFt.innerHelix()[ParameterName.z0.ordinal()]);
+                            delwBot.fill(knkFt.outerHelix()[ParameterName.omega.ordinal()]-knkFt.innerHelix()[ParameterName.omega.ordinal()]);
                         } else {
+                            nTrkTop++;
                             hProjAngTop.fill(knkFt.projectedAngle());
                             hAngTop.fill(knkFt.scatteringAngle());
                             hChiInTop.fill(knkFt.innerChi2());
                             hDofInTop.fill(knkFt.innerDOF());
                             hChiOutTop.fill(knkFt.outerChi2());
                             hDofOutTop.fill(knkFt.outerDOF());  
+                            deld0Top.fill(knkFt.outerHelix()[ParameterName.d0.ordinal()]-knkFt.innerHelix()[ParameterName.d0.ordinal()]);
+                            delphiTop.fill(knkFt.outerHelix()[ParameterName.phi0.ordinal()]-knkFt.innerHelix()[ParameterName.phi0.ordinal()]);
+                            delz0Top.fill(knkFt.outerHelix()[ParameterName.z0.ordinal()]-knkFt.innerHelix()[ParameterName.z0.ordinal()]);
+                            delwTop.fill(knkFt.outerHelix()[ParameterName.omega.ordinal()]-knkFt.innerHelix()[ParameterName.omega.ordinal()]);
                         }
                             
                         if (debug) {
@@ -333,7 +358,7 @@ public class KFSVTOpeningAlignment extends Driver {
                             System.out.format("  KinkFit: chi^2 of inner helix = %8.4f with %d dof\n", knkFt.innerChi2(), knkFt.innerDOF());
                             System.out.format("  KinkFit: chi^2 of outer helix = %8.4f with %d dof\n", knkFt.outerChi2(), knkFt.outerDOF());
                             Vec inHx = new Vec(5,knkFt.innerHelix());
-                            Vec outHx = new Vec(5,knkFt.outerHelix());
+                            Vec outHx = new Vec(5,knkFt.outerHelix());                                 
                             System.out.format("  KinkFit: inner helix = %s\n", inHx.toString());
                             System.out.format("  KinkFit: outer helix = %s\n", outHx.toString());
                             Vec inP = new Vec(3,knkFt.innerMomentum());
@@ -348,7 +373,8 @@ public class KFSVTOpeningAlignment extends Driver {
             }
         }
         KI.clearInterface();
-        
+        nTracksTop.fill(nTrkTop);
+        nTracksBot.fill(nTrkBot);
       
 
 //        // IFunction currentFitFunction = performGaussianFit(deld0Bot, fd0Bot, jminChisq).fittedFunction();;

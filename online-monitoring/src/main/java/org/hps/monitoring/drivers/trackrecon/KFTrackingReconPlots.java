@@ -243,8 +243,8 @@ public class KFTrackingReconPlots extends Driver {
         //        plotterHTH.show();
         // plotterXvsY.show();
         //        plotterXvsYHOT.show();
-        htopLay = aida.histogram1D("Top Layers on Track", 7, 0, 7);
-        hbotLay = aida.histogram1D("Bottom Layers on Track", 7, 0, 7);
+        htopLay = aida.histogram1D("Top Layers on Track", 15, 0, 15);
+        hbotLay = aida.histogram1D("Bottom Layers on Track", 15, 0, 15);
         plotterLayers = pfac.create("Layers Hit on Track");
         plotterLayers.createRegions(1, 2);
         plot(plotterLayers, htopLay, null, 0);
@@ -329,8 +329,8 @@ public class KFTrackingReconPlots extends Driver {
 
             List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
             for (TrackerHit hthOnTrack : hitsOnTrack) {
-                int module = getModuleNumber(hthOnTrack) - 1;
-                SiTrackerHitStrip1D htc = (SiTrackerHitStrip1D) hthOnTrack;
+                int module = ((RawTrackerHit) hthOnTrack.getRawHits().get(0)).getLayerNumber();
+                SiTrackerHitStrip1D htc = (SiTrackerHitStrip1D) hthOnTrack;                
                 if (htc.getPosition()[1] > 0) {
                     htopLay.fill(module);
                 } else {
