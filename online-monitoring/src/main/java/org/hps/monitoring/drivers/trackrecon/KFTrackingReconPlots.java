@@ -47,7 +47,7 @@ public class KFTrackingReconPlots extends Driver {
     private String outputPlots = null;
     private boolean debug = false;
 
-    double feeMomentumCut = 3.2;
+    double feeMomentumCut = 0;
     int nmodules = 7;
 
     IPlotter plotter;
@@ -74,6 +74,8 @@ public class KFTrackingReconPlots extends Driver {
     IHistogram1D hdelYECal;
     IHistogram2D heVsP;
     IHistogram1D hfeeMom;
+    IHistogram1D hfeeMomTop;
+    IHistogram1D hfeeMomBot;
     IHistogram1D hfeeTheta;
     IHistogram1D hfeePOverE;
     IHistogram2D hfeeClustPos;
@@ -195,16 +197,18 @@ public class KFTrackingReconPlots extends Driver {
         // ******************************************************************
         // fix the ranges here...
         hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, pMax);
+        hfeeMomTop = aida.histogram1D("Top FEE Momentum ", 50, feeMomentumCut, pMax);
+        hfeeMomBot = aida.histogram1D("Bottom FEE Momentum ", 50, feeMomentumCut, pMax);
         hfeeTheta = aida.histogram1D("FEE Angle", 50, -15.0, 15.0);
-        hfeePOverE = aida.histogram1D("FEE POverE", 50, 0, 1.5);
+        hfeePOverE = aida.histogram1D("FEE EOverP", 50, 0, 1.5);
         hfeeClustPos = aida.histogram2D("FEE Cluster Position", 50, -2000.0, 2000.0, 50, -500, 500);
 
         plotterFEE = pfac.create("Full Energy Electrons");
         plotterFEE.createRegions(2, 2);
         plot(plotterFEE, hfeeMom, null, 0);
-        plot(plotterFEE, hfeeTheta, null, 1);
-        plot(plotterFEE, hfeePOverE, null, 2);
-        plot(plotterFEE, hfeeClustPos, null, 3);
+        plot(plotterFEE, hfeeMomBot, null, 3);
+        plot(plotterFEE, hfeePOverE, null, 1);
+        plot(plotterFEE, hfeeMomTop, null, 2);
 
         plotterFEE.show();
 
@@ -325,6 +329,11 @@ public class KFTrackingReconPlots extends Driver {
                 // charge
                 hfeeMom.fill(momentum.magnitude());
                 hfeeTheta.fill(theta);
+                if(momentum.z()<0) {
+                    hfeeMomBot.fill(pmag);
+                }else {
+                    hfeeMomTop.fill(pmag);
+                }
             }
 
             List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
@@ -368,7 +377,7 @@ public class KFTrackingReconPlots extends Driver {
                     heVsP.fill(pmag, clust.getEnergy());
                     if (pmag > feeMomentumCut && trk.getCharge() > 0) { // remember, hps-java track charge is opposite
                         // the real charge
-                        hfeePOverE.fill(pmag / clust.getEnergy());
+                        hfeePOverE.fill(clust.getEnergy()/pmag);
                         hfeeClustPos.fill(posAtEcal.x(), posAtEcal.y());
                     }
                 }
@@ -473,7 +482,7 @@ public class KFTrackingReconPlots extends Driver {
             double clEne = cluster.getEnergy();
             // double dist = Math.sqrt(Math.pow(clPos[0] - posonhelix.y(), 2) + Math.pow(clPos[1] - posonhelix.z(), 2));
             // //coordinates!!!
-            double dist = Math.sqrt(Math.pow(clPos[1] - posonhelix.z(), 2)); // coordinates!!!
+            double dist = Math.sqrt(Math.pow(clPos[1] - posonhelix.y(), 2)); // coordinates!!!
 //            if (dist < minDist && clEne < 3.0) {
             if (dist < minDist) {
                 closest = cluster;
