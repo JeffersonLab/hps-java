@@ -137,7 +137,7 @@ public class KFSVTOpeningAlignment extends Driver {
         fitFactory = aida.analysisFactory().createFitFactory();
         jminChisq = fitFactory.createFitter("chi2", "jminuit");
 
-        plotterTop = pfac.create("Top Layers");
+        plotterTop = pfac.create("5a Top Layers");
         IPlotterStyle style = plotterTop.style();
         style.dataStyle().fillStyle().setColor("yellow");
         style.dataStyle().errorBarStyle().setVisible(false);
@@ -212,7 +212,7 @@ public class KFSVTOpeningAlignment extends Driver {
 //          plotterParsTop.region(3).plot(zTargetTopL03);
 //          plotterParsTop.region(7).plot(zTargetTopL46); plotterParsTop.show();
          
-        plotterBot = pfac.create("Bottom Layers");
+        plotterBot = pfac.create("5b Bottom Layers");
         IPlotterStyle styleBot = plotterBot.style();
         styleBot.legendBoxStyle().setVisible(false);
         styleBot.dataStyle().fillStyle().setColor("yellow");

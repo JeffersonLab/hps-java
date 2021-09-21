@@ -69,29 +69,29 @@ public class SVTPulseFitPlots extends Driver {
         List<HpsSiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement()
                 .findDescendants(HpsSiSensor.class);
 
-        plotters.put("Timing:  L0-L3", plotterFactory.create("Timing"));
+        plotters.put("Timing:  L0-L3", plotterFactory.create("3a Timing"));
         plotters.get("Timing:  L0-L3").createRegions(4, 4);
-        plotters.put("Timing:  L4-L6", plotterFactory.create("Timing"));
+        plotters.put("Timing:  L4-L6", plotterFactory.create("3b Timing"));
         plotters.get("Timing:  L4-L6").createRegions(6, 4);
 
-        plotters.put("Amplitude:  L0-L3", plotterFactory.create("Amplitude"));
+        plotters.put("Amplitude:  L0-L3", plotterFactory.create("3c Amplitude"));
         plotters.get("Amplitude:  L0-L3").createRegions(4, 4);
-        plotters.put("Amplitude:  L4-L6", plotterFactory.create("Amplitude"));
+        plotters.put("Amplitude:  L4-L6", plotterFactory.create("3d Amplitude"));
         plotters.get("Amplitude:  L4-L6").createRegions(6, 4);
 
-        plotters.put("Chisq:  L0-L3", plotterFactory.create("Chisq"));
+        plotters.put("Chisq:  L0-L3", plotterFactory.create("3e Chisq"));
         plotters.get("Chisq:  L0-L3").createRegions(4, 4);
-        plotters.put("Chisq:  L4-L6", plotterFactory.create("Chisq"));
+        plotters.put("Chisq:  L4-L6", plotterFactory.create("3f Chisq"));
         plotters.get("Chisq:  L4-L6").createRegions(6, 4);
 
-        plotters.put("A vs. T0:  L0-L3", plotterFactory.create("A vs. T0"));
+        plotters.put("A vs. T0:  L0-L3", plotterFactory.create("3g A vs. T0"));
         plotters.get("A vs. T0:  L0-L3").createRegions(4, 4);
-        plotters.put("A vs. T0:  L4-L6", plotterFactory.create("A vs. T0"));
+        plotters.put("A vs. T0:  L4-L6", plotterFactory.create("3h A vs. T0"));
         plotters.get("A vs. T0:  L4-L6").createRegions(6, 4);
         if (this.doShapePlots) {
-            plotters.put("Pulse shape:  L0-L3", plotterFactory.create("Pulse shape"));
+            plotters.put("Pulse shape:  L0-L3", plotterFactory.create("3i Pulse shape"));
             plotters.get("Pulse shape:  L0-L3").createRegions(4, 4);
-            plotters.put("Pulse shape:  L4-L6", plotterFactory.create("Pulse shape"));
+            plotters.put("Pulse shape:  L4-L6", plotterFactory.create("3j Pulse shape"));
             plotters.get("Pulse shape:  L4-L6").createRegions(6, 4);
         }
         tree = analysisFactory.createTreeFactory().create();

@@ -179,9 +179,9 @@ public class SvtHitPlots extends Driver {
         tree = analysisFactory.createTreeFactory().create();
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
-        plotters.put("Raw hits per sensor: L0-L3", plotterFactory.create("Raw hits per sensor: L0-L3"));
+        plotters.put("Raw hits per sensor: L0-L3", plotterFactory.create("2a Raw hits per sensor: L0-L3"));
         plotters.get("Raw hits per sensor: L0-L3").createRegions(4, 4);
-        plotters.put("Raw hits per sensor: L4-L6", plotterFactory.create("Raw hits per sensor: L4-L6"));
+        plotters.put("Raw hits per sensor: L4-L6", plotterFactory.create("2b Raw hits per sensor: L4-L6"));
         plotters.get("Raw hits per sensor: L4-L6").createRegions(6, 4);
 
         for (HpsSiSensor sensor : sensors) {
@@ -197,7 +197,7 @@ public class SvtHitPlots extends Driver {
             hitsPerSensor.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[1]);
         }
 
-        plotters.put("Number of layers hit", plotterFactory.create("Number of layers hit"));
+        plotters.put("Number of layers hit", plotterFactory.create("2c Number of layers hit"));
         plotters.get("Number of layers hit").createRegions(1, 2);
 
         layersHitPlots.put("Top", histogramFactory.createHistogram1D("Top Layers Hit", 15, 0, 15));
@@ -211,7 +211,7 @@ public class SvtHitPlots extends Driver {
                 .plot(layersHitPlots.get("Bottom"),
                         SvtPlotUtils.createStyle(plotterFactory, "Number of Bottom Layers Hit", ""));
 
-        plotters.put("Raw hit counts/Event", plotterFactory.create("Raw hit counts/Event"));
+        plotters.put("Raw hit counts/Event", plotterFactory.create("2d Raw hit counts/Event"));
         plotters.get("Raw hit counts/Event").createRegions(2, 2);
 
         hitCountPlots.put("Raw hit counts/Event", histogramFactory.createHistogram1D("Raw hit counts", 100, 0, 500));
@@ -232,30 +232,30 @@ public class SvtHitPlots extends Driver {
                 .plot(hitCountPlots.get("SVT bottom raw hit counts/Event"),
                         SvtPlotUtils.createStyle(plotterFactory, "Number of Raw Bits in the Bottom Volume", ""));
 
-        plotters.put("First sample distributions (pedestal shifts): L0-L3", plotterFactory.create("First sample distributions (pedestal shifts): L0-L3"));
+        plotters.put("First sample distributions (pedestal shifts): L0-L3", plotterFactory.create("2e First sample distributions (pedestal shifts): L0-L3"));
         plotters.get("First sample distributions (pedestal shifts): L0-L3").createRegions(4, 4);
-        plotters.put("First sample distributions (pedestal shifts): L4-L6", plotterFactory.create("First sample distributions (pedestal shifts): L4-L6"));
+        plotters.put("First sample distributions (pedestal shifts): L4-L6", plotterFactory.create("2f First sample distributions (pedestal shifts): L4-L6"));
         plotters.get("First sample distributions (pedestal shifts): L4-L6").createRegions(6, 4);
 
-        plotters.put("L0-L3 t0", plotterFactory.create("L0-L3 t0"));
+        plotters.put("L0-L3 t0", plotterFactory.create("2g L0-L3 t0"));
         plotters.get("L0-L3 t0").createRegions(4, 4);
-        plotters.put("L4-L6 t0", plotterFactory.create("L4-L6 t0"));
+        plotters.put("L4-L6 t0", plotterFactory.create("2h L4-L6 t0"));
         plotters.get("L4-L6 t0").createRegions(6, 4);
 
-        plotters.put("L0-L3 t0 vs Trigger Phase", plotterFactory.create("L0-L3 t0 vs Trigger Phase"));
+        plotters.put("L0-L3 t0 vs Trigger Phase", plotterFactory.create("2i L0-L3 t0 vs Trigger Phase"));
         plotters.get("L0-L3 t0 vs Trigger Phase").createRegions(4, 4);
-        plotters.put("L4-L6 t0 vs Trigger Phase", plotterFactory.create("L4-L6 t0 vs Trigger Phase"));
+        plotters.put("L4-L6 t0 vs Trigger Phase", plotterFactory.create("2j L4-L6 t0 vs Trigger Phase"));
         plotters.get("L4-L6 t0 vs Trigger Phase").createRegions(6, 4);
 
-        plotters.put("L0-L3 t0 vs Channel", plotterFactory.create("L0-L3 t0 vs Channel"));
+        plotters.put("L0-L3 t0 vs Channel", plotterFactory.create("2k L0-L3 t0 vs Channel"));
         plotters.get("L0-L3 t0 vs Channel").createRegions(4, 4);
-        plotters.put("L4-L6 t0 vs Channel", plotterFactory.create("L4-L6 t0 vs Channel"));
+        plotters.put("L4-L6 t0 vs Channel", plotterFactory.create("2l L4-L6 t0 vs Channel"));
         plotters.get("L4-L6 t0 vs Channel").createRegions(6, 4);
 
         if (doPerChannelSamplePlots) {
-            plotters.put("First sample channel distributions (pedestal shifts): L0-L3", plotterFactory.create("First sample channel distributions (pedestal shifts): L0-L3"));
+            plotters.put("First sample channel distributions (pedestal shifts): L0-L3", plotterFactory.create("2m First sample channel distributions (pedestal shifts): L0-L3"));
             plotters.get("First sample channel distributions (pedestal shifts): L0-L3").createRegions(4, 4);
-            plotters.put("First sample channel distributions (pedestal shifts): L4-L6", plotterFactory.create("First sample channel distributions (pedestal shifts): L4-L6"));
+            plotters.put("First sample channel distributions (pedestal shifts): L4-L6", plotterFactory.create("2n First sample channel distributions (pedestal shifts): L4-L6"));
             plotters.get("First sample channel distributions (pedestal shifts): L4-L6").createRegions(6, 4);
 
         }

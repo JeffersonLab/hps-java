@@ -235,18 +235,18 @@ public class SvtClusterPlots extends Driver {
         tree = analysisFactory.createTreeFactory().create();
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
-        plotters.put("Cluster Amplitude: L0-L3", plotterFactory.create("Cluster Amplitude: L0-L3"));
+        plotters.put("Cluster Amplitude: L0-L3", plotterFactory.create("4a Cluster Amplitude: L0-L3"));
         plotters.get("Cluster Amplitude: L0-L3").createRegions(4, 4);
-        plotters.put("Cluster Amplitude: L4-L6", plotterFactory.create("Cluster Amplitude: L4-L6"));
+        plotters.put("Cluster Amplitude: L4-L6", plotterFactory.create("4b Cluster Amplitude: L4-L6"));
         plotters.get("Cluster Amplitude: L4-L6").createRegions(6, 4);
-        plotters.put("Cluster Time: L0-L3", plotterFactory.create("Cluster Time: L0-L3"));
+        plotters.put("Cluster Time: L0-L3", plotterFactory.create("4c Cluster Time: L0-L3"));
         plotters.get("Cluster Time: L0-L3").createRegions(4, 4);
-        plotters.put("Cluster Time: L4-L6", plotterFactory.create("Cluster Time: L4-L6"));
+        plotters.put("Cluster Time: L4-L6", plotterFactory.create("4d Cluster Time: L4-L6"));
         plotters.get("Cluster Time: L4-L6").createRegions(6, 4);
         if(this.doClusterYPlots) {
-            plotters.put("L0-L3 Cluster Y", plotterFactory.create("L0-L3 Cluster Y"));
+            plotters.put("L0-L3 Cluster Y", plotterFactory.create("4h L0-L3 Cluster Y"));
             plotters.get("L0-L3 Cluster Y").createRegions(4, 4);
-            plotters.put("L4-L6 Cluster Y", plotterFactory.create("L4-L6 Cluster Y"));
+            plotters.put("L4-L6 Cluster Y", plotterFactory.create("4i L4-L6 Cluster Y"));
             plotters.get("L4-L6 Cluster Y").createRegions(6, 4);
         }
         for (HpsSiSensor sensor : sensors) {
@@ -297,7 +297,7 @@ public class SvtClusterPlots extends Driver {
             }
         }
 
-        plotters.put("Cluster-trigger timing top-bottom", plotterFactory.create("Cluster-trigger timing top-bottom"));
+        plotters.put("Cluster-trigger timing top-bottom", plotterFactory.create("4e Cluster-trigger timing top-bottom"));
         plotters.get("Cluster-trigger timing top-bottom").createRegions(1, 2);
 
         hitTimeTrigTimePlots.put("Top",
@@ -312,11 +312,11 @@ public class SvtClusterPlots extends Driver {
                 .plot(hitTimeTrigTimePlots.get("Bottom"),
                         this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
 
-        plotters.put("Cluster-trigger timing by phase", plotterFactory.create("Cluster-trigger timing by phase"));
+        plotters.put("Cluster-trigger timing by phase", plotterFactory.create("4f Cluster-trigger timing by phase"));
         plotters.get("Cluster-trigger timing by phase").createRegions(2, 6);
 
         plotters.put("Cluster-trigger timing and amplitude by phase",
-                plotterFactory.create("Cluster-trigger timing and amplitude by phase"));
+                plotterFactory.create("4g Cluster-trigger timing and amplitude by phase"));
         plotters.get("Cluster-trigger timing and amplitude by phase").createRegions(2, 6);
 
         for (int i = 0; i < 6; i++)

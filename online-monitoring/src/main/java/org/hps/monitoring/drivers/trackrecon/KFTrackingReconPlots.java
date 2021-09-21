@@ -142,7 +142,7 @@ public class KFTrackingReconPlots extends Driver {
 
         IAnalysisFactory fac = aida.analysisFactory();
         IPlotterFactory pfac = fac.createPlotterFactory("Track Recon");
-        plotter = pfac.create("Momentum");
+        plotter = pfac.create("1a Momentum");
 
         plotter.createRegions(2, 3);
         // plotterFrame.addPlotter(plotter);
@@ -172,7 +172,7 @@ public class KFTrackingReconPlots extends Driver {
         trklam = aida.histogram1D("tan(lambda) ", 50, -0.1, 0.1);
         trkz0 = aida.histogram1D("y0 ", 50, -1.0, 1.0);
 
-        plotter22 = pfac.create("Track parameters");
+        plotter22 = pfac.create("1b Track parameters");
         plotter22.createRegions(2, 3);
         plot(plotter22, nTracks, null, 0);
         plot(plotter22, trkd0, null, 1);
@@ -189,7 +189,7 @@ public class KFTrackingReconPlots extends Driver {
         hdelYECal = aida.histogram1D("delta Y @ ECal (mm) ", 50, -15.0, 15.0);
         heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 7.0, 50, 0, 7.0);
 
-        plotterECal = pfac.create("Cluster Matching");
+        plotterECal = pfac.create("1c Cluster Matching");
         plotterECal.createRegions(2, 2);
         plot(plotterECal, heOverP, null, 0);
         plot(plotterECal, hdelXECal, null, 1);
@@ -207,7 +207,7 @@ public class KFTrackingReconPlots extends Driver {
         hfeePOverE = aida.histogram1D("FEE EOverP", 50, 0, 1.5);
         hfeeClustPos = aida.histogram2D("FEE Cluster Position", 50, -2000.0, 2000.0, 50, -500, 500);
 
-        plotterFEE = pfac.create("Full Energy Electrons");
+        plotterFEE = pfac.create("1d Full Energy Electrons");
         plotterFEE.createRegions(2, 2);
         plot(plotterFEE, hfeeMom, null, 0);
         plot(plotterFEE, hfeeMomBot, null, 3);
@@ -253,7 +253,7 @@ public class KFTrackingReconPlots extends Driver {
         //        plotterXvsYHOT.show();
         htopLay = aida.histogram1D("Top Layers on Track", 15, 0, 15);
         hbotLay = aida.histogram1D("Bottom Layers on Track", 15, 0, 15);
-        plotterLayers = pfac.create("Layers Hit on Track");
+        plotterLayers = pfac.create("1e Layers Hit on Track");
         plotterLayers.createRegions(1, 2);
         plot(plotterLayers, htopLay, null, 0);
         plot(plotterLayers, hbotLay, null, 1);

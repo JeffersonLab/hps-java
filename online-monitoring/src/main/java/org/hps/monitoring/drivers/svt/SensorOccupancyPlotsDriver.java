@@ -378,24 +378,24 @@ public class SensorOccupancyPlotsDriver extends Driver {
         tree.cd("/");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
-        plotters.put("Occupancy: L0-L3", plotterFactory.create("Occupancy: L0-L3"));
+        plotters.put("Occupancy: L0-L3", plotterFactory.create("1a Occupancy: L0-L3"));
         plotters.get("Occupancy: L0-L3").createRegions(4, 4);
-        plotters.put("Occupancy: L4-L6", plotterFactory.create("Occupancy: L4-L6"));
+        plotters.put("Occupancy: L4-L6", plotterFactory.create("1b Occupancy: L4-L6"));
         plotters.get("Occupancy: L4-L6").createRegions(6, 4);
 
         occupancyStatus.setStatus(StatusCode.UNKNOWN, "Not enough statistics yet.");
 
         if (enablePositionPlots) {
-            plotters.put("Occupancy vs Position", plotterFactory.create("Occupancy vs Position"));
+            plotters.put("Occupancy vs Position", plotterFactory.create("1e Occupancy vs Position"));
             plotters.get("Occupancy vs Position").createRegions(6, 6);
-            plotters.put("Cluster occupancy vs Position", plotterFactory.create("Cluster occupancy vs Position"));
+            plotters.put("Cluster occupancy vs Position", plotterFactory.create("1f Cluster occupancy vs Position"));
             plotters.get("Cluster occupancy vs Position").createRegions(6, 6);
         }
 
         if (enableMaxSamplePlots) {
-            plotters.put("Max Sample Number: L0-L3", plotterFactory.create("Max Sample Number: L0-L3"));
+            plotters.put("Max Sample Number: L0-L3", plotterFactory.create("1c Max Sample Number: L0-L3"));
             plotters.get("Max Sample Number: L0-L3").createRegions(4, 4);
-            plotters.put("Max Sample Number: L4-L6", plotterFactory.create("Max Sample Number: L4-L6"));
+            plotters.put("Max Sample Number: L4-L6", plotterFactory.create("1d Max Sample Number: L4-L6"));
             plotters.get("Max Sample Number: L4-L6").createRegions(6, 4);
             maxSampleStatus.setStatus(StatusCode.UNKNOWN, "Not enough statistics yet.");
         } else

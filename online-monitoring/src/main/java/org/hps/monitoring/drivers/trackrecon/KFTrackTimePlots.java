@@ -97,32 +97,32 @@ public class KFTrackTimePlots extends Driver {
         styleOverlay.legendBoxStyle().setVisible(false);
         styleOverlay.dataStyle().outlineStyle().setVisible(false);
 
-        plotters.put("Hit Times: L0-L3", plotterFactory.create("Hit Times: L0-L3"));
+        plotters.put("Hit Times: L0-L3", plotterFactory.create("2a Hit Times: L0-L3"));
         plotters.get("Hit Times: L0-L3").createRegions(4, 4);
-        plotters.put("Hit Times: L4-L6", plotterFactory.create("Hit Times: L4-L6"));
+        plotters.put("Hit Times: L4-L6", plotterFactory.create("2b Hit Times: L4-L6"));
         plotters.get("Hit Times: L4-L6").createRegions(6, 4);
 
-        plotters.put("Track Hit Times: L0-L3", plotterFactory.create("Track Hit Times: L0-L3"));
+        plotters.put("Track Hit Times: L0-L3", plotterFactory.create("2c Track Hit Times: L0-L3"));
         plotters.get("Track Hit Times: L0-L3").createRegions(4, 4);
-        plotters.put("Track Hit Times: L4-L6", plotterFactory.create("Track Hit Times: L4-L6"));
+        plotters.put("Track Hit Times: L4-L6", plotterFactory.create("2d Track Hit Times: L4-L6"));
         plotters.get("Track Hit Times: L4-L6").createRegions(6, 4);
 
-        plotters.put("Track Hit dt: L0-L3", plotterFactory.create("Track Hit dt: L0-L3"));
+        plotters.put("Track Hit dt: L0-L3", plotterFactory.create("2e Track Hit dt: L0-L3"));
         plotters.get("Track Hit dt: L0-L3").createRegions(4, 4);
-        plotters.put("Track Hit dt: L4-L6", plotterFactory.create("Track Hit dt: L4-L6"));
+        plotters.put("Track Hit dt: L4-L6", plotterFactory.create("2f Track Hit dt: L4-L6"));
         plotters.get("Track Hit dt: L4-L6").createRegions(6, 4);
 
-        plotters.put("Track Time vs. dt: L0-L3", plotterFactory.create("Track Time vs. dt: L0-L3"));
+        plotters.put("Track Time vs. dt: L0-L3", plotterFactory.create("2gTrack Time vs. dt: L0-L3"));
         plotters.get("Track Time vs. dt: L0-L3").createRegions(4, 4);
-        plotters.put("Track Time vs. dt: L4-L6", plotterFactory.create("Track Time vs. dt: L4-L6"));
+        plotters.put("Track Time vs. dt: L4-L6", plotterFactory.create("2h Track Time vs. dt: L4-L6"));
         plotters.get("Track Time vs. dt: L4-L6").createRegions(6, 4);
 
-        plotters.put("Track Time", plotterFactory.create("Track Time"));
+        plotters.put("Track Time", plotterFactory.create("2i Track Time"));
         plotters.get("Track Time").createRegions(2, 2);
 
 //        plotters.put("Track Trig Time", plotterFactory.create("Track Trig Time"));
 //        plotters.get("Track Trig Time").createRegions(2, 2);
-        plotters.put("Track Hit Time Range", plotterFactory.create("Track Hit Time Range"));
+        plotters.put("Track Hit Time Range", plotterFactory.create("2j Track Hit Time Range"));
         plotters.get("Track Hit Time Range").createRegions(2, 2);
 
         for (HpsSiSensor sensor : sensors) {

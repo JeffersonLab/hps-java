@@ -103,13 +103,13 @@ public class FinalStateParticlePlots extends Driver {
 
         aida.tree().cd("/");
         // resetOccupancyMap(); // this is for calculatin
-        plotterEle = pfac.create("Electrons");
+        plotterEle = pfac.create("3a Electrons");
         plotterEle.createRegions(2, 3);
 
-        plotterPos = pfac.create("Positrons");
+        plotterPos = pfac.create("3b Positrons");
         plotterPos.createRegions(2, 3);
 
-        plotterPhot = pfac.create("Photons and Pi0");
+        plotterPhot = pfac.create("3c Photons and Pi0");
         plotterPhot.createRegions(2, 3);
 
         /* V0 Quantities */
