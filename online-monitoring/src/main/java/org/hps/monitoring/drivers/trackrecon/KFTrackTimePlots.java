@@ -15,10 +15,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.hps.recon.tracking.SvtPlotUtils;
-
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TSData2019;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
@@ -63,7 +65,10 @@ public class KFTrackTimePlots extends Driver {
     private static final String subdetectorName = "Tracker";
     double minTime = -40;
     double maxTime = 40;
-
+    private boolean removeRandomEvents=true;    
+    public void setRemoveRandomEvents(boolean doit) {
+        this.removeRandomEvents=doit;
+    }
     public void setTrackCollectionName(String name) {
         this.trackCollectionName = name;
     }
@@ -212,6 +217,16 @@ public class KFTrackTimePlots extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
+                    TSData2019 triggerData = new TSData2019(data); 
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
+                        return; 
+                    }
+                }
+        }
         int trigTime = (int) (event.getTimeStamp() % 24);
 
         // ===> IIdentifierHelper helper = SvtUtils.getInstance().getHelper();

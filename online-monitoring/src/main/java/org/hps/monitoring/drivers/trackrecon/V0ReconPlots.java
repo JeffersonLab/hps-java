@@ -14,7 +14,10 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TSData2019;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.Vertex;
@@ -52,7 +55,10 @@ public class V0ReconPlots extends Driver {
     IHistogram2D pyEleVspyPos;
     IHistogram2D pxEleVspxPos;
     IHistogram2D massVsVtxZ;
-
+    private boolean removeRandomEvents=true;    
+    public void setRemoveRandomEvents(boolean doit) {
+        this.removeRandomEvents=doit;
+    }
     public void setFinalStateParticlesColName(String name){
         this.finalStateParticlesColName=name;
     }
@@ -114,6 +120,16 @@ public class V0ReconPlots extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
+                    TSData2019 triggerData = new TSData2019(data); 
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
+                        return; 
+                    }
+                }
+        }
         /* make sure everything is there */
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
             return;

@@ -18,9 +18,12 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtTimingConstants;
 
 import org.hps.recon.tracking.SvtPlotUtils;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TSData2019;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
@@ -74,7 +77,10 @@ public class SvtClusterPlots extends Driver {
 
     private boolean cutOutLowChargeClusters = false;
     private double clusterChargeCut = 400;
-
+    private boolean removeRandomEvents=true;    
+    public void setRemoveRandomEvents(boolean doit) {
+        this.removeRandomEvents=doit;
+    }
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
     }
@@ -291,33 +297,33 @@ public class SvtClusterPlots extends Driver {
             }
         }
 
-        plotters.put("SVT-trigger timing top-bottom", plotterFactory.create("SVT-trigger timing top-bottom"));
-        plotters.get("SVT-trigger timing top-bottom").createRegions(1, 2);
+        plotters.put("Cluster-trigger timing top-bottom", plotterFactory.create("Cluster-trigger timing top-bottom"));
+        plotters.get("Cluster-trigger timing top-bottom").createRegions(1, 2);
 
         hitTimeTrigTimePlots.put("Top",
                 histogramFactory.createHistogram2D("Top Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -12, 12));
-        plotters.get("SVT-trigger timing top-bottom")
+        plotters.get("Cluster-trigger timing top-bottom")
                 .region(0)
                 .plot(hitTimeTrigTimePlots.get("Top"), this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
         hitTimeTrigTimePlots.put("Bottom",
                 histogramFactory.createHistogram2D("Bottom Cluster Time vs. Trigger Phase", 100, -75, 50, 6, -12, 12));
-        plotters.get("SVT-trigger timing top-bottom")
+        plotters.get("Cluster-trigger timing top-bottom")
                 .region(1)
                 .plot(hitTimeTrigTimePlots.get("Bottom"),
                         this.createStyle(null, "Cluster Time [ns]", "Trigger Phase[ns]"));
 
-        plotters.put("SVT-trigger timing by phase", plotterFactory.create("SVT-trigger timing by phase"));
-        plotters.get("SVT-trigger timing by phase").createRegions(2, 6);
+        plotters.put("Cluster-trigger timing by phase", plotterFactory.create("Cluster-trigger timing by phase"));
+        plotters.get("Cluster-trigger timing by phase").createRegions(2, 6);
 
-        plotters.put("SVT-trigger timing and amplitude by phase",
-                plotterFactory.create("SVT-trigger timing and amplitude by phase"));
-        plotters.get("SVT-trigger timing and amplitude by phase").createRegions(2, 6);
+        plotters.put("Cluster-trigger timing and amplitude by phase",
+                plotterFactory.create("Cluster-trigger timing and amplitude by phase"));
+        plotters.get("Cluster-trigger timing and amplitude by phase").createRegions(2, 6);
 
         for (int i = 0; i < 6; i++)
             for (int j = 0; j < 2; j++) {
                 hitTimeTrigTimePlots1D[i][j] = histogramFactory.createHistogram1D(
                         String.format("Cluster Time for Phase %d, %s", i, j == TOP ? "Top" : "Bottom"), 100, -75, 50);
-                plotters.get("SVT-trigger timing by phase").region(i + 6 * j)
+                plotters.get("Cluster-trigger timing by phase").region(i + 6 * j)
                         .plot(hitTimeTrigTimePlots1D[i][j], this.createStyle(null, "Cluster Time [ns]", ""));
                 hitTimeTrigTimePlots2D[i][j] = histogramFactory.createHistogram2D(
                         String.format("Cluster Amplitude vs. Time for Phase %d, %s", i, j == TOP ? "Top" : "Bottom"),
@@ -333,7 +339,16 @@ public class SvtClusterPlots extends Driver {
     }
 
     public void process(EventHeader event) {
-
+        if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
+                    TSData2019 triggerData = new TSData2019(data); 
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
+                        return; 
+                    }
+                }
+        }
         if (runNumber == -1)
             runNumber = event.getRunNumber();
 

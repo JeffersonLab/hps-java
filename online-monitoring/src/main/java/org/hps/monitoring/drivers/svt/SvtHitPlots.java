@@ -21,7 +21,7 @@ import org.hps.recon.tracking.ShapeFitParameters;
 
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.record.triggerbank.AbstractIntData;
-import org.hps.record.triggerbank.TIData;
+import org.hps.record.triggerbank.TSData2019;
 import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -78,7 +78,13 @@ public class SvtHitPlots extends Driver {
 
     private boolean cutOutLowChargeHits = false;
     private double hitChargeCut = 400;
-
+        
+    private boolean removeRandomEvents=true;    
+    public void setRemoveRandomEvents(boolean doit) {
+        this.removeRandomEvents=doit;
+    }
+    
+    
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
         this.dropSmallHitEvents = dropSmallHitEvents;
     }
@@ -336,18 +342,21 @@ public class SvtHitPlots extends Driver {
     public void process(EventHeader event
     ) {
 
-        TIData triggerData = null;
+       
         if (!event.hasCollection(RawTrackerHit.class, rawTrackerHitCollectionName))
             return;
 
         if (!event.hasCollection(LCRelation.class, fittedHitsCollectioName))
-            return;
-        if (event.hasCollection(GenericObject.class, "TriggerBank")) {
-            List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
+            return;            
+        if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
             for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TIData.BANK_TAG)
-                    triggerData = new TIData(data); //                    System.out.println(triggerData.getIntVal(1) + "   "
-            //                            + triggerData.getIntVal(2)                  );
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
+                    TSData2019 triggerData = new TSData2019(data); 
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
+                        return; 
+                    }
+                }
         }
         if (debug && ((int) eventCount % 100 == 0))
             System.out.println(this.getClass().getSimpleName() + ": processed " + String.valueOf(eventCount)

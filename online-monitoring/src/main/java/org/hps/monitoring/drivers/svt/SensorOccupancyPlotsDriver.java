@@ -24,6 +24,7 @@ import org.hps.monitoring.subsys.SystemStatusImpl;
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TIData;
+import org.hps.record.triggerbank.TSData2019;
 import org.lcsim.detector.ITransform3D;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -113,7 +114,10 @@ public class SensorOccupancyPlotsDriver extends Driver {
     private double occupancyYRange2 = 0.003;
     
     private boolean enableAlarms=false;
-
+    private boolean removeRandomEvents=true;    
+    public void setRemoveRandomEvents(boolean doit) {
+        this.removeRandomEvents=doit;
+    }
     public SensorOccupancyPlotsDriver() {
         maxSampleStatus = new SystemStatusImpl(Subsystem.SVT, "Checks that SVT is timed in (max sample plot)", true);
         maxSampleStatus.setStatus(StatusCode.UNKNOWN, "Status is unknown.");
@@ -497,7 +501,16 @@ public class SensorOccupancyPlotsDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
-
+        if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
+                    TSData2019 triggerData = new TSData2019(data); 
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
+                        return; 
+                    }
+                }
+        }
         // Get the run number from the event and store it. This will be used
         // when writing the plots out to a ROOT file
         if (runNumber == -1)

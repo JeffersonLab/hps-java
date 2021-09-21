@@ -14,9 +14,12 @@ import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.sqrt;
 import java.util.List;
 import org.hps.recon.tracking.TrackUtils;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TSData2019;
 import org.lcsim.event.Cluster;
 
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.TrackState;
 import org.lcsim.geometry.Detector;
@@ -69,7 +72,10 @@ public class FinalStateParticlePlots extends Driver {
     double pMax = 7.0;
     double pi0EsumCut = 3.0;//GeV
     double pi0EdifCut = 2.0;//GeV
-
+    private boolean removeRandomEvents=true;    
+    public void setRemoveRandomEvents(boolean doit) {
+        this.removeRandomEvents=doit;
+    }
     public void setPMax(double pmax) {
         this.pMax = pmax;
     }
@@ -156,6 +162,16 @@ public class FinalStateParticlePlots extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
+                    TSData2019 triggerData = new TSData2019(data); 
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
+                        return; 
+                    }
+                }
+        }
         /* make sure everything is there */
         if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
             return;       

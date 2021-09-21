@@ -113,6 +113,10 @@ public class KFTrackingReconPlots extends Driver {
 
     double pMax = 6.0;
 
+    private boolean removeRandomEvents=true;    
+    public void setRemoveRandomEvents(boolean doit) {
+        this.removeRandomEvents=doit;
+    }
     public void setFeeMomentumCut(double cut) {
         this.feeMomentumCut = cut;
     }

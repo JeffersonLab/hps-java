@@ -19,8 +19,11 @@ import org.hps.conditions.svt.SvtTimingConstants;
 import org.hps.readout.svt.HPSSVTConstants;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.SvtPlotUtils;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TSData2019;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.geometry.Detector;
 import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
@@ -45,7 +48,10 @@ public class SVTPulseFitPlots extends Driver {
     private SvtTimingConstants timingConstants;
     private boolean correctForT0Offset = false;
     private boolean doShapePlots = false;
-
+    private boolean removeRandomEvents=true;    
+    public void setRemoveRandomEvents(boolean doit) {
+        this.removeRandomEvents=doit;
+    }
     public void setCorrectForT0Offset(boolean correct) {
         this.correctForT0Offset = correct;
     }
@@ -178,6 +184,17 @@ public class SVTPulseFitPlots extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
+                    TSData2019 triggerData = new TSData2019(data); 
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
+                        return; 
+                    }
+                }
+        }
+        
         List<FittedRawTrackerHit> fittedrawHits = event.get(FittedRawTrackerHit.class, fittedTrackerHitCollectionName);
         for (FittedRawTrackerHit fit : fittedrawHits) {
             HpsSiSensor sensor = (HpsSiSensor) fit.getRawTrackerHit().getDetectorElement();

@@ -13,7 +13,10 @@ import org.hps.recon.tracking.kalman.KalmanInterface;
 import org.hps.recon.tracking.kalman.KalmanKinkFit;
 import org.hps.recon.tracking.kalman.KalmanParams;
 import org.hps.recon.tracking.kalman.Vec;
+import org.hps.record.triggerbank.AbstractIntData;
+import org.hps.record.triggerbank.TSData2019;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
@@ -113,7 +116,10 @@ public class KFSVTOpeningAlignment extends Driver {
 
    
     double targetPosition = -5.0; //mm
-
+    private boolean removeRandomEvents=true;    
+    public void setRemoveRandomEvents(boolean doit) {
+        this.removeRandomEvents=doit;
+    }
     public KFSVTOpeningAlignment() {
     }
 
@@ -313,6 +319,16 @@ public class KFSVTOpeningAlignment extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
+            List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
+            for (GenericObject data : triggerList)
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
+                    TSData2019 triggerData = new TSData2019(data); 
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
+                        return; 
+                    }
+                }
+        }
         aida.tree().cd("/");
         int nTrkTop=0;
         int nTrkBot=0;       
