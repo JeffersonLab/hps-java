@@ -1,7 +1,8 @@
 package org.hps.monitoring.application;
 
 /**
- * These strings are used to identify <code>ActionEvent</code> commands in the MonitoringApplication.
+ * These strings are used to identify <code>ActionEvent</code> commands in the
+ * MonitoringApplication.
  */
 final class Commands {
 
@@ -51,7 +52,8 @@ final class Commands {
     static final String DATA_SOURCE_CHANGED = "dataSourceChanged";
 
     /**
-     * Reset the application window to its default settings including scroll pane positions.
+     * Reset the application window to its default settings including scroll
+     * pane positions.
      */
     static final String DEFAULT_WINDOW = "defaultWindow";
 
@@ -154,7 +156,7 @@ final class Commands {
      * Action when plot is selected from a tab.
      */
     static final String PLOT_SELECTED = "PlotSelected";
-    
+
     /**
      * Enable plot pop-up window.
      */
@@ -166,7 +168,8 @@ final class Commands {
     static final String PROCESSING_STAGE_CHANGED = "processingStageChanged";
 
     /**
-     * Select one of the items from the recent files list to be the current data source.
+     * Select one of the items from the recent files list to be the current data
+     * source.
      */
     static final String RECENT_FILE_SELECTED = "recentFileSelected";
 
@@ -184,6 +187,11 @@ final class Commands {
      * Save the plots to a ROOT, AIDA or PDF file.
      */
     static final String SAVE_PLOTS = "savePlots";
+
+    /**
+     * Save the plots to a ROOT, AIDA or PDF file.
+     */
+    static final String SAVE_ROOT_AND_PDF = "savePlotsRootPdf";
 
     /**
      * Save a screenshot from the window graphics.

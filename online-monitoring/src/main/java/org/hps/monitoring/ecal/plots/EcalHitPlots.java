@@ -18,19 +18,25 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * The driver <code>EcalHitPlots</code> implements the histogram shown to the user
- * in the second tab of the Monitoring Application, when using the Ecal monitoring lcsim file.
+ * The driver <code>EcalHitPlots</code> implements the histogram shown to the
+ * user
+ * in the second tab of the Monitoring Application, when using the Ecal
+ * monitoring lcsim file.
  * These histograms shows single-channels distributions:
- * - First sub-tab shows the hits distribution* (Histogram2D), the occupancy* (Histogram2D), the number of hits per
+ * - First sub-tab shows the hits distribution* (Histogram2D), the occupancy*
+ * (Histogram2D), the number of hits per
  * event (Histogram1D),
  * the time distribution of the hits (Histogram1D)
  * The first two histograms are defined in <code>EcalMonitoringPlots</code>.
- * - Second sub-tab shows the energy distribution of the hits (Histogram1D), and the maximum energy in each event
+ * - Second sub-tab shows the energy distribution of the hits (Histogram1D), and
+ * the maximum energy in each event
  * (Histogram1D)
- * - Third sub-tab shows the time distribution of the first hit per event, for the Ecal top (Histogram1D), for the Ecal
+ * - Third sub-tab shows the time distribution of the first hit per event, for
+ * the Ecal top (Histogram1D), for the Ecal
  * bottom (Histogram1D), for both for the Ecal top (Histogram1D).
- * 
- * Histograms are updated continously, expect those marked with *, that are updated regularly depending on the event
+ *
+ * Histograms are updated continously, expect those marked with *, that are
+ * updated regularly depending on the event
  * refresh rate configured in the <code> EcalMonitoringPlots </code> driver
  */
 public class EcalHitPlots extends Driver {
@@ -75,7 +81,8 @@ public class EcalHitPlots extends Driver {
     protected void detectorChanged(Detector detector) {
 
         // System.out.println("Detector changed called: "+ detector.getClass().getName());
-        aida.tree().cd("/");
+        aida.tree().mkdir("/EcalHits");
+        aida.tree().cd("/EcalHits");
         plotterFactory = aida.analysisFactory().createPlotterFactory("Ecal Hit Plots");
 
         // Setup plots.
@@ -128,8 +135,9 @@ public class EcalHitPlots extends Driver {
 
         if (logScale) {
             pstyle.zAxisStyle().setParameter("scale", "log");
-        } else
+        } else {
             pstyle.zAxisStyle().setParameter("scale", "lin");
+        }
         // plotter.region(0).plot(hitNumberPlot,pstyle);
 
         // Setup the plotter.
@@ -139,8 +147,9 @@ public class EcalHitPlots extends Driver {
 
         if (logScale) {
             pstyle.yAxisStyle().setParameter("scale", "log");
-        } else
+        } else {
             pstyle.yAxisStyle().setParameter("scale", "lin");
+        }
         // Create the plotter regions.
         plotter2.createRegions(1, 2);
         plotter2.region(0).plot(hitEnergyPlot, pstyle);
@@ -152,8 +161,9 @@ public class EcalHitPlots extends Driver {
 
         if (logScale) {
             pstyle.yAxisStyle().setParameter("scale", "log");
-        } else
+        } else {
             pstyle.yAxisStyle().setParameter("scale", "lin");
+        }
 
         plotter3.region(0).plot(topTimePlot, pstyle);
         plotter3.region(1).plot(botTimePlot, pstyle);
@@ -165,8 +175,9 @@ public class EcalHitPlots extends Driver {
         pstyle.yAxisStyle().setParameter("scale", "lin");
         if (logScale) {
             pstyle.zAxisStyle().setParameter("scale", "log");
-        } else
+        } else {
             pstyle.zAxisStyle().setParameter("scale", "lin");
+        }
 
         plotter3.region(6).plot(topTimePlot2D, pstyle);
         plotter3.region(7).plot(botTimePlot2D, pstyle);
@@ -266,7 +277,7 @@ public class EcalHitPlots extends Driver {
 
     /**
      * Initializes the default style for plots.
-     * 
+     *
      * @return Returns an <code>IPlotterStyle</code> object that
      * represents the default style for plots.
      */

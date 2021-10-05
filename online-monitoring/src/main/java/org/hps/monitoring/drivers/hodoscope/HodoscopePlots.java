@@ -125,6 +125,8 @@ public class HodoscopePlots extends Driver {
 
         tree = AIDA.defaultInstance().tree();
         tree.cd("/");// aida.tree().cd("/");
+        tree.mkdir("/HodoMon");
+        tree.cd("/HodoMon");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
         // Histogram maps
 

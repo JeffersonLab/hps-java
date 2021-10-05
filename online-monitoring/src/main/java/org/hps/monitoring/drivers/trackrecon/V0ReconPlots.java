@@ -80,8 +80,8 @@ public class V0ReconPlots extends Driver {
         IPlotterFactory pfac = fac.createPlotterFactory("V0 Recon");
         functionFactory = aida.analysisFactory().createFunctionFactory(null);
         fitFactory = aida.analysisFactory().createFitFactory();
-
-        aida.tree().cd("/");
+        aida.tree().mkdir("/V0Recon");
+        aida.tree().cd("/V0Recon");
         // resetOccupancyMap(); // this is for calculatin
         plotterUncon = pfac.create("4a Unconstrained V0");
 
@@ -143,15 +143,15 @@ public class V0ReconPlots extends Driver {
 
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class,
                 unconstrainedV0CandidatesColName);
-        aida.histogram1D("Number of V0 per event").fill(unConstrainedV0List.size());
+        nV0.fill(unConstrainedV0List.size());
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             Vertex uncVert = uncV0.getStartVertex();
-            aida.histogram1D("Unconstrained Vx (mm)").fill(uncVert.getPosition().x());
-            aida.histogram1D("Unconstrained Vy (mm)").fill(uncVert.getPosition().y());
-            aida.histogram1D("Unconstrained Vz (mm)").fill(uncVert.getPosition().z());
-            aida.histogram1D("Unconstrained Mass (GeV)").fill(uncV0.getMass());
-            aida.histogram1D("Unconstrained Chi2").fill(uncVert.getChi2());
-            aida.histogram2D("Mass vs Vz").fill(uncV0.getMass(), uncVert.getPosition().z());
+            unconVx.fill(uncVert.getPosition().x());
+            unconVy.fill(uncVert.getPosition().y());
+            unconVz.fill(uncVert.getPosition().z());
+            unconMass.fill(uncV0.getMass());
+            unconChi2.fill(uncVert.getChi2());
+            massVsVtxZ.fill(uncV0.getMass(), uncVert.getPosition().z());
             // this always has 2 tracks.
             List<ReconstructedParticle> trks = uncV0.getParticles();
             Track ele = trks.get(0).getTracks().get(0);
@@ -162,10 +162,10 @@ public class V0ReconPlots extends Driver {
                 pos = trks.get(0).getTracks().get(0);
                 ele = trks.get(1).getTracks().get(0);
             }
-            aida.histogram2D("P(e) vs P(p)").fill(getMomentum(ele), getMomentum(pos));
-            aida.histogram2D("Px(e) vs Px(p)").fill(ele.getTrackStates().get(0).getMomentum()[1],
+            pEleVspPos.fill(getMomentum(ele), getMomentum(pos));
+            pxEleVspxPos.fill(ele.getTrackStates().get(0).getMomentum()[1],
                     pos.getTrackStates().get(0).getMomentum()[1]);
-            aida.histogram2D("Py(e) vs Py(p)").fill(ele.getTrackStates().get(0).getMomentum()[2],
+            pyEleVspyPos.fill(ele.getTrackStates().get(0).getMomentum()[2],
                     pos.getTrackStates().get(0).getMomentum()[2]);
         }
     }

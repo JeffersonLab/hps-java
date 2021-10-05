@@ -129,8 +129,9 @@ public class KFSVTOpeningAlignment extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        aida.tree().cd("/");        
-        
+        aida.tree().mkdir("/KFSVTOpeningAlignment");
+        aida.tree().cd("/KFSVTOpeningAlignment");        
+       
         IAnalysisFactory fac = aida.analysisFactory();
         IPlotterFactory pfac = fac.createPlotterFactory("SVT Alignment");
         functionFactory = aida.analysisFactory().createFunctionFactory(null);

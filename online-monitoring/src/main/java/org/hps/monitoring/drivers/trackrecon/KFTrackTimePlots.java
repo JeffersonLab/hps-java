@@ -17,6 +17,7 @@ import java.util.Map;
 import org.hps.recon.tracking.SvtPlotUtils;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.TSData2019;
+import org.lcsim.detector.tracker.silicon.DopedSilicon;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -51,10 +52,11 @@ public class KFTrackTimePlots extends Driver {
     private IHistogramFactory histogramFactory = null;
     protected Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
 
-    // Histogram Maps
-    private static final Map<String, IHistogram1D> t0 = new HashMap<String, IHistogram1D>();
+    // Histogram Maps   
     private static final Map<String, IHistogram1D> trackHitDt = new HashMap<String, IHistogram1D>();
     private static final Map<String, IHistogram1D> trackHitT0 = new HashMap<String, IHistogram1D>();
+    private static Map<String, IHistogram1D> clusterChargePlots = new HashMap<String, IHistogram1D>();
+    private static Map<String, IHistogram1D> singleHitClusterChargePlots = new HashMap<String, IHistogram1D>();
     private static final Map<String, IHistogram1D> trackT0 = new HashMap<String, IHistogram1D>();
     private static final Map<String, IHistogram1D> trackTimeRange = new HashMap<String, IHistogram1D>();
 
@@ -65,10 +67,12 @@ public class KFTrackTimePlots extends Driver {
     private static final String subdetectorName = "Tracker";
     double minTime = -40;
     double maxTime = 40;
-    private boolean removeRandomEvents=true;    
+    private boolean removeRandomEvents = true;
+
     public void setRemoveRandomEvents(boolean doit) {
-        this.removeRandomEvents=doit;
+        this.removeRandomEvents = doit;
     }
+
     public void setTrackCollectionName(String name) {
         this.trackCollectionName = name;
     }
@@ -76,7 +80,9 @@ public class KFTrackTimePlots extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
 
-        tree = analysisFactory.createTreeFactory().create();
+        tree = AIDA.defaultInstance().tree();
+        tree.mkdir("/KFTrackTime");
+        tree.cd("/KFTrackTime");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
         List<HpsSiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement()
@@ -97,10 +103,10 @@ public class KFTrackTimePlots extends Driver {
         styleOverlay.legendBoxStyle().setVisible(false);
         styleOverlay.dataStyle().outlineStyle().setVisible(false);
 
-        plotters.put("Hit Times: L0-L3", plotterFactory.create("2a Hit Times: L0-L3"));
-        plotters.get("Hit Times: L0-L3").createRegions(4, 4);
-        plotters.put("Hit Times: L4-L6", plotterFactory.create("2b Hit Times: L4-L6"));
-        plotters.get("Hit Times: L4-L6").createRegions(6, 4);
+        plotters.put("Track Hit Charge: L0-L3", plotterFactory.create("2a Hit Charge: L0-L3"));
+        plotters.get("Track Hit Charge: L0-L3").createRegions(4, 4);
+        plotters.put("Track Hit Charge: L4-L6", plotterFactory.create("2b Hit Charge: L4-L6"));
+        plotters.get("Track Hit Charge: L4-L6").createRegions(6, 4);
 
         plotters.put("Track Hit Times: L0-L3", plotterFactory.create("2c Track Hit Times: L0-L3"));
         plotters.get("Track Hit Times: L0-L3").createRegions(4, 4);
@@ -126,8 +132,12 @@ public class KFTrackTimePlots extends Driver {
         plotters.get("Track Hit Time Range").createRegions(2, 2);
 
         for (HpsSiSensor sensor : sensors) {
-            t0.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                    histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - t0", 100, minTime, maxTime));
+            clusterChargePlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
+                    histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Cluster Charge", 100, 0, 2000));
+            singleHitClusterChargePlots
+                    .put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())
+                            + " - Single Hit Cluster Charge", 100, 0, 2000));
+
             trackHitT0.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
                     histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - track hit t0", 100, minTime, maxTime));
             trackHitDt.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
@@ -136,8 +146,14 @@ public class KFTrackTimePlots extends Driver {
             trackHit2D.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
                     histogramFactory.createHistogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - trigger phase vs dt", 80, -20, 20.0, 6, 0, 24.0));
             if (sensor.getLayerNumber() < 9) {
-                plotters.get("Hit Times: L0-L3").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(t0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "hit t0 (ns)", ""));
+                plotters.get("Track Hit Charge: L0-L3")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(clusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
+                                this.createStyle(sensor, "Cluster Amplitude [ADC Counts]", ""));
+                plotters.get("Track Hit Charge: L0-L3")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(singleHitClusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
+                                this.createStyle(null, "Cluster Amplitude [ADC Counts]", ""));
                 plotters.get("Track Hit Times: L0-L3").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "track hit t0 (ns)", ""));
                 plotters.get("Track Hit dt: L0-L3").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
@@ -145,8 +161,14 @@ public class KFTrackTimePlots extends Driver {
                 plotters.get("Track Time vs. dt: L0-L3").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "track hit dt (ns)", "event time%24 (ns)"));
             } else {
-                plotters.get("Hit Times: L4-L6").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(t0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "t0 (ns)", ""));
+                plotters.get("Track Hit Charge: L4-L6")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(clusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
+                                this.createStyle(sensor, "Cluster Amplitude [ADC Counts]", ""));
+                plotters.get("Track Hit Charge: L4-L6")
+                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                        .plot(singleHitClusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
+                                this.createStyle(null, "Cluster Amplitude [ADC Counts]", ""));
                 plotters.get("Track Hit Times: L4-L6").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                         .plot(trackHitT0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())), this.createStyle(sensor, "track hit t0 (ns)", ""));
                 plotters.get("Track Hit dt: L4-L6").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
@@ -219,31 +241,18 @@ public class KFTrackTimePlots extends Driver {
     public void process(EventHeader event) {
         if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
-            for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
-                    TSData2019 triggerData = new TSData2019(data); 
-                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
-                        return; 
+            for (GenericObject data : triggerList) {
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG) {
+                    TSData2019 triggerData = new TSData2019(data);
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {
+                        return;
                     }
                 }
+            }
         }
         int trigTime = (int) (event.getTimeStamp() % 24);
 
-        // ===> IIdentifierHelper helper = SvtUtils.getInstance().getHelper();
-        List<SiTrackerHitStrip1D> hits = event.get(SiTrackerHitStrip1D.class, hitCollection);
-        for (SiTrackerHitStrip1D hit : hits) {
-            // ===> IIdentifier id = hit.getSensor().getIdentifier();
-            // ===> int layer = helper.getValue(id, "layer");
-            int layer = ((HpsSiSensor) hit.getSensor()).getLayerNumber();
-            int module = ((HpsSiSensor) hit.getSensor()).getModuleNumber();
-            // ===> int module = helper.getValue(id, "module");
-            // System.out.format("%d, %d, %d\n",hit.getCellID(),layer,module);
-            SiSensor sensor = hit.getSensor();
-            t0.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime());
-
-        }
         //
-
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         for (Track track : tracks) {
             int trackModule;
@@ -284,6 +293,11 @@ public class KFTrackTimePlots extends Driver {
                 SiSensor sensor = (SiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
                 trackHitDt.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime);
                 trackHit2D.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getTime() - trackTime, event.getTimeStamp() % 24);
+                clusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
+                if (hit.getRawHits().size() == 1) {
+                    singleHitClusterChargePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(hit.getdEdx() / DopedSilicon.ENERGY_EHPAIR);
+                }
+
             }
         }
     }
@@ -364,15 +378,50 @@ public class KFTrackTimePlots extends Driver {
     }
 
     IPlotterStyle createStyle(HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) {
-        IPlotterStyle style = SvtPlotUtils.createStyle(plotterFactory, xAxisTitle, yAxisTitle);
 
-        if (sensor.isTopLayer()) {
+        // Create a default style
+        IPlotterStyle style = this.plotterFactory.createPlotterStyle();
+
+        // Set the style of the X axis
+        style.xAxisStyle().setLabel(xAxisTitle);
+        style.xAxisStyle().labelStyle().setFontSize(14);
+        style.xAxisStyle().setVisible(true);
+
+        // Set the style of the Y axis
+        style.yAxisStyle().setLabel(yAxisTitle);
+        style.yAxisStyle().labelStyle().setFontSize(14);
+        style.yAxisStyle().setVisible(true);
+
+        // Turn off the histogram grid
+        style.gridStyle().setVisible(false);
+
+        // Set the style of the data
+        style.dataStyle().lineStyle().setVisible(false);
+        style.dataStyle().outlineStyle().setVisible(false);
+        style.dataStyle().outlineStyle().setThickness(4);
+        style.dataStyle().fillStyle().setVisible(true);
+        style.dataStyle().fillStyle().setOpacity(.30);
+
+        if (sensor == null) {
+            style.dataStyle().fillStyle().setColor("255, 38, 38, 1");
+            style.dataStyle().outlineStyle().setColor("255, 38, 38, 1");
+            style.dataStyle().fillStyle().setOpacity(.70);
+        } else if (sensor.isTopLayer()) {
             style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
             style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
-        } else {
+        } else if (sensor.isBottomLayer()) {
             style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
             style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
         }
+        style.dataStyle().errorBarStyle().setVisible(false);
+
+        style.regionBoxStyle().backgroundStyle().setOpacity(.20);
+        if (sensor != null && sensor.isAxial()) {
+            style.regionBoxStyle().backgroundStyle().setColor("246, 246, 34, 1");
+        }
+
+        // Turn off the legend
+        style.legendBoxStyle().setVisible(false);
 
         return style;
     }

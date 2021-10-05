@@ -94,7 +94,7 @@ public class SVTPulseFitPlots extends Driver {
             plotters.put("Pulse shape:  L4-L6", plotterFactory.create("3j Pulse shape"));
             plotters.get("Pulse shape:  L4-L6").createRegions(6, 4);
         }
-        tree = analysisFactory.createTreeFactory().create();
+        tree = AIDA.defaultInstance().tree();
         IHistogramFactory histogramFactory = analysisFactory.createHistogramFactory(tree);
 
         // Setup the occupancy plots.

@@ -138,7 +138,8 @@ public class KFTrackingReconPlots extends Driver {
 //         hodos = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HodoscopeDetectorElement.class);
 //        for (HodoscopeDetectorElement hod : hodos)
 //            System.out.println("KFTrackingReconPlots:: hod = " + hod.getName() + " position = " + hod.getGeometry().getPosition().toString()); //pix.getGeometry().getPhysicalVolume(pix.getGeometry().getPosition()).
-        aida.tree().cd("/");
+        aida.tree().mkdir("/KFTrackingRecon");
+        aida.tree().cd("/KFTrackingRecon");
 
         IAnalysisFactory fac = aida.analysisFactory();
         IPlotterFactory pfac = fac.createPlotterFactory("Track Recon");
@@ -153,7 +154,7 @@ public class KFTrackingReconPlots extends Driver {
         trkPx = aida.histogram1D("Track Momentum (Px)", 50, -0.1, 0.2);
         trkPy = aida.histogram1D("Track Momentum (Py)", 50, -0.2, 0.2);
         trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, pMax);
-        trkChi2 = aida.histogram1D("Track Chi2/NDF", 50, 0, 15.0);
+        trkChi2 = aida.histogram1D("Track Chi2 PDF", 50, 0, 15.0);
 
         plot(plotter, nhits, null, 0);
         plot(plotter, charge, null, 1);

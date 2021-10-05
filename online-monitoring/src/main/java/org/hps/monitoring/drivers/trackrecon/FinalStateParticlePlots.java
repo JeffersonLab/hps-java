@@ -30,7 +30,6 @@ public class FinalStateParticlePlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
     String finalStateParticlesColName = "FinalStateParticles";
-  
 
     // some counters
     int nRecoEvents = 0;
@@ -72,10 +71,12 @@ public class FinalStateParticlePlots extends Driver {
     double pMax = 7.0;
     double pi0EsumCut = 3.0;//GeV
     double pi0EdifCut = 2.0;//GeV
-    private boolean removeRandomEvents=true;    
+    private boolean removeRandomEvents = true;
+
     public void setRemoveRandomEvents(boolean doit) {
-        this.removeRandomEvents=doit;
+        this.removeRandomEvents = doit;
     }
+
     public void setPMax(double pmax) {
         this.pMax = pmax;
     }
@@ -88,8 +89,8 @@ public class FinalStateParticlePlots extends Driver {
         this.pi0EdifCut = cut;
     }
 
-    public void setFinalStateParticlesColName(String name){
-        this.finalStateParticlesColName=name;
+    public void setFinalStateParticlesColName(String name) {
+        this.finalStateParticlesColName = name;
     }
 
     @Override
@@ -100,8 +101,9 @@ public class FinalStateParticlePlots extends Driver {
         IPlotterFactory pfac = fac.createPlotterFactory("Final State Recon");
         functionFactory = aida.analysisFactory().createFunctionFactory(null);
         fitFactory = aida.analysisFactory().createFitFactory();
+        aida.tree().mkdir("/FinalState");
+        aida.tree().cd("/FinalState");
 
-        aida.tree().cd("/");
         // resetOccupancyMap(); // this is for calculatin
         plotterEle = pfac.create("3a Electrons");
         plotterEle.createRegions(2, 3);
@@ -164,17 +166,19 @@ public class FinalStateParticlePlots extends Driver {
     public void process(EventHeader event) {
         if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
-            for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
-                    TSData2019 triggerData = new TSData2019(data); 
-                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
-                        return; 
+            for (GenericObject data : triggerList) {
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG) {
+                    TSData2019 triggerData = new TSData2019(data);
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {
+                        return;
                     }
                 }
+            }
         }
         /* make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
-            return;       
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
+            return;
+        }
         nRecoEvents++;
 
         List<ReconstructedParticle> fspList = event.get(ReconstructedParticle.class,
@@ -193,10 +197,11 @@ public class FinalStateParticlePlots extends Driver {
                 elePz.fill(mom.z());
                 TrackState stateAtEcal = TrackUtils.getTrackStateAtECal((fsp.getTracks().get(0)));
                 Hep3Vector tPos = new BasicHep3Vector(stateAtEcal.getReferencePoint());
-                if (fsp.getClusters().size() != 0)
+                if (fsp.getClusters().size() != 0) {
                     eleProjXYEcalMatch.fill(tPos.y(), tPos.z());
-                else
+                } else {
                     eleProjXYEcalNoMatch.fill(tPos.y(), tPos.z());
+                }
             } else if (charge > 0) {
                 posCnt++;
                 Hep3Vector mom = fsp.getMomentum();
@@ -205,27 +210,32 @@ public class FinalStateParticlePlots extends Driver {
                 posPz.fill(mom.z());
                 TrackState stateAtEcal = TrackUtils.getTrackStateAtECal((fsp.getTracks().get(0)));
                 Hep3Vector tPos = new BasicHep3Vector(stateAtEcal.getReferencePoint());
-                if (fsp.getClusters().size() != 0)
+                if (fsp.getClusters().size() != 0) {
                     posProjXYEcalMatch.fill(tPos.y(), tPos.z());// tracking frame!
-                else
+                } else {
                     posProjXYEcalNoMatch.fill(tPos.y(), tPos.z());
+                }
             } else if (fsp.getClusters().size() != 0) {
                 photCnt++;
                 Cluster clu = fsp.getClusters().get(0);
                 photEne.fill(clu.getEnergy());
                 photXYECal.fill(clu.getPosition()[0], clu.getPosition()[1]);
-            } else
+            } else {
                 System.out.println("This FSP had no tracks or clusters???");
+            }
         }
 
         for (ReconstructedParticle fsp1 : fspList) {
-            if (fsp1.getCharge() != 0)
+            if (fsp1.getCharge() != 0) {
                 continue;
+            }
             for (ReconstructedParticle fsp2 : fspList) {
-                if (fsp1 == fsp2)
+                if (fsp1 == fsp2) {
                     continue;
-                if (fsp2.getCharge() != 0)
+                }
+                if (fsp2.getCharge() != 0) {
                     continue;
+                }
 //                if (fsp1.getClusters().get(0) == null || fsp2.getClusters().get(0) == null)
 //                    continue;//this should never happen
                 Cluster clu1 = fsp1.getClusters().get(0);
@@ -233,10 +243,12 @@ public class FinalStateParticlePlots extends Driver {
                 double pi0ene = clu1.getEnergy() + clu2.getEnergy();
                 double pi0diff = Math.abs(clu1.getEnergy() - clu2.getEnergy());
                 double pi0mass = getClusterPairMass(clu1, clu2);
-                if (pi0diff > pi0EdifCut)
+                if (pi0diff > pi0EdifCut) {
                     continue;
-                if (pi0ene < pi0EsumCut)
+                }
+                if (pi0ene < pi0EsumCut) {
                     continue;
+                }
                 if (clu1.getPosition()[1] * clu2.getPosition()[1] < 0) {//top bottom
                     pi0Ene.fill(pi0ene);
                     pi0Diff.fill(pi0diff);
@@ -271,10 +283,11 @@ public class FinalStateParticlePlots extends Driver {
         double psum = Math.sqrt(pxsum * pxsum + pysum * pysum + pzsum * pzsum);
         double evtmass = esum * esum - psum * psum;
 
-        if (evtmass > 0)
+        if (evtmass > 0) {
             return Math.sqrt(evtmass);
-        else
+        } else {
             return -99;
+        }
     }
 
 }

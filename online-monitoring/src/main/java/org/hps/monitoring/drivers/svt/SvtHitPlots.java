@@ -176,7 +176,10 @@ public class SvtHitPlots extends Driver {
         // this.resetPlots();
         // return;
         // }
-        tree = analysisFactory.createTreeFactory().create();
+        tree = AIDA.defaultInstance().tree();
+        
+        tree.mkdir("/SvtHits");
+        tree.cd("/SvtHits");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
         plotters.put("Raw hits per sensor: L0-L3", plotterFactory.create("2a Raw hits per sensor: L0-L3"));

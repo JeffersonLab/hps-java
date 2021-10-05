@@ -41,7 +41,6 @@ public class SvtClusterPlots extends Driver {
     private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("SVT Clusters");
     private IHistogramFactory histogramFactory = null;
     private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
-
     private static int nmodlayers = 7;
 
     // Histogram Maps
@@ -221,7 +220,6 @@ public class SvtClusterPlots extends Driver {
 
         // Get the HpsSiSensor objects from the geometry
         sensors = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HpsSiSensor.class);
-
         timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
         if (sensors.size() == 0)
             throw new RuntimeException("No sensors were found in this detector.");
@@ -232,7 +230,9 @@ public class SvtClusterPlots extends Driver {
         // this.resetPlots();
         // return;
         // }
-        tree = analysisFactory.createTreeFactory().create();
+        tree =AIDA.defaultInstance().tree();
+        tree.mkdir("/Clusters");
+        tree.cd("/Clusters");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
         plotters.put("Cluster Amplitude: L0-L3", plotterFactory.create("4a Cluster Amplitude: L0-L3"));
