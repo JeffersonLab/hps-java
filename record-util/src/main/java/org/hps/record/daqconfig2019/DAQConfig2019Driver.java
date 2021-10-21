@@ -71,6 +71,8 @@ public class DAQConfig2019Driver extends Driver {
                 if (dataFiles[i] == null) {
                     if(runNumber == 1194550 || System.getProperties().containsKey("defaultDAQVersion2019") == true) 
                         dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps_v12_1" + "_" + crateNumber[i] + ".txt");
+                    else if(runNumber == 1193700 || System.getProperties().containsKey("defaultDAQVersion2021") == true) 
+                        dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps2021_v2_3" + "_" + crateNumber[i] + ".txt");
                     else throw new RuntimeException("No corresponding DAQ configuration file for run " + String.valueOf(runNumber) + " in hps-java/record-util/src/main/resources/org/hps/record/daqconfig2019.\n"
                             + " Please change run number or set the system property -DdefaultDAQVersion2019 to apply the default DAQ version hps_v12_1.");
                 }
@@ -104,6 +106,8 @@ public class DAQConfig2019Driver extends Driver {
                 if (dataFiles[i] == null) {
                     if(runNumber == 1194550 || System.getProperties().containsKey("defaultDAQVersion2019") == true) 
                         dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps_v12_1" + "_" + crateNumber[i] + ".txt");
+                    else if(runNumber == 1193700 || System.getProperties().containsKey("defaultDAQVersion2021") == true) 
+                        dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps2021_v2_3" + "_" + crateNumber[i] + ".txt");
                     else throw new RuntimeException("No corresponding DAQ configuration file for run " + String.valueOf(runNumber) + " in hps-java/record-util/src/main/resources/org/hps/record/daqconfig2019.\n"
                             + " Please change run number or set the system property -DdefaultDAQVersion2019 to apply default version hps_v12_1.");
                 }
@@ -329,6 +333,37 @@ public class DAQConfig2019Driver extends Driver {
             return "hps_v12_1";   
         else if(runNumber >= 10716 && runNumber <= 10718)
             return "hps_v13_FEE";
+        
+        // To be update for 2021
+        else if(runNumber == 14161 || (runNumber >= 14166 && runNumber <= 14180))
+            return "hps2021_v1_2";
+        
+        else if(runNumber == 14163)
+            return "hps2021_v1_2_FEE";
+        
+        else if((runNumber >= 14184 && runNumber <= 14262))
+            return "hps_v2021_v2_0";
+        
+        else if(runNumber == 14266)
+            return "hps2021_NOSINGLES2_v2_2";
+        
+        else if((runNumber >= 14268 && runNumber <= 14272) || (runNumber >= 14277 && runNumber <= 14332))
+            return "hps_v2021_v2_2";
+        
+        else if(runNumber == 14273)
+            return "hps2021_v2_2_moller_only";
+        
+        else if(runNumber == 14275 || runNumber == 14370 || runNumber == 14371)
+            return "hps2021_v2_2_30kHz_random";
+        
+        else if(runNumber == 14362 || runNumber == 14364)
+            return "hps2021_v2_2_moller_LowLumi";  
+        
+        else if((runNumber >= 14334 && runNumber <= 14360) || (runNumber >= 14367 && runNumber <= 14369)
+                || (runNumber >= 14372 && runNumber <= 14391) || (runNumber >= 14394) )
+            return "hps2021_v2_3";
+        
+        
         else return "none";
         
     }

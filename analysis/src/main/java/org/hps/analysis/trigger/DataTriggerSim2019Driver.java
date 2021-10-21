@@ -119,8 +119,12 @@ public class DataTriggerSim2019Driver extends Driver {
     // Define trigger simulation modules.
     private boolean[] pairTriggerEnabled = new boolean[4];
     private boolean[] singlesTriggerEnabled = new boolean[4];
+    //2021 update
+    private boolean[] singlesXYMinMaxEnabled = new boolean[4];
+    private boolean[] singlesMollerModeEnabled = new boolean[4];
+    
     private boolean[][] pairCutsEnabled = new boolean[4][12];
-    private boolean[][] singlesCutsEnabled = new boolean[4][9];
+    private boolean[][] singlesCutsEnabled = new boolean[4][12];
     private TriggerModule2019[] singlesTrigger = new TriggerModule2019[4];
     private TriggerModule2019[] pairsTrigger = new TriggerModule2019[4];
 
@@ -135,6 +139,10 @@ public class DataTriggerSim2019Driver extends Driver {
     private static final int L2_MATCHING = 3;
     private static final int L1L2_GEO_MATCHING = 4;
     private static final int HODOECAL_GEO_MATCHING = 5;
+    //2021 update
+    private static final int X_MAX = 6;
+    private static final int Y_MIN = 7;
+    private static final int Y_MAX = 8;
 
     private static final int TIME_COINCIDENCE = 0;
     private static final int ENERGY_SUM = 1;
@@ -254,6 +262,10 @@ public class DataTriggerSim2019Driver extends Driver {
                     // Set the trigger enabled status.
                     singlesTriggerEnabled[i] = singles[i].isEnabled();
                     pairTriggerEnabled[i] = pairs[i].isEnabled();
+                    
+                    //2021 update
+                    singlesXYMinMaxEnabled[i] = singles[i].isSinglesXYMinMaxEnabled();
+                    singlesMollerModeEnabled[i] = singles[i].isSinglesMollerModeEnabled();
 
                     // Set the singles cut statuses.
                     singlesCutsEnabled[i][ENERGY_MIN] = singles[i].getEnergyMinCutConfig().isEnabled();
@@ -267,6 +279,10 @@ public class DataTriggerSim2019Driver extends Driver {
                     singlesCutsEnabled[i][3 + L1L2_GEO_MATCHING] = singles[i].getL1L2GeoMatchingConfig().isEnabled();
                     singlesCutsEnabled[i][3 + HODOECAL_GEO_MATCHING] = singles[i].getHodoEcalGeoMatchingConfig()
                             .isEnabled();
+                    //2021 update
+                    singlesCutsEnabled[i][3 + X_MAX] = singles[i].getXMaxCutConfig().isEnabled();
+                    singlesCutsEnabled[i][3 + Y_MIN] = singles[i].getYMinCutConfig().isEnabled();
+                    singlesCutsEnabled[i][3 + Y_MAX] = singles[i].getYMaxCutConfig().isEnabled();
 
                     // Set the pair cut statuses.
                     pairCutsEnabled[i][ENERGY_MIN] = pairs[i].getEnergyMinCutConfig().isEnabled();
@@ -283,10 +299,12 @@ public class DataTriggerSim2019Driver extends Driver {
                 pairCutsEnabled[3][3 + PAIR_L1_MATCHING] = pairs[3].getL1MatchingConfig().isEnabled();
                 pairCutsEnabled[3][3 + PAIR_L2_MATCHING] = pairs[3].getL2MatchingConfig().isEnabled();
                 pairCutsEnabled[3][3 + PAIR_L1L2_GEO_MATCHING] = pairs[3].getL1L2GeoMatchingConfig().isEnabled();
-                pairCutsEnabled[3][3 + PAIR_HODOECAL_GEO_MATCHING] = pairs[3].getHodoEcalGeoMatchingConfig().isEnabled();
+                pairCutsEnabled[3][3 + PAIR_HODOECAL_GEO_MATCHING] = pairs[3].getHodoEcalGeoMatchingConfig().isEnabled();               
 
                 // In evio, -31 for cluster xmin is written as 33 during DAQ since variable is not set as unsigned
                 if((int)singlesTrigger[0].getCutValue(TriggerModule2019.CLUSTER_XMIN) == 33) singlesTrigger[0].setCutValue(TriggerModule2019.CLUSTER_XMIN, -31);
+                
+
             }
         });
     }
@@ -568,6 +586,10 @@ public class DataTriggerSim2019Driver extends Driver {
                 boolean passHodoL2Matching = false;
                 boolean passHodoL1L2Matching = false;
                 boolean passHodoEcalMatching = false;
+                //2021 update
+                boolean passClusterXMax = true;
+                boolean passClusterYMin = true;
+                boolean passClusterYMax = true;
 
                 List<CalorimeterHit> hodoHitList = new ArrayList<CalorimeterHit>();
                 Map<Integer, HodoscopePattern> patternMap = new HashMap<Integer, HodoscopePattern>();
@@ -587,7 +609,18 @@ public class DataTriggerSim2019Driver extends Driver {
                     passClusterHigh = singlesTrigger[triggerNum].clusterTotalEnergyCutHigh(c);
                     passHitCount = singlesTrigger[triggerNum].clusterHitCountCut(c);
                     passClusterXMin = singlesTrigger[triggerNum].clusterXMinCut(c);
-                    passClusterPDE = singlesTrigger[triggerNum].clusterPDECut(c);
+                    //2021 update
+                    if(singlesMollerModeEnabled[triggerNum])
+                        passClusterPDE = singlesTrigger[triggerNum].clusterMollerPDECut(c);
+                    else                        
+                        passClusterPDE = singlesTrigger[triggerNum].clusterPDECut(c);
+                    
+                    //2021 update
+                    if(singlesXYMinMaxEnabled[1]) {
+                        passClusterXMax = singlesTrigger[triggerNum].clusterXMaxCut(c);
+                        passClusterYMin = singlesTrigger[triggerNum].clusterYMinCut(c);
+                        passClusterYMax = singlesTrigger[triggerNum].clusterYMaxCut(c);
+                    }
                     
                     if (topnbot == 1) {
                         // Save valid hodoscope hits into a list
@@ -665,7 +698,18 @@ public class DataTriggerSim2019Driver extends Driver {
                     passClusterHigh = singlesTrigger[triggerNum].clusterTotalEnergyCutHigh(c);
                     passHitCount = singlesTrigger[triggerNum].clusterHitCountCut(c);
                     passClusterXMin = singlesTrigger[triggerNum].clusterXMinCut(c);
-                    passClusterPDE = singlesTrigger[triggerNum].clusterPDECut(c);
+                    //2021 update
+                    if(singlesMollerModeEnabled[triggerNum])
+                        passClusterPDE = singlesTrigger[triggerNum].clusterMollerPDECut(c);
+                    else                        
+                        passClusterPDE = singlesTrigger[triggerNum].clusterPDECut(c);
+                    
+                    //2021 update
+                    if(singlesXYMinMaxEnabled[1]) {
+                        passClusterXMax = singlesTrigger[triggerNum].clusterXMaxCut(c);
+                        passClusterYMin = singlesTrigger[triggerNum].clusterYMinCut(c);
+                        passClusterYMax = singlesTrigger[triggerNum].clusterYMaxCut(c);
+                    }
                     
                     if (topnbot == 1) {
                         // Save valid hodoscope hits into a list
@@ -744,6 +788,11 @@ public class DataTriggerSim2019Driver extends Driver {
                 trigger.setStateHodoL2Matching(passHodoL2Matching);
                 trigger.setStateHodoL1L2Matching(passHodoL1L2Matching);
                 trigger.setStateHodoEcalMatching(passHodoEcalMatching);
+                
+                //2021 update
+                trigger.setStateClusterXMax(passClusterXMax);
+                trigger.setStateClusterYMin(passClusterYMin);
+                trigger.setStateClusterYMax(passClusterYMax);
 
                 if (verbose) {
                     System.out.printf("\t         N >= %1.0f     :: [ %5b ]%n",
@@ -762,6 +811,12 @@ public class DataTriggerSim2019Driver extends Driver {
                     System.out.printf("\t HodoL2Matching     :: [ %5b ]%n", passHodoL2Matching);
                     System.out.printf("\t HodoL1L2Matching   :: [ %5b ]%n", passHodoL1L2Matching);
                     System.out.printf("\t HodoEcalMatching   :: [ %5b ]%n", passHodoEcalMatching);
+                    System.out.printf("\t%-5.0f <= X          :: [ %5b ]%n",
+                            singlesTrigger[triggerNum].getCutValue(TriggerModule2019.CLUSTER_XMAX), passClusterXMax);
+                    System.out.printf("\t%-5.0f <= X          :: [ %5b ]%n",
+                            singlesTrigger[triggerNum].getCutValue(TriggerModule2019.CLUSTER_YMIN), passClusterYMin);
+                    System.out.printf("\t%-5.0f <= X          :: [ %5b ]%n",
+                            singlesTrigger[triggerNum].getCutValue(TriggerModule2019.CLUSTER_YMAX), passClusterYMax);
                 }                
 
                 // A trigger will only be reported by the VTP if it
@@ -792,6 +847,17 @@ public class DataTriggerSim2019Driver extends Driver {
                     continue triggerLoop;
                 }
                 if (singlesCutsEnabled[triggerNum][3 + HODOECAL_GEO_MATCHING] && !trigger.getStateHodoEcalMatching()) {
+                    continue triggerLoop;
+                }
+                
+                //2021 update
+                if (singlesCutsEnabled[triggerNum][3 + X_MAX] && !trigger.getStateClusterXMax()) {
+                    continue triggerLoop;
+                }
+                if (singlesCutsEnabled[triggerNum][3 + Y_MIN] && !trigger.getStateClusterYMin()) {
+                    continue triggerLoop;
+                }
+                if (singlesCutsEnabled[triggerNum][3 + Y_MAX] && !trigger.getStateClusterYMax()) {
                     continue triggerLoop;
                 }
 

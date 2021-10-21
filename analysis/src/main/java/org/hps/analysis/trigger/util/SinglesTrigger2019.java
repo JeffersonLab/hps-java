@@ -25,6 +25,11 @@ public class SinglesTrigger2019<E> extends Trigger<E> {
     private static final String HODO_L2_MATCHING = "hodoL2Matching";
     private static final String HODO_L1L2_MATCHING = "hodoL1L2Matching";
     private static final String HODO_ECAL_MATCHING = "hodoEcalMatching";
+    
+    //2021 update
+    private static final String CLUSTER_XMAX = TriggerModule2019.CLUSTER_XMAX;
+    private static final String CLUSTER_YMIN = TriggerModule2019.CLUSTER_YMIN;
+    private static final String CLUSTER_YMAX = TriggerModule2019.CLUSTER_YMAX;
 
     // Source of hodoscope
     private List<CalorimeterHit> hodoHitList;
@@ -67,6 +72,11 @@ public class SinglesTrigger2019<E> extends Trigger<E> {
         addValidCut(HODO_L2_MATCHING);
         addValidCut(HODO_L1L2_MATCHING);
         addValidCut(HODO_ECAL_MATCHING);
+        
+        //2021 update
+        addValidCut(CLUSTER_XMAX);
+        addValidCut(CLUSTER_YMIN);
+        addValidCut(CLUSTER_YMAX);
     }
 
     /**
@@ -297,6 +307,68 @@ public class SinglesTrigger2019<E> extends Trigger<E> {
      */
     public void setStateHodoEcalMatching(boolean state) {
         setCutState(HODO_ECAL_MATCHING, state);
+    }
+    
+    //2021 update
+    /**
+     * Gets whether cluster xmax was met.
+     * 
+     * @return Returns <code>true</code> if the cut was met and <code>false</code>
+     *         otherwise.
+     */
+    public boolean getStateClusterXMax() {
+        return getCutState(CLUSTER_XMAX);
+    }
+
+    /**
+     * Sets whether the condition for cluster xmax was met.
+     * 
+     * @param state - <code>true</code> indicates that the cut conditions were met
+     *              and <code>false</code> that they were not.
+     */
+    public void setStateClusterXMax(boolean state) {
+        setCutState(CLUSTER_XMAX, state);
+    }
+    
+    
+    /**
+     * Gets whether cluster ymin was met.
+     * 
+     * @return Returns <code>true</code> if the cut was met and <code>false</code>
+     *         otherwise.
+     */
+    public boolean getStateClusterYMin() {
+        return getCutState(CLUSTER_YMIN);
+    }
+
+    /**
+     * Sets whether the condition for cluster ymin was met.
+     * 
+     * @param state - <code>true</code> indicates that the cut conditions were met
+     *              and <code>false</code> that they were not.
+     */
+    public void setStateClusterYMin(boolean state) {
+        setCutState(CLUSTER_YMIN, state);
+    }
+    
+    /**
+     * Gets whether cluster ymax was met.
+     * 
+     * @return Returns <code>true</code> if the cut was met and <code>false</code>
+     *         otherwise.
+     */
+    public boolean getStateClusterYMax() {
+        return getCutState(CLUSTER_YMAX);
+    }
+
+    /**
+     * Sets whether the condition for cluster ymax was met.
+     * 
+     * @param state - <code>true</code> indicates that the cut conditions were met
+     *              and <code>false</code> that they were not.
+     */
+    public void setStateClusterYMax(boolean state) {
+        setCutState(CLUSTER_YMAX, state);
     }
 
     @Override
