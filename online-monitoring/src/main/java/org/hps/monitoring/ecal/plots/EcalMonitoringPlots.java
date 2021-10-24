@@ -3,6 +3,7 @@ package org.hps.monitoring.ecal.plots;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
+import hep.aida.ITree;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class EcalMonitoringPlots extends Driver {
 
+    private static ITree tree = null;
     String inputCollection = "EcalReadoutHits";
     String clusterCollection = "EcalClusters";
     AIDA aida = AIDA.defaultInstance();
@@ -71,13 +73,28 @@ public class EcalMonitoringPlots extends Driver {
     }
 
     protected void detectorChanged(Detector detector) {
+
+        tree = AIDA.defaultInstance().tree();
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/EcalMon";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
+
         // System.out.println("EcalMonitoringPlots:: detector changed was called");
         // Setup the plotter.
         plotter = aida.analysisFactory().createPlotterFactory("Ecal Monitoring Plots")
                 .create("HPS ECal Monitoring Plots");
-        // Setup plots.
-        aida.tree().mkdir("/EcalMon");
-        aida.tree().cd("/EcalMon");
+        // Setup plots.       
 
         String hitCountDrawPlotTitle;
         hitCountDrawPlotTitle = detector.getDetectorName() + " : " + inputCollection + " : Hit Rate KHz";

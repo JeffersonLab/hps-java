@@ -5,6 +5,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.ITree;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
@@ -39,6 +40,7 @@ import org.lcsim.util.aida.AIDA;
 public class KFTrackingReconPlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
+    private static ITree tree = AIDA.defaultInstance().tree();
     private String trackCollectionName = "KalmanFullTracks";
     //    private String helicalTrackHitCollectionName = "HelicalTrackHits";
     String ecalSubdetectorName = "Ecal";
@@ -113,10 +115,12 @@ public class KFTrackingReconPlots extends Driver {
 
     double pMax = 6.0;
 
-    private boolean removeRandomEvents=true;    
+    private boolean removeRandomEvents = true;
+
     public void setRemoveRandomEvents(boolean doit) {
-        this.removeRandomEvents=doit;
+        this.removeRandomEvents = doit;
     }
+
     public void setFeeMomentumCut(double cut) {
         this.feeMomentumCut = cut;
     }
@@ -138,8 +142,20 @@ public class KFTrackingReconPlots extends Driver {
 //         hodos = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HodoscopeDetectorElement.class);
 //        for (HodoscopeDetectorElement hod : hodos)
 //            System.out.println("KFTrackingReconPlots:: hod = " + hod.getName() + " position = " + hod.getGeometry().getPosition().toString()); //pix.getGeometry().getPhysicalVolume(pix.getGeometry().getPosition()).
-        aida.tree().mkdir("/KFTrackingRecon");
-        aida.tree().cd("/KFTrackingRecon");
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/KFTrackingRecon";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
 
         IAnalysisFactory fac = aida.analysisFactory();
         IPlotterFactory pfac = fac.createPlotterFactory("Track Recon");
@@ -334,9 +350,9 @@ public class KFTrackingReconPlots extends Driver {
                 // charge
                 hfeeMom.fill(momentum.magnitude());
                 hfeeTheta.fill(theta);
-                if(momentum.z()<0) {
+                if (momentum.z() < 0) {
                     hfeeMomBot.fill(pmag);
-                }else {
+                } else {
                     hfeeMomTop.fill(pmag);
                 }
             }
@@ -344,7 +360,7 @@ public class KFTrackingReconPlots extends Driver {
             List<TrackerHit> hitsOnTrack = trk.getTrackerHits();
             for (TrackerHit hthOnTrack : hitsOnTrack) {
                 int module = ((RawTrackerHit) hthOnTrack.getRawHits().get(0)).getLayerNumber();
-                SiTrackerHitStrip1D htc = (SiTrackerHitStrip1D) hthOnTrack;                
+                SiTrackerHitStrip1D htc = (SiTrackerHitStrip1D) hthOnTrack;
                 if (htc.getPosition()[1] > 0) {
                     htopLay.fill(module);
                 } else {
@@ -382,7 +398,7 @@ public class KFTrackingReconPlots extends Driver {
                     heVsP.fill(pmag, clust.getEnergy());
                     if (pmag > feeMomentumCut && trk.getCharge() > 0) { // remember, hps-java track charge is opposite
                         // the real charge
-                        hfeePOverE.fill(clust.getEnergy()/pmag);
+                        hfeePOverE.fill(clust.getEnergy() / pmag);
                         hfeeClustPos.fill(posAtEcal.x(), posAtEcal.y());
                     }
                 }

@@ -4,6 +4,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
+import hep.aida.ITree;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +33,7 @@ public class EcalDaqPlots extends Driver {
     private String inputCollection = "EcalCalHits";
     private IPlotter plotter;
     private AIDA aida;
+    private static ITree tree = AIDA.defaultInstance().tree();
 
     private List<IHistogram1D> plots;
 
@@ -112,9 +114,21 @@ public class EcalDaqPlots extends Driver {
          * (int slot : slotsB){ System.out.print(slot+" "); } System.out.println("");
          */
         aida = AIDA.defaultInstance();
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/ECalDaq";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
 
-        aida.tree().mkdir("/EcalDaq");
-        aida.tree().cd("/EcalDaq");
         plots = new ArrayList<IHistogram1D>();
 
         for (int j = 0; j < 14; j++) { // TOP slot

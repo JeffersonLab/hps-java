@@ -46,7 +46,7 @@ public class KFTrackTimePlots extends Driver {
 //    private IHistogram1D[] trackTimeRange = new IHistogram1D[4];
 //    private IHistogram2D[] trackTimeMinMax = new IHistogram2D[4];
 
-    private static ITree tree = null;
+    private static ITree tree = AIDA.defaultInstance().tree();
     private final IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
     private final IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("Track Timing");
     private IHistogramFactory histogramFactory = null;
@@ -79,10 +79,21 @@ public class KFTrackTimePlots extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/KFTrackTime";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
 
-        tree = AIDA.defaultInstance().tree();
-        tree.mkdir("/KFTrackTime");
-        tree.cd("/KFTrackTime");
         histogramFactory = analysisFactory.createHistogramFactory(tree);
 
         List<HpsSiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement()

@@ -8,6 +8,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.ITree;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.lcsim.util.aida.AIDA;
 public class V0ReconPlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
+    private static ITree tree = null;
     String finalStateParticlesColName = "FinalStateParticles";
     String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
@@ -55,21 +57,26 @@ public class V0ReconPlots extends Driver {
     IHistogram2D pyEleVspyPos;
     IHistogram2D pxEleVspxPos;
     IHistogram2D massVsVtxZ;
-    private boolean removeRandomEvents=true;    
+    private boolean removeRandomEvents = true;
+
     public void setRemoveRandomEvents(boolean doit) {
-        this.removeRandomEvents=doit;
+        this.removeRandomEvents = doit;
     }
-    public void setFinalStateParticlesColName(String name){
-        this.finalStateParticlesColName=name;
+
+    public void setFinalStateParticlesColName(String name) {
+        this.finalStateParticlesColName = name;
     }
-    public void setUnconstrainedV0CandidatesColName(String name){
-        this.unconstrainedV0CandidatesColName=name;
+
+    public void setUnconstrainedV0CandidatesColName(String name) {
+        this.unconstrainedV0CandidatesColName = name;
     }
-    public void setBeamConV0CandidatesColName(String name){
-        this.beamConV0CandidatesColName=name;
+
+    public void setBeamConV0CandidatesColName(String name) {
+        this.beamConV0CandidatesColName = name;
     }
-    public void setTargetConV0CandidatesColName(String name){
-        this.targetConV0CandidatesColName=name;
+
+    public void setTargetConV0CandidatesColName(String name) {
+        this.targetConV0CandidatesColName = name;
     }
 
     @Override
@@ -80,16 +87,30 @@ public class V0ReconPlots extends Driver {
         IPlotterFactory pfac = fac.createPlotterFactory("V0 Recon");
         functionFactory = aida.analysisFactory().createFunctionFactory(null);
         fitFactory = aida.analysisFactory().createFitFactory();
-        aida.tree().mkdir("/V0Recon");
-        aida.tree().cd("/V0Recon");
+        tree = AIDA.defaultInstance().tree();
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/V0Recon";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
+
         // resetOccupancyMap(); // this is for calculatin
         plotterUncon = pfac.create("4a Unconstrained V0");
 
         plotterUncon.createRegions(2, 3);
 
         /* V0 Quantities */
-        /* Mass, vertex, chi^2 of fit */
-        /* beamspot constrained */
+ /* Mass, vertex, chi^2 of fit */
+ /* beamspot constrained */
         nV0 = aida.histogram1D("Number of V0 per event", 5, 0, 5);
         unconMass = aida.histogram1D("Unconstrained Mass (GeV)", 100, 0, 0.200);
         unconVx = aida.histogram1D("Unconstrained Vx (mm)", 50, -1, 1);
@@ -122,23 +143,28 @@ public class V0ReconPlots extends Driver {
     public void process(EventHeader event) {
         if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
-            for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
-                    TSData2019 triggerData = new TSData2019(data); 
-                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
-                        return; 
+            for (GenericObject data : triggerList) {
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG) {
+                    TSData2019 triggerData = new TSData2019(data);
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {
+                        return;
                     }
                 }
+            }
         }
         /* make sure everything is there */
-        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName))
+        if (!event.hasCollection(ReconstructedParticle.class, finalStateParticlesColName)) {
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName))
+        }
+        if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName))
+        }
+        if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName)) {
             return;
-        if (!event.hasCollection(ReconstructedParticle.class, targetConV0CandidatesColName))
+        }
+        if (!event.hasCollection(ReconstructedParticle.class, targetConV0CandidatesColName)) {
             return;
+        }
         nRecoEvents++;
 
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class,
@@ -184,13 +210,14 @@ public class V0ReconPlots extends Driver {
 
     @Override
     public void endOfData() {
-        if (outputPlots != null)
+        if (outputPlots != null) {
             try {
                 plotterUncon.writeToFile(outputPlots + "-Unconstrained.gif");
                 plotter2d.writeToFile(outputPlots + "-2d.gif");
             } catch (IOException ex) {
                 Logger.getLogger(TrackingReconPlots.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
 
     }
 

@@ -48,10 +48,12 @@ public class SVTPulseFitPlots extends Driver {
     private SvtTimingConstants timingConstants;
     private boolean correctForT0Offset = false;
     private boolean doShapePlots = false;
-    private boolean removeRandomEvents=true;    
+    private boolean removeRandomEvents = true;
+
     public void setRemoveRandomEvents(boolean doit) {
-        this.removeRandomEvents=doit;
+        this.removeRandomEvents = doit;
     }
+
     public void setCorrectForT0Offset(boolean correct) {
         this.correctForT0Offset = correct;
     }
@@ -68,6 +70,21 @@ public class SVTPulseFitPlots extends Driver {
 
         List<HpsSiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement()
                 .findDescendants(HpsSiSensor.class);
+        tree = AIDA.defaultInstance().tree();
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/SVTPulseFits";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
 
         plotters.put("Timing:  L0-L3", plotterFactory.create("3a Timing"));
         plotters.get("Timing:  L0-L3").createRegions(4, 4);
@@ -157,8 +174,9 @@ public class SVTPulseFitPlots extends Driver {
             }
         }
 
-        for (IPlotter plotter : plotters.values())
+        for (IPlotter plotter : plotters.values()) {
             plotter.show();
+        }
     }
 
     IPlotterStyle createStyle(HpsSiSensor sensor, String xAxisTitle, String yAxisTitle) {
@@ -186,15 +204,16 @@ public class SVTPulseFitPlots extends Driver {
     public void process(EventHeader event) {
         if (removeRandomEvents && event.hasCollection(GenericObject.class, "TSBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TSBank");
-            for (GenericObject data : triggerList)
-                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG){
-                    TSData2019 triggerData = new TSData2019(data); 
-                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {                       
-                        return; 
+            for (GenericObject data : triggerList) {
+                if (AbstractIntData.getTag(data) == TSData2019.BANK_TAG) {
+                    TSData2019 triggerData = new TSData2019(data);
+                    if (triggerData.isPulserTrigger() || triggerData.isFaradayCupTrigger()) {
+                        return;
                     }
                 }
+            }
         }
-        
+
         List<FittedRawTrackerHit> fittedrawHits = event.get(FittedRawTrackerHit.class, fittedTrackerHitCollectionName);
         for (FittedRawTrackerHit fit : fittedrawHits) {
             HpsSiSensor sensor = (HpsSiSensor) fit.getRawTrackerHit().getDetectorElement();
@@ -207,8 +226,9 @@ public class SVTPulseFitPlots extends Driver {
             double offset = timingConstants.getOffsetTime()
                     + (((event.getTimeStamp() - 4 * timingConstants.getOffsetPhase()) % 24) - 12)
                     + sensor.getShapeFitParameters(strip)[HpsSiSensor.T0_INDEX] + sensor.getT0Shift() + tof;
-            if (!correctForT0Offset)
+            if (!correctForT0Offset) {
                 offset = 0.0;
+            }
 
             t0Plots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(fittedT0);
             ampPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(fittedAmp);
@@ -217,12 +237,14 @@ public class SVTPulseFitPlots extends Driver {
 
             t0aPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(fit.getT0(), fit.getAmp());
             if (this.doShapePlots) {
-                if (fit.getAmp() > 4 * sensor.getNoise(strip, 0))
-                    for (int i = 0; i < fit.getRawTrackerHit().getADCValues().length; i++)
+                if (fit.getAmp() > 4 * sensor.getNoise(strip, 0)) {
+                    for (int i = 0; i < fit.getRawTrackerHit().getADCValues().length; i++) {
                         shapePlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(
                                 (i * HPSSVTConstants.SAMPLING_INTERVAL - fit.getT0() - offset),
                                 (fit.getRawTrackerHit().getADCValues()[i] - sensor.getPedestal(strip, i))
-                                        / fit.getAmp());
+                                / fit.getAmp());
+                    }
+                }
             }
         }
     }

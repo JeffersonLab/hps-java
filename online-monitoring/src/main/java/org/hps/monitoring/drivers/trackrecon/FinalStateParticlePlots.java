@@ -8,6 +8,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.ITree;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 
@@ -29,6 +30,7 @@ import org.lcsim.util.aida.AIDA;
 public class FinalStateParticlePlots extends Driver {
 
     private AIDA aida = AIDA.defaultInstance();
+    private static ITree tree = AIDA.defaultInstance().tree();
     String finalStateParticlesColName = "FinalStateParticles";
 
     // some counters
@@ -97,12 +99,25 @@ public class FinalStateParticlePlots extends Driver {
     protected void detectorChanged(Detector detector) {
         // System.out.println("V0Monitoring::detectorChanged  Setting up the plotter");
 
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/FinalState";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
+
         IAnalysisFactory fac = aida.analysisFactory();
         IPlotterFactory pfac = fac.createPlotterFactory("Final State Recon");
         functionFactory = aida.analysisFactory().createFunctionFactory(null);
         fitFactory = aida.analysisFactory().createFitFactory();
-        aida.tree().mkdir("/FinalState");
-        aida.tree().cd("/FinalState");
 
         // resetOccupancyMap(); // this is for calculatin
         plotterEle = pfac.create("3a Electrons");

@@ -4,6 +4,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.ITree;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.sqrt;
@@ -52,6 +53,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class EcalClusterPlots extends Driver {
 
+    private static ITree tree = null;
     // Internal variables.
     private boolean hide = false;
     private boolean logScale = false;
@@ -99,8 +101,23 @@ public class EcalClusterPlots extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
         // Re-instantiate all of the histograms.      
-        aida.tree().mkdir("/EcalClusters");
-        aida.tree().cd("/EcalClusters");
+
+        tree = AIDA.defaultInstance().tree();
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/EcalClusters";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
+
         clusterCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName
                 + " : Cluster Count per Event", 10, -0.5, 9.5);
         clusterSizePlot = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName
