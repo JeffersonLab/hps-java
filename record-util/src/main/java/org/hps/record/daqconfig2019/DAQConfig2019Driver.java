@@ -73,8 +73,10 @@ public class DAQConfig2019Driver extends Driver {
                         dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps_v12_1" + "_" + crateNumber[i] + ".txt");
                     else if(runNumber == 1193700 || System.getProperties().containsKey("defaultDAQVersion2021") == true) 
                         dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps2021_v2_3" + "_" + crateNumber[i] + ".txt");
+                    else if(runNumber == 1191920 || System.getProperties().containsKey("defaultDAQVersion20211920") == true) 
+                        dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps_1.9_v2_6" + "_" + crateNumber[i] + ".txt");
                     else throw new RuntimeException("No corresponding DAQ configuration file for run " + String.valueOf(runNumber) + " in hps-java/record-util/src/main/resources/org/hps/record/daqconfig2019.\n"
-                            + " Please change run number or set the system property -DdefaultDAQVersion2019 to apply the default DAQ version hps_v12_1.");
+                            + " Please change run number or set the system property -DdefaultDAQVersion2019 to apply hps_v12_1, or -DdefaultDAQVersion2021 to apply hps2021_v2_3, or -DdefaultDAQVersion20211920 to apply hps_1.9_v2_6.");
                 }
             }
             
@@ -108,8 +110,10 @@ public class DAQConfig2019Driver extends Driver {
                         dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps_v12_1" + "_" + crateNumber[i] + ".txt");
                     else if(runNumber == 1193700 || System.getProperties().containsKey("defaultDAQVersion2021") == true) 
                         dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps2021_v2_3" + "_" + crateNumber[i] + ".txt");
+                    else if(runNumber == 1191920 || System.getProperties().containsKey("defaultDAQVersion20211920") == true) 
+                        dataFiles[i] = DAQConfig2019Driver.class.getResourceAsStream("hps_1.9_v2_6" + "_" + crateNumber[i] + ".txt");
                     else throw new RuntimeException("No corresponding DAQ configuration file for run " + String.valueOf(runNumber) + " in hps-java/record-util/src/main/resources/org/hps/record/daqconfig2019.\n"
-                            + " Please change run number or set the system property -DdefaultDAQVersion2019 to apply default version hps_v12_1.");
+                            + " Please change run number or set the system property -DdefaultDAQVersion2019 to apply hps_v12_1, or -DdefaultDAQVersion2021 to apply hps2021_v2_3, or -DdefaultDAQVersion20211920 to apply hps_1.9_v2_6.");
                 }
             }
         }
@@ -288,6 +292,8 @@ public class DAQConfig2019Driver extends Driver {
      * @return name of a DAQ configuration version
      */
     private String mapBetweenRunNumberDAQVersion(int runNumber) {
+        
+        // 2019 experiment
         if(runNumber == 9920 || runNumber == 9921)
             return "hps_FEE";
         else if((runNumber >= 10010 && runNumber <= 10022) || (runNumber >= 10028 && runNumber <= 10038)
@@ -334,7 +340,7 @@ public class DAQConfig2019Driver extends Driver {
         else if(runNumber >= 10716 && runNumber <= 10718)
             return "hps_v13_FEE";
         
-        // To be update for 2021
+        // 2021 experiment; 3.7 GeV
         else if(runNumber == 14161 || (runNumber >= 14166 && runNumber <= 14180))
             return "hps2021_v1_2";
         
@@ -353,15 +359,29 @@ public class DAQConfig2019Driver extends Driver {
         else if(runNumber == 14273)
             return "hps2021_v2_2_moller_only";
         
-        else if(runNumber == 14275 || runNumber == 14370 || runNumber == 14371)
+        else if(runNumber == 14275 || runNumber == 14370 || runNumber == 14371 || runNumber == 14503 || (runNumber >= 14586 && runNumber <= 14590))
             return "hps2021_v2_2_30kHz_random";
         
-        else if(runNumber == 14362 || runNumber == 14364)
+        else if(runNumber == 14362 || runNumber == 14364 || runNumber == 14502 || runNumber == 14591 || runNumber == 14592)
             return "hps2021_v2_2_moller_LowLumi";  
         
         else if((runNumber >= 14334 && runNumber <= 14360) || (runNumber >= 14367 && runNumber <= 14369)
-                || (runNumber >= 14372 && runNumber <= 14391) || (runNumber >= 14394) )
+                || (runNumber >= 14372 && runNumber <= 14391) || (runNumber >= 14394 && runNumber <= 14501)
+                || (runNumber >= 14504 && runNumber <= 14585) || (runNumber >= 14594 && runNumber <= 14621) )
             return "hps2021_v2_3";
+        
+        // 2021 experiment; 1.92 GeV        
+        else if(runNumber >= 14628 && runNumber <= 14630)
+            return "hps_1.9_v2_4";
+        
+        else if(runNumber == 14633 || runNumber == 14634)
+            return "hps_1.9_v2_5";
+        
+        else if((runNumber >= 14636 && runNumber <= 14650) || (runNumber >= 14654 && runNumber <= 14673) )
+            return "hps_1.9_v2_6";
+        
+        else if(runNumber == 14652 || runNumber == 14653)
+            return "hps_1.9_Moller_v2_6";
         
         
         else return "none";
