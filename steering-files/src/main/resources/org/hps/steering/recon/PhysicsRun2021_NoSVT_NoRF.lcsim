@@ -30,13 +30,13 @@
 
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
-            <logLevel>CONFIG</logLevel>
+        <logLevel>CONFIG</logLevel>
         </driver>
 
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
         </driver>
         <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
-        <driver name="ClusterRFTimeCorrDriver" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver"/>  
+        <!-- <driver name="ClusterRFTimeCorrDriver" type="org.hps.recon.ecal.cluster.ClusterRFTimeCorrDriver"/>  -->
 
 
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
