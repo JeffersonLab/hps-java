@@ -19,13 +19,13 @@
            <runMin>10115</runMin>
         </driver>-->
         <driver name="IterateGains" type="org.hps.recon.ecal.IterateGainFactorDriver">
-           <inputCollectionName>EcalHitsIter1</inputCollectionName>
+           <inputCollectionName>EcalHits</inputCollectionName>
            <outputCollectionName>EcalHitsIter2</outputCollectionName>
            <gainFile>ecalGains.txt</gainFile>
         </driver>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+           <inputHitCollectionName>EcalHitsIter2</inputHitCollectionName>
            <outputClusterCollectionName>EcalClustersIter1</outputClusterCollectionName>
-           <inputHitCollectionName>EcalHitsIter1</inputHitCollectionName>
         </driver>
         <driver name="FEEPlotter" type="org.hps.analysis.ecal.FEEClusterPlotter">
            <inputCollection>EcalClustersIter1</inputCollection>
