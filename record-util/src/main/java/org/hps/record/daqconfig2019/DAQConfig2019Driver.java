@@ -367,7 +367,8 @@ public class DAQConfig2019Driver extends Driver {
         
         else if((runNumber >= 14334 && runNumber <= 14360) || (runNumber >= 14367 && runNumber <= 14369)
                 || (runNumber >= 14372 && runNumber <= 14391) || (runNumber >= 14394 && runNumber <= 14501)
-                || (runNumber >= 14504 && runNumber <= 14585) || (runNumber >= 14594 && runNumber <= 14621) )
+                || (runNumber >= 14504 && runNumber <= 14585) || (runNumber >= 14594 && runNumber <= 14621)
+                || (runNumber >= 14684))
             return "hps2021_v2_3";
         
         // 2021 experiment; 1.92 GeV        

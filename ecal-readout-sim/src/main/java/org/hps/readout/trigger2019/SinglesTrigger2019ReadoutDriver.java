@@ -84,12 +84,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     /**
      * Defines the size of an energy bin for trigger output plots.
      */
-    private static final double BIN_SIZE = 0.025;   
-    
-    /**
-     * If require geometry matching
-     */
-    private boolean geometryMatchingRequired = false;
+    private static final double BIN_SIZE = 0.025;      
     
     
     // ==============================================================
@@ -127,7 +122,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
                     else if(triggerType.equals(SINGLES0)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles0Config());
                 }
             });
-        }
+        }                               
     }
     
     @Override
@@ -142,7 +137,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     }
     
     @Override
-    public void process(EventHeader event) {
+    public void process(EventHeader event) {                
         // Check that clusters are available for the trigger.
         Collection<Cluster> clusters = null;
         Collection<HodoscopePattern> hodoPatterns = null;
@@ -203,22 +198,42 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             int clusterX = ixy.x;
             if(clusterX < 0) clusterX++;
             
+            int clusterY = ixy.y;
+            
             // XMin is at least 0.
-            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_XMIN_EN) && !triggerModule.clusterXMinCut(clusterX)) {
+            if(!triggerModule.getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN)) {
+                if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_XMIN_EN) && !triggerModule.clusterXMinCut(clusterX)) {
+                    continue;
+                }
+                
+                // XMin cut has been applied.
+                if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_PDE_EN) && !triggerModule.clusterPDECut(cluster, clusterX)) {
+                    continue;                
+                } 
+            }
+            
+            if(triggerModule.getCutEn(TriggerModule2019.SINGLES_L1L2ECAL_MATCHING_EN) && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList)) {
                 continue;
             }
             
-            // XMin cut has been applied.
-            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_PDE_EN) && !triggerModule.clusterPDECut(cluster, clusterX)) {
-                continue;                
+            //For 2021 update, Moller triggers
+            if(triggerModule.getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN)) {
+                if(triggerModule.getCutEn(TriggerModule2019.SINGLES_XYMINMAX_EN) && !triggerModule.clusterXMinCut(clusterX)) {
+                    continue;
+                }
+                if(triggerModule.getCutEn(TriggerModule2019.SINGLES_XYMINMAX_EN) && !triggerModule.clusterXMaxCut(clusterX)) {
+                    continue;
+                }            
+                if(triggerModule.getCutEn(TriggerModule2019.SINGLES_XYMINMAX_EN) && !triggerModule.clusterYMinCut(clusterY)) {
+                    continue;
+                }
+                if(triggerModule.getCutEn(TriggerModule2019.SINGLES_XYMINMAX_EN) && !triggerModule.clusterYMaxCut(clusterY)) {
+                    continue;
+                }
+                if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_PDE_EN) && !triggerModule.clusterMollerPDECut(cluster, clusterX)) {
+                    continue;                
+                }  
             }
-           
-            
-            if(geometryMatchingRequired && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList)) {
-                continue;
-            }
-            
-            
             // Note that a trigger occurred.
             triggered = true;
             
@@ -366,8 +381,5 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     public void setClusterPDEC3(double pdeC3) {
         triggerModule.setCutValue(TriggerModule2019.CLUSTER_PDE_C3, pdeC3);
     }
-    
-    public void setGeometryMatchingRequired(boolean geometryMatchingRequired) {
-        this.geometryMatchingRequired = geometryMatchingRequired;
-    }         
+            
 }

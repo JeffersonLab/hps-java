@@ -151,6 +151,12 @@ public class TriggerModule2019 {
     public static final String CLUSTER_XMIN_EN = "clusterXMINEn";
 
     public static final String CLUSTER_PDE_EN = "clusterPDEEn";
+    
+    public static final String SINGLES_L1_MATCHING_EN = "singlesL1MatchingEn";
+    public static final String SINGLES_L2_MATCHING_EN = "singlesL2MatchingEn";
+    public static final String SINGLES_L1L2_MATCHING_EN = "singlesL1L2MatchingEn";
+    public static final String SINGLES_L1L2ECAL_MATCHING_EN = "singlesL1L2EcalMatchingEn";
+    
 
     public static final String PAIR_ENERGY_SUM_EN= "pairEnergySumEn";
 
@@ -166,7 +172,8 @@ public class TriggerModule2019 {
     public static final String CLUSTER_XMAX_EN = "clusterXMAXEn";
     public static final String CLUSTER_YMIN_EN = "clusterYMINEn";
     public static final String CLUSTER_YMAX_EN = "clusterYMAXEn";
-    public static final String SINGLES_MOLLERMODE_EN = "single3MollerMondeEn";
+    public static final String SINGLES_XYMINMAX_EN = "singlesXYMinMaxEn";
+    public static final String SINGLES_MOLLERMODE_EN = "singlesMollerModeEn";
     
     /**
      * Stores the general cut values.
@@ -176,7 +183,7 @@ public class TriggerModule2019 {
     /**
      * Stores the singles cut values.
      */
-    private final Map<String, Boolean> singlesTriggerCutsEn = new HashMap<String, Boolean>(6);
+    private final Map<String, Boolean> singlesTriggerCutsEn = new HashMap<String, Boolean>(11);
 
     /**
      * Stores the pairs cut values.
@@ -222,10 +229,17 @@ public class TriggerModule2019 {
         // If enabled for singles cuts
         singlesTriggerCutsEn.put(CLUSTER_XMIN_EN, true);
         singlesTriggerCutsEn.put(CLUSTER_PDE_EN, true);
+        singlesTriggerCutsEn.put(SINGLES_L1_MATCHING_EN, true);
+        singlesTriggerCutsEn.put(SINGLES_L2_MATCHING_EN, true);
+        singlesTriggerCutsEn.put(SINGLES_L1L2_MATCHING_EN, true);
+        singlesTriggerCutsEn.put(SINGLES_L1L2ECAL_MATCHING_EN, true);
+        
+        
         // 2021 update
         singlesTriggerCutsEn.put(CLUSTER_XMAX_EN, false);
         singlesTriggerCutsEn.put(CLUSTER_YMIN_EN, false);
         singlesTriggerCutsEn.put(CLUSTER_YMAX_EN, false);
+        singlesTriggerCutsEn.put(SINGLES_XYMINMAX_EN, false);
         singlesTriggerCutsEn.put(SINGLES_MOLLERMODE_EN, false);
         
         // If enabled for pairs cuts
@@ -368,10 +382,17 @@ public class TriggerModule2019 {
         
         setCutEn(CLUSTER_XMIN_EN, config.getXMinCutConfig().isEnabled());
         setCutEn(CLUSTER_PDE_EN, config.getPDECutConfig().isEnabled());
+        setCutEn(SINGLES_L1_MATCHING_EN, config.getL1MatchingConfig().isEnabled());
+        setCutEn(SINGLES_L2_MATCHING_EN, config.getL2MatchingConfig().isEnabled());
+        setCutEn(SINGLES_L1L2_MATCHING_EN, config.getL1L2GeoMatchingConfig().isEnabled());
+        setCutEn(SINGLES_L1L2ECAL_MATCHING_EN, config.getHodoEcalGeoMatchingConfig().isEnabled());
+        
+        
         //2021 update       
         setCutEn(CLUSTER_XMAX_EN, config.getXMaxCutConfig().isEnabled());
         setCutEn(CLUSTER_YMIN_EN, config.getYMinCutConfig().isEnabled());
         setCutEn(CLUSTER_YMAX_EN, config.getYMaxCutConfig().isEnabled());
+        setCutEn(SINGLES_XYMINMAX_EN, config.isSinglesXYMinMaxEnabled());
         setCutEn(SINGLES_MOLLERMODE_EN, config.isSinglesMollerModeEnabled());
     }
 
