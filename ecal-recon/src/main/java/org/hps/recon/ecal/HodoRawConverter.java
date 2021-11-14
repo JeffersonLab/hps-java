@@ -20,6 +20,8 @@ public class HodoRawConverter {
     private boolean useUserGain = false;
     private double userGains = 0;
     private int tet = HodoConstants.TET_AllCh;
+    
+    private boolean isMC = false;
 
     public ArrayList<Integer> FindThresholdCrossings(RawTrackerHit hit, double ped) {
 
@@ -117,8 +119,13 @@ public class HodoRawConverter {
         if (useRunningPedestal && event != null) {
 
             Map<HodoscopeChannel, Double> runningPedMap = (Map<HodoscopeChannel, Double>) event.get("HodoRunningPedestals");
-            HodoscopeChannel chan = hodoConditions.getChannels().findGeometric(cellid);
-
+            
+            HodoscopeChannel chan;
+            if(!isMC)
+                chan = hodoConditions.getChannels().findGeometric(cellid);
+            else
+                chan = hodoConditions.getChannels().findChannel((int)cellid);
+            
             return runningPedMap.get(chan);
         } else {
             return findChannel(cellid).getCalibration().getPedestal();
@@ -130,18 +137,27 @@ public class HodoRawConverter {
     }
 
     public HodoscopeChannelConstants findChannel(long cellID) {
-        //System.out.println(hodoConditions.getChannels().findGeometric(cellID));
-        return hodoConditions.getChannelConstants(hodoConditions.getChannels().findGeometric(cellID));
+        if(!isMC)
+            return hodoConditions.getChannelConstants(hodoConditions.getChannels().findGeometric(cellID));
+        else
+            return hodoConditions.getChannelConstants(hodoConditions.getChannels().findChannel((int)cellID));
     }
 
     // =========== Computed Hodoscop identifiers from cellID
     public int[] getHodoIdentifiers(long cellID) {
 
+        HodoscopeChannel chan;
+        if(!isMC) 
+            chan = hodoConditions.getChannels().findGeometric(cellID);
+        else 
+            chan = hodoConditions.getChannels().findChannel((int)cellID);
+
         int[] hodo_ids = new int[4];
-        hodo_ids[0] = hodoConditions.getChannels().findGeometric(cellID).getIX();
-        hodo_ids[1] = hodoConditions.getChannels().findGeometric(cellID).getIY();
-        hodo_ids[2] = hodoConditions.getChannels().findGeometric(cellID).getLayer();
-        hodo_ids[3] = hodoConditions.getChannels().findGeometric(cellID).getHole();
+        hodo_ids[0] = chan.getIX();
+        hodo_ids[1] = chan.getIY();
+        hodo_ids[2] = chan.getLayer();
+        hodo_ids[3] = chan.getHole();
+
 
         return hodo_ids;
     }
@@ -158,6 +174,15 @@ public class HodoRawConverter {
 
         this.userGains = a_usergain;
         useUserGain = true;
+    }
+    
+    /**
+     * Set MC mode.
+     *
+     * @param isMC   
+     */
+    public void setIsMC(final boolean isMC) {
+        this.isMC = isMC;
     }
 
 }

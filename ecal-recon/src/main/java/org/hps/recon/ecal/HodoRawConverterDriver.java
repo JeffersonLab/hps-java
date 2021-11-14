@@ -20,6 +20,8 @@ public class HodoRawConverterDriver extends Driver {
     private HodoscopeConditions hodoConditions = null;
 
     private HodoRawConverter converter = null;
+    
+    private boolean isMC = false;
 
     // ===== The Mode1 Hodo hit collection name =====
     private String rawCollectionName = "HodoReadoutHits";
@@ -41,6 +43,17 @@ public class HodoRawConverterDriver extends Driver {
     
     public void setUseUserGains(double aUserGain){
         converter.setUseUserGain(aUserGain);
+    }
+    
+    
+    /**
+     * Set MC mode.
+     *
+     * @param isMC   
+     */
+    public void setIsMC(boolean isMC){
+        this.isMC = isMC;
+        converter.setIsMC(isMC);
     }
 
     public void setTETAllChannels(int arg_tet) {
@@ -157,8 +170,11 @@ public class HodoRawConverterDriver extends Driver {
                     cl_layer = ArrayUtils.add(cl_layer, hit_ilayer);
                     cl_Energy = ArrayUtils.add(cl_Energy, this_hit.getRawEnergy());
                     cl_Time = ArrayUtils.add(cl_Time, this_hit.getTime());
-                    cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getDetectorElement().getIdentifier().getValue());
-
+                    if(!isMC)
+                        cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getDetectorElement().getIdentifier().getValue());
+                    else
+                        cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getCellID());
+                    
                     continue;
                 }
 
@@ -189,7 +205,11 @@ public class HodoRawConverterDriver extends Driver {
                         cl_ix = ArrayUtils.add(cl_ix, hit_ix);
                         cl_iy = ArrayUtils.add(cl_iy, hit_iy);
                         cl_layer = ArrayUtils.add(cl_layer, hit_ilayer);
-                        cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getDetectorElement().getIdentifier().getValue());
+                        
+                        if(!isMC)
+                            cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getDetectorElement().getIdentifier().getValue());
+                        else
+                            cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getCellID());
 
                         double energy = HodoConstants.cl_Esum_scale * (this_hit.getRawEnergy() + that_hit.getRawEnergy()) / 2.;
 
@@ -239,6 +259,15 @@ public class HodoRawConverterDriver extends Driver {
             event.put("HodoGenericClusters", hodo_cl_list, SimpleGenericObject.class, 0);
 
         }
+    }
+    
+    /**
+     * Set the input collection name (source).
+     *
+     * @param inputCollectionName the input collection name
+     */
+    public void setInputCollectionName(final String inputCollectionName) {
+        this.rawCollectionName = inputCollectionName;
     }
 
     /**
