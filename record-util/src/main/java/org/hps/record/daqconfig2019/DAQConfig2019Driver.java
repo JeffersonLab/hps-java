@@ -365,10 +365,20 @@ public class DAQConfig2019Driver extends Driver {
         else if(runNumber == 14362 || runNumber == 14364 || runNumber == 14502 || runNumber == 14591 || runNumber == 14592)
             return "hps2021_v2_2_moller_LowLumi";  
         
+        else if(runNumber == 14753 || runNumber == 14754)
+            return "hps2021_v2_3_SVT_WIRE_RUN";
+        
+        else if(runNumber >= 14762 && runNumber <= 14764)
+            return "hps2021_FEE_straight_v2_2";
+        
+        else if(runNumber == 14767 || runNumber == 14768)
+            return "hps2021_FEE_straight_v2_4";
+        
         else if((runNumber >= 14334 && runNumber <= 14360) || (runNumber >= 14367 && runNumber <= 14369)
                 || (runNumber >= 14372 && runNumber <= 14391) || (runNumber >= 14394 && runNumber <= 14501)
                 || (runNumber >= 14504 && runNumber <= 14585) || (runNumber >= 14594 && runNumber <= 14621)
-                || (runNumber >= 14684))
+                || (runNumber >= 14684 && runNumber <= 14722) || (runNumber >= 14726 && runNumber <= 14751)
+                || (runNumber >= 14756 && runNumber <= 14757) || (runNumber >= 14770 && runNumber <= 14772))
             return "hps2021_v2_3";
         
         // 2021 experiment; 1.92 GeV        
