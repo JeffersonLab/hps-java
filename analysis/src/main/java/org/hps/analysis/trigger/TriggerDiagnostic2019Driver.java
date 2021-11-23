@@ -1475,25 +1475,40 @@ public class TriggerDiagnostic2019Driver extends Driver {
                         continue hardwareLoop;
                     }
 
-                    if (hardwareSinglesTrigger.passHodo1() != simSinglesTrigger.getStateHodoL1Matching()) {
+                    if (!singlesTrigger[triggerType.getTriggerNum()].getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN) && hardwareSinglesTrigger.passHodo1() != simSinglesTrigger.getStateHodoL1Matching()) {
                         logger.printf(" [ fail; Hodo L1     ]%n");
                         continue hardwareLoop;
                     }
 
-                    if (hardwareSinglesTrigger.passHodo2() != simSinglesTrigger.getStateHodoL2Matching()) {
+                    if (!singlesTrigger[triggerType.getTriggerNum()].getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN) && hardwareSinglesTrigger.passHodo2() != simSinglesTrigger.getStateHodoL2Matching()) {
                         logger.printf(" [ fail; Hodo L2     ]%n");
                         continue hardwareLoop;
                     }
 
-                    if (hardwareSinglesTrigger.passHodoGeo() != simSinglesTrigger.getStateHodoL1L2Matching()) {
+                    if (!singlesTrigger[triggerType.getTriggerNum()].getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN) && hardwareSinglesTrigger.passHodoGeo() != simSinglesTrigger.getStateHodoL1L2Matching()) {
                         logger.printf(" [ fail; Hodo L1L2   ]%n");
                         continue hardwareLoop;
                     }
 
-                    if (hardwareSinglesTrigger.passHodoECal() != simSinglesTrigger.getStateHodoEcalMatching()) {
+                    if (!singlesTrigger[triggerType.getTriggerNum()].getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN) && hardwareSinglesTrigger.passHodoECal() != simSinglesTrigger.getStateHodoEcalMatching()) {
                         logger.printf(" [ fail; Hodo Ecal   ]%n");
                         continue hardwareLoop;
                     }
+                    
+                    //2021 update
+                    if (hardwareSinglesTrigger.passXMax() != simSinglesTrigger.getStateClusterXMax()) {
+                        logger.printf(" [ fail; x max      ]%n");
+                        continue hardwareLoop;
+                    }
+                    if (hardwareSinglesTrigger.passYMin() != simSinglesTrigger.getStateClusterYMin()) {
+                        logger.printf(" [ fail; y min      ]%n");
+                        continue hardwareLoop;
+                    }
+                    if (hardwareSinglesTrigger.passYMax() != simSinglesTrigger.getStateClusterYMax()) {
+                        logger.printf(" [ fail; y max      ]%n");
+                        continue hardwareLoop;
+                    }
+                    
 
                 } else {
                     throw new IllegalArgumentException("Trigger type is unrecongnized or simulated and "
@@ -1555,7 +1570,7 @@ public class TriggerDiagnostic2019Driver extends Driver {
                 System.out.println("software trigger: ");
                 System.out.println("\ttime" + getTriggerTime(simTrigger));
                 System.out.println(
-                        "\tstate of Emin, state of Emax, state of hit count, state of xmin, state of PED, state of Hodo L1, state of Hodo L2, state of Hodo L1L2, state of Hodo Ecal: "
+                        "\tstate of Emin, state of Emax, state of hit count, state of xmin, state of PED, state of Hodo L1, state of Hodo L2, state of Hodo L1L2, state of Hodo Ecal, state of xmax, state of ymin, state of ymax: "
                                 + simSinglesTrigger.getStateClusterEnergyLow() + ", "
                                 + simSinglesTrigger.getStateClusterEnergyHigh() + ", "
                                 + simSinglesTrigger.getStateHitCount() + ", " + simSinglesTrigger.getStateClusterXMin()
@@ -1563,20 +1578,26 @@ public class TriggerDiagnostic2019Driver extends Driver {
                                 + simSinglesTrigger.getStateHodoL1Matching() + ", "
                                 + simSinglesTrigger.getStateHodoL2Matching() + ", "
                                 + simSinglesTrigger.getStateHodoL1L2Matching() + ", "
-                                + simSinglesTrigger.getStateHodoEcalMatching());
+                                + simSinglesTrigger.getStateHodoEcalMatching() + ", " 
+                                + simSinglesTrigger.getStateClusterXMax() + ", " 
+                                + simSinglesTrigger.getStateClusterYMin() + ", " 
+                                + simSinglesTrigger.getStateClusterYMax());
 
                 System.out.println("hardware triggers: ");
                 for (VTPSinglesTrigger hardwareTrigger : hardwareTriggers) {
                     VTPSinglesTrigger hardwareSinglesTrigger = (VTPSinglesTrigger) hardwareTrigger;
                     System.out.println("\ttime" + hardwareSinglesTrigger.getTime());
                     System.out.println(
-                            "\tstate of Emin, state of Emax, state of hit count, state of xmin, state of PED, state of Hodo L1, state of Hodo L2, state of Hodo L1L2, state of Hodo Ecal: "
+                            "\tstate of Emin, state of Emax, state of hit count, state of xmin, state of PED, state of Hodo L1, state of Hodo L2, state of Hodo L1L2, state of Hodo Ecal, state of xmax, state of ymin, state of ymax: "
                                     + hardwareSinglesTrigger.passEMin() + ", " + hardwareSinglesTrigger.passEMax()
                                     + ", " + hardwareSinglesTrigger.passNMin() + ", "
                                     + hardwareSinglesTrigger.passXMin() + ", " + hardwareSinglesTrigger.passPDET()
                                     + ", " + hardwareSinglesTrigger.passHodo1() + ", "
                                     + hardwareSinglesTrigger.passHodo2() + ", " + hardwareSinglesTrigger.passHodoGeo()
-                                    + ", " + hardwareSinglesTrigger.passHodoECal());
+                                    + ", " + hardwareSinglesTrigger.passHodoECal() + ", "
+                                    + hardwareSinglesTrigger.passXMax() + ", "
+                                    + hardwareSinglesTrigger.passYMin() + ", "
+                                    + hardwareSinglesTrigger.passYMax());
                 }
             }
 

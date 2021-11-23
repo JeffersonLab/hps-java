@@ -380,8 +380,6 @@
             <!-- Units of 2 ns beam bunches. -->
             <deadTime>15</deadTime>   
 
-	    <geometryMatchingRequired>false</geometryMatchingRequired>
-
         </driver>
         
         <driver name="SinglesTrigger3" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
@@ -393,8 +391,6 @@
 
             <!-- Units of 2 ns beam bunches. -->
             <deadTime>15</deadTime>            
-
-	    <geometryMatchingRequired>true</geometryMatchingRequired>
 
         </driver>
         

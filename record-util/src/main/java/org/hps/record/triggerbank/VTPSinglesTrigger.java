@@ -113,11 +113,34 @@ public class VTPSinglesTrigger {
     }
 
     /**
-     * Indicate if pass X minimum of the positron side.
+     * Indicate if pass X minimum.
      */
     public boolean passXMin() {
         return passBits.get(3);
     }
+    
+    //2021 update
+    /**
+     * Indicate if pass X maximum.
+     */
+    public boolean passXMax() {
+        return passBits.get(3);
+    }
+    
+    /**
+     * Indicate if pass Y minimum.
+     */
+    public boolean passYMin() {
+        return passBits.get(3);
+    }
+    
+    /**
+     * Indicate if pass Y maximum.
+     */
+    public boolean passYMax() {
+        return passBits.get(3);
+    }
+    
     
     /**
      * Indicate if pass position dependent energy threshhold.
