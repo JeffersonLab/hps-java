@@ -226,6 +226,37 @@ public class KalTrack {
         return rtnArray;
     }
     
+    // Return an unbiased intersection point of a track with a sensor
+    // If "local" is true, then the point is returned in the sensor system, otherwise global
+    public double [] unbiasedIntersect(MeasurementSite site, boolean local) {
+        Vec aStar = null;  
+        if (site.hitID >= 0) {  // Use the inverse filter to remove the bias from the local hit
+            double sigma = site.m.hits.get(site.hitID).sigma;
+            DMatrixRMaj Cstar = new DMatrixRMaj(5,5);
+            aStar = site.aS.inverseFilter(site.H, sigma*sigma, Cstar);
+        } else {                // Just use the local helix if there is no local hit
+            aStar = site.aS.helix.a;
+        }
+        HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+        // Transform the detector plane into the local B-field system, since that is the system
+        // in which the helix parameters are defined
+        Plane pTrans = site.m.p.toLocal(site.aS.helix.Rot, site.aS.helix.origin);
+        // Find the phi turning angle to the intersection point of the helix and detector plane
+        double phiInt = hpi.planeIntersect(aStar, site.aS.helix.X0, site.aS.helix.alpha, pTrans);
+        if (!Double.isNaN(phiInt)) {
+            // Get the intersection point of the helix and plane in the local field coordinates
+            Vec intPnt = HelixState.atPhi(site.aS.helix.X0, aStar, phiInt, site.aS.helix.alpha);
+            // Transform the intersection back into the global coordinates
+            Vec globalInt = site.aS.helix.toGlobal(intPnt);
+            if (!local) return globalInt.v;
+            // Transform the intersection point to the local sensor system
+            Vec localInt = site.m.toLocal(globalInt);
+            return localInt.v;
+        }    
+        return new double[] {999.,999.,999.};
+    }
+
+    
     private void makeLyrMap() {
         lyrMap = new HashMap<Integer, MeasurementSite>(nHits);
         for (MeasurementSite site : SiteList) {
