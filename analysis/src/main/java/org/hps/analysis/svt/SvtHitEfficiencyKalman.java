@@ -54,6 +54,7 @@ import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.GblUtils;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
+import org.hps.recon.tracking.kalman.KalTrack;
 
 /**
  * Driver used to compute SVT hit efficiencies at each sensor
@@ -258,7 +259,7 @@ public class SvtHitEfficiencyKalman extends Driver {
 
     //Collection Strings
     private String stripHitOutputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
-    private String GBLTrackCollectionName = "GBLTracks";
+    private String TrackCollectionName = "KalmanFullTracks";
 
     //Bfield
     protected static double bfield;
@@ -511,13 +512,14 @@ public class SvtHitEfficiencyKalman extends Driver {
     public void process(EventHeader event) {
         aida.tree().cd("/");
 
-        //Grab all GBL tracks in the event
-        List<Track> tracks = event.get(Track.class, GBLTrackCollectionName);
+        //Grab all Kalman tracks in the event
+        List<Track> tracks = event.get(Track.class, TrackCollectionName);
 
         //Grab all the clusters in the event
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, stripHitOutputCollectionName);
 
         for (Track track : tracks) {
+            KalTrack kalTrk=(KalTrack)track;
             //Grab the unused layer on the track
             int unusedLay = getUnusedSvtLayer(track.getTrackerHits());
             if (unusedLay == -1)
