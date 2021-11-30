@@ -228,14 +228,15 @@ public class KalTrack {
     
     // Return an unbiased intersection point of a track with a sensor
     // If "local" is true, then the point is returned in the sensor system, otherwise global
-    public double [] unbiasedIntersect(MeasurementSite site, boolean local) {
+    public Pair<Double[],Double> unbiasedIntersect(MeasurementSite site, boolean local) {
         Vec aStar = null;  
+        DMatrixRMaj Cstar = new DMatrixRMaj(5,5);
         if (site.hitID >= 0) {  // Use the inverse filter to remove the bias from the local hit
-            double sigma = site.m.hits.get(site.hitID).sigma;
-            DMatrixRMaj Cstar = new DMatrixRMaj(5,5);
+            double sigma = site.m.hits.get(site.hitID).sigma;            
             aStar = site.aS.inverseFilter(site.H, sigma*sigma, Cstar);
         } else {                // Just use the local helix if there is no local hit
             aStar = site.aS.helix.a;
+            Cstar = site.aS.helix.C;
         }
         HelixPlaneIntersect hpi = new HelixPlaneIntersect();
         // Transform the detector plane into the local B-field system, since that is the system
@@ -248,12 +249,14 @@ public class KalTrack {
             Vec intPnt = HelixState.atPhi(site.aS.helix.X0, aStar, phiInt, site.aS.helix.alpha);
             // Transform the intersection back into the global coordinates
             Vec globalInt = site.aS.helix.toGlobal(intPnt);
-            if (!local) return globalInt.v;
+            if (!local)  new Pair<>(new Double[]{globalInt.v[0],globalInt.v[1],globalInt.v[2]},999); //I didn't include global variance since I'm lazy
             // Transform the intersection point to the local sensor system
-            Vec localInt = site.m.toLocal(globalInt);
-            return localInt.v;
+            Vec localInt = site.m.toLocal(globalInt);          
+            CommonOps_DDRM.mult(Cstar, site.H, tempV);               
+            Double varUmeas= CommonOps_DDRM.dot(site.H, tempV);
+            return new Pair<>(new Double[]{localInt.v[0],localInt.v[1],localInt.v[2]},varUmeas);
         }    
-        return new double[] {999.,999.,999.};
+        return new Pair<>(new Double[] {999.,999.,999.},999.);
     }
 
     

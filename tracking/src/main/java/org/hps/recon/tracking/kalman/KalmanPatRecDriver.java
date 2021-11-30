@@ -99,7 +99,9 @@ public class KalmanPatRecDriver extends Driver {
     private boolean addResiduals;               // If true add the hit-on-track residuals to the LCIO event
     private List<HpsSiSensor> sensors = null;   // List of tracker sensors
     private String kalTrackCollectionName = "KalTracks";
+    private String  kalTrackRelationName="KalTrackRelations";
     private boolean addKalTracks = false;
+    
 
     public String getOutputFullTrackCollectionName() {
         return outputFullTrackCollectionName;
@@ -368,7 +370,7 @@ public class KalmanPatRecDriver extends Driver {
             kalTracks = kPatList[0];
             kalTracks.addAll(kPatList[1]);
             event.put(kalTrackCollectionName, kalTracks, KalTrack.class, flag);
-            event.put("KalTrackRelations", kalTracksRelations, LCRelation.class, 0);
+            event.put(kalTrackRelationName, kalTracksRelations, LCRelation.class, 0);
         }
 
         if (kPlot != null) {
@@ -502,6 +504,7 @@ public class KalmanPatRecDriver extends Driver {
                 TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f);
                 trackDataCollection.add(KFtrackData);
                 trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
+                kalTracksRelations.add(new BaseLCRelation(KalmanTrackHPS,kTk));
 
                 //Add the TrackResiduas
                 List<Integer> layers = new ArrayList<Integer>();

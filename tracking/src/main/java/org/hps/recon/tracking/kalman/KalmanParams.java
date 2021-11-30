@@ -37,7 +37,7 @@ public class KalmanParams {
     double [] vtxSize;
     double [] minSeedE;
     double edgeTolerance;
-    static final int numLayers = 14;
+    public static final int numLayers = 14;
     
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
     private String [] tb;
