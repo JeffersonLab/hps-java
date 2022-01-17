@@ -19,7 +19,7 @@
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
            <outputClusterCollectionName>EcalClustersIter1</outputClusterCollectionName>
            <inputHitCollectionName>EcalHitsIter1</inputHitCollectionName>
-           <hitEnergyThreshold>0.0075</hitEnergyThreshold>
+           <hitEnergyThreshold>0.030</hitEnergyThreshold>
         </driver>
         <driver name="FEEPlotter" type="org.hps.analysis.ecal.FEEClusterPlotter">
            <inputCollection>EcalClustersIter1</inputCollection>
