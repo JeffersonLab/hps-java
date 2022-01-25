@@ -128,6 +128,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private int trackSide = -1;
     private boolean doCOMAlignment = false;
     private double seed_precision = 10000; // the constraint on q/p
+    private double momC=4.55;
     
     private GblTrajectoryMaker _gblTrajMaker;
     
@@ -143,6 +144,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
     //Set -1 for no selection, 0-slot side tracks 1-hole side tracks
     public void setTrackSide (int side) {
         trackSide = side;
+    }
+    
+    public void setMomC (double val)  {
+        momC = val;
     }
 
     public void setCompositeAlign (boolean val) {
@@ -418,16 +423,16 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
 
-                int nHitsCut = 5;
+                int nHitsCut = 6;
                 //Kalman
                 if (TrackType == 1)
-                    nHitsCut = 10;
-
-                                
-                if (momentum.magnitude() < 3 || momentum.magnitude() > 6)
+                    nHitsCut = 12;
+                
+                
+                if (momentum.magnitude() < 1.5 || momentum.magnitude() > 6)
                     continue;
-
-                if (tanLambda < 0.025)
+                
+                if (Math.abs(tanLambda) < 0.025)
                     continue;
                 
                 //Align with tracks with at least 6 hits
@@ -465,7 +470,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Bias the FEEs to beam energy. Correct the curvature by projecting on  X / Y plane
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
                 double cosLambda = 1. / (Math.sqrt(1+tanLambda*tanLambda));
-                double targetpT = 4.55 * cosLambda;
+                double targetpT = momC * cosLambda;
                 //System.out.println("TargetpT: " + targetpT + " tanLambda = " + tanLambda);
                 double pt_bias = targetpT - pt;
                 //System.out.println("pT bias: " + pt_bias);
