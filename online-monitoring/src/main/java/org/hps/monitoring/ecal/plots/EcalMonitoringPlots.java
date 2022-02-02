@@ -3,6 +3,7 @@ package org.hps.monitoring.ecal.plots;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterStyle;
+import hep.aida.ITree;
 
 import java.util.List;
 
@@ -14,16 +15,21 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * The driver <code>EcalMonitoringPlots</code> implements the histogram shown to the user in the
- * first tab of the Monitoring Application, when using the Ecal monitoring lcsim file. It contains
- * only a sub-tab, with 3 histograms. - Hit counts by channel (Histogram2D), Occupancy by channel
- * (Histogram2D), Cluster counts by channel (Histogram2D) Each cluster is associated with the seed
+ * The driver <code>EcalMonitoringPlots</code> implements the histogram shown to
+ * the user in the
+ * first tab of the Monitoring Application, when using the Ecal monitoring lcsim
+ * file. It contains
+ * only a sub-tab, with 3 histograms. - Hit counts by channel (Histogram2D),
+ * Occupancy by channel
+ * (Histogram2D), Cluster counts by channel (Histogram2D) Each cluster is
+ * associated with the seed
  * crystal.
- * 
+ *
  * These plots are updated regularly, according to the event refresh rate.
  */
 public class EcalMonitoringPlots extends Driver {
 
+    private static ITree tree = null;
     String inputCollection = "EcalReadoutHits";
     String clusterCollection = "EcalClusters";
     AIDA aida = AIDA.defaultInstance();
@@ -57,8 +63,9 @@ public class EcalMonitoringPlots extends Driver {
 
     /**
      * Set the refresh rate for histograms in this driver
-     * 
-     * @param eventRefreshRate the refresh rate, defined as number of events to accumulate before
+     *
+     * @param eventRefreshRate the refresh rate, defined as number of events to
+     * accumulate before
      * refreshing the plot
      */
     public void setEventRefreshRate(int eventRefreshRate) {
@@ -66,12 +73,29 @@ public class EcalMonitoringPlots extends Driver {
     }
 
     protected void detectorChanged(Detector detector) {
+
+        tree = AIDA.defaultInstance().tree();
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/EcalMon";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
+
         // System.out.println("EcalMonitoringPlots:: detector changed was called");
         // Setup the plotter.
         plotter = aida.analysisFactory().createPlotterFactory("Ecal Monitoring Plots")
                 .create("HPS ECal Monitoring Plots");
-        // Setup plots.
-        aida.tree().cd("/");
+        // Setup plots.       
+
         String hitCountDrawPlotTitle;
         hitCountDrawPlotTitle = detector.getDetectorName() + " : " + inputCollection + " : Hit Rate KHz";
 
@@ -207,12 +231,14 @@ public class EcalMonitoringPlots extends Driver {
             double mean = occupancyFill[id] / NoccupancyFill;
 
             occupancyFill[id] = 0;
-            if ((row != 0) && (column != 0) && (!EcalMonitoringUtilities.isInHole(row, column)))
+            if ((row != 0) && (column != 0) && (!EcalMonitoringUtilities.isInHole(row, column))) {
                 occupancyDrawPlot.fill(column, row, mean);
+            }
         }
         plotter.region(2).clear();
-        if (occupancyDrawPlot.sumAllBinHeights() > 0)
+        if (occupancyDrawPlot.sumAllBinHeights() > 0) {
             plotter.region(2).plot(occupancyDrawPlot);
+        }
         // plotter.region(2).refresh();
     }
 

@@ -371,7 +371,33 @@ public class KalTrack {
     }
     
     public void print(String s) {
-        System.out.format("%s", this.toString(s));    
+        System.out.format("\nKalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f, bad=%b\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax, bad);
+        if (propagated) System.out.format("    Helix parameters at origin = %s\n", helixAtOrigin.a.toString());
+        MeasurementSite site0 = this.SiteList.get(0);
+        if (site0.aS != null) {
+            System.out.format("    Helix at layer %d: %s, pivot=%s\n", site0.m.Layer, site0.aS.helix.a.toString(), site0.aS.helix.X0.toString());
+        }
+        for (int i = 0; i < SiteList.size(); i++) {
+            MeasurementSite site = SiteList.get(i);
+            SiModule m = site.m;
+            int hitID = site.hitID;
+            System.out.format("    Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f ", m.Layer, m.detector, m.isStereo,
+                    site.chi2inc);
+            if (hitID>=0) {
+                System.out.format(" t=%5.1f ", site.m.hits.get(site.hitID).time);
+                double residual = site.m.hits.get(hitID).v - site.aS.mPred;
+                Pair<Double,Double> unBiasedResid = unbiasedResidual(site);
+                double [] lclint = moduleIntercept(m, null);
+                System.out.format("    measurement=%10.5f, predicted=%10.5f, residual=%9.5f, x=%9.5f limit=%9.5f \n", site.m.hits.get(hitID).v, site.aS.mPred, 
+                        residual, lclint[0], m.xExtent[1]);
+            } else {
+                System.out.format("\n");
+            }
+        }
+    }
+    
+    public void printLong(String s) {
+        System.out.format("%s", this.toString(s));   
     }
     
     String toString(String s) {
@@ -383,9 +409,13 @@ public class KalTrack {
             str=str+String.format("   arc length from the origin to the first measurement=%9.4f\n", arcLength[0]);
             SquareMatrix C1 = new SquareMatrix(3, Cx);
             str=str+C1.toString("covariance matrix for the point");
-            str=str+originMomentum.toString("momentum of the particle at closest approach to the origin");
+            str=str+originMomentum.toString("momentum of the particle at closest approach to the origin\n");
             SquareMatrix C2 = new SquareMatrix(3, Cp);
             str=str+C2.toString("covariance matrix for the momentum");
+        } 
+        MeasurementSite site0 = this.SiteList.get(0);
+        if (site0.aS != null) {
+            str=str + String.format("    Helix at layer %d: %s\n", site0.m.Layer, site0.aS.helix.a.toString());
         }
         for (int i = 0; i < SiteList.size(); i++) {
             MeasurementSite site = SiteList.get(i);
@@ -1248,11 +1278,11 @@ public class KalTrack {
         public int compare(KalTrack t1, KalTrack t2) {
             double penalty1 = 1.0;
             double penalty2 = 1.0;
-            if (!t1.SiteList.get(0).aS.helix.goodCov()) penalty1 = 10.;
-            if (!t2.SiteList.get(0).aS.helix.goodCov()) penalty2 = 10.;
+            if (!t1.SiteList.get(0).aS.helix.goodCov()) penalty1 = 9.9e3;
+            if (!t2.SiteList.get(0).aS.helix.goodCov()) penalty2 = 9.9e3;
 
-            Double chi1 = new Double((penalty1*t1.chi2) / t1.nHits + 10.0*(1.0 - (double)t1.nHits/14.));
-            Double chi2 = new Double((penalty2*t2.chi2) / t2.nHits + 10.0*(1.0 - (double)t2.nHits/14.));
+            Double chi1 = new Double((penalty1*t1.chi2) / t1.nHits + 300.0*(1.0 - (double)t1.nHits/14.));
+            Double chi2 = new Double((penalty2*t2.chi2) / t2.nHits + 300.0*(1.0 - (double)t2.nHits/14.));
             return chi1.compareTo(chi2);
         }
     };
