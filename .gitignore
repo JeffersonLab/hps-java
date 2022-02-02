@@ -21,9 +21,6 @@ hs_err_pid*
 .settings
 nbproject
 
-# Maven target dir
-target
-
 # Diff output
 *.diff
 
@@ -36,8 +33,15 @@ target
 # name of ET mem map file
 ETBuffer
 
+# locally installed mvn repo
 .m2repo
 
+# output from mvn dep command
 deps.txt 
 
+# directories to be ignored
 scratch/
+bin/
+target/
+
+.*.swp
