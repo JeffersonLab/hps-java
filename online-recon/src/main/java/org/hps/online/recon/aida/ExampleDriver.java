@@ -98,8 +98,8 @@ public class ExampleDriver extends RemoteAidaDriver {
         tree.cd(TRACKER_DIR);
 
         tracksPerEventH1D = aida.histogram1D("Tracks Per Event", 20, 0., 20.);
-        //tracksPerEventH1D.annotation().addItem("xAxisLabel", "Tracks / Event");
-        //tracksPerEventH1D.annotation().addItem("yAxisLabel", "Count");
+        tracksPerEventH1D.annotation().addItem("xAxisLabel", "Tracks / Event");
+        tracksPerEventH1D.annotation().addItem("yAxisLabel", "Count");
 
         rawHitsPerTrackH1D = aida.histogram1D("Raw Hits Per Track", 10, 0., 10);
         //rawHitsPerTrackH1D.annotation().addItem("xAxisLabel", "Hits / Track");

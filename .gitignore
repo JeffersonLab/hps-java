@@ -21,9 +21,6 @@ hs_err_pid*
 .settings
 nbproject
 
-# Maven target dir
-target
-
 # Diff output
 *.diff
 
@@ -40,4 +37,11 @@ ETBuffer
 
 deps.txt 
 
+# directories to ignore
 scratch/
+bin/
+target/
+
+
+# editor swap files
+.*.swp
