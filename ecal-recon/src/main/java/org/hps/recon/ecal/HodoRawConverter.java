@@ -2,12 +2,15 @@ package org.hps.recon.ecal;
 
 import org.lcsim.event.RawTrackerHit;
 import org.hps.conditions.hodoscope.HodoscopeConditions;
+import org.hps.conditions.hodoscope.HodoscopeChannel.GeometryId;
 import org.hps.conditions.hodoscope.HodoscopeChannel;
 import org.hps.conditions.hodoscope.HodoscopeChannelConstants;
+import org.lcsim.detector.identifier.IIdentifierHelper;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import java.util.ArrayList;
 import java.util.Map;
+import org.lcsim.geometry.Subdetector;
 
 public class HodoRawConverter {
 
@@ -22,6 +25,9 @@ public class HodoRawConverter {
     private int tet = HodoConstants.TET_AllCh;
     
     private boolean isMC = false;
+    
+    private Subdetector subDetector;
+    private IIdentifierHelper helper;
 
     public ArrayList<Integer> FindThresholdCrossings(RawTrackerHit hit, double ped) {
 
@@ -72,7 +78,7 @@ public class HodoRawConverter {
     public ArrayList<CalorimeterHit> getCaloHits(RawTrackerHit hit, ArrayList<Integer> thr_crosings, double ped) {
 
         // Getting the cellID of the hit
-        final long cellID = hit.getCellID();
+        long cellID = hit.getCellID();
 
         // ADC values for this hit
         final short samples[] = hit.getADCValues();
@@ -86,6 +92,12 @@ public class HodoRawConverter {
             gain = findChannel(cellID).getGain().getGain();
         }
         //System.out.println("The Gains = " + findChannel(cellID).getGain().toString());
+        
+        if(isMC) {
+            int[] identifier = getHodoIdentifiers(cellID);
+            GeometryId id_geometry = new GeometryId(helper, new int[]{subDetector.getSystemID(), identifier[0], identifier[1], identifier[2], identifier[3]});
+            cellID = id_geometry.encode(); 
+        } 
 
         ArrayList<CalorimeterHit> curHits = new ArrayList<CalorimeterHit>();
 
@@ -107,7 +119,7 @@ public class HodoRawConverter {
             double Energy = ADC_Sum * gain;
             double time = crs_time * HodoConstants.NSPerSample;
 
-            //System.out.println("time = " + time + "     gain = " + gain + "        Energy = " + Energy + "ADC Sum is " + ADC_Sum);
+            //System.out.println("time = " + time + "     gain = " + gain + "        Energy = " + Energy + "ADC Sum is " + ADC_Sum);                       
             curHits.add(CalorimeterHitUtilities.create(Energy, time, cellID));
         }
 
@@ -132,8 +144,10 @@ public class HodoRawConverter {
         }
     }
 
-    public void setConditions(HodoscopeConditions condition) {
+    public void setConditions(HodoscopeConditions condition, Subdetector subDetector, IIdentifierHelper helper) {
         hodoConditions = condition;
+        this.subDetector = subDetector;
+        this.helper = helper;
     }
 
     public HodoscopeChannelConstants findChannel(long cellID) {
@@ -149,7 +163,7 @@ public class HodoRawConverter {
         HodoscopeChannel chan;
         if(!isMC) 
             chan = hodoConditions.getChannels().findGeometric(cellID);
-        else 
+        else
             chan = hodoConditions.getChannels().findChannel((int)cellID);
 
         int[] hodo_ids = new int[4];
@@ -157,7 +171,6 @@ public class HodoRawConverter {
         hodo_ids[1] = chan.getIY();
         hodo_ids[2] = chan.getLayer();
         hodo_ids[3] = chan.getHole();
-
 
         return hodo_ids;
     }
