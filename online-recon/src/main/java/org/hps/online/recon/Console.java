@@ -10,8 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.ParseException;
 import org.hps.online.recon.commands.CommandFactory;
 
@@ -145,10 +143,8 @@ public class Console {
                     }
                 } else {
                     Command cmd = cf.create(cmdStr);
-                    DefaultParser parser = new DefaultParser();
-                    String cmdArr[] = args.toArray(new String[0]);
-                    CommandLine cl = parser.parse(cmd.getOptionsNoHelp(), cmdArr);
-                    cmd.process(cl);
+                    cmd.parse(args.toArray(new String[0]));
+                    cmd.process();
                     client.send(cmd);
                 }
             }

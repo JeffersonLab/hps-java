@@ -725,7 +725,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             }
             // Run the Kalman fit
             long startTimeF = System.nanoTime();
-            KalmanTrackFit2 kF = new KalmanTrackFit2(iTrial, SiModules, startLayer, nIteration, new Vec(0., location[frstLyr], 0.),
+            KalmanTrackFit2 kF = new KalmanTrackFit2(iTrial, SiModules, null, startLayer, nIteration, new Vec(0., location[frstLyr], 0.),
                     initialHelixGuess, initialCovariance, kPar, fM);
             long endTimeF = System.nanoTime();
             double runTime = (double)(endTimeF - startTimeF)/1000000.;

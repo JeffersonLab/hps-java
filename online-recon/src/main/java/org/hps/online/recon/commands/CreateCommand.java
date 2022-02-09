@@ -1,6 +1,5 @@
 package org.hps.online.recon.commands;
 
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.online.recon.Command;
@@ -38,7 +37,7 @@ public class CreateCommand extends Command {
     }
 
     @Override
-    protected void process(CommandLine cl) {
+    protected void process() {
         if (cl.getArgList().size() == 1) {
             setCount(Integer.valueOf(cl.getArgList().get(0)));
         } else if (cl.getArgList().size() > 1) {

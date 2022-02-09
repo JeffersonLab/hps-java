@@ -1,5 +1,7 @@
 package org.hps.online.recon;
 
+import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.hps.online.recon.properties.Property;
@@ -9,6 +11,11 @@ import org.jlab.coda.et.EtStationConfig;
 import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
 import org.jlab.coda.et.enums.Mode;
+import org.jlab.coda.et.exception.EtClosedException;
+import org.jlab.coda.et.exception.EtDeadException;
+import org.jlab.coda.et.exception.EtException;
+import org.jlab.coda.et.exception.EtExistsException;
+import org.jlab.coda.et.exception.EtTooManyException;
 
 /**
  * Create an ET connection for a pool of stations to process
@@ -16,16 +23,28 @@ import org.jlab.coda.et.enums.Mode;
  */
 class EtParallelStation extends EtConnection {
 
-    private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
+    private static Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
 
     private static final int STATION_POSITION = 1;
 
     /**
      * Create an ET connection from station properties
+     *
+     * If there is an existing station with the same name, it will be woken
+     * up and removed before a new one is created.
+     *
      * @param props The station properties
+     * @throws EtException
+     * @throws EtTooManyException
+     * @throws EtExistsException
+     * @throws EtClosedException
+     * @throws EtDeadException
+     * @throws IOException
      * @throws Exception If there is an error opening the ET system
      */
-    EtParallelStation(StationProperties props) throws Exception {
+    EtParallelStation(StationProperties props)
+            throws EtException, IOException, EtDeadException,
+            EtClosedException, EtExistsException, EtTooManyException {
 
         Property<String> host = props.get("et.host");
         Property<String> buffer = props.get("et.buffer");
@@ -42,6 +61,7 @@ class EtParallelStation extends EtConnection {
         EtSystemOpenConfig etConfig =
                 new EtSystemOpenConfig(buffer.value(), host.value(), port.value());
 
+        // Connection attempt loop
         for (int i = 1; i <= connAttempts.value(); i++) {
             LOGGER.config("Attempting ET connection: " + i);
             try {
@@ -56,71 +76,71 @@ class EtParallelStation extends EtConnection {
                 break;
             }
 
-            Thread.sleep(1000L);
-        }
-        if (!sys.alive()) {
-            LOGGER.severe("Failed to connect to ET system after "
-                    + connAttempts.value() + " attempts!");
-            throw new RuntimeException("Failed to connect to ET system!");
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                LOGGER.info("Connection attempt was interrupted!");
+                break;
+            }
         }
 
+        // Failed to connect to the ET system
+        if (!sys.alive()) {
+            RuntimeException rte = new RuntimeException(
+                    "Failed to connect to ET system after "
+                    + connAttempts.value() + " attempts");
+            LOGGER.log(Level.SEVERE, rte.getMessage(), rte);
+            throw rte;
+        }
+
+        // See if there is an existing ET station
+        try {
+            stat = sys.stationNameToObject(stationName.value());
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error while attempting to find station", e);
+        }
+
+        // Raise an error if the station exists already.
+        if (stat != null) {
+            throw new RuntimeException("ET station already exists: " + stationName.value());
+        }
+
+        // Create the new ET station
         final EtStationConfig stationConfig = new EtStationConfig();
         stationConfig.setFlowMode(EtConstants.stationParallel);
         stationConfig.setBlockMode(EtConstants.stationBlocking);
         stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
-
+        stationConfig.setRestoreMode(EtConstants.stationRestoreGC);
+        stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
         if (prescale.value() > 0) {
             stationConfig.setPrescale(prescale.value());
         }
 
-        stat = sys.stationNameToObject(stationName.value());
-        if (stat != null) {
-            throw new IllegalStateException("ET station already exists: " + stationName.value());
-        }
-        stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
-        LOGGER.info("Created new ET station: " + stationName.value());
         att = sys.attach(stat);
 
-        LOGGER.info("Initialized station: " + stat.getName());
-        LOGGER.info("Station pos: " + sys.getStationPosition(stat));
-        LOGGER.info("Station parallel pos: " + sys.getStationParallelPosition(stat));
-        LOGGER.info("Num stations: " + sys.getNumStations());
+        LOGGER.info("Created ET station: name=" + stat.getName() + "; pos=" + sys.getStationPosition(stat)
+                + "; ppos: " + sys.getStationParallelPosition(stat));
 
         this.waitMode = Mode.getMode(waitMode.value());
         this.waitTime = waitTime.value();
         this.chunkSize = chunk.value();
-
-        LOGGER.config("Station waitMode, waitTime, chunkSize: " + this.waitMode + ", " + this.waitTime +
-                ", " + this.chunkSize);
     }
 
     /**
-     * Cleanup the connection by detaching the station and removing it from the ET system.
+     * Cleanup the connection by detaching it.
      */
-    synchronized public void cleanup() {
-        LOGGER.info("Cleaning up ET connection");
+    public void cleanup() {
         try {
-            LOGGER.info("Checking if sys is alive");
-            if (!this.sys.alive()) {
-                LOGGER.fine("sys is not alive!");
-                return;
+            if (sys!= null && sys.alive()) {
+                sys.wakeUpAttachment(att);
+                sys.detach(att);
+                sys.removeStation(stat);
+                sys.close();
             }
-            LOGGER.info("Waking up attachment");
-            try {
-                this.sys.wakeUpAttachment(att);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            LOGGER.info("Detaching from sys");
-            this.sys.detach(this.att);
-            LOGGER.info("Removing station");
-            this.sys.removeStation(this.stat);
-            LOGGER.info("Closing station");
-            this.sys.close();
         } catch (final Exception e) {
-            LOGGER.warning("Error during cleanup");
             e.printStackTrace();
         }
-        LOGGER.info("Done cleaning up ET connection!");
+        // Can't use a logger when this is called in the shutdown hook
+        System.out.println("Cleaned up ET station");
     }
 }

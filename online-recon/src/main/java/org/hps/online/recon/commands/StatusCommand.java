@@ -1,6 +1,5 @@
 package org.hps.online.recon.commands;
 
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.hps.online.recon.Command;
@@ -23,7 +22,7 @@ public class StatusCommand extends Command {
         setParameter("verbose", verbose);
     }
 
-    public void process(CommandLine cl) {
+    public void process() {
         if (cl.hasOption("v")) {
             setVerbose(true);
         } else {
