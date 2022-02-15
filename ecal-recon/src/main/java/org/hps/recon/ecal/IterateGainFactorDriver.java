@@ -61,7 +61,22 @@ public class IterateGainFactorDriver extends Driver {
      */
     public IterateGainFactorDriver() {
         badChannels=new ArrayList<Long>();
+    }
+
+    public void setGainFile(String filename) {
+        this.gainFileName = filename;
+    }
+    
+    public void setCalibYear(int year) {
+        this.calibYear=year;
+        System.out.println("IterateGainFactorDriver: setting calib year to "+this.calibYear);  
+      
+    }
+    
+    
+    public void setBadChannels() {
         if (this.calibYear==2021) {
+            System.out.println("Adding the 2021 bad channels");
             badChannels.add((long) 6);
             badChannels.add((long) 15);
             badChannels.add((long) 26);     
@@ -72,14 +87,7 @@ public class IterateGainFactorDriver extends Driver {
             badChannels.add((long) 334);
             badChannels.add((long) 419);       
         }
-    }
-
-    public void setGainFile(String filename) {
-        this.gainFileName = filename;
-    }
-    
-    public void setCalibYear(int year) {
-        this.calibYear=year;
+        System.out.println("IterateGainFactorDriver: bad channels are "+badChannels);    
     }
 
     /**
@@ -132,6 +140,7 @@ public class IterateGainFactorDriver extends Driver {
         // ECAL combined conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         readGainFile();
+        setBadChannels();
     }
 
     /**
