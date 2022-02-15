@@ -22,11 +22,13 @@
            <inputCollectionName>EcalCalHits</inputCollectionName>
            <outputCollectionName>EcalHitsIter2</outputCollectionName>
            <gainFile>ecalGains.txt</gainFile>
+           <calibYear>2021</calibYear>
         </driver>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
            <logLevel>CONFIG</logLevel>
            <inputHitCollectionName>EcalHitsIter2</inputHitCollectionName>
            <outputClusterCollectionName>EcalClustersIter1</outputClusterCollectionName>
+           <hitEnergyThreshold>0.030</hitEnergyThreshold>
         </driver>
         <driver name="FEEPlotter" type="org.hps.analysis.ecal.FEEClusterPlotter">
            <inputCollection>EcalClustersIter1</inputCollection>

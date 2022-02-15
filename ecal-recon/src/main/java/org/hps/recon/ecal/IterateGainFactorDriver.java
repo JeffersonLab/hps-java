@@ -52,15 +52,34 @@ public class IterateGainFactorDriver extends Driver {
     }
 
     private final String ecalReadoutName = "EcalHits";
-
+    private int calibYear=0;
+    private ArrayList<Long> badChannels = null;
     /**
      * Basic no argument constructor.
+       A.C.: I add a year-specific set of crystals that are broken, with the corresponding energy to be set to zero for both data and MC.
+       For the moment, this is hard-coded
      */
     public IterateGainFactorDriver() {
+        badChannels=new ArrayList<Long>();
+        if (this.calibYear==2021) {
+            badChannels.add((long) 6);
+            badChannels.add((long) 15);
+            badChannels.add((long) 26);     
+            badChannels.add((long) 153);
+            badChannels.add((long) 192);
+            badChannels.add((long) 198);
+            badChannels.add((long) 275);
+            badChannels.add((long) 334);
+            badChannels.add((long) 419);       
+        }
     }
 
     public void setGainFile(String filename) {
         this.gainFileName = filename;
+    }
+    
+    public void setCalibYear(int year) {
+        this.calibYear=year;
     }
 
     /**
@@ -128,9 +147,12 @@ public class IterateGainFactorDriver extends Driver {
         for (final CalorimeterHit hit : hits) {
             double time = hit.getTime();
             long cellID = hit.getCellID();
-            double energy = hit.getCorrectedEnergy() * gainFileGains.get(findChannelId(cellID));
-            CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
-            newHits.add(newHit);
+            /*Only if the channels is not flagged as "bad", re-compute the energy and create a new CalorimterHit*/
+            if (this.badChannels.contains(cellID)==false) {
+                double energy = hit.getCorrectedEnergy() * gainFileGains.get(findChannelId(cellID));
+                CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
+                newHits.add(newHit);
+            }
         }
         return newHits;
     }

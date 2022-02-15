@@ -15,6 +15,7 @@
            <inputCollectionName>EcalHits</inputCollectionName>
            <outputCollectionName>EcalHitsIter1</outputCollectionName>
            <gainFile>ecalGains.txt</gainFile>
+           <calibYear>2021</calibYear>
         </driver>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
            <outputClusterCollectionName>EcalClustersIter1</outputClusterCollectionName>
