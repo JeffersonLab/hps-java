@@ -53,14 +53,14 @@ public class IterateGainFactorDriver extends Driver {
 
     private final String ecalReadoutName = "EcalHits";
     private int calibYear=0;
-    private ArrayList<Long> badChannels = null;
-    /**
+    private ArrayList<Integer> badChannels = null;
+    /*
      * Basic no argument constructor.
        A.C.: I add a year-specific set of crystals that are broken, with the corresponding energy to be set to zero for both data and MC.
        For the moment, this is hard-coded
      */
     public IterateGainFactorDriver() {
-        badChannels=new ArrayList<Long>();
+        badChannels=new ArrayList<Integer>();
     }
 
     public void setGainFile(String filename) {
@@ -77,15 +77,15 @@ public class IterateGainFactorDriver extends Driver {
     public void setBadChannels() {
         if (this.calibYear==2021) {
             System.out.println("Adding the 2021 bad channels");
-            badChannels.add((long) 6);
-            badChannels.add((long) 15);
-            badChannels.add((long) 26);     
-            badChannels.add((long) 153);
-            badChannels.add((long) 192);
-            badChannels.add((long) 198);
-            badChannels.add((long) 275);
-            badChannels.add((long) 334);
-            badChannels.add((long) 419);       
+            badChannels.add(6);
+            badChannels.add(15);
+            badChannels.add(26);     
+            badChannels.add(153);
+            badChannels.add(192);
+            badChannels.add(198);
+            badChannels.add(275);
+            badChannels.add(334);
+            badChannels.add(419);       
         }
         System.out.println("IterateGainFactorDriver: bad channels are "+badChannels);    
     }
@@ -156,8 +156,8 @@ public class IterateGainFactorDriver extends Driver {
         for (final CalorimeterHit hit : hits) {
             double time = hit.getTime();
             long cellID = hit.getCellID();
-            /*Only if the channels is not flagged as "bad", re-compute the energy and create a new CalorimterHit*/
-            if (this.badChannels.contains(cellID)==false) {
+            /*Only if the channels is not flagged as "bad", re-compute the energy and create a new CalorimterHit*/    
+            if (this.badChannels.contains(findChannelId(cellID))==false) {
                 double energy = hit.getCorrectedEnergy() * gainFileGains.get(findChannelId(cellID));
                 CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
                 newHits.add(newHit);
