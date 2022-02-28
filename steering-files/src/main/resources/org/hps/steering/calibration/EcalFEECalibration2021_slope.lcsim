@@ -2,7 +2,7 @@
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
      <execute>
         <driver name="FEEfilter"/>
-       <!-- <driver name="CorrectGainRunDependence"/>-->
+      	<driver name="CorrectGainRunDependence"/>
         <driver name="IterateGains"/>
         <driver name="ReconClusterer"/>
         <driver name="FEEPlotter"/>
