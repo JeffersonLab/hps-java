@@ -156,7 +156,9 @@ public class IterateGainFactorDriver extends Driver {
         for (final CalorimeterHit hit : hits) {
             double time = hit.getTime();
             long cellID = hit.getCellID();
-            /*Only if the channels is not flagged as "bad", re-compute the energy and create a new CalorimterHit*/    
+            /*If the channels is not flagged as "bad", re-compute the energy and create a new CalorimterHit
+             * Otherwise ignore the hit
+             * */    
             if (this.badChannels.contains(findChannelId(cellID))==false) {
                 double energy = hit.getCorrectedEnergy() * gainFileGains.get(findChannelId(cellID));
                 CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
