@@ -33,7 +33,7 @@ import org.hps.detector.ecal.HPSEcalDetectorElement;
 import org.hps.recon.ecal.cluster.ClusterCorrectionUtilities;
 
 /**
- * This driver is used to check the Sampling Fraction correction for the 2019
+ * This driver is used to check the Sampling Fraction correction for the 2021
  * run, using MC
  */
 public class SF2021Driver extends Driver {
@@ -60,7 +60,7 @@ public class SF2021Driver extends Driver {
     // Set max energy in histo
     private double maxHistoE;
 
-    private double E0 = 4.5560;
+    private double E0 = 3.74;
 
     double BEAMGAPTOP = 20.0;
     double BEAMGAPBOT = -20.0;
@@ -75,7 +75,7 @@ public class SF2021Driver extends Driver {
     HPSEcal3 ecal;
 
     public void setBeamEnergy(double beamE) {
-        System.out.println("SF2019Driver, setBeamEnergy: " + beamE + " GeV ");
+        System.out.println("SF2021Driver, setBeamEnergy: " + beamE + " GeV ");
         this.E0 = beamE;
         minHistoE = E0 * 0.1;
         maxHistoE = E0 * 1.2;
@@ -177,8 +177,8 @@ public class SF2021Driver extends Driver {
         BEAMGAPTOPC = BEAMGAPTOP + 13.0;// mm
         BEAMGAPBOTC = BEAMGAPBOT - 13.0;// mm
 
-        System.out.println("SF2019Driver: BEAMGAPTOP= " + BEAMGAPTOP + " BEAMGAPBOT= " + BEAMGAPBOT);
-        System.out.println("SF2019Driver: BEAMGAPTOBC= " + BEAMGAPTOPC + " BEAMGAPBOTC= " + BEAMGAPBOTC);
+        System.out.println("SF2021Driver: BEAMGAPTOP= " + BEAMGAPTOP + " BEAMGAPBOT= " + BEAMGAPBOT);
+        System.out.println("SF2021Driver: BEAMGAPTOBC= " + BEAMGAPTOPC + " BEAMGAPBOTC= " + BEAMGAPBOTC);
 
     }
 
@@ -415,7 +415,7 @@ public class SF2021Driver extends Driver {
         System.out.println("OutputFile");
         if (outputPlots != null) {
             try {
-                aida.saveAs("outputSF2019MC.root");
+                aida.saveAs("outputSF2021MC.root");
             } catch (IOException ex) {
                 Logger.getLogger(SF2021Driver.class.getName()).log(Level.SEVERE, null, ex);
             }
