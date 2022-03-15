@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
 
-<info name="HPS_Run2021Pass2FEE">
+<info name="HPS_Run2021Pass2_Chi2">
     <comment>HPS detector for 2021 run with fieldmap,
     Tracker at nominal opening angle, no SVT survey,
-    this detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV.
+    this detector uses the corrected fieldmap scaled to -1.022T for 3.7 GeV.
     Includes L0 and Hodoscope.
+    ECAL with survey alignment for HPSEcal3 (global y/z translations).
     This detector has the full hierarchical alignment structure
-    Has a coarse level alignment by Cameron Bravo.
     </comment>
   </info>
 
@@ -202,20 +202,20 @@
         <millepede_constant name="11103" value="0.0 + -0.020397 + 0.006024 - -0.036267 - -0.028236" />
         <millepede_constant name="11104" value="0.0 + 0.045729 + 0.006918 - -0.036733 - -0.019597 - -0.002183" />
         <millepede_constant name="11105" value="0.0 + 0.007688 + 0.005676 - -0.012362" />
-        <millepede_constant name="11106" value="0.0 + -0.010664 + -0.001609 - 0.006721 - 0.005305 - -0.001660" />
-        <millepede_constant name="11107" value="0.0 + 0.004072 + 0.003523 - 0.007062 - -0.003817 - 0.001975" />
+        <millepede_constant name="11106" value="0.0 + -0.010664 + -0.001609 - 0.006721 - 0.005305 - -0.001660 - 0.001480" />
+        <millepede_constant name="11107" value="0.0 + 0.004072 + 0.003523 - 0.007062 - -0.003817 - 0.001975 - 0.003762" />
         <millepede_constant name="11108" value="0.0 + -0.000794 + 0.000946 - -0.003989" />
-        <millepede_constant name="11109" value="0.0 - 0.018517 - 0.000385" />
+        <millepede_constant name="11109" value="0.0 - 0.018517 - 0.003440" />
         <millepede_constant name="11110" value="0.0 - -0.002565 - -0.005478 - 0.035065 - 0.016357 - 0.006881" />
-        <millepede_constant name="11111" value="0.0 - -0.027900 - -0.007369" />
+        <millepede_constant name="11111" value="0.0 - -0.027900 - -0.007513" />
         <millepede_constant name="11112" value="0.035655 - -0.014005 - -0.039993 - -0.011733 - -0.007860" />
-        <millepede_constant name="11113" value="0.0 - 0.048022 - 0.000586" />
+        <millepede_constant name="11113" value="0.0 - 0.048022 - 0.008019" />
         <millepede_constant name="11114" value="0.0 - -0.010339 - 0.024258 - 0.011054 - 0.007932" />
-        <millepede_constant name="11115" value="0.0 - -0.037736 - 0.000285" />
+        <millepede_constant name="11115" value="0.0 - -0.037736 - 0.001172" />
         <millepede_constant name="11116" value="0.0 - -0.010376 - -0.045688 - -0.004289 - -0.008223" />
-        <millepede_constant name="11117" value="0.0 - 0.089312 - -0.000328" />
+        <millepede_constant name="11117" value="0.0 - 0.089312 - 0.015816" />
         <millepede_constant name="11118" value="0.008210 - -0.015812 - -0.066323 - -0.027323 - 0.006333" />
-        <millepede_constant name="11119" value="0.0 - -0.079247 - -0.002658" />
+        <millepede_constant name="11119" value="0.0 - -0.079247 - 0.008245" />
         <millepede_constant name="11120" value="-0.065534 - -0.043456 - -0.023106 - 0.036114 - 0.039496 - -0.005295" />
         <millepede_constant name="11121" value="0.0" />
         <millepede_constant name="11122" value="0.0" />
@@ -343,22 +343,22 @@
         <millepede_constant name="21102" value="0.0 - 0.059475 - 0.027066" />
         <millepede_constant name="21103" value="0.0 - 0.079522 - -0.001877 - 0.042242" />
         <millepede_constant name="21104" value="0.0 - 0.047102 - -0.004770" />
-        <millepede_constant name="21105" value="0.0 - -0.014915 - 0.013450 - -0.026219" />
+        <millepede_constant name="21105" value="0.0 - -0.014915 - 0.013450 - -0.026219 - -0.009611" />
         <millepede_constant name="21106" value="0.0 - 0.031471 - -0.000722" />
-        <millepede_constant name="21107" value="0.0 - -0.029044 - 0.008449 - -0.018252" />
+        <millepede_constant name="21107" value="0.0 - -0.029044 - 0.008449 - -0.018252 - -0.012929" />
         <millepede_constant name="21108" value="0.0 - 0.006131" />
         <millepede_constant name="21109" value="0.0" />
         <millepede_constant name="21110" value="0.0" />
         <millepede_constant name="21111" value="-0.0203 - -0.042235 - 0.034795 - -0.044844 - -0.000811 - 0.001150" />
-        <millepede_constant name="21112" value="-0.082 - 0.050569 - -0.004210" />
+        <millepede_constant name="21112" value="-0.082 - 0.050569 - 0.004122" />
         <millepede_constant name="21113" value="0.0 - -0.104520 - 0.106240 - 0.001598 - 0.002801" />
-        <millepede_constant name="21114" value="0.0 - -0.113090 - 0.019960" />
+        <millepede_constant name="21114" value="0.0 - -0.113090 - -0.003659" />
         <millepede_constant name="21115" value="0.0 - 0.101260 - -0.113530 - -0.000371 - -0.003598" />
-        <millepede_constant name="21116" value="0.0 - 0.119860 - -0.015625" />
+        <millepede_constant name="21116" value="0.0 - 0.119860 - 0.008016" />
         <millepede_constant name="21117" value="0.0 - -0.070300 - -0.183510 - 0.210600 - 0.003086 - 0.007767" />
-        <millepede_constant name="21118" value="0.0 - -0.221920 - 0.032280" />
+        <millepede_constant name="21118" value="0.0 - -0.221920 - -0.013386" />
         <millepede_constant name="21119" value="0.0 - 0.032623 - 0.172330 - -0.215950 - -0.002618 - -0.005793" />
-        <millepede_constant name="21120" value="0.0 - 0.230800 - -0.033977" />
+        <millepede_constant name="21120" value="0.0 - 0.230800 - 0.012574" />
         <millepede_constant name="21121" value="0.0" />
         <millepede_constant name="21122" value="0.0" />
 
