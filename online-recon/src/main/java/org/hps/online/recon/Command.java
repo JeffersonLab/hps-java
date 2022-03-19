@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.json.JSONObject;
 
 /**
@@ -39,6 +41,10 @@ public abstract class Command {
      */
     private final String commandFooter;
 
+    protected CommandLine cl = null;
+
+    protected String[] rawArgs = null;
+
     /**
      * Parameter map from parsing command line options.
      * This will be sent to the server as a JSON object.
@@ -64,6 +70,14 @@ public abstract class Command {
         this.commandFooter = commandFooter;
 
         options.addOption(new Option("", "help", false, "print command help"));
+    }
+
+    /**
+     * Process options and arguments before sending the command to the server
+     *
+     * @param cl The parsed command line
+     */
+    protected void process() {
     }
 
     /**
@@ -153,15 +167,6 @@ public abstract class Command {
     }
 
     /**
-     * Parse command line options.
-     *
-     * Sub-classes need to implement this method to handle their arguments.
-     *
-     * @param cl The parsed command line
-     */
-    abstract protected void process(CommandLine cl);
-
-    /**
      * Read a station ID list from extra command line arguments and add as a parameter.
      * @param cl The parsed command line
      */
@@ -171,5 +176,10 @@ public abstract class Command {
             ids.add(Integer.parseInt(arg));
         }
         this.setParameter("ids", ids);
+    }
+
+    protected void parse(String[] args) throws ParseException {
+        this.rawArgs = args;
+        this.cl = new DefaultParser().parse(getOptionsNoHelp(), rawArgs);
     }
 }

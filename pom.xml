@@ -18,6 +18,7 @@
     <additionalparam>-Xdoclint:none</additionalparam>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
     <junitVersion>4.13.1</junitVersion>
+    <etVersion>14.1</etVersion>
   </properties>
   <scm>
     <connection>scm:git:git://github.com/jeffersonlab/hps-java.git</connection>
@@ -232,10 +233,8 @@
       <dependency>
         <groupId>org.jlab.coda</groupId>
         <artifactId>et</artifactId>
-<!--
-        <version>16.2</version> 
--->
-        <version>14.1</version>
+        <!--<version>16.2</version>--> 
+        <version>${etVersion}</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>

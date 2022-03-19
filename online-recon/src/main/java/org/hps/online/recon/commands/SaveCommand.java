@@ -1,6 +1,5 @@
 package org.hps.online.recon.commands;
 
-import org.apache.commons.cli.CommandLine;
 import org.hps.online.recon.Command;
 
 public class SaveCommand extends Command {
@@ -11,7 +10,7 @@ public class SaveCommand extends Command {
     }
 
     @Override
-    protected void process(CommandLine cl) {
+    protected void process() {
         if (cl.getArgList().size() > 0) {
             this.setParameter("filename", cl.getArgList().get(0));
         } else {
