@@ -88,6 +88,12 @@ public class MakeGblTracks {
 
         // Set state at IP
         Pair<double[], SymmetricMatrix> correctedHelixParams = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.IP, bfield);
+
+        if (correctedHelixParams == null) {
+            return null;
+        }
+        
+
         trk.setTrackParameters(correctedHelixParams.getFirst(), bfield);// hack to set the track charge
         trk.getTrackStates().clear();
         TrackState stateIP = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtIP, bfield);
@@ -184,6 +190,10 @@ public class MakeGblTracks {
         if(fit==null) return null;
         for (int i = 0; i < nIterations; i++) {
             Pair<Track, GBLKinkData> newTrack = makeCorrectedTrack(fit, helix, allHthList, trackType, bfield);
+            
+            if (newTrack == null)
+                return null;
+            
             helix = TrackUtils.getHTF(newTrack.getFirst());
             fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0,includeMS);
             if (fit == null)

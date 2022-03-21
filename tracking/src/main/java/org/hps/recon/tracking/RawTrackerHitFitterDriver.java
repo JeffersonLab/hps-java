@@ -25,6 +25,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String fitCollectionName = "SVTShapeFitParameters";
     private String fittedHitCollectionName = "SVTFittedRawTrackerHits";
+    private String fitTimeMinimizer = "Simplex";
     private SvtTimingConstants timingConstants;
     private SvtSyncStatusCollection syncStatusColl;
     private int genericObjectFlags = 1 << LCIOConstants.GOBIT_FIXED;
@@ -134,6 +135,10 @@ public class RawTrackerHitFitterDriver extends Driver {
         this.fittedHitCollectionName = fittedHitCollectionName;
     }
 
+    public void setFitTimeMinimizer(String fitTimeMinimizer) {
+        this.fitTimeMinimizer = fitTimeMinimizer;
+    }
+
     public void setRawHitCollectionName(String rawHitCollectionName) {
         this.rawHitCollectionName = rawHitCollectionName;
     }
@@ -141,6 +146,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     @Override
     public void startOfData() {
         fitter.setDebug(debug);
+        fitter.setFitTimeMinimizer(fitTimeMinimizer);
         if (rawHitCollectionName == null)
             throw new RuntimeException("The parameter rawHitCollectionName1 was not set!");
     }

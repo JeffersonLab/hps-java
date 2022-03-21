@@ -34,7 +34,7 @@ import org.lcsim.event.EventHeader;
  * data, and scalar bank data into the output LCSim events if these banks are
  * present in the EVIO data.
  */
-public class LCSimEngRunEventBuilder extends LCSimTestRunEventBuilder {
+public class LCSimEngRunEventBuilder extends BaseEventBuilder {
 
     /**
      * Setup logger.

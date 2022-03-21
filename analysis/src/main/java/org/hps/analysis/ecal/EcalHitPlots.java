@@ -10,7 +10,7 @@ import java.util.List;
 import org.hps.recon.ecal.EcalUtils;
 import org.hps.record.triggerbank.AbstractIntData;
 import org.hps.record.triggerbank.SSPData;
-import org.hps.record.triggerbank.TestRunTriggerData;
+import org.hps.record.triggerbank.BaseTriggerData;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
@@ -155,8 +155,8 @@ public class EcalHitPlots extends Driver {
         if (event.hasCollection(GenericObject.class, "TriggerBank")) {
             List<GenericObject> triggerList = event.get(GenericObject.class, "TriggerBank");
             for (GenericObject data : triggerList) {
-                if (AbstractIntData.getTag(data) == TestRunTriggerData.BANK_TAG) {
-                    TestRunTriggerData triggerData = new TestRunTriggerData(data);
+                if (AbstractIntData.getTag(data) == BaseTriggerData.BANK_TAG) {
+                    BaseTriggerData triggerData = new BaseTriggerData(data);
                     
                     int orTrig = triggerData.getOrTrig();
                     if (orTrig != 0) {

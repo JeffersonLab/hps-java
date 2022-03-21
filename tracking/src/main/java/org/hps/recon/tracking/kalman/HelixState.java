@@ -91,8 +91,8 @@ class HelixState implements Cloneable {
         String str;
         str = String.format("HelixState %s: helix parameters=%s,  pivot=%s\n", s, a.toString(), X0.toString());
         str = str + String.format("   Origin=%s,  B=%10.6f in direction %s\n", origin.toString(), B, tB.toString());
-        str = str + "Covariance:" + C.toString();
-        str = str + Rot.toString("from global coordinates to field coordinates");
+        if (C != null) str = str + "Covariance:" + C.toString();
+        if (Rot != null) str = str + Rot.toString("from global coordinates to field coordinates");
         str = str + "End of HelixState dump\n";
         return str;
     }
@@ -114,19 +114,6 @@ class HelixState implements Cloneable {
         double y = X0.v[1] + (a.v[0] + (alpha / a.v[2])) * FastMath.sin(a.v[1]) - (alpha / a.v[2]) * FastMath.sin(a.v[1] + phi);
         double z = X0.v[2] + a.v[3] - (alpha / a.v[2]) * phi * a.v[4];
         return new Vec(x, y, z);
-    }
-
-    // Returns the particle momentum at the helix angle phi
-    // Warning! This is returned in the B-Field coordinate system.
-    Vec getMom(double phi) {
-        return getMom(phi, a);
-    }
-    
-    static Vec getMom(double phi, Vec a) {
-        double px = -FastMath.sin(a.v[1] + phi) / Math.abs(a.v[2]);
-        double py = FastMath.cos(a.v[1] + phi) / Math.abs(a.v[2]);
-        double pz = a.v[4] / Math.abs(a.v[2]);
-        return new Vec(px, py, pz);
     }
 
     // Calculate the phi angle to propagate on helix to the intersection with a
@@ -164,6 +151,19 @@ class HelixState implements Cloneable {
         F.unsafe_set(4, 4, 1.0);
 
         // All other values are always zero
+    }
+ 
+    // Returns the particle momentum at the helix angle phi
+    // Warning! This is returned in the B-Field coordinate system.
+    Vec getMom(double phi) {
+        return getMom(phi, a);
+    }
+    
+    static Vec getMom(double phi, Vec a) {
+        double px = -FastMath.sin(a.v[1] + phi) / Math.abs(a.v[2]);
+        double py = FastMath.cos(a.v[1] + phi) / Math.abs(a.v[2]);
+        double pz = a.v[4] / Math.abs(a.v[2]);
+        return new Vec(px, py, pz);
     }
     
     // Momentum at the start of the given helix (point closest to the pivot)

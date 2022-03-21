@@ -45,7 +45,6 @@ public class DatabaseConditionsManagerTest extends TestCase {
         manager.setDetector("HPS-EngRun2015-Nominal-v2", 5772);
         
         // Check basic state after initialization.
-        TestCase.assertFalse("Manager should not be configured for test run.", manager.isTestRun());        
         TestCase.assertTrue("The manager should be initialized.", manager.isInitialized());
         
         // Make sure that freezing the conditions system works properly.
@@ -85,11 +84,6 @@ public class DatabaseConditionsManagerTest extends TestCase {
         manager.unfreeze();
         TestCase.assertFalse("Manager should not be frozen.", manager.isFrozen());
         
-        // Load Test Run setup.
-        manager.setDetector("HPS-TestRun-v8-5", 1365);
-        TestCase.assertEquals("Run number should have changed.", manager.getRun(), 1365);        
-        TestCase.assertTrue("Manager should be configured for test run.", manager.isTestRun());
-                       
         // Check SLAC connection setup.
         //manager.closeConnection();
         //manager.setConnectionResource("/org/hps/conditions/config/slac_connection.prop");

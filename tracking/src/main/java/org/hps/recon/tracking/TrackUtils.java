@@ -294,12 +294,15 @@ public class TrackUtils {
 
             // calculate new dca
             dcanew += dx * sinphi - dy * cosphi + (dx * cosphi + dy * sinphi) * Math.tan(dphi / 2.);
-
+            
             // path length from old to new point
             double s = -1.0 * dphi / curvature;
-
+            double dz = 0.; 
+            if (newRefPoint.length == 3)
+                dz = newRefPoint[2] - __refPoint[2];
             // new z0
-            z0new += s * slope;
+            z0new += s * slope - dz;
+            //z0new += s * slope;
         } else {
             dcanew += dx * sinphi - dy * cosphi;
             double dz = newRefPoint[2] - __refPoint[2];
@@ -581,13 +584,13 @@ public class TrackUtils {
     
     //For the moment I use IP, but I should use first sensor!!
     public static BaseTrackState getTrackExtrapAtVtxSurfRK(Track trk, FieldMap fM, double stepSize, double distanceZ) {
-        BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtIP(trk);
+        BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtFirst(trk);
         if (ts != null)
             return getTrackExtrapAtVtxSurfRK(ts, fM, stepSize,distanceZ);
         return null;
     }
     
-    //For the moment I do an extrapolation to 0 using the IP TSOS. TODO::Improve this.
+    
     public static BaseTrackState getTrackExtrapAtVtxSurfRK(TrackState ts, FieldMap fM, double stepSize, double distanceZ) {
         //Change of charge
         Hep3Vector startPos = extrapolateHelixToXPlane(ts, 0.);
@@ -1384,6 +1387,8 @@ public class TrackUtils {
         if (hitToStripsCache == null || hitToStripsCache.getFirst() != event) {
             RelationalTable hitToStrips = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
             //List<LCRelation> hitrelations = event.get(LCRelation.class, "HelicalTrackHitRelations");
+            if (!event.hasCollection(LCRelation.class,HelicalTrackHitRelationsCollectionName))
+                return null;
             List<LCRelation> hitrelations = event.get(LCRelation.class, HelicalTrackHitRelationsCollectionName);
             for (LCRelation relation : hitrelations)
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null)
@@ -1409,6 +1414,8 @@ public class TrackUtils {
             //          System.out.println("getHitToRotatedTable:  making new table");
             RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
             //List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
+            if (!event.hasCollection(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName))
+                return null;
             List<LCRelation> rotaterelations = event.get(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName);
             for (LCRelation relation : rotaterelations)
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null)
@@ -1925,4 +1932,122 @@ public class TrackUtils {
         return detectorElementContainsPoint( trackPosition,  sensor,0.0);
     }
     
+
+    //This method return the layer number and the module number of a sensor given the volume and the millepedeID 
+    public static Pair<Integer,Integer> getLayerSide(int volume, int millepedeID) {
+        
+        Integer retLy=null;
+        Integer retMod=null;
+        //top
+        if (volume == 1) {
+            if (millepedeID < 9) {
+                retLy=millepedeID;
+                retMod=0;
+            }
+            else {
+                if (millepedeID == 9 || millepedeID == 10) {
+                    retLy=millepedeID;
+                    retMod=0;
+                }
+                else if (millepedeID == 11 | millepedeID== 12) {
+                    retLy = millepedeID - 2;
+                    retMod = 2;
+                }
+                else if (millepedeID == 13 | millepedeID == 14) {
+                    retLy = millepedeID - 2;
+                    retMod = 0;
+                }
+                else if (millepedeID == 15 | millepedeID == 16) {
+                    retLy = millepedeID - 4;
+                    retMod = 2;
+                }
+                else if (millepedeID == 17 | millepedeID == 18 ) {
+                    retLy = millepedeID - 4;
+                    retMod = 0;
+                }
+                else if (millepedeID == 19 | millepedeID == 20 ) {
+                    retLy = millepedeID - 6;
+                    retMod = 2;
+                }
+            }
+        }
+        //bottom
+        else {
+            if (millepedeID < 9) {
+                retLy=millepedeID;
+                retMod=1;
+            }
+            else {
+                if (millepedeID == 9 || millepedeID == 10) {
+                    retLy=millepedeID;
+                    retMod=1;
+                }
+                else if (millepedeID == 11 | millepedeID== 12) {
+                    retLy = millepedeID - 2;
+                    retMod = 3;
+                }
+                else if (millepedeID == 13 | millepedeID == 14) {
+                    retLy = millepedeID - 2;
+                    retMod = 1;
+                }
+                else if (millepedeID == 15 | millepedeID == 16) {
+                    retLy = millepedeID - 4;
+                    retMod = 3;
+                }
+                else if (millepedeID == 17 | millepedeID == 18 ) {
+                    retLy = millepedeID - 4;
+                    retMod = 1;
+                }
+                else if (millepedeID == 19 | millepedeID == 20 ) {
+                    retLy = millepedeID - 6;
+                    retMod = 3;
+                }
+            }
+        }
+        
+        return new Pair<Integer,Integer>(retLy,retMod);
+    }            
+    //This methods checks if a track has only hole hits in the back of the detector
+    //return true if all back layers have hole hits, false if all back layers have slot hits
+    
+    public static boolean isHoleTrack(Track trk) {
+        
+        boolean holeTrack = false;
+        
+        TrackState trackState = trk.getTrackStates().get(0);
+        boolean isTop = true;
+        if (trackState.getTanLambda()<0)
+            isTop=false;                        
+        
+        //System.out.println("--------------");
+        for (TrackerHit hit : trk.getTrackerHits()) {
+            
+            int stripLayer   = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+            int hpslayer     = (stripLayer + 1 ) / 2;
+            String side      = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getSide();
+            
+            if (isTop) {
+                if (hpslayer == 5 || hpslayer ==6 || hpslayer==7) 
+                    if (side=="ELECTRON")
+                        holeTrack=true;
+            }
+            else {
+                if (hpslayer == 5 || hpslayer ==6 || hpslayer==7)
+                    if (side=="ELECTRON")
+                        holeTrack=true;
+            }
+            
+            String moduleName = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getName();
+            int hpsmodule    = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getModuleNumber();
+            int MPID         = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getMillepedeId();
+            
+            //System.out.println("Hit on track :: " + moduleName);
+            //System.out.println("Layer="+hpslayer+" Module=" + hpsmodule +" MPID=" + MPID+" side="+side +" top=" +isTop);
+            
+        }
+        //System.out.println("Track is hole=" + holeTrack);
+        //System.out.println("==========");
+        
+        return holeTrack;
+    }
 }

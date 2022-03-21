@@ -14,6 +14,9 @@ import org.lcsim.event.EventHeader;
  * time is always, effectively, zero.
  */
 public class PulserReadoutDriver extends TriggerDriver {
+    
+    
+    
     private int events = 0;
     private int pulserRate = 200;
     
@@ -31,7 +34,7 @@ public class PulserReadoutDriver extends TriggerDriver {
         events++;
         if(events == pulserRate) {
             events = 0;
-            sendTrigger();
+            sendTrigger(PULSER);
         }
     }
     

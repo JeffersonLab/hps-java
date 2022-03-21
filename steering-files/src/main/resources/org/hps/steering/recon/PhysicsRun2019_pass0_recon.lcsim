@@ -300,7 +300,7 @@
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
             <beamPositionZ>-7.5</beamPositionZ>
-            <maxElectronP>7.0</maxElectronP>
+            <maxElectronP>10.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <maxVertexClusterDt> 40.0 </maxVertexClusterDt>           
@@ -330,7 +330,7 @@
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
             <beamPositionZ>-7.5</beamPositionZ>
-            <maxElectronP>7.0</maxElectronP>
+            <maxElectronP>10.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>40.0</maxVertexClusterDt>           

@@ -3,6 +3,7 @@ package org.hps.readout;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +16,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.record.evio.EvioEventConstants;
+import org.hps.record.triggerbank.TSGenericObject;
 import org.hps.readout.util.TimedList;
 import org.hps.readout.util.TriggerTime;
 import org.hps.readout.util.collection.LCIOCollection;
@@ -22,7 +25,7 @@ import org.hps.readout.util.collection.LCIOCollectionFactory;
 import org.hps.readout.util.collection.ManagedLCIOCollection;
 import org.hps.readout.util.collection.ManagedLCIOData;
 import org.hps.readout.util.collection.TriggeredLCIOData;
-import org.hps.record.triggerbank.TestRunTriggerData;
+import org.hps.record.triggerbank.BaseTriggerData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 import org.lcsim.event.MCParticle;
@@ -204,7 +207,6 @@ public class ReadoutDataManager extends Driver {
     
     @Override
     public void process(EventHeader event) {
-        // TODO: Currently only works for a single trigger. Should support multiple triggers with different offsets.
         // Check the trigger queue.
         if(!triggerQueue.isEmpty()) {
             // Check the earliest possible trigger write time.
@@ -212,15 +214,115 @@ public class ReadoutDataManager extends Driver {
             
             // If all collections are available to be written, the
             // event should be output.
-            if(isWritable) {
+            if(isWritable) {                               
                 // Store the current trigger data.
                 TriggerTime trigger = triggerQueue.poll();
+                
+                // 2016 MC only process one trigger, and no TS bank is stored
+                // 2019 MC can process multi-trigger, and TS bank is stored
+                List<TriggerTime> triggerList = new ArrayList();
+                if(!trigger.getTriggerType().equals("noSet")) {             
+                    triggerList.add(trigger);
+                                    
+                    // Iterate triggers in queue, remove next trigger if time of next trigger is the
+                    // same as previous, until time of next trigger is not the same as previous or
+                    // no next trigger
+                    TriggerTime nextTrigger = null;
+                    if(!triggerQueue.isEmpty()) nextTrigger = triggerQueue.peek();
+                    while((!triggerQueue.isEmpty()) && (nextTrigger.getTriggerTime() == trigger.getTriggerTime())) {
+                        triggerList.add(nextTrigger);
+                        triggerQueue.poll();
+                        if(!triggerQueue.isEmpty()) nextTrigger = triggerQueue.peek();
+                    }                   
+                }
+                
                 triggers++;
                 
                 // Make a new LCSim event.
                 int triggerEventNumber = event.getEventNumber() - ((int) Math.floor((getCurrentTime() - trigger.getTriggerTime()) / 2.0));
                 EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(),
                         triggerEventNumber, event.getDetectorName(), (long) 4 * (Math.round(trigger.getTriggerTime() / 4)), false);
+                
+                // 2016 MC only process one trigger, and no TS bank is stored
+                // 2019 MC can process multi-trigger, and TS bank is stored
+                if(!trigger.getTriggerType().equals("noSet")) {   
+                    List<TSGenericObject> ts_list = new ArrayList();
+                    TSGenericObject tsBank = new TSGenericObject();
+                    int[] tsValues = new int[8];
+                    BitSet bits = new BitSet(32);
+                    for(TriggerTime tri : triggerList) {
+                        String triggerType = tri.getTriggerType();
+                        if(triggerType.equals(TriggerDriver.SINGLES0)) {
+                            String topBot = tri.getTopBotStat();
+                            if(topBot.equals(TriggerDriver.TOP)) bits.set(0);
+                            else if(topBot.equals(TriggerDriver.BOT)) bits.set(4);
+                            else if(topBot.equals(TriggerDriver.TOPBOT)){
+                                bits.set(0);
+                                bits.set(4);
+                            }
+                        }
+                        else if(triggerType.equals(TriggerDriver.SINGLES1)) {
+                            String topBot = tri.getTopBotStat();
+                            if(topBot.equals(TriggerDriver.TOP)) bits.set(1);
+                            else if(topBot.equals(TriggerDriver.BOT)) bits.set(5);
+                            else if(topBot.equals(TriggerDriver.TOPBOT)){
+                                bits.set(1);
+                                bits.set(5);
+                            }
+                        }
+                        else if(triggerType.equals(TriggerDriver.SINGLES2)) {
+                            String topBot = tri.getTopBotStat();
+                            if(topBot.equals(TriggerDriver.TOP)) bits.set(2);
+                            else if(topBot.equals(TriggerDriver.BOT)) bits.set(6);
+                            else if(topBot.equals(TriggerDriver.TOPBOT)){
+                                bits.set(2);
+                                bits.set(6);
+                            }
+                        }
+                        else if(triggerType.equals(TriggerDriver.SINGLES3)) {
+                            String topBot = tri.getTopBotStat();
+                            if(topBot.equals(TriggerDriver.TOP)) bits.set(3);
+                            else if(topBot.equals(TriggerDriver.BOT)) bits.set(7);
+                            else if(topBot.equals(TriggerDriver.TOPBOT)){
+                                bits.set(3);
+                                bits.set(7);
+                            }
+                        }
+                        else if(triggerType.equals(TriggerDriver.PAIR0)) bits.set(8);
+                        else if(triggerType.equals(TriggerDriver.PAIR1)) bits.set(9);
+                        else if(triggerType.equals(TriggerDriver.PAIR2)) bits.set(10);
+                        else if(triggerType.equals(TriggerDriver.PAIR3)) bits.set(11);
+                        else if(triggerType.equals(TriggerDriver.PULSER)) bits.set(15);
+                        else if(triggerType.equals(TriggerDriver.FEE)) {
+                            String topBot = tri.getTopBotStat();
+                            if(topBot.equals(TriggerDriver.TOP)) bits.set(18);
+                            else if(topBot.equals(TriggerDriver.BOT)) bits.set(19);
+                            else if(topBot.equals(TriggerDriver.TOPBOT)){
+                                bits.set(18);
+                                bits.set(19);
+                            }
+                        }
+                    }
+                    
+                    tsValues[0] = EvioEventConstants.TS_BANK_TAG;
+                    
+                    if(!bits.isEmpty()) {
+                        tsValues[5] = (int)bits.toLongArray()[0];
+                        tsValues[6] = (int)bits.toLongArray()[0];
+                    }
+                    else {
+                        tsValues[5] = 0;
+                        tsValues[6] = 0;
+                    }
+                    
+                    // Filling the generic objects with the integer array
+                    tsBank.setValues(tsValues);
+                    
+                    // Adding the generic object to the list
+                    ts_list.add(tsBank);
+                    lcsimEvent.put("TSBank", ts_list, TSGenericObject.class, 0);
+                }
+                
                 
                 // Calculate the readout window time range. This is
                 // used for any production driver that does not have
@@ -284,7 +386,7 @@ public class ReadoutDataManager extends Driver {
                 
                 // Create the dummy trigger bank data and store it.
                 TriggeredLCIOData<GenericObject> triggerBankData = new TriggeredLCIOData<GenericObject>(triggerBankParams);
-                triggerBankData.getData().add(new TestRunTriggerData(new int[8]));
+                triggerBankData.getData().add(new BaseTriggerData(new int[8]));
                 addDataToMap(triggerBankData, triggerBankData.getCollectionParameters().getObjectType(), triggeredDataMap);
                 
                 // Readout timestamps should be generated for both
@@ -714,6 +816,56 @@ public class ReadoutDataManager extends Driver {
         
         // Add the trigger to the trigger queue.
         triggerQueue.add(new TriggerTime(triggerTime, driver));
+        logger.finer("Added trigger to queue with trigger time " + triggerTime + " and readout time " + (triggerTime + bufferTotal) + " from driver "
+                + driver.getClass().getSimpleName() + ".");
+    }
+    
+    /**
+     * Indicates that the specified driver saw a trigger and readout
+     * should occur.
+     * @param driver - The triggering driver.
+     * @param triggerType - trigger type.
+     * @throws IllegalArgumentException Occurs if the argument
+     * triggering driver is not registered as a trigger driver with
+     * the data manager.
+     */
+    static final void sendTrigger(TriggerDriver driver, String triggerType) {
+        // Check that the triggering driver is registered as a
+        // trigger driver.
+        if(!triggerTimeDisplacementMap.containsKey(driver)) {
+            throw new IllegalArgumentException("Error: Driver \"" + driver.getClass().getSimpleName() + "\" is not a registered trigger driver.");
+        }
+        
+        // Calculate the trigger and readout times.
+        double triggerTime = getCurrentTime() - triggerTimeDisplacementMap.get(driver);
+        
+        // Add the trigger to the trigger queue.
+        triggerQueue.add(new TriggerTime(triggerTime, triggerType, driver));
+        logger.finer("Added trigger to queue with trigger time " + triggerTime + " and readout time " + (triggerTime + bufferTotal) + " from driver "
+                + driver.getClass().getSimpleName() + ".");
+    }
+    
+    /**
+     * Indicates that the specified driver saw a trigger and readout
+     * should occur.
+     * @param driver - The triggering driver.
+     * @param triggerType - trigger type.
+     * @throws IllegalArgumentException Occurs if the argument
+     * triggering driver is not registered as a trigger driver with
+     * the data manager.
+     */
+    static final void sendTrigger(TriggerDriver driver, String triggerType, String topBot) {
+        // Check that the triggering driver is registered as a
+        // trigger driver.
+        if(!triggerTimeDisplacementMap.containsKey(driver)) {
+            throw new IllegalArgumentException("Error: Driver \"" + driver.getClass().getSimpleName() + "\" is not a registered trigger driver.");
+        }
+        
+        // Calculate the trigger and readout times.
+        double triggerTime = getCurrentTime() - triggerTimeDisplacementMap.get(driver);
+        
+        // Add the trigger to the trigger queue.
+        triggerQueue.add(new TriggerTime(triggerTime, triggerType, topBot, driver));
         logger.finer("Added trigger to queue with trigger time " + triggerTime + " and readout time " + (triggerTime + bufferTotal) + " from driver "
                 + driver.getClass().getSimpleName() + ".");
     }

@@ -72,9 +72,9 @@
               <goal>assemble</goal>
             </goals>
             <configuration>
-              <binFileExtensions>
-                <unix>.sh</unix>
-              </binFileExtensions>
+              <platforms>
+                <platform>unix</platform>
+              </platforms>
               <extraJvmArguments>-Xmx2g
                 -Djava.util.logging.config.class=org.hps.logging.config.DefaultLoggingConfig</extraJvmArguments>
               <programs>
@@ -89,10 +89,6 @@
                 <program>
                   <mainClass>org.hps.conditions.cli.CommandLineTool</mainClass>
                   <id>conditions-cli</id>
-                </program>
-                <program>
-                  <mainClass>org.hps.run.database.RunDatabaseCommandLine</mainClass>
-                  <id>run-database-cli</id>
                 </program>
                 <program>
                   <mainClass>org.hps.monitoring.application.Main</mainClass>
@@ -117,18 +113,6 @@
                     <commandLineArgument>-v</commandLineArgument>
                   </commandLineArguments>
                 </program>
-                <program>
-                  <mainClass>org.hps.crawler.MetadataWriter</mainClass>
-                  <id>dc-create-metadata</id>
-                </program>
-                <program>
-                  <mainClass>org.hps.crawler.DatacatAddFile</mainClass>
-                  <id>dc-add-file</id>
-                </program>
-                <program>
-                  <mainClass>org.hps.crawler.DatacatCrawler</mainClass>
-                  <id>dc-crawler</id>
-                </program>
               </programs>
             </configuration>
           </execution>
@@ -139,7 +123,7 @@
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
-      <artifactId>hps-monitoring-app</artifactId>
+      <artifactId>hps-online-monitoring</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
@@ -152,14 +136,6 @@
     <dependency>
       <groupId>org.hps</groupId>
       <artifactId>hps-detector-model</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
-      <artifactId>hps-run-database</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
-      <artifactId>hps-crawler</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
