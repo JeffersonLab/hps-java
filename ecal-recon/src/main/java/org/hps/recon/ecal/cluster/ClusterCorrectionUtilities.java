@@ -119,11 +119,12 @@ public final class ClusterCorrectionUtilities {
 
             BaseCluster baseCluster = (BaseCluster) cluster;
             boolean addNoise = false;
-            // Apply PID based energy correction.
-            if (beamEnergy > 4.0) {
+            // Apply PID based energy correction. 2019 and 2021 are a special case
+            if (beamEnergy > 3.0) {
                 // here we need to play a little bit.
-                // ClusterEnergyCorrection2019 requires the CORRECT position and the RAW energy
-                // ClusterPositionCorrection2019 requires the CORRECT energy and the RAW
+                // ClusterEnergyCorrection2019/2021 requires the CORRECT position and the RAW
+                // energy
+                // ClusterPositionCorrection2019/2021 requires the CORRECT energy and the RAW
                 // position.
                 // Idea: iterate from the non-corrected values
 
@@ -146,15 +147,22 @@ public final class ClusterCorrectionUtilities {
                     // and the raw energy
                     baseCluster.setPosition(clusterPosition);
                     baseCluster.setEnergy(clusterEnergy_NC);
-                    ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC, addNoise);
+                    if (beamEnergy > 4.0) {
+                        ClusterEnergyCorrection2019.setCorrectedEnergy(ecal, baseCluster, isMC, addNoise);
+                    } else {
+                        ClusterEnergyCorrection2021.setCorrectedEnergy(ecal, baseCluster, isMC, addNoise);
+                    }
                     double clusterEnergy_C = baseCluster.getEnergy();
 
                     // To correct the position, need the correct energy - from previous iteration -
                     // and the raw position
                     baseCluster.setEnergy(clusterEnergy);
                     baseCluster.setPosition(clusterPosition_NC);
-                    ClusterPositionCorrection2019.setCorrectedPosition(baseCluster);
-
+                    if (beamEnergy > 4.0) {
+                        ClusterPositionCorrection2019.setCorrectedPosition(baseCluster);
+                    } else {
+                        ClusterPositionCorrection2021.setCorrectedPosition(baseCluster);
+                    }
                     // now set back the energy after correction (the position is already set)
                     baseCluster.setEnergy(clusterEnergy_C);
 
@@ -204,7 +212,17 @@ public final class ClusterCorrectionUtilities {
                 // is different from below, since 2019 corrections are based on the CORRECTED
                 // ENERGY
                 ClusterPositionCorrection2019.setCorrectedPosition(baseCluster);
-            } else {
+            } else if (beamEnergy > 3.0) {
+                // Apply energy correction - this depends on the non-corrected energy (from
+                // baseCluster) and ypos, from tracking.
+                ClusterEnergyCorrection2021.setCorrectedEnergy(ecal, baseCluster, ypos, isMC);
+                // Now the energy is correct, can use the 2019 correction. Note that the order
+                // is different from below, since 2019 corrections are based on the CORRECTED
+                // ENERGY
+                ClusterPositionCorrection2021.setCorrectedPosition(baseCluster);
+            }
+
+            else {
                 // Apply PID based position correction, which should happen before final energy
                 // correction.
                 ClusterPositionCorrection.setCorrectedPosition(baseCluster);
