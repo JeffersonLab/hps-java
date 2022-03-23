@@ -126,7 +126,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private boolean constrainedD0Fit = false;
     private boolean constrainedZ0Fit = false;
     private int trackSide = -1;
-    private boolean doCOMAlignment = true;
+    private boolean doCOMAlignment = false;
     private double seed_precision = 10000; // the constraint on q/p
     
     private GblTrajectoryMaker _gblTrajMaker;
@@ -417,12 +417,21 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
+
+                int nHitsCut = 5;
+                //Kalman
+                if (TrackType == 1)
+                    nHitsCut = 10;
+
                                 
                 if (momentum.magnitude() < 3 || momentum.magnitude() > 6)
                     continue;
+
+                if (tanLambda < 0.025)
+                    continue;
                 
                 //Align with tracks with at least 6 hits
-                if ((tanLambda > 0 && track.getTrackerHits().size() < 5) || (tanLambda < 0 && track.getTrackerHits().size() < 5)) 
+                if ((tanLambda > 0 && track.getTrackerHits().size() < nHitsCut) || (tanLambda < 0 && track.getTrackerHits().size() < nHitsCut)) 
                     continue;
                 
                 // ask tracks only on a side
