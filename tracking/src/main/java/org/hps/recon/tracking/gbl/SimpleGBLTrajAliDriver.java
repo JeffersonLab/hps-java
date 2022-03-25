@@ -128,6 +128,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private int trackSide = -1;
     private boolean doCOMAlignment = false;
     private double seed_precision = 10000; // the constraint on q/p
+    private double momC = 4.55;
     
     private GblTrajectoryMaker _gblTrajMaker;
     
@@ -143,8 +144,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     //Set -1 for no selection, 0-slot side tracks 1-hole side tracks
     public void setTrackSide (int side) {
         trackSide = side;
-    }
-
+    }    
     public void setCompositeAlign (boolean val) {
         compositeAlign = val;
     }
@@ -265,6 +265,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
     public void setEnableStandardCuts(boolean val) {
         System.out.println("SimpleGBLTrajAliDriver::WARNING:Enabling standardCuts!");
         enableStandardCuts = val;
+    }
+
+    public void setMomC(double val) {
+        momC = val;
     }
 
     @Override
@@ -465,7 +469,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Bias the FEEs to beam energy. Correct the curvature by projecting on  X / Y plane
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
                 double cosLambda = 1. / (Math.sqrt(1+tanLambda*tanLambda));
-                double targetpT = 4.55 * cosLambda;
+                double targetpT = momC * cosLambda;
                 //System.out.println("TargetpT: " + targetpT + " tanLambda = " + tanLambda);
                 double pt_bias = targetpT - pt;
                 //System.out.println("pT bias: " + pt_bias);
