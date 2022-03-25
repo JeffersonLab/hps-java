@@ -129,6 +129,15 @@ public class GBLOutputDriver extends Driver {
     public void process(EventHeader event) {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
 
+        int TrackType = 0;
+        int nHits = 6;
+        
+        if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) {
+            TrackType = 1;
+            nHits = 12;
+            //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
+        }
+
         //System.out.println("Running on "+trackCollectionName);
 
         //RelationalTable trackMatchTable = null;
@@ -142,37 +151,51 @@ public class GBLOutputDriver extends Driver {
 
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        
+       
 
         for (Track trk : tracks) {
 
             //Some Track selection
             
+            //System.out.println("Track loop");
+            
             if (trk.getChi2() > chi2Cut)
                 continue;
+
+
+            //System.out.println("Track passed chi2");
+            
             //Remove tracks with less than 10 hits
-            //if (trk.getTrackerHits().size() < 10)
-            //    continue;
+            if (trk.getTrackerHits().size() < nHits)
+                continue;
+
+
+            //System.out.println("Track passed hits");
             
             Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
             
-            if (momentum.magnitude() < 2.5)
+            if (momentum.magnitude() < 1.5)
                 continue;
             
-            if (momentum.magnitude() > 7)
+            if (momentum.magnitude() > 6)
                 continue;
 
+            //System.out.println("Track passed momentum");
+            
             TrackState trackState = trk.getTrackStates().get(0);
             if (Math.abs(trackState.getTanLambda()) < 0.025)
                 continue;
             
-
+            //System.out.println("Track passed tanLambda");
+            
             GenericObject gblKink = GBLKinkData.getKinkData(event, trk);
-
-            if (gblKink == null) {
-                System.out.println("Failed finding gblKink object");
-                System.out.println("Looked for: "+GBLKinkData.DATA_RELATION_COLLECTION);
-                System.out.println("Event has "+GBLKinkData.DATA_RELATION_COLLECTION+" "+event.hasCollection(LCRelation.class, GBLKinkData.DATA_RELATION_COLLECTION));
-            }
+            
+            //if (gblKink == null) {
+                //System.out.println("Failed finding gblKink object");
+                //System.out.println("Looked for: "+GBLKinkData.DATA_RELATION_COLLECTION);
+                //System.out.println("Event has "+GBLKinkData.DATA_RELATION_COLLECTION+" "+event.hasCollection(LCRelation.class, GBLKinkData.DATA_RELATION_COLLECTION));
+            //}
             
             
             
@@ -303,12 +326,12 @@ public class GBLOutputDriver extends Driver {
         //  isTop = "_top";
         //}
 
-        if (trk.getType()==1 && trk.getTrackerHits().size() < 12) {
-            return;
-        }
+        //if (trk.getType()==1 && trk.getTrackerHits().size() < 10) {
+        //    return;
+        //}
 
-        List<Integer> missingHits; 
-        missingHits =  findMissingLayer(trk);
+        //List<Integer> missingHits; 
+        //missingHits =  findMissingLayer(trk);
         
         if (trackState.getTanLambda() > 0) {
             isTop = "_top";
@@ -318,7 +341,11 @@ public class GBLOutputDriver extends Driver {
         if (trk.getCharge()<0)
             charge = "_neg";
         
+        
+        //Hep3Vector mom = new BasicHep3Vector(trackState.getMomentum());
+        //System.out.println("Track momentum " + mom.toString());
         double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
+        
         
         FillGBLTrackPlot(trkpFolder+"d0",isTop,charge,trackState.getD0());
         FillGBLTrackPlot(trkpFolder+"z0",isTop,charge,trackState.getZ0());
@@ -350,11 +377,11 @@ public class GBLOutputDriver extends Driver {
         FillGBLTrackPlot(trkpFolder+"pT_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackp*cosLambda);
         
         
-        if (trk.getTrackerHits().size()==6)
-            FillGBLTrackPlot(trkpFolder+"p_Missing1Hit",isTop,charge,missingHits.get(0),trackp);
+        //if (trk.getTrackerHits().size()==6)
+        //    FillGBLTrackPlot(trkpFolder+"p_Missing1Hit",isTop,charge,missingHits.get(0),trackp);
         
-        if (missingHits.size()==1 && missingHits.get(0)==7) 
-            FillGBLTrackPlot(trkpFolder+"p_MissingLastLayer",isTop,charge,trackp);
+        //if (missingHits.size()==1 && missingHits.get(0)==7) 
+        //    FillGBLTrackPlot(trkpFolder+"p_MissingLastLayer",isTop,charge,trackp);
         
         
         FillGBLTrackPlot(trkpFolder+"Chi2",isTop,charge,trk.getChi2());
