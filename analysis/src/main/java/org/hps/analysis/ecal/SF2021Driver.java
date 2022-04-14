@@ -376,7 +376,7 @@ public class SF2021Driver extends Driver {
                 baseClus.setParticleId(PID);
                 baseClus.setNeedsPropertyCalculation(false);
 
-                ClusterCorrectionUtilities.applyCorrections(4.55, ecal, baseClus, true);
+                ClusterCorrectionUtilities.applyCorrections(3.74, ecal, baseClus, true);
                 xClus = baseClus.getPosition()[0];
                 yClus = baseClus.getPosition()[1];
                 dX = xClus - xpos;

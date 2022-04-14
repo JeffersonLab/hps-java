@@ -28,11 +28,11 @@ import org.lcsim.event.base.BaseCluster;
  * Photons: par(E) = p0 + p1*pow(E,p2) | par = q,m par(E) = (a + b*E + c*E*E)/(d
  * + e*E + f*E*E) | par = q1,t,q2
  */
-final class ClusterPosResult {
+final class ClusterPosResult21 {
     private final double X;
     private final double Y;
 
-    public ClusterPosResult(double X, double Y) {
+    public ClusterPosResult21(double X, double Y) {
         this.X = X;
         this.Y = Y;
     }
@@ -133,7 +133,7 @@ public final class ClusterPositionCorrection2021 {
     public static double[] calculateCorrectedPosition(BaseCluster cluster) {
         double clusterPosition[] = cluster.getPosition();
 
-        ClusterPosResult correctedPosition = computeCorrectedPosition(cluster.getParticleId(), clusterPosition[0],
+        ClusterPosResult21 correctedPosition = computeCorrectedPosition(cluster.getParticleId(), clusterPosition[0],
                 clusterPosition[1], cluster.getEnergy());
 
         double[] position = new double[3];
@@ -160,9 +160,9 @@ public final class ClusterPositionCorrection2021 {
      * @param Energy Corrected energy of the cluster
      * @return the corrected x position
      */
-    private static ClusterPosResult computeCorrectedPosition(int pdg, double xPos, double yPos, double Energy) {
+    private static ClusterPosResult21 computeCorrectedPosition(int pdg, double xPos, double yPos, double Energy) {
         // double xCl = xPos / 10.0;//convert to cm
-        ClusterPosResult res;
+        ClusterPosResult21 res;
         double xCorr;
         switch (pdg) {
             case 11: // Particle is electron
@@ -175,12 +175,12 @@ public final class ClusterPositionCorrection2021 {
                 res = positionCorrectionPhoton(xPos, yPos, Energy);
                 break;
             default: // Unknown
-                res = new ClusterPosResult(xPos, yPos);
+                res = new ClusterPosResult21(xPos, yPos);
         }
         return res;
     }
 
-    private static ClusterPosResult positionCorrectionElectron(double xPos, double yPos, double Energy) {
+    private static ClusterPosResult21 positionCorrectionElectron(double xPos, double yPos, double Energy) {
         double xCorr, yCorr;
         double deltaX, deltaY;
 
@@ -201,10 +201,10 @@ public final class ClusterPositionCorrection2021 {
         xCorr = xPos - deltaX;
         yCorr = yPos - deltaY;
 
-        return new ClusterPosResult(xCorr, yCorr);
+        return new ClusterPosResult21(xCorr, yCorr);
     }
 
-    private static ClusterPosResult positionCorrectionPositron(double xPos, double yPos, double Energy) {
+    private static ClusterPosResult21 positionCorrectionPositron(double xPos, double yPos, double Energy) {
         double xCorr, yCorr;
         double deltaX, deltaY;
 
@@ -225,10 +225,10 @@ public final class ClusterPositionCorrection2021 {
         xCorr = xPos - deltaX;
         yCorr = yPos - deltaY;
 
-        return new ClusterPosResult(xCorr, yCorr);
+        return new ClusterPosResult21(xCorr, yCorr);
     }
 
-    private static ClusterPosResult positionCorrectionPhoton(double xPos, double yPos, double Energy) {
+    private static ClusterPosResult21 positionCorrectionPhoton(double xPos, double yPos, double Energy) {
         double xCorr, yCorr;
         double deltaX, deltaY;
 
@@ -252,7 +252,7 @@ public final class ClusterPositionCorrection2021 {
         xCorr = xPos - deltaX;
         yCorr = yPos - deltaY;
 
-        return new ClusterPosResult(xCorr, yCorr);
+        return new ClusterPosResult21(xCorr, yCorr);
     }
 
 }
