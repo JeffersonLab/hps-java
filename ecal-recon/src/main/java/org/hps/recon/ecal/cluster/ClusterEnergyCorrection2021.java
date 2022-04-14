@@ -200,8 +200,17 @@ public final class ClusterEnergyCorrection2021 {
     public static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos,
             boolean isMC) {
 
-        final int type = isMC ? MC : DATA;
+       
 
+        /*TODO 
+         * FIX
+         * A.c. very important, for the moment I am fixing this to always use MC corrections, for later analysis.
+         * 
+         *  final int type = isMC ? MC : DATA;
+         */
+        final int type = MC;
+             
+        
         loadDataFromResourceFiles(type);
 
         // distance to beam gap edge
