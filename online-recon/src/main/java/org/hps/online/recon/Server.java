@@ -48,18 +48,13 @@ import org.json.JSONObject;
  */
 public final class Server {
 
-    // Return codes
+    // System return codes
     final static int OKAY = 0;
     final static int ERROR = 1001;
     final static int PARSE_ERROR = 1002;
     final static int DISCONNECTED = 1003; // ET disconnected
     final static int RUNTIME_ERROR = 1004;
-    final public static int SHUTDOWN = 1005;
-
-    /**
-     * When streaming data, client sends to server to keep connection alive.
-     */
-    static final String KEEPALIVE_RESPONSE = "<KEEPALIVE>";
+    final static int SHUTDOWN = 1005;
 
     /**
      * The default server port.
@@ -107,9 +102,24 @@ public final class Server {
     private StationProperties stationProperties = new StationProperties();
 
     /**
+     * Executor for executing various tasks such as the ET and station monitors
+     */
+    final ScheduledExecutorService exec = Executors.newScheduledThreadPool(5);
+
+    /**
      * The station manager.
      */
-    private final StationManager stationManager;
+    private final StationManager stationManager = new StationManager(this);
+
+    /**
+     * Remote AIDA plot aggregator
+     */
+    private final PlotAggregator agg = new PlotAggregator();
+
+    /**
+     * Factory for creating a command handler for a client command
+     */
+    private CommandHandlerFactory handlers = new CommandHandlerFactory(this);
 
     /**
      * The server work directory.
@@ -122,36 +132,19 @@ public final class Server {
     private EtSystem etSystem;
 
     /**
-     * Reference to the current ET config
+     * Reference to the current ET configuration
      */
     private EtSystemOpenConfig etConfig;
 
     /**
-     * Executor for executing various tasks such as the ET and station monitors
-     */
-    final ScheduledExecutorService exec = Executors.newScheduledThreadPool(3);
-
-    /**
-     * Remote AIDA plot aggregator
-     */
-    final PlotAggregator agg = new PlotAggregator();
-
-    /**
-     * Factory for creating a command handler for a client command
-     */
-    CommandHandlerFactory handlers = null;
-
-    /**
      * Internet host
      */
-    InetAddress host;
+    private InetAddress host;
 
     /**
      * Host name which can be set with a command line option
      */
-    String hostName = null;
-
-    boolean isShutdown = false;
+    private String hostName = null;
 
     /**
      * Handles a single client request.
@@ -190,11 +183,9 @@ public final class Server {
                 CommandHandler handler = null;
                 try {
                     // Find the handler for the command.
-                    LOG.config("Getting handler for command: " + command);
                     handler = handlers.getCommandHandler(command);
-                    LOG.config("Got command handler: " + handler.getClass().getCanonicalName());
                 } catch (IllegalArgumentException e) {
-                    // Command name is invalid. This shouldn't happen normally.
+                    // Not a valid command
                     res = new Error("Unknown command: " + command);
                 }
 
@@ -252,21 +243,26 @@ public final class Server {
                     LOG.log(Level.SEVERE, "Error closing socket", e);
                 }
             }
-            LOG.fine("Done running client thread");
 
             // Handle special shutdown command
-            if (res != null && res instanceof CommandResult.Shutdown) {
-                LOG.info("Got shutdown command");
-                int wait = ((CommandResult.Shutdown) res).getWait();
-                if (wait > 0) {
-                    LOG.info("Waiting before shutdown: " + wait + " sec");
-                    try {
-                        Thread.sleep(1000L*wait);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+            if (res instanceof CommandResult.Shutdown) {
+                LOG.info("Initiating server shutdown");
+                final int waitTime = ((CommandResult.Shutdown) res).getWait();
+                Thread shutdownThread = new Thread() {
+                    @Override
+                    public void run() {
+                        if (waitTime > 0) {
+                            LOG.info("Waiting before shutdown: " + waitTime + " sec");
+                            try {
+                                Thread.sleep(1000L * waitTime);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        System.exit(SHUTDOWN);
                     }
-                }
-                Server.this.shutdown(true);
+                };
+                shutdownThread.start();
             }
         }
 
@@ -281,8 +277,6 @@ public final class Server {
         private void runTailer(CommandResult res, final BufferedWriter bw, final Scanner in)
                 throws IOException, InterruptedException {
 
-            LOG.fine("Sending log tail back to client");
-
             LogStreamResult logStreamResult = (LogStreamResult) res;
             SimpleLogListener listener = logStreamResult.listener;
             listener.setBufferedWriter(bw);
@@ -291,22 +285,16 @@ public final class Server {
 
             final Tailer tailer = logStreamResult.tailer;
 
-            LOG.info("Running tailer");
-
             Thread tailerThread = new Thread(tailer);
             tailerThread.start();
-            LOG.info("Done starting tailer");
 
             // Any input from the client will stop the tailer.
-            LOG.config("Waiting for any client input...");
             in.nextLine();
-            LOG.config("Stopping tailer");
 
             tailerThread.interrupt();
             tailerThread.join(10000L);
             if (tailerThread.isAlive()) {
                 // Forcibly stop the thread
-                LOG.warning("Stopping misbehaved tailer thread");
                 tailerThread.stop();
             }
         }
@@ -363,15 +351,6 @@ public final class Server {
     }
 
     /**
-     * Get whether the ET system is alive or not.
-     * @return True if ET system is alive; false if fail to connect
-     */
-    boolean isEtAlive() {
-        return etSystem.alive();
-    }
-
-
-    /**
      * Get ET station status from code.
      * @param status The status string from the code.
      * @return The station status string
@@ -405,24 +384,24 @@ public final class Server {
         }
 
         try {
-            server.run();
+            server.initialize();
         } catch (EtException|IOException|EtTooManyException etEx) {
             System.err.println("Failed to open ET system");
             etEx.printStackTrace();
             System.exit(DISCONNECTED);
         } catch (Exception e) {
-            System.err.println("Server runtime error");
+            System.err.println("Error initializing server");
             e.printStackTrace();
-            System.exit(RUNTIME_ERROR);
+            System.exit(ERROR);
         }
+
+        server.loop();
     }
 
     /**
      * Create a new server instance.
      */
     private Server() {
-        this.stationManager = new StationManager(this);
-        handlers = new CommandHandlerFactory(this);
     }
 
     /**
@@ -510,6 +489,7 @@ public final class Server {
      * @throws ParseException If there is a problem parsing the command line
      */
     private void parse(String args[]) throws ParseException {
+
         Options options = new Options();
         options.addOption(new Option("h", "help", false, "print help"));
         options.addOption(new Option("H", "host", true, "server host name"));
@@ -582,13 +562,15 @@ public final class Server {
      * @throws IOException If there is an IO error
      * @throws EtTooManyException If there are too many ET connections already
      */
-    synchronized void openEtConnection() throws EtException, IOException, EtTooManyException {
+    private void openEtConnection() throws EtException, IOException, EtTooManyException {
 
         LOG.config("Opening ET system...");
+
         Property<String> buffer = stationProperties.get("et.buffer");
         Property<String> host = stationProperties.get("et.host");
         Property<Integer> port = stationProperties.get("et.port");
         Property<Integer> maxAttempts = stationProperties.get("et.connectionAttempts");
+
         etConfig = new EtSystemOpenConfig(buffer.value(), host.value(), port.value());
         etSystem = new EtSystem(etConfig, EtConstants.debugWarn);
 
@@ -620,14 +602,10 @@ public final class Server {
         return etSystem;
     }
 
-    public void save(File file) throws IOException {
-        this.agg.save(file);
-    }
-
     /**
-     * Setup and run the server connection loop (from main)
+     * Initialize the server before looping
      */
-    private void run() throws Exception {
+    private void initialize() throws Exception {
 
         // Set the host name
         setHost();
@@ -638,11 +616,15 @@ public final class Server {
         // Startup the plot aggregation engine
         startPlotAggregator();
 
-        // Add the shutdown hook
-        addShutdownHook();
+        // Startup the notifier to broadcast when plots are refreshed
+        PlotNotifier.instance().start();
 
-        // Client connection loop
-        loop();
+        // Add the shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread("Shutdown Hook") {
+            public void run() {
+                Server.this.shutdown();
+            }
+        });
     }
 
     private void startPlotAggregator() {
@@ -652,11 +634,16 @@ public final class Server {
         } catch (Exception e) {
             throw new RuntimeException("Failed to connect aggregator", e);
         }
-        // Run the plot aggregator every N seconds
-        exec.scheduleAtFixedRate(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
+        // Run the plot aggregator with a fixed delay between executions
+        exec.scheduleWithFixedDelay(agg, 0, agg.getUpdateInterval(), TimeUnit.MILLISECONDS);
     }
 
-    // This will never exit unless an external kill signal is received or the ET ring goes down.
+    /**
+     * Main server execution loop
+     *
+     * This will execute indefinitely until an external kill signal is received, a shutdown
+     * command is issued, or the ET ring goes down.
+     */
     private void loop() {
         LOG.info("Starting server: " + this.host.getHostName() + ":" + this.port);
         try (ServerSocket serverSocket = new ServerSocket(port, 0, this.host)) {
@@ -669,6 +656,10 @@ public final class Server {
         }
     }
 
+    /**
+     * Set the host from the <code>hostName</code> variable
+     * @throws UnknownHostException If there is a problem initializing the host setup
+     */
     private void setHost() throws UnknownHostException {
         if (this.hostName != null) {
             this.host = InetAddress.getByName(this.hostName);
@@ -677,44 +668,94 @@ public final class Server {
         }
     }
 
-    public synchronized void shutdown(boolean doExit) {
-
-        if (this.isShutdown) {
-            LOG.warning("Server is already shutdown");
-            return;
+    /**
+     * Wake up an ET station using a separate thread to allow a timeout
+     *
+     * This is used as an external signal to the reconstruction station
+     * that it should stop processing and exit by breaking out of the
+     * event processing loop.
+     *
+     * @param station The station to wake up
+     */
+    void wakeUp(StationProcess station, int timeoutMillis) {
+        final Thread wakeupThread = new Thread() {
+            public void run() {
+                try {
+                    EtSystem sys = getEtSystem();
+                    EtStation stat = sys.stationNameToObject(station.getStationName());
+                    if (stat != null) {
+                        LOG.info("Waking up ET station: name=" + stat.getName()
+                                + "; status=" + Server.getStatusString(stat.getStatus())
+                                + "; usable=" + stat.isUsable());
+                        sys.wakeUpAll(stat);
+                        LOG.info("Woke up ET station: " + station.getStationName());
+                    } else {
+                        LOG.log(Level.WARNING, "No ET station named: " + station.getStationName());
+                    }
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Error waking up: " + station.getStationName(), e);
+                }
+            }
+        };
+        wakeupThread.start();
+        try {
+            wakeupThread.join(timeoutMillis);
+        } catch (InterruptedException e) {
+            LOG.log(Level.WARNING, "Interrupted while waiting for wakeup thread", e);
         }
 
-        LOG.info("Shutting down server");
+        if (wakeupThread.isAlive()) {
+            // This shouldn't happen normally but kill thread if it failed to complete
+            LOG.severe("Failed to wakeup ET station: " + station.getStationName());
+            wakeupThread.stop();
+            try {
+                wakeupThread.join();
+            } catch (InterruptedException e) {
+                LOG.log(Level.WARNING, "Interrupted while killing wake up thread", e);
+            }
+        }
+    }
+
+    /**
+     * Shutdown the server
+     *
+     * @param doExit True to perform a system exit
+     */
+    private void shutdown() {
+
+        System.err.println("Shutting down server...");
 
         //LOG.config("Killing client connections");
         //clientProcessingPool.shutdown();
 
-        LOG.config("Stopping all stations");
         try {
             stationManager.stopAll();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        LOG.config("Removing all stations");
         try {
             stationManager.removeAll();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        LOG.config("Shutting down monitoring threads");
         try {
-            //exec.shutdownNow();
-            exec.shutdown();
+            // exec.shutdown();
+            exec.shutdownNow();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        LOG.info("Done shutting down server");
         try {
             agg.disconnect();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try {
+            PlotNotifier.instance().stop();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
@@ -722,53 +763,38 @@ public final class Server {
         try {
             if (etSystem != null) {
                 if (etSystem.alive()) {
-                    LOG.info("Closing ET system...");
                     etSystem.close();
                     etSystem = null;
                     etConfig = null;
-                    LOG.info("ET system closed!");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        this.isShutdown = true;
-
-        LOG.info("Done shutting down server");
-
-        if (doExit) {
-            LOG.info("Exiting application");
-            Runtime.getRuntime().removeShutdownHook(shutdownHook);
-            shutdownHook = null;
-            System.exit(SHUTDOWN);
-        }
-    }
-
-    private Thread shutdownHook = new Thread("Shutdown Hook") {
-        @Override
-        public void run() {
-            Server.this.shutdown(false);
-        }
-    };
-
-    private void addShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
+        System.err.println("Done shutting down server!");
     }
 
     /**
-     * Continuously monitor the ET system and exit the application
-     * if it goes down (run on a scheduled thread executor)
+     * Get the plot aggregator
+     * @return The plot aggregator
+     */
+    public PlotAggregator getAggregator() {
+        return this.agg;
+    }
+
+    /**
+     * This is run on a thread executor to continuously monitor the ET system
+     * and exit the application if it goes down.
      */
     class EtMonitor implements Runnable {
 
         @Override
         public void run() {
-            if (!Server.this.isEtAlive()) {
-                LOG.severe("ET connection went down! Server will exit...");
+            if (!Server.this.etSystem.alive()) {
+                LOG.severe("ET connection went down! Server will exit now...");
                 System.exit(Server.DISCONNECTED);
             }
         }
-
     }
 }

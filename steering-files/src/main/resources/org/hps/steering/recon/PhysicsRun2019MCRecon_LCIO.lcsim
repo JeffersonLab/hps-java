@@ -89,13 +89,17 @@
         <!-- Hodo reconstruction drivers -->
 
         <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver">
+            <inputCollectionName>HodoscopeReadoutHits</inputCollectionName>
             <logLevel>CONFIG</logLevel>
+            <isMC>true</isMC>
         </driver>
 
         <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
            <useRunningPedestal>true</useRunningPedestal>
+            <inputCollectionName>HodoscopeReadoutHits</inputCollectionName>
            <tETAllChannels>8</tETAllChannels>
            <logLevel>CONFIG</logLevel>
+            <isMC>true</isMC>
         </driver>
         
         <!-- SVT reconstruction drivers -->

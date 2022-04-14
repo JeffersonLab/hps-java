@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!--
+      Steering file for running 2021 recon with KF tracking
+      created:  8/6/21
+      @author Matt Graham
+      Copied and modified from recon/PhysicsRun2019_pass0_recon_evio.lcsim
+    -->
+    <execute>
+        <!-- Enable the following if re-processing lcio files -->
+        <!--        <driver name="PreCleanupDriver"/>       -->
+        <!--  Event Reconstruction  -->
+        <!--RF driver-->
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRunningPedestal"/>
+        <driver name="EcalRawConverter" />
+        <driver name="EcalTimeCorrection"/>
+        <driver name="ReconClusterer" />
+        <driver name="CopyCluster" />
+
+        <driver name="JustECal2021"/>
+        <!-- Toggle between saving in aida or root format -->
+        <driver name="AidaToRootSaveDriver"/>
+        <!-- <driver name="AidaSaveDriver"/> -->
+        <driver name="CleanupDriver"/>
+    </execute>
+    <drivers>
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+            <!-- ecalCollectionName>EcalCalHits</ecalCollectionName -->
+            <!-- fixShapeParameter>true</fixShapeParameter -->
+            <!-- globalFixedPulseWidth>2.4</globalFixedPulseWidth -->
+        </driver>
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver>
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+     
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+
+        <driver name="JustECal2021" type="org.hps.online.recon.aida.JustEcal">
+            <!-- AIDA tree bind provided using external variable -->
+          
+        </driver>
+
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+        <driver name="AidaToRootSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>
+
+    </drivers>
+</lcsim>
+

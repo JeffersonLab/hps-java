@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import org.hps.online.recon.Station;
 import org.hps.record.et.EtConnection;
 import org.jlab.coda.et.EtEvent;
+import org.jlab.coda.et.exception.EtWakeUpException;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -16,14 +17,13 @@ import com.google.common.eventbus.Subscribe;
  *
  * Special objects are used for error handling, signaling end of run, and stopping
  * the ET event loop.
- *
- * Event processing is run on a separate thread, so that it can be stopped easily.
  */
 public class OnlineEventBus extends EventBus {
 
     private EtConnection conn;
-    private Thread eventProc;
     private Station station;
+
+    private boolean halt;
 
     private final Logger logger = Logger.getLogger(OnlineEventBus.class.getPackage().getName());
 
@@ -36,14 +36,19 @@ public class OnlineEventBus extends EventBus {
         register(new EtListener(this));
         register(new EvioListener(this));
         register(new LcioListener(this));
-        logger.config("Done initializing online event bus for station: " + station.getStationName());
     }
 
     /**
      * Continuously post ET events to drive the event bus
      * @throws Exception If there is an error reading ET events
      */
-    void loop() throws Exception {
+    public void loop() {
+
+        halt = false;
+
+        post(new Start());
+
+        logger.info("Event loop starting");
         while (true) {
             EtEvent[] events = null;
             try {
@@ -54,39 +59,34 @@ public class OnlineEventBus extends EventBus {
                     this.post(event);
                 }
                 conn.getEtSystem().dumpEvents(conn.getEtAttachment(), events);
+            } catch (EtWakeUpException e) {
+                // This is used as an external signal by the server to stop processing
+                post(new Stop("ET wake up received"));
             } catch (Exception e) {
-                // ET system errors are always considered fatal.
+                // Errors when reading ET data are considered fatal
                 post(new EventProcessingError(e, true));
             }
-            if (Thread.interrupted()) {
-                // Thread was externally interrupted and processing should stop.
-                post(new Stop("Event processing was interrupted"));
+            if (halt) {
+                // Halt flag will be set if a stop was received
+                break;
             }
         }
-    }
 
-    public void startProcessing() {
-        logger.config("Starting event processing thread");
-        post(new Start());
-        eventProc = new EventProcessingThread();
-        eventProc.start();
-        logger.config("Event processing thread started");
+        // Activate end of data hook
+        try {
+            station.getJobManager().getDriverAdapter().finish(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        logger.info("Event loop exiting");
     }
 
     @Subscribe
     public void receiveStop(Stop stop) {
         try {
             logger.info("Stopping event processing: " + stop.getReason());
-            if (eventProc.isAlive()) {
-                eventProc.interrupt();
-                try {
-                    eventProc.join();
-                } catch (InterruptedException e) {
-                    logger.log(Level.WARNING, "Interrupted", e);
-                }
-            }
-            this.station.getJobManager().getDriverAdapter().finish(null);
-            logger.info("Event processing is stopped");
+            this.halt = true;
         } catch (Exception e) {
             logger.log(Level.WARNING, "Problem receiving stop command", e);
         }
@@ -96,10 +96,10 @@ public class OnlineEventBus extends EventBus {
     public void receiveError(EventProcessingError e) {
         try {
             if (e.fatal()) {
-                logger.log(Level.SEVERE, "Fatal error occurred - event processing will stop", e.getException());
+                logger.log(Level.SEVERE, "Fatal error occurred -- event processing will stop", e.getException());
                 post(new Stop("Fatal error"));
             } else {
-                logger.log(Level.WARNING, "A non-fatal error occurred - event processing will continue", e.getException());
+                logger.log(Level.WARNING, "A non-fatal error occurred -- processing will continue", e.getException());
             }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "Problem processing error", ex);
@@ -120,37 +120,14 @@ public class OnlineEventBus extends EventBus {
         }
     }
 
-    // Moved to ConditionsListener
-    /*
-    @Subscribe
-    public void postEndRun(EvioEvent evioEvent) {
-        try {
-            if (EvioEventUtilities.isEndEvent(evioEvent)) {
-                // TODO: Get date of end run from the EVIO event
-                post(new EndRun(ConditionsManager.defaultInstance().getRun(), new Date()));
-            }
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Error in postEndRun() method", e);
-        }
-
-    }*/
-
     @Subscribe
     public void receiveEndRun(EndRun end) {
         try {
             logger.info("Run " + end.getRun() + " ended at: " + end.getDate());
             post(new Stop("Run ended"));
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Error in receiveEndRun() method", e);
+            logger.log(Level.WARNING, "Error receiving end run", e);
         }
-    }
-
-    /**
-     * The user can stop event processing by accessing and then interrupting this thread.
-     * @return The event processing thread
-     */
-    public Thread getEventProcessingThread() {
-        return this.eventProc;
     }
 
     /**
@@ -167,26 +144,5 @@ public class OnlineEventBus extends EventBus {
      */
     Station getStation() {
         return this.station;
-    }
-
-    /**
-     * A thread for running the event bus loop
-     *
-     * This shouldn't be used directly. Instead call the {@link OnlineEventBus#startProcessing()}
-     * method.
-     */
-    class EventProcessingThread extends Thread {
-
-        final OnlineEventBus eventbus = OnlineEventBus.this;
-
-        public void run() {
-            try {
-                getLogger().config("Event bus loop starting");
-                eventbus.loop();
-                getLogger().config("Event bus loop stopped");
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Loop stopped due to an error", e);
-            }
-        }
     }
 }

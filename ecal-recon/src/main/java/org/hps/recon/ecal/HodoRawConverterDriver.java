@@ -3,10 +3,17 @@ package org.hps.recon.ecal;
 import org.lcsim.util.Driver;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.hodoscope.HodoscopeConditions;
+import org.hps.conditions.hodoscope.HodoscopeChannel.GeometryId;
+import org.lcsim.detector.IDetectorElementContainer;
+//import org.hps.conditions.hodoscope.HodoscopeChannel.GeometryId;
+import org.lcsim.detector.identifier.IIdentifierHelper;
+import org.lcsim.detector.identifier.Identifier;
+//import org.lcsim.detector.identifier.Identifier;
 import org.lcsim.event.CalorimeterHit;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.EventHeader;
 import org.lcsim.geometry.Detector;
+import org.lcsim.geometry.Subdetector;
 import org.lcsim.lcio.LCIOConstants;
 
 import java.util.List;
@@ -20,11 +27,17 @@ public class HodoRawConverterDriver extends Driver {
     private HodoscopeConditions hodoConditions = null;
 
     private HodoRawConverter converter = null;
+    
+    private boolean isMC = false;
 
     // ===== The Mode1 Hodo hit collection name =====
     private String rawCollectionName = "HodoReadoutHits";
 
     private String hodoCollectionName = "HodoCalHits";
+    
+    private IIdentifierHelper helper = null;
+    private Subdetector subDetector;
+    private static final String subdetectorName = "Hodoscope";
 
     // ===== **NOTE** Seems this name can not be arbitrary, it is taken from the detector
     // ===== For example you can find out this by running this method of the detector
@@ -41,6 +54,17 @@ public class HodoRawConverterDriver extends Driver {
     
     public void setUseUserGains(double aUserGain){
         converter.setUseUserGain(aUserGain);
+    }
+    
+    
+    /**
+     * Set MC mode.
+     *
+     * @param isMC   
+     */
+    public void setIsMC(boolean isMC){
+        this.isMC = isMC;
+        converter.setIsMC(isMC);
     }
 
     public void setTETAllChannels(int arg_tet) {
@@ -59,11 +83,14 @@ public class HodoRawConverterDriver extends Driver {
 
     @Override
     public void detectorChanged(Detector detector) {
+        
+        subDetector = DatabaseConditionsManager.getInstance().getDetectorObject().getSubdetector(subdetectorName);
+        helper = subDetector.getDetectorElement().getIdentifierHelper();
 
         // Hodo conditions object.
         hodoConditions = DatabaseConditionsManager.getInstance().getHodoConditions();
 
-        converter.setConditions(hodoConditions);
+        converter.setConditions(hodoConditions, subDetector, helper);
 
     }
 
@@ -95,12 +122,21 @@ public class HodoRawConverterDriver extends Driver {
                 ArrayList<Integer> thr_crosings = converter.FindThresholdCrossings(hit, ped);
 
                 // ===== For now we will calculate coarse time, which is the threshold crossing sample time.
-                // ===== Later will implement the mode7 time
+                // ===== Later will implement the mode7 time                                
                 ArrayList<CalorimeterHit> hits_in_this_channel = converter.getCaloHits(hit, thr_crosings, ped);
                 
                 // Propagate the detector element information to these found_hits so it can be used later.
                 for(CalorimeterHit found_hit: hits_in_this_channel) {
-                    found_hit.setDetectorElement(hit.getDetectorElement());
+                    if(!isMC)
+                        found_hit.setDetectorElement(hit.getDetectorElement());
+                    else {
+                        // Set detector element for MC hits
+                        int[] identifier = converter.getHodoIdentifiers(cellID);
+                        GeometryId id_geometry = new GeometryId(helper, new int[]{subDetector.getSystemID(), identifier[0], identifier[1], identifier[2], 0});
+                        long id_det = id_geometry.encode();                                                 
+                        IDetectorElementContainer srch = subDetector.getDetectorElement().findDetectorElement(new Identifier(id_det));
+                        found_hit.setDetectorElement(srch.get(0));
+                    }                                        
                 }
 
                 hodoHits.addAll(hits_in_this_channel);
@@ -134,7 +170,7 @@ public class HodoRawConverterDriver extends Driver {
             SimpleGenericObject generic_cl_time = new SimpleGenericObject();
             SimpleGenericObject generic_cl_detid = new SimpleGenericObject();
             ArrayList<Integer> paired = new ArrayList<Integer>();
-
+            
             for (int i = 0; i < hodoHits.size(); i++) {
 
                 // Check if this hit is already paired, if so, then let's pass to the next hit
@@ -158,11 +194,12 @@ public class HodoRawConverterDriver extends Driver {
                     cl_Energy = ArrayUtils.add(cl_Energy, this_hit.getRawEnergy());
                     cl_Time = ArrayUtils.add(cl_Time, this_hit.getTime());
                     cl_detid = ArrayUtils.add(cl_detid, (int)this_hit.getDetectorElement().getIdentifier().getValue());
-
+                    
                     continue;
                 }
 
                 boolean pair_found = false;
+                
 
                 for (int j = i + 1; j < hodoHits.size(); j++) {
                     
@@ -239,6 +276,15 @@ public class HodoRawConverterDriver extends Driver {
             event.put("HodoGenericClusters", hodo_cl_list, SimpleGenericObject.class, 0);
 
         }
+    }
+    
+    /**
+     * Set the input collection name (source).
+     *
+     * @param inputCollectionName the input collection name
+     */
+    public void setInputCollectionName(final String inputCollectionName) {
+        this.rawCollectionName = inputCollectionName;
     }
 
     /**
