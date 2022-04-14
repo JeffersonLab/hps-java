@@ -860,6 +860,8 @@ public class SVTHitLevelPlots extends Driver {
     }
 
     //Get the track state at the previous sensor
+  
+    
     private TrackState getTrackState(Track track, int unusedLay) {
         int layer = -1;
         boolean isTop = track.getTrackStates().get(0).getTanLambda() > 0;
@@ -875,7 +877,7 @@ public class SVTHitLevelPlots extends Driver {
             tState = TrackStateUtils.getTrackStateAtSensor(track, sensorSlot.getMillepedeId());
         return tState;
     }
-
+    
     //Returns channel number of a given position in the sensor frame
     private int getChan(Hep3Vector pos, HpsSiSensor sensor) {
         double readoutPitch = sensor.getReadoutStripPitch();
@@ -1031,6 +1033,7 @@ public class SVTHitLevelPlots extends Driver {
 
     //Checks to see if track is within acceptance of both axial and stereo sensors at a given layer
     //Also returns channel number of the intersection
+    
     private Pair<HpsSiSensor, Pair<Integer, Hep3Vector>> isWithinSensorAcceptance(Track track, TrackState tState, int layer, boolean axial, Hep3Vector p, FieldMap fieldMap) {
 
         HpsSiSensor axialSensorHole = getSensor(track, layer, true, true);
@@ -1064,7 +1067,7 @@ public class SVTHitLevelPlots extends Driver {
 
         return null;
     }
-
+    
     //Checks to see if track is in acceptance of sensor. Computes within sensor frame
     //Also return channel number of the position
     public Pair<Boolean, Pair<Integer, Hep3Vector>> sensorContainsTrack(Hep3Vector trackPosition, HpsSiSensor sensor) {
@@ -1079,7 +1082,7 @@ public class SVTHitLevelPlots extends Driver {
             return new Pair<>(false, pair);
         return new Pair<>(true, pair);
     }
-
+    
     //Returns the horizontal length of the sensor
     protected double getSensorLength(HpsSiSensor sensor) {
 
