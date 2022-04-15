@@ -223,7 +223,15 @@ public final class ClusterEnergyCorrection2021 {
             r = 2.5;
         }
 
-        if (isMC) {
+        /*TODO 
+         * FIX
+         * A.c. very important, for the moment I am fixing this to always use MC corrections, for later analysis.
+         * 
+         *  final int type = isMC ? MC : DATA;
+         */
+        int tmpMC=1;
+        //if(isMC){
+        if (tmpMC==1) {
             switch (pdg) {
                 case 11:
                     // electron
@@ -278,7 +286,12 @@ public final class ClusterEnergyCorrection2021 {
 
         double SF, corrEnergy;
         corrEnergy = rawEnergy;
-        if (isMC == true) {
+        
+        /*A.C. fix TODO*/
+        
+        int tmpMC=1;
+//        if (isMC == true) {
+        if (tmpMC==1){
             SF = A / rawEnergy + B / Math.sqrt(rawEnergy) + C;
             corrEnergy = rawEnergy / SF;
         } else {
