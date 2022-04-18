@@ -426,12 +426,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Kalman
                 if (TrackType == 1)
                     nHitsCut = 10;
-
-                                
+                
                 if (momentum.magnitude() < 3 || momentum.magnitude() > 6)
                     continue;
 
-                if (tanLambda < 0.025)
+                if (abs(tanLambda) < 0.025)
                     continue;
                 
                 //Align with tracks with at least 6 hits
