@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.commons.cli.CommandLine;
 import org.hps.online.recon.Command;
 
 /**
@@ -41,7 +40,7 @@ public class LoadCommand extends Command {
     }
 
     @Override
-    protected void process(CommandLine cl) {
+    protected void process() {
         if (cl.getArgList().size() > 0) {
             File propFile = new File(cl.getArgList().get(0));
             try {

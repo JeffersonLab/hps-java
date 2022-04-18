@@ -36,7 +36,7 @@ public class HodoRunningPedestalDriver extends Driver {
     // (discard older readouts ; negative = no time limit)
     private long maxLookbackTime = -1; // units = ms
 
-    private static final String rawCollectionName = "HodoReadoutHits";
+    private String rawCollectionName = "HodoReadoutHits";
     private static final String extraDataRelationsName = "HodoReadoutExtraDataRelations";
     private static final String runningPedestalsName = "HodoRunningPedestals";
 
@@ -55,6 +55,8 @@ public class HodoRunningPedestalDriver extends Driver {
 
     private boolean debug = false;
     private HodoscopeConditions hodoConditions = null;
+    
+    private boolean isMC = false;
 
     public HodoRunningPedestalDriver() {
     }
@@ -276,12 +278,35 @@ public class HodoRunningPedestalDriver extends Driver {
         return hodoConditions.getChannels().findChannel(channel_id);
     }
 
-    public HodoscopeChannel findChannel(RawTrackerHit hit) {        
-        return hodoConditions.getChannels().findGeometric(hit.getCellID());
+    public HodoscopeChannel findChannel(RawTrackerHit hit) {
+        if(!isMC)
+            return hodoConditions.getChannels().findGeometric(hit.getCellID());
+        else
+            return hodoConditions.getChannels().findChannel((int)hit.getCellID());
     }
 
     public HodoscopeChannel findChannel(RawCalorimeterHit hit) {
-        return hodoConditions.getChannels().findGeometric(hit.getCellID());
+        if(!isMC)            
+            return hodoConditions.getChannels().findGeometric(hit.getCellID());
+        else
+            return hodoConditions.getChannels().findChannel((int)hit.getCellID());
     }
-
+    
+    /**
+     * Set the input collection name (source).
+     *
+     * @param inputCollectionName the input collection name
+     */
+    public void setInputCollectionName(final String inputCollectionName) {
+        this.rawCollectionName = inputCollectionName;
+    }
+    
+    /**
+     * Set MC mode.
+     *
+     * @param isMC   
+     */
+    public void setIsMC(final boolean isMC) {
+        this.isMC = isMC;
+    }    
 }

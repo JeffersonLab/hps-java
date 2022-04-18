@@ -10,6 +10,7 @@ public class EventProcessingError {
 
     public EventProcessingError(Exception e, boolean fatal) {
         this.e = e;
+        this.fatal = fatal;
     }
 
     Exception getException() {

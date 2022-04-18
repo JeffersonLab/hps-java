@@ -32,7 +32,7 @@ class SaveCommandHandler extends CommandHandler {
         String filename = parameters.getString("filename");
         server.getLogger().info("Saving AIDA plots to: " + filename);
         try {
-            server.save(new File(filename));
+            server.getAggregator().save(new File(filename));
             return new Success("Saved plots to: " + filename);
         } catch (IOException ioe) {
             server.getLogger().log(Level.SEVERE, "Failed to save plots to: " + filename, ioe);
