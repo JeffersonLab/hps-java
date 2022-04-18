@@ -108,6 +108,8 @@ public class BuildMillepedeCompact {
 
         // read XML
         SAXBuilder builder = new SAXBuilder();
+        builder.setExpandEntities(false);
+
         Document compact_document = null;
         try {
             compact_document = (Document) builder.build(compactFile);

@@ -43,6 +43,7 @@ public final class SvtConfiguration extends BaseConditionsObject {
         final InputStream inputStream = new ByteArrayInputStream(bytes);
         final SAXBuilder builder = new SAXBuilder();
         builder.setValidation(false);
+        builder.setExpandEntities(false);
         return builder.build(inputStream);
     }
 
