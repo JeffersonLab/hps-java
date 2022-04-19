@@ -139,6 +139,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double maxMom   = 6;
     private double maxtanL  = 0.025;
     private int    nHitsCut = 5;
+    private boolean useParticles = false;
     
     private GblTrajectoryMaker _gblTrajMaker;
     
@@ -281,6 +282,18 @@ public class SimpleGBLTrajAliDriver extends Driver {
         momC = val;
     }
 
+    public void setMinMom(double val) {
+        minMom = val;
+    }
+
+    public void setMaxMom(double val) {
+        maxMom = val;
+    }
+
+    public void setUseParticles(boolean val) {
+        useParticles = val;
+    }
+    
     @Override
     protected void startOfData() {
         if (writeMilleBinary)
@@ -368,9 +381,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
     @Override
     protected void process(EventHeader event) {
 
-        //Look for the Particle collection
-        boolean useParticles = true;
-                
         //Track collection
        
         if (!useParticles && !event.hasCollection(Track.class, inputCollectionName)) {
