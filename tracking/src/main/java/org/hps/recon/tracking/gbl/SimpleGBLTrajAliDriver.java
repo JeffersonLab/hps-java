@@ -431,24 +431,23 @@ public class SimpleGBLTrajAliDriver extends Driver {
         
         //Get the tracks from the particles
 
-        System.out.println("Adding the tracks");
-
         if (useParticles) {
             for (ReconstructedParticle particle : particles) {
                 if (particle.getTracks().isEmpty() || particle.getClusters().isEmpty())
                     continue;
-                System.out.println("Found Track.");
                 tracks.add(particle.getTracks().get(0));
             }
         }
         
         // Create a mapping of matched Tracks to corresonding Clusters. 
-        HashMap<Track,Cluster> TrackClusterPairs = GetClustersFromParticles(particles);
+        HashMap<Track,Cluster> TrackClusterPairs = null;
+        
+        if (useParticles)
+            TrackClusterPairs = GetClustersFromParticles(particles);
         
         //Loop over the tracks
         for (Track track : tracks) {
-            System.out.println("Loop on track..");
-                        
+                                    
             List<TrackerHit> temp = null;
             
             if (TrackType == 0) {
@@ -467,8 +466,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
             if (enableAlignmentCuts) {
                 
-                boolean debug=true;
-
+                
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
@@ -480,17 +478,16 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 if (TrackType == 1)
                     nHitsCut = 2*nHitsCut;
                 
-                if (momentum.magnitude() < minMom || momentum.magnitude() > maxMom)
+                if (momentum.magnitude() < minMom || momentum.magnitude() > maxMom) {
                     continue;
                 }
-
-                if (Math.abs(tanLambda) < maxtanL)
+                
+                if (Math.abs(tanLambda) < maxtanL) {
                     continue;
                 }
                 
                 //Align with tracks with at least 6 hits
                 if ((tanLambda > 0 && track.getTrackerHits().size() < nHitsCut) || (tanLambda < 0 && track.getTrackerHits().size() < nHitsCut))  {
-                    if (debug) System.out.println("Track fails nHits cut");
                     continue;
                 }
                 
@@ -511,10 +508,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 }
                 
             }
+                
             
             //Get the E/p from the cluster
             if (useParticles) {
-
+                
                 //System.out.println("Getting cluster data");
                 
                 //Get the energy of the cluster
