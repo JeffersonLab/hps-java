@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
 
-<info name="HPS_Run2021Pass2_Chi2">
+<info name="HPS_Run2021Pass2FEE">
     <comment>HPS detector for 2021 run with fieldmap,
     Tracker at nominal opening angle, no SVT survey,
     this detector uses the corrected fieldmap scaled to -1.022T for 3.7 GeV.
