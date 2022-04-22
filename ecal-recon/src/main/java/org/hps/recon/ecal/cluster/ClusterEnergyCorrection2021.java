@@ -202,13 +202,10 @@ public final class ClusterEnergyCorrection2021 {
 
        
 
-        /*TODO 
-         * FIX
-         * A.c. very important, for the moment I am fixing this to always use MC corrections, for later analysis.
-         * 
-         *  final int type = isMC ? MC : DATA;
-         */
-        final int type = MC;
+      
+         final int type = isMC ? MC : DATA;
+         
+       
              
         
         loadDataFromResourceFiles(type);
@@ -223,15 +220,8 @@ public final class ClusterEnergyCorrection2021 {
             r = 2.5;
         }
 
-        /*TODO 
-         * FIX
-         * A.c. very important, for the moment I am fixing this to always use MC corrections, for later analysis.
-         * 
-         *  final int type = isMC ? MC : DATA;
-         */
-        int tmpMC=1;
-        //if(isMC){
-        if (tmpMC==1) {
+       
+        if(isMC){
             switch (pdg) {
                 case 11:
                     // electron
@@ -278,8 +268,7 @@ public final class ClusterEnergyCorrection2021 {
     private static double computeCorrectedEnergy(double y, double rawEnergy, PolynomialSplineFunction splineA,
             PolynomialSplineFunction splineB, PolynomialSplineFunction splineC, boolean isMC) {
 
-        /*A.C. fix*/
-
+      
         double A = splineA.value(y);
         double B = splineB.value(y);
         double C = splineC.value(y);
@@ -287,11 +276,9 @@ public final class ClusterEnergyCorrection2021 {
         double SF, corrEnergy;
         corrEnergy = rawEnergy;
         
-        /*A.C. fix TODO*/
-        
-        int tmpMC=1;
-//        if (isMC == true) {
-        if (tmpMC==1){
+ 
+        if (isMC == true) {
+       
             SF = A / rawEnergy + B / Math.sqrt(rawEnergy) + C;
             corrEnergy = rawEnergy / SF;
         } else {
