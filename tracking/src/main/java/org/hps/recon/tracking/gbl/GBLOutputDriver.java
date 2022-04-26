@@ -152,10 +152,8 @@ public class GBLOutputDriver extends Driver {
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
         
-       
-
         for (Track trk : tracks) {
-
+            
             //Some Track selection
             
             //System.out.println("Track loop");

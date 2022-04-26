@@ -138,7 +138,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double minMom   = 3;
     private double maxMom   = 6;
     private double maxtanL  = 0.025;
-    private int    nHitsCut = 5;
+    private int    nHitsCut = 6;
     private boolean useParticles = false;
     
     private GblTrajectoryMaker _gblTrajMaker;
@@ -284,6 +284,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
     public void setMinMom(double val) {
         minMom = val;
+    }
+
+    public void setMaxtanL(double val) {
+        maxtanL = val;
     }
 
     public void setMaxMom(double val) {
