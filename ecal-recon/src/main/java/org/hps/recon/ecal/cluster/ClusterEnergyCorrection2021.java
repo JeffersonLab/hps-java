@@ -24,7 +24,7 @@ public final class ClusterEnergyCorrection2021 {
     private static final byte DATA = 0;
     private static final byte MC = 1;
 
-    static boolean[] hasLoaded = new boolean[] { false, false };
+    static boolean[] hasLoaded = new boolean[]{false, false};
 
     // These are the three splices used to interpolate the A,B,C parameters for
     // photons - determined from MC
@@ -183,15 +183,15 @@ public final class ClusterEnergyCorrection2021 {
     }
 
     /**
-     * Calculates energy correction based on cluster raw energy and particle type as
-     * per <a href=
+     * Calculates energy correction based on cluster raw energy and particle
+     * type as per <a href=
      * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014"
      * >HPS Note 2014-001</a>
      *
      * @param ecal
-     * @param pdg       Particle id as per PDG
+     * @param pdg Particle id as per PDG
      * @param rawEnergy Raw Energy of the cluster (sum of hits with shared hit
-     *                  distribution)
+     * distribution)
      * @param xpos
      * @param ypos
      * @param isMC
@@ -200,14 +200,8 @@ public final class ClusterEnergyCorrection2021 {
     public static double computeCorrectedEnergy(HPSEcal3 ecal, int pdg, double rawEnergy, double xpos, double ypos,
             boolean isMC) {
 
-       
+        final int type = isMC ? MC : DATA;
 
-      
-         final int type = isMC ? MC : DATA;
-         
-       
-             
-        
         loadDataFromResourceFiles(type);
 
         // distance to beam gap edge
@@ -220,8 +214,7 @@ public final class ClusterEnergyCorrection2021 {
             r = 2.5;
         }
 
-       
-        if(isMC){
+        if (isMC) {
             switch (pdg) {
                 case 11:
                     // electron
@@ -255,30 +248,28 @@ public final class ClusterEnergyCorrection2021 {
     }
 
     /**
-     * Calculates the energy correction to a cluster given the variables from the
-     * fit as per <a href=
+     * Calculates the energy correction to a cluster given the variables from
+     * the fit as per <a href=
      * "https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014"
-     * >HPS Note 2014-001</a> Note that this is correct as there is a typo in the
-     * formula print in the note.
+     * >HPS Note 2014-001</a> Note that this is correct as there is a typo in
+     * the formula print in the note.
      *
      * @param rawEnergy Raw energy of the cluster
-     * @param A,B,C     from fitting in note
+     * @param A,B,C from fitting in note
      * @return Corrected Energy
      */
     private static double computeCorrectedEnergy(double y, double rawEnergy, PolynomialSplineFunction splineA,
             PolynomialSplineFunction splineB, PolynomialSplineFunction splineC, boolean isMC) {
 
-      
         double A = splineA.value(y);
         double B = splineB.value(y);
         double C = splineC.value(y);
 
         double SF, corrEnergy;
         corrEnergy = rawEnergy;
-        
- 
+
         if (isMC == true) {
-       
+
             SF = A / rawEnergy + B / Math.sqrt(rawEnergy) + C;
             corrEnergy = rawEnergy / SF;
         } else {
@@ -286,15 +277,19 @@ public final class ClusterEnergyCorrection2021 {
             double p0, p1, y0, y1;
             y0 = y;
             y1 = y;
-            if (y0 < psf_parP0.getKnots()[0])
+            if (y0 < psf_parP0.getKnots()[0]) {
                 y0 = psf_parP0.getKnots()[0];
-            if (y0 > psf_parP0.getKnots()[psf_parP0.getN()])
+            }
+            if (y0 > psf_parP0.getKnots()[psf_parP0.getN()]) {
                 y0 = psf_parP0.getKnots()[psf_parP0.getN()];
+            }
 
-            if (y1 < psf_parP0.getKnots()[0])
+            if (y1 < psf_parP0.getKnots()[0]) {
                 y1 = psf_parP0.getKnots()[0];
-            if (y1 > psf_parP0.getKnots()[psf_parP0.getN()])
+            }
+            if (y1 > psf_parP0.getKnots()[psf_parP0.getN()]) {
                 y1 = psf_parP0.getKnots()[psf_parP0.getN()];
+            }
 
             p0 = psf_parP0.value(y0);
             p1 = psf_parP1.value(y1);
@@ -319,7 +314,8 @@ public final class ClusterEnergyCorrection2021 {
     }
 
     /**
-     * Calculate the corrected energy for the cluster using track position at ecal.
+     * Calculate the corrected energy for the cluster using track position at
+     * ecal.
      *
      * @param cluster The input cluster.
      * @return The corrected energy.
@@ -334,9 +330,9 @@ public final class ClusterEnergyCorrection2021 {
      *
      * @param cluster The input cluster.
      */
-    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC,boolean addNoise) {
+    public static final void setCorrectedEnergy(HPSEcal3 ecal, BaseCluster cluster, boolean isMC, boolean addNoise) {
         double correctedEnergy = calculateCorrectedEnergy(ecal, cluster, isMC);
-        if (isMC&&addNoise) {
+        if (isMC && addNoise) {
             correctedEnergy += ClusterCorrectionUtilities.calcNoise(correctedEnergy);
         }
         cluster.setEnergy(correctedEnergy);
