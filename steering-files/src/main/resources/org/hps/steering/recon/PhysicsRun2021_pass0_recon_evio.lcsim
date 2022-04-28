@@ -333,7 +333,13 @@
             <applyClusterCorrections>true</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
-	    <makeMollerCols>false</makeMollerCols>
+	    <makeMollerCols>true</makeMollerCols>
+            <unconstrainedMollerCandidatesColName>UnconstrainedMollerCandidates_KF</unconstrainedMollerCandidatesColName>
+            <unconstrainedMollerVerticesColName>UnconstrainedMollerVertices_KF</unconstrainedMollerVerticesColName>
+            <beamConMollerCandidatesColName>BeamspotConstrainedMollerCandidates_KF</beamConMollerCandidatesColName>
+            <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
+            <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
+            <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>
         </driver>  
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
