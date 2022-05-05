@@ -14,11 +14,11 @@
         <driver name="SensorOccupancy" />
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="SvtHitPlots" /> 
-        <!--<driver name="SamplesPlots" />
-        <driver name="PedestalPlots" />-->
-        <!--<driver name="SVTPulseFitPlots" />--> 
+        <!--<driver name="SamplesPlots" />--> 
+        <!--<driver name="PedestalPlots" />-->
+        <driver name="SVTPulseFitPlots" />
         <driver name="TrackerHitDriver" /> 
-        <driver name="ClusterOccupancy" />
+        <!--<driver name="ClusterOccupancy" />-->
         <driver name="ClusterPlots" /> 
         <driver name="AidaSaveDriver" />
         <driver name="CleanupDriver" />
@@ -44,24 +44,28 @@
             <timeWindowWeight>3</timeWindowWeight>
             <resetPeriod>50000</resetPeriod>
             <saveRootFile>false</saveRootFile>
+            <enableAlarms>false</enableAlarms>
         </driver>
         <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
             <doPerChannelsSampleplots>true</doPerChannelsSampleplots>
             <cutOutLowChargeHits>true</cutOutLowChargeHits>
             <!--<saveRootFile>false</saveRootFile>-->
         </driver>
-        <!--<driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />-->
-        <!--<driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />-->
+        <driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />
+        <driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />
       
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>
             <correctT0Shift>false</correctT0Shift>
+<!--            <correctTimeOffset>false</correctTimeOffset>
+            <subtractTriggerTime>false</subtractTriggerTime>            -->
             <correctTimeOffset>true</correctTimeOffset>
             <subtractTriggerTime>true</subtractTriggerTime>            
-            <trigTimeScale>55.0</trigTimeScale>
+<!--            <trigTimeScale>55.0</trigTimeScale>-->
             <subtractRFTime>false</subtractRFTime> 
-            <subtractTOF>true</subtractTOF>
+<!--            <subtractTOF>false</subtractTOF>-->
+              <subtractTOF>true</subtractTOF>
             <correctChanT0>false</correctChanT0>
             <debug>false</debug>
         </driver>
@@ -69,18 +73,20 @@
             <neighborDeltaT>8.0</neighborDeltaT>
             <debug>false</debug>
         </driver>
-        <!--<driver name="SVTPulseFitPlots" type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots" />-->
+        <driver name="SVTPulseFitPlots" type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots">
+            <correctForT0Offset>false</correctForT0Offset>
+        </driver>
         <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
             <dropSmallHitEvents>false</dropSmallHitEvents>
             <cutOutLowChargeClusters>true</cutOutLowChargeClusters>
             <saveRootFile>false</saveRootFile>
         </driver>
         
-        <driver name="ClusterOccupancy" type="org.hps.monitoring.drivers.svt.ClusterOccupancyPlotsDriver" >
+<!--        <driver name="ClusterOccupancy" type="org.hps.monitoring.drivers.svt.ClusterOccupancyPlotsDriver" >
             <eventRefreshRate>1000</eventRefreshRate>            
             <resetPeriod>50000</resetPeriod>
             <saveRootFile>false</saveRootFile>
-        </driver>
+        </driver>-->
               
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">

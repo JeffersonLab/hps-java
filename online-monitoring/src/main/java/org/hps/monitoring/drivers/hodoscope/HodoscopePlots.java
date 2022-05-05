@@ -124,7 +124,21 @@ public class HodoscopePlots extends Driver {
         converter = new HodoRawConverter();
 
         tree = AIDA.defaultInstance().tree();
-        tree.cd("/");// aida.tree().cd("/");
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/HodoMon";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
+
         histogramFactory = analysisFactory.createHistogramFactory(tree);
         // Histogram maps
 

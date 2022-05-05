@@ -1,14 +1,4 @@
-package org.hps.monitoring.drivers.svt;
-
-import hep.aida.IAnalysisFactory;
-import hep.aida.IHistogram1D;
-import hep.aida.IHistogramFactory;
-import hep.aida.IPlotter;
-import hep.aida.IPlotterFactory;
-import hep.aida.IPlotterStyle;
-import hep.aida.ITree;
-import hep.aida.ref.rootwriter.RootFileStore;
-import hep.physics.vec.Hep3Vector;
+package org.hps.monitoring.drivers.headless;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -31,6 +21,13 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
+import hep.aida.IAnalysisFactory;
+import hep.aida.IHistogram1D;
+import hep.aida.IHistogramFactory;
+import hep.aida.ITree;
+import hep.aida.ref.rootwriter.RootFileStore;
+import hep.physics.vec.Hep3Vector;
+
 /**
  * This Driver makes plots of SVT sensor occupancies across a run.
  *
@@ -38,20 +35,13 @@ import org.lcsim.util.aida.AIDA;
  * plotters into 2
  * so that we have one page for L1-4 and one for L5-7
  */
-public class ClusterOccupancyPlotsDriver extends Driver {
-
-    // TODO: Add documentation
-    // static {
-    // hep.aida.jfree.AnalysisFactory.register();
-    // }
-    // Plotting
+public class SvtClusterOccHeadless extends Driver {
+  
     private static ITree tree = null;
-    private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();
-    private IPlotterFactory plotterFactory = analysisFactory.createPlotterFactory("Cluster Occupancy");
+    private IAnalysisFactory analysisFactory = AIDA.defaultInstance().analysisFactory();   
     private IHistogramFactory histogramFactory = null;
 
-    // Histogram maps
-    private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
+    // Histogram maps  
     private static Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
     private static Map<String, int[]> occupancyMap = new HashMap<String, int[]>();
 
@@ -67,7 +57,6 @@ public class ClusterOccupancyPlotsDriver extends Driver {
     private int eventCount = 0;
     private int eventRefreshRate = 1;
     private int runNumber = -1;
-    private int resetPeriod = -1;
 
     private boolean enableTriggerFilter = false;
     private boolean filterPulserTriggers = false;
@@ -87,7 +76,7 @@ public class ClusterOccupancyPlotsDriver extends Driver {
 
     private boolean saveRootFile = true;
 
-    public ClusterOccupancyPlotsDriver() {
+    public SvtClusterOccHeadless() {
     }
 
     public void setDropSmallHitEvents(boolean dropSmallHitEvents) {
@@ -100,10 +89,6 @@ public class ClusterOccupancyPlotsDriver extends Driver {
 
     public void setEventRefreshRate(int eventRefreshRate) {
         this.eventRefreshRate = eventRefreshRate;
-    }
-
-    public void setResetPeriod(int resetPeriod) {
-        this.resetPeriod = resetPeriod;
     }
 
     public void setEnableTriggerFilter(boolean enableTriggerFilter) {
@@ -139,22 +124,9 @@ public class ClusterOccupancyPlotsDriver extends Driver {
     }
 
     /**
-     * Get the global strip position of a physical channel number for a given
-     * sensor.
-     *
-     * @param sensor : HpsSiSensor
-     * @param physicalChannel : physical channel number
-     * @return The strip position (mm) in the global coordinate system
-     */
-    private Hep3Vector getStripPosition(HpsSiSensor sensor, int physicalChannel) {
-        return stripPositions.get(sensor).get(physicalChannel);
-    }
-
-    /**
      * For each sensor, create a mapping between a physical channel number and
      * it's global strip position.
      */
-    // TODO: Move this to a utility class
     private void createStripPositionMap() {
         for (HpsSiSensor sensor : sensors)
             stripPositions.put(sensor, createStripPositionMap(sensor));
@@ -177,84 +149,6 @@ public class ClusterOccupancyPlotsDriver extends Driver {
         return positionMap;
     }
 
-    /**
-     * Create a plotter style.
-     *
-     * @param xAxisTitle : Title of the x axis
-     * @param sensor : HpsSiSensor associated with the plot. This is used to set
-     * certain attributes based on the position of the sensor.
-     * @return plotter style
-     */
-    // TODO: Move this to a utilities class
-    IPlotterStyle createOccupancyPlotStyle(String xAxisTitle, HpsSiSensor sensor, boolean isAlarming) {
-        // Create a default style
-        IPlotterStyle style = this.plotterFactory.createPlotterStyle();
-
-        // Set the style of the X axis
-        style.xAxisStyle().setLabel(xAxisTitle);
-        style.xAxisStyle().labelStyle().setFontSize(14);
-        style.xAxisStyle().setVisible(true);
-
-        // Set the style of the Y axis
-        style.yAxisStyle().setLabel("Occupancy");
-        style.yAxisStyle().labelStyle().setFontSize(14);
-        style.yAxisStyle().setVisible(true);
-
-        // Turn off the histogram grid
-        style.gridStyle().setVisible(false);
-
-        // Set the style of the data
-        style.dataStyle().lineStyle().setVisible(false);
-        style.dataStyle().outlineStyle().setVisible(false);
-        style.dataStyle().outlineStyle().setThickness(3);
-        style.dataStyle().fillStyle().setVisible(true);
-        style.dataStyle().fillStyle().setOpacity(.30);
-        if (sensor.isTopLayer()) {
-            style.dataStyle().fillStyle().setColor("31, 137, 229, 1");
-            style.dataStyle().outlineStyle().setColor("31, 137, 229, 1");
-        } else {
-            style.dataStyle().fillStyle().setColor("93, 228, 47, 1");
-            style.dataStyle().outlineStyle().setColor("93, 228, 47, 1");
-        }
-        style.dataStyle().errorBarStyle().setVisible(false);
-
-        // Turn off the legend
-        style.legendBoxStyle().setVisible(false);
-
-        style.regionBoxStyle().backgroundStyle().setOpacity(.20);
-        setBackgroundColor(style, sensor.isAxial(), isAlarming);
-
-        return style;
-    }
-
-    private void setBackgroundColor(IPlotterStyle style, boolean isAxial, boolean isAlarming) {
-        if (isAlarming) {
-            style.regionBoxStyle().backgroundStyle().setColor("246, 34, 34, 1");
-            return;
-        }
-        if (isAxial)
-            style.regionBoxStyle().backgroundStyle().setColor("246, 246, 34, 1");
-    }
-
-    /**
-     * Clear all histograms of it's current data.
-     */
-    private void resetPlots() {
-
-        // Clear the hit counter map of all previously stored data.
-        occupancyMap.clear();
-
-        // Since all plots are mapped to the name of a sensor, loop
-        // through the sensors, get the corresponding plots and clear them.
-        for (HpsSiSensor sensor : sensors) {
-
-            // Clear the occupancy plots.
-            occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).reset();
-            // Reset the hit counters.
-            occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
-        }
-    }
-
     private static int getLayerNumber(HpsSiSensor sensor) {
         return (int) Math.ceil(((double) sensor.getLayerNumber()) / 2);
     }
@@ -272,45 +166,20 @@ public class ClusterOccupancyPlotsDriver extends Driver {
         // For each sensor, create a mapping between a physical channel number
         // and the global strip position
         this.createStripPositionMap();
-
-        // // If the tree already exist, clear all existing plots of any old data
-        // // they might contain.
-        // if (tree != null) {
-        // this.resetPlots();
-        // return;
-        // }
-        // tree = analysisFactory.createTreeFactory().create();
+      
         tree = AIDA.defaultInstance().tree();
         tree.cd("/");// aida.tree().cd("/");
-        histogramFactory = analysisFactory.createHistogramFactory(tree);
-
-        plotters.put("Occupancy: L0-L3", plotterFactory.create("Occupancy: L0-L3"));
-        plotters.get("Occupancy: L0-L3").createRegions(4, 4);
-        plotters.put("Occupancy: L4-L6", plotterFactory.create("Occupancy: L4-L6"));
-        plotters.get("Occupancy: L4-L6").createRegions(6, 4);
+        histogramFactory = analysisFactory.createHistogramFactory(tree);  
 
         for (HpsSiSensor sensor : sensors) {
 
             occupancyPlots.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()),
-                    histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Occupancy", 640, 0, 640));
-
-            if (sensor.getLayerNumber() < 9)
-                plotters.get("Occupancy: L0-L3")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                this.createOccupancyPlotStyle("Physical Channel", sensor, false));
-            else
-                plotters.get("Occupancy: L4-L6")
-                        .region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
-                        .plot(occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())),
-                                this.createOccupancyPlotStyle("Physical Channel", sensor, false));
+                    histogramFactory.createHistogram1D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " - Occupancy", 640, 0, 640));       
 
             occupancyMap.put(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()), new int[640]);
 
         }
-
-        for (IPlotter plotter : plotters.values())
-            plotter.show();
+      
     }
 
     private boolean passTriggerFilter(List<GenericObject> triggerBanks) {
@@ -365,12 +234,7 @@ public class ClusterOccupancyPlotsDriver extends Driver {
 //        System.out.println("Number of SVT RawTrackerHts = " + rawHits.size());
         if (dropSmallHitEvents && SvtPlotUtils.countSmallHits(rawHits) > 3)
             return;
-
-        if (resetPeriod > 0 && eventCount > resetPeriod) { // reset occupancy numbers after resetPeriod events
-            eventCount = 0;
-            resetPlots();
-        }
-
+   
         eventCount++;
 
         // Fill the strip cluster counts if available
@@ -399,11 +263,7 @@ public class ClusterOccupancyPlotsDriver extends Driver {
                     //                  System.out.println("channel " + channel + " occupancy = " + stripOccupancy);
                     occupancyPlots.get(SvtPlotUtils.fixSensorNumberLabel(sensor.getName())).fill(channel, stripOccupancy);
                 }
-            }
-
-        if (plotters.get("Occupancy") != null)
-            plotters.get("Occupancy").refresh();
-
+            }    
     }
 
     @Override

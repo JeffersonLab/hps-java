@@ -16,7 +16,8 @@ import org.hps.monitoring.application.model.ConnectionStatus;
 import org.hps.monitoring.application.model.ConnectionStatusModel;
 
 /**
- * This is the panel with buttons for connecting or disconnecting from the session and controlling the application when
+ * This is the panel with buttons for connecting or disconnecting from the
+ * session and controlling the application when
  * event processing is paused.
  */
 @SuppressWarnings("serial")
@@ -54,6 +55,11 @@ final class EventButtonsPanel extends JPanel implements PropertyChangeListener {
     }
 
     /**
+     * Button for saving PDF & root files
+     */
+    private final JButton saveButton;
+
+    /**
      * Button for connect and disconnect which is toggled depending on state.
      */
     private final JButton connectButton;
@@ -84,6 +90,7 @@ final class EventButtonsPanel extends JPanel implements PropertyChangeListener {
         connectionModel.addPropertyChangeListener(this);
 
         setLayout(new FlowLayout());
+        this.saveButton = addButton("/monitoringButtonGraphics/icons8-multicast-64.png", Commands.SAVE_ROOT_AND_PDF, listener, true);
         this.connectButton = addButton(DISCONNECTED_ICON, Commands.CONNECT, listener, true);
         this.resumeButton = addButton("/toolbarButtonGraphics/media/Play24.gif", Commands.RESUME, listener, false);
         this.pauseButton = addButton("/toolbarButtonGraphics/media/Pause24.gif", Commands.PAUSE, listener, false);
@@ -125,7 +132,8 @@ final class EventButtonsPanel extends JPanel implements PropertyChangeListener {
     }
 
     /**
-     * Handle property change events to set status from changes to the connection status model.
+     * Handle property change events to set status from changes to the
+     * connection status model.
      *
      * @param evt the <code>PropertyChangeEvent</code> to handle
      */
