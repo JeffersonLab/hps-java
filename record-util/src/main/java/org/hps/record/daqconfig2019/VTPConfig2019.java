@@ -58,6 +58,18 @@ public class VTPConfig2019 extends IDAQConfig2019 {
             singlesTrigger[triggerNum].getEnergyMaxCutConfig().setIsEnabled(parser.singlesEnergyMaxEn[triggerNum]);
             singlesTrigger[triggerNum].getHitCountCutConfig().setIsEnabled(parser.singlesNhitsMinEn[triggerNum]);
             singlesTrigger[triggerNum].getXMinCutConfig().setIsEnabled(parser.singlesXMinEn[triggerNum]);
+            
+            //For 2021 update
+            if(parser.singlesXYMinMaxEn[triggerNum]) {
+                singlesTrigger[triggerNum].getXMinCutConfig().setIsEnabled(parser.singlesXYMinMaxEn[triggerNum]); // Default: false
+                singlesTrigger[triggerNum].getXMaxCutConfig().setIsEnabled(parser.singlesXYMinMaxEn[triggerNum]); // Default: false
+                singlesTrigger[triggerNum].getYMinCutConfig().setIsEnabled(parser.singlesXYMinMaxEn[triggerNum]); // Default: false
+                singlesTrigger[triggerNum].getYMaxCutConfig().setIsEnabled(parser.singlesXYMinMaxEn[triggerNum]); // Default: false
+            }
+            singlesTrigger[triggerNum].setIsSinglesXYMinMaxEnabled(parser.singlesXYMinMaxEn[triggerNum]);
+            singlesTrigger[triggerNum].setIsSinglesMollerModeEnabled(parser.singlesMollerModeEn[triggerNum]);
+            
+                                  
             singlesTrigger[triggerNum].getPDECutConfig().setIsEnabled(parser.singlesPDEEn[triggerNum]);
             singlesTrigger[triggerNum].getL1MatchingConfig().setIsEnabled(parser.singlesL1MatchingEn[triggerNum]);
             singlesTrigger[triggerNum].getL2MatchingConfig().setIsEnabled(parser.singlesL2MatchingEn[triggerNum]);
@@ -74,6 +86,10 @@ public class VTPConfig2019 extends IDAQConfig2019 {
             singlesTrigger[triggerNum].getPDECutConfig().setParC2(parser.singlesPDEC2[triggerNum]/ 1000.0);
             singlesTrigger[triggerNum].getPDECutConfig().setParC3(parser.singlesPDEC3[triggerNum]/ 1000.0);
             
+            //For 2021 update
+            singlesTrigger[triggerNum].getXMaxCutConfig().setUpperBound(parser.singlesXMax[triggerNum]);
+            singlesTrigger[triggerNum].getYMinCutConfig().setLowerBound(parser.singlesYMin[triggerNum]);
+            singlesTrigger[triggerNum].getYMaxCutConfig().setUpperBound(parser.singlesYMax[triggerNum]);              
             
             // The pair trigger singles cuts are always enabled.
             pairTrigger[triggerNum].getEnergyMinCutConfig().setIsEnabled(true);

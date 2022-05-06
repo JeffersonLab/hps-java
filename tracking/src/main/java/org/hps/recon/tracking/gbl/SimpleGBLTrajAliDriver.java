@@ -140,6 +140,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double maxtanL  = 0.025;
     private int    nHitsCut = 6;
     private boolean useParticles = false;
+
     
     private GblTrajectoryMaker _gblTrajMaker;
     
@@ -155,7 +156,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
     //Set -1 for no selection, 0-slot side tracks 1-hole side tracks
     public void setTrackSide (int side) {
         trackSide = side;
-    }    
+    }
+    
+    public void setMomC (double val)  {
+        momC = val;
+    }
     public void setCompositeAlign (boolean val) {
         compositeAlign = val;
     }
@@ -477,7 +482,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
-
                 //Kalman
                 if (TrackType == 1)
                     nHitsCut = 2*nHitsCut;
@@ -487,6 +491,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 }
                 
                 if (Math.abs(tanLambda) < maxtanL) {
+
                     continue;
                 }
                 

@@ -42,6 +42,8 @@ public final class SvtConfiguration extends BaseConditionsObject {
         final byte[] bytes = this.getFieldValue("content");
         final InputStream inputStream = new ByteArrayInputStream(bytes);
         final SAXBuilder builder = new SAXBuilder();
+        builder.setExpandEntities(false);
+
         builder.setValidation(false);
         return builder.build(inputStream);
     }

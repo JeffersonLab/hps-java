@@ -37,7 +37,7 @@ public class PedestalPlots extends Driver {
 
     // Histogram maps
     private static Map<String, IPlotter> plotters = new HashMap<String, IPlotter>();
-    private static Map<String, IHistogram1D> occupancyPlots = new HashMap<String, IHistogram1D>();
+
 
     private AIDA aida = AIDA.defaultInstance();
     List<HpsSiSensor> sensors;
@@ -81,16 +81,22 @@ public class PedestalPlots extends Driver {
 
         sensors = detector.getSubdetector(subdetectorName).getDetectorElement().findDescendants(HpsSiSensor.class);
 
-        plotters.put("Pedestal vs. channel", plotterFactory.create("Pedestal vs. channel"));
-        plotters.get("Pedestal vs. channel").createRegions(6, 6);
+
+        plotters.put("Pedestal vs. channel: L0-L3", plotterFactory.create("Pedestal vs. channel: L0-L3"));
+        plotters.get("Pedestal vs. channel: L0-L3").createRegions(4, 4);
+        plotters.put("Pedestal vs. channel: L4-L6", plotterFactory.create("Pedestal vs. channel: L4-L6"));
+        plotters.get("Pedestal vs. channel: L4-L6").createRegions(6, 4);
 
         // ===> for (SiSensor sensor : SvtUtils.getInstance().getSensors()) {
         for (HpsSiSensor sensor : sensors) {
             hists.put(sensor,
-                    aida.histogram2D(sensor.getName() + " sample 1 vs. ch", 640, -0.5, 639.5, 100, -500.0, 500.0));
-            plotters.get("Pedestal vs. channel").region(SvtPlotUtils.computePlotterRegion(sensor))
+                    aida.histogram2D(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + " sample 1 vs. ch", 640, -0.5, 639.5, 100, -500.0, 500.0));
+            if (sensor.getLayerNumber() < 9)
+                plotters.get("Pedestal vs. channel: L0-L3").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
                     .plot(hists.get(sensor), SvtPlotUtils.createStyle(plotterFactory, sensor, "Channel", "Sample 1"));
-
+            else
+                 plotters.get("Pedestal vs. channel: L4-L6").region(SvtPlotUtils.computePlotterRegionSvtUpgrade(sensor))
+                    .plot(hists.get(sensor), SvtPlotUtils.createStyle(plotterFactory, sensor, "Channel", "Sample 1"));
             if (plotTimeSeries) {
                 counts.put(sensor, new int[640]);
                 means.put(sensor, new double[640]);
@@ -99,7 +105,7 @@ public class PedestalPlots extends Driver {
                 plots.put(sensor, plotArray);
                 for (int i = 0; i < 640; i++) {
                     plotArray[i] = aida.analysisFactory().createDataPointSetFactory(aida.tree())
-                            .create(sensor.getName() + ", channel " + i + " pedestal vs. event", 2);
+                            .create(SvtPlotUtils.fixSensorNumberLabel(sensor.getName()) + ", channel " + i + " pedestal vs. event", 2);
                 }
             }
         }
