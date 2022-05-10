@@ -72,7 +72,19 @@ public class GBLOutputDriver extends Driver {
 
     //Spacing between top and bottom in the 2D histos
     private int mod = 5;
+
+    private double minMom = 1.;
+    private double maxMom = 6.;
     
+    
+    public void setMinMom (double val) {
+        minMom = val;
+    }
+
+    public void setMaxMom (double val) {
+        maxMom = val;
+    }
+
     //Override the Z of the target.
     public void setBsZ (double input) {
         bsZ = input;
@@ -173,16 +185,16 @@ public class GBLOutputDriver extends Driver {
             
             Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
             
-            if (momentum.magnitude() < 1.5)
+            if (momentum.magnitude() < minMom)
                 continue;
             
-            if (momentum.magnitude() > 6)
+            if (momentum.magnitude() > maxMom)
                 continue;
-
+            
             //System.out.println("Track passed momentum");
             
             TrackState trackState = trk.getTrackStates().get(0);
-            if (Math.abs(trackState.getTanLambda()) < 0.025)
+            if (Math.abs(trackState.getTanLambda()) < 0.015)
                 continue;
             
             //System.out.println("Track passed tanLambda");
@@ -335,8 +347,9 @@ public class GBLOutputDriver extends Driver {
             isTop = "_top";
         }
                 
+        //There is a sign flip in the charge
         String charge = "_pos";
-        if (trk.getCharge()<0)
+        if (trk.getCharge()>0)
             charge = "_neg";
         
         
