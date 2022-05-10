@@ -283,10 +283,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
         enableStandardCuts = val;
     }
 
-    public void setMomC(double val) {
-        momC = val;
-    }
-
     public void setMinMom(double val) {
         minMom = val;
     }
