@@ -82,6 +82,10 @@ import org.lcsim.util.aida.AIDA;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.DoubleByReference;
 
+//E/p method
+import org.lcsim.event.Cluster;
+import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.TrackState;
 
 /**
  * A Driver which refits tracks using GBL. Does not require GBL collections to
@@ -91,6 +95,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     private AIDA aidaGBL; 
     String derFolder = "/gbl_derivatives/";
+    String eopFolder = "/EoP/";
+    
     private String inputCollectionName = "MatchedTracks";
     private String outputCollectionName = "GBLTracks";
     private String trackRelationCollectionName = "MatchedToGBLTrackRelations";
@@ -128,7 +134,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private int trackSide = -1;
     private boolean doCOMAlignment = false;
     private double seed_precision = 10000; // the constraint on q/p
-    private double momC=4.55;
+    private double momC     = 4.55;
+    private double minMom   = 3;
+    private double maxMom   = 6;
+    private double maxtanL  = 0.025;
+    private int    nHitsCut = 6;
+    private boolean useParticles = false;
+
     
     private GblTrajectoryMaker _gblTrajMaker;
     
@@ -149,7 +161,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
     public void setMomC (double val)  {
         momC = val;
     }
-
     public void setCompositeAlign (boolean val) {
         compositeAlign = val;
     }
@@ -272,6 +283,22 @@ public class SimpleGBLTrajAliDriver extends Driver {
         enableStandardCuts = val;
     }
 
+    public void setMinMom(double val) {
+        minMom = val;
+    }
+
+    public void setMaxtanL(double val) {
+        maxtanL = val;
+    }
+
+    public void setMaxMom(double val) {
+        maxMom = val;
+    }
+
+    public void setUseParticles(boolean val) {
+        useParticles = val;
+    }
+    
     @Override
     protected void startOfData() {
         if (writeMilleBinary)
@@ -302,12 +329,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
         bFieldMap = detector.getFieldMap();
         
-        //if (aidaGBL == null)
-        //    aidaGBL = AIDA.defaultInstance();
+        if (aidaGBL == null)
+            aidaGBL = AIDA.defaultInstance();
 
-        //aidaGBL.tree().cd("/");
+        aidaGBL.tree().cd("/");
 
         //setupPlots();
+        setupEoPPlots();
 
         _hpsGblTrajCreator = new HpsGblTrajectoryCreator();
 
@@ -357,29 +385,40 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     @Override
     protected void process(EventHeader event) {
-        if (!event.hasCollection(Track.class, inputCollectionName)) {
-            System.out.println("Missing Tracks " + inputCollectionName+ " in the event");
+
+        //Track collection
+       
+        if (!useParticles && !event.hasCollection(Track.class, inputCollectionName)) {
+            return;
+        }
+
+        //Particle collection 
+        if (useParticles && !event.hasCollection(ReconstructedParticle.class, inputCollectionName)) {
             return;
         }
         
         setupSensors(event);
-        List<Track> tracks = event.get(Track.class, inputCollectionName);
+        List<Track> tracks = new ArrayList<Track>(); 
+        List<ReconstructedParticle> particles = null;
         
+        if (!useParticles)
+            tracks = event.get(Track.class, inputCollectionName);
         
+        else
+            particles = event.get(ReconstructedParticle.class, inputCollectionName);
+                
         RelationalTable hitToStrips  = null;  
         RelationalTable hitToRotated = null;
-        
         
         List<Track> refittedTracks = new ArrayList<Track>();
         List<LCRelation> trackRelations = new ArrayList<LCRelation>();
 
         List<GBLKinkData> kinkDataCollection = new ArrayList<GBLKinkData>();
         List<LCRelation> kinkDataRelations = new ArrayList<LCRelation>();
-
+        
         //Hit on Track Residuals
         List<TrackResidualsData> trackResidualsCollection =  new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations          = new ArrayList<LCRelation>();
-
 
         int TrackType = 0;
         
@@ -394,10 +433,26 @@ public class SimpleGBLTrajAliDriver extends Driver {
             hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
             hitToRotated =  TrackUtils.getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
         }
+        
+        //Get the tracks from the particles
 
-        //Map<Track, Track> inputToRefitted = new HashMap<Track, Track>();
+        if (useParticles) {
+            for (ReconstructedParticle particle : particles) {
+                if (particle.getTracks().isEmpty() || particle.getClusters().isEmpty())
+                    continue;
+                tracks.add(particle.getTracks().get(0));
+            }
+        }
+        
+        // Create a mapping of matched Tracks to corresonding Clusters. 
+        HashMap<Track,Cluster> TrackClusterPairs = null;
+        
+        if (useParticles)
+            TrackClusterPairs = GetClustersFromParticles(particles);
+        
+        //Loop over the tracks
         for (Track track : tracks) {
-            
+                                    
             List<TrackerHit> temp = null;
             
             if (TrackType == 0) {
@@ -416,28 +471,30 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
             if (enableAlignmentCuts) {
                 
+                
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
                 
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
-
-                int nHitsCut = 6;
                 //Kalman
                 if (TrackType == 1)
-                    nHitsCut = 12;
+                    nHitsCut = 2*nHitsCut;
                 
-                
-                if (momentum.magnitude() < 1.5 || momentum.magnitude() > 6)
+                if (momentum.magnitude() < minMom || momentum.magnitude() > maxMom) {
                     continue;
+                }
                 
-                if (Math.abs(tanLambda) < 0.025)
+                if (Math.abs(tanLambda) < maxtanL) {
+
                     continue;
+                }
                 
                 //Align with tracks with at least 6 hits
-                if ((tanLambda > 0 && track.getTrackerHits().size() < nHitsCut) || (tanLambda < 0 && track.getTrackerHits().size() < nHitsCut)) 
+                if ((tanLambda > 0 && track.getTrackerHits().size() < nHitsCut) || (tanLambda < 0 && track.getTrackerHits().size() < nHitsCut))  {
                     continue;
+                }
                 
                 // ask tracks only on a side
                 if (trackSide >= 0) 
@@ -456,7 +513,41 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 }
                 
             }
+                
+            
+            //Get the E/p from the cluster
+            if (useParticles) {
+                
+                //System.out.println("Getting cluster data");
+                
+                //Get the energy of the cluster
+                Cluster em_cluster = TrackClusterPairs.get(track);
+                
+                //Should use the trackState at the last
+                TrackState trackState = track.getTrackStates().get(0);
+                double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
+                double e_o_p = em_cluster.getEnergy() / trackp;
+                
+                //compute the correction
+                momC = em_cluster.getEnergy();
+                
+                double[] trk_prms = track.getTrackParameters(); 
 
+                if (trk_prms[BaseTrack.TANLAMBDA] > 0) {
+                    aidaGBL.histogram1D(eopFolder+"Ecluster_top").fill(momC);
+                    aidaGBL.histogram1D(eopFolder+"EoP_top").fill(momC/trackp);
+                }
+                else {
+                    aidaGBL.histogram1D(eopFolder+"Ecluster_bottom").fill(momC);
+                    aidaGBL.histogram1D(eopFolder+"EoP_bottom").fill(momC/trackp);
+                }
+
+                aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
+                
+            }
+                
+            
+            
             //Track biasing example 
             //Re-fit the track?
             //Only active for ST tracks
@@ -541,29 +632,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
             GBLBeamSpotPoint bsPoint = FormBSPoint(htf, bsZ);
 
-            //aidaGBL.histogram1D("d0_vs_bs").fill(position[1]);
-            //aidaGBL.histogram1D("z0_vs_bs").fill(position[2]);
-            
-            //in the measurement frame (rotated of 30.5 mrad)
-            //aidaGBL.histogram1D("z0_vs_bs_meas").fill(prediction[0]);
-            //aidaGBL.histogram1D("d0_vs_bs_meas").fill(prediction[1]);
-            
-            //aidaGBL.histogram1D("d0_vs_bs_refit").fill(position_refit[1]);
-            //aidaGBL.histogram1D("z0_vs_bs_refit").fill(position_refit[2]);
-            
-            //Extrapolation to assumed tgt pos - helix
-            //Hep3Vector trkTgt = CoordinateTransformations.transformVectorToDetector(TrackUtils.extrapolateHelixToXPlane(gblTrk,bsZ));
-            //System.out.println("From the extrapolateHelixToXPlane="+trkTgt.toString());
-            
-            //aidaGBL.histogram1D("d0_vs_bs_refit_lcsim").fill(trkTgt.x());
-            //aidaGBL.histogram1D("z0_vs_bs_refit_lcsim").fill(trkTgt.y());
-                            
-            /*for (GBLStripClusterData gblStrip : trackGblStripClusterData) {
-              System.out.println("PRINTING GBL STRIP FROM gblTrajMaker");
-              gblStrip.print();
-              }
-            */
-                        
             DoubleByReference Chi2 = new DoubleByReference(0.);
             DoubleByReference lostWeight = new DoubleByReference(0.);
             IntByReference Ndf = new IntByReference(0);
@@ -578,133 +646,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, null, bfac);
             }
             
-            /*
-
-              gbltraj.fit(Chi2, Ndf, lostWeight,"");
-              //System.out.println("fit result jna: Chi2=" + Chi2.getValue() + " Ndf=" + Ndf.getValue() + " Lost=" + lostWeight.getValue());
-
-              // Get the corrections at the IP
-              Vector localPar = new Vector(5);
-              SymMatrix localCov = new SymMatrix(5);            
-              gbltraj.getResults(2,localPar,localCov);
-              //System.out.println("GblTrajectoryJna::getResults BS constrained fit::localPar and localCov ");
-              //localPar.print(5,5);
-              //localCov.print(5,5);
-
-              //The new z0 is z0 + z0_corr
-            
-              Hep3Matrix perToClPrj = GblUtils.getSimplePerToClPrj(htf.slope());
-
-              Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj);
-
-              double xTCorr = localPar.get(FittedGblTrajectory.GBLPARIDX.XT.getValue());
-              double yTCorr = localPar.get(FittedGblTrajectory.GBLPARIDX.YT.getValue());
-              Hep3Vector corrPer = VecOp.mult(clToPerPrj, new BasicHep3Vector(xTCorr, yTCorr, 0.0));
-            
-              // Use the super class to keep track of reference point of the helix
-              HpsHelicalTrackFit helicalTrackFit = new HpsHelicalTrackFit(htf);
-              double[] refIP = helicalTrackFit.getRefPoint();
-
-              // Calculate new reference point for this point
-              // This is the intersection of the helix with the plane
-              // The trajectory has this information already in the form of a map between GBL point and path length
-              double[] refPoint = new double[] { -7.5, 0};
-            
-              //System.out.printf("iLabel %d: pathLength %f -> refPointVec %s \n", iLabel, pathLength, refPointVec.toString());
-
-              //LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
-
-              // Propagate the helix to new reference point
-              double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
-
-              // Create a new helix with the new parameters and the new reference point
-              HpsHelicalTrackFit helicalTrackFitAtPoint = new HpsHelicalTrackFit(helixParametersAtPoint, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
-              //System.out.printf("raw params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPoint.dca(), helicalTrackFitAtPoint.z0());
-
-              // find the corrected perigee track parameters at this point
-              double[] helixParametersAtPointCorrected = GblUtils.getCorrectedPerigeeParameters(localPar, helicalTrackFitAtPoint, bfield);
-            
-              // create a new helix
-              HpsHelicalTrackFit helicalTrackFitAtPointCorrected = new HpsHelicalTrackFit(helixParametersAtPointCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
-              //System.out.printf("corrected params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPointCorrected.dca(), helicalTrackFitAtPointCorrected.z0());
-            
-              // change reference point back to the original one
-              double[] helixParametersAtIPCorrected = TrackUtils.getParametersAtNewRefPoint(refIP, helicalTrackFitAtPointCorrected);
-            
-              // create a new helix for the new parameters at the IP reference point
-              HpsHelicalTrackFit helicalTrackFitAtIPCorrected = new HpsHelicalTrackFit(helixParametersAtIPCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refIP);
-              //System.out.printf("params at IP: d0 %f  z0 %f \n \n", helicalTrackFitAtIPCorrected.dca(), helicalTrackFitAtIPCorrected.z0());
-
-              //aidaGBL.histogram1D("d0_vs_bs_BSC_lcsim").fill(newD0_corr);
-              //aidaGBL.histogram1D("z0_vs_bs_BSC_lcsim").fill(newZ0_corr);
-            
-            
-              //GblTrajectory gbltraj = newTrackTraj.getSecond().get_traj();
-            
-              //gbltraj.getResults(1,localPar,localCov);
-              //System.out.println("GblTrajectory::getResults::localPar and localCov ");
-              //localPar.print(5,5);
-              //localCov.print(5,5);
-              //gblTraj_jna.milleOut(mille);
-
-              */
-            
-            //Check the rw derivatives
-            //System.out.printf("Derivatives print out\n");
-            //gbltraj.printData();
-            
-
-            /* - get TrajData is still not supported
-               for (GblData gbldata : gbltraj.getTrajData()) {
-                
-               float vals[] = new float[2];
-               List<Integer> indLocal = new ArrayList<Integer>();
-               List<Double> derLocal = new ArrayList<Double>();
-               List<Integer> labGlobal = new ArrayList<Integer>();
-               List<Double> derGlobal = new ArrayList<Double>();
-                
-               gbldata.getAllData(vals, indLocal, derLocal, labGlobal, derGlobal);
-                
-               //Measurement
-               if  (labGlobal.size() >=6 ) {
-               for (int itag = 3; itag<=5; itag++) {
-               String derTag = String.valueOf(labGlobal.get(itag));
-               aidaGBL.histogram1D(derFolder+derTag).fill(derGlobal.get(itag));
-               }
-               }
-
-                
-                
-                
-               //for (int i_der =0; i_der<derLocal.size();i_der++) {
-                    
-               //  System.out.printf("Derivative %d value %f \n:", i_der, derLocal.get(i_der));
-               //}
-                
-                
-               }
-            */
-        
             if (compositeAlign) {
-                
-                //Retrieve the GBLPoints from the fit trajectory.
-                //List<GblPoint> points_on_traj = gbltraj.getSingleTrajPooints();
-                
-                /*
-                //Retrieve the GBLData from the fit trajectory.
-                List<GblData> data_on_traj = gbltraj.getTrajData();
-
-                if (debugAlignmentDs) {
-                System.out.printf("Size of GBL Points %d Size of GBL Data %d\n",points_on_traj.size(), data_on_traj.size());
-                    
-                for (int idata =0; idata< data_on_traj.size(); idata++) {
-                if (data_on_traj.get(idata).getType() == GblData.dataBlockType.InternalMeasurement) {
-                System.out.printf("GblData %d\n",idata);
-                data_on_traj.get(idata).printData();
-                }
-                }
-                }
-                */
                 
                 //For the moment I form the global derivatives here, but in principle I should create them when I run the trajectory creator.
                 
@@ -758,20 +700,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
             }// composite Alignment
         }//loop on tracks
         
-        /*
-        // Put the tracks back into the event and exit
-        int flag = 1 << LCIOConstants.TRBIT_HITS;
-        event.put(outputCollectionName, refittedTracks, Track.class, flag);
-        event.put(trackRelationCollectionName, trackRelations, LCRelation.class, 0);
-        
-        if (computeGBLResiduals) {
-        event.put(trackResidualsColName,    trackResidualsCollection,  TrackResidualsData.class, 0);
-        event.put(trackResidualsRelColName, trackResidualsRelations, LCRelation.class, 0);
-        }
-        
-        event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
-        event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
-        */
     }
     
     
@@ -1200,7 +1128,24 @@ public class SimpleGBLTrajAliDriver extends Driver {
         bd = bd.setScale(places, RoundingMode.HALF_UP);
         return bd.doubleValue();
     }
-    
+
+
+    private void setupEoPPlots() {
+        
+        List<String> volumes = new ArrayList<String>();
+        volumes.add("_top");
+        volumes.add("_bottom");
+
+        for (String vol : volumes) {
+            
+            aidaGBL.histogram1D(eopFolder+"Ecluster"+vol,200,0,8);
+            aidaGBL.histogram1D(eopFolder+"EoP"+vol,200,0,4);
+        }
+
+        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda",200,-0.1,0.1,200,0,4);
+        
+        
+    }
 
     private void setupPlots() {
                 
@@ -1482,7 +1427,23 @@ public class SimpleGBLTrajAliDriver extends Driver {
                             
                             
     }
+    
+    private HashMap<Track,Cluster> GetClustersFromParticles(List<ReconstructedParticle> particles) {
 
+        HashMap<Track,Cluster> tracksAndclusters = new HashMap<Track,Cluster>();
+        
+        for (ReconstructedParticle particle : particles) {
+            if (particle.getTracks().isEmpty() || particle.getClusters().isEmpty())
+                continue;
+            Track track = particle.getTracks().get(0);
+            Cluster cluster = particle.getClusters().get(0);
+            tracksAndclusters.put(track,cluster);
+        }
+        
+        return tracksAndclusters;
+    }
+    
+    
 
     //This will compute and add to the buffers the derivatives 
     private void ComputeStructureDerivatives(GblPointJna gblpoint) {
