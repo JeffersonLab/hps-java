@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
-    <detector name="HPS_Run2021Pass2_Chi2" />
+    <detector name="HPS_Run2021Pass2FEE" />
     <generator name="lcsim" version="1.0" file="/sdf/group/hps/users/bravo/src/hps-java-ali/detector-data/detectors/HPS_Run2021Pass2FEE/compact.xml" checksum="1316763323" />
     <author name="NONE" />
     <comment>HPS detector for 2021 run with fieldmap, Tracker at nominal opening angle, no SVT survey, this detector uses the corrected fieldmap scaled to -1.022T for 3.7 GeV. Includes L0 and Hodoscope. ECAL with survey alignment for HPSEcal3 (global y/z translations). This detector has the full hierarchical alignment structure</comment>

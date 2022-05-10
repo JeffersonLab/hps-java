@@ -96,7 +96,7 @@ public class KalmanParams {
         System.out.format("\n");
     }
     
-    KalmanParams() {
+    public KalmanParams() {
         
         logger = Logger.getLogger(KalmanParams.class.getName());
         tb = new String[2];
