@@ -4,6 +4,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
+import hep.aida.ITree;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.sqrt;
@@ -52,6 +53,7 @@ import org.lcsim.util.aida.AIDA;
  */
 public class EcalClusterPlots extends Driver {
 
+    private static ITree tree = null;
     // Internal variables.
     private boolean hide = false;
     private boolean logScale = false;
@@ -98,8 +100,24 @@ public class EcalClusterPlots extends Driver {
      */
     @Override
     protected void detectorChanged(Detector detector) {
-        // Re-instantiate all of the histograms.
-        aida.tree().cd("/");
+        // Re-instantiate all of the histograms.      
+
+        tree = AIDA.defaultInstance().tree();
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/EcalClusters";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
+
         clusterCountPlot = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName
                 + " : Cluster Count per Event", 10, -0.5, 9.5);
         clusterSizePlot = aida.histogram1D(detector.getDetectorName() + " : " + clusterCollectionName
@@ -135,8 +153,9 @@ public class EcalClusterPlots extends Driver {
             plotter[tabIndex].style().dataStyle().errorBarStyle().setVisible(false);
             plotter[tabIndex].style().dataStyle().fillStyle()
                     .setParameter("showZeroHeightBins", Boolean.FALSE.toString());
-            if (logScale)
+            if (logScale) {
                 plotter[tabIndex].style().yAxisStyle().setParameter("scale", "log");
+            }
         }
 
         // Define the Cluster Counts tab.
@@ -171,9 +190,11 @@ public class EcalClusterPlots extends Driver {
         plotter[TAB_CLUSTER_MASS].region(2).plot(pairMassSameHalfFid);
         plotter[TAB_CLUSTER_MASS].region(3).plot(pairMassOppositeHalfFid);
         // If they should not be hidden, display the tabs.
-        if (!hide)
-            for (IPlotter tab : plotter)
+        if (!hide) {
+            for (IPlotter tab : plotter) {
                 tab.show();
+            }
+        }
     }
 
     /**
@@ -200,8 +221,9 @@ public class EcalClusterPlots extends Driver {
             for (Cluster cluster : clusterList) {
                 // If this cluster has a higher energy then was seen
                 // previously, it is now the highest energy cluster.
-                if (cluster.getEnergy() > maxEnergy)
+                if (cluster.getEnergy() > maxEnergy) {
                     maxEnergy = cluster.getEnergy();
+                }
 
                 // Get the list of calorimeter hits and its size.
                 List<CalorimeterHit> hitList = cluster.getCalorimeterHits();
@@ -238,23 +260,25 @@ public class EcalClusterPlots extends Driver {
                 // Cluster pairs are formed from all top/bottom cluster
                 // combinations. To create these pairs, separate the
                 // clusters into two lists based on their y-indices.
-                if (cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix") > 0)
+                if (cluster.getCalorimeterHits().get(0).getIdentifierFieldValue("ix") > 0) {
                     topList.add(cluster);
-                else
+                } else {
                     bottomList.add(cluster);
+                }
             }
 
             // Populate the event plots.
             clusterCountPlot.fill(clusterList.size());
-            if (maxEnergy > 0)
+            if (maxEnergy > 0) {
                 clusterMaxEnergyPlot.fill(maxEnergy);
+            }
 
             // Create a list to store cluster pairs.
             List<Cluster[]> pairList = new ArrayList<Cluster[]>(topList.size() * bottomList.size());
 
             // Form pairs from all possible combinations of clusters
             // from the top and bottom lists.
-            for (Cluster topCluster : topList)
+            for (Cluster topCluster : topList) {
                 for (Cluster bottomCluster : bottomList) {
                     // Make a cluster pair array.
                     Cluster[] pair = new Cluster[2];
@@ -271,6 +295,7 @@ public class EcalClusterPlots extends Driver {
                     // Add the pair to the pair list.
                     pairList.add(pair);
                 }
+            }
 
             // Iterate over each pair and calculate the pair cut values.
             for (Cluster[] pair : pairList) {
@@ -296,8 +321,9 @@ public class EcalClusterPlots extends Driver {
 
                 int idx0 = pair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
                 int idx1 = pair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
-                if (Math.abs(idx0) > 2 && Math.abs(idx1) > 2)
+                if (Math.abs(idx0) > 2 && Math.abs(idx1) > 2) {
                     pairMassOppositeHalfFid.fill(getClusterPairMass(pair));
+                }
 
             }
             // Create a list to store cluster pairs.
@@ -305,7 +331,7 @@ public class EcalClusterPlots extends Driver {
 
             // Form pairs from all possible combinations of clusters
             // from the top and bottom lists.
-            for (Cluster topCluster : topList)
+            for (Cluster topCluster : topList) {
                 for (Cluster topCluster2 : topList) {
                     // Make a cluster pair array.
                     Cluster[] pair = new Cluster[2];
@@ -322,8 +348,9 @@ public class EcalClusterPlots extends Driver {
                     // Add the pair to the pair list.
                     pairListSameHalf.add(pair);
                 }
+            }
 
-            for (Cluster cluster : bottomList)
+            for (Cluster cluster : bottomList) {
                 for (Cluster cluster2 : bottomList) {
                     // Make a cluster pair array.
                     Cluster[] pair = new Cluster[2];
@@ -340,20 +367,23 @@ public class EcalClusterPlots extends Driver {
                     // Add the pair to the pair list.
                     pairListSameHalf.add(pair);
                 }
+            }
             // Iterate over each pair and calculate the pair cut values.
             for (Cluster[] pair : pairListSameHalf) {
                 // Get the energy slope value.
                 pairMassSameHalf.fill(getClusterPairMass(pair));
                 int idx0 = pair[0].getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
                 int idx1 = pair[1].getCalorimeterHits().get(0).getIdentifierFieldValue("ix");
-                if (Math.abs(idx0) > 2 && Math.abs(idx1) > 2)
+                if (Math.abs(idx0) > 2 && Math.abs(idx1) > 2) {
                     pairMassSameHalfFid.fill(getClusterPairMass(pair));
+                }
             }
 
         } // If the event does not contain clusters, update the "Event
         // Clusters" plot accordingly.
-        else
+        else {
             clusterCountPlot.fill(0);
+        }
     }
 
     /**
@@ -418,9 +448,10 @@ public class EcalClusterPlots extends Driver {
         double psum = Math.sqrt(pxsum * pxsum + pysum * pysum + pzsum * pzsum);
         double evtmass = esum * esum - psum * psum;
 
-        if (evtmass > 0)
+        if (evtmass > 0) {
             return Math.sqrt(evtmass);
-        else
+        } else {
             return -99;
+        }
     }
 }

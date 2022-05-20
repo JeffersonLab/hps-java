@@ -118,6 +118,11 @@ public final class ConfigurationModel extends AbstractModel {
     private static final int MAX_RECENT_FILES = 10;
 
     /**
+     * The directory to store plots (pdf and root) files in
+     */
+    private static final String PLOTS_DIR_PROPERTY="PlotsDir";
+    
+    /**
      * The ET TCP/IP port.
      */
     public static final String PORT_PROPERTY = "Port";
@@ -431,7 +436,14 @@ public final class ConfigurationModel extends AbstractModel {
     public Long getMaxEvents() {
         return this.configuration.getLong(MAX_EVENTS_PROPERTY);
     }
-
+    /**
+     * Get the directory to but root and pdf files
+     * @return directory name
+     */
+    public String getPlotsDir(){
+        return this.configuration.get(PLOTS_DIR_PROPERTY);
+    }
+    
     /**
      * Get the ET TCP/IP port value.
      *

@@ -105,12 +105,13 @@ public final class MultipleEventsVertexingDriver extends Driver {
                 //accumulatedTracks.add(track);
                 accumulatedBTracks.add(new BilliorTrack(track));
                 
-                if (track.getTrackStates().get(0).getTanLambda() > 0) {
+                //Avoid tracks too close to the beamline to have a more reliable result on z from single volumes
+                if (track.getTrackStates().get(0).getTanLambda() > 0.035) {
                     //accumulatedTracksTop.add(track);
                     accumulatedBTracksTop.add(new BilliorTrack(track));
                 }
                 
-                else {
+                if (track.getTrackStates().get(0).getTanLambda() < -0.035) {
                     //accumulatedTracksBot.add(track);
                     accumulatedBTracksBot.add(new BilliorTrack(track));
                 }

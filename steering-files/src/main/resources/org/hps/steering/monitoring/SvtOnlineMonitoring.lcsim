@@ -6,7 +6,8 @@
 -->
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <execute>
-        <!-- Skip events with known bad conditions -->
+        <driver name="RawTrackerHitSensorSetup"/>
+<!-- Skip events with known bad conditions -->
 <!--        <driver name="EventFlagFilter"/>-->
         <!--<driver name="SVTSmallHitsFilter"/>-->
         <!--        <driver name="RawTrackerHitSensorSetup"/>-->
@@ -23,6 +24,8 @@
         <driver name="CleanupDriver" />
     </execute>
     <drivers>
+      
+        
         <!-- Driver to reject "bad" events -->
         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
             <!--<flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames>--> 

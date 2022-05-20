@@ -7,6 +7,7 @@ import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.DoubleByReference;
 
 import java.util.List;
+import org.apache.commons.math3.util.Pair;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
@@ -21,9 +22,14 @@ public class GblTrajectoryJna {
         Pointer GblTrajectoryCtorPtrArray(Pointer [] points, int npoints, int flagCurv, int flagU1dir, int flagU2dir);
         Pointer GblTrajectoryCtorPtrArraySeed(Pointer [] points, int npoints, int aLabel, double [] seedArray, int flagCurv, int flagU1dir, int flagU2dir);
         
+        //Only supports 2 trajectories for e+/e- vertices or e- / e- 
+        //Should/Could be extended to more 
+        Pointer GblTrajectoryCtorPtrComposed(Pointer [] points_1, int npoints_1, double [] trafo_1, 
+                                             Pointer [] points_2, int npoints_2, double [] trafo_2);
+        
         void GblTrajectory_fit(Pointer self, DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, char [] optionList, int aLabel);
         void GblTrajectory_addPoint(Pointer self, Pointer point);
-        int GblTrajectory_isValid(Pointer self);
+        int  GblTrajectory_isValid(Pointer self);
         void GblTrajectory_printTrajectory(Pointer self, int level);
         void GblTrajectory_printData(Pointer self);
         void GblTrajectory_printPoints(Pointer self, int level);
@@ -57,7 +63,7 @@ public class GblTrajectoryJna {
         
     }
 
-
+    //Simple trajectory constructor with seed 
     public GblTrajectoryJna(List<GblPointJna> points, int aLabel, Matrix seed, int flagCurv, int flagU1dir, int flagU2dir) { 
         
         Pointer [] ppoints = new Pointer[points.size()];
@@ -79,6 +85,36 @@ public class GblTrajectoryJna {
         
     }
     
+    //Composed (curved) trajectory constructor from a list of points and transformation (at inner (first) point)
+    //Only 2 tracks, supported for the moment
+    
+    public GblTrajectoryJna(List < Pair <List<GblPointJna>, Matrix> > PointsAndTransList) {
+        
+        Pointer [] ppoints_1 = new Pointer[PointsAndTransList.get(0).getFirst().size()];
+        Pointer [] ppoints_2 = new Pointer[PointsAndTransList.get(0).getFirst().size()];
+
+        int npoints_1 = PointsAndTransList.get(0).getFirst().size();
+        int npoints_2 = PointsAndTransList.get(1).getFirst().size();
+       
+        
+        int ipoint=-1;
+        for (GblPointJna point : PointsAndTransList.get(0).getFirst()) {
+            ipoint+=1;
+            ppoints_1[ipoint]  = point.getPtr();
+        }
+        
+        ipoint=-1;
+        for (GblPointJna point : PointsAndTransList.get(1).getFirst()) {
+            ipoint+=1;
+            ppoints_1[ipoint]  = point.getPtr();
+        }
+        
+        double [] trafo_1 = PointsAndTransList.get(0).getSecond().getColumnPackedCopy();
+        double [] trafo_2 = PointsAndTransList.get(1).getSecond().getColumnPackedCopy();
+        
+        self = GblTrajectoryInterface.INSTANCE.GblTrajectoryCtorPtrComposed(ppoints_1, npoints_1, trafo_1,
+                                                                            ppoints_2, npoints_2, trafo_2);
+    }
     
     public void fit(DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, String optionList) {
         
