@@ -132,6 +132,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private boolean constrainedFit = false;
     private boolean constrainedBSFit = false;
     private double bsZ = -7.5;
+    private double bsX = 0.0;
+    private double bsY = 0.0;
     private boolean constrainedD0Fit = false;
     private boolean constrainedZ0Fit = false;
     private int trackSide = -1;
@@ -190,6 +192,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
     public void setBsZ(double val) {
         bsZ = val;
+    }
+    public void setBsX(double val) {
+        bsX = val;
+    }
+    public void setBsY(double val) {
+        bsY = val;
     }
 
     public void setSeedPrecision(double val) {
@@ -657,9 +665,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
             //Track biasing example 
             //Re-fit the track?
-            //Only active for ST tracks
             //If momC < 0, only add a term in the covariance matrix to fix the momentum
-            if (constrainedFit && TrackType == 0) {
+            if (constrainedFit) {
                 
                 double momentum_param = 2.99792458e-04;
                 //Get the track parameters
@@ -717,7 +724,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
             }//constrained fit
 
-            if (constrainedD0Fit && TrackType == 0) {
+            if (constrainedD0Fit) {
                 double [] trk_prms = track.getTrackParameters();
                 //Bias the track 
                 double d0 = trk_prms[BaseTrack.D0];
@@ -739,7 +746,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
             }
 
-            if (constrainedZ0Fit && TrackType == 0) {
+            if (constrainedZ0Fit) {
                 double [] trk_prms = track.getTrackParameters();
                 //Bias the track 
                 double z0 = trk_prms[BaseTrack.Z0];
@@ -775,7 +782,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
             HelicalTrackFit htf = TrackUtils.getHTF(track);
             double bfac = Constants.fieldConversion * bfield;
             
-            GBLBeamSpotPoint bsPoint = FormBSPoint(htf, bsZ);
+            GBLBeamSpotPoint bsPoint = FormBSPoint(htf, bsZ,bsX,bsY);
 
             DoubleByReference Chi2 = new DoubleByReference(0.);
             DoubleByReference lostWeight = new DoubleByReference(0.);
@@ -1448,15 +1455,15 @@ public class SimpleGBLTrajAliDriver extends Driver {
             return null;
     }
     
-    GBLBeamSpotPoint FormBSPoint(HelicalTrackFit htf, double bsZ) {
+    GBLBeamSpotPoint FormBSPoint(HelicalTrackFit htf, double bsZ, double bsX, double bsY) {
         //Form the BeamsSpotPoint
         double [] center = new double[3];
         double [] udir   = new double[3];
         double [] vdir   = new double[3];
         
         center[0] = bsZ; //Z
-        center[1] = 0.;  //X
-        center[2] = 0.;  //Y
+        center[1] = bsX;  //X
+        center[2] = bsY;  //Y
         
         udir[0] = 0;    
         udir[1] = 0;
