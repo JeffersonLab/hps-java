@@ -168,10 +168,10 @@ public class GblTrajectoryJna {
         GblTrajectoryInterface.INSTANCE.GblTrajectory_getMeasResults(self, aLabel, numData, d_aResiduals, d_aMeasErrors, d_aResErrors, d_aDownWeights);
 
         for (int i=0; i<2; i++) {
-            aResiduals.set(i,d_aResiduals[i]);
-            aMeasErrors.set(i,d_aMeasErrors[i]);
-            aResErrors.set(i,d_aResErrors[i]);
-            aDownWeights.set(i,d_aDownWeights[i]);
+            aResiduals.add(d_aResiduals[i]);
+            aMeasErrors.add(d_aMeasErrors[i]);
+            aResErrors.add(d_aResErrors[i]);
+            aDownWeights.add(d_aDownWeights[i]);
         }
         
     }
