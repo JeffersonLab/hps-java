@@ -4,6 +4,7 @@ import hep.aida.IHistogram1D;
 import hep.aida.IPlotter;
 import hep.aida.IPlotterFactory;
 import hep.aida.IPlotterStyle;
+import hep.aida.ITree;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,9 +19,12 @@ import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
 /**
- * The driver <code>EcalDaqPlots</code> implements the histogram shown to the user in the fourth tab of the
- * Monitoring Application, when using the Ecal monitoring lcsim file. It contains only a sub-tab, showing
- * the number of hits recorded by the different FADC channels. It is a very preliminary driver to monitor
+ * The driver <code>EcalDaqPlots</code> implements the histogram shown to the
+ * user in the fourth tab of the
+ * Monitoring Application, when using the Ecal monitoring lcsim file. It
+ * contains only a sub-tab, showing
+ * the number of hits recorded by the different FADC channels. It is a very
+ * preliminary driver to monitor
  * the DAQ status. These plots are updated continuously.
  */
 public class EcalDaqPlots extends Driver {
@@ -29,6 +33,7 @@ public class EcalDaqPlots extends Driver {
     private String inputCollection = "EcalCalHits";
     private IPlotter plotter;
     private AIDA aida;
+    private static ITree tree = AIDA.defaultInstance().tree();
 
     private List<IHistogram1D> plots;
 
@@ -86,14 +91,17 @@ public class EcalDaqPlots extends Driver {
             int crate = channel.getCrate();
 
             if (y > 0) {
-                if (!slotsT.contains(slot))
+                if (!slotsT.contains(slot)) {
                     slotsT.add(slot);
+                }
             } else if (y < 0) {
-                if (!slotsB.contains(slot))
+                if (!slotsB.contains(slot)) {
                     slotsB.add(slot);
+                }
             }
-            if (!crates.contains(crate))
+            if (!crates.contains(crate)) {
                 crates.add(crate);
+            }
         }
         /* Order the slots in increasing order */
         Collections.sort(slotsB);
@@ -105,9 +113,22 @@ public class EcalDaqPlots extends Driver {
          * System.out.println(""); System.out.println("BOTTOM: "); for
          * (int slot : slotsB){ System.out.print(slot+" "); } System.out.println("");
          */
-
         aida = AIDA.defaultInstance();
-        aida.tree().cd("/");
+        tree.cd("/");
+        boolean dirExists = false;
+        String dirName = "/ECalDaq";
+        for (String st : tree.listObjectNames()) {
+            System.out.println(st);
+            if (st.contains(dirName)) {
+                dirExists = true;
+            }
+        }
+        tree.setOverwrite(true);
+        if (!dirExists) {
+            tree.mkdir(dirName);
+        }
+        tree.cd(dirName);
+
         plots = new ArrayList<IHistogram1D>();
 
         for (int j = 0; j < 14; j++) { // TOP slot
@@ -133,15 +154,17 @@ public class EcalDaqPlots extends Driver {
                 id = i * 14 + j;
                 plot_id = 0;
                 if (i == 0) { // first-crate
-                    if (j % 2 == 0)
+                    if (j % 2 == 0) {
                         plot_id = j * 2;
-                    else
+                    } else {
                         plot_id = (j - 1) * 2 + 1;
+                    }
                 } else if (i == 1) { // second-crate
-                    if (j % 2 == 0)
+                    if (j % 2 == 0) {
                         plot_id = j * 2 + 2;
-                    else
+                    } else {
                         plot_id = (j - 1) * 2 + 3;
+                    }
                 }
                 // System.out.println("Plot in region " + plot_id + " the plot " + plots.get(id).title() + "(index: " +
                 // id + ")");
@@ -161,7 +184,6 @@ public class EcalDaqPlots extends Driver {
                 // daq.crate = 1;
                 // daq.slot = 2;
                 // daq.channel = 3;
-
                 // Find the matching channel.
                 EcalChannel channel = channels.findGeometric(hit.getCellID());
                 int row = hit.getIdentifierFieldValue("iy");
@@ -173,7 +195,6 @@ public class EcalDaqPlots extends Driver {
 
                 // System.out.println("found channel at " + column + " " + row +
                 // " corresponding to DAQ crate/slot/channel " + crateN + " "+slotN+" "+channelN);
-
                 // Top CRATE
                 if (row > 0) {
                     int index = slotsT.indexOf(slotN);

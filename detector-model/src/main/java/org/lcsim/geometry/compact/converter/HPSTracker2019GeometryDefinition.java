@@ -502,6 +502,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected final static double shift_along_uchannel = 0; //positive is downstream
         protected final static double shift_across_uchannel = 0.250; //positive is beam right
         protected final static double shift_vertically_uchannel = -0.300; //positive is towards beam
+        
         // Note the L1 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL1Bot.cone_to_hole_along_uchannel + shift_along_uchannel;
         protected final static double cone_to_hole_across_uchannel = HPSTracker2014v1GeometryDefinition.ModuleL1Bot.cone_to_hole_across_uchannel + shift_across_uchannel; // change x position layer 1 bot
@@ -551,8 +552,12 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Bot.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Bot.cone_to_hole_vertical_from_uchannel;
-        protected final static double L3_new_vertical_shift = 0.7 - 0.012;
 
+        //2019 MRSolt survey
+        //protected final static double L3_new_vertical_shift = 0.7 - 0.012;
+        //2021 nominal
+        protected final static double L3_new_vertical_shift = 0.7;
+        
         public ModuleL3Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
@@ -572,7 +577,11 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Top.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL2Top.cone_to_hole_vertical_from_uchannel;
-        protected final static double L3_new_vertical_shift = 0.7 + 0.055;
+        
+        //2019 MRSolt survey 
+        //protected final static double L3_new_vertical_shift = 0.7 + 0.055;
+        //2021 nominal
+        protected final static double L3_new_vertical_shift = 0.7;
 
         public ModuleL3Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -593,7 +602,12 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Bot.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Bot.cone_to_hole_vertical_from_uchannel;
-        protected final static double L4_new_vertical_shift = 0.7 + 0.0356;
+        
+        //2019 MRSolt survey
+        //protected final static double L4_new_vertical_shift = 0.7 + 0.0356;
+        
+        //2021 nominal
+        protected final static double L4_new_vertical_shift = 0.7;
 
         public ModuleL4Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -614,8 +628,12 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         // Note the L2 measures are used here
         protected final static double cone_to_hole_along_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Top.cone_to_hole_along_uchannel;
         protected final static double cone_to_hole_vertical_from_uchannel = HPSTracker2014GeometryDefinition.ModuleL3Top.cone_to_hole_vertical_from_uchannel;
-        protected final static double L4_new_vertical_shift = 0.7 + 0.062;
 
+        //2019 MRSolt  survey 
+        //protected final static double L4_new_vertical_shift = 0.7 + 0.062;
+        //2021 nominal
+        protected final static double L4_new_vertical_shift = 0.7;
+        
         public ModuleL4Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
             init();
@@ -1522,7 +1540,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected final static double shift_vertically_to_beam_plane = -20.6658;
         protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
         
-        protected final static double survey_shift_x = 0.086; //positive is away from beam (up)
+        //2019 MRSolt survey constants
+        //protected final static double survey_shift_x = 0.086; //positive is away from beam (up)
+        //2021 nominal
+        protected final static double survey_shift_x = 0.0; //positive is away from beam (up)
         protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         protected final static double survey_shift_z = 0.0; //positive is downstream shift
 
@@ -1554,7 +1575,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected final static double shift_vertically_to_beam_plane = -20.6658;
         protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
         
-        protected final static double survey_shift_x = 0.200; //positive is away from beam (down)
+        //2019 MRSolt survey constants
+        //protected final static double survey_shift_x = 0.200; //positive is away from beam (down)
+        //2021 nominal 
+        protected final static double survey_shift_x = 0.0; //positive is away from beam (down)
         protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         protected final static double survey_shift_z = 0.0; //positive is upstream shift
 
@@ -1586,7 +1610,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected final static double shift_vertically_to_beam_plane = -20.6658;
         protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
         
-        protected final static double survey_shift_x = 0.366 - 0.245; //positive is away from beam (up)
+        //2019 MRSolt survey constants
+        //protected final static double survey_shift_x = 0.366 - 0.245; //positive is away from beam (up)
+        //2021 nominal
+        protected final static double survey_shift_x = 0.0; //positive is away from beam (up)
         protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         protected final static double survey_shift_z = 0.0; //positive is downstream shift
 
@@ -1618,7 +1645,10 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         protected final static double shift_vertically_to_beam_plane = -20.6658;
         protected final static double shift_vertically_to_15mrad = ShortSensor.width / 2.0 + 0.5;
         
-        protected final static double survey_shift_x = 0.285; //positive is away from beam (down)
+        //2019 MRSolt survey constants
+        //protected final static double survey_shift_x = 0.285; //positive is away from beam (down)
+        //2021 nominal
+        protected final static double survey_shift_x = 0.0; //positive is away from beam (down)
         protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         protected final static double survey_shift_z = 0.0; //positive is upstream shift
 
@@ -1804,7 +1834,11 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     
     public static class ShortStereoHoleHalfModuleL0Top extends ShortStereoHalfModule {
 
-        protected final static double survey_shift_x = 0.113; //positive is away from beam (up)
+        //2019 MRSolt survey constants
+        //protected final static double survey_shift_x = 0.113; //positive is away from beam (up)
+        //2021 nominal
+        protected final static double survey_shift_x = 0.0; //positive is away from beam (up)
+        
         protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         protected final static double survey_shift_z = 0.0; //positive is downstream shift
         
@@ -1922,8 +1956,11 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
     }
 
     public static class ShortStereoHoleHalfModuleL0Bot extends ShortStereoHalfModule {
-
-        protected final static double survey_shift_x = 0.098; //positive is away from beam (down)
+        
+        //2019 MRSolt survey constants
+        //protected final static double survey_shift_x = 0.098; //positive is away from beam (down)
+        //2021 nominal
+        protected final static double survey_shift_x = 0.0; //positive is away from beam (down)
         protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         protected final static double survey_shift_z = 0.0; //positive is upstream shift
         
@@ -2042,7 +2079,11 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
     public static class ShortStereoHoleHalfModuleL1Top extends ShortStereoHalfModule {
 
-        protected final static double survey_shift_x = 0.253; //positive is away from beam (up)
+        //2019 MRSolt survey constants
+        //protected final static double survey_shift_x = 0.253; //positive is away from beam (up)
+        
+        //2021 nominal
+        protected final static double survey_shift_x = 0.0; //positive is away from beam (up)
         protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         protected final static double survey_shift_z = 0.0; //positive is downstream shift
         
@@ -2161,7 +2202,11 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
 
     public static class ShortStereoHoleHalfModuleL1Bot extends ShortStereoHalfModule {
 
-        protected final static double survey_shift_x = 0.231; //positive is away from beam (down)
+        //2019 MRSolt survey constants
+        //protected final static double survey_shift_x = 0.231; //positive is away from beam (down)
+        
+        //2021 nominal
+        protected final static double survey_shift_x = 0.0; //positive is away from beam (down)
         protected final static double survey_shift_y = 0.0; //positive is positive x shift in JLab coordinates (beam left)
         protected final static double survey_shift_z = 0.0; //positive is upstream shift
         

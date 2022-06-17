@@ -380,8 +380,6 @@
             <!-- Units of 2 ns beam bunches. -->
             <deadTime>15</deadTime>   
 
-	    <geometryMatchingRequired>false</geometryMatchingRequired>
-
         </driver>
         
         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">

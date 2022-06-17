@@ -40,8 +40,7 @@
             <debug>false</debug>
             <clusterTimeCut>40.0</clusterTimeCut>
             <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
-            <maxDt>40.0</maxDt>
-            <vThin>0.0</vThin>
+            <maxDt>40.0</maxDt>       
             <saveAxialHits>true</saveAxialHits>
         </driver>
    

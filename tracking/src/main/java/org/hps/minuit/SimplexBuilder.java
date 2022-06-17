@@ -151,11 +151,11 @@ class SimplexBuilder implements MinimumBuilder {
         states.add(st);
 
         if (mfcn.numOfCalls() > maxfcn) {
-            logger.info("Simplex did not converge, #fcn calls exhausted.");
+//            logger.info("Simplex did not converge, #fcn calls exhausted.");
             return new FunctionMinimum(seed, states, mfcn.errorDef(), new FunctionMinimum.MnReachedCallLimit());
         }
         if (simplex.edm() > minedm) {
-            logger.info("Simplex did not converge, edm > minedm.");
+ //           logger.info("Simplex did not converge, edm > minedm.");
             return new FunctionMinimum(seed, states, mfcn.errorDef(), new FunctionMinimum.MnAboveMaxEdm());
         }
 

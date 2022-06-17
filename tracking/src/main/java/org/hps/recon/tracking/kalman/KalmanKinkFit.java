@@ -32,7 +32,7 @@ public class KalmanKinkFit {
     private double innerStereo, outerStereo;
     private int innerNhits, outerNhits;
     
-    KalmanKinkFit(EventHeader event, KalmanInterface KI, Track KalmanFullTrack) {
+    public KalmanKinkFit(EventHeader event, KalmanInterface KI, Track KalmanFullTrack) {
         this.event = event;
         this.KI = KI;
         this.KalmanFullTrack = KalmanFullTrack;

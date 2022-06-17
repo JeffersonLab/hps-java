@@ -36,9 +36,9 @@ public class KalmanKinkFitDriver extends Driver {
         aida.tree().cd("/");
 
         hAngBot = aida.histogram1D("Kalman kink angle bottom", 100, 0., 0.15);
-        hProjAngBot = aida.histogram1D("Kalman projected kink angle bottom", 100, -0.03, 0.03);
+        hProjAngBot = aida.histogram1D("Kalman projected kink angle bottom", 100, -0.01, 0.01);
         hAngTop = aida.histogram1D("Kalman kink angle top", 100, 0., 0.15);
-        hProjAngTop = aida.histogram1D("Kalman projected kink angle top", 100, -0.03, 0.03);
+        hProjAngTop = aida.histogram1D("Kalman projected kink angle top", 100, -0.01, 0.01);
         hChiIn = aida.histogram1D("Inner helix chi^2",100,0.,100.);
         hDofIn = aida.histogram1D("Inner helix #dof",10,0.,10.);
         hChiOut = aida.histogram1D("Outer helix chi^2",100,0.,100.);

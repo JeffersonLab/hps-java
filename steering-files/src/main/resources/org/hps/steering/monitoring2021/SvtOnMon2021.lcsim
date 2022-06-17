@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Steering file for online monitoring of the SVT.
+
+    @author Omar Moreno <omoreno1@ucsc.edu>
+-->
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="RawTrackerHitSensorSetup"/>
+<!-- Skip events with known bad conditions -->
+<!--        <driver name="EventFlagFilter"/>-->
+        <!--<driver name="SVTSmallHitsFilter"/>-->
+        <!--        <driver name="RawTrackerHitSensorSetup"/>-->
+        <driver name="SensorOccupancy" />
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="SvtHitPlots" /> 
+        <!--<driver name="SamplesPlots" />
+        <driver name="PedestalPlots" />-->
+        <!--<driver name="SVTPulseFitPlots" />--> 
+        <driver name="TrackerHitDriver" /> 
+        <driver name="ClusterOccupancy" />
+        <driver name="ClusterPlots" /> 
+        <driver name="AidaSaveDriver" />
+        <driver name="CleanupDriver" />
+    </execute>
+    <drivers>
+      
+        
+        <!-- Driver to reject "bad" events -->
+        <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
+            <!--<flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames>--> 
+            <flagNames>svt_burstmode_noise_good</flagNames> 
+        </driver>         
+         
+        <!--        <driver name="SVTSmallHitsFilter" type="org.hps.recon.filtering.SVTSmallHitsFilter"/>-->
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="SensorOccupancy" type="org.hps.monitoring.drivers.svt.SensorOccupancyPlotsDriver" >
+            <eventRefreshRate>1000</eventRefreshRate>
+            <enablePositionPlots>false</enablePositionPlots>
+            <enableMaxSamplePlots>true</enableMaxSamplePlots>
+            <maxSamplePosition>3</maxSamplePosition> 
+            <timeWindowWeight>3</timeWindowWeight>
+            <resetPeriod>50000</resetPeriod>
+            <saveRootFile>false</saveRootFile>
+            <enableAlarms>false</enableAlarms>
+        </driver>
+        <driver name="SvtHitPlots" type="org.hps.monitoring.drivers.svt.SvtHitPlots">
+            <doPerChannelsSampleplots>true</doPerChannelsSampleplots>
+            <cutOutLowChargeHits>true</cutOutLowChargeHits>
+            <!--<saveRootFile>false</saveRootFile>-->
+        </driver>
+        <!--<driver name="SamplesPlots" type="org.hps.monitoring.drivers.svt.SamplesPlots" />-->
+        <!--<driver name="PedestalPlots" type="org.hps.monitoring.drivers.svt.PedestalPlots" />-->
+      
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <useTimestamps>false</useTimestamps>
+            <correctT0Shift>false</correctT0Shift>
+            <correctTimeOffset>true</correctTimeOffset>
+            <subtractTriggerTime>true</subtractTriggerTime>            
+            <trigTimeScale>55.0</trigTimeScale>
+            <subtractRFTime>false</subtractRFTime> 
+            <subtractTOF>true</subtractTOF>
+            <correctChanT0>false</correctChanT0>
+            <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+            <debug>false</debug>
+        </driver>
+        <!--<driver name="SVTPulseFitPlots" type="org.hps.monitoring.drivers.svt.SVTPulseFitPlots" />-->
+        <driver name="ClusterPlots" type="org.hps.monitoring.drivers.svt.SvtClusterPlots">
+            <dropSmallHitEvents>false</dropSmallHitEvents>
+            <cutOutLowChargeClusters>true</cutOutLowChargeClusters>
+            <saveRootFile>false</saveRootFile>
+        </driver>
+        
+        <driver name="ClusterOccupancy" type="org.hps.monitoring.drivers.svt.ClusterOccupancyPlotsDriver" >
+            <eventRefreshRate>1000</eventRefreshRate>            
+            <resetPeriod>50000</resetPeriod>
+            <saveRootFile>false</saveRootFile>
+        </driver>
+              
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>svtmon_plots2.root</outputFileName>
+        </driver>    
+    </drivers>
+</lcsim>
