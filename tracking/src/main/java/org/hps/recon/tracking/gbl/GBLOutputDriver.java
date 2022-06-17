@@ -49,6 +49,7 @@ public class GBLOutputDriver extends Driver {
     private String outputPlots = "GBLplots_ali.root";
     private String trackCollectionName = "GBLTracks";
     private String trackResidualsRelColName = "TrackResidualsGBLRelations";
+    private String dataRelationCollection = GBLKinkData.DATA_RELATION_COLLECTION;
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
     private double bfield;
     public boolean debug = false;
@@ -76,6 +77,16 @@ public class GBLOutputDriver extends Driver {
     private double minMom = 1.;
     private double maxMom = 6.;
     
+    private int nHits = 6;
+    
+
+    public void setDataRelationCollection (String val) {
+        dataRelationCollection = val;
+    }
+
+    public void setNHits (int val ) {
+        nHits = val;
+    }
     
     public void setMinMom (double val) {
         minMom = val;
@@ -142,11 +153,10 @@ public class GBLOutputDriver extends Driver {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
 
         int TrackType = 0;
-        int nHits = 6;
         
         if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) {
             TrackType = 1;
-            nHits = 12;
+            nHits = 2*nHits;
             //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
         }
 
@@ -266,6 +276,13 @@ public class GBLOutputDriver extends Driver {
     }
 
     private void doGBLkinks(Track trk, GenericObject kink, Map<HpsSiSensor, Integer> sensorNums) {
+        
+        if (kink == null) {
+            System.out.println("WARNING::Kink object is null");
+            return;
+        }
+            
+
         String vol  = "_top";
         int spacing = 0;
         if (trk.getTrackStates().get(0).getTanLambda() < 0) {
@@ -418,8 +435,8 @@ public class GBLOutputDriver extends Driver {
         //Get the PathToPlane
         
         BaseTrackState ts_bs = TrackUtils.getTrackExtrapAtVtxSurfRK(trackState,bFieldMap,0.,bsZ);
-
-
+        
+        
         //Get the track parameters wrt the beamline using helix
         double [] beamLine = new double [] {bsZ,0};
         double [] helixParametersAtBS = TrackUtils.getParametersAtNewRefPoint(beamLine, trackState);
@@ -436,6 +453,9 @@ public class GBLOutputDriver extends Driver {
         FillGBLTrackPlot(trkpFolder+"z0_vs_bs",isTop,charge,trackState.getZ0() + s*trackState.getTanLambda());
         FillGBLTrackPlot(trkpFolder+"z0_vs_bs_rk",isTop,charge,ts_bs.getZ0());
         FillGBLTrackPlot(trkpFolder+"z0_vs_bs_extrap",isTop,charge,helixParametersAtBS[BaseTrack.Z0]);
+        
+
+        FillGBLTrackPlot(trkpFolder+"phi_vs_bs_extrap",isTop,charge,helixParametersAtBS[BaseTrack.PHI]);
         
         //TH2D - Filling
         FillGBLTrackPlot(trkpFolder+"d0_vs_phi",isTop,charge,trackState.getPhi(),trackState.getD0());
@@ -844,7 +864,7 @@ public class GBLOutputDriver extends Driver {
                 //TH1Ds
                 aidaGBL.histogram1D(trkpFolder+"d0"+vol+charge,nbins_t,-5.0,5.0);
                 aidaGBL.histogram1D(trkpFolder+"z0"+vol+charge,nbins_t,-1.3,1.3);
-                aidaGBL.histogram1D(trkpFolder+"phi"+vol+charge,nbins_t,-0.3,0.3);
+                aidaGBL.histogram1D(trkpFolder+"phi"+vol+charge,nbins_t,-0.06,0.06);
                 aidaGBL.histogram1D(trkpFolder+"tanLambda"+vol+charge,nbins_t,-0.2,0.2);
                 aidaGBL.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,pmax);
                 aidaGBL.histogram1D(trkpFolder+"p7h"+vol+charge,nbins_p,0.,pmax);
@@ -867,6 +887,7 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"z0_vs_bs_rk"+vol+charge, 2*nbins_t, -z0bsmax, z0bsmax);
                 aidaGBL.histogram1D(trkpFolder+"z0_vs_bs_extrap"+vol+charge, 2*nbins_t, -z0bsmax, z0bsmax);
                 aidaGBL.histogram1D(trkpFolder+"z0_vs_bs"+vol+charge, 2*nbins_t, -z0bsmax, z0bsmax);
+                aidaGBL.histogram1D(trkpFolder+"phi_vs_bs_extrap"+vol+charge,2*nbins_t, -0.06,0.06);
                 
                 
                 //TH2Ds

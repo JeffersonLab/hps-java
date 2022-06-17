@@ -2,9 +2,11 @@ package org.hps.recon.tracking.gbl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
 import static java.lang.Math.sqrt;
+import org.apache.commons.math3.util.Pair;
 
 //import hep.physics.vec.VecOp;
 
@@ -59,9 +61,9 @@ import org.lcsim.geometry.FieldMap;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 
 import org.lcsim.event.TrackerHit;
-//import org.lcsim.event.base.BaseLCRelation;
+import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
-//import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 
 
@@ -101,12 +103,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
     String eopFolder = "/EoP/";
     
     private String inputCollectionName = "MatchedTracks";
-    private String outputCollectionName = "GBLTracks";
+    private String outputCollectionName = "GBLJNATracks";
     private String trackRelationCollectionName = "MatchedToGBLTrackRelations";
     private String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
     private String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
-    private String trackResidualsColName = "TrackResidualsGBL";
-    private String trackResidualsRelColName = "TrackResidualsGBLRelations";
+    private String trackResidualsColName = "TrackResidualsGBLJNA";
+    private String trackResidualsRelColName = "TrackResidualsGBLJNARelations";
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String gblStripClusterDataRelations = "KFGBLStripClusterDataRelations";
         
@@ -131,22 +133,31 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private boolean compositeAlign = false;
     private boolean constrainedFit = false;
     private boolean constrainedBSFit = false;
+    private boolean constrainedD0Fit = false;
+    private boolean constrainedZ0Fit = false;
+    private boolean constrainedTanLFit = false;
+    private boolean constrainedPhi0Fit = false;
+    private double seedPhi0 = 1000000.0;   // 1 mrad 
+    private double beam_angle = 0.0305; // beam angle
+    private double seed_precision = 10000; // the constraint on q/p
     private double bsZ = -7.5;
     private double bsX = 0.0;
     private double bsY = 0.0;
-    private boolean constrainedD0Fit = false;
-    private boolean constrainedZ0Fit = false;
     private int trackSide = -1;
     private boolean doCOMAlignment = false;
-    private double seed_precision = 10000; // the constraint on q/p
     private double momC     = 4.55;
-    private double minMom   = 3;
-    private double maxMom   = 6;
-    private double maxtanL  = 0.025;
-    private int    nHitsCut = 6;
+    private double minMom   = -999;
+    private double maxMom   = 999;
+    private double maxtanL  = -999;
+    private double minPhi   = -999;
+    private double maxPhi   = 999;
+    private int    nHitsCut = 4;
     private boolean useParticles = false;
+    private double clusterEnergyCutMin = -1;  
+    private double clusterEnergyCutMax = 999;
     private double posEoP = -1;
     private double eleEoP = -1;
+    private boolean correctTrack = false;
 
     
     private GblTrajectoryMaker _gblTrajMaker;
@@ -161,6 +172,9 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private int gblRefitIterations = 5; 
 
 
+    public void setCorrectTrack (boolean val) {
+        correctTrack = val;
+    }
     public void setPosEoP (double val) {
         posEoP = val;
     }
@@ -182,12 +196,32 @@ public class SimpleGBLTrajAliDriver extends Driver {
     public void setMomC (double val)  {
         momC = val;
     }
+    
+    public void setClusterEnergyCutMin (double val) {
+        clusterEnergyCutMin = val;
+    }
+
+    public void setClusterEnergyCutMax (double val) {
+        clusterEnergyCutMax = val;
+    }
+    
     public void setCompositeAlign (boolean val) {
         compositeAlign = val;
     }
 
     public void setConstrainedFit (boolean val) {
         constrainedFit = val;
+    }
+    
+    public void setConstrainedPhi0Fit (boolean val) {
+        constrainedPhi0Fit = val;
+    }
+    public void setSeedPhi0 (double val) {
+        seedPhi0 = val;
+    }
+
+    public void setConstrainedTanLFit (boolean val) {
+        constrainedTanLFit = val;
     }
 
     public void setBsZ(double val) {
@@ -316,6 +350,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
     public void setMaxtanL(double val) {
         maxtanL = val;
+    }
+
+    public void setMinPhi(double val) {
+        minPhi = val;
+    }
+
+    public void setMaxPhi(double val) {
+        maxPhi = val;
     }
 
     public void setMaxMom(double val) {
@@ -523,9 +565,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 }
                 
                 // ask tracks only on a side
-                if (trackSide >= 0) 
-                {
-                    
+                if (trackSide >= 0) {
                     if (trackSide > 1) {
                         System.out.println("SimpleGBLTrajAliDriver:: wrong settings for track side selection");
                         continue;
@@ -537,9 +577,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     else if (trackSide == 1 && !TrackUtils.isHoleTrack(track)) 
                         continue;
                 }
-                
             }
-                
+            
             
             //Get the E/p from the cluster
             if (useParticles) {
@@ -554,8 +593,20 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
                 double e_o_p = em_cluster.getEnergy() / trackp;
                 
+                
                 //compute the correction
                 momC = em_cluster.getEnergy();
+                
+                //Cluster energy cut
+                if (clusterEnergyCutMin > 0 || clusterEnergyCutMax < 999) {
+                    if (!TriggerModule.inFiducialRegion(em_cluster))
+                        continue;
+                    if (em_cluster.getEnergy() < clusterEnergyCutMin)
+                        continue;
+                    if (em_cluster.getEnergy() > clusterEnergyCutMax)
+                        continue;
+                }
+                
                 
                 double[] trk_prms = track.getTrackParameters(); 
                 
@@ -658,9 +709,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     
                 }
                 
-                
             }
-            
             
             
             //Track biasing example 
@@ -724,6 +773,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
             }//constrained fit
 
+            if (constrainedPhi0Fit) {
+                
+                double [] trk_prms = track.getTrackParameters();
+                //Bias the track to target beam angle
+                trk_prms[BaseTrack.PHI] = beam_angle;
+                ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
+            }
+
             if (constrainedD0Fit) {
                 double [] trk_prms = track.getTrackParameters();
                 //Bias the track 
@@ -732,12 +789,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //double d0bias = targetd0 - d0;
                
                 double d0bias = 0.;
-                if (trk_prms[BaseTrack.TANLAMBDA] > 0)  {
-                    d0bias = -0.887;
-                }
-                else {
-                    d0bias = 1.58;
-                }
                 double corrected_d0 = d0+d0bias;
                 trk_prms[BaseTrack.D0] = corrected_d0;
                 //System.out.println("d0" + d0);
@@ -750,7 +801,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 double [] trk_prms = track.getTrackParameters();
                 //Bias the track 
                 double z0 = trk_prms[BaseTrack.Z0];
-                double targetz0 = 0.;
+                double targetz0 = z0;
                 double z0bias = targetz0 - z0;
                 double corrected_z0 = z0+z0bias;
                 trk_prms[BaseTrack.Z0] = corrected_z0;
@@ -790,12 +841,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
             //Create a trajectory with the beamspot 
             List<GblPointJna> points_on_traj = new ArrayList<GblPointJna>();
+            Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
+            Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
             
             if (constrainedBSFit)  {
-                points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, bsPoint, bfac);
+                points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, bsPoint, bfac,sensorMap, pathLengthMap);
             }
             else  {
-                points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, null, bfac);
+                points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, null, bfac,sensorMap, pathLengthMap);
             }
             
             if (compositeAlign) {
@@ -818,20 +871,28 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 GblTrajectoryJna trajForMPII = null;
                 GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,1,1,1);
                 
-                if (!constrainedFit) {
+                //seed matrix q/p, yT', xT', xT, yT 
+                SymMatrix seedPrecision = new SymMatrix(5);
+                
+                if (constrainedFit) 
+                    seedPrecision.set(0,0,seed_precision);
+                if (constrainedTanLFit)
+                    seedPrecision.set(1,1,seed_precision);
+                if (constrainedPhi0Fit)
+                    seedPrecision.set(2,2,seed_precision);
+
+                //z0 constraint 
+                //seedPrecision.set(4,4,seed_precision);
+                
+                //d0 constraint
+                //seedPrecision.set(3,3,1000000);
+                
+                if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
                     trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
                 }
                 
                 else {
-                    //Seed constrained fit 
-                    SymMatrix seedPrecision = new SymMatrix(5);
-                    //seed matrix q/p, yT', xT', xT, yT 
                     
-                    //q/p constraint
-                    seedPrecision.set(0,0,seed_precision);
-                    
-                    //d0 constraint
-                    //seedPrecision.set(3,3,1000000);
                     trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
                 }
                 
@@ -841,17 +902,79 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 //Fit the trajectory to get the Chi2
                 trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
-                                
+
                 //Avoid to use tracks with terrible Chi2
                 if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
                     continue;
                 
-                trajForMPII.milleOut(mille);
+                if (writeMilleBinary)
+                    trajForMPII.milleOut(mille);
                 
+                if (correctTrack) {                
+
+                    //Form the FittedGblTrajectory for the unconstrained fit
+                    FittedGblTrajectory fitTraj = new FittedGblTrajectory(trajForMPII_unconstrained, Chi2.getValue(), Ndf.getValue(), lostWeight.getValue());
+                    
+                    fitTraj.setSensorMap(sensorMap);
+                    fitTraj.setPathLengthMap(pathLengthMap);
+                    
+                    Collection<TrackerHit> hth = track.getTrackerHits();
+                    List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
+                    Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
+                    
+                    
+                    boolean computeGBLResiduals = false;
+                    
+                    if(computeGBLResiduals) {
+                        
+                        List<Double> b_residuals = new ArrayList<Double>();
+                        List<Float>   b_sigmas    = new ArrayList<Float>();
+                        List<Integer> r_sensors   = new ArrayList<Integer>();
+                        
+                        int numData[] = new int[1];
+                        Integer[] sensorsFromMapArray = fitTraj.getSensorMap().keySet().toArray(new Integer[0]);
+                        for (int i_s = 0; i_s < sensorsFromMapArray.length; i_s++) {
+                            int ilabel = sensorsFromMapArray[i_s];
+                            int mpid = fitTraj.getSensorMap().get(ilabel);
+                            List<Double> aResiduals   = new ArrayList<Double>();
+                            List<Double> aMeasErrors  = new ArrayList<Double>();
+                            List<Double> aResErrors   = new ArrayList<Double>();
+                            List<Double> aDownWeights = new ArrayList<Double>();
+                            trajForMPII_unconstrained.getMeasResults(ilabel,numData,aResiduals,aMeasErrors,aResErrors,aDownWeights);
+                            
+                        }
+                    }
+                    
+                    
                 
+                    
+                    Track gblTrk = newTrack.getFirst();
+                    
+                    refittedTracks.add(gblTrk);
+                    kinkDataCollection.add(newTrack.getSecond());
+                    kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
+                }
+                    
             }// composite Alignment
+            
         }//loop on tracks
         
+
+        if (correctTrack) {
+            // Put the tracks back into the event and exit
+            int flag = 1 << LCIOConstants.TRBIT_HITS;
+            event.put(outputCollectionName, refittedTracks, Track.class, flag);
+            
+            
+            //if (computeGBLResiduals) {
+            //    event.put(trackResidualsColName,    trackResidualsCollection,  TrackResidualsData.class, 0);
+            //    event.put(trackResidualsRelColName, trackResidualsRelations, LCRelation.class, 0);
+            //}
+            
+            event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
+            event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
+
+        }
     }
     
     
@@ -1155,8 +1278,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //Loop on the alignable elements
             for (AlignableDetectorElement ade : Alignabledes) {
                 
-                if (ade.getName().contains(volname) && ade.getName().contains(String.valueOf(getFullModule(volume,((HpsSiSensor)sensor).getMillepedeId() ) ) ) )
-                {
+                if (ade.getName().contains(volname) && ade.getName().contains(String.valueOf(getFullModule(volume,((HpsSiSensor)sensor).getMillepedeId() ) ) ) ) {
                     //Add the alignable mother to the sensor
                     ((HpsSiSensor)sensor).setAdeMother(ade);
                     
@@ -1295,7 +1417,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         
         for (String vol : volumes) {
             
-            aidaGBL.histogram1D(eopFolder+"Ecluster"+vol,200,0,5);
+            aidaGBL.histogram1D(eopFolder+"Ecluster"+vol,200,0,6);
             aidaGBL.histogram1D(eopFolder+"EoP"+vol,200,0,2);
             
             double lmin = 0.;
