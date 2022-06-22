@@ -141,20 +141,20 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
      * Defines the ADC threshold needed to initiate pulse integration
      * for raw hit creation.
      */
-    private int integrationThreshold = 18;
+    protected int integrationThreshold = 18;
     /**
      * Defines the number of integration samples that should be
      * included in the pulse integral from before the sample that
      * exceeds the integration threshold.
      */
-    private int numSamplesBefore = 5;
+    protected int numSamplesBefore = 5;
     /**
      * Defines the number of integration samples that should be
      * included in the pulse integral from after the sample that
      * exceeds the integration threshold.
      * Threshold-crossing sample is part of NSA.
      */
-    private int numSamplesAfter = 25;
+    protected int numSamplesAfter = 25;
     /**
      * The format in which readout hits should be output.
      */
@@ -244,7 +244,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
      * org.hps.readout.ecal.updated.DigitizationReadoutDriver#readoutOffset
      * readoutOffset}.
      */
-    private int readoutWindow = 100;
+    protected int readoutWindow = 100;
     /**
      * Sets how far from the beginning of the readout window trigger
      * time should occur. A value of x, for instance would result in
@@ -256,7 +256,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
     /**
      * Sets time window of ADC samples in pulser data
      */
-    private int pulserDataWindow = 48;    
+    protected int pulserDataWindow = 48;    
     
     /**
      * To make time alignment between Ecal and hodoscope detectors, samples of
@@ -1129,6 +1129,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
      * <code>double</code>.
      */
     protected abstract double getPedestalConditions(long channelID);
+    
     
     @Override
     protected boolean isPersistent() {
