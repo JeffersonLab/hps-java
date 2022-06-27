@@ -409,6 +409,8 @@ final class JobSettingsPanel extends AbstractFieldsPanel {
      */
     private void checkSteeringFile(final File file) throws IOException, JDOMException {
         final SAXBuilder builder = new SAXBuilder();
+        builder.setExpandEntities(false);
+
         final Document document = builder.build(file);
         final Element rootNode = document.getRootElement();
         if (!"lcsim".equals(rootNode.getName())) {

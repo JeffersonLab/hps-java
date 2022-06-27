@@ -64,6 +64,20 @@ public class TriggerModule2019 {
      * Parameter 3 for cut of position dependent energy
      */
     public static final String CLUSTER_PDE_C3 = "clusterPDEC3";
+    
+    //2021 update
+    /**
+     * The upper bound for x-coordinate 
+     */
+    public static final String CLUSTER_XMAX = "clusterXMAX";
+    /**
+     * The lower bound for y-coordinate 
+     */
+    public static final String CLUSTER_YMIN = "clusterYMIN";
+    /**
+     * The upper bound for y-coordinate in the positive side
+     */
+    public static final String CLUSTER_YMAX = "clusterYMAX";
 
     /* Keys for pairs cuts */
 
@@ -137,6 +151,12 @@ public class TriggerModule2019 {
     public static final String CLUSTER_XMIN_EN = "clusterXMINEn";
 
     public static final String CLUSTER_PDE_EN = "clusterPDEEn";
+    
+    public static final String SINGLES_L1_MATCHING_EN = "singlesL1MatchingEn";
+    public static final String SINGLES_L2_MATCHING_EN = "singlesL2MatchingEn";
+    public static final String SINGLES_L1L2_MATCHING_EN = "singlesL1L2MatchingEn";
+    public static final String SINGLES_L1L2ECAL_MATCHING_EN = "singlesL1L2EcalMatchingEn";
+    
 
     public static final String PAIR_ENERGY_SUM_EN= "pairEnergySumEn";
 
@@ -147,7 +167,14 @@ public class TriggerModule2019 {
     public static final String PAIR_COPLANARITY_HIGH_EN = "pairCoplanarityHighEn";
 
     public static final String PAIR_TIME_COINCIDENCE_EN = "pairTimeCoincidenceEn";
-
+    
+    //2021 update
+    public static final String CLUSTER_XMAX_EN = "clusterXMAXEn";
+    public static final String CLUSTER_YMIN_EN = "clusterYMINEn";
+    public static final String CLUSTER_YMAX_EN = "clusterYMAXEn";
+    public static final String SINGLES_XYMINMAX_EN = "singlesXYMinMaxEn";
+    public static final String SINGLES_MOLLERMODE_EN = "singlesMollerModeEn";
+    
     /**
      * Stores the general cut values.
      */
@@ -156,7 +183,7 @@ public class TriggerModule2019 {
     /**
      * Stores the singles cut values.
      */
-    private final Map<String, Boolean> singlesTriggerCutsEn = new HashMap<String, Boolean>(2);
+    private final Map<String, Boolean> singlesTriggerCutsEn = new HashMap<String, Boolean>(11);
 
     /**
      * Stores the pairs cut values.
@@ -180,6 +207,10 @@ public class TriggerModule2019 {
         singlesTriggerCuts.put(CLUSTER_PDE_C1, 0.0);
         singlesTriggerCuts.put(CLUSTER_PDE_C2, 0.0);
         singlesTriggerCuts.put(CLUSTER_PDE_C3, 0.0);
+        // 2021 update
+        singlesTriggerCuts.put(CLUSTER_XMAX, 31.0);
+        singlesTriggerCuts.put(CLUSTER_YMIN, -7.0);
+        singlesTriggerCuts.put(CLUSTER_YMAX, 7.0);
 
         // Values for pairs cuts
         pairsTriggerCuts.put(PAIR_ENERGY_SLOPE_F, 0.0055);
@@ -198,6 +229,18 @@ public class TriggerModule2019 {
         // If enabled for singles cuts
         singlesTriggerCutsEn.put(CLUSTER_XMIN_EN, true);
         singlesTriggerCutsEn.put(CLUSTER_PDE_EN, true);
+        singlesTriggerCutsEn.put(SINGLES_L1_MATCHING_EN, true);
+        singlesTriggerCutsEn.put(SINGLES_L2_MATCHING_EN, true);
+        singlesTriggerCutsEn.put(SINGLES_L1L2_MATCHING_EN, true);
+        singlesTriggerCutsEn.put(SINGLES_L1L2ECAL_MATCHING_EN, true);
+        
+        
+        // 2021 update
+        singlesTriggerCutsEn.put(CLUSTER_XMAX_EN, false);
+        singlesTriggerCutsEn.put(CLUSTER_YMIN_EN, false);
+        singlesTriggerCutsEn.put(CLUSTER_YMAX_EN, false);
+        singlesTriggerCutsEn.put(SINGLES_XYMINMAX_EN, false);
+        singlesTriggerCutsEn.put(SINGLES_MOLLERMODE_EN, false);
         
         // If enabled for pairs cuts
         pairsTriggerCutsEn.put(PAIR_ENERGY_SLOPE_EN, true);
@@ -205,6 +248,7 @@ public class TriggerModule2019 {
         pairsTriggerCutsEn.put(PAIR_COPLANARITY_HIGH_EN, true);
         pairsTriggerCutsEn.put(PAIR_ENERGY_DIFFERENCE_HIGH_EN, true);
         pairsTriggerCutsEn.put(PAIR_TIME_COINCIDENCE_EN, true);
+        
     }
 
     /**
@@ -327,6 +371,10 @@ public class TriggerModule2019 {
         setCutValue(CLUSTER_PDE_C1, config.getPDECutConfig().getParC1());
         setCutValue(CLUSTER_PDE_C2, config.getPDECutConfig().getParC2());
         setCutValue(CLUSTER_PDE_C3, config.getPDECutConfig().getParC3());
+        //2021 update
+        setCutValue(CLUSTER_XMAX, config.getXMaxCutConfig().getUpperBound());
+        setCutValue(CLUSTER_YMIN, config.getYMinCutConfig().getLowerBound());
+        setCutValue(CLUSTER_YMAX, config.getYMaxCutConfig().getUpperBound());
         
         setCutEn(CLUSTER_TOTAL_ENERGY_LOW_EN, config.getEnergyMinCutConfig().isEnabled());
         setCutEn(CLUSTER_TOTAL_ENERGY_HIGH_EN, config.getEnergyMaxCutConfig().isEnabled());
@@ -334,7 +382,18 @@ public class TriggerModule2019 {
         
         setCutEn(CLUSTER_XMIN_EN, config.getXMinCutConfig().isEnabled());
         setCutEn(CLUSTER_PDE_EN, config.getPDECutConfig().isEnabled());
+        setCutEn(SINGLES_L1_MATCHING_EN, config.getL1MatchingConfig().isEnabled());
+        setCutEn(SINGLES_L2_MATCHING_EN, config.getL2MatchingConfig().isEnabled());
+        setCutEn(SINGLES_L1L2_MATCHING_EN, config.getL1L2GeoMatchingConfig().isEnabled());
+        setCutEn(SINGLES_L1L2ECAL_MATCHING_EN, config.getHodoEcalGeoMatchingConfig().isEnabled());
         
+        
+        //2021 update       
+        setCutEn(CLUSTER_XMAX_EN, config.getXMaxCutConfig().isEnabled());
+        setCutEn(CLUSTER_YMIN_EN, config.getYMinCutConfig().isEnabled());
+        setCutEn(CLUSTER_YMAX_EN, config.getYMaxCutConfig().isEnabled());
+        setCutEn(SINGLES_XYMINMAX_EN, config.isSinglesXYMinMaxEnabled());
+        setCutEn(SINGLES_MOLLERMODE_EN, config.isSinglesMollerModeEnabled());
     }
 
     /**
@@ -671,40 +730,149 @@ public class TriggerModule2019 {
     }
 
     /**
-     * Checks whether a cluster passes XMin cut. XMin is at least 0, i.e., located
-     * in positive part
+     * Checks whether a cluster passes XMin cut.
      * 
      * @param x coordinate for a cluster
      * @return Returns <code>true</code> if the cluster passes the cut and
      *         <code>false</code> if the cluster does not.
      */
     public boolean clusterXMinCut(int x) {
+        if(x < 0) x++;
         return (x >= singlesTriggerCuts.get(CLUSTER_XMIN));
     }
 
     /**
-     * Checks whether a cluster passes XMin cut. XMin is at least 0, i.e., located
-     * in positive part
+     * Checks whether a cluster passes XMin cut.
      * 
      * @param a cluster
      * @return Returns <code>true</code> if the cluster passes the cut and
      *         <code>false</code> if the cluster does not.
      */
     public boolean clusterXMinCut(Cluster cluster) {
-        return (getClusterXIndex(cluster) >= singlesTriggerCuts.get(CLUSTER_XMIN));
+        int x = getClusterXIndex(cluster);
+        if(x < 0) x++;
+        return (x >= singlesTriggerCuts.get(CLUSTER_XMIN));
     }
 
     /**
-     * Checks whether a cluster passes XMin cut. XMin is at least 0, i.e., located
-     * in positive part
+     * Checks whether a cluster passes XMin cut.
      * 
      * @param a cluster
      * @return Returns <code>true</code> if the cluster passes the cut and
      *         <code>false</code> if the cluster does not.
      */
     public boolean clusterXMinCut(VTPCluster cluster) {
-        return (getClusterXIndex(cluster) >= singlesTriggerCuts.get(CLUSTER_XMIN));
+        int x = getClusterXIndex(cluster);
+        if(x < 0) x++;
+        return (x >= singlesTriggerCuts.get(CLUSTER_XMIN));
     }
+    
+    // 2021 update
+    /**
+     * Checks whether a cluster passes XMax cut. 
+     * 
+     * @param x coordinate for a cluster
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterXMaxCut(int x) {
+        if(x < 0) x++;
+        return (x <= singlesTriggerCuts.get(CLUSTER_XMAX));
+    }
+
+    /**
+     * Checks whether a cluster passes XMax cut. 
+     * 
+     * @param a cluster
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterXMaxCut(Cluster cluster) {
+        int x = getClusterXIndex(cluster);
+        if(x < 0) x++;
+        return (x <= singlesTriggerCuts.get(CLUSTER_XMAX));
+    }
+
+    /**
+     * Checks whether a cluster passes XMax cut.
+     * 
+     * @param a cluster
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterXMaxCut(VTPCluster cluster) {
+        int x = getClusterXIndex(cluster);
+        if(x < 0) x++;
+        return (x <= singlesTriggerCuts.get(CLUSTER_XMAX));
+    }
+    /**
+     * Checks whether a cluster passes YMin cut. 
+     * 
+     * @param y coordinate for a cluster
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterYMinCut(int y) {
+        return (y >= singlesTriggerCuts.get(CLUSTER_YMIN));
+    }
+
+    /**
+     * Checks whether a cluster passes YMin cut. 
+     * 
+     * @param a cluster
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterYMinCut(Cluster cluster) {
+        return (getClusterYIndex(cluster) >= singlesTriggerCuts.get(CLUSTER_YMIN));
+    }
+
+    /**
+     * Checks whether a cluster passes YMin cut.
+     * 
+     * @param a cluster
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterYMinCut(VTPCluster cluster) {
+        return (getClusterYIndex(cluster) >= singlesTriggerCuts.get(CLUSTER_YMIN));
+    }
+    /**
+     * Checks whether a cluster passes YMax cut. 
+     * 
+     * @param y coordinate for a cluster
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterYMaxCut(int y) {
+        return (y <= singlesTriggerCuts.get(CLUSTER_YMAX));
+    }
+
+    /**
+     * Checks whether a cluster passes YMax cut. 
+     * 
+     * @param a cluster
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterYMaxCut(Cluster cluster) {
+        return (getClusterYIndex(cluster) <= singlesTriggerCuts.get(CLUSTER_YMAX));
+    }
+
+    /**
+     * Checks whether a cluster passes YMax cut.
+     * 
+     * @param a cluster
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterYMaxCut(VTPCluster cluster) {
+        return (getClusterYIndex(cluster) <= singlesTriggerCuts.get(CLUSTER_YMAX));
+    }
+    
+    
+    
+    
 
     /**
      * Checks whether a cluster passes position-dependent-energy cut passes.
@@ -727,6 +895,26 @@ public class TriggerModule2019 {
             throw new IllegalArgumentException(
                     String.format("Parameter \"%d\" is out of X-coordinage range [-22, 23].", x));
     }
+    
+    /**
+     * Checks whether a cluster passes Moller position-dependent-energy cut passes.
+     * 
+     * @param cluster:       a Ecal cluster
+     * @param x:             x coordinate of the cluster
+     * @param parametersPDE:
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterMollerPDECut(Cluster cluster, int x) {
+        if (x >= -22 && x <= 23)
+            return getValueClusterTotalEnergy(
+                    cluster) <= (singlesTriggerCuts.get(CLUSTER_PDE_C0) + singlesTriggerCuts.get(CLUSTER_PDE_C1) * x
+                            + singlesTriggerCuts.get(CLUSTER_PDE_C2) * Math.pow(x, 2)
+                            + singlesTriggerCuts.get(CLUSTER_PDE_C3) * Math.pow(x, 3));
+        else
+            throw new IllegalArgumentException(
+                    String.format("Parameter \"%d\" is out of X-coordinage range [-22, 23].", x));
+    }
 
     /**
      * Checks whether a cluster passes position-dependent-energy cut passes.
@@ -745,6 +933,26 @@ public class TriggerModule2019 {
                             + singlesTriggerCuts.get(CLUSTER_PDE_C3) * Math.pow(x, 3));
         else if (x == 23)
             return true;
+        else
+            throw new IllegalArgumentException(
+                    String.format("Parameter \"%d\" is out of X-coordinage range [-22, 23].", x));
+    }
+    
+    /**
+     * Checks whether a cluster passes Moller position-dependent-energy cut passes.
+     * 
+     * @param cluster:       a Ecal cluster
+     * @param x:             x coordinate of the cluster
+     * @param parametersPDE:
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterMollerPDECut(VTPCluster cluster, int x) {
+        if (x >= -22 && x <= 23)
+            return getValueClusterTotalEnergy(
+                    cluster) <= (singlesTriggerCuts.get(CLUSTER_PDE_C0) + singlesTriggerCuts.get(CLUSTER_PDE_C1) * x
+                            + singlesTriggerCuts.get(CLUSTER_PDE_C2) * Math.pow(x, 2)
+                            + singlesTriggerCuts.get(CLUSTER_PDE_C3) * Math.pow(x, 3));
         else
             throw new IllegalArgumentException(
                     String.format("Parameter \"%d\" is out of X-coordinage range [-22, 23].", x));
@@ -840,6 +1048,21 @@ public class TriggerModule2019 {
             xIndex++;
         return clusterPDECut(cluster, xIndex);
     }
+    
+    /**
+     * Checks whether a cluster passes Moller position-dependent-energy cut passes.
+     * 
+     * @param cluster:       a Ecal cluster
+     * @param parametersPDE:
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterMollerPDECut(Cluster cluster) {
+        int xIndex = getClusterXIndex(cluster);
+        if (xIndex < 0)
+            xIndex++;
+        return clusterMollerPDECut(cluster, xIndex);
+    }
 
     /**
      * Checks whether a cluster passes position-dependent-energy cut passes.
@@ -854,6 +1077,21 @@ public class TriggerModule2019 {
         if (xIndex < 0)
             xIndex++;
         return clusterPDECut(cluster, xIndex);
+    }
+    
+    /**
+     * Checks whether a cluster passes MOller position-dependent-energy cut passes.
+     * 
+     * @param cluster:       a Ecal cluster
+     * @param parametersPDE:
+     * @return Returns <code>true</code> if the cluster passes the cut and
+     *         <code>false</code> if the cluster does not.
+     */
+    public boolean clusterMollerPDECut(VTPCluster cluster) {
+        int xIndex = getClusterXIndex(cluster);
+        if (xIndex < 0)
+            xIndex++;
+        return clusterMollerPDECut(cluster, xIndex);
     }
 
     /**

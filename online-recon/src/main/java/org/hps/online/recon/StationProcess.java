@@ -11,7 +11,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.FilenameUtils;
-import org.hps.online.recon.PlotAggregator.RemoteTreeBindThread;
 import org.hps.online.recon.logging.LoggingConfig;
 import org.hps.online.recon.properties.Property;
 import org.json.JSONObject;
@@ -66,7 +65,7 @@ public class StationProcess {
     /**
      * The log file for the station
      */
-    File log;
+    private File log;
 
     /**
      * The run directory for the station
@@ -82,11 +81,6 @@ public class StationProcess {
      * The station's key-value properties
      */
     private StationProperties props;
-
-    /**
-     * Thread for asynchronously binding to the server tree
-     */
-    RemoteTreeBindThread rtbThread = null;
 
     /**
      * Create a station process
@@ -120,20 +114,15 @@ public class StationProcess {
     }
 
     /**
-     * Activate the station for reading events
-     *
-     * This is called by the {@link StationManager#startStation(StationProcess)} method.
+     * Activate the reconstruction station, which includes starting its system process
+     * and connecting its remote AIDA tree
      *
      * @throws IOException If there is a problem activating the station's process
+     * @thows InterruptedException If station activation is interrupted
      */
-    synchronized void activate() throws IOException {
+    synchronized boolean activate(Server server) throws IOException, InterruptedException {
 
         LOG.info("Activating station: " + stationName);
-
-        if (active) {
-            LOG.warning("Station is already active: " + stationName);
-            return;
-        }
 
         // Make sure station directory exists.
         if (!dir.exists()) {
@@ -141,94 +130,85 @@ public class StationProcess {
             dir.mkdir();
         }
 
-        // The config file disappeared, probably from the cleanup command.
         if (!configFile.exists()) {
+            // The configuration file disappeared, so recreate it
             LOG.info("Rewriting station config file: " + configFile.getPath());
             writeStationProperties(props, dir, stationName);
         }
 
+        // Setup the system process for the station
         ProcessBuilder pb = new ProcessBuilder(command);
-
         pb.directory(dir);
         log = new File(dir.getPath() + File.separator + "out." + Integer.valueOf(id).toString() + ".log");
         if (log.exists()) {
             if (log.delete()) {
-                LOG.info("Deleted old log file: " + log.getPath());
+                LOG.info("Deleted old station log file: " + log.getPath());
             } else {
-                LOG.warning("Failed to delete old log file " + log.getPath());
+                LOG.warning("Failed to delete old station log file " + log.getPath());
             }
         }
         pb.redirectErrorStream(true);
         pb.redirectOutput(Redirect.appendTo(log));
+        LOG.info("Station command: " + '\n' + String.join(" ", pb.command()) +'\n');
 
-        LOG.info("Starting command: " + '\n' + String.join(" ", pb.command()) +'\n');
-
-        // Can throw exception.
+        // This can throw an exception which is fine
         process = pb.start();
         pid = getPid(process);
-        LOG.info("Started process: " + pid);
+        LOG.info("Started station process: " + pid);
 
+        // Attempt to mount the station's remote tree which may fail with an exception
+        server.getAggregator().addRemoteTree(getRemoteTreeBind());
+
+        // Set active flag
         setActive(true);
 
-        LOG.info("Setting station to active (connection to remote tree might be delayed)");
+        LOG.info("Activated station successfully: " + this.stationName);
+
+        // This is returned for a result when using a Future
+        return this.active;
     }
 
     /**
-     * Mount this station's AIDA tree into the server tree asynchronously
-     * by using a <code>RemoteTreeBindThread</code>s
-     * @param agg The aggregator containing the server tree
-     */
-    synchronized void mountRemoteTree(PlotAggregator agg) {
-        if (this.props.get("lcsim.remoteTreeBind").valid()) {
-            LOG.fine("Starting remoteTreeBind connection thread");
-            rtbThread = agg.new RemoteTreeBindThread(this, null);
-            rtbThread.start();
-        }
-    }
-
-    /**
-     * Kill the remote tree bind thread if it is active
-     */
-    synchronized void killRemoteTreeBindThread() {
-        if (rtbThread != null && rtbThread.isAlive()) {
-            rtbThread.interrupt();
-            try {
-                rtbThread.join();
-            } catch (InterruptedException e) {
-                LOG.log(Level.WARNING, "Interrupted", e);
-            }
-        }
-        rtbThread = null;
-    }
-
-    /**
-     * Deactivate a station by killing its system process
+     * Deactivate a station by unmounting its remote AIDA tree and killing its system process.
+     *
+     * The ET station will be removed when the {@link Station} process actually exits.
      *
      * This is called by {@link StationManager#stopStation(StationProcess)}.
      */
-    synchronized void deactivate() {
+    synchronized void deactivate(Server server) {
 
-        LOG.log(Level.CONFIG, "Deactivating station: " + stationName/*, new Exception()*/);
+        LOG.log(Level.INFO, "Deactivating station: " + stationName);
 
         if (!active) {
-            LOG.warning("Station has already been deactivated: " + stationName);
+            LOG.warning("Station was already deactivated: " + stationName);
             return;
         }
 
+        // Set active flag to false
         setActive(false);
 
-        killRemoteTreeBindThread();
+        // Unmount the remote AIDA tree
+        try {
+            server.getAggregator().unmount(getRemoteTreeBind());
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error unmounting remote tree: " + getRemoteTreeBind(), e);
+        }
 
+        // Wake up the ET station which signals the event loop to exit
+        server.wakeUp(this, 30000);
+
+        // Destroy the station's system process
+        LOG.info("Destroying station's system process: " + this.getPid());
         destroyProcess();
 
-        LOG.config("Done deactivating station: " + stationName);
+        LOG.info("Done deactivating station: " + stationName);
     }
 
     /**
      * Set the station to active
      * @param active True to set station to active
      */
-    synchronized void setActive(boolean active) {
+    void setActive(boolean active) {
         this.active = active;
     }
 
@@ -243,21 +223,28 @@ public class StationProcess {
     /**
      * Destroy the station's system process
      */
-    synchronized private void destroyProcess() {
+    private void destroyProcess() {
         try {
             if (process != null) {
+                // Wait a little bit, given that process is probably exiting already
+                process.waitFor(10, TimeUnit.SECONDS);
                 if (process.isAlive()) {
-                    LOG.fine("Killing process: " + pid);
-                    //process.destroy();
-                    process.destroyForcibly();
+                    LOG.fine("Destroying process: " + pid);
+                    // First try gentle exit
+                    process.destroy();
                     try {
-                        LOG.fine("Waiting 10 seconds for station to stop: " + stationName);
-                        process.waitFor(10, TimeUnit.SECONDS);
-                        LOG.fine("Done waiting for station to stop: " + stationName);
+                        process.waitFor(30, TimeUnit.SECONDS);
                         if (process.isAlive()) {
-                            LOG.warning("Failed to destroy station process: " + stationName);
-                        } else {
+                            LOG.fine("Destroying process forcibly: " + pid);
+                            // Destroy forcibly e.g. using kill -9
+                            process.destroyForcibly();
+                            process.waitFor(10, TimeUnit.SECONDS);
+                        }
+                        if (!process.isAlive()) {
                             exitValue = process.exitValue();
+                        } else {
+                            // It really shouldn't ever get here
+                            LOG.warning("Failed to stop process: " + pid);
                         }
                     } catch (InterruptedException e) {
                         LOG.log(Level.WARNING, "Interrupted", e);
@@ -271,22 +258,6 @@ public class StationProcess {
             LOG.fine("Exit value: " + exitValue);
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Error destroying station system process", e);
-        }
-    }
-
-    /**
-     * Unmount the remote tree for this station
-     * @param agg The aggregator containing the remote tree
-     */
-    synchronized void unmountRemoteTree(PlotAggregator agg) {
-        // Unmount the remote tree for this station
-        if (props.get("lcsim.remoteTreeBind").valid()) {
-            Property<String> remoteTreeBind = props.get("lcsim.remoteTreeBind");
-            try {
-                agg.unmount(remoteTreeBind.value());
-            } catch (Exception e) {
-                LOG.log(Level.WARNING, "Error unmounting AIDA tree", e);
-            }
         }
     }
 
@@ -325,6 +296,14 @@ public class StationProcess {
             }
         }
         return pid;
+    }
+
+    /**
+     * Get the PID of the station's system process
+     * @return The station's system process PID
+     */
+    Long getPid() {
+        return getPid(this.process);
     }
 
     /**
@@ -408,6 +387,15 @@ public class StationProcess {
     }
 
     /**
+     * Get the AIDA remote tree bind URL for the station
+     * @return The AIDA remote tree bind
+     */
+    String getRemoteTreeBind() {
+        Property<String> prop = props.get("lcsim.remoteTreeBind");
+        return prop.value();
+    }
+
+    /**
      * Build the command for running the station
      */
     void buildCommand() {
@@ -417,7 +405,10 @@ public class StationProcess {
         command = new ArrayList<String>();
 
         command.add("java");
-        command.add("-Xmx1g"); // FIXME: Hard-coded memory limit
+
+        // Set JVM arguments from the station properties
+        Property<String> jvmArgs = props.get("lcsim.jvm_args");
+        command.add(jvmArgs.value());
 
         // Logging configuration
         if (logConfigFile.valid()) {
@@ -426,8 +417,22 @@ public class StationProcess {
             command.add("-Djava.util.logging.config.class=" + LoggingConfig.class.getCanonicalName());
         }
 
+        // Set the station name
+        command.add("-D" + Station.STAT_NAME_KEY + "=" + this.stationName);
+
+        // Set the AIDA remote tree binding
+        command.add("-D" + Station.RTB_KEY + "=" + this.getRemoteTreeBind());
+
         command.add("-cp");
-        command.add(System.getProperty("java.class.path"));
+        if (props.get("lcsim.classpath").valid()) {
+            // Set classpath from user setting
+            Property<String> cp = props.get("lcsim.classpath");
+            command.add(cp.value());
+        } else {
+            // Use default classpath from system
+            command.add(System.getProperty("java.class.path"));
+        }
+
         command.add(Station.class.getCanonicalName());
         command.add(configFile.getPath());
     }

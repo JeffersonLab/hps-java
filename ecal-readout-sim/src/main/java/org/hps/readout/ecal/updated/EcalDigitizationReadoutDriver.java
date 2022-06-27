@@ -114,8 +114,7 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
     
     @Override
     protected double getPedestalConditions(long cellID) { 
-        if(configStat == true) return config.getPedestal(geoMap.findGeometric(cellID)); 
-        else return findChannel(cellID).getCalibration().getPedestal();
+        return findChannel(cellID).getCalibration().getPedestal();
     }   
     
     @Override

@@ -282,6 +282,36 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     public void setRequireClustersForV0(boolean b) {
         this.requireClustersForV0 = b;
     }
+    
+    public void setUnconstrainedMollerCandidatesColName(String s)
+    {
+        unconstrainedMollerCandidatesColName = s;
+    }
+    
+    public void setUnconstrainedMollerVerticesColName(String s)
+    {
+        unconstrainedMollerVerticesColName = s;
+    }
+    
+    public void setBeamConMollerCandidatesColName(String s)
+    {
+        beamConMollerCandidatesColName = s;
+    }
+    
+    public void setBeamConMollerVerticesColName(String s)
+    {
+        beamConMollerVerticesColName = s;
+    }
+    
+    public void setTargetConMollerCandidatesColName(String s)
+    {
+        targetConMollerCandidatesColName = s;
+    }
+    
+    public void setTargetConMollerVerticesColName(String s)
+    {
+        targetConMollerVerticesColName = s;
+    }
 
     /**
      * Processes the track and cluster collections in the event into

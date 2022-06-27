@@ -18,6 +18,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -60,9 +62,11 @@ import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.log.DefaultLogFormatter;
 
 /**
- * This is the primary class that implements the data monitoring GUI application.
+ * This is the primary class that implements the data monitoring GUI
+ * application.
  * <p>
- * It should not be used directly. Instead the {@link Main} class should be used from the command line.
+ * It should not be used directly. Instead the {@link Main} class should be used
+ * from the command line.
  *
  */
 final class MonitoringApplication implements ActionListener, PropertyChangeListener {
@@ -99,7 +103,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
 
     /**
-     * Log handler which publishes messages to a stream (console or file in this case).
+     * Log handler which publishes messages to a stream (console or file in this
+     * case).
      */
     class MonitoringApplicationStreamHandler extends StreamHandler {
 
@@ -217,7 +222,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     private EventProcessing processing;
 
     /**
-     * The model which has information about the current run and events being processed.
+     * The model which has information about the current run and events being
+     * processed.
      */
     private final RunModel runModel = new RunModel();
 
@@ -225,19 +231,21 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * The handler for putting messages into the log table.
      */
     private MonitoringApplicationStreamHandler streamHandler;
-    
+
     /**
      * Class for displayed a pop-up of selected region.
      * Initialization is delayed until after AIDA is properly configured.
      */
     private ChartPopup popup = null;
-    
+
     private boolean plotPopupEnabled = true;
-    
+
     /**
-     * Instantiate and show the monitoring application with the given configuration.
+     * Instantiate and show the monitoring application with the given
+     * configuration.
      *
-     * @param userConfiguration the Configuration object containing application settings
+     * @param userConfiguration the Configuration object containing application
+     * settings
      */
     MonitoringApplication(final Configuration userConfiguration) {
 
@@ -309,6 +317,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
             runDisconnectThread();
         } else if (Commands.SAVE_PLOTS.equals(command)) {
             savePlots();
+        } else if (Commands.SAVE_ROOT_AND_PDF.equals(command)) {
+            savePlotsRootPdf();
         } else if (Commands.EXIT.equals(command)) {
             // This will trigger the window closing action that cleans everything up.
             this.frame.dispose();
@@ -351,10 +361,11 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
         } else if (Commands.PLOT_POPUP.equals(command)) {
             this.plotPopupEnabled = ((JCheckBox) e.getSource()).isSelected();
         }
-    }      
-    
+    }
+
     /**
-     * Redirect <code>System.out</code> and <code>System.err</code> to a chosen file.
+     * Redirect <code>System.out</code> and <code>System.err</code> to a chosen
+     * file.
      */
     private void chooseLogFile() {
         final JFileChooser fc = new JFileChooser();
@@ -485,7 +496,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
 
     /**
-     * Get the run model with information about the run and event(s) currently being processed.
+     * Get the run model with information about the run and event(s) currently
+     * being processed.
      *
      * @return the run model
      */
@@ -494,10 +506,12 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
 
     /**
-     * This method sets the configuration on the model, which fires a change for every property.
+     * This method sets the configuration on the model, which fires a change for
+     * every property.
      *
      * @param configuration the new configuration
-     * @param merge <code>true</code> to merge the configuration into the current one rather than replace it
+     * @param merge <code>true</code> to merge the configuration into the
+     * current one rather than replace it
      */
     private void loadConfiguration(final Configuration configuration, final boolean merge) {
 
@@ -581,7 +595,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
 
     /**
-     * Send <code>System.out</code> and <code>System.err</code> back to the terminal, e.g. if they were previously sent
+     * Send <code>System.out</code> and <code>System.err</code> back to the
+     * terminal, e.g. if they were previously sent
      * to a file.
      */
     private void logToTerminal() {
@@ -762,6 +777,53 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
 
     /**
+     * Save plots to an AIDA, ROOT or PDF file using a file chooser.
+     */
+    private void savePlotsRootPdf() {
+        int runNum = this.runModel.getRunNumber();
+        String stationName = this.configurationModel.getStationName();
+        String timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd:HH:mm:ss").format(LocalDateTime.now());
+        String plotsDir=this.configurationModel.getPlotsDir();
+        String pdfOut = plotsDir+"/"+stationName + "-run" + runNum + "-" + timestamp + ".pdf";
+        String rootOut = plotsDir+"/"+stationName + "-run" + runNum + "-" + timestamp + ".root";
+
+        final File pdfFile = new File(pdfOut);
+        final File rootFile = new File(rootOut);
+        if (!pdfFile.exists()) {
+            String fileName = pdfFile.getAbsolutePath();
+            try {
+                // Write out all plot graphics from the tabs to a single PDF file.
+                ExportPdf.write(MonitoringPlotFactory.getPlotterRegistry().getPlotters(), fileName,
+                        getRunData());
+                LOGGER.info("saved plots to " + fileName);
+                DialogUtil.showInfoDialog(this.frame, "Plots Saved", "Plots were successfully saved to " + '\n'
+                        + fileName);
+            } catch (final IOException e) {
+                this.errorHandler.setError(e).setMessage("Error Saving Plots").printStackTrace().log()
+                        .showErrorDialog();
+            }
+        } else {
+            DialogUtil.showErrorDialog(this.frame, "File Exists", "Selected file already exists.");
+        }
+
+        if (!rootFile.exists()) {
+            String fileName = rootFile.getAbsolutePath();
+            try {
+                AIDA.defaultInstance().saveAs(fileName);
+                LOGGER.info("saved plots to " + fileName);
+                DialogUtil.showInfoDialog(this.frame, "Plots Saved", "Plots were successfully saved to " + '\n'
+                        + fileName);
+            } catch (final IOException e) {
+                this.errorHandler.setError(e).setMessage("Error Saving Plots").printStackTrace().log()
+                        .showErrorDialog();
+            }
+        } else {
+            DialogUtil.showErrorDialog(this.frame, "File Exists", "Selected already exists.");
+        }
+
+    }
+
+    /**
      * Save a screenshot to a file using a file chooser.
      */
     private void saveScreenshot() {
@@ -805,7 +867,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
     }
 
     /**
-     * Export a JTable's data to a comma-delimited text file using a file chooser.
+     * Export a JTable's data to a comma-delimited text file using a file
+     * chooser.
      *
      * @param table the table to export
      */
@@ -857,7 +920,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
                 if (region != null) {
                     MonitoringApplication.this.frame.getPlotInfoPanel().setCurrentRegion(region);
                 }
-                
+
                 if (plotPopupEnabled) {
                     popup.update(region);
                 }
@@ -866,7 +929,7 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
 
         // Perform global configuration of the JFreeChart back end.
         AnalysisFactory.configure();
-        
+
         this.popup = new ChartPopup();
     }
 
@@ -981,7 +1044,8 @@ final class MonitoringApplication implements ActionListener, PropertyChangeListe
      * Save a screenshot to an output file.
      *
      * @param fileName the name of the output file
-     * @param format the output file format (must be accepted by <code>ImageIO</code>)
+     * @param format the output file format (must be accepted by
+     * <code>ImageIO</code>)
      */
     private void writeScreenshot(final String fileName, final String format) {
         this.frame.repaint();

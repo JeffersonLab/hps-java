@@ -14,7 +14,7 @@ MaxEvents=-1
 #SteeringFile=
 SteeringResource=org/hps/steering/monitoring/DummyMonitoring.lcsim
 SteeringType=RESOURCE
-
+PlotsDir=.
 # event source
 DataSourceType=ET_SERVER
 #DataSourcePath=

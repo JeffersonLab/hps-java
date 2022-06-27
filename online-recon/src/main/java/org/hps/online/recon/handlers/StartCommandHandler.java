@@ -36,11 +36,11 @@ class StartCommandHandler extends CommandHandler {
         int started = mgr.startStations(stations);
 
         if (started < count) {
-            res = new Error("Failed to start some stations.");
+            res = new Error("Failed to start some stations or some were already active");
         } else {
             res = new Success("Started " + count + " stations successfully.");
         }
-        logger.info("Done starting stations");
+        logger.info("Done starting stations!");
         return res;
     }
 

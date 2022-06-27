@@ -717,7 +717,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
             double smallestdr = 99999.0;
             Cluster smallestdrCluster = null;
             Map<Cluster, Double> cluster_dr_Map = trackClusterResidualsMap.get(track);
-            if(trackClusterResidualsMap == null){
+            if(cluster_dr_Map == null){
                 Map.put(track, null);
                 continue;
             }
