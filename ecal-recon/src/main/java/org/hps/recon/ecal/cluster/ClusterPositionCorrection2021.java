@@ -6,7 +6,7 @@ import org.lcsim.event.base.BaseCluster;
  * This uses the uncorrected cluster energy to correct the position of the cluster.
  * This should be used before the energy is corrected on the Cluster and after
  * cluster-track matching.
- * This is to be used with 2019 data
+ * This is to be used with 2021 data
  *
  * To determine these corrections, we simulated e+ e- and gamma at fixed
  * energies over the ECAL acceptance, sampled the true hit position with MC
@@ -28,11 +28,11 @@ import org.lcsim.event.base.BaseCluster;
  * Photons: par(E) = p0 + p1*pow(E,p2) | par = q,m par(E) = (a + b*E + c*E*E)/(d
  * + e*E + f*E*E) | par = q1,t,q2
  */
-final class ClusterPosResult19 {
+final class ClusterPosResult21 {
     private final double X;
     private final double Y;
 
-    public ClusterPosResult19(double X, double Y) {
+    public ClusterPosResult21(double X, double Y) {
         this.X = X;
         this.Y = Y;
     }
@@ -47,7 +47,7 @@ final class ClusterPosResult19 {
 
 }
 
-public final class ClusterPositionCorrection2019 {
+public final class ClusterPositionCorrection2021 {
     // Parameterizations tested in MC using v3-fieldmap
     // Nov 2015
 
@@ -119,7 +119,7 @@ public final class ClusterPositionCorrection2019 {
     static final double PHOTON_POS_Q2_A = 7.20260e-01;
     static final double PHOTON_POS_Q2_B = -7.33752e-01;
     static final double PHOTON_POS_Q2_C = 3.70987e+00;
-    static final double PHOTON_POS_Q2_D = 4.20198e-01;
+    static final double PHOTON_POS_Q2_D = 4.20218e-01;
     static final double PHOTON_POS_Q2_E = -5.84695e-01;
     static final double PHOTON_POS_Q2_F = 1.35651e+00;
 
@@ -133,7 +133,7 @@ public final class ClusterPositionCorrection2019 {
     public static double[] calculateCorrectedPosition(BaseCluster cluster) {
         double clusterPosition[] = cluster.getPosition();
 
-        ClusterPosResult19 correctedPosition = computeCorrectedPosition(cluster.getParticleId(), clusterPosition[0],
+        ClusterPosResult21 correctedPosition = computeCorrectedPosition(cluster.getParticleId(), clusterPosition[0],
                 clusterPosition[1], cluster.getEnergy());
 
         double[] position = new double[3];
@@ -160,9 +160,9 @@ public final class ClusterPositionCorrection2019 {
      * @param Energy Corrected energy of the cluster
      * @return the corrected x position
      */
-    private static ClusterPosResult19 computeCorrectedPosition(int pdg, double xPos, double yPos, double Energy) {
+    private static ClusterPosResult21 computeCorrectedPosition(int pdg, double xPos, double yPos, double Energy) {
         // double xCl = xPos / 10.0;//convert to cm
-        ClusterPosResult19 res;
+        ClusterPosResult21 res;
         double xCorr;
         switch (pdg) {
             case 11: // Particle is electron
@@ -175,12 +175,12 @@ public final class ClusterPositionCorrection2019 {
                 res = positionCorrectionPhoton(xPos, yPos, Energy);
                 break;
             default: // Unknown
-                res = new ClusterPosResult19(xPos, yPos);
+                res = new ClusterPosResult21(xPos, yPos);
         }
         return res;
     }
 
-    private static ClusterPosResult19 positionCorrectionElectron(double xPos, double yPos, double Energy) {
+    private static ClusterPosResult21 positionCorrectionElectron(double xPos, double yPos, double Energy) {
         double xCorr, yCorr;
         double deltaX, deltaY;
 
@@ -201,10 +201,10 @@ public final class ClusterPositionCorrection2019 {
         xCorr = xPos - deltaX;
         yCorr = yPos - deltaY;
 
-        return new ClusterPosResult19(xCorr, yCorr);
+        return new ClusterPosResult21(xCorr, yCorr);
     }
 
-    private static ClusterPosResult19 positionCorrectionPositron(double xPos, double yPos, double Energy) {
+    private static ClusterPosResult21 positionCorrectionPositron(double xPos, double yPos, double Energy) {
         double xCorr, yCorr;
         double deltaX, deltaY;
 
@@ -225,10 +225,10 @@ public final class ClusterPositionCorrection2019 {
         xCorr = xPos - deltaX;
         yCorr = yPos - deltaY;
 
-        return new ClusterPosResult19(xCorr, yCorr);
+        return new ClusterPosResult21(xCorr, yCorr);
     }
 
-    private static ClusterPosResult19 positionCorrectionPhoton(double xPos, double yPos, double Energy) {
+    private static ClusterPosResult21 positionCorrectionPhoton(double xPos, double yPos, double Energy) {
         double xCorr, yCorr;
         double deltaX, deltaY;
 
@@ -252,7 +252,7 @@ public final class ClusterPositionCorrection2019 {
         xCorr = xPos - deltaX;
         yCorr = yPos - deltaY;
 
-        return new ClusterPosResult19(xCorr, yCorr);
+        return new ClusterPosResult21(xCorr, yCorr);
     }
 
 }

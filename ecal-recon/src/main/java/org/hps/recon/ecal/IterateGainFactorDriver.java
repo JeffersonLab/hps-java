@@ -52,15 +52,42 @@ public class IterateGainFactorDriver extends Driver {
     }
 
     private final String ecalReadoutName = "EcalHits";
-
-    /**
+    private int calibYear=0;
+    private ArrayList<Integer> badChannels = null;
+    /*
      * Basic no argument constructor.
+       A.C.: I add a year-specific set of crystals that are broken, with the corresponding energy to be set to zero for both data and MC.
+       For the moment, this is hard-coded
      */
     public IterateGainFactorDriver() {
+        badChannels=new ArrayList<Integer>();
     }
 
     public void setGainFile(String filename) {
         this.gainFileName = filename;
+    }
+    
+    public void setCalibYear(int year) {
+        this.calibYear=year;
+        System.out.println("IterateGainFactorDriver: setting calib year to "+this.calibYear);  
+      
+    }
+    
+    
+    public void setBadChannels() {
+        if (this.calibYear==2021) {
+            System.out.println("Adding the 2021 bad channels");
+            badChannels.add(6);
+            badChannels.add(15);
+            badChannels.add(26);     
+            badChannels.add(153);
+            badChannels.add(192);
+            badChannels.add(198);
+            badChannels.add(275);
+            badChannels.add(334);
+            badChannels.add(419);       
+        }
+        System.out.println("IterateGainFactorDriver: bad channels are "+badChannels);    
     }
 
     /**
@@ -105,6 +132,7 @@ public class IterateGainFactorDriver extends Driver {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("ECAL Gain Factors were read");
     }
 
     @Override
@@ -112,6 +140,7 @@ public class IterateGainFactorDriver extends Driver {
         // ECAL combined conditions object.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
         readGainFile();
+        setBadChannels();
     }
 
     /**
@@ -127,9 +156,14 @@ public class IterateGainFactorDriver extends Driver {
         for (final CalorimeterHit hit : hits) {
             double time = hit.getTime();
             long cellID = hit.getCellID();
-            double energy = hit.getCorrectedEnergy() * gainFileGains.get(findChannelId(cellID));
-            CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
-            newHits.add(newHit);
+            /*If the channels is not flagged as "bad", re-compute the energy and create a new CalorimterHit
+             * Otherwise ignore the hit
+             * */    
+            if (this.badChannels.contains(findChannelId(cellID))==false) {
+                double energy = hit.getCorrectedEnergy() * gainFileGains.get(findChannelId(cellID));
+                CalorimeterHit newHit = CalorimeterHitUtilities.create(energy, time, cellID);
+                newHits.add(newHit);
+            }
         }
         return newHits;
     }
