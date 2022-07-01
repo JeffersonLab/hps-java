@@ -485,7 +485,7 @@
         <!-- top support front translations -->
         <millepede_constant name="11180" value="0.0"/>     <!-- + opening global X-->
         <millepede_constant name="11280" value="0.0"/>     <!-- + opening global Z-->
-        <millepede_constant name="11380" value="0.0146"/>     <!-- + opening global Y-->
+        <millepede_constant name="11380" value="-0.0146"/>     <!-- + opening global Y-->
         
         <!-- top support front tilt angles -->
 	
