@@ -3,14 +3,14 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
   
-  <info name="HPS_Nominal_iter1">
+  <info name="HPS_Nominal_iter2">
     <comment>HPS detector for 2019 run with fieldmap,
     Tracker at nominal opening angle, no SVT survey,  
     this detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV.
     Includes L0 and Hodoscope.
     ECAL with survey alignment for HPSEcal3 (global y/z translations).
     This detector has the full hierarchical alignment structure
-    20220630 Norman Graf Add opening angles as derived from run 10022 and iter0
+    20220701 Norman Graf Add opening angles and offsets at SVT hinge as derived from run 10022 using iter1
     </comment>
   </info>
   
@@ -485,7 +485,7 @@
         <!-- top support front translations -->
         <millepede_constant name="11180" value="0.0"/>     <!-- + opening global X-->
         <millepede_constant name="11280" value="0.0"/>     <!-- + opening global Z-->
-        <millepede_constant name="11380" value="0.0"/>     <!-- + opening global Y-->
+        <millepede_constant name="11380" value="-0.0304"/>     <!-- + opening global Y-->
         
         <!-- top support front tilt angles -->
 	
@@ -617,7 +617,7 @@
         <!-- bottom support translations -->
         <millepede_constant name="21180" value="0.0"/>     <!-- + opening global X-->
         <millepede_constant name="21280" value="0.0"/>     <!-- + opening global Z-->
-        <millepede_constant name="21380" value="0.0"/>     <!-- + opening global Y-->
+        <millepede_constant name="21380" value="0.3472"/>     <!-- + opening global Y-->
                 
         <!-- bottom support tilt angles -->
         <millepede_constant name="22180" value="0.0001-0.001"/>  <!-- - means opening -->
