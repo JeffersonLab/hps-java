@@ -545,7 +545,7 @@ public class SVTOpeningAlignment extends Driver {
         aida.tree().mkdirs("track quality");
         aida.tree().cd("track quality");
         String pdg = t.getCharge() < 0 ? " electron " : " positron ";
-        aida.cloud1D("chisq per ndf " + pdg + torb).fill(t.getChi2() / t.getNDF());
+        aida.histogram1D("chisq per ndf " + pdg + torb, 100, 0., 15.).fill(t.getChi2() / t.getNDF());
         aida.histogram1D("number of hits " + pdg + torb, 20, -0.5, 19.5).fill(t.getTrackerHits().size());
         aida.histogram1D("charge " + pdg + torb, 3, -1.5, 1.5).fill(t.getCharge());
         TrackState ts = t.getTrackStates().get(0);
