@@ -108,6 +108,8 @@ public class SVTOpeningAlignment extends Driver {
     String fullTrackCollectionName = "s234_c5_e167";
     double targetPosition = -5.0; //mm
 
+    boolean _writeRunAndEventNumbers = true;
+
     public SVTOpeningAlignment() {
     }
 
@@ -299,24 +301,30 @@ public class SVTOpeningAlignment extends Driver {
     @Override
     public void process(EventHeader event) {
         aida.tree().cd("/");
-        if (!event.hasCollection(HelicalTrackHit.class, helicalTrackHitCollectionName))
+        if (!event.hasCollection(HelicalTrackHit.class, helicalTrackHitCollectionName)) {
             return;
+        }
 
-        if (!event.hasCollection(Track.class, l0to3CollectionName))
+        if (!event.hasCollection(Track.class, l0to3CollectionName)) {
             return;
+        }
 
-        if (!event.hasCollection(Track.class, l4to6CollectionName))
+        if (!event.hasCollection(Track.class, l4to6CollectionName)) {
             return;
+        }
 
-        if (matchFullTracks)
-            if (!event.hasCollection(Track.class, fullTrackCollectionName))
+        if (matchFullTracks) {
+            if (!event.hasCollection(Track.class, fullTrackCollectionName)) {
                 return;
+            }
+        }
 
         List<Track> l0to3tracks = event.get(Track.class, l0to3CollectionName);
         List<Track> l4to6tracks = event.get(Track.class, l4to6CollectionName);
         List<Track> fulltracks = new ArrayList<Track>();
-        if (matchFullTracks)
+        if (matchFullTracks) {
             fulltracks = event.get(Track.class, fullTrackCollectionName);
+        }
 
         List<Track> l0to3tracksTop = splitTrackList(l0to3tracks, true);
         List<Track> l0to3tracksBot = splitTrackList(l0to3tracks, false);
@@ -365,8 +373,9 @@ public class SVTOpeningAlignment extends Driver {
             for (Track trk03 : l0to3tracksTop) {
                 if (matchFullTracks) {
                     matchedTrack = checkFullTrack(fulltracks, trk03, trk46);
-                    if (matchedTrack == null)
+                    if (matchedTrack == null) {
                         continue;
+                    }
                 }
                 TrackState ts03 = trk03.getTrackStates().get(0);
                 double x0L03 = TrackUtils.getX0(ts03);
@@ -404,7 +413,9 @@ public class SVTOpeningAlignment extends Driver {
                 yAtHingeL03VsL46Top.fill(yAtHingeL46, yAtHingeL03);
                 delYAtHingeVsL46SlopeTop.fill(deltaYAtHinge, slL46);
                 delYAtHingeVsL03SlopeTop.fill(deltaYAtHinge, slL03);
-
+                if (_writeRunAndEventNumbers) {
+                    System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " t");
+                }
             }
         }
         fitAndPutParameters(deld0Top, fd0Top);
@@ -418,8 +429,9 @@ public class SVTOpeningAlignment extends Driver {
             for (Track trk03 : l0to3tracksBot) {
                 if (matchFullTracks) {
                     matchedTrack = checkFullTrack(fulltracks, trk03, trk46);
-                    if (matchedTrack == null)
+                    if (matchedTrack == null) {
                         continue;
+                    }
                 }
                 TrackState ts03 = trk03.getTrackStates().get(0);
                 double x0L03 = TrackUtils.getX0(ts03);
@@ -457,6 +469,9 @@ public class SVTOpeningAlignment extends Driver {
                 yAtHingeL03VsL46Bot.fill(yAtHingeL46, yAtHingeL03);
                 delYAtHingeVsL46SlopeBot.fill(deltaYAtHinge, slL46);
                 delYAtHingeVsL03SlopeBot.fill(deltaYAtHinge, slL03);
+                if (_writeRunAndEventNumbers) {
+                    System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " b");
+                }
             }
         }
 
@@ -472,13 +487,14 @@ public class SVTOpeningAlignment extends Driver {
 
     @Override
     public void endOfData() {
-        if (outputPlots != null)
+        if (outputPlots != null) {
             try {
                 plotterTop.writeToFile(outputPlots + "-deltasTop.gif");
                 plotterBot.writeToFile(outputPlots + "-deltasBottom.gif");
             } catch (IOException ex) {
                 Logger.getLogger(TrackingReconPlots.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
     }
 
     private List<Track> splitTrackList(List<Track> trks, boolean doTop) {
@@ -488,15 +504,22 @@ public class SVTOpeningAlignment extends Driver {
         for (Track trk : trks) {
             isTop = false;
             isBot = false;
-            for (TrackerHit hit : trk.getTrackerHits())
+            for (TrackerHit hit : trk.getTrackerHits()) {
                 if (hit.getPosition()[2] > 0)// remember, non-bend in tracking frame is z-direction
+                {
                     isTop = true;
-                else
+                } else {
                     isBot = true;
-            if (isTop == true && isBot != true && doTop == true)  // if we want top tracks and all hits are in top
+                }
+            }
+            if (isTop == true && isBot != true && doTop == true) // if we want top tracks and all hits are in top
+            {
                 tracksHalf.add(trk);
+            }
             if (isBot == true && isTop != true && doTop == false) // if we want bottom tracks and all hits are in bottom
+            {
                 tracksHalf.add(trk);
+            }
         }
         return tracksHalf;
     }
@@ -507,10 +530,15 @@ public class SVTOpeningAlignment extends Driver {
 
         for (Track fullTr : fullTracks) {
             List<TrackerHit> trkHitsFull = fullTr.getTrackerHits();
-            if (trkHitsFull.containsAll(trkHitsL03) && trkHitsFull.containsAll(trkHitsL46))
+            if (trkHitsFull.containsAll(trkHitsL03) && trkHitsFull.containsAll(trkHitsL46)) {
                 return fullTr;
+            }
         }
 
         return null;
+    }
+
+    public void setWriteRunAndEventNumbers(boolean b) {
+        _writeRunAndEventNumbers = b;
     }
 }
