@@ -620,7 +620,7 @@
         <millepede_constant name="21380" value="0.0"/>     <!-- + opening global Y-->
                 
         <!-- bottom support tilt angles -->
-        <millepede_constant name="22180" value="0.0001+0.001"/>  <!-- - means opening -->
+        <millepede_constant name="22180" value="0.0001-0.001"/>  <!-- - means opening -->
         <millepede_constant name="22280" value="0.0"/>
         <millepede_constant name="22380" value="0.0"/>
 
