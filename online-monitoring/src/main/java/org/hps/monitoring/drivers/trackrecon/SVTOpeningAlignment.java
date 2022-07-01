@@ -416,6 +416,7 @@ public class SVTOpeningAlignment extends Driver {
                 if (_writeRunAndEventNumbers) {
                     System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " t");
                 }
+                analyzeMatchedTrack("top", matchedTrack);
             }
         }
         fitAndPutParameters(deld0Top, fd0Top);
@@ -472,6 +473,7 @@ public class SVTOpeningAlignment extends Driver {
                 if (_writeRunAndEventNumbers) {
                     System.out.println(event.getRunNumber() + " " + event.getEventNumber() + " b");
                 }
+                analyzeMatchedTrack("bottom", matchedTrack);
             }
         }
 
@@ -536,6 +538,21 @@ public class SVTOpeningAlignment extends Driver {
         }
 
         return null;
+    }
+
+    private void analyzeMatchedTrack(String torb, Track t) {
+        aida.tree().mkdirs("track quality");
+        aida.tree().cd("track quality");
+        aida.cloud1D("chisq/ndf " + torb).fill(t.getChi2() / t.getNDF());
+        aida.histogram1D("number of hits " + torb, 20, -0.5, 19.5).fill(t.getTrackerHits().size());
+        aida.histogram1D("charge " + torb, 3, -1.5, 1.5).fill(t.getCharge());
+        TrackState ts = t.getTrackStates().get(0);
+        aida.histogram1D("tanLambda " + torb, 50, 0, 0.06).fill(ts.getTanLambda());
+        aida.histogram1D("z0 " + torb, 50, -2.5, 2.5).fill(ts.getZ0());
+//        aida.histogram1D("d0 " + torb, 50, -2.5, 2.5).fill(ts.getD0());
+        aida.cloud1D("d0 " + torb).fill(ts.getD0());
+
+        aida.tree().cd("..");
     }
 
     public void setWriteRunAndEventNumbers(boolean b) {
