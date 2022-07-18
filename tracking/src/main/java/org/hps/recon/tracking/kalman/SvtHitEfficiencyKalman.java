@@ -1,19 +1,18 @@
 package org.hps.recon.tracking.kalman;
 
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.util.Collection;
+//import java.io.FileNotFoundException;
+//import java.io.PrintWriter;
+//import java.util.Collection;
+
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.conditions.database.DatabaseConditionsManager;
-import org.hps.conditions.svt.AbstractSvtDaqMapping;
-import org.hps.conditions.svt.SvtChannel;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtConditions;
-import org.hps.conditions.svt.SvtDaqMapping;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
@@ -49,6 +48,7 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Matrix;
 import hep.physics.vec.Hep3Vector;
 import org.hps.util.Pair;
+
 //import org.apache.commons.math3.util.Pair;
 
 
@@ -66,7 +66,8 @@ public class SvtHitEfficiencyKalman extends Driver {
     // List of Sensors
     private List<HpsSiSensor> sensors = null;
 
-    // List of Histograms
+    Map<String, IHistogram1D> hitTimes = new HashMap<String, IHistogram1D>();
+    // List of Histograms for efficiencies 
     Map<String, IHistogram1D> numberOfTracksChannel = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> numberOfTracksWithHitOnMissingLayerChannel = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyChannel = new HashMap<String, IHistogram1D>();
@@ -96,6 +97,29 @@ public class SvtHitEfficiencyKalman extends Driver {
     Map<String, IHistogram1D> numberOfTracksPPos = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> numberOfTracksWithHitOnMissingLayerPPos = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyPPos = new HashMap<String, IHistogram1D>();
+
+
+    Map<String, IHistogram1D> AllHitsnumberOfTracksChannel = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerChannel = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksU = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerU = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksP = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerP = new HashMap<String, IHistogram1D>();
+
+    Map<String, IHistogram1D> AllHitsnumberOfTracksChannelEle = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerChannelEle = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksUEle = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerUEle = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksPEle = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerPEle = new HashMap<String, IHistogram1D>();
+
+    Map<String, IHistogram1D> AllHitsnumberOfTracksChannelPos = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerChannelPos = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksUPos = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerUPos = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksPPos = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerPPos = new HashMap<String, IHistogram1D>();
+
     /*
     Map<String, IHistogram1D> numberOfTracksChannelCorrected = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyChannelCorrected = new HashMap<String, IHistogram1D>();
@@ -117,47 +141,47 @@ public class SvtHitEfficiencyKalman extends Driver {
     Map<String, IHistogram1D> hitEfficiencyUCorrectedPos = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> numberOfTracksPCorrectedPos = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyPCorrectedPos = new HashMap<String, IHistogram1D>();
-    */
+    
     Map<String, IHistogram1D> TotalEff = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> TotalEffEle = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> TotalEffPos = new HashMap<String, IHistogram1D>();
-    /*
+   
     Map<String, IHistogram1D> TotalCorrectedEff = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> TotalCorrectedEffEle = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> TotalCorrectedEffPos = new HashMap<String, IHistogram1D>();
-    */
+   
     Map<String, IHistogram1D> hitEfficiencyChannelerr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyUerr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyPerr = new HashMap<String, IHistogram1D>();
-    /*
+    
     Map<String, IHistogram1D> hitEfficiencyChannelCorrectederr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyUCorrectederr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyPCorrectederr = new HashMap<String, IHistogram1D>();
-    */
+    
     Map<String, IHistogram1D> hitEfficiencyChannelEleerr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyUEleerr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyPEleerr = new HashMap<String, IHistogram1D>();
-    /*
+    
     Map<String, IHistogram1D> hitEfficiencyChannelCorrectedEleerr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyUCorrectedEleerr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyPCorrectedEleerr = new HashMap<String, IHistogram1D>();
-    */
+    
     Map<String, IHistogram1D> hitEfficiencyChannelPoserr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyUPoserr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyPPoserr = new HashMap<String, IHistogram1D>();
-    /*
+   
     Map<String, IHistogram1D> hitEfficiencyChannelCorrectedPoserr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyUCorrectedPoserr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> hitEfficiencyPCorrectedPoserr = new HashMap<String, IHistogram1D>();
-    */
+   
     Map<String, IHistogram1D> TotalEfferr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> TotalEffEleerr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> TotalEffPoserr = new HashMap<String, IHistogram1D>();
-    /*
+   
     Map<String, IHistogram1D> TotalCorrectedEfferr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> TotalCorrectedEffEleerr = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> TotalCorrectedEffPoserr = new HashMap<String, IHistogram1D>();
-    */
+    
     Map<String, IHistogram1D> errorU = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram2D> errorUvsU = new HashMap<String, IHistogram2D>();
     Map<String, IHistogram2D> errorUvsV = new HashMap<String, IHistogram2D>();
@@ -172,29 +196,55 @@ public class SvtHitEfficiencyKalman extends Driver {
     Map<String, IHistogram2D> errorUvsUPos = new HashMap<String, IHistogram2D>();
     Map<String, IHistogram2D> errorUvsVPos = new HashMap<String, IHistogram2D>();
     Map<String, IHistogram2D> errorUvsPPos = new HashMap<String, IHistogram2D>();
+    */
 
+
+    Map<String, IHistogram2D> tMinus7VsLayer = new HashMap<String, IHistogram2D>();
+    Map<String, IHistogram2D> tMinus7VsLayerNHits = new HashMap<String, IHistogram2D>();
+    Map<String, IHistogram2D> t0VsLayer = new HashMap<String, IHistogram2D>();
+    Map<String, IHistogram2D> t0VsLayerNHits = new HashMap<String, IHistogram2D>();
+
+    Map<String, IHistogram1D> layerHits = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> layerHitsNHits = new HashMap<String, IHistogram1D>();
+
+    Map<String, IHistogram1D> nHoles = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> nHolesNHits = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> layerHoles = new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> layerHolesNHits = new HashMap<String, IHistogram1D>();
+    
+    Map<String, IHistogram1D> nTrackHits = new HashMap<String, IHistogram1D>();
+    
+    Map<String, IHistogram1D> trackTimes = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> D0 = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> Z0 = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> Tanlambda = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> Phi0 = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> Omega = new HashMap<String, IHistogram1D>();
-
+    
     Map<String, IHistogram1D> D0_err = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> Z0_err = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> Tanlambda_err = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> Phi0_err = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> Omega_err = new HashMap<String, IHistogram1D>();
+ 
+    Map<String, IHistogram1D> frontLayerPatterns=new HashMap<String, IHistogram1D>();
+
+
+    Map<Integer,Integer> hitLayerMap=new HashMap<Integer,Integer>();
+    Map<Integer,Integer> holeLayerMap=new HashMap<Integer,Integer>();
 
     // Histogram Settings
-    int nBins = 50;
+    int nBins = 100;
     double maxPull = 7;
     double minPull = -maxPull;
     double maxRes = 0.5;
     double minRes = -maxRes;
     double maxYerror = 0.1;
+    double minTime=-80.0;
+    double maxTime=80.0;
     double maxD0 = 5;
     double minD0 = -maxD0;
-    double maxZ0 = 10;
+    double maxZ0 = 3;
     double minZ0 = -maxZ0;
     double maxTLambda = 0.1;
     double minTLambda = -maxTLambda;
@@ -213,6 +263,8 @@ public class SvtHitEfficiencyKalman extends Driver {
     double maxOmegaErr = 0.0001;
     double minOmegaErr = 0;
 
+    int nChansThin=-666; //fill these when we get sensors
+    int nChansThick=-666; 
     String atIP = "IP";
 
     // Collection Strings
@@ -231,7 +283,7 @@ public class SvtHitEfficiencyKalman extends Driver {
     int thinLayCutoff=4; //thin layers = 0,1,2,3
     double nSig = 5;
     boolean maskBadChannels = false;
-    int chanExtd = 0;
+    int chanExtd = 1;
 
     // Daq map
     SvtChannelCollection channelMap;
@@ -291,19 +343,99 @@ public class SvtHitEfficiencyKalman extends Driver {
             throw new RuntimeException("No sensors were found in this detector.");
         }
 
-        // Setup Plots
-        D0.put(atIP, histogramFactory.createHistogram1D("D0 " + atIP, nBins, minD0, maxD0));
-        Z0.put(atIP, histogramFactory.createHistogram1D("Z0 " + atIP, nBins, minZ0, maxZ0));
-        Tanlambda.put(atIP, histogramFactory.createHistogram1D("TanLambda " + atIP, nBins, minTLambda, maxTLambda));
-        Phi0.put(atIP, histogramFactory.createHistogram1D("Phi0 " + atIP, nBins, minPhi0, maxPhi0));
-        Omega.put(atIP, histogramFactory.createHistogram1D("Omega " + atIP, nBins, minOmega, maxOmega));
+        List<String> topBot=new ArrayList<String>();
+        topBot.add("Top");
+        topBot.add("Bottom");
+        int minHOTs=8; 
+        int maxHOTs=15; 
+        List<String> elePos=new ArrayList<String>();
+        elePos.add("Electron");
+        elePos.add("Positron");
+        List<String> patStrList=patternStringList(); 
+        
 
-        D0_err.put(atIP, histogramFactory.createHistogram1D("D0 Error " + atIP, nBins, minD0Err, maxD0Err));
-        Z0_err.put(atIP, histogramFactory.createHistogram1D("Z0 Error " + atIP, nBins, minZ0Err, maxZ0Err));
-        Tanlambda_err.put(atIP,
-                histogramFactory.createHistogram1D("TanLambda Error " + atIP, nBins, minTLambdaErr, maxTLambdaErr));
-        Phi0_err.put(atIP, histogramFactory.createHistogram1D("Phi0 Error " + atIP, nBins, minPhi0Err, maxPhi0Err));
-        Omega_err.put(atIP, histogramFactory.createHistogram1D("Omega Error " + atIP, nBins, minOmegaErr, maxOmegaErr));
+        for(String detHalf: topBot){
+        // Setup Plots
+            String ipMapName=atIP+detHalf; 
+            String ipHName=detHalf+" "+atIP; 
+            trackTimes.put(ipMapName, histogramFactory.createHistogram1D("Track Times " + ipHName, nBins, minTime, maxTime));
+            D0.put(ipMapName, histogramFactory.createHistogram1D("D0 " + ipHName, nBins, minD0, maxD0));
+            Z0.put(ipMapName, histogramFactory.createHistogram1D("Z0 " + ipHName, nBins, minZ0, maxZ0));
+            Tanlambda.put(ipMapName, histogramFactory.createHistogram1D("TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
+            Phi0.put(ipMapName, histogramFactory.createHistogram1D("Phi0 " + ipHName, nBins, minPhi0, maxPhi0));
+            Omega.put(ipMapName, histogramFactory.createHistogram1D("Momentum " + ipHName, nBins,  0, 1.3 * ebeam));
+            
+            D0_err.put(ipMapName, histogramFactory.createHistogram1D("D0 Error " + ipHName, nBins, minD0Err, maxD0Err));
+            Z0_err.put(ipMapName, histogramFactory.createHistogram1D("Z0 Error " + ipHName, nBins, minZ0Err, maxZ0Err));
+            Tanlambda_err.put(ipMapName,
+                              histogramFactory.createHistogram1D("TanLambda Error " + ipHName, nBins, minTLambdaErr, maxTLambdaErr));
+            Phi0_err.put(ipMapName, histogramFactory.createHistogram1D("Phi0 Error " + ipHName, nBins, minPhi0Err, maxPhi0Err));
+            Omega_err.put(ipMapName, histogramFactory.createHistogram1D("Omega Error " + ipHName, nBins, minOmegaErr, maxOmegaErr));
+
+            nTrackHits.put(ipMapName,histogramFactory.createHistogram1D("Number of Track Hits "+detHalf, 15, 0, 15));
+            nHoles.put(ipMapName,histogramFactory.createHistogram1D("Number of Holes on Track "+detHalf, 8, 0, 8));
+            layerHits.put(ipMapName,histogramFactory.createHistogram1D("Layers Hit "+detHalf, 14, 1, 15));
+            layerHoles.put(ipMapName,histogramFactory.createHistogram1D("Hole Layers "+detHalf, 14, 1, 15));
+            t0VsLayer.put(ipMapName,histogramFactory.createHistogram2D("t0 vs layer "+detHalf, 14, 1, 15,nBins,minTime,maxTime));
+            tMinus7VsLayer.put(ipMapName,histogramFactory.createHistogram2D("t0-t7 vs layer "+detHalf, 14, 1, 15,nBins,minTime,maxTime));
+
+            frontLayerPatterns.put(ipMapName,histogramFactory.createHistogram1D("Front Layer Pattern "+detHalf, 1200, 0,1200));
+            for(String charge: elePos){
+                ipMapName=atIP+detHalf+charge; 
+                ipHName=charge+" "+detHalf; 
+                String dirCh=charge+"/"; 
+                aida.tree().cd("/");
+                aida.tree().mkdirs(dirCh);
+                D0.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"D0 " + ipHName, nBins, minD0, maxD0));
+                Z0.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Z0 " + ipHName, nBins, minZ0, maxZ0));
+                Tanlambda.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
+                Phi0.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Phi0 " + ipHName, nBins, minPhi0, maxPhi0));
+                Omega.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Momentum " + ipHName,nBins,  0, 1.3 * ebeam ));
+                nTrackHits.put(ipMapName,histogramFactory.createHistogram1D(dirCh+"Number of Track Hits "+ipHName, 15, 0, 15));
+                nHoles.put(ipMapName,histogramFactory.createHistogram1D(dirCh+"Number of Holes on Track "+ipHName, 8, 0, 8));
+                layerHits.put(ipMapName,histogramFactory.createHistogram1D(dirCh+"Layers Hit "+ipHName, 14, 1, 15));
+                layerHoles.put(ipMapName,histogramFactory.createHistogram1D(dirCh+"Hole Layers "+ipHName, 14, 1, 15));
+
+
+            }
+            for (int hot=minHOTs; hot<maxHOTs; hot++){
+                String dirHotName="nHits"+hot+"/";
+                String mapHotName="nHits"+hot+detHalf;
+                aida.tree().cd("/");
+                aida.tree().mkdirs(dirHotName);
+                nHolesNHits.put(mapHotName,histogramFactory.createHistogram1D(dirHotName+ "Number of Holes on Track "+detHalf, 8, 0, 8));
+                layerHitsNHits.put(mapHotName,histogramFactory.createHistogram1D(dirHotName+"Layers Hit "+detHalf, 14, 1, 15));
+                layerHolesNHits.put(mapHotName,histogramFactory.createHistogram1D(dirHotName+"Hole Layers "+detHalf, 14, 1, 15));
+                t0VsLayerNHits.put(mapHotName,histogramFactory.createHistogram2D(dirHotName+"t0 vs layer "+detHalf, 14, 1, 15,nBins,minTime,maxTime));
+                tMinus7VsLayerNHits.put(mapHotName,histogramFactory.createHistogram2D(dirHotName+"t0-t7 vs layer "+detHalf, 14, 1, 15,nBins,minTime,maxTime));  
+            }
+            
+            for(String pattern: patStrList){
+                System.out.println(pattern); 
+                ipMapName=atIP+detHalf+pattern; 
+                ipHName=detHalf+" "+atIP+" "+pattern; 
+                String dirPat="Front Layer Pattern "+pattern+"/"; 
+                aida.tree().cd("/");
+                aida.tree().mkdirs(dirPat);
+                D0.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"D0 " + ipHName, nBins, minD0, maxD0));
+                Z0.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"Z0 " + ipHName, nBins, minZ0, maxZ0));
+                Tanlambda.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
+                Phi0.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"Phi0 " + ipHName, nBins, minPhi0, maxPhi0));
+                Omega.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"Momentum " + ipHName,nBins,  0, 1.3 * ebeam ));
+                for(String charge: elePos){
+                    ipMapName=atIP+detHalf+pattern+charge; 
+                    ipHName=charge+" "+detHalf+" "+atIP+" "+pattern; 
+                    String dirPatCh="Front Layer Pattern "+pattern+"/"+charge+"/"; 
+                    aida.tree().cd("/");
+                    aida.tree().mkdirs(dirPatCh);
+                    D0.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"D0 " + ipHName, nBins, minD0, maxD0));
+                    Z0.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"Z0 " + ipHName, nBins, minZ0, maxZ0));
+                    Tanlambda.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
+                    Phi0.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"Phi0 " + ipHName, nBins, minPhi0, maxPhi0));
+                    Omega.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"Momentum " + ipHName,nBins,  0, 1.3 * ebeam ));
+                }
+            }
+        }
 
         for (HpsSiSensor sensor : sensors) {
             String sensorName = sensor.getName();
@@ -312,15 +444,48 @@ public class SvtHitEfficiencyKalman extends Driver {
             double maxU = nChan * readoutPitch / 2;
             double width = getSensorLength(sensor);
             double maxV = width / 2;
-            double minV = -maxV;
+            double minV = -maxV;            
             int layer=sensor.getLayerNumber();
-            int minHOTs=8; 
-            int maxHOTs=14; 
+            if(layer<5){
+                System.out.println("Thin layer nChans = "+nChan);
+                nChansThin=nChan; 
+            }else{
+                System.out.println("Thick layer nChans = "+nChan);
+                nChansThick=nChan;                 
+            }
+            
+            String dirName="layer"+layer+"/";
+            String mapName=sensorName;
+            aida.tree().cd("/");
+            aida.tree().mkdirs(dirName);
+            hitTimes.put(mapName, histogramFactory.createHistogram1D(dirName+"Hit Time " + sensorName,nBins,minTime,maxTime));
+            AllHitsnumberOfTracksChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            AllHitsnumberOfTracksWithHitOnMissingLayerChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            AllHitsnumberOfTracksU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U " + sensorName, nBins, -maxU, maxU));
+            AllHitsnumberOfTracksWithHitOnMissingLayerU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U " + sensorName, nBins, -maxU, maxU));
+            AllHitsnumberOfTracksP.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P " + sensorName, nBins, 0, 1.3 * ebeam));
+            AllHitsnumberOfTracksWithHitOnMissingLayerP.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P " + sensorName, nBins, 0, 1.3 * ebeam));
+            
+            AllHitsnumberOfTracksChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            AllHitsnumberOfTracksWithHitOnMissingLayerChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            AllHitsnumberOfTracksUEle.put(mapName,  histogramFactory.createHistogram1D(dirName+"Number of Tracks U Ele " + sensorName, nBins, -maxU, maxU));
+            AllHitsnumberOfTracksWithHitOnMissingLayerUEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Ele " + sensorName, nBins, -maxU, maxU));
+            AllHitsnumberOfTracksPEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+            AllHitsnumberOfTracksWithHitOnMissingLayerPEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Ele " + sensorName, nBins, 0, 1.3 * ebeam));                
+            
+            AllHitsnumberOfTracksChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            AllHitsnumberOfTracksWithHitOnMissingLayerChannelPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Pos " + sensorName,nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            AllHitsnumberOfTracksUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U Pos " + sensorName, nBins, -maxU, maxU));
+            AllHitsnumberOfTracksWithHitOnMissingLayerUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Pos " + sensorName, nBins, -maxU, maxU));
+            AllHitsnumberOfTracksPPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+            AllHitsnumberOfTracksWithHitOnMissingLayerPPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                       
             // histogram orginization:  <layer>/<nhits>/<hname> 
             // <nhits> is the number of hits on track -1 if the layer we are looking at has a hit on track!
+            maxHOTs=14; 
             for (int hot=minHOTs; hot<maxHOTs; hot++){
-                String dirName="layer"+layer+"/nHits"+hot+"/";
-                String mapName=sensorName+"-"+hot; 
+                dirName="layer"+layer+"/nHits"+hot+"/";
+                mapName=sensorName+"-"+hot; 
                 aida.tree().cd("/");
                 aida.tree().mkdirs(dirName);
                 System.out.println("making tree directory with name = "+dirName); 
@@ -539,6 +704,9 @@ public class SvtHitEfficiencyKalman extends Driver {
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, stripHitOutputCollectionName);
 
         for (Track track : tracks) {
+            int nHits=track.getTrackerHits().size();
+            if(nHits<8)
+                continue;
             TrackIntersectData trkInts = null;
             for (LCRelation intRel : kalIntersectsRelations) {
                 if (intRel.getTo() == track) {
@@ -560,23 +728,75 @@ public class SvtHitEfficiencyKalman extends Driver {
             TrackState tStateIP = TStates.get(0);
             double[] covAtIP = TStates.get(0).getCovMatrix();
             SymmetricMatrix LocCovAtIP = new SymmetricMatrix(5, covAtIP, true);
+            double tanLambda=TStates.get(0).getTanLambda(); 
+            double trackP = toHep3(track.getTrackStates().get(0).getMomentum()).magnitude();
+            double q = -track.getCharge(); // HelicalTrackFit flips sign of charge
+            String topOrBottom="Top"; 
+            if(tanLambda<0)
+                topOrBottom="Bottom";
+            String charge="Positron";
+            if(q<0)
+                charge="Electron";
+            String chMapName=atIP+topOrBottom+charge;
+                
+            String ipMapName=atIP+topOrBottom;
+            nTrackHits.get(ipMapName).fill(nHits);
+            nTrackHits.get(chMapName).fill(nHits);
+            String nhitsmap="nHits"+nHits+topOrBottom;
+            //I'm using layer 7 (starting from 1) as the "reference track time"...only works if we have L7 hit of course...
+            boolean hasL7=false;
+            double l7time=-666; 
+           
+            //            String patString=getPatternString(pat); 
             
-            D0.get(atIP).fill(TStates.get(0).getD0());            
-            Z0.get(atIP).fill(TStates.get(0).getZ0());
-            Tanlambda.get(atIP).fill(TStates.get(0).getTanLambda());
-            Phi0.get(atIP).fill(TStates.get(0).getPhi());
-            Omega.get(atIP).fill(TStates.get(0).getOmega());
+            for (TrackerHit stripCluster : track.getTrackerHits()) {
+                int lay=((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+                if(lay == 7){
+                    hasL7=true;
+                    l7time=stripCluster.getTime();
+                }
+            }
+
+            // ok, now fill some time histos and get totalT0 for track time 
+            double totalT0=0; 
+            for (TrackerHit stripCluster : track.getTrackerHits()) {
+                double t0=stripCluster.getTime();
+                totalT0 += t0;
+                int lay=((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+                if(hasL7 && lay!=7){
+                    double tMinus7=t0-l7time; 
+                    tMinus7VsLayer.get(ipMapName).fill(lay,tMinus7);                    
+                    tMinus7VsLayerNHits.get(nhitsmap).fill(lay,tMinus7);                    
+                }
+                t0VsLayer.get(ipMapName).fill(lay,t0);
+                t0VsLayerNHits.get(nhitsmap).fill(lay,t0);
+                layerHits.get(ipMapName).fill(lay);
+                layerHits.get(chMapName).fill(lay);
+                layerHitsNHits.get(nhitsmap).fill(lay);
+
+            }
+            trackTimes.get(ipMapName).fill(totalT0/nHits); 
+            D0.get(ipMapName).fill(TStates.get(0).getD0());            
+            Z0.get(ipMapName).fill(TStates.get(0).getZ0());
+            Tanlambda.get(ipMapName).fill(TStates.get(0).getTanLambda());
+            Phi0.get(ipMapName).fill(TStates.get(0).getPhi());
+            Omega.get(ipMapName).fill(trackP);
             
-            D0_err.get(atIP).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.dcaIndex, HelicalTrackFit.dcaIndex)));
-            Z0_err.get(atIP).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.z0Index, HelicalTrackFit.z0Index)));
-            Tanlambda_err.get(atIP).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.slopeIndex, HelicalTrackFit.slopeIndex)));
-            Phi0_err.get(atIP).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.phi0Index, HelicalTrackFit.phi0Index)));
-            Omega_err.get(atIP).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.curvatureIndex, HelicalTrackFit.curvatureIndex)));
+            D0_err.get(ipMapName).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.dcaIndex, HelicalTrackFit.dcaIndex)));
+            Z0_err.get(ipMapName).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.z0Index, HelicalTrackFit.z0Index)));
+            Tanlambda_err.get(ipMapName).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.slopeIndex, HelicalTrackFit.slopeIndex)));
+            Phi0_err.get(ipMapName).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.phi0Index, HelicalTrackFit.phi0Index)));
+            Omega_err.get(ipMapName).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.curvatureIndex, HelicalTrackFit.curvatureIndex)));
             
             Hep3Vector p = toHep3(tStateIP.getMomentum());
-            double q = -track.getCharge(); // HelicalTrackFit flips sign of charge
             int nHitsOnTrack=track.getTrackerHits().size();
             //System.out.println("Track has "+trkInts.getNInt()+" integers in layers list ");
+            //loop over intersects just to get hole information...this is dumb but easy
+            int nHolesCnt=0;
+         
+            holeLayerMap.clear();
+            hitLayerMap.clear();
+
             for (int l = 0; l < trkInts.getNInt()-1; l++) {
                 int layer=trkInts.getLayer(l);
                 Double[] interTmp=trkInts.getIntersect(l);
@@ -584,11 +804,12 @@ public class SvtHitEfficiencyKalman extends Driver {
                 double intersectU=intersect[0];
                 float sigmaU=(float)Math.sqrt(trkInts.getSigma(l));
                 boolean lyrHasHit=layerHasHit(track,layer);
-                //System.out.println("layer = "+layer+" u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
-                // Fill track states and errors at IP
-                //Get all track states for this track
-
-
+             
+                //                if(intersectU==-999){
+                //   System.out.println("layer = "+layer+"   intersect[0] = "+intersect[0]+
+                //                       "   intersect[1] = "+intersect[1]+
+                //                       "   intersect[2] = "+intersect[2]);
+                //}
                 if (cleanFEE) {
                     // Require track to be an electron
                     if (q < 0) {
@@ -614,80 +835,190 @@ public class SvtHitEfficiencyKalman extends Driver {
                 if(hot<8)
                     continue; 
                 String mapName=sensorName+"-"+hot; 
-
+                String allMapName=sensorName;
                 // Compute the channel where the track extrapolates to in each sensor
                 int chan = sensorChanAccPair.getSecondElement();
 
-                double trackP = toHep3(track.getTrackStates().get(0).getMomentum()).magnitude();
+                ////////////////////////////////////////////////////////////////////////////////////////////
+                //  check if track is within sensor acceptance 
+                //                
+                //  if the track intersect returns -999, that means the intersect code failed (usually 
+                //  because track smoothing failed)...I think this happens if track projects way outside of 
+                //  sensor acceptance so mark it fals
+                boolean inAcceptance=intersectU>-999;
+                if(layer==0  && intersectU>-999){
+                    if(debug)System.out.println("layer = "+layer+" u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
+                }
+                //  inner, thin layers
+                //channel 1 is the default if position is not on sensor 
+                //set acceptance to false
+                if(layer<4 && (chan == 1 || chan>=nChansThin)){
+                    System.out.println("layer = "+layer+" chan = "+chan+"  u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
+                    inAcceptance=false;
+                }
+                //  just generally negative channel numbers are bogus...I include >-999 here so I can print out 
+                //  when it does compute an intersection with layer but its out of acceptance 
+                if(chan<0 && chan > -999){
+                    System.out.println("layer = "+layer+" chan = "+chan+"   u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
+                    inAcceptance=false;
+                }                
+                //  outer layers
+                if(layer>4 && chan>nChansThick)
+                    inAcceptance=false;
+                //////////////////////////////////////////////////////////////////////////  done with  acceptance
+
+                
+             
 
                 double weight = findWeight(intersectU, sigmaU, sensor);
                 
+
+                if(lyrHasHit)
+                    hitLayerMap.put(layer,1);
+                else
+                    hitLayerMap.put(layer,0);
+                if(inAcceptance==false)  // can't have hole if track is not on sensor
+                    holeLayerMap.put(layer,0);
+                if(inAcceptance==true && lyrHasHit==false){
+                    //found a hole
+                    nHolesCnt++;
+                    holeLayerMap.put(layer,1);
+                } else if(inAcceptance==true && lyrHasHit==true){
+                    holeLayerMap.put(layer,0);  // in acceptance and has hit, no hole
+                }
+
                 // Fill the denominator of the efficiency histos
-                numberOfTracksChannel.get(mapName).fill(chan);
-                numberOfTracksU.get(mapName).fill(intersectU);
-                numberOfTracksP.get(mapName).fill(trackP);
-                /*
-                numberOfTracksChannelCorrected.get(mapName).fill(chan, weight);
-                numberOfTracksUCorrected.get(mapName).fill(intersectU, weight);
-                numberOfTracksPCorrected.get(mapName).fill(trackP, weight);
-                */
-                // Fill electron histograms
-                if (q < 0) {
-                    numberOfTracksChannelEle.get(mapName).fill(chan);
-                    numberOfTracksUEle.get(mapName).fill(intersectU);
-                    numberOfTracksPEle.get(mapName).fill(trackP);
+                if(inAcceptance){
+                    numberOfTracksChannel.get(mapName).fill(chan);
+                    numberOfTracksU.get(mapName).fill(intersectU);
+                    numberOfTracksP.get(mapName).fill(trackP);
+                    
+                    AllHitsnumberOfTracksChannel.get(allMapName).fill(chan);
+                    AllHitsnumberOfTracksU.get(allMapName).fill(intersectU);
+                    AllHitsnumberOfTracksP.get(allMapName).fill(trackP);
+                    
                     /*
-                    numberOfTracksChannelCorrectedEle.get(mapName).fill(chan, weight);
-                    numberOfTracksUCorrectedEle.get(mapName).fill(intersectU, weight);
-                    numberOfTracksPCorrectedEle.get(mapName).fill(trackP, weight);
+                      numberOfTracksChannelCorrected.get(mapName).fill(chan, weight);
+                      numberOfTracksUCorrected.get(mapName).fill(intersectU, weight);
+                      numberOfTracksPCorrected.get(mapName).fill(trackP, weight);
                     */
-                } // Fill positron histograms
-                else {
-                    numberOfTracksChannelPos.get(mapName).fill(chan);
-                    numberOfTracksUPos.get(mapName).fill(intersectU);
-                    numberOfTracksPPos.get(mapName).fill(trackP);
-                    /*
-                    numberOfTracksChannelCorrectedPos.get(mapName).fill(chan, weight);
-                    numberOfTracksUCorrectedPos.get(mapName).fill(intersectU, weight);
-                    numberOfTracksPCorrectedPos.get(mapName).fill(trackP, weight);
-                    */
-                }
-
-                // Fill the error histos
-                /*
-                errorU.get(mapName).fill(sigmaU);
-                errorUvsV.get(mapName).fill(intersect[1], sigmaU);
-                errorUvsU.get(mapName).fill(intersectU, sigmaU);
-                errorUvsP.get(mapName).fill(p.magnitude(), sigmaU);
-
-                if (q < 0) {
-                    errorUEle.get(mapName).fill(sigmaU);
-                    errorUvsVEle.get(mapName).fill(intersect[1], sigmaU);
-                    errorUvsUEle.get(mapName).fill(intersectU, sigmaU);
-                    errorUvsPEle.get(mapName).fill(p.magnitude(), sigmaU);
-                } else {
-                    errorUPos.get(mapName).fill(sigmaU);
-                    errorUvsVPos.get(mapName).fill(intersect[1], sigmaU);
-                    errorUvsUPos.get(mapName).fill(intersectU, sigmaU);
-                    errorUvsPPos.get(mapName).fill(p.magnitude(), sigmaU);
-                }
-                */
-                // If layer has a hit included in track, fill the numerator efficiency histograms
-                if (lyrHasHit) {
-                    numberOfTracksWithHitOnMissingLayerChannel.get(mapName).fill(chan);
-                    numberOfTracksWithHitOnMissingLayerU.get(mapName).fill(intersectU);
-                    numberOfTracksWithHitOnMissingLayerP.get(mapName).fill(trackP);
+                    // Fill electron histograms
                     if (q < 0) {
-                        numberOfTracksWithHitOnMissingLayerChannelEle.get(mapName).fill(chan);
-                        numberOfTracksWithHitOnMissingLayerUEle.get(mapName).fill(intersectU);
-                        numberOfTracksWithHitOnMissingLayerPEle.get(mapName).fill(trackP);
-                    } else {
-                        numberOfTracksWithHitOnMissingLayerChannelPos.get(mapName).fill(chan);
-                        numberOfTracksWithHitOnMissingLayerUPos.get(mapName).fill(intersectU);
-                        numberOfTracksWithHitOnMissingLayerPPos.get(mapName).fill(trackP);
+                        numberOfTracksChannelEle.get(mapName).fill(chan);
+                        numberOfTracksUEle.get(mapName).fill(intersectU);
+                        numberOfTracksPEle.get(mapName).fill(trackP);
+                        AllHitsnumberOfTracksChannelEle.get(allMapName).fill(chan);
+                        AllHitsnumberOfTracksUEle.get(allMapName).fill(intersectU);
+                        AllHitsnumberOfTracksPEle.get(allMapName).fill(trackP);
+                        
+                        /*
+                          numberOfTracksChannelCorrectedEle.get(mapName).fill(chan, weight);
+                          numberOfTracksUCorrectedEle.get(mapName).fill(intersectU, weight);
+                          numberOfTracksPCorrectedEle.get(mapName).fill(trackP, weight);
+                        */
+                    } // Fill positron histograms
+                    else {
+                        numberOfTracksChannelPos.get(mapName).fill(chan);
+                        numberOfTracksUPos.get(mapName).fill(intersectU);
+                        numberOfTracksPPos.get(mapName).fill(trackP);
+                        AllHitsnumberOfTracksChannelPos.get(allMapName).fill(chan);
+                        AllHitsnumberOfTracksUPos.get(allMapName).fill(intersectU);
+                        AllHitsnumberOfTracksPPos.get(allMapName).fill(trackP);
+                        
+                        /*
+                          numberOfTracksChannelCorrectedPos.get(mapName).fill(chan, weight);
+                          numberOfTracksUCorrectedPos.get(mapName).fill(intersectU, weight);
+                          numberOfTracksPCorrectedPos.get(mapName).fill(trackP, weight);
+                        */
+                    }
+                    
+                    // Fill the error histos
+                    /*
+                      errorU.get(mapName).fill(sigmaU);
+                      errorUvsV.get(mapName).fill(intersect[1], sigmaU);
+                      errorUvsU.get(mapName).fill(intersectU, sigmaU);
+                      errorUvsP.get(mapName).fill(p.magnitude(), sigmaU);
+                      
+                      if (q < 0) {
+                      errorUEle.get(mapName).fill(sigmaU);
+                      errorUvsVEle.get(mapName).fill(intersect[1], sigmaU);
+                      errorUvsUEle.get(mapName).fill(intersectU, sigmaU);
+                      errorUvsPEle.get(mapName).fill(p.magnitude(), sigmaU);
+                      } else {
+                      errorUPos.get(mapName).fill(sigmaU);
+                      errorUvsVPos.get(mapName).fill(intersect[1], sigmaU);
+                      errorUvsUPos.get(mapName).fill(intersectU, sigmaU);
+                      errorUvsPPos.get(mapName).fill(p.magnitude(), sigmaU);
+                      }
+                    */
+                    // If layer has a hit included in track, fill the numerator efficiency histograms
+                    if (lyrHasHit) {
+                        for (TrackerHit stripCluster : track.getTrackerHits()) {
+                            if(((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber()==layer+1)
+                                hitTimes.get(allMapName).fill(stripCluster.getTime());                                                         
+                        }
+                        numberOfTracksWithHitOnMissingLayerChannel.get(mapName).fill(chan);
+                        numberOfTracksWithHitOnMissingLayerU.get(mapName).fill(intersectU);
+                        numberOfTracksWithHitOnMissingLayerP.get(mapName).fill(trackP);
+                        if (q < 0) {
+                            numberOfTracksWithHitOnMissingLayerChannelEle.get(mapName).fill(chan);
+                            numberOfTracksWithHitOnMissingLayerUEle.get(mapName).fill(intersectU);
+                            numberOfTracksWithHitOnMissingLayerPEle.get(mapName).fill(trackP);
+                        } else {
+                            numberOfTracksWithHitOnMissingLayerChannelPos.get(mapName).fill(chan);
+                            numberOfTracksWithHitOnMissingLayerUPos.get(mapName).fill(intersectU);
+                            numberOfTracksWithHitOnMissingLayerPPos.get(mapName).fill(trackP);
+                        }
+                        AllHitsnumberOfTracksWithHitOnMissingLayerChannel.get(allMapName).fill(chan);
+                        AllHitsnumberOfTracksWithHitOnMissingLayerU.get(allMapName).fill(intersectU);
+                        AllHitsnumberOfTracksWithHitOnMissingLayerP.get(allMapName).fill(trackP);
+                        if (q < 0) {
+                            AllHitsnumberOfTracksWithHitOnMissingLayerChannelEle.get(allMapName).fill(chan);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerUEle.get(allMapName).fill(intersectU);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerPEle.get(allMapName).fill(trackP);
+                        } else {
+                            AllHitsnumberOfTracksWithHitOnMissingLayerChannelPos.get(allMapName).fill(chan);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerUPos.get(allMapName).fill(intersectU);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerPPos.get(allMapName).fill(trackP);
+                        }
                     }
                 }
             }
+            
+            for( Map.Entry<Integer,Integer> hole: holeLayerMap.entrySet()){                
+                layerHoles.get(ipMapName).fill(hole.getKey()+1,hole.getValue());
+                layerHoles.get(chMapName).fill(hole.getKey()+1,hole.getValue());
+                layerHolesNHits.get(nhitsmap).fill(hole.getKey()+1,hole.getValue());
+            }          
+            nHoles.get(ipMapName).fill(nHolesCnt);
+            nHolesNHits.get(nhitsmap).fill(nHolesCnt); 
+
+            int pat=getFrontLayersPattern(track); 
+            String pattern=getPatternString(pat); 
+            frontLayerPatterns.get(ipMapName).fill(pat); 
+            ipMapName=atIP+topOrBottom+pattern; 
+            D0.get(ipMapName).fill(TStates.get(0).getD0());            
+            Z0.get(ipMapName).fill(TStates.get(0).getZ0());
+            Tanlambda.get(ipMapName).fill(TStates.get(0).getTanLambda());
+            Phi0.get(ipMapName).fill(TStates.get(0).getPhi());
+            Omega.get(ipMapName).fill(trackP);
+            //not fill the charge+front pattern separated plots...
+          
+            ipMapName=atIP+topOrBottom+pattern+charge; 
+            D0.get(ipMapName).fill(TStates.get(0).getD0());            
+            Z0.get(ipMapName).fill(TStates.get(0).getZ0());
+            Tanlambda.get(ipMapName).fill(TStates.get(0).getTanLambda());
+            Phi0.get(ipMapName).fill(TStates.get(0).getPhi());
+            Omega.get(ipMapName).fill(trackP);
+            //all tracks just separated by charge
+            ipMapName=atIP+topOrBottom+charge; 
+            D0.get(ipMapName).fill(TStates.get(0).getD0());            
+            Z0.get(ipMapName).fill(TStates.get(0).getZ0());
+            Tanlambda.get(ipMapName).fill(TStates.get(0).getTanLambda());
+            Phi0.get(ipMapName).fill(TStates.get(0).getPhi());
+            Omega.get(ipMapName).fill(trackP);
+            nHoles.get(ipMapName).fill(nHolesCnt);
+
         }
     }
 
@@ -815,8 +1146,8 @@ public class SvtHitEfficiencyKalman extends Driver {
 
             //if we got here, must be in outer layers
             boolean isTrackHole=isTrackHole(track,layer);  // this looks for a track state at either hole or slot...not foolproof!
-            boolean isSensorSlot=sensor.getSide().matches("ELECTRON");//ok, dumb but I forgot string for hole side...probably "POSITRON" 
-            if(isTrackHole==isSensorSlot)
+            boolean isSensorHole=sensor.getSide().matches("ELECTRON");
+            if(isTrackHole!=isSensorHole)
                 continue;  /// bail if track hole/slot don't match sensor
             return sensor; //if we get here, we found an outer sensor          
         }
@@ -935,14 +1266,17 @@ public class SvtHitEfficiencyKalman extends Driver {
             // Retrieve the sensor associated with one of the hits.  This will
             // be used to retrieve the layer number
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
-            if(sensor.getLayerNumber() == layer)
+            if(sensor.getLayerNumber() == layer){
+                if(sensor.getLayerNumber()==1 && debug)
+                    System.out.println("Yup found hit for layer = "+layer);                
                 return true; 
+            }
         }
         return false;
     }
 
     
-    //Get the track state at the previous sensor
+    //Check to see if track is hole side
     private boolean isTrackHole(Track track, int unusedLay) {
         boolean isTop = track.getTrackStates().get(0).getTanLambda() > 0;  
         int layer = unusedLay;
@@ -968,7 +1302,7 @@ public class SvtHitEfficiencyKalman extends Driver {
         Hep3Vector trackSlotPosGlobal = TrackStateUtils.getLocationAtSensor(htf, sensorSlot, bfield);
         if(trackSlotPosGlobal==null){
             System.out.println("isTrackHole::  trackSlotPosGlobal is null ... setting isTrackSlot=false");
-            return false;
+            return true;
         }
         Hep3Vector trackSlotPos = globalToSensor(trackSlotPosGlobal, sensorSlot);
         if(debug)
@@ -1082,294 +1416,55 @@ public class SvtHitEfficiencyKalman extends Driver {
     public void endOfData() {
         System.out.println("End of Data. Computing Hit Efficiencies");
 
-        // Setup text files to output efficiencies for each channel
-        PrintWriter out = null;
-        try {
-            out = new PrintWriter(outputFileName);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+   
         
         // skip this...not useful
         if(1==1) {
             return; 
         }
 
-        // Compute efficiencies and errors as a function of channel, u, and momentum
-        for (HpsSiSensor sensor : sensors) {
-            String sensorName = sensor.getName();
-            int nChan = sensor.getNumberOfChannels();
-            for (int i = 0; i < nChan + chanExtd * 2; i++) {
-                int chan = i - chanExtd;
-                if (numberOfTracksChannel.get(sensorName).binHeight(i) != 0
-                        && numberOfTracksChannel.get(sensorName).binHeight(i) != 0) {
-                    hitEfficiencyChannel.get(sensorName).fill(chan,
-                            numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksChannel.get(sensorName).binHeight(i));
-                    hitEfficiencyChannelerr.get(sensorName).fill(chan,
-                            Math.sqrt(
-                                    1 / (double) numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksChannel.get(sensorName).binHeight(i)));
-                    /*
-                    hitEfficiencyChannelCorrected.get(sensorName).fill(chan,
-                            numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksChannelCorrected.get(sensorName).binHeight(i));
-                    hitEfficiencyChannelCorrectederr.get(sensorName).fill(chan,
-                            Math.sqrt(
-                                    1 / (double) numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksChannel.get(sensorName).binHeight(i)));
-                    */
-                }
-                if (numberOfTracksChannelEle.get(sensorName).binHeight(i) != 0
-                        && numberOfTracksChannelEle.get(sensorName).binHeight(i) != 0) {
-                    hitEfficiencyChannelEle.get(sensorName).fill(chan,
-                            numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksChannelEle.get(sensorName).binHeight(i));
-                    hitEfficiencyChannelEleerr.get(sensorName).fill(chan, Math.sqrt(
-                            1 / (double) numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).binHeight(i)
-                            + 1 / (double) numberOfTracksChannelEle.get(sensorName).binHeight(i)));
-                    /*
-                    hitEfficiencyChannelCorrectedEle.get(sensorName).fill(chan,
-                            numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksChannelCorrectedEle.get(sensorName).binHeight(i));
-                    hitEfficiencyChannelCorrectedEleerr.get(sensorName).fill(chan, Math.sqrt(
-                            1 / (double) numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).binHeight(i)
-                            + 1 / (double) numberOfTracksChannelCorrectedEle.get(sensorName).binHeight(i)));
-                    */
-                }
-                if (numberOfTracksChannelPos.get(sensorName).binHeight(i) != 0
-                        && numberOfTracksChannelPos.get(sensorName).binHeight(i) != 0) {
-                    hitEfficiencyChannelPos.get(sensorName).fill(chan,
-                            numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksChannelPos.get(sensorName).binHeight(i));
-                    hitEfficiencyChannelPoserr.get(sensorName).fill(chan, Math.sqrt(
-                            1 / (double) numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorName).binHeight(i)
-                            + 1 / (double) numberOfTracksChannelPos.get(sensorName).binHeight(i)));
-                    /*
-                    hitEfficiencyChannelCorrectedPos.get(sensorName).fill(chan,
-                            numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksChannelCorrectedPos.get(sensorName).binHeight(i));
-                    hitEfficiencyChannelCorrectedPoserr.get(sensorName).fill(chan, Math.sqrt(
-                            1 / (double) numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorName).binHeight(i)
-                            + 1 / (double) numberOfTracksChannelCorrectedPos.get(sensorName).binHeight(i)));
-                    */
-                }
-            }
-            for (int i = 0; i < nBins; i++) {
-                double yMax = sensor.getNumberOfChannels() * sensor.getReadoutStripPitch() / 2;
-                double yMin = -yMax;
-                double y = (yMax - yMin) / (double) nBins * (i + 0.5) + yMin;
-                double pMax = 1.3 * ebeam;
-                double pMin = 0;
-                double p = (pMax - pMin) / (double) nBins * (i + 0.5) + pMin;
-                if (numberOfTracksU.get(sensorName).binHeight(i) != 0
-                        && numberOfTracksU.get(sensorName).binHeight(i) != 0) {
-                    hitEfficiencyU.get(sensorName).fill(y,
-                            numberOfTracksWithHitOnMissingLayerU.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksU.get(sensorName).binHeight(i));
-                    hitEfficiencyUerr.get(sensorName).fill(y,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerU.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksU.get(sensorName).binHeight(i)));
-                    /*
-                    hitEfficiencyUCorrected.get(sensorName).fill(y,
-                            numberOfTracksWithHitOnMissingLayerU.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksUCorrected.get(sensorName).binHeight(i));
-                    hitEfficiencyUCorrectederr.get(sensorName).fill(y,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerU.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksUCorrected.get(sensorName).binHeight(i)));
-                    */
-                }
-                if (numberOfTracksUEle.get(sensorName).binHeight(i) != 0
-                        && numberOfTracksUEle.get(sensorName).binHeight(i) != 0) {
-                    hitEfficiencyUEle.get(sensorName).fill(y,
-                            numberOfTracksWithHitOnMissingLayerUEle.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksUEle.get(sensorName).binHeight(i));
-                    hitEfficiencyUEleerr.get(sensorName).fill(y,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerUEle.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksUEle.get(sensorName).binHeight(i)));
-                    /*
-                      hitEfficiencyUCorrectedEle.get(sensorName).fill(y,
-                            numberOfTracksWithHitOnMissingLayerUEle.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksUCorrectedEle.get(sensorName).binHeight(i));
-                    hitEfficiencyUCorrectedEleerr.get(sensorName).fill(y,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerUEle.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksUCorrectedEle.get(sensorName).binHeight(i)));
-                    */
-                }
-                if (numberOfTracksUPos.get(sensorName).binHeight(i) != 0
-                        && numberOfTracksUPos.get(sensorName).binHeight(i) != 0) {
-                    hitEfficiencyUPos.get(sensorName).fill(y,
-                            numberOfTracksWithHitOnMissingLayerUPos.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksUPos.get(sensorName).binHeight(i));
-                    hitEfficiencyUPoserr.get(sensorName).fill(y,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerUPos.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksUPos.get(sensorName).binHeight(i)));
-                    /*
-                    hitEfficiencyUCorrectedPos.get(sensorName).fill(y,
-                            numberOfTracksWithHitOnMissingLayerUPos.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksUCorrectedPos.get(sensorName).binHeight(i));
-                    hitEfficiencyUCorrectedPoserr.get(sensorName).fill(y,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerUPos.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksUCorrectedPos.get(sensorName).binHeight(i)));
-                    */
-                }
-                if (numberOfTracksP.get(sensorName).binHeight(i) != 0
-                        && numberOfTracksP.get(sensorName).binHeight(i) != 0) {
-                    hitEfficiencyP.get(sensorName).fill(p,
-                            numberOfTracksWithHitOnMissingLayerP.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksP.get(sensorName).binHeight(i));
-                    hitEfficiencyPerr.get(sensorName).fill(p,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerP.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksP.get(sensorName).binHeight(i)));
-                    /*
-                    hitEfficiencyPCorrected.get(sensorName).fill(p,
-                            numberOfTracksWithHitOnMissingLayerP.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksPCorrected.get(sensorName).binHeight(i));
-                    hitEfficiencyPCorrectederr.get(sensorName).fill(p,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerP.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksPCorrected.get(sensorName).binHeight(i)));
-                    */
-                }
-                if (numberOfTracksPEle.get(sensorName).binHeight(i) != 0
-                        && numberOfTracksPEle.get(sensorName).binHeight(i) != 0) {
-                    hitEfficiencyPEle.get(sensorName).fill(p,
-                            numberOfTracksWithHitOnMissingLayerPEle.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksPEle.get(sensorName).binHeight(i));
-                    hitEfficiencyPEleerr.get(sensorName).fill(p,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerPEle.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksPEle.get(sensorName).binHeight(i)));
-                    /*
-                    hitEfficiencyPCorrectedEle.get(sensorName).fill(p,
-                            numberOfTracksWithHitOnMissingLayerPEle.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksPCorrectedEle.get(sensorName).binHeight(i));
-                    hitEfficiencyPCorrectedEleerr.get(sensorName).fill(p,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerPEle.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksPCorrectedEle.get(sensorName).binHeight(i)));
-                    */
-                }
-                if (numberOfTracksPPos.get(sensorName).binHeight(i) != 0
-                        && numberOfTracksPPos.get(sensorName).binHeight(i) != 0) {
-                    hitEfficiencyPPos.get(sensorName).fill(p,
-                            numberOfTracksWithHitOnMissingLayerPPos.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksPPos.get(sensorName).binHeight(i));
-                    hitEfficiencyPPoserr.get(sensorName).fill(p,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerPPos.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksPPos.get(sensorName).binHeight(i)));
-                    /*
-                    hitEfficiencyPCorrectedPos.get(sensorName).fill(p,
-                            numberOfTracksWithHitOnMissingLayerPPos.get(sensorName).binHeight(i)
-                            / (double) numberOfTracksPCorrectedPos.get(sensorName).binHeight(i));
-                    hitEfficiencyPCorrectedPoserr.get(sensorName).fill(p,
-                            Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerPPos.get(sensorName).binHeight(i)
-                                    + 1 / (double) numberOfTracksPCorrectedPos.get(sensorName).binHeight(i)));
-                    */
-                }
-            }
-            double totalEff = 0;
-            double totalEffEle = 0;
-            double totalEffPos = 0;
-            double totalEfferr = 0;
-            double totalEffEleerr = 0;
-            double totalEffPoserr = 0;
-            /*
-            double totalEffCorrected = 0;
-            double totalEffEleCorrected = 0;
-            double totalEffPosCorrected = 0;
-            double totalEfferrCorrected = 0;
-            double totalEffEleerrCorrected = 0;
-            double totalEffPoserrCorrected = 0;
-            */
-            // Calculate total efficiencies for each sensor
-            if (numberOfTracksChannel.get(sensorName).sumAllBinHeights() != 0
-                    && numberOfTracksChannel.get(sensorName).sumAllBinHeights() != 0) {
-                totalEff = numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).sumAllBinHeights()
-                        / (double) numberOfTracksChannel.get(sensorName).sumAllBinHeights();
-                totalEfferr = Math
-                        .sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).sumAllBinHeights()
-                                + 1 / (double) numberOfTracksChannel.get(sensorName).sumAllBinHeights());
-                /*
-                  totalEffCorrected = numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).sumAllBinHeights()
-                        / (double) numberOfTracksChannelCorrected.get(sensorName).sumAllBinHeights();
-                totalEfferrCorrected = Math
-                        .sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).sumAllBinHeights()
-                                + 1 / (double) numberOfTracksChannelCorrected.get(sensorName).sumAllBinHeights());
-                */
-            }
-            if (numberOfTracksChannelEle.get(sensorName).sumAllBinHeights() != 0
-                    && numberOfTracksChannelEle.get(sensorName).sumAllBinHeights() != 0) {
-                totalEffEle = numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).sumAllBinHeights()
-                        / (double) numberOfTracksChannelEle.get(sensorName).sumAllBinHeights();
-                totalEffEleerr = Math.sqrt(
-                        1 / (double) numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).sumAllBinHeights()
-                        + 1 / (double) numberOfTracksChannelEle.get(sensorName).sumAllBinHeights());
-                /*
-                totalEffEleCorrected = numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).sumAllBinHeights()
-                        / (double) numberOfTracksChannelCorrectedEle.get(sensorName).sumAllBinHeights();
-                totalEffEleerrCorrected = Math.sqrt(
-                        1 / (double) numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).sumAllBinHeights()
-                        + 1 / (double) numberOfTracksChannelCorrectedEle.get(sensorName).sumAllBinHeights());
-                */
-            }
-            if (numberOfTracksChannelPos.get(sensorName).sumAllBinHeights() != 0
-                    && numberOfTracksChannelPos.get(sensorName).sumAllBinHeights() != 0) {
-                totalEffPos = numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorName).sumAllBinHeights()
-                        / (double) numberOfTracksChannelPos.get(sensorName).sumAllBinHeights();
-                totalEffPoserr = Math.sqrt(
-                        1 / (double) numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorName).sumAllBinHeights()
-                        + 1 / (double) numberOfTracksChannelPos.get(sensorName).sumAllBinHeights());
-                /*
-                totalEffPosCorrected = numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorName).sumAllBinHeights()
-                        / (double) numberOfTracksChannelCorrectedPos.get(sensorName).sumAllBinHeights();
-                totalEffPoserrCorrected = Math.sqrt(
-                        1 / (double) numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorName).sumAllBinHeights()
-                        + 1 / (double) numberOfTracksChannelCorrectedPos.get(sensorName).sumAllBinHeights());
-                */
-            }
+       
+    }
 
-            TotalEff.get(sensorName).fill(0, totalEff);
-            TotalEffEle.get(sensorName).fill(0, totalEffEle);
-            TotalEffPos.get(sensorName).fill(0, totalEffPos);
-            TotalEfferr.get(sensorName).fill(0, totalEfferr);
-            TotalEffEleerr.get(sensorName).fill(0, totalEffEleerr);
-            TotalEffPoserr.get(sensorName).fill(0, totalEffPoserr);
-            /*
-            TotalCorrectedEff.get(sensorName).fill(0, totalEffCorrected);
-            TotalCorrectedEffEle.get(sensorName).fill(0, totalEffEleCorrected);
-            TotalCorrectedEffPos.get(sensorName).fill(0, totalEffPosCorrected);
-            TotalCorrectedEfferr.get(sensorName).fill(0, totalEfferrCorrected);
-            TotalCorrectedEffEleerr.get(sensorName).fill(0, totalEffEleerrCorrected);
-            TotalCorrectedEffPoserr.get(sensorName).fill(0, totalEffPoserrCorrected);
-            */
-            // Print out efficiency and corrected efficiency for each sensor with error
-            System.out.println(sensorName + " Total Efficiency = " + totalEff + " with error " + totalEfferr);
-            //            System.out.println(sensorName + " Total Corrected Efficiency = " + totalEffCorrected + " with error "
-            //                    + totalEfferrCorrected);
 
-            // Output efficiencies as a function of channel in a text file
-            org.hps.util.Pair<Integer, Integer> daqPair = getDaqPair(daqMap, sensor);
-            Collection<SvtChannel> channels = channelMap.find(daqPair);
-            for (SvtChannel channel : channels) {
-                int chanID = channel.getChannelID();
-                int chan = channel.getChannel();
-                if (chan < hitEfficiencyChannel.get(sensorName).axis().bins()) {
-                    double eff = hitEfficiencyChannel.get(sensorName).binHeight(chan);
-                    //System.out.println(chanID + ", " + eff);
-                    out.println(chanID + ", " + eff);
+    private int getFrontLayersPattern(Track trk){
+        int pat=0;
+        for (TrackerHit stripCluster : trk.getTrackerHits()) {
+            int lay=((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+            if(lay==1)
+                pat+=1000; 
+            if(lay==2)
+                pat+=100; 
+            if(lay==3)
+                pat+=10; 
+            if(lay==4)
+                pat+=1; 
+        }
+        return pat; 
+    }    
+
+    private String getPatternString(int pat){       
+        String patString=String.format("%04d",pat);  
+        System.out.println(patString); 
+        return patString;        
+    }
+
+    private List<String> patternStringList(){
+        Integer patInt=0;
+        List<String> patterns=new ArrayList<String>(); 
+        for(int l1=0;l1<2; l1++){
+            for(int l2=0;l2<2; l2++){
+                for(int l3=0;l3<2; l3++){
+                    for(int l4=0;l4<2; l4++){
+                        patInt=l1*1000+l2*100+l3*10+1*l4; 
+                        patterns.add(String.format("%04d",patInt));
+                    }                    
                 }
             }
         }
-        out.close();
+        return patterns; 
     }
 
-    static org.hps.util.Pair<Integer, Integer> getDaqPair(SvtDaqMappingCollection daqMap, HpsSiSensor sensor) {
-
-        final String svtHalf = sensor.isTopLayer() ? AbstractSvtDaqMapping.TOP_HALF : AbstractSvtDaqMapping.BOTTOM_HALF;
-        for (final SvtDaqMapping object : daqMap) {
-            if (svtHalf.equals(object.getSvtHalf()) && object.getLayerNumber() == sensor.getLayerNumber()
-                    && object.getSide().equals(sensor.getSide())) {
-                return new org.hps.util.Pair<Integer, Integer>(object.getFebID(), object.getFebHybridID());
-            }
-        }
-        return null;
-    }
 }
+
+

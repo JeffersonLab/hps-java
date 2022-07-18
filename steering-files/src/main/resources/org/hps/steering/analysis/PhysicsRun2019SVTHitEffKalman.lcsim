@@ -37,8 +37,8 @@
 
         <driver name="KalmanPatRecDriver"/>
         <driver name="ReconParticleDriver_Kalman" /> 
-        <driver name="SVTHitEfficiency"/>
-        <!--<driver name="LCIOWriter"/>-->
+        <driver name="SVTHitEfficiency"/> 
+        <driver name="LCIOWriter"/>
         <!-- Toggle between saving in aida or root format -->       
          <driver name="AidaSaveDriver"/> 
         <driver name="CleanupDriver"/>
@@ -75,7 +75,8 @@
         </driver>
         
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Pileup</fitAlgorithm>
+             <fitAlgorithm>Pileup</fitAlgorithm>
+            <fitTimeMinimizer>Migrad</fitTimeMinimizer>
             <useTimestamps>false</useTimestamps>
             <correctTimeOffset>true</correctTimeOffset>
             <correctT0Shift>false</correctT0Shift>
@@ -84,7 +85,7 @@
             <subtractTriggerTime>true</subtractTriggerTime>
             <correctChanT0>false</correctChanT0>
             <debug>false</debug>
-        </driver>
+         </driver>
        
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
@@ -148,7 +149,7 @@
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>       
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}.root</outputFileName>
+            <outputFileName>${outputFile}_svtEfficiency.root</outputFileName>
         </driver>    
 
       </drivers>

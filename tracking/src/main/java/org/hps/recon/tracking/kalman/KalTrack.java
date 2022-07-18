@@ -55,13 +55,14 @@ public class KalTrack {
     static final boolean debug = false;
     private KalmanParams kPar;
     private double chi2incVtx;
-    private static DMatrixRMaj tempV;
+    private static DMatrixRMaj tempV; 
     private static DMatrixRMaj Cinv;
     private static Logger logger;
     private static boolean initialized;
     private double[] arcLength;
     private static LinearSolverDense<DMatrixRMaj> solver;
     static int[] nBadCov = {0, 0};
+    private boolean trimSites=false;
 
     KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat, ArrayList<Double> XLscat, KalmanParams kPar) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
@@ -73,7 +74,7 @@ public class KalTrack {
         ID = tkID;
         arcLength = null;
         //debug = (evtNumb == 217481);
-
+        
         if (!initialized) {
             logger = Logger.getLogger(KalTrack.class.getName());
             tempV = new DMatrixRMaj(5, 1);
@@ -85,33 +86,46 @@ public class KalTrack {
         // Trim empty sites from the track ends
         Collections.sort(SiteList, MeasurementSite.SiteComparatorUp);
         int firstSite = -1;
+        int lastSite = 999;
+        //        if (trimSites){
         for (int idx = 0; idx < SiteList.size(); ++idx) {
             firstSite = idx;
             if (SiteList.get(idx).hitID >= 0) {
+                //                System.out.println("Found first hit at "+firstSite); 
                 break;
             }
         }
-        int lastSite = 999;
         for (int idx = SiteList.size() - 1; idx >= 0; --idx) {
             lastSite = idx;
             if (SiteList.get(idx).hitID >= 0) {
+                //                System.out.println("Found last hit at "+lastSite); 
                 break;
             }
         }
+            //        } else{
+        firstSite=0;
+        lastSite=SiteList.size() - 1;
+            //        }
 
         // Make a new list of sites, without empty sites at beginning or end
+        //        System.out.println("SiteList size for this track is :  "+SiteList.size());
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
         for (int idx = firstSite; idx <= lastSite; ++idx) {
             MeasurementSite site = SiteList.get(idx);
+            //            System.out.println("Layer Number = "+site.m.Layer+" has hit? "+site.hitID);
             if (site.aS == null) {  // This should never happen
-                logger.log(Level.SEVERE, String.format("Event %d: site of track %d is missing smoothed state vector for layer %d detector %d",
-                        eventNumber, ID, site.m.Layer, site.m.detector));
-                logger.log(Level.WARNING, site.toString("bad site"));
+                //                logger.log(Level.SEVERE, String.format("Event %d: site of track %d is missing smoothed state vector for layer %d detector %d",
+                //        eventNumber, ID, site.m.Layer, site.m.detector));
+                //logger.log(Level.WARNING, site.toString("bad site"));
+                //                System.out.println("site.aS == null for site number "+idx+" layer number = "+site.m.Layer); 
+                //                site.print("bad one"); 
                 bad = true;
                 continue;
             }
             this.SiteList.add(site);
         }
+        //        System.out.println("SiteList size for this track after removing bad ones is :  "+this.SiteList.size());
+        
 
         helixAtOrigin = null;
         propagated = false;
@@ -291,7 +305,7 @@ public class KalTrack {
             Double varUmeas = CommonOps_DDRM.dot(site.H, tempV);
             return new Pair<>(new Double[]{localInt.v[0], localInt.v[1], localInt.v[2]}, varUmeas);
         }
-        return new Pair<>(new Double[]{999., 999., 999.}, 999.);
+        return new Pair<>(new Double[]{666., 666., 666.}, 666.);
     }
 
     private void makeLyrMap() {
@@ -430,6 +444,7 @@ public class KalTrack {
         if (lyrMap.containsKey(layer)) {
             return unbiasedIntersect(lyrMap.get(layer),local);
         } else {
+            //            System.out.println("KalTrack::unbiasedIntersect  lyrMap does not contain layer = "+layer+" lyrMap.size() = "+lyrMap.size());
             return new Pair<Double[], Double>(new Double[]{-999.,-999.,-999.}, -999.);
         }
     }
@@ -1221,6 +1236,7 @@ public class KalTrack {
                         eventNumber, ID, site.hitID, site.m.Layer, site.m.detector);
             }
         } else {
+            //            System.out.println("Removing hit from this Kaltrack...is this necessary? Layer = "+site.m.Layer); 
             SiteList.remove(site);
         }
         return exchange;
@@ -1333,8 +1349,10 @@ public class KalTrack {
                     System.out.format("KalTrack.addHits event %d: added hit %d on layer %d detector %d\n", eventNumber, site.hitID, site.m.Layer, site.m.detector);
                 }
                 if (siteToDelete != null) {
+                    //                    System.out.println("addHits::  Deleting site on layer "+siteToDelete.m.Layer);
                     SiteList.remove(siteToDelete);
                 }
+                //                System.out.println("addHits::  Adding site on layer "+siteToDelete.m.Layer);
                 SiteList.add(site);
             }
             sortSites(true);
