@@ -7,7 +7,6 @@
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
-
         <!--RF driver-->
          <driver name="PreCleanupDriver"/>
         <driver name="RfFitter"/>
@@ -117,7 +116,7 @@
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" >
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
-            <trackCollectionName>KalmanFullTracks</trackCollectionName>
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
             <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
             <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
             <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
@@ -143,7 +142,7 @@
             <isMC>true</isMC>
             <applyClusterCorrections>true</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
-            <trackClusterMatchPlots>true</trackClusterMatchPlots>
+            <trackClusterMatchPlots>false</trackClusterMatchPlots>
             <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
 
         </driver>

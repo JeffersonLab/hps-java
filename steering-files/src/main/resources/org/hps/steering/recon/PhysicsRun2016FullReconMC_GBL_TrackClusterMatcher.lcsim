@@ -37,8 +37,6 @@
             layer 2 to confirm and layers 1 and 6 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
         -->
-
-
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
@@ -56,7 +54,6 @@
           <!-- <collectionNames>FinalStateParticles GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations RotatedHelicalTrackHits RotatedHelicalTrackHitRelations TrackData  </collectionNames> -->
         </driver>
 
-
             <driver name="TrackReconSeed123Conf4Extd56" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>
             <strategyResource>HPS_s123_c4_e56_4hit.xml</strategyResource>
@@ -72,7 +69,6 @@
             <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
-
 
         <driver name="TrackReconSeed567Conf4Extd123" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s567_c4_e123</trackCollectionName>
@@ -258,7 +254,7 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
-            <trackCollectionName>GBLTracks</trackCollectionName>
+            <matcherTrackCollectionName>GBLTracks</matcherTrackCollectionName>
             <beamPositionX> -0.224 </beamPositionX>
             <beamSigmaX> 0.125 </beamSigmaX>
             <beamPositionY> -0.08 </beamPositionY>
@@ -277,11 +273,8 @@
             <debug>false</debug>
             <applyClusterCorrections>true</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
-            <trackClusterMatchPlots>true</trackClusterMatchPlots>
+            <trackClusterMatchPlots>false</trackClusterMatchPlots>
             <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
-            
-        </driver>
-
         </driver>
 
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >

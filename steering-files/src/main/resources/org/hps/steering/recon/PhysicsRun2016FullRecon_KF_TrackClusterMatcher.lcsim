@@ -96,7 +96,7 @@
       <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" >
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
-            <trackCollectionName>KalmanFullTracks</trackCollectionName>
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
             <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
             <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
             <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
@@ -124,7 +124,7 @@
             <makeMollerCols>false</makeMollerCols>
             <disablePID>true</disablePID>
             <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
-            <trackClusterMatchPlots>true</trackClusterMatchPlots>
+            <trackClusterMatchPlots>false</trackClusterMatchPlots>
         </driver>
 
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
