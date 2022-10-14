@@ -9,7 +9,7 @@
     <execute>
 
         <!--RF driver-->
-        <driver name="PreCleanupDriver"/>
+        <!-- <driver name="PreCleanupDriver"/>-->
         <driver name="RfFitter"/>
  
         <!-- Ecal reconstruction drivers -->        
@@ -23,25 +23,41 @@
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
         <driver name="HelicalTrackHitDriver"/>
-        <driver name="TrackReconSeed123Conf4Extd56"/>
-        <driver name="TrackReconSeed123Conf5Extd46"/>
-
-        <driver name="TrackReconSeed567Conf4Extd123"/>
-        <driver name="TrackReconSeed456Conf3Extd127"/>
-        <driver name="TrackReconSeed356Conf7Extd124"/>
-        <driver name="TrackReconSeed235Conf6Extd147"/>
-        <driver name="TrackReconSeed234Conf6Extd157"/>
-
         <!-- 
             Will run track finding algorithm using layers 345 as a seed, 
             layer 2 to confirm and layers 1 and 6 to extend. The collection
             name of the tracks found with this strategy will be "MatchedTracks".
         -->
+        <driver name="TrackReconSeed345Conf2Extd16"/>
+        <!-- 
+            Will run track finding algorithm using layers 456 as a seed, 
+            layer 3 to confirm and layers 2 and 1 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s456_c3_e21"
+        -->
+        <driver name="TrackReconSeed456Conf3Extd21"/>
+        <!-- 
+            Will run track finding algorithm using layers 123 as a seed, 
+            layer 4 to confirm and layers 5 and 6 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s123_c4_e56"
+        -->
+        <driver name="TrackReconSeed123Conf4Extd56"/>
+        <!-- 
+            Will run track finding algorithm using layers 123 as a seed, 
+            layer 5 to confirm and layers 4 and 6 to extend.  The collection
+            name of the tracks found with this strategy will be 
+            "Tracks_s123_c5_e46"
+        -->
+        <driver name="TrackReconSeed123Conf5Extd46"/>
+        <!-- 
+           TrackDataDriver needs to be run before ReconParticleDriver so the
+           ReconstructedParticle types are properly set.
+        -->
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="ReconParticleDriver" />   
-
         <driver name="LCIOWriter"/>            
         <driver name="CleanupDriver"/>
     </execute>    
@@ -261,7 +277,6 @@
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
             <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
-            <requireClustersForV0>true</requireClustersForV0>
             <isMC>true</isMC>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
@@ -270,9 +285,6 @@
             <maxVertexClusterDt>5.0</maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
-            <debug>false</debug>
-            <applyClusterCorrections>true</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
             <trackClusterMatchPlots>false</trackClusterMatchPlots>
             <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
         </driver>

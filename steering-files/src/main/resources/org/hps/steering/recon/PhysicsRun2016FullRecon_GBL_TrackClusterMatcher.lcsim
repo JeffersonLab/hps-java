@@ -8,7 +8,7 @@
     -->
     <execute>
         <!-- Skip events with known bad conditions -->
-        <driver name="PreCleanupDriver" />
+        <!-- <driver name="PreCleanupDriver" />-->
         <driver name="EventFlagFilter"/>
         <!--RF driver-->
         <driver name="RfFitter"/>

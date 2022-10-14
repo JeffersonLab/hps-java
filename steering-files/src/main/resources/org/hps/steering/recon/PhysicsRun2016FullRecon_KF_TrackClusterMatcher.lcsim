@@ -7,8 +7,7 @@
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
-
-        <driver name="PreCleanupDriver"/>
+        <!-- <driver name="PreCleanupDriver"/>-->
         <!-- Skip events with known bad conditions -->
         <driver name="EventFlagFilter"/>
         <!--RF driver-->
@@ -103,9 +102,8 @@
             <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
             <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
             <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
-            <includeUnmatchedTracksInFSP>false</includeUnmatchedTracksInFSP>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>true</useInternalVertexXYPositions>
-            <requireClustersForV0>true</requireClustersForV0>
             <beamPositionX>-0.224</beamPositionX>
             <beamSigmaX>0.125</beamSigmaX>
             <beamPositionY>-0.08</beamPositionY>
@@ -116,13 +114,7 @@
             <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>2.5</maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
-            <trackClusterTimeOffset>56</trackClusterTimeOffset>
-            <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-            <applyClusterCorrections>true</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
-            <debug>false</debug>
-            <makeMollerCols>false</makeMollerCols>
-            <disablePID>true</disablePID>
+            <trackClusterTimeOffset>55</trackClusterTimeOffset>
             <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
             <trackClusterMatchPlots>false</trackClusterMatchPlots>
         </driver>

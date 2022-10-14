@@ -8,7 +8,7 @@
     -->
     <execute>
         <!--RF driver-->
-         <driver name="PreCleanupDriver"/>
+        <!-- <driver name="PreCleanupDriver"/>-->
         <driver name="RfFitter"/>
  
         <!-- Ecal reconstruction drivers -->        
@@ -125,7 +125,6 @@
             <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
-            <requireClustersForV0>true</requireClustersForV0>
             <beamPositionX>-0.224</beamPositionX>
             <beamSigmaX>0.125</beamSigmaX>
             <beamPositionY>-0.08</beamPositionY>
@@ -137,11 +136,7 @@
             <maxVertexClusterDt>5.0</maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
             <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
-            <debug>false</debug>
-            <makeMollerCols>false</makeMollerCols>
             <isMC>true</isMC>
-            <applyClusterCorrections>true</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
             <trackClusterMatchPlots>false</trackClusterMatchPlots>
             <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
 
