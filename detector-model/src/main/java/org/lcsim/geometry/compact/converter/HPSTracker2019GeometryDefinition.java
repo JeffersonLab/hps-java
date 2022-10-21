@@ -87,7 +87,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         //LOGGER.info("Construct uChannelL14Bottom");
         
 
-        UChannelL13 uChannelL14Bottom = new UChannelL14Bottom("support_bottom_L14", svtBox, alignmentCorrections,
+        UChannelL13 uChannelL14Bottom = new UChannelL14Bottom("support_bottom_L13", svtBox, alignmentCorrections,
                 supportRingKinL13Bottom);
         surveyVolumes.add(uChannelL14Bottom);
         
@@ -109,7 +109,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         //System.out.println("PF::Constructed supportRingKinL13Top: " +  supportRingKinL13Top.toString());
         
 
-        UChannelL13 uChannelL14Top = new UChannelL14Top("support_top_L14", svtBox, alignmentCorrections,
+        UChannelL13 uChannelL14Top = new UChannelL14Top("support_top_L13", svtBox, alignmentCorrections,
                 supportRingKinL13Top);
         surveyVolumes.add(uChannelL14Top);
         

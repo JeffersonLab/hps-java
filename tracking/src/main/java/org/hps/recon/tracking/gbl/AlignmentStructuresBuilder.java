@@ -329,7 +329,7 @@ public class AlignmentStructuresBuilder {
         aliVolumeList.add(alignable_volumes.get("module_L7b_halfmodule_stereo_hole_sensor0_AV"));
         aliVolumeList.add(alignable_volumes.get("module_L7b_halfmodule_stereo_slot_sensor0_AV"));
         rot = (alignable_volumes.get("module_L7b_halfmodule_stereo_hole_sensor0_AV")).getL2G().getRotation();
-        AlignableVolume doublesensor_stereo_L7_Bot_AV = new AlignableVolume("doublesensor_stereo_L7_Bot_AV", aliVolumeList, rot, null,6);
+        AlignableVolume doublesensor_stereo_L7_Bot_AV = new AlignableVolume("doublesensor_stereo_L7_Bot_AV", aliVolumeList, rot, null,76);
         alignable_volumes.put("doublesensor_stereo_L7_Bot_AV",doublesensor_stereo_L7_Bot_AV);
         aliVolumeList.clear();
 
