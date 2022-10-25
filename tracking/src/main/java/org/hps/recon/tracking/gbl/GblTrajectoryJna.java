@@ -30,12 +30,14 @@ public class GblTrajectoryJna {
         void GblTrajectory_fit(Pointer self, DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, char [] optionList, int aLabel);
         void GblTrajectory_addPoint(Pointer self, Pointer point);
         int  GblTrajectory_isValid(Pointer self);
+        int  GblTrajectory_getNumPoints(Pointer self);
         void GblTrajectory_printTrajectory(Pointer self, int level);
         void GblTrajectory_printData(Pointer self);
         void GblTrajectory_printPoints(Pointer self, int level);
         void GblTrajectory_getResults(Pointer self, int aSignedLabel, double[] localPar, int[] nLocalPar,
                                       double[] localCov, int[] sizeLocalCov);
         void GblTrajectory_milleOut(Pointer self, Pointer millebinary);
+        void GblTrajectory_getMeasResults(Pointer self, int aLabel, int[] numdata, double[] aResiduals, double[] aMeasErrors, double[] aResErrors, double[] aDownWeights);
         
     }
     
@@ -116,13 +118,14 @@ public class GblTrajectoryJna {
                                                                             ppoints_2, npoints_2, trafo_2);
     }
     
+    //to perform the full fit
     public void fit(DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, String optionList) {
         
         char[] c_optionList = optionList.toCharArray();
         GblTrajectoryInterface.INSTANCE.GblTrajectory_fit(self, Chi2, Ndf, lostWeight, c_optionList,-999);
     }
     
-    
+    //To perform the fit removing a particular point
     public void fit(DoubleByReference Chi2, IntByReference Ndf,  DoubleByReference lostWeight, String optionList, int aLabel) {
         
         char [] c_optionList = optionList.toCharArray();
@@ -138,6 +141,10 @@ public class GblTrajectoryJna {
         
     }
 
+    public int getNumPoints() {
+        return GblTrajectoryInterface.INSTANCE.GblTrajectory_getNumPoints(self);
+    }
+
     public void printTrajectory(int level) {
         GblTrajectoryInterface.INSTANCE.GblTrajectory_printTrajectory(self,level);
     }
@@ -150,8 +157,27 @@ public class GblTrajectoryJna {
         GblTrajectoryInterface.INSTANCE.GblTrajectory_printPoints(self,level);
     }
     
+
+    public void getMeasResults(int aLabel, int numData[], List<Double> aResiduals,List<Double> aMeasErrors, List<Double> aResErrors, List<Double> aDownWeights) {
+        
+        double[] d_aResiduals  = new double[2];
+        double[] d_aMeasErrors = new double[2];
+        double[] d_aResErrors  = new double[2];
+        double[] d_aDownWeights = new double[2];
+        
+        GblTrajectoryInterface.INSTANCE.GblTrajectory_getMeasResults(self, aLabel, numData, d_aResiduals, d_aMeasErrors, d_aResErrors, d_aDownWeights);
+
+        for (int i=0; i<2; i++) {
+            aResiduals.add(d_aResiduals[i]);
+            aMeasErrors.add(d_aMeasErrors[i]);
+            aResErrors.add(d_aResErrors[i]);
+            aDownWeights.add(d_aDownWeights[i]);
+        }
+        
+    }
+    
     //!! Only 5-localPar and 5x5 local Cov for the moment
-    public void getResults(int aSignedLabel, Vector localPar, SymMatrix localCov) {
+    public int getResults(int aSignedLabel, Vector localPar, SymMatrix localCov) {
         
         double[] d_localPar = new double[5];
         double[] d_localCov = new double[25];
@@ -169,6 +195,8 @@ public class GblTrajectoryJna {
                 localCov.set(i,j,d_localCov[i+5*j]);
             }
         }
+
+        return 0;
     }
 
     
