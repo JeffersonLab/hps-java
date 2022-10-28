@@ -68,7 +68,8 @@ public class FittedGblTrajectory {
         }
     };
 
-    private GblTrajectory _traj;
+    private GblTrajectory _traj = null;
+    private GblTrajectoryJna _traj_jna = null;
     private double _chi2;
     private double _lost;
     private int _ndf;
@@ -90,6 +91,14 @@ public class FittedGblTrajectory {
         _ndf = ndf;
         _lost = lost;
     }
+    
+
+    public FittedGblTrajectory(GblTrajectoryJna traj_jna, double chi2, int ndf, double lost) {
+        _traj_jna = traj_jna;
+        _chi2 = chi2;
+        _ndf = ndf;
+        _lost = lost;
+    }
 
     /**
      * Find the index (or label) of the GBL point on the trajectory from the {@link GBLPOINT}.
@@ -101,8 +110,12 @@ public class FittedGblTrajectory {
         int gblPointIndex;
         if (point.compareTo(GBLPOINT.IP) == 0)
             gblPointIndex = 1;
-        else if (point.compareTo(GBLPOINT.LAST) == 0)
-            gblPointIndex = _traj.getNumPoints();
+        else if (point.compareTo(GBLPOINT.LAST) == 0) {
+            if (_traj != null)
+                gblPointIndex = _traj.getNumPoints();
+            else
+                gblPointIndex = _traj_jna.getNumPoints();
+        }
         else
             throw new RuntimeException("This GBL point " + point.toString() + "( " + point.name() + ") is not valid");
         return gblPointIndex;
@@ -135,7 +148,11 @@ public class FittedGblTrajectory {
     public void getResults(int iLabel, Vector locPar, SymMatrix locCov) {
 
         // Get the result from the trajectory
-        int ok = _traj.getResults(iLabel, locPar, locCov);
+        int ok = 0;
+        if (_traj != null)
+            ok = _traj.getResults(iLabel, locPar, locCov);
+        else 
+            ok = _traj_jna.getResults(iLabel, locPar, locCov);  
 
         // check that the fit was ok
         if (ok != 0)
@@ -183,6 +200,10 @@ public class FittedGblTrajectory {
         return _traj;
     }
 
+    public GblTrajectoryJna get_traj_jna(){
+        return _traj_jna;
+    }
+    
     public double get_chi2() {
         return _chi2;
     }
@@ -326,27 +347,50 @@ public class FittedGblTrajectory {
      * @return kinks in a {@link GBLKinkData} object.
      */
     public GBLKinkData getKinks() {
-        GblTrajectory traj = this._traj;
         // get corrections from GBL fit
         Vector locPar = new Vector(5);
         SymMatrix locCov = new SymMatrix(5);
-        float[] lambdaKinks = new float[traj.getNumPoints() - 1];
-        double[] phiKinks = new double[traj.getNumPoints() - 1];
+        float[] lambdaKinks ;
+        double[] phiKinks ;
+        
+        if (_traj != null) {
+        
+            lambdaKinks = new float[_traj.getNumPoints() - 1];
+            phiKinks = new double[_traj.getNumPoints() - 1];
 
-        double oldPhi = 0, oldLambda = 0;
-        for (int i = 0; i < traj.getNumPoints(); i++) {
-            traj.getResults(i + 1, locPar, locCov); // vertex point
-            double newPhi = locPar.get(GBLPARIDX.XTPRIME.getValue());
-            double newLambda = locPar.get(GBLPARIDX.YTPRIME.getValue());
-            if (i > 0) {
-                lambdaKinks[i - 1] = (float) (newLambda - oldLambda);
-                phiKinks[i - 1] = newPhi - oldPhi;
-                // System.out.println("phikink: " + (newPhi - oldPhi));
+            double oldPhi = 0, oldLambda = 0;
+            for (int i = 0; i < _traj.getNumPoints(); i++) {
+                _traj.getResults(i + 1, locPar, locCov); // vertex point
+                double newPhi = locPar.get(GBLPARIDX.XTPRIME.getValue());
+                double newLambda = locPar.get(GBLPARIDX.YTPRIME.getValue());
+                if (i > 0) {
+                    lambdaKinks[i - 1] = (float) (newLambda - oldLambda);
+                    phiKinks[i - 1] = newPhi - oldPhi;
+                    // System.out.println("phikink: " + (newPhi - oldPhi));
+                }
+                oldPhi = newPhi;
+                oldLambda = newLambda;
             }
-            oldPhi = newPhi;
-            oldLambda = newLambda;
         }
-
+        else {
+            lambdaKinks = new float[_traj_jna.getNumPoints() - 1];
+            phiKinks = new double[_traj_jna.getNumPoints() - 1];
+            
+            double oldPhi = 0, oldLambda = 0;
+            for (int i = 0; i < _traj_jna.getNumPoints(); i++) {
+                _traj_jna.getResults(i + 1, locPar, locCov); // vertex point
+                double newPhi = locPar.get(GBLPARIDX.XTPRIME.getValue());
+                double newLambda = locPar.get(GBLPARIDX.YTPRIME.getValue());
+                if (i > 0) {
+                    lambdaKinks[i - 1] = (float) (newLambda - oldLambda);
+                    phiKinks[i - 1] = newPhi - oldPhi;
+                    // System.out.println("phikink: " + (newPhi - oldPhi));
+                }
+                oldPhi = newPhi;
+                oldLambda = newLambda;
+            }
+        }
+        
         return new GBLKinkData(lambdaKinks, phiKinks);
     }
 

@@ -8,7 +8,7 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+//import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -32,14 +32,16 @@ public class HpsGblTrajectoryCreator {
         // System.out.println("level " + LOGGER.getLevel().toString());
     }
 
-    public List<GblPointJna> MakeGblPointsList(List<GBLStripClusterData> hits, GBLBeamSpotPoint bs, double bfac) {
+    public List<GblPointJna> MakeGblPointsList(List<GBLStripClusterData> hits, GBLBeamSpotPoint bs, double bfac, Map<Integer, Integer> sensorMap, Map<Integer, Double> pathLengthMap) {
         
         
-        // Save the association between strip cluster and label, and between label and path length - useless here.
-        Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
-        Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
+        // Save the association between strip cluster and label, and between label and path length
+        //Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
+        //Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
         List<GblPointJna> listOfPoints = new ArrayList<GblPointJna>();
         
+        
+
         int iLabel = 0;
         double s = 0.;
         Matrix jacPointToPoint = new Matrix(5,5);
