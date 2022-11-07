@@ -153,17 +153,17 @@ public final class ClusterPositionCorrection2021 {
         ClusterPosResult21 res;
         double xCorr;
         switch (pdg) {
-        case 11: // Particle is electron
-            res = positionCorrectionElectron(xPos, yPos, Energy);
-            break;
-        case -11:// Particle is positron
-            res = positionCorrectionPositron(xPos, yPos, Energy);
-            break;
-        case 22: // Particle is photon
-            res = positionCorrectionPhoton(xPos, yPos, Energy);
-            break;
-        default: // Unknown
-            res = new ClusterPosResult21(xPos, yPos);
+            case 11: // Particle is electron
+                res = positionCorrectionElectron(xPos, yPos, Energy);
+                break;
+            case -11:// Particle is positron
+                res = positionCorrectionPositron(xPos, yPos, Energy);
+                break;
+            case 22: // Particle is photon
+                res = positionCorrectionPhoton(xPos, yPos, Energy);
+                break;
+            default: // Unknown
+                res = new ClusterPosResult21(xPos, yPos);
         }
         return res;
     }
