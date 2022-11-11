@@ -552,9 +552,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
+                //System.out.print("Enabled alignment cuts with hits cut = ");
                 //Kalman
-                if (TrackType == 1)
-                    nHitsCut = 2*nHitsCut;
+                int actualHitCut = nHitsCut;
+                if (TrackType == 1) {
+                    actualHitCut = 2*nHitsCut;
+                }
+                //System.out.println(actualHitCut);
                 
                 if (momentum.magnitude() < minMom || momentum.magnitude() > maxMom) {
                     continue;
@@ -566,7 +570,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 }
                 
                 //Align with tracks with at least 6 hits
-                if ((tanLambda > 0 && track.getTrackerHits().size() < nHitsCut) || (tanLambda < 0 && track.getTrackerHits().size() < nHitsCut))  {
+                if ((tanLambda > 0 && track.getTrackerHits().size() < actualHitCut) || (tanLambda < 0 && track.getTrackerHits().size() < actualHitCut))  {
                     continue;
                 }
                 
