@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
-    <detector name="HPS_Nominal_iter0" />
-    <generator name="lcsim" version="1.0" file="/sdf/group/hps/users/bravo/src/hps-java/detector-data/detectors/HPS_Nominal_iter0/compact.xml" checksum="1024446144" />
+    <detector name="HPS_Nominal_3pt7_iter0" />
+    <generator name="lcsim" version="1.0" file="/sdf/group/hps/users/bravo/src/hps-java/detector-data/detectors/HPS_Nominal_3pt7_iter0/compact.xml" checksum="2567543761" />
     <author name="NONE" />
-    <comment>HPS detector for 2019 run with fieldmap, Tracker at nominal opening angle, no SVT survey, this detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV. Includes L0 and Hodoscope. ECAL with survey alignment for HPSEcal3 (global y/z translations). This detector has the full hierarchical alignment structure</comment>
+    <comment>HPS detector for 2021 run with fieldmap, Tracker at nominal opening angle, no SVT survey, this detector uses the corrected fieldmap scaled for 3.7 GeV. Includes L0 and Hodoscope. ECAL with survey alignment for HPSEcal3 (global y/z translations). This detector has the full hierarchical alignment structure</comment>
   </header>
   <iddict>
     <idspec name="HodoscopeForeHits" length="46">
@@ -180,7 +180,7 @@
       <constant name="top_rot_alpha" value="6.4964212772E-4" />
       <constant name="y_rot" value="0.03052" />
       <constant name="tracking_region_zmax" value="1368.0" />
-      <constant name="constBFieldY" value="-1.08" />
+      <constant name="constBFieldY" value="-0.8596" />
       <constant name="top_tr_z" value="4.9375" />
       <constant name="top_tr_y" value="2.725" />
       <constant name="top_tr_x" value="-0.71" />
@@ -10064,7 +10064,7 @@
     </setup>
   </gdml>
   <fields>
-    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/418acm2_10kg_corrected_unfolded_scaled_1.0319.dat" xoffset="21.17" yoffset="0.0" zoffset="457.2" />
+    <field_map_3d name="HPSDipoleFieldMap3D" lunit="mm" funit="tesla" filename="fieldmap/334acm3_8kg_corrected_unfolded_scaled_1.07326.dat" xoffset="21.17" yoffset="0.0" zoffset="457.2" />
   </fields>
 </lcdd>
 
