@@ -21,9 +21,9 @@
     <etVersion>14.1</etVersion>
   </properties>
   <scm>
-    <connection>scm:git:git://github.com/jeffersonlab/hps-java.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jeffersonlab/hps-java.git</developerConnection>
-    <url>http://github.com/jeffersonlab/hps-java</url>
+    <connection>scm:git:ssh://git@github.com:JeffersonLab/hps-java.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/JeffersonLab/hps-java.git</developerConnection>
+    <url>https://github.com/jeffersonlab/hps-java</url>
     <tag>HEAD</tag>
   </scm>
   <distributionManagement>
