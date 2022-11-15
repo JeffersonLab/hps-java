@@ -20,7 +20,7 @@
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
     <junitVersion>4.13.1</junitVersion>
     <etVersion>14.1</etVersion>
-    <maven-release-plugin.version>3.8.6</maven-release-plugin.version>
+    <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
   </properties>
   
   <scm>
