@@ -544,8 +544,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
 
             if (enableAlignmentCuts) {
-                
-                
+                System.out.println("DEBUG::Tom::alignment cuts enabled...");
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
@@ -565,12 +564,18 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 }
                 
                 if (Math.abs(tanLambda) < maxtanL) {
-
                     continue;
                 }
                 
                 //Align with tracks with at least 6 hits
-                if ((tanLambda > 0 && track.getTrackerHits().size() < actualHitCut) || (tanLambda < 0 && track.getTrackerHits().size() < actualHitCut))  {
+                if ((tanLambda > 0 && track.getTrackerHits().size() < actualHitCut) 
+                    || (tanLambda < 0 && track.getTrackerHits().size() < actualHitCut))  {
+                    continue;
+                }
+
+                if (TrackType == 1 && track.getTrackerHits().size() % 2 == 1) {
+                    // this is a KF track with an odd number of hits which /cannot/
+                    // be equivalent to a GBL track so we are going to skip it
                     continue;
                 }
                 
@@ -587,6 +592,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     else if (trackSide == 1 && !TrackUtils.isHoleTrack(track)) 
                         continue;
                 }
+                System.out.println("DEBUG::Tom::Pass with " + track.getTrackerHits().size() + " hits");
             }
             
             
@@ -899,16 +905,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
                     trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
-                }
-                
-                else {
-                    
+                } else {
                     trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
                 }
                 
-                if (debugAlignmentDs)
-                    trajForMPII.printData();
-                
+                if (debugAlignmentDs) trajForMPII.printData();
                 
                 //Fit the trajectory to get the Chi2
                 trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
@@ -917,8 +918,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
                     continue;
                 
-                if (writeMilleBinary)
+                if (writeMilleBinary) {
+                    System.out.println("DEBUG::Tom::Writing track with "
+                        + points_on_traj.size() + " hits to mille binary.");
                     trajForMPII.milleOut(mille);
+                }
                 
                 if (correctTrack) {                
 
@@ -932,6 +936,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
                     Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
                     Track gblTrk = newTrack.getFirst();
+
+                    System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");
                     
                     if(computeGBLResiduals) {
                         
