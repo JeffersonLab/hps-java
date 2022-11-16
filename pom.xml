@@ -3,10 +3,11 @@
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>5.1</version>
+  <version>5.2-SNAPSHOT</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
+  
   <properties>
     <project.scm.id>hps-java-github</project.scm.id>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -19,12 +20,14 @@
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
     <junitVersion>4.13.1</junitVersion>
     <etVersion>14.1</etVersion>
+    <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
   </properties>
+  
   <scm>
     <connection>scm:git:ssh://git@github.com:JeffersonLab/hps-java.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/JeffersonLab/hps-java.git</developerConnection>
     <url>https://github.com/jeffersonlab/hps-java</url>
-    <tag>hps-java-5.1</tag>
+    <tag>HEAD</tag>
   </scm>
   <distributionManagement>
     <site>
@@ -471,7 +474,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version>
+        <version>${maven-release-plugin.version}</version>
+        <configuration>
+          <scmCommentPrefix>[hps-release skip]</scmCommentPrefix>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
