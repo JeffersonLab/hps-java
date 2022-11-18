@@ -38,16 +38,22 @@ public class KalmanParams {
     double [] minSeedE;
     double edgeTolerance;
     static final int numLayers = 14;
+    boolean uniformB;
     
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
     private String [] tb;
     private Logger logger;
     int maxListIter1;
+    double SVTcenter = 505.57;     // Location to evaluate the field in case it is assumed uniform
     
+    /** 
+     * Print all the Kalman Tracking parameters values (good idea to call it at the beginning of the run)
+     */
     public void print() {
         System.out.format("\nKalmanParams: dump of the Kalman pattern recognition cuts and parameters\n");
         System.out.println("  (In the case of two values, they refer to the two iterations.)");
         System.out.format("  There are %d layers in the tracker.\n", numLayers);
+        if (uniformB) System.out.format("  The magnetic field is assumed to be uniform!\n");
         System.out.format("  Cluster energy cuts for seeds, by layer: ");
         for (int lyr=0; lyr<numLayers; ++lyr) {
             System.out.format(" %6.2f", minSeedE[lyr]);
@@ -96,6 +102,9 @@ public class KalmanParams {
         System.out.format("\n");
     }
     
+    /**
+     * Constructor: sets all of the default values.
+     */
     public KalmanParams() {
         
         logger = Logger.getLogger(KalmanParams.class.getName());
@@ -121,6 +130,7 @@ public class KalmanParams {
         // Cut and parameter values (length units are mm, time is ns).
         // The index is the iteration number.
         // The second iteration generally will have looser cuts.
+        uniformB = false;
         nTrials = 2;        // Number of global iterations of the pattern recognition
         nIterations = 1;    // Number of Kalman filter iterations per track in the final fit
         edgeTolerance = 1.; // Tolerance on checking if a track is within the detector bounds
@@ -210,6 +220,11 @@ public class KalmanParams {
 //            beamSpot[1] = beamPosKal.v[1];
 //            beamSpot[2] = beamPosKal.v[2];
 //        }            
+    }
+    
+    public void setUniformB(boolean input) {
+        logger.config(String.format("Setting the field to be uniform? %b", input));
+        uniformB = input;
     }
     
     public void setLowPhThreshold(double cut) {
@@ -456,7 +471,12 @@ public class KalmanParams {
         return addStrategy(strategy,"top") && addStrategy(strategy,"bottom");
     }
     
-    // Add a seed search strategy for the bottom or top tracker
+    /**
+     *  Add a seed search strategy for the bottom or top tracker
+     * @param strategy         string specifying the strategy
+     * @param topBottom        string specifying "top" or "bottom"
+     * @return                 true if successful
+     */
     public boolean addStrategy(String strategy, String topBottom) {
         if (!(topBottom == "top" || topBottom == "bottom")) {
             logger.config("The argument topBottom must be 'top' or 'bottom'. This seed strategy is ignored.");

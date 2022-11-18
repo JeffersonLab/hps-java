@@ -26,7 +26,7 @@ class PatRecTest {
     PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1000;              // The number of test eventNumbers to generate for pattern recognition and fitting
+        int nTrials = 3;              // The number of test eventNumbers to generate for pattern recognition and fitting
         int mxPlot = 10;                  // Maximum number of single event plots
         int [] eventToPrint = {1,2,3,4,5,6,7,8,9,10};
         boolean perfect = false;

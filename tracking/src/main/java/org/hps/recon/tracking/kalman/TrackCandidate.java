@@ -74,8 +74,11 @@ class TrackCandidate {
         this.hitMap = hitMap;
     }
     
-    // Creating a copy for the bad-candidate list just to avoid refinding this candidate over and over
-    // This candidate should always remain "bad" and should not be modified further (e.g. refit)
+    /**
+     *  Creating a copy for the bad-candidate list just to avoid refinding this candidate over and over
+     *  This candidate should always remain "bad" and should not be modified further (e.g. refit)
+     * @return    the copy
+     */
     TrackCandidate copy() {
         TrackCandidate newCand = new TrackCandidate(ID + 1000000, kPar, hitMap, eventNumber);
         int nsd = 0;
@@ -99,8 +102,14 @@ class TrackCandidate {
         return newCand;
     }
     
-    // Method to compare this candidate's hits with the hits of the SeedTracker/GBL track, for debugging purposes only.
+    /**
+     * Method to compare this candidate's hits with the hits of the SeedTracker/GBL track, for debugging purposes only.
+     * @param event
+     * @param hitMap
+     * @return
+     */
     int compareGBL(EventHeader event, Map<Measurement, TrackerHit> hitMap) {
+        if (event == null) return -1;
         String trackCollectionName = "GBLTracks";
         if (!event.hasCollection(Track.class, trackCollectionName)) {
             System.out.format("\nKalmanInterface.compareAllTracks: the track collection %s is missing. Abort.\n",trackCollectionName);
@@ -155,14 +164,27 @@ class TrackCandidate {
         return -1;
     }
     
+    /**
+     * See if the track candidate contains all of the given list of hits
+     * @param hitList      list of hits to check
+     * @return             true for a match
+     */
     boolean contains(ArrayList<KalHit> hitList) {
         return hits.containsAll(hitList);
     }
     
+    /**
+     * Return the number of hits on a track candidate
+     * @return    number of hits
+     */
     int numHits() {
         return hits.size();
     }
     
+    /**
+     * Return the number of stereo hits on the track candidate
+     * @return    number of stereo hits
+     */
     int numStereo() {
         int nStereo = 0;
         for (KalHit ht : hits) {
@@ -171,6 +193,10 @@ class TrackCandidate {
         return nStereo;
     }
     
+    /**
+     * Return the helix parameters at the origin
+     * @return   5-vector of helix parameters
+     */
     Vec originHelix() {
         MeasurementSite site0 = null;
         for (MeasurementSite site: sites) { // sites are assumed to be sorted
@@ -182,6 +208,11 @@ class TrackCandidate {
         return site0.aS.helix.pivotTransform();
     }
 
+    /**
+     * Remove a hit from a track candidate
+     * @param hit              the hit to remove from the fit
+     * @param deleteFromList   true to delete it from the list of hits
+     */
     void removeHit(KalHit hit, boolean deleteFromList) {
         MeasurementSite siteR = null;
         SiModule mod = hit.module;
@@ -218,6 +249,10 @@ class TrackCandidate {
         if (nstr < 3 || nax < 2) good = false;
     }
     
+    /**
+     * Refit a track candidate
+     * @return     true for success
+     */
     boolean reFit() {
         final boolean verbose = false;
         if (verbose) System.out.format("TrackCandidate.reFit: starting filtering for event %d.\n",eventNumber);
@@ -364,10 +399,20 @@ class TrackCandidate {
         return true;       
     }
     
+    /**
+     * Debug printout of a track candidate
+     * @param s     Arbitrary string for the user's reference
+     * @param shrt  true to give an abreviated printout
+     */
     void print(String s, boolean shrt) {
         System.out.format("%s", this.toString(s, shrt));
     }
-    
+
+    /**
+     * Debug printout to a string of a track candidate
+     * @param s     Arbitrary string for the user's reference
+     * @param shrt  true to give an abreviated printout
+     */
     String toString(String s, boolean shrt) {
         String str;
         if (good) {
@@ -454,7 +499,9 @@ class TrackCandidate {
         return str;
     }
     
-    // Comparator function for sorting track candidates by quality
+    /**
+     * Comparator function for sorting track candidates by quality
+     */
     static Comparator<TrackCandidate> CandidateComparator = new Comparator<TrackCandidate>() {
         public int compare(TrackCandidate t1, TrackCandidate t2) {
             double p1 = 1.;
@@ -469,6 +516,9 @@ class TrackCandidate {
         }
     };
 
+    /**
+     * Check whether two candidates are identical
+     */
     @Override
     public boolean equals(Object other) {
         if (this == other) return true;

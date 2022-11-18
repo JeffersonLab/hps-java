@@ -16,6 +16,9 @@ class Measurement { //
     ArrayList<KalTrack> tracks;     // Tracks that this hit lies on
     ArrayList<Integer> tksMC;       // MC tracks that contributed to this hit
 
+    /**
+     * Constructor with no MC truth info stored
+     */
     Measurement(double value, double xStrip, double resolution, double t, double E) {
         v = value;
         x = xStrip;
@@ -28,6 +31,16 @@ class Measurement { //
         tksMC = null;
     }
     
+    /**
+     * Full constructor, including MC truth
+     * @param value            value of the measured coordinate on the detector coordinate system
+     * @param xStrip           x value of the center of the strip in the detector coordinate system
+     * @param resolution       uncertainty in v
+     * @param t                measured time
+     * @param E                measured energy deposit
+     * @param rGlobal          global MC truth hit position
+     * @param vTrue            MC truth measurement value
+     */
     Measurement(double value, double xStrip, double resolution, double t, double E, Vec rGlobal, double vTrue) {
         v = value;
         x = xStrip;
@@ -40,10 +53,18 @@ class Measurement { //
         tksMC = new ArrayList<Integer>();
     }
     
+    /**
+     * Add a MC truth track to the list
+     * @param idx    index of the MC truth track
+     */
     void addMC(int idx) {
         tksMC.add(idx);
     }
 
+    /**
+     * Debug printout of the measurement instance
+     * @param s   Arbitrary string for the user's reference
+     */
     void print(String s) {
         System.out.format("Measurement %s: Measurement value=%10.5f+-%8.6f; xStrip=%7.2f, MC truth=%10.5f; t=%8.3f; E=%8.3f", s, v, sigma, x, vTrue, time, energy);
         if (tracks.size() == 0) {
@@ -56,6 +77,10 @@ class Measurement { //
         if (rGlobal != null) rGlobal.print("global location from MC truth"); 
     }
     
+    /**
+     * Debug printout to a string of the measurement instance
+     * @param s   Arbitrary string for the user's reference
+     */
     String toString(String s) {
         String str = String.format("Measurement %s: Measurement value=%10.5f+-%8.6f; xStrip=%7.2f, MC truth=%10.5f; t=%8.3f; E=%8.3f", s, v, sigma, x, vTrue, time, energy);
         if (tracks.size() == 0) {

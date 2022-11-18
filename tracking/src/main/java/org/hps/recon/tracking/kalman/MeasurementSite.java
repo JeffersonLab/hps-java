@@ -34,14 +34,19 @@ class MeasurementSite {
     private static Logger logger;
     private static DMatrixRMaj tempV;
     private static boolean initialized;
-
-    // Note: I can remove the concept of a dummy layer and make all layers equivalent, except that the non-physical ones
-    // will never have a hit and thus will be handled the same as physical layers that lack hits
     
+    /**
+     * Debug printout of a MeasurementSite instance
+     * @param s   Arbitrary string for the user's reference
+     */
     void print(String s) {
         System.out.format("%s", this.toString(s));
     }
 
+    /**
+     * Debug printout to a string of a MeasurementSite instance
+     * @param s   Arbitrary string for the user's reference
+     */
     String toString(String s) {
         String str;
         if (m.Layer < 0) {
@@ -58,8 +63,14 @@ class MeasurementSite {
         }
         str=str+String.format("    Hit ID=%d, maximum allowed residual=%10.5f\n", hitID, kPar.mxResid[1]);
         str = str + m.toString("for this site");
-        double B = KalmanInterface.getField(m.p.X(), m.Bfield).mag();
-        Vec tB = KalmanInterface.getField(m.p.X(), m.Bfield).unitVec();
+        Vec Bfield = null;
+        if (kPar.uniformB) {
+            Bfield = KalmanInterface.getField(new Vec(0., kPar.SVTcenter, 0.), m.Bfield);
+        } else {
+            Bfield = KalmanInterface.getField(m.p.X(), m.Bfield);
+        }
+        double B = Bfield.mag();
+        Vec tB = Bfield.unitVec();
         str=str+String.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", B, alpha);
         str = str + tB.toString("magnetic field direction") + "\n";
         str=str+String.format("    chi^2 increment=%12.4e\n", chi2inc);
@@ -77,6 +88,12 @@ class MeasurementSite {
         return str;
     }
 
+    /**
+     * Constructor
+     * @param thisSite       integer index
+     * @param data           SiModule holding the data for this site
+     * @param kPar           instance of Kalman run parameters
+     */
     MeasurementSite(int thisSite, SiModule data, KalmanParams kPar) {
         this.thisSite = thisSite;
         this.kPar = kPar;
@@ -84,7 +101,12 @@ class MeasurementSite {
         hitID = -1;
         double c = 2.99793e8; // Speed of light in m/s
         conFac = 1.0e12 / c;
-        Vec Bfield = KalmanInterface.getField(m.p.X(), m.Bfield);
+        Vec Bfield = null;
+        if (kPar.uniformB) {
+            Bfield = KalmanInterface.getField(new Vec(0., kPar.SVTcenter, 0.), m.Bfield);
+        } else {
+            Bfield = KalmanInterface.getField(m.p.X(), m.Bfield);
+        }
         B = Bfield.mag();
         alpha = conFac / B; // Convert from 1/pt in 1/GeV to curvature in mm
         predicted = false;
@@ -103,7 +125,11 @@ class MeasurementSite {
         }
     }
 
-    double scatX() { // scattering angle in the x,y plane for the filtered state vector
+    /**
+     * Scattering angle in the x,y plane for the filtered state vector
+     * @return    the scattering angle in radians
+     */
+    double scatX() {
         if (aP == null || aF == null) return -999.;
         Vec p1 = aP.helix.getMom(0.);
         double t1 = FastMath.atan2(p1.v[0], p1.v[1]);
@@ -112,7 +138,11 @@ class MeasurementSite {
         return t1 - t2;
     }
 
-    double scatZ() { // scattering angle in the z,y plane for the filtered state vector
+    /**
+     * Scattering angle in the z,y plane for the filtered state vector
+     * @return   the scattering angle in radians
+     */
+    double scatZ() { 
         if (aP == null || aF == null) return -999.;
         Vec p1 = aP.helix.getMom(0.);
         double t1 = FastMath.atan2(p1.v[2], p1.v[1]);
@@ -121,31 +151,56 @@ class MeasurementSite {
         return t1 - t2;
     }
 
+    /**
+     * Create predicted state vector by propagating from previous site to the new site
+     */
     int makePrediction(StateVector pS, int hitNumber, boolean sharingOK, boolean pickup) {
         SiModule mPs = null;
         return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, false);
     }
 
+    /**
+     * Create predicted state vector by propagating from previous site to the new site
+     */
     int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup) {
         return makePrediction(pS, mPs, hitNumber, sharingOK, false, false);
     }
 
+    /**
+     * Create predicted state vector by propagating from previous site to the new site
+     */
     int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds) {
         double [] dT = {-1000., 1000.};
         return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, dT, 0);
     }
-    
+
+    /**
+     * Create predicted state vector by propagating from previous site to the new site
+     */
     int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange, int trial) {
         return makePrediction(pS, mPs, hitNumber, sharingOK, pickup, checkBounds, tRange, trial, false);
     }
 
-    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange, int trial, boolean verbose2) { // Create predicted state vector by propagating from previous site
-        // pS = state vector that we are predicting from
-        // mPS = Si module that we are predicting from, if any
-        // tRange = allowed time range [tmin,tmax] for picking up a hit
+    /**
+     * Create predicted state vector by propagating from previous site to the new site
+     * @param pS              Previous site state vector that we are predicting from
+     * @param mPs             Si module that we are predicting from, if any
+     * @param hitNumber       hit number to assume if we are not doing pattern recognition
+     * @param sharingOK       true to allow sharing of a hit between multiple tracks
+     * @param pickup          true if we are doing pattern recognition here and need to pick up hits to add to the track
+     * @param checkBounds     true to check that the track is within bounds of the silicon, if doing pattern recognition
+     * @param tRange          Allowed time range [tmin,tmax] for picking up a hit (from KalParams)
+     * @param trial           0 or 1 for which trial is being executed, to index into KalParams
+     * @param verbose2        True to get lots of extra debug printout spew
+     * @return                Flag: -2 for extrapolation not within detector, -1 for error, 1 for a hit was used, 0 no hit used
+     */
+    int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange, int trial, boolean verbose2) { 
+        // pS = 
+        // mPS = 
+        // tRange = 
         // minE = minimum hit energy for it to be picked up, unless no other hit exists
-        // sharingOK = whether to allow sharing of a hit between multiple tracks
-        // pickup = whether we are doing pattern recognition here and need to pick up hits to add to the track
+        // sharingOK = 
+        // pickup = 
         int returnFlag = 0;
         double phi = pS.helix.planeIntersect(m.p);
         if (debug) verbose2 = true;
@@ -172,7 +227,12 @@ class MeasurementSite {
         double deltaE = 0.; // dEdx*thickness/ct;
 
         Vec origin = m.p.X();
-        Vec Bfield = KalmanInterface.getField(pS.helix.toGlobal(X0), m.Bfield);
+        Vec Bfield = null;
+        if (kPar.uniformB) {
+            Bfield = KalmanInterface.getField(new Vec(0., kPar.SVTcenter, 0.), m.Bfield);
+        } else {
+            Bfield = KalmanInterface.getField(pS.helix.toGlobal(X0), m.Bfield);
+        }
         double B = Bfield.mag();
         Vec tB = Bfield.unitVec(B);
         if (debug) {
@@ -416,7 +476,11 @@ class MeasurementSite {
         return returnFlag; // -2 for extrapolation not within detector, -1 for error, 1 for a hit was used, 0 no hit used
     }
 
-    boolean filter() { // Produce the filtered state vector for this site
+    /**
+     * Produce the filtered state vector for this site
+     * @return     true for success, false for bad news
+     */
+    boolean filter() { 
         if (!predicted) {
             System.out.format("******MeasurementSite.filter: Warning, this site is not in the correct state!\n");
         }
@@ -484,7 +548,11 @@ class MeasurementSite {
         return true;
     }
 
-    // Inverse Kalman filter: remove this site from the smoothed track fit
+    /**
+     *  Inverse Kalman filter: remove this site from the smoothed track fit
+     *  This didn't really work, so it is stripped down to simply deleting the hit.
+     *  @return      true for success, false if there was no hit to remove
+     */
     boolean removeHit() {
         if (hitID < 0) return false;
         hitID = -1;
@@ -494,6 +562,14 @@ class MeasurementSite {
         return true;
     }
 
+    /**
+     * Try to add a hit to a given track
+     * @param tkr        KalTrack instance to which we want to add a hit
+     * @param cut        Maximum chi^2 increment allowed for the new hit
+     * @param mxTdif     Maximum different in time for the track when the new hit is included
+     * @param oldID      ID of a hit that was just removed
+     * @return           The measurement instance added to the track, or null if none
+     */
     Measurement addHit(KalTrack tkr, double cut, double mxTdif, int oldID) {
         if (aP == null) {
             logger.log(Level.WARNING, "******MeasurementSite.addHit: Warning, this site is not in the correct state!");
@@ -557,7 +633,12 @@ class MeasurementSite {
         return null;
     }
 
-    // Produce the smoothed state vector for this site
+    
+    /**
+     * Produce the smoothed state vector for this site
+     * @param nS     the previous site that was smoothed
+     * @return       true for success
+     */
     boolean smooth(MeasurementSite nS) {
         // nS is the next site in the filtering chain (i.e. the previous site that was smoothed)
         if (!filtered) {
@@ -603,7 +684,13 @@ class MeasurementSite {
         return true;
     }
 
-    double h(StateVector pS, SiModule siM) {// Predict the measurement for a helix passing through this plane
+    /**
+     * Predict the measurement for a helix passing through this plane
+     * @param pS         The StateVector
+     * @param siM        The silicon module
+     * @return           The predicted measurement value
+     */
+    double h(StateVector pS, SiModule siM) {
         double phi = pS.helix.planeIntersect(siM.p);
         if (Double.isNaN(phi)) {
             logger.log(Level.FINE, "MeasurementSite.h: warning, no intersection of helix with the plane exists.");
@@ -612,7 +699,15 @@ class MeasurementSite {
         return h(pS, siM, phi);
     }
 
-    double h(StateVector pS, SiModule siM, double phi) { // Shortcut call in case phi is already known
+    /**
+     * Predict the measurement for a helix passing through this plane.
+     * Shortcut call in case phi is already known
+     * @param pS      The StateVector
+     * @param siM     The silicon module
+     * @param phi     Turning angle to the intersection with the plane, in radians
+     * @return        The predicted measurement value
+     */
+    double h(StateVector pS, SiModule siM, double phi) { 
         Vec rGlobal = pS.helix.toGlobal(pS.helix.atPhi(phi));
         Vec rLocal = siM.toLocal(rGlobal); // Rotate into the detector coordinate system
         if (debug) {
@@ -624,7 +719,11 @@ class MeasurementSite {
         return rLocal.v[1];
     }
 
-    // Create the derivative matrix for prediction of the measurement from the helix
+    /**
+     * Create the derivative matrix for prediction of the measurement from the helix
+     * @param S     The StateVector
+     * @param H     The derivative matrix that is filled in by this method
+     */
     private void buildH(StateVector S, DMatrixRMaj H) {
         double phi = S.helix.planeIntersect(m.p);
 
@@ -634,9 +733,7 @@ class MeasurementSite {
         }
         if (debug) {
             System.out.format("MeasurementSite.buildH: phi=%10.7f\n", phi);
-            // S.print("given to buildH");
-            // R.print("in buildH");
-            // p.print("in buildH");
+            S.print("given to buildH");
         }
         Vec dxdphi = new Vec((alpha / S.helix.a.v[2]) * FastMath.sin(S.helix.a.v[1] + phi), -(alpha / S.helix.a.v[2]) * FastMath.cos(S.helix.a.v[1] + phi),
                 -(alpha / S.helix.a.v[2]) * S.helix.a.v[4]);
@@ -717,7 +814,9 @@ class MeasurementSite {
         }
     }
 
-    // Comparator functions for sorting measurement sites by layer number
+    /**
+     * Comparator function for sorting measurement sites by increasing layer number
+     */
     static Comparator<MeasurementSite> SiteComparatorUp = new Comparator<MeasurementSite>() {
         public int compare(MeasurementSite s1, MeasurementSite s2) {
             int lyr1 = s1.m.Layer;
@@ -725,6 +824,10 @@ class MeasurementSite {
             return lyr1 - lyr2;
         }
     };
+    
+    /**
+     * Comparator function for sorting measurement sites by decreasing layer number
+     */
     static Comparator<MeasurementSite> SiteComparatorDn = new Comparator<MeasurementSite>() {
         public int compare(MeasurementSite s1, MeasurementSite s2) {
             int lyr1 = s1.m.Layer;

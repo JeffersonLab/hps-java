@@ -8,23 +8,42 @@ import java.util.Set;
  * Relationships between hits, silicon modules, and track candidates
  */
 class KalHit {
-    SiModule module;
-    Measurement hit;
-    Set<TrackCandidate> tkrCandidates;
+    SiModule module;                    // The silicon module in which the hit is found
+    Measurement hit;                    // The measurement object corresponding to the hit
+    Set<TrackCandidate> tkrCandidates;  // List of candidate tracks that incorporate this hit
     
+    /** 
+     * Kalman hit constructor
+     * @param module       silicon module object
+     * @param hit          measurement hit object
+     */
     KalHit(SiModule module, Measurement hit) {
         this.module = module;
         this.hit = hit;
         tkrCandidates = new HashSet<TrackCandidate>();
     }
     
+    /**
+     * Is the hit on a stereo layer?
+     * @return     true or false
+     */
     boolean isStereo() {
         return module.isStereo;
     }
+    
+    /**
+     * Debug printout of a given Kalman hit
+     * @param s    Arbitrary string to identify the printout
+     */
     void print(String s) {
         System.out.format("%s", this.toString(s));
     }
     
+    /**
+     * Debug printout to a string for a given Kalman hit
+     * @param s     Arbitrary string, to identify the printout
+     * @return      The full string, in printable format.
+     */
     String toString(String s) {
         int ntks = hit.tracks.size();
         String str;
@@ -45,7 +64,9 @@ class KalHit {
         return str;
     }
     
-    // Comparator function for sorting hits on a track candidate
+    /**
+     *  Comparator function for sorting hits on a track candidate
+     */
     static Comparator<KalHit> HitComparator = new Comparator<KalHit>() {
         public int compare(KalHit h1, KalHit h2) {
             if (h1 == h2) return 0;

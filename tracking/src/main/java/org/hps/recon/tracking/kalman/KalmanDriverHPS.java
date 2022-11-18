@@ -37,8 +37,11 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.event.MCParticle;
-
-// $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
+/**
+ * 
+ * This driver was used originally to test Kalman-Filter track fitting using hits on tracks found by SeedTracker and fit by GBL.
+ *
+ */
 public class KalmanDriverHPS extends Driver {
 
     private ArrayList<SiStripPlane> detPlanes;
@@ -170,7 +173,8 @@ public class KalmanDriverHPS extends Driver {
         sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         KalmanParams kPar = new KalmanParams();
-        KI = new KalmanInterface(this.uniformB, kPar, fm);
+        kPar.setUniformB(uniformB);
+        KI = new KalmanInterface(kPar, fm);
         KI.createSiModules(detPlanes);
         
         System.out.format("KalmanDriver: the B field is assumed uniform? %b\n", uniformB);

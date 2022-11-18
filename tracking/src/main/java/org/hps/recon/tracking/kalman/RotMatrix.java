@@ -6,16 +6,30 @@ package org.hps.recon.tracking.kalman;
 class RotMatrix {  
     double[][] M = null;
 
-    RotMatrix() { // Create a blank matrix
+    /**
+     * Constructor of a blank matrix
+     */
+    RotMatrix() { 
         M = new double[3][3];
     }
     
-    // Careful here: a new array is not made
+    /**
+     * Constructor from a provided array.
+     * Careful here: a new array is not made.
+     * @param Min     3 by 3 array of doubles (should be orthogonal, but not checked!)
+     */
     RotMatrix(double[][] Min) {
         M = Min;
     }
 
-    RotMatrix(Vec u, Vec v, Vec t) { // Transforms from global coordinates to frame with 3-D unit vectors u, v, t
+    /**
+     * Constructor from a RH u,v,t coordinate system
+     * Transforms from global coordinates to frame with 3-D unit vectors u, v, t
+     * @param u      3-vector direction cosines of u
+     * @param v      3-vector direction cosines of v
+     * @param t      3-vector direction cosines of t
+     */
+    RotMatrix(Vec u, Vec v, Vec t) { 
         M = new double[3][3];
         for (int i = 0; i < 3; i++) { // Simply place the vectors u, v, and t along the successive rows of the matrix
             M[0][i] = u.v[i];
@@ -24,7 +38,16 @@ class RotMatrix {
         }
     }
 
-    RotMatrix(Vec u1, Vec v1, Vec t1, Vec u2, Vec v2, Vec t2) { // Rotation from frame 1 to frame 2
+    /**
+     * Construct the matrix for a rotation from frame 1 to frame 2
+     * @param u1      u axis in frame 1
+     * @param v1      v axis in frame 1
+     * @param t1      t axis in frame 1
+     * @param u2      u axis in frame 2
+     * @param v2      v axis in frame 2
+     * @param t2      t axis in frame 2
+     */
+    RotMatrix(Vec u1, Vec v1, Vec t1, Vec u2, Vec v2, Vec t2) { 
         M = new double[3][3];
         M[0][0] = u2.dot(u1);
         M[0][1] = u2.dot(v1);
@@ -37,7 +60,13 @@ class RotMatrix {
         M[2][2] = t2.dot(t1);
     }
 
-    RotMatrix(double phi, double theta, double psi) {// Create the rotation matrix from Euler angles
+    /**
+     * Construct the rotation matrix from Euler angles
+     * @param phi      First Euler angle (rotation angle about z axis)
+     * @param theta    Second Euler angle (rotation angle about x' axis)
+     * @param psi      Third Euler angle (rotation angle about z'' axis)
+     */
+    RotMatrix(double phi, double theta, double psi) {// 
         double c1 = Math.cos(phi);
         double c2 = Math.cos(theta);
         double c3 = Math.cos(psi);
@@ -56,7 +85,11 @@ class RotMatrix {
         M[2][2] = c2;
     }
 
-    RotMatrix(double phi) { // Simple rotation only about z
+    /**
+     * Constructor for a simple rotation only about z
+     * @param phi     angle of rotation about z, in radians
+     */
+    RotMatrix(double phi) {
         double c1 = Math.cos(phi);
         double s1 = Math.sin(phi);
         M = new double[3][3];
@@ -67,9 +100,12 @@ class RotMatrix {
         M[2][2] = 1.0;
     }
 
-    RotMatrix(Vec k, double theta) { // Rodrigues' rotation formula
-        // k is a unit vector defining the axis of rotation
-        // theta is the angle of rotation counterclockwise about that axis
+    /**
+     * Constructor using Rodrigues' rotation formula
+     * @param k        unit vector defining the axis of rotation
+     * @param theta    angle of rotation counterclockwise about the axis
+     */
+    RotMatrix(Vec k, double theta) { // 
         double[][] K = new double[3][3];
         K[0][0] = 0.;
         K[0][1] = -k.v[2];
@@ -94,6 +130,10 @@ class RotMatrix {
         }
     }
 
+    /**
+     * Deep copy
+     * @return  the copy
+     */
     RotMatrix copy() {
         RotMatrix Rnew = new RotMatrix();
         for (int i = 0; i < 3; i++) { 
@@ -104,6 +144,10 @@ class RotMatrix {
         return Rnew;
     }
 
+    /**
+     * Invert the rotation matrix (i.e. the transpose)
+     * @return    the inverted matrix
+     */
     RotMatrix invert() {
         RotMatrix mInv = new RotMatrix();
         for (int i = 0; i < 3; i++) {
@@ -114,6 +158,11 @@ class RotMatrix {
         return mInv;
     }
 
+    /**
+     * Matrix multiplication
+     * @param R2    Second matrix in the product
+     * @return      The product matrix
+     */
     RotMatrix multiply(RotMatrix R2) { // Multiply one rotation matrix by another
         RotMatrix R3 = new RotMatrix();
         for (int i = 0; i < 3; i++) { 
@@ -126,10 +175,18 @@ class RotMatrix {
         return R3;
     }
 
+    /** 
+     * Debug printout
+     * @param s     Arbitrary string for the user's reference
+     */
     void print(String s) {
         System.out.format("%s",this.toString(s));
     }
     
+    /** 
+     * Debug printout to a string
+     * @param s     Arbitrary string for the user's reference
+     */
     String toString(String s) {
         String str = String.format("The 3 by 3 rotation matrix %s:\n", s);
         for (int i = 0; i < 3; i++) {
@@ -141,6 +198,11 @@ class RotMatrix {
         return str;
     }
 
+    /**
+     * Rotate a vector
+     * @param V     The vector to rotate
+     * @return      The rotated vector
+     */
     Vec rotate(Vec V) { // Use the matrix to rotate a 3-D vector
         Vec Vp = new Vec(0., 0., 0.);
         for (int i = 0; i < 3; i++) { 
@@ -151,6 +213,11 @@ class RotMatrix {
         return Vp;
     }
     
+    /**
+     * Rotate a 3 by 3 matrix (similarity transformation)
+     * @param S      The square matrix to rotate
+     * @return       Rotated square matrix
+     */
     SquareMatrix rotate(SquareMatrix S) { // Use the matrix to rotate a 3 by 3 matrix
         SquareMatrix Q = new SquareMatrix(3);
         if (S.N != 3) System.out.format("RotMatrix rotate: the input matrix must be 3 by 3.\n");
@@ -166,6 +233,11 @@ class RotMatrix {
         return Q;
     }
 
+    /**
+     * Inverse rotation of a vector
+     * @param V     Vector to rotate
+     * @return      Rotated vector
+     */
     Vec inverseRotate(Vec V) { // Use the matrix to rotate a 3-D vector in the opposite sense, using the
                                // inverse (i.e. transpose) of the rotation matrix
         Vec Vp = new Vec(0., 0., 0.);
@@ -177,6 +249,11 @@ class RotMatrix {
         return Vp;
     }
     
+    /**
+     * Inverse rotate a 3 by 3 matrix (similarity transformation)
+     * @param S      The square matrix to rotate
+     * @return       Rotated square matrix
+     */
     SquareMatrix inverseRotate(SquareMatrix S) { // Use the matrix to rotate a 3 by 3 matrix in the opposite sense
         SquareMatrix Q = new SquareMatrix(3);
         if (S.N != 3) System.out.format("RotMatrix rotate: the input matrix must be 3 by 3.\n");

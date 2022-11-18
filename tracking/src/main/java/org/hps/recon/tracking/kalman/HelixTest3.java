@@ -37,7 +37,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         // Control parameters
         // Units are Tesla, GeV, mm
 
-        int nTrials = 100; // The number of test events to generate for fitting
+        int nTrials = 10000; // The number of test events to generate for fitting
         int startLayer = 10; // Where to start the Kalman filtering
         int nIteration = 2; // Number of filter iterations
         int nAxial = 3; // Number of axial layers needed by the linear fit
@@ -57,7 +57,17 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         DMatrixRMaj tempM1 = new DMatrixRMaj(5,5);
         DMatrixRMaj tempM2 = new DMatrixRMaj(5,5);
         DMatrixRMaj fRot = new DMatrixRMaj(5,5);
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<5; ++j) {
+                if (i==j) {
+                    fRot.unsafe_set(i, j, 1.);
+                } else {
+                    fRot.unsafe_set(i, j, 0);
+                }
+            }
+        }
         KalmanParams kPar = new KalmanParams();
+        kPar.print();
         
         // Seed the random number generator
         long rndSeed = -3263009337738135404L;
@@ -435,6 +445,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         Histogram hPropx1s = new Histogram(100,-5.,0.1,"projected track-state x error 1 step","sigmas","track");
         Histogram hPropz1 = new Histogram(100,-5.,0.1,"projected track-state z error 1 step","mm","track");
         Histogram hPropz1s = new Histogram(100,-5.,0.1,"projected track-state z error 1 step","sigmas","track");
+        
         Instant timestamp = Instant.now();
         System.out.format("Beginning time = %s\n", timestamp.toString());
         LocalDateTime ldt = LocalDateTime.ofInstant(timestamp, ZoneId.systemDefault());
@@ -449,8 +460,12 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             if (verbose) System.out.format("Oops! No intersection found with initial plane");
             return;
         }
+        Vec lyr1Int = TkInitial.atPhi(phi1);
         Vec p1 = new Vec(3);
+        // Find intersection with 1st plane by RK integration
         Vec pivotBegin = TkRKinitial.planeIntersect(si1.p, p1);
+        Vec errOfB = pivotBegin.dif(lyr1Int);
+        errOfB.print("error in extrap to lyr 1 without RK");
         Helix helixBegin = new Helix(Q, pivotBegin, p1, pivotBegin, fMg, rnd);
         RKhelix helixBeginRK = new RKhelix(pivotBegin, p1, Q, fMg, rnd);
 
@@ -460,7 +475,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         TkInitial.print("TkInitial: initial helix at the origin");
         helixBegin.print("helixBegin: starting helix at layer 1");
         RKhelix TkEnd = helixBeginRK;
-        KalmanInterface KI = new KalmanInterface(false, kPar, fM);
+        KalmanInterface KI = new KalmanInterface(kPar, fM);
         for (int iTrial = 0; iTrial < nTrials; iTrial++) {
             RKhelix Tk = helixBeginRK.copy();
             if (verbose) { Tk.print("copied initial helix"); }
@@ -610,7 +625,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                 continue;
             }
 
-            SeedTrack seed = new SeedTrack(SiModules, location[frstLyr], hitList, verbose);
+            SeedTrack seed = new SeedTrack(SiModules, location[frstLyr], hitList, verbose, kPar);
             if (!seed.success) {
                 System.out.format("Failed to make a seed track\n");
                 continue;
@@ -978,14 +993,16 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                     }
                     Vec newPivot = kF.fittedStateBegin().helix.toLocal(helixBegin.origin.sum(helixBegin.X0));
                     Vec aF = kF.fittedStateBegin().helix.pivotTransform(newPivot);
-                    // now rotate to the original field frame
                     
-                    RotMatrix Rcombo = helixBegin.R.multiply(kF.fittedStateBegin().helix.Rot.invert());
-                    aF = HelixState.rotateHelix(aF, Rcombo, fRot);
-                    if (verbose) {
-                        Rcombo.print("Rcombo, into the frame of the true helix");
-                        aF.print("final smoothed helix parameters at the track beginning");
-                        newPivot.print("final smoothed helix pivot in local coordinates");
+                    // now rotate to the original field frame                   
+                    if (!kPar.uniformB) {
+                        RotMatrix Rcombo = helixBegin.R.multiply(kF.fittedStateBegin().helix.Rot.invert());
+                        aF = HelixState.rotateHelix(aF, Rcombo, fRot);
+                        if (verbose) {
+                            Rcombo.print("Rcombo, into the frame of the true helix");
+                            aF.print("final smoothed helix parameters at the track beginning");
+                            newPivot.print("final smoothed helix pivot in local coordinates");
+                        }
                     }
                     Vec aFe = new Vec(5);
                     DMatrixRMaj aFC = kF.fittedStateBegin().covariancePivotTransform(aF);

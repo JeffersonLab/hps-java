@@ -33,14 +33,26 @@ class StateVector {
     private static DMatrixRMaj U;      // Unit matrix
     private static LinearSolverDense<DMatrixRMaj> solver;
     private static boolean initialized;
+    private boolean uniformB;
 
-    // Constructor for the initial state vector used to start the Kalman filter.
-    StateVector(int site, Vec helixParams, DMatrixRMaj Cov, Vec pivot, double B, Vec tB, Vec origin) {
+    /**
+     * Constructor for the initial state vector used to start the Kalman filter.
+     * @param site          integer index of the site
+     * @param helixParams   5-vector of helix parameters
+     * @param Cov           covariance matrix of the helix parameters
+     * @param pivot         3-vector pivot point of the helix
+     * @param B             magnetic field magnitude
+     * @param tB            magnetic field direction cosines
+     * @param origin        3-vector origin of the coordinate system
+     * @param uniformB      true to treat the magnetic field as uniform
+     */
+    StateVector(int site, Vec helixParams, DMatrixRMaj Cov, Vec pivot, double B, Vec tB, Vec origin, boolean uniformB) {
         // Here tB is the B field direction, while B is the magnitude       
         if (debug) System.out.format("StateVector: constructing an initial state vector\n");
         helix = new HelixState(helixParams, pivot, origin, Cov, B, tB);
         kLow = site;
         kUp = kLow;
+        this.uniformB = uniformB;
         if (!initialized) {  // Initialize the static working arrays on the first call
             logger = Logger.getLogger(StateVector.class.getName());
             tempV = new DMatrixRMaj(5,1);
@@ -55,10 +67,13 @@ class StateVector {
         }
     }
 
-    // Constructor for a new blank state vector with a new B field
-    StateVector(int site, double B, Vec tB, Vec origin) {
+    /**
+     * Constructor for a new blank state vector with a new B field
+     */
+    StateVector(int site, double B, Vec tB, Vec origin, boolean uniformB) {
         helix = new HelixState(B, tB, origin);
         kLow = site;
+        this.uniformB = uniformB;
         if (!initialized) {  // Initialize the static working arrays on the first call
             logger = Logger.getLogger(StateVector.class.getName());
             tempV = new DMatrixRMaj(5,1);
@@ -73,9 +88,13 @@ class StateVector {
         }
     }
 
-    // Constructor for a new completely blank state vector
-    StateVector(int site) {
+    /**
+     *  Constructor for a new completely blank state vector
+     * @param site
+     */
+    StateVector(int site, boolean uniformB) {
         kLow = site;
+        this.uniformB = uniformB;
         if (!initialized) {  // Initialize the static working arrays on the first call
             logger = Logger.getLogger(StateVector.class.getName());
             tempV = new DMatrixRMaj(5,1);
@@ -90,8 +109,12 @@ class StateVector {
         }
     }
 
+    /**
+     * Deep copy of the state vector
+     * @return    copy
+     */
     StateVector copy() {
-        StateVector q = new StateVector(kLow);
+        StateVector q = new StateVector(kLow, uniformB);
         q.helix = (HelixState)helix.copy();      // Deep copy
         q.kUp = kUp;
         q.F = F;  // Don't deep copy the F matrix
@@ -102,11 +125,18 @@ class StateVector {
         return q;
     }
 
-    // Debug printout of the state vector
+    /**
+     * Debug printout of the state vector
+     * @param s   Arbitrary string for the user's reference
+     */
     void print(String s) {
         System.out.format("%s", this.toString(s));
     }
-        
+
+    /**
+     * Debug printout to a string of the state vector
+     * @param s   Arbitrary string for the user's reference
+     */
     String toString(String s) {
         String str = String.format(">>>Dump of state vector %s %d  %d\n", s, kUp, kLow);
         str = str + helix.toString(" ");
@@ -123,17 +153,21 @@ class StateVector {
         return str;
     }
 
-    // Create a predicted state vector by propagating a given helix to a measurement site
+    /**
+     * Create a predicted state vector by propagating a given helix to a measurement site
+     * @param newSite          index of the new site
+     * @param pivot            pivot point of the new site in the local coordinates of this state vector (i.e. coordinates of the old site)
+     * @param B                magnitude of the magnetic field at the pivot point, in global coordinates
+     * @param t                direction of the magnetic field at the pivot point, in global coordinates
+     * @param originPrime      origin of the detector coordinates at the new site in global coordinates
+     * @param XL               thickness of the scattering material
+     * @param deltaE           energy loss in the scattering material
+     * @return                 predicted state vector
+     */
     StateVector predict(int newSite, Vec pivot, double B, Vec t, Vec originPrime, double XL, double deltaE) {
-        // newSite = index of the new site
-        // pivot = pivot point of the new site in the local coordinates of this state vector (i.e. coordinates of the old site)
-        // B and t = magnitude and direction of the magnetic field at the pivot point, in global coordinates
-        // XL = thickness of the scattering material
-        // deltaE = energy loss in the scattering material
-        // originPrime = origin of the detector coordinates at the new site in global coordinates
 
         // This constructs a new blank state vector with pivot and helix parameters undefined as yet
-        StateVector aPrime = new StateVector(newSite, B, t, originPrime);
+        StateVector aPrime = new StateVector(newSite, B, t, originPrime, uniformB);
         aPrime.kUp = kUp;
         aPrime.helix.X0 = pivot; // pivot before helix rotation, in coordinate system of the previous site
 
@@ -164,53 +198,55 @@ class StateVector {
         // Transform to the coordinate system of the field at the new site
         // First, transform the pivot point to the new system
         aPrime.helix.X0 = aPrime.helix.toLocal(this.helix.toGlobal(aPrime.helix.X0));
-
-        // Calculate the matrix for the net rotation from the old site coordinates to the new site coordinates
-        RotMatrix Rt = aPrime.helix.Rot.multiply(this.helix.Rot.invert());
-        if (debug) {
-            aPrime.helix.Rot.print("aPrime rotation matrix");
-            this.helix.Rot.print("this rotation matrix");
-            Rt.print("rotation from old local frame to new local frame");
-            aPrime.helix.a.print("StateVector:predict helix before rotation");
-        }
-
-        // Rotate the helix parameters here. 
-        // dz and drho will remain unchanged at zero
-        // phi0 and tanl(lambda) change, as does kappa (1/pt). However, |p| should be unchanged by the rotation.
-        // This call to rotateHelix also calculates the derivative matrix fRot
-        aPrime.helix.a = HelixState.rotateHelix(aPrime.helix.a, Rt, tempM);
-        if (debug) {
-            aPrime.helix.a.print("StateVector:predict helix after rotation");
-            System.out.println("fRot from StateVector:predict");
-            tempM.print();
-        }
-        CommonOps_DDRM.mult(tempM, F, tempA);
-
-        // Test the derivatives
-        /*
-        if (debug) {
-            double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
-            StateVector aPda = this.Copy();
-            for (int i = 0; i < 5; i++) {
-                aPda.a.v[i] = a.v[i] * (1.0 + daRel[i]);
+        if (!uniformB) {
+    
+            // Calculate the matrix for the net rotation from the old site coordinates to the new site coordinates
+            RotMatrix Rt = aPrime.helix.Rot.multiply(this.helix.Rot.invert());
+            if (debug) {
+                aPrime.helix.Rot.print("aPrime rotation matrix");
+                this.helix.Rot.print("this rotation matrix");
+                Rt.print("rotation from old local frame to new local frame");
+                aPrime.helix.a.print("StateVector:predict helix before rotation");
             }
-            Vec da = aPda.a.dif(a);
-            StateVector aPrimeNew = this.Copy();
-            aPrimeNew.a = aPda.pivotTransform(pivot);
-            RotMatrix RtTmp = Rot.invert().multiply(aPrime.Rot);
-            SquareMatrix fRotTmp = new SquareMatrix(5);
-            aPrimeNew.a = rotateHelix(aPrimeNew.a, RtTmp, fRotTmp);
-            for (int i = 0; i < 5; i++) {
-                double deltaExact = aPrimeNew.a.v[i] - aPrime.a.v[i];
-                double delta = 0.;
-                for (int j = 0; j < 5; j++) {
-                    delta += F.M[i][j] * da.v[j];
+    
+            // Rotate the helix parameters here. 
+            // dz and drho will remain unchanged at zero
+            // phi0 and tanl(lambda) change, as does kappa (1/pt). However, |p| should be unchanged by the rotation.
+            // This call to rotateHelix also calculates the derivative matrix fRot = tempM
+            aPrime.helix.a = HelixState.rotateHelix(aPrime.helix.a, Rt, tempM);
+            if (debug) {
+                aPrime.helix.a.print("StateVector:predict helix after rotation");
+                System.out.println("fRot from StateVector:predict");
+                tempM.print();
+            }
+            CommonOps_DDRM.mult(tempM, F, tempA);
+    
+            // Test the derivatives
+            /*
+            if (debug) {
+                double daRel[] = { 0.01, 0.03, -0.02, 0.05, -0.01 };
+                StateVector aPda = this.Copy();
+                for (int i = 0; i < 5; i++) {
+                    aPda.a.v[i] = a.v[i] * (1.0 + daRel[i]);
                 }
-                System.out.format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i, deltaExact,
-                        delta);
+                Vec da = aPda.a.dif(a);
+                StateVector aPrimeNew = this.Copy();
+                aPrimeNew.a = aPda.pivotTransform(pivot);
+                RotMatrix RtTmp = Rot.invert().multiply(aPrime.Rot);
+                SquareMatrix fRotTmp = new SquareMatrix(5);
+                aPrimeNew.a = rotateHelix(aPrimeNew.a, RtTmp, fRotTmp);
+                for (int i = 0; i < 5; i++) {
+                    double deltaExact = aPrimeNew.a.v[i] - aPrime.a.v[i];
+                    double delta = 0.;
+                    for (int j = 0; j < 5; j++) {
+                        delta += F.M[i][j] * da.v[j];
+                    }
+                    System.out.format("Test of F: Helix parameter %d, deltaExact=%10.8f, delta=%10.8f\n", i, deltaExact,
+                            delta);
+                }
             }
+            */
         }
-        */
 
         aPrime.kLow = newSite;
         aPrime.kUp = kUp;
@@ -229,18 +265,25 @@ class StateVector {
         }
 
         // Now propagate the multiple scattering matrix and covariance matrix to the new site
-        CommonOps_DDRM.multTransB(Cinv, tempA, tempM);
         aPrime.helix.C = new DMatrixRMaj(5,5);
-        CommonOps_DDRM.mult(tempA, tempM, aPrime.helix.C);
+        if (uniformB) {
+            CommonOps_DDRM.multTransB(Cinv, F, tempM);           
+            CommonOps_DDRM.mult(F, tempM, aPrime.helix.C);
+        } else {
+            CommonOps_DDRM.multTransB(Cinv, tempA, tempM);           
+            CommonOps_DDRM.mult(tempA, tempM, aPrime.helix.C);
+        }
 
         return aPrime;
     }
 
-    // Create a filtered state vector from a predicted state vector
+    /**
+     * Create a filtered state vector from a predicted state vector
+     * @param H         prediction matrix (5-vector)
+     * @param V         hit variance (1/sigma^2)
+     * @return          filtered state vector
+     */
     StateVector filter(DMatrixRMaj H, double V) {
-        // H = prediction matrix (5-vector)
-        // V = hit variance (1/sigma^2)
-
         StateVector aPrime = this.copy();
         aPrime.kUp = kLow;
 
@@ -315,7 +358,13 @@ class StateVector {
         return aPrime;
     }
 
-    // Modify the state vector by removing the hit information
+    /**
+     * Modify the state vector by removing the hit information
+     * @param H
+     * @param V
+     * @param Cnew
+     * @return
+     */
     Vec inverseFilter(DMatrixRMaj H, double V, DMatrixRMaj Cnew) {
         CommonOps_DDRM.mult(helix.C, H, tempV);
         double denom = -V + CommonOps_DDRM.dot(H, tempV);
@@ -337,7 +386,12 @@ class StateVector {
         return aNew;
     }
 
-    // Create a smoothed state vector from the filtered state vector
+    /**
+     * Create a smoothed state vector from the filtered state vector
+     * @param snS        
+     * @param snP
+     * @return      Smoothed state vector
+     */
     StateVector smooth(StateVector snS, StateVector snP) {
         if (debug) System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp,
                     snS.kLow, snS.kUp, snP.kLow, snP.kUp);
@@ -414,16 +468,23 @@ class StateVector {
         return sS;
     }
 
-    // Return errors on the helix parameters at the global origin
+    /**
+     * Return errors on the helix parameters at the global origin
+     * @param aPrime    helix parameters for a pivot at the global origin, assumed already to be calculated by pivotTransform()
+     * @return          5-vector of errors
+     */
     Vec helixErrors(Vec aPrime) {
-        // aPrime are the helix parameters for a pivot at the global origin, assumed
-        // already to be calculated by pivotTransform()
+
         DMatrixRMaj tC = covariancePivotTransform(aPrime);
         return new Vec(Math.sqrt(tC.unsafe_get(0,0)), Math.sqrt(tC.unsafe_get(1,1)), Math.sqrt(tC.unsafe_get(2,2)), 
                 Math.sqrt(tC.unsafe_get(3,3)), Math.sqrt(tC.unsafe_get(4,4)));
     }
 
-    // Transform the helix covariance to new pivot point (specified in local coordinates)
+    /**
+     * Transform the helix covariance to new pivot point (specified in local coordinates)
+     * @param aP       5-vector of helix parameters
+     * @return         transformed helix parameters
+     */
     DMatrixRMaj covariancePivotTransform(Vec aP) {
         // aP are the helix parameters for the new pivot point, assumed already to be
         // calculated by pivotTransform()
@@ -434,16 +495,33 @@ class StateVector {
         CommonOps_DDRM.mult(mF, tempM, tempA);
         return tempA;
     }    
-    // Go to and from 1D EJML matrix for a vector Vec
+    
+    /**
+     * Go to and from 1D EJML matrix for a vector Vec
+     * @param a     vector
+     * @param m     EJML matrix out
+     */
     static void vecToM(Vec a, DMatrixRMaj m) {
         for (int i=0; i<a.N; ++i) {
             m.unsafe_set(i, 0, a.v[i]);
         }
     }
+    
+    /**
+     * Go from 1D EJML matrix to Vec
+     * @param M         EJML matrix
+     * @return          Vector
+     */
     static Vec mToVec(DMatrixRMaj M) {
         return new Vec(M.unsafe_get(0, 0), M.unsafe_get(1, 0), M.unsafe_get(2, 0), M.unsafe_get(3, 0), M.unsafe_get(4, 0));
     }
-    // Direct product of two row vectors to make a 2D matrix
+    
+    /**
+     * Direct product of two row vectors to make a 2D matrix
+     * @param a   factor 1
+     * @param b   factor 2
+     * @param c   product
+     */
     private static void directProd(DMatrixRMaj a, DMatrixRMaj b, DMatrixRMaj c) {
         for (int i=0; i<5; ++i) {
             for (int j=0; j<5; ++j) {

@@ -50,7 +50,8 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 /**
  *  This class provides an interface between hps-java and the Kalman Filter fitting and pattern recognition code.
  *  It can be used to refit the hits on an existing hps track, or it can be used to drive the pattern recognition.
- *  However, both cannot be done at the same time. The interface must be reset between doing one and the other. 
+ *  However, both cannot be done at the same time. The interface must be reset between doing one and the other and
+ *  should also be reset after each event, before going to the next event. 
  */
 public class KalmanInterface {
     private Detector det;
@@ -62,6 +63,7 @@ public class KalmanInterface {
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
     private int _siHitsLimit = -1;
+    private static boolean uniformB;
     double alphaCenter;
     private List<SiStripPlane> detPlanes;
     double svtAngle;
@@ -73,7 +75,6 @@ public class KalmanInterface {
     public static RotMatrix HpsSvtToKalman;
     public static RotMatrix KalmanToHpsSvt;
     public static BasicHep3Matrix HpsSvtToKalmanMatrix;
-    private static boolean uniformB;
     private static DMatrixRMaj tempM;
     private static DMatrixRMaj Ft;
     private int maxHits;
@@ -81,23 +82,42 @@ public class KalmanInterface {
     private int eventNumber;
     
     private static final boolean debug = false;    
-    private static final double SVTcenter = 505.57;
     private static final double c = 2.99793e8; // Speed of light in m/s
     
+    /**
+     * Set the limit on the maximum number of hits in an event to analyze (larger events will be skipped)
+     * 
+     * @param limit   desired hit limit
+     */
     public void setSiHitsLimit(int limit) {
         _siHitsLimit = limit;
     }
     
+    /**
+     * Get the current setting on the maximum number of hits to analyze
+     * 
+     * @return   hit limit
+     */
     public int getSiHitsLimit() {
         return _siHitsLimit;
     }
     
-    // Get the HPS tracker hit corresponding to a Kalman hit
+    /**
+     * Get the HPS tracker hit corresponding to a Kalman hit
+     * 
+     * @param km    Kalman Measurement object
+     * @return      identity of the HPS hit
+     */
     public TrackerHit getHpsHit(Measurement km) {
         return hitMap.get(km);
     }
     
-    // Get the HPS sensor that corresponds to a Kalman SiModule
+    /**
+     * Get the HPS sensor that corresponds to a Kalman SiModule
+     * 
+     * @param kalmanSiMod    Kalman SiModule object (geometry of one sensor)
+     * @return               HpsSiSensor object
+     */
     public HpsSiSensor getHpsSensor(SiModule kalmanSiMod) {
         if (moduleMap == null) return null;
         else {
@@ -107,54 +127,80 @@ public class KalmanInterface {
         }
     }
     
-    // Return the entire map relating HPS sensors to Kalman SiModule objects
+    /**
+     * Get the entire map relating HPS sensors to Kalman SiModule objects
+     * 
+     * @return    Map from HPS sensors to Kalman SiModule objects
+     */
     public Map<SiModule, SiStripPlane> getModuleMap() {
         return moduleMap;
     }
 
-    // The HPS field map is in the HPS global coordinate system. This routine includes the transformations
-    // to return the field in the Kalman global coordinate system given a coordinate in the same system.
+    /**
+     * Get the HPS B field at a provided location.  The HPS field map is in the HPS global coordinate system. 
+     * This routine includes the transformations to return the field in the Kalman global coordinate system 
+     * given a coordinate in the same system. Don't confuse this with org.lcsim.geometry.FieldMap.getField,
+     * which works with double arrays in HPS coordinates.
+     * 
+     * @param kalPos     Kalman 3-vector object specifying the position
+     * @param hpsFm      HPS field map
+     * @return           Kalman 3-vector object specifying the magnetic field at the given location
+     */
     static Vec getField(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
         return new Vec(3, getFielD(kalPos, hpsFm));
     }
-    
+
+    /**
+     * Get the HPS B field at a provided location for stand-alone running of the Kalman code. 
+     * For hps-java use KalmanInterface.getField to return a 3-vector Vec object.
+     * 
+     * @param kalPos     Kalman 3-vector object specifying the position
+     * @param hpsFm      HPS field map
+     * @return           Kalman 3-vector object specifying the magnetic field at the given location
+     */
     static double [] getFielD(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
         // Field map for stand-alone running
         if (FieldMap.class.isInstance(hpsFm)) return ((FieldMap) (hpsFm)).getField(kalPos);
 
-        // Standard field map for running in hps-java
+        // Interface to the standard field map for running in hps-java, including conversions for Kalman coordinates
         //System.out.format("Accessing HPS field map for position %8.3f %8.3f %8.3f\n", kalPos.v[0], kalPos.v[1], kalPos.v[2]);
         double[] hpsPos = { kalPos.v[0], -1.0 * kalPos.v[2], kalPos.v[1] };
-        if (uniformB) {
-            hpsPos[0] = 0.;
-            hpsPos[1] = 0.;
-            hpsPos[2] = SVTcenter;
-        } else {
-            if (hpsPos[1] > 70.0) hpsPos[1] = 70.0;   // To avoid getting a field returned that is identically equal to zero
-            if (hpsPos[1] < -70.0) hpsPos[1] = -70.0;
-            if (hpsPos[0] < -225.) hpsPos[0] = -225.;
-            if (hpsPos[0] > 270.) hpsPos[0] = 270.;
-        }
+        //hpsPos[0] = 0.;
+        //hpsPos[1] = 0.;
+        //hpsPos[2] =  505.57;
+        
+        // To avoid going off the map and getting a field returned that is identically equal to zero
+        if (hpsPos[1] > 70.0) hpsPos[1] = 70.0;   
+        if (hpsPos[1] < -70.0) hpsPos[1] = -70.0;
+        if (hpsPos[0] < -225.) hpsPos[0] = -225.;
+        if (hpsPos[0] > 270.) hpsPos[0] = 270.;
         double[] hpsField = hpsFm.getField(hpsPos);
-        if (uniformB) {
-            double [] kalField = {0., 0., -1.0 * hpsField[1]};
-            return kalField;
-        }
         double [] kalField = {hpsField[0], hpsField[2], -1.0 * hpsField[1]};
         return kalField;
     }
 
-    // Set the layers to be used for finding seed tracks (not used by Kalman pattern recognition)
+    /**
+     * Set the layers to be used for finding seed tracks (not used by Kalman pattern recognition)
+     * @param input      List of layers
+     */
     public void setSeedTrackLayers(List<Integer> input) {
         SeedTrackLayers = input;
     }
 
-    // Constructor with no uniformB argument defaults to non-uniform field
-    public KalmanInterface(KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
-        this(false, kPar, fM);
-    }
-
+    /**
+     * alternate constructor for backward compatibility
+     */
     public KalmanInterface(boolean uniformB, KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
+        this(kPar, fM);
+    }
+    
+    /**
+     * Constructor for the interface between the Kalman-filter tracking code and other HPS-Java code
+     * 
+     * @param kPar        Object containing all the control parameters for the Kalman code
+     * @param fM          The HPS field map
+     */
+    public KalmanInterface(KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
         
         this.det = det;
         this.sensors = sensors;
@@ -168,7 +214,6 @@ public class KalmanInterface {
         tempM = new DMatrixRMaj(5,5);
         Ft = new DMatrixRMaj(5,5);
         
-        KalmanInterface.uniformB = uniformB;
         hitMap = new HashMap<Measurement, TrackerHit>();
         simHitMap = new HashMap<Measurement, SimTrackerHit>();
         moduleMap = new HashMap<SiModule, SiStripPlane>();
@@ -180,9 +225,10 @@ public class KalmanInterface {
         SeedTrackLayers.add(4);
         SeedTrackLayers.add(5);
         
-        if (uniformB) {
+        if (kPar.uniformB) {
             logger.log(Level.WARNING, "KalmanInterface WARNING: the magnetic field is set to a uniform value.");
         }
+        uniformB = kPar.uniformB;
         
         // Transformation from HPS SVT tracking coordinates to Kalman global coordinates
         double[][] HpsSvtToKalmanVals = { { 0, 1, 0 }, { 1, 0, 0 }, { 0, 0, -1 } };
@@ -211,31 +257,53 @@ public class KalmanInterface {
         
         kPat = new KalmanPatRecHPS(kPar);
         
-        Vec centerB = KalmanInterface.getField(new Vec(0., SVTcenter, 0.), fM);
+        Vec centerB = KalmanInterface.getField(new Vec(0., kPar.SVTcenter, 0.), fM);
+        logger.log(Level.INFO, String.format("The magnetic field at the detector center (%10.5f mm) is %10.5f\n", kPar.SVTcenter, centerB.mag())); 
         double conFac = 1.0e12 / c;
         alphaCenter = conFac/ centerB.mag();
     }
     
+    /**
+     * End-of-job formatted printout of some counters.
+     */
     public void summary() {
-        System.out.format("KalmanInterface::summary: number of events with > 200 hits=%d.\n", nBigEvents);
+        System.out.format("KalmanInterface::summary: number of events with > 200 hits = %d.\n", nBigEvents);
         System.out.format("                          Maximum event size = %d strip hits.\n", maxHits);
-        System.out.format("                          Events with > %d hits were not processed.\n", _siHitsLimit);
-        System.out.format("                          Number of tracks with bad covariance in filterTrack= %d %d\n", KalmanPatRecHPS.nBadCov[0], KalmanPatRecHPS.nBadCov[1]);
-        System.out.format("                          Number of tracks with bad covariance in KalTrack.fit=%d %d\n", KalTrack.nBadCov[0], KalTrack.nBadCov[1]);
+        if (_siHitsLimit > 0) {
+            System.out.format("                          Events with > %d hits were not processed.\n", _siHitsLimit);
+        }
+        System.out.format("                          Number of tracks with bad covariance in filterTrack= %d is %d\n", KalmanPatRecHPS.nBadCov[0], KalmanPatRecHPS.nBadCov[1]);
+        System.out.format("                          Number of tracks with bad covariance in KalTrack.fit=%d is %d\n", KalTrack.nBadCov[0], KalTrack.nBadCov[1]);
     }
 
-    // Return the reference to the parameter setting code for the driver to use
+    /**
+     * Return the reference to the parameter setting object for the driver to use
+     * 
+     * @return     reference to the parameter setting object KalParams.java
+     */
     public KalmanParams getKalmanParams() {
         return kPar;
     }
     
-    // Transformation from HPS global coordinates to Kalman global coordinates
+    /**
+     * Transformation from HPS global coordinates to Kalman global coordinates
+     * 
+     * @param HPSvec     3-vector array of HPS global coordinates
+     * @return           3-vector object of Kalman global coordinates
+     * @see Definitions of coordinate systems in the Kalman pdf documentation.
+     */
     public static Vec vectorGlbToKalman(double[] HPSvec) { 
         Vec kalVec = new Vec(HPSvec[0], HPSvec[2], -HPSvec[1]);
         return kalVec;
     }
     
-    // Transformation from Kalman global coordinates to HPS global coordinates
+    /**
+     * Transformation from Kalman global coordinates to HPS global coordinates
+     * 
+     * @param KalVec    3-vector object of Kalman global coordinates
+     * @return          3-vector array of HPS global coordinates
+     * @see Definitions of coordinate systems in the Kalman pdf documentation.
+     */
     public static double[] vectorKalmanToGlb(Vec KalVec) {
         double[] HPSvec = new double[3];
         HPSvec[0] = KalVec.v[0];
@@ -244,7 +312,13 @@ public class KalmanInterface {
         return HPSvec;
     }
     
-    // Transformation from Kalman global coordinates to HPS tracking coordinates
+    /**
+     * Transformation from Kalman global coordinates to HPS tracking coordinates
+     * 
+     * @param KalVec    Kalman 3-vector object in Kalman global coordinates
+     * @return          HPS tracking coordinates a 3-vector array
+     * @see Definitions of coordinate systems in the Kalman pdf documentation.
+     */
     public static double[] vectorKalmanToTrk(Vec KalVec) {
         double[] HPSvec = new double[3];
         HPSvec[0] = KalVec.v[1];
@@ -253,19 +327,37 @@ public class KalmanInterface {
         return HPSvec;
     }
     
-    // Transformation from HPS tracking coordinates to Kalman global coordinates
+    /**
+     * Transformation from HPS tracking coordinates to Kalman global coordinates
+     * 
+     * @param HPSvec    HPS tracking coordinates a 3-vector array
+     * @return          Kalman 3-vector object in Kalman global coordinates
+     * @see   Definitions of coordinate systems in the Kalman pdf documentation.
+     */
     public static Vec vectorTrkToKalman(double[] HPSvec) { 
         Vec kalVec = new Vec(HPSvec[1], HPSvec[0], -HPSvec[2]);
         return kalVec;
     }
     
-    // Transformation from HPS sensor coordinates to Kalman sensor coordinates
+    /**
+     * Transformation from HPS sensor coordinates to Kalman sensor coordinates
+     * 
+     * @param HPSvec    HPS 3-vector sensor coordinate double-precision array
+     * @return          Kalman 3-vector object in Kalman sensor coordinates
+     * @see   Definitions of coordinate systems in the Kalman pdf documentation.
+     */
     public static Vec localHpsToKal(double[] HPSvec) { 
         Vec kalVec = new Vec(-HPSvec[1], HPSvec[0], HPSvec[2]);
         return kalVec;
     }
     
-    // Transformation from Kalman sensor coordinates to HPS sensor coordinates
+    /**
+     * Transformation from Kalman sensor coordinates to HPS sensor coordinates
+     * 
+     * @param KalVec    3-vector object in Kalman coordinates
+     * @return    3-vector double-precision array in HPS coordinates
+     * @see   Definitions of coordinate systems in the Kalman pdf documentation.
+     */
     public static double[] localKalToHps(Vec KalVec) {
         double[] HPSvec = new double[3];
         HPSvec[0] = KalVec.v[1];
@@ -274,12 +366,19 @@ public class KalmanInterface {
         return HPSvec;
     }
 
-    // Return the entire list of Kalman SiModule
+    /**
+     * Return the entire list of Kalman SiModule (geometry description for the Kalman filter code)
+     * 
+     * @return    List of all SiModule objects
+     */
     public ArrayList<SiModule> getSiModuleList() {
         return SiMlist;
     }
 
-    // Return a list of all measurements for all SiModule
+    /**
+     * Return a list of all measurements for all SiModule
+     * @return   List of all Measurement objects in the detector
+     */
     public ArrayList<Measurement> getMeasurements() {
         ArrayList<Measurement> measList = new ArrayList<Measurement>();;
         for (SiModule SiM : SiMlist) {
@@ -290,7 +389,9 @@ public class KalmanInterface {
         return measList;
     }
 
-    // Clear the event hit and track information without deleting the SiModule geometry information
+    /**
+     * Clear the Kalman interface event hit and track information without deleting the SiModule geometry information
+     */ 
     public void clearInterface() {
         logger.fine("Clearing the Kalman interface");
         hitMap.clear();
@@ -300,83 +401,85 @@ public class KalmanInterface {
             SiM.hits.clear();
         }
     }
-
-    // Create an HPS TrackState from a Kalman HelixState at the location of a particular SiModule
-    public TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
-        // Note that the helix parameters that get stored in the TrackState assume a B-field exactly oriented in the
-        // z direction and a pivot point at the origin (0,0,0). The referencePoint of the TrackState is set to the
-        // intersection point with the detector plane.
-        StateVector sv = null;
-        if (useSmoothed) {
-            if (!ms.smoothed) return null;
-            sv = ms.aS;
-        } else {   // using the filtered state is really not recommended
-            if (!ms.filtered) return null;
-            sv = ms.aF;
-        }
-
-        return sv.helix.toTrackState(alphaCenter, ms.m.p, loc);
-    }
-
-    // Transform a Kalman helix to an HPS helix rotated to the global frame and with the pivot at the origin
-    // Provide covHPS with 15 elements to get the covariance as well
-    // Provide 3-vector position to get the location in HPS global coordinates of the original helix pivot
+    
+    /**
+     *  Transform a Kalman helix to an HPS helix rotated to the global frame and with the pivot at the origin
+     *  The calling routine must provide empty covHPS[15] and position[3] arrays.
+     *  No rotations are needed if the field is assumed to be uniform.
+     *  
+     * @param helixState    description of the Kalman helix
+     * @param pln           Kalman plane object (origin point and t,u,v axis directions)
+     * @param alphaCenter   alpha value to use to convert between momentum and curvature
+     * @param covHPS        return array of LCSIM helix parameter covariance (15 values for the symmetric matrix)
+     * @param position      return 3-vector array of the location in HPS global coordinates of the original helix pivot
+     * @return     array of 5 LCSIM helix parameters
+     */
     static double [] toHPShelix(HelixState helixState, Plane pln, double alphaCenter, double [] covHPS, double[] position) {
         final boolean debug = false;
+        Vec finalHelixParams = null;
+        Vec pivotGlobal = null;
+        DMatrixRMaj F = new DMatrixRMaj(5,5);
+        DMatrixRMaj covRotated = new DMatrixRMaj(5,5);
         double phiInt = helixState.planeIntersect(pln);
         if (Double.isNaN(phiInt)) {
             Logger logger = Logger.getLogger(KalmanInterface.class.getName());
             logger.fine(String.format("toHPShelix: no intersection with the plane at %s",pln.toString()));
             phiInt = 0.;
         }
-        // Transforms helix to a pivot point on the helix itself (so rho0 and z0 become zero)
         Vec newPivot = helixState.atPhi(phiInt);
-        Vec helixParamsPivoted = helixState.pivotTransform(newPivot);
-        DMatrixRMaj F = new DMatrixRMaj(5,5);
-        helixState.makeF(helixParamsPivoted, F);
-        if (debug) {
-            System.out.format("Entering KalmanInterface.toHPShelix");
-            helixState.print("provided");
-            pln.print("provided");
-            newPivot.print("new pivot");
-            helixParamsPivoted.print("pivoted helix params");
-            System.out.format("turning angle to the plane containing the helixState origin=%10.6f\n", phiInt);
-            Vec intGlb = helixState.toGlobal(newPivot);
-            intGlb.print("global intersection with plane");
-        }
-        
-        // Then rotate the helix to the global system. This isn't quite kosher, since the B-field will not
-        // be aligned with the global system in general, but we have to do it to fit back into the HPS TrackState
-        // coordinate convention, for which the field is assumed to be uniform and aligned.
-        DMatrixRMaj fRot = new DMatrixRMaj(5,5);
-        Vec helixParamsRotated = HelixState.rotateHelix(helixParamsPivoted, helixState.Rot.invert(), fRot);
-        CommonOps_DDRM.mult(fRot, F, Ft);             
-        
-        CommonOps_DDRM.multTransB(helixState.C, Ft, tempM);
-        DMatrixRMaj covRotated = new DMatrixRMaj(5,5);
-        CommonOps_DDRM.mult(Ft, tempM, covRotated);
-        if (debug) helixParamsRotated.print("rotated helix params");
-        
-        // Transform the pivot to the global system. 
-        Vec pivotGlobal = helixState.toGlobal(newPivot);
-        if (debug) pivotGlobal.print("pivot in global system");
-        
-        // Pivot transform to the final pivot at the origin
         Vec finalPivot = new Vec(0.,0.,0.);
-        Vec finalHelixParams = HelixState.pivotTransform(finalPivot, helixParamsRotated, pivotGlobal, alphaCenter, 0.);
-        HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter);
-        CommonOps_DDRM.multTransB(covRotated, F, tempM);
-        CommonOps_DDRM.mult(F, tempM, covRotated);
-        if (debug) {
-            finalPivot.print("final pivot point");
-            finalHelixParams.print("final helix parameters");
-            HelixPlaneIntersect hpi = new HelixPlaneIntersect();
-            phiInt = hpi.planeIntersect(finalHelixParams, finalPivot, alphaCenter, pln);
-            if (!Double.isNaN(phiInt)) {
-                Vec rInt = HelixState.atPhi(finalPivot, finalHelixParams, phiInt, alphaCenter);
-                rInt.print("final helix intersection with given plane");
+        if (!uniformB) {
+            // Transform helix to a pivot point on the helix itself (so rho0 and z0 become zero)
+            Vec helixParamsPivoted = helixState.pivotTransform(newPivot);         
+            helixState.makeF(helixParamsPivoted, F);
+            if (debug) {
+                System.out.format("Entering KalmanInterface.toHPShelix");
+                helixState.print("provided");
+                pln.print("provided");
+                newPivot.print("new pivot");
+                helixParamsPivoted.print("pivoted helix params");
+                System.out.format("turning angle to the plane containing the helixState origin=%10.6f\n", phiInt);
+                Vec intGlb = helixState.toGlobal(newPivot);
+                intGlb.print("global intersection with plane");
             }
-            System.out.format("Exiting KalmanInterface.toHPShelix\n");
+            
+            // Then rotate the helix to the global system. This isn't quite kosher, since the B-field will not
+            // be aligned with the global system in general, but we have to do it to fit back into the HPS TrackState
+            // coordinate convention, for which the field is assumed to be uniform and aligned.
+            DMatrixRMaj fRot = new DMatrixRMaj(5,5);
+            Vec helixParamsRotated = HelixState.rotateHelix(helixParamsPivoted, helixState.Rot.invert(), fRot);
+            CommonOps_DDRM.mult(fRot, F, Ft);             
+            
+            CommonOps_DDRM.multTransB(helixState.C, Ft, tempM);
+            CommonOps_DDRM.mult(Ft, tempM, covRotated);
+            if (debug) helixParamsRotated.print("rotated helix params");
+            
+            // Transform the pivot to the global system. 
+            pivotGlobal = helixState.toGlobal(newPivot);
+            if (debug) pivotGlobal.print("pivot in global system");
+        
+            // Pivot transform to the final pivot at the origin
+            finalHelixParams = HelixState.pivotTransform(finalPivot, helixParamsRotated, pivotGlobal, alphaCenter, 0.);
+            HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter);
+            CommonOps_DDRM.multTransB(covRotated, F, tempM);
+            CommonOps_DDRM.mult(F, tempM, covRotated);
+            if (debug) {
+                finalPivot.print("final pivot point");
+                finalHelixParams.print("final helix parameters");
+                HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+                phiInt = hpi.planeIntersect(finalHelixParams, finalPivot, alphaCenter, pln);
+                if (!Double.isNaN(phiInt)) {
+                    Vec rInt = HelixState.atPhi(finalPivot, finalHelixParams, phiInt, alphaCenter);
+                    rInt.print("final helix intersection with given plane");
+                }
+                System.out.format("Exiting KalmanInterface.toHPShelix\n");
+            }
+        } else {  // For a uniform field, all we have to do is a pivot transform to the origin
+            pivotGlobal = newPivot;   // Intersection with the provided plane
+            finalHelixParams = helixState.pivotTransform(finalPivot);
+            helixState.makeF(finalHelixParams, F);
+            CommonOps_DDRM.multTransB(helixState.C, F, tempM);
+            CommonOps_DDRM.mult(F, tempM, covRotated);
         }
         if (covHPS != null) {
             double [] temp = KalmanInterface.getLCSimCov(covRotated, alphaCenter).asPackedArray(true);
@@ -389,6 +492,15 @@ public class KalmanInterface {
         return KalmanInterface.getLCSimParams(finalHelixParams.v, alphaCenter);
     }
     
+    /**
+     * Transform a Kalman HelixState to an HPS TrackState.
+     * 
+     * @param helixState    The Kalman HelixState object.
+     * @param pln           The Kalman Plane object (origin point and t,u,v axis directions)
+     * @param alphaCenter   The alpha value used to calculate momentum from curvature.
+     * @param loc           Integer representation of the TrackState location (AtIP, AtFirstHit, AtLastHit, AtCalorimeter, AtVertex, AtOther)
+     * @return    The HPS TrackState
+     */
     static TrackState toTrackState(HelixState helixState, Plane pln, double alphaCenter, int loc) {
         double [] covHPS = new double[15];
         double [] position = new double[3];
@@ -397,6 +509,34 @@ public class KalmanInterface {
         return new BaseTrackState( helixHPS, covHPS, position, loc); 
     }
     
+    /**
+     * Create an HPS TrackState from a Kalman HelixState at the location of a particular SiModule
+     * 
+     * @param ms      Kalman MeasurementSite object
+     * @param loc     Integer representation of the TrackState location (AtIP, AtFirstHit, AtLastHit, AtCalorimeter, AtVertex, AtOther)
+     * @param useSmoothed   Choose between the smoothed vs filtered Kalman helix
+     * @return    The HPS TrackState
+     */
+    public TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
+        // Note that the helix parameters that get stored in the TrackState assume a B-field exactly oriented in the
+        // z direction and a pivot point at the origin (0,0,0). The referencePoint of the TrackState is set to the
+        // intersection point with the detector plane.
+        StateVector sv = null;
+        if (useSmoothed) {
+            if (!ms.smoothed) return null;
+            sv = ms.aS;
+        } else {   // using the filtered state is really not recommended
+            if (!ms.filtered) return null;
+            sv = ms.aF;
+        }
+        return sv.helix.toTrackState(alphaCenter, ms.m.p, loc);
+    }
+    
+    /**
+     * Formatted debug printout of a single GBLStripClusterData object.
+     * 
+     * @param clstr   The GBLStripClusterData object to be printed
+     */
     public void printGBLStripClusterData(GBLStripClusterData clstr) {
         System.out.format("\nKalmanInterface.printGBLStripClusterData: cluster ID=%d, scatterOnly=%d\n", clstr.getId(), clstr.getScatterOnly());
         Pair<Integer, Integer> IDdecode = TrackUtils.getLayerSide(clstr.getVolume(), clstr.getId());
@@ -412,12 +552,16 @@ public class KalmanInterface {
         System.out.format("  RMS projected scattering angle=%10.6f\n", clstr.getScatterAngle());
     }
     
-    // Make a GBLStripClusterData object for each MeasurementSite of a Kalman track
+    /**
+     * Make a GBLStripClusterData object for each MeasurementSite of a Kalman track. This can be used to refit the track using
+     * the GBL program.
+     * 
+     * @param kT    The Kalman track
+     * @return    List of strip-cluster data for this Kalman track
+     */
     public List<GBLStripClusterData> createGBLStripClusterData(KalTrack kT) {
         List<GBLStripClusterData> rtnList = new ArrayList<GBLStripClusterData>(kT.SiteList.size());
-
-        //Arc length from origin to first plane
-        
+  
         double phi_org         = kT.originHelixParms()[1];
         double phi_1state      = kT.SiteList.get(0).aS.helix.a.v[1]; 
         double alpha           = kT.helixAtOrigin.alpha;
@@ -508,14 +652,29 @@ public class KalmanInterface {
         return rtnList;
     }
 
-    // Propagate a TrackState "stateHPS" to a plane given by "location" and "direction".
-    // The PropagatedTrackState object created includes the new propagated TrackState plus information on
-    // the intersection point of the track with the plane.
+    /**
+     * Propagate a TrackState "stateHPS" to a plane given by "location" and "direction".
+     * The PropagatedTrackState object created includes the new propagated TrackState plus information on
+     * the intersection point of the track with the plane. This propagations is done using the full field map,
+     * even if kPar.uniformB is true.
+     * 
+     * @param stateHPS       HPS trackstate at the plane in question
+     * @param location       HPS location description (AtIP, AtFirstHit, AtLastHit, AtCalorimeter, AtVertex, AtOther)
+     * @param direction      Direction cosines of the plane
+     * @return               Kalman PropagatedTrackState object
+     */
+
     public PropagatedTrackState propagateTrackState(TrackState stateHPS, double [] location, double [] direction) {
-        return new PropagatedTrackState(stateHPS, location, direction, detPlanes, fM);
+        return new PropagatedTrackState(stateHPS, location, direction, detPlanes, kPar.SVTcenter, fM);
     }
     
-    // Create an HPS track from a Kalman track
+    /**
+     * Create an HPS track from a Kalman track
+     * 
+     * @param kT                 Kalman track object
+     * @param storeTrackStates   true to store in addition all of the track states
+     * @return                   HPS track
+     */
     public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
         if (kT.SiteList == null) {
             logger.log(Level.WARNING, "KalmanInterface.createTrack: Kalman track is incomplete.");
@@ -537,7 +696,7 @@ public class KalmanInterface {
         // center of the magnet), so we need to use the magnetic field there to convert from 1/pt to curvature.
         // Field at the origin  => For 2016 this is ~ 0.430612 T
         // In the center of SVT => For 2016 this is ~ 0.52340 T
-        Vec Bfield = KalmanInterface.getField(new Vec(0., SVTcenter ,0.), kT.SiteList.get(0).m.Bfield);
+        Vec Bfield = KalmanInterface.getField(new Vec(0., kPar.SVTcenter ,0.), kT.SiteList.get(0).m.Bfield);
         double B = Bfield.mag();
         double[] newParams = getLCSimParams(globalParams, alphaCenter);
         double[] newCov = getLCSimCov(globalCov, alphaCenter).asPackedArray(true);
@@ -602,7 +761,13 @@ public class KalmanInterface {
         return newTrack;
     }
 
-    // Convert helix parameters from Kalman to LCSim
+    /**
+     * Convert helix parameters from Kalman to LCSim
+     * 
+     * @param oldParams   Array of 5 Kalman helix parameters
+     * @param alpha       Parameter to use to convert between momentum and curvature
+     * @return            Array of 5 LCSim helix parameters
+     */
     static double[] getLCSimParams(double[] oldParams, double alpha) {  
         // Note: since HPS-java has assumed a constant field for tracking, the alpha value used here should
         // correspond to the field at the center of the SVT or magnet.   See the class variable alphaCenter.
@@ -616,7 +781,13 @@ public class KalmanInterface {
         return params;
     }
 
-    // Convert helix parameters from LCSim to Kalman
+    /**
+     * Convert helix parameters from LCSim to Kalman
+     * 
+     * @param oldParams   Array of 5 LCSim helix parameters
+     * @param alpha       Parameter to use to convert between momentum and curvature
+     * @return            Array of 5 Kalman helix parameters
+     */
     static double[] unGetLCSimParams(double[] oldParams, double alpha) { 
         // Note: since HPS-java has assumed a constant field for tracking, the alpha value used here should
         // correspond to the field at the center of the SVT or magnet.   See the class variable alphaCenter.
@@ -629,7 +800,13 @@ public class KalmanInterface {
         return params;
     }
 
-    // Convert helix parameter covariance matrix from Kalman to LCSim
+    /**
+     * Convert helix parameter covariance matrix from Kalman to LCSim
+     * 
+     * @param oldCov      Kalman covariance matrix
+     * @param alpha       Parameter to use to convert between momentum and curvature
+     * @return            Covariance matrix of LCSim helix parameters
+     */
     static SymmetricMatrix getLCSimCov(DMatrixRMaj oldCov, double alpha) {
         // Note: since HPS-java has assumed a constant field for tracking, the alpha value used here should
         // correspond to the field at the center of the SVT or magnet.   See the class variable alphaCenter.
@@ -649,7 +826,13 @@ public class KalmanInterface {
         return cov;
     }
 
-    // Convert helix parameter covariance matrix from LCSim to Kalman
+    /**
+     * Convert helix parameter covariance matrix from LCSim to Kalman
+     * 
+     * @param oldCov          LCSIM symmetric covariance matrix as a linear array of 15 elements
+     * @param alpha           Parameter to use to convert between momentum and curvature
+     * @return                5 by 5 covariance matrix for Kalman helix parameters
+     */
     static double[][] ungetLCSimCov(double[] oldCov, double alpha) {
         // Note: since HPS-java has assumed a constant field for tracking, the alpha value used here should
         // correspond to the field at the center of the SVT or magnet.   See the class variable alphaCenter.
@@ -678,7 +861,12 @@ public class KalmanInterface {
         return cov;
     }
 
-    // Used only for Kalman tracks made by fitting hits on a GBL track
+    /**
+     * Add hits to an existing track
+     * Used only for Kalman tracks made by fitting hits on a GBL track
+     * 
+     * @param newTrack   Track to which hits will be added
+     */
     private void addHitsToTrack(BaseTrack newTrack) {
         List<Measurement> measList = getMeasurements();
 
@@ -691,7 +879,12 @@ public class KalmanInterface {
         newTrack.setNDF(newTrack.getTrackerHits().size());
     }
 
-    // Create an HPS track from a Kalman seed
+    /**
+     * Create an HPS track from a Kalman seed
+     * 
+     * @param trk     Seed
+     * @return        HPS track
+     */
     public BaseTrack createTrack(SeedTrack trk) {
         double[] newPivot = { 0., 0., 0. };
         double[] params = getLCSimParams(trk.pivotTransform(newPivot), alphaCenter);
@@ -706,7 +899,11 @@ public class KalmanInterface {
         return newTrack;
     }
 
-    // Method to create one Kalman SiModule object for each silicon-strip detector
+    /**
+     * Method to create one Kalman SiModule geometry object for each silicon-strip detector
+     * 
+     * @param inputPlanes      List of all the silicon-strip detector planes
+     */
     public void createSiModules(List<SiStripPlane> inputPlanes) {
         if (debug) {
             System.out.format("Entering KalmanInterface.creasteSiModules\n");
@@ -792,8 +989,14 @@ public class KalmanInterface {
         }
     }
     
-    // Method to feed simulated hits into the pattern recognition, for testing
-    private boolean fillAllSimHits(EventHeader event, IDDecoder decoder) {
+    /**
+     * Method to feed simulated hits into the pattern recognition, for testing
+     * 
+     * @param event     Event header
+     * @param decoder   Decoder for unpacking hit information
+     * @return          true if it executed successfully
+     */
+    boolean fillAllSimHits(EventHeader event, IDDecoder decoder) {
         boolean success = false;
         eventNumber = event.getEventNumber();
 
@@ -872,7 +1075,12 @@ public class KalmanInterface {
         return success;
     }
        
-    // Method to fill all Si hits into the SiModule objects, to feed to the pattern recognition.
+    /**
+     * Method to fill all Si hits into the SiModule objects, to feed to the pattern recognition.
+     * 
+     * @param event    Event header
+     * @return         true if it executed successfully
+     */
     private boolean fillAllMeasurements(EventHeader event) {
         boolean success = false;
         eventNumber = event.getEventNumber();
@@ -882,8 +1090,8 @@ public class KalmanInterface {
         List<TrackerHit> striphits = event.get(TrackerHit.class, stripHitInputCollectionName);
         
         if (striphits.size() > maxHits) maxHits = striphits.size(); 
-        if (striphits.size() > 200) nBigEvents++;
         if (_siHitsLimit > 0 && striphits.size() > _siHitsLimit) {
+            nBigEvents++;
             System.out.format("KalmanInterface::Skip event %d with %s %d hits > %d\n", event.getEventNumber(), 
                     stripHitInputCollectionName, striphits.size(), _siHitsLimit);
             return false;
@@ -1048,7 +1256,13 @@ public class KalmanInterface {
         return success;
     }
 
-    // Method to fill the Si hits into the SiModule objects for a given track, in order to refit the track
+    /**
+     * Method to fill the Si hits into the SiModule objects for a given GBL track, in order to refit the track using Kalman filter
+     * 
+     * @param hits1D      1-dimensional tracker hits
+     * @param addMode     0 to skip layers not already having hits; 1 to skip layers already having hits
+     * @return
+     */
     private double fillMeasurements(List<TrackerHit> hits1D, int addMode) {
         double firstZ = 10000;
         Map<HpsSiSensor, ArrayList<TrackerHit>> hitsMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
@@ -1124,15 +1338,32 @@ public class KalmanInterface {
         return firstZ;
     }
 
-    // Make a linear fit to a set of hits to be used to initialize the Kalman Filter
+    /**
+     * Make a linear fit to a set of hits to be used to initialize the Kalman Filter
+     * 
+     * @param track            GBL track
+     * @param hitToStrips      Relation table for GBL hits to strips
+     * @param hitToRotated     Relation table for GBL hits to rotated hits
+     * @return                 New track seed
+     */
     public SeedTrack createKalmanSeedTrack(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
         double firstHitZ = fillMeasurements(hitsOnTrack, 0);
         if (debug) System.out.printf("firstHitZ %f \n", firstHitZ);
-        return new SeedTrack(trackHitsKalman, firstHitZ, 0.);
+        return new SeedTrack(trackHitsKalman, firstHitZ, 0., kPar);
     }
 
-    // Method to refit an existing track's hits, using the Kalman seed-track to initialize the Kalman Filter.
+    /**
+     * Method to refit an existing track's hits, using the Kalman seed-track to initialize the Kalman Filter.
+     * 
+     * @param evtNumb        Event number
+     * @param seed           Kalman track seed
+     * @param track          GBL track
+     * @param hitToStrips    Relation table for GBL hits to strips
+     * @param hitToRotated   Relation table for GBL hits to rotated hits
+     * @param nIt            Number of iterations
+     * @return               Kalman track fit object
+     */
     public KalmanTrackFit2 createKalmanTrackFit(int evtNumb, SeedTrack seed, Track track, RelationalTable hitToStrips,
             RelationalTable hitToRotated, int nIt) {
         double firstHitZ = 10000.;
@@ -1155,7 +1386,6 @@ public class KalmanInterface {
             if (SeedTrackLayers.contains((SiM.Layer + 1) / 2) && (i > startIndex)) { startIndex = i; }
             if (debug) { SiM.print(String.format("SiMoccupied%d", i)); }
         }
-        // startIndex++;
 
         if (debug) { System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); }
 
@@ -1165,7 +1395,19 @@ public class KalmanInterface {
         return new KalmanTrackFit2(evtNumb, SiMoccupied, null, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, kPar, fM);
     }
 
-    // Method to refit an existing track, using the track's helix parameters and covariance to initialize the Kalman Filter.
+    /**
+     * Method to refit an existing GBL track, using the track's helix parameters and covariance to initialize the Kalman Filter.
+     * 
+     * @param evtNumb         Event number
+     * @param helixParams     5-vector of starting-guess Kalman helix parameters
+     * @param pivot           Pivot point for the helix parameters
+     * @param cov             Starting-guess Helix parameters covariance
+     * @param track           GBL track
+     * @param hitToStrips     Relation table for GBL hits to strips
+     * @param hitToRotated    Relation table for GBL hits to rotated hits
+     * @param nIt             Number of Kalman fit iterations
+     * @return                Kalman track-fit object
+     */
     public KalmanTrackFit2 createKalmanTrackFit(int evtNumb, Vec helixParams, Vec pivot, DMatrixRMaj cov, Track track,
             RelationalTable hitToStrips, RelationalTable hitToRotated, int nIt) {
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
@@ -1190,10 +1432,10 @@ public class KalmanInterface {
         return new KalmanTrackFit2(evtNumb, SiMoccupied, null, startIndex, nIt, pivot, helixParams, cov, kPar, fM);
     }
 
-    // public KalTrack createKalmanTrack(KalmanTrackFit2 ktf, int trackID) {
-    // return new KalTrack(trackID, ktf.sites.size(), ktf.sites, ktf.chi2s);
-    // }
-
+    /**
+     * Sort the Kalman-filter geometry objects according to tracker layer
+     * 
+     */
     class SortByLayer implements Comparator<SiModule> {
         @Override
         public int compare(SiModule o1, SiModule o2) {
@@ -1201,7 +1443,13 @@ public class KalmanInterface {
         }
     }
 
-    // Method to drive the Kalman-Filter based pattern recognition
+    /**
+     *  Method to drive the Kalman-Filter based pattern recognition
+     *  
+     * @param event      Event header
+     * @param decoder    Decoder for hit information
+     * @return           Two lists of Kalman KalTrack objects, for top and bottom detectors
+     */
     public ArrayList<KalTrack>[] KalmanPatRec(EventHeader event, IDDecoder decoder) {
         if (debug) System.out.format("KalmanInterface: entering KalmanPatRec for event %d\n", event.getEventNumber());
         ArrayList<KalTrack>[] outList = new ArrayList[2];
@@ -1236,11 +1484,19 @@ public class KalmanInterface {
                 System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             }
             outList[topBottom] = kPat.kalmanPatRec(event, hitMap, SiMoccupied, topBottom);
+            
+            //for (KalTrack tkr : outList[topBottom]) tkr.printLong("Kalman Track");
         }
         return outList;
     }
 
-    // The following method is a debugging aid for comparing SeedTracker/GBL tracks to the Kalman counterparts.
+    /**
+     * The following method is a debugging aid for comparing SeedTracker/GBL tracks to the Kalman counterparts.
+     * 
+     * @param trackCollectionName     Tracks to be compared to Kalman
+     * @param event                   Event header
+     * @param kPatList                Lists of all Kalman tracks top and bottom
+     */
     public void compareAllTracks(String trackCollectionName, EventHeader event, ArrayList<KalTrack>[] kPatList) {
         if (!event.hasCollection(Track.class, trackCollectionName)) {
             System.out.format("\nKalmanInterface.compareAllTracks: the track collection %s is missing. Abort.\n",trackCollectionName);
@@ -1427,6 +1683,12 @@ public class KalmanInterface {
         }
     }    
     
+    /**
+     * Plots GBL tracks by creating an ASCII file to be displayed by GNUplot
+     * 
+     * @param path    Path to the folder where the output file should be written
+     * @param event   Event header
+     */
     public void plotGBLtracks(String path, EventHeader event) {
         
         String trackCollectionName = "GBLTracks";
@@ -1523,7 +1785,13 @@ public class KalmanInterface {
         printWriter3.format("\n");
         printWriter3.close();
     }
-    // This method makes a Gnuplot file to display the Kalman tracks and hits in 3D.
+    /**
+     * This method makes a Gnuplot file to display the Kalman tracks and hits in 3D.
+     * 
+     * @param path          Path to the folder where the output text file will be writtng
+     * @param event         Event header
+     * @param patRecList    Array of dimension 2 (up vs down) of lists of tracks to be plotted
+     */
     public void plotKalmanEvent(String path, EventHeader event, ArrayList<KalTrack>[] patRecList) {
         
         boolean debug = false;

@@ -2,14 +2,12 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.math3.util.Pair;
 import org.hps.recon.tracking.TrackUtils;
 
 /**
- * Description of a single silicon-strip module, and a container for its hits
+ * Description of a single silicon-strip module for the Kalman code, and a container for its hits.
  */
 class SiModule {
     int Layer; // Tracker layer number, or a negative integer for a dummy layer added just for stepping in a
@@ -25,33 +23,41 @@ class SiModule {
     double[] yExtent; // Plus and minus limits on the detector active area in the y direction
                       // (perpendicular to the strips)
     boolean split;    // True if the strips are split into two channels at the middle
-    RotMatrix R; // Rotation from the detector coordinates to global coordinates (not field coordinates)
-    RotMatrix Rinv; // Rotation from global (not field) coordinates to detector coordinates (transpose of R)
-                    // The local coordinate system is u, v, t where t is more-or-less the beam direction (y-global)
-                    // and v is the measurement direction.
+    RotMatrix R;      // Rotation from the detector coordinates to global coordinates (not field coordinates)
+    RotMatrix Rinv;   // Rotation from global (not field) coordinates to detector coordinates (transpose of R)
+                      // The local coordinate system is u, v, t where t is more-or-less the beam direction (y-global)
+                      // and v is the measurement direction.
     double thickness; // Silicon thickness in mm (should be 0 for a dummy layer!)
     int topBottom;    // 0 for bottom tracker, 1 for top tracker
     org.lcsim.geometry.FieldMap Bfield;
     boolean isStereo;
 
-    private boolean verbose;
-    private Logger logger;
+    static final private boolean debug = false;
 
+    /**
+     * Constructor for backwards-compatibility with old stand-alone development code: assume axial layers have stereo angle=0
+     */
     SiModule(int Layer, Plane p, double stereo, double width, double height, boolean split, double thickness, org.lcsim.geometry.FieldMap Bfield) {
-        // for backwards-compatibility with old stand-alone development code: assume axial
-        // layers have stereo angle=0
+        // 
         this(Layer, p, stereo != 0.0, width, height, split, thickness, Bfield, 0, 0, 0);
         topBottom = 1;
         if (p.X().v[2]>0) topBottom = 0;
     }
 
+    /**
+     * Constructor for backward compatibility with old test code
+     */
     SiModule(int Layer, Plane p, boolean isStereo, double width, double height, boolean split, double thickness,
             org.lcsim.geometry.FieldMap Bfield) {
         this(Layer, p, isStereo, width, height, split, thickness, Bfield, 0, 0, 0);
         topBottom = 1;
         if (p.X().v[2]>0) topBottom = 0;
     }
-
+    
+    /**
+     * Another constructor for backward compatibility. 
+     * No millipedeID and figures out top or bottom from the location coordinate.
+     */
     SiModule(int Layer, Plane p, boolean isStereo, double width, double height, boolean split, double thickness,
             org.lcsim.geometry.FieldMap Bfield, int detector) {
         this(Layer, p, isStereo, width, height, split, thickness, Bfield, detector, 0, 0);
@@ -59,19 +65,29 @@ class SiModule {
         if (p.X().v[2]>0) topBottom = 0;
     }
 
+    /**
+     * Full constructor
+     * @param Layer          Layer number from 0 to 13 for 2019/2021 data
+     * @param p              Plane describing the sensor location and orientation
+     * @param isStereo       True for stereo layers, false for axial
+     * @param width          Silicon wafer width
+     * @param height         Silicon wafer height
+     * @param split          True if the strips are split into two channels at the middle (thin sensors)
+     * @param thickness      Silicon thickness
+     * @param Bfield         Field map
+     * @param detector       0 or 1 (only zero for planes with a single sensor)
+     * @param millipedeID    ID used for alignment studies
+     * @param topBottom      Which detector, top (1) or bottom (0)?
+     */
     SiModule(int Layer, Plane p, boolean isStereo, double width, double height, boolean split, double thickness,
             org.lcsim.geometry.FieldMap Bfield, int detector, int millipedeID, int topBottom) {
         this.topBottom = topBottom;
-        logger = Logger.getLogger(SiModule.class.getName());
-        verbose = (logger.getLevel()==Level.FINE);
         this.millipedeID = millipedeID;
-        if (verbose) { 
+        if (debug) { 
             System.out.format("SiModule constructor called with layer = %d, detector module = %d, y=%8.2f\n", Layer, detector, p.X().v[1]);
             p.print("of SiModule");
-        }
-        Vec BOnAxis = KalmanInterface.getField(new Vec(0.,p.X().v[1],0.), Bfield);
-        Vec BatCenter = KalmanInterface.getField(p.X(), Bfield);
-        if (verbose) {
+            Vec BOnAxis = KalmanInterface.getField(new Vec(0.,p.X().v[1],0.), Bfield);
+            Vec BatCenter = KalmanInterface.getField(p.X(), Bfield);
             BOnAxis.print("B field on axis");
             BatCenter.print("B at detector center");
         }
@@ -94,10 +110,18 @@ class SiModule {
         hits = new ArrayList<Measurement>();
     }
 
+    /**
+     * Debug printout of all details of an instance.
+     * @param s      Arbitrary string for the user's reference.
+     */
     void print(String s) {
         System.out.format("%s",this.toString(s));
     }
-    
+
+    /**
+     * Debug printout to a string of all details of an instance.
+     * @param s      Arbitrary string for the user's reference.
+     */
     String toString(String s) {
         boolean top = topBottom == 1;
         String str = String.format(
@@ -125,6 +149,10 @@ class SiModule {
         }
         return str;
     }
+    
+    /**
+     * Abbreviated debug printout to a string.
+     */
     public String toString() {
         boolean top = topBottom == 1;
         String str = String.format("Si Module: Lyr=%2d Det=%2d Top=%b Mpd=%d split=%b stereo=%b pnt=%8.3f %8.3f %8.3f t=%7.3f %7.3f %7.3f\n",
@@ -134,11 +162,17 @@ class SiModule {
         return str;
     }
 
-    // Delete all the existing hits
+    /**
+     *  Delete all the existing hits
+     */
     void reset() {
         hits = new ArrayList<Measurement>();
     }
 
+    /**
+     * Add a silicon-strip measurement to the list for this module
+     * @param m    The measurement object
+     */
     void addMeasurement(Measurement m) {
         if (hits.size() == 0) hits.add(m);
         else {
@@ -154,11 +188,21 @@ class SiModule {
         }
     }
 
-    Vec toGlobal(Vec vLocal) { // Convert a position vector from local detector coordinates to global
+    /**
+     * Convert a position vector from local detector coordinates to global
+     * @param vLocal    3-vector of the point in local coordinates
+     * @return          3-vector of the point in global coordinates
+     */
+    Vec toGlobal(Vec vLocal) { 
         return p.X().sum(R.rotate(vLocal));
     }
 
-    Vec toLocal(Vec vGlobal) { // Convert a position vector from global coordinates to local detector
+    /**
+     * Convert a position vector from global coordinates to local detector
+     * @param vGlobal     3-vector of the point in global coordinates
+     * @return            3-vector of the point in local coordinates
+     */
+    Vec toLocal(Vec vGlobal) { 
         return Rinv.rotate(vGlobal.dif(p.X()));
     }
 

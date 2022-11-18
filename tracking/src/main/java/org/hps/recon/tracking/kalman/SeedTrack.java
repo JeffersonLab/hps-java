@@ -51,14 +51,25 @@ class SeedTrack {
     private static final boolean debug = false; // Set true to generate lots of debug printout
     //private static int nCalls;
 
+    /**
+     * Get the field conversion factor
+     */
     double getAlpha() {
         return alpha;
     }
 
+    /**
+     * Debug print of the seed
+     * @param s     Arbitrary string for the user's reference
+     */
     void print(String s) {
         System.out.format("%s", this.toString(s));
     }
     
+    /**
+     * Debug print of the seed to a string
+     * @param s     Arbitrary string for the user's reference
+     */
     String toString(String s) {
         String str;
         if (success) {
@@ -84,11 +95,19 @@ class SeedTrack {
         return str;
     }
 
-    // Older interface
-    SeedTrack(ArrayList<SiModule> data, // List of Si modules with data
-            double yOrigin, // New origin along beam to use for the fit
-            ArrayList<int[]> hitList, // Element 0= index of Si module; Element 1= hit number
-            boolean verbose // Set true for lots of debug printout
+    /**
+     * Old constructor
+     * @param data      List of Si modules with data
+     * @param yOrigin   New origin along beam to use for the fit
+     * @param hitList   List of hits to fit to, element 0= index of Si module; Element 1= hit number
+     * @param verbose   No longer used
+     * @param kPar      KalmanParams instance
+     */
+    SeedTrack(ArrayList<SiModule> data, 
+            double yOrigin, 
+            ArrayList<int[]> hitList,  
+            boolean verbose, 
+            KalmanParams kPar
     ) {
         ArrayList<KalHit> theHits = new ArrayList<KalHit>(hitList.size());
         for (int i = 0; i < hitList.size(); i++) {
@@ -97,16 +116,28 @@ class SeedTrack {
             theHits.add(tmpHit);
         }
         double yTarget = 0.;
-        SeedTracker(theHits, yOrigin, yTarget);
+        SeedTracker(theHits, yOrigin, yTarget, kPar);
     }
 
-    // Newer interface
-    SeedTrack(ArrayList<KalHit> hitList, double yOrigin, double yTarget) {
-        SeedTracker(hitList, yOrigin, yTarget);
+    /**
+     * New constructor
+     * @param hitList        List of Si modules with data
+     * @param yOrigin        New origin along beam to use for the fit
+     * @param yTarget        Location along the beam of the target itself
+     * @param kPar           KalmanParams instance
+     */
+    SeedTrack(ArrayList<KalHit> hitList, double yOrigin, double yTarget, KalmanParams kPar) {
+        SeedTracker(hitList, yOrigin, yTarget, kPar);
     }
 
-    
-    private void SeedTracker(ArrayList<KalHit> hitList, double yOrigin, double yTarget) {
+    /**
+     * Actual code for the constructor
+     * @param hitList        List of Si modules with data
+     * @param yOrigin        New origin along beam to use for the fit
+     * @param yTarget        Location along the beam of the target itself
+     * @param kPar           KalmanParams instance
+     */    
+    private void SeedTracker(ArrayList<KalHit> hitList, double yOrigin, double yTarget, KalmanParams kPar) {
         // yOrigin is the location along the beam about which we fit the seed helix
         // yTarget is the location along the beam of the target itself
         //if (nCalls < 3) debug = true;
@@ -153,14 +184,22 @@ class SeedTrack {
         Nnonbending = 0;
 
         // First find the average field
-        Vec Bvec = new Vec(0., 0., 0.);
-        for (KalHit pnt : hitList) {
+        
+        Vec Bvec = null;
+        if (kPar.uniformB) {
+            KalHit pnt = hitList.get(0);
             SiModule thisSi = pnt.module;
-            Vec thisB = KalmanInterface.getField(thisSi.toGlobal(new Vec(0., 0., 0.)), thisSi.Bfield);
-            Bvec = Bvec.sum(thisB);
+            Bvec = KalmanInterface.getField(new Vec(0., kPar.SVTcenter, 0.), thisSi.Bfield);
+        } else {
+            Bvec = new Vec(0., 0., 0.);
+            for (KalHit pnt : hitList) {
+                SiModule thisSi = pnt.module;
+                Vec thisB = KalmanInterface.getField(thisSi.toGlobal(new Vec(0., 0., 0.)), thisSi.Bfield);
+                Bvec = Bvec.sum(thisB);
+            }
+            double sF = 1.0 / ((double) nHits);
+            Bvec = Bvec.scale(sF);
         }
-        double sF = 1.0 / ((double) nHits);
-        Bvec = Bvec.scale(sF);
         Bavg = Bvec.mag();
         if (debug) { System.out.format("*** SeedTrack: nHits=%d, Bavg=%10.5e\n", nHits, Bavg); }
         double c = 2.99793e8; // Speed of light in m/s
@@ -287,51 +326,80 @@ class SeedTrack {
         // will give trouble here!
 
         // Rotate the result into the frame of the B field at the specified origin
-        KalHit itr = hitList.get(0);
-        SiModule firstSi = itr.module;
-        Vec firstB = KalmanInterface.getField(new Vec(0., yOrigin, 0.), firstSi.Bfield);
-        if (Math.abs(firstB.v[1] / firstB.v[2]) > 0.002) {
-            Vec zhat = firstB.unitVec();
-            Vec yhat = new Vec(0., 1., 0.);
-            Vec xhat = (yhat.cross(zhat)).unitVec();
-            yhat = zhat.cross(xhat);
-            RotMatrix Rot = new RotMatrix(xhat, yhat, zhat);
-
-            hParm = rotateHelix(new Vec(drho, phi0, K, dz, tanl), Rot);
-            if (debug) {
-                firstB.print("Seedtrack, B field");
-                Rot.print("Seedtrack, rotation matrix");
-                hParm.print("Seedtrack, rotated helix");
+        if (!kPar.uniformB) {
+            KalHit itr = hitList.get(0);
+            SiModule firstSi = itr.module;
+            Vec firstB = KalmanInterface.getField(new Vec(0., yOrigin, 0.), firstSi.Bfield);
+            if (Math.abs(firstB.v[1] / firstB.v[2]) > 0.002) {
+                Vec zhat = firstB.unitVec();
+                Vec yhat = new Vec(0., 1., 0.);
+                Vec xhat = (yhat.cross(zhat)).unitVec();
+                yhat = zhat.cross(xhat);
+                RotMatrix Rot = new RotMatrix(xhat, yhat, zhat);
+    
+                hParm = rotateHelix(new Vec(drho, phi0, K, dz, tanl), Rot);
+                if (debug) {
+                    firstB.print("Seedtrack, B field");
+                    Rot.print("Seedtrack, rotation matrix");
+                    hParm.print("Seedtrack, rotated helix");
+                }
+            } else {
+                hParm = new Vec(drho, phi0, K, dz, tanl);
+                if (debug) { hParm.print("Seedtrack, rotated helix"); }
             }
         } else {
             hParm = new Vec(drho, phi0, K, dz, tanl);
-            if (debug) { hParm.print("Seedtrack, rotated helix"); }
+            if (debug) hParm.print("Seedtrack, rotated helix"); 
         }
-
         success = true;
     }
 
+    /**
+     * Square a double
+     * @param x     number to square
+     * @return      the square
+     */
     private double square(double x) {
         return x * x;
     }
 
-    Vec helixParams() { // Return the fitted helix parameters
+    /**
+     * Return the fitted helix parameters
+     * @return    5-vector of helix parameters
+     */
+    Vec helixParams() { // 
         return hParm;
     }
 
-    DMatrixRMaj covariance() { // Return covariance matrix of the fitted helix parameters
+    /**
+     * Return covariance matrix of the fitted helix parameters
+     * @return     Covariance matrix
+     */
+    DMatrixRMaj covariance() { 
         return C;
     }
 
-    Vec solution() { // Return the 5 polynomial coefficients
+    /**
+     * Return the solution to the linear fit
+     * @return   5-vector of polynomial coefficients
+     */
+    Vec solution() {
         return new Vec(a.unsafe_get(0, 0),a.unsafe_get(1, 0),a.unsafe_get(2, 0),a.unsafe_get(3, 0),a.unsafe_get(4, 0));
     }
 
-    double B() { // Return the average field
+    /**
+     * Return the average field
+     * @return    B field
+     */
+    double B() {
         return Bavg;
     }
 
-    SquareMatrix solutionCovariance() { // Return covariance of the polynomial coefficients
+    /**
+     * Return covariance of the polynomial coefficients
+     * @return    5 by 5 square matrix
+     */
+    SquareMatrix solutionCovariance() { // 
         SquareMatrix CM = new SquareMatrix(5);
         for (int i=0; i<5; ++i) {
             for (int j=0; j<5; ++j) {
@@ -341,19 +409,31 @@ class SeedTrack {
         return CM;
     }
 
-    Vec solutionErrors() { // Return errors on the polynomial coefficients (for testing)
+    /**
+     * Return errors on the polynomial coefficients (for testing)
+     * @return   5-vector of errors
+     */
+    Vec solutionErrors() {  
         return new Vec(FastMath.sqrt(CovA.unsafe_get(0,0)), FastMath.sqrt(CovA.unsafe_get(1,1)), FastMath.sqrt(CovA.unsafe_get(2,2)), 
                 FastMath.sqrt(CovA.unsafe_get(3,3)), FastMath.sqrt(CovA.unsafe_get(4,4)));
     }
 
-    Vec errors() { // Return errors on the helix parameters
+    /**
+     * Return errors on the helix parameters
+     * @return     5-vector of errors
+     */
+    Vec errors() { 
         return new Vec(FastMath.sqrt(C.unsafe_get(0,0)), FastMath.sqrt(C.unsafe_get(1,1)), FastMath.sqrt(C.unsafe_get(2,2)), 
                 FastMath.sqrt(C.unsafe_get(3,3)), FastMath.sqrt(C.unsafe_get(4,4)));
     }
 
-    private double[] parabolaToCircle(double sgn, Vec coef) { // Utility to convert from parabola coefficients to circle
-                                                              // (i.e. helix)
-                                                              // parameters drho, phi0, and K
+    /**
+     * Utility to convert from parabola coefficients to circle (i.e. helix)
+     * @param sgn      charge sign
+     * @param coef     parameters drho, phi0, and K
+     * @return
+     */
+    private double[] parabolaToCircle(double sgn, Vec coef) { 
         R = -sgn / (2.0 * coef.v[2]);
         yc = sgn * R * coef.v[1];
         xc = coef.v[0] - sgn * R * (1.0 - 0.5 * coef.v[1] * coef.v[1]);
@@ -373,7 +453,12 @@ class SeedTrack {
         return r;
     }
 
-    // Transformation of a helix from one B-field frame to another, by rotation R
+    /**
+     * Transformation of a helix from one B-field frame to another, by rotation R
+     * @param a      Helix parameters
+     * @param R      Rotation matrix
+     * @return       New helix parameters
+     */
     private Vec rotateHelix(Vec a, RotMatrix R) {
         // a = 5 helix parameters
         // R = 3 by 3 rotation matrix
@@ -386,7 +471,12 @@ class SeedTrack {
         return new Vec(a.v[0], a_prime.v[0], a_prime.v[1], a.v[3], a_prime.v[2]);
     }
 
-    // Transform from momentum at helix starting point back to the helix parameters
+    /**
+     * Transform from momentum at helix starting point back to the helix parameters
+     * @param p       Momentum vector
+     * @param Q       Charge
+     * @return        Helix parameters
+     */
     private static Vec pTOa(Vec p, Double Q) {
         double phi0 = FastMath.atan2(-p.v[0], p.v[1]);
         double K = Q / FastMath.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
@@ -397,7 +487,9 @@ class SeedTrack {
         return new Vec(phi0, K, tanl);
     }
 
-    // Comparator function for sorting seed tracks by curvature
+    /**
+     * Comparator function for sorting seed tracks by curvature
+     */
     static Comparator<SeedTrack> curvatureComparator = new Comparator<SeedTrack>() {
         public int compare(SeedTrack t1, SeedTrack t2) {
             double K1 = Math.abs(t1.helixParams().v[2]);
@@ -410,7 +502,9 @@ class SeedTrack {
         }
     };
 
-    // Comparator function for sorting seeds by distance from origin in x,z plane at the target
+    /**
+     * Comparator function for sorting seeds by distance from origin in x,z plane at the target
+     */
     static Comparator<SeedTrack> dRhoComparator = new Comparator<SeedTrack>() {
         public int compare(SeedTrack t1, SeedTrack t2) {
             Vec pInt1 = t1.planeIntersection(t1.p0);
@@ -423,7 +517,12 @@ class SeedTrack {
         }
     };
 
-    //Check if two seeds are compatible given a certain relative threshold
+    /**
+     * Check if two seeds are compatible given a certain relative threshold
+     * @param st       Other seed
+     * @param rel_eps  Tolerance
+     * @return         True if they are the same
+     */
     boolean isCompatibleTo(SeedTrack st, double rel_eps) {
         Vec st_hp = st.helixParams();
         boolean compatible = true;
@@ -436,19 +535,34 @@ class SeedTrack {
         return compatible;
     }
     
+    /**
+     * Intersection of the helix with a plane perpendicular to the y axis
+     * @param p     instance of a plane
+     * @return      3-vector intersection point
+     */
     Vec planeIntersection(Plane p) {
         double arg = (K / alpha) * ((drho + (alpha / K)) * FastMath.sin(phi0) - (p.X().v[1] - yOrigin));
         double phiInt = -phi0 + FastMath.asin(arg);
         return atPhi(phiInt);
     }
 
-    private Vec atPhi(double phi) { // point on the helix at the angle phi
+    /**
+     * Point on the helix at the angle phi
+     * @param phi       radians
+     * @return          3-vector
+     */
+    private Vec atPhi(double phi) { 
         double x = (drho + (alpha / K)) * FastMath.cos(phi0) - (alpha / K) * FastMath.cos(phi0 + phi);
         double y = yOrigin + (drho + (alpha / K)) * FastMath.sin(phi0) - (alpha / K) * FastMath.sin(phi0 + phi);
         double z = dz - (alpha / K) * phi * tanl;
         return new Vec(x, y, z);
     }
 
+    /**
+     * Helix pivot transform
+     * @param pivot    New pivot point
+     * @return         Transformed helix parameters
+     */
     double[] pivotTransform(double[] pivot) {
         Vec X0 = new Vec(0., yOrigin, 0.);
         double xC = X0.v[0] + (drho + alpha / K) * FastMath.cos(phi0); // Center of the helix circle
@@ -469,14 +583,16 @@ class SeedTrack {
         return aP;
     }
     
+    /**
+     * Linear fit of a set of points to an approximate helix (parabola plus line)
+     * @param N       Number of measurement points (detector layers) to fit. This must be no less than 5, with at least 2 axial and 2 stereo
+     * @param y       nominal location of each measurement plane along the beam axis
+     * @param v       array of measurement values in the detector coordinate system, perpendicular to the strips
+     * @param s       one sigma error estimate on each measurement
+     * @param delta   offset of the detector coordinate system from the global system (minus the nominal y value along the beam axis)
+     * @param R2      2nd row of the general rotation from the global system to the local detector system
+     */
     private void LinearHelixFit(int N, double[] y, double[] v, double[] s, double[][] delta, double[][] R2) {
-        // N = number of measurement points (detector layers) to fit. This must be no less than 5, with at least 2 axial and 2 stereo
-        // y = nominal location of each measurement plane along the beam axis
-        // v = measurement value in the detector coordinate system, perpendicular to the strips
-        // s = one sigma error estimate on each measurement
-        // delta = offset of the detector coordinate system from the global system (minus the nominal y value along the beam axis)
-        // R2 = 2nd row of the general rotation from the global system to the local detector system
-
         A[0][0] = 0.;
         A[0][1] = 0.;
         A[0][2] = 0.;
@@ -561,14 +677,27 @@ class SeedTrack {
         }
     }
     
+    /**
+     * Find a point on the line given y
+     * @param y     y value
+     * @return      z value
+     */
     private double evaluateLine(double y) {
         return a.unsafe_get(0,0) + a.unsafe_get(1,0) * y;
     }
 
+    /**
+     * Find a point on the parabola given y
+     * @param y     y value (along beam)
+     * @return      x value 
+     */
     private double evaluateParabola(double y) {
         return a.unsafe_get(2,0) + (a.unsafe_get(3,0) + a.unsafe_get(4,0) * y) * y;
     }
     
+    /**
+     * Debug print the fit results
+     */
     private void printFit(int N, double[] x, double[] y, double[] z, double[] v, double[] s) {
         System.out.format("LinearHelixFit: parabola a=%10.7f   b=%10.7f   c=%10.7f\n", a.get(2,0), a.get(3,0), a.get(4,0));
         System.out.format("LinearHelixFit:     line a=%10.7f   b=%10.7f\n", a.get(0,0), a.get(1,0));

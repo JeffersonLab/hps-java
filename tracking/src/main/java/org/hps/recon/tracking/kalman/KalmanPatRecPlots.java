@@ -102,7 +102,7 @@ class KalmanPatRecPlots {
         aida.histogram1D("GBL >=12-hit track chi^2", 100, 0., 200.);
         aida.histogram1D("Kalman Track Number Hits", 20, 0., 20.);
         aida.histogram1D("GBL number tracks", 10, 0., 10.);
-        aida.histogram1D("Kalman missed hit residual", 100, -1.0, 1.0);
+        aida.histogram1D("Kalman missed hit residual", 100, -2.0, 2.0);
         aida.histogram1D("Kalman track hit residual, sigmas", 100, -5., 5.);
         aida.histogram1D("Kalman track hit residual >= 10 hits, sigmas", 100, -5., 5.);
         aida.histogram1D("Kalman track hit residual", 100, -0.1, 0.1);
@@ -157,7 +157,7 @@ class KalmanPatRecPlots {
         aida.histogram1D("dz error estimate",50,0.,0.2);
         aida.histogram1D("tanl error estimate",50,0.,.005);
         for (int lyr=0; lyr<14; ++lyr) {
-            aida.histogram1D(String.format("Layers/Kalman missed hit residual in layer %d",lyr), 100, -1.0, 1.0);
+            aida.histogram1D(String.format("Layers/Kalman missed hit residual in layer %d",lyr), 100, -2.0, 2.0);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",lyr), 100, -0.1, 0.1);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
             aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d",lyr), 100, -0.1, 0.1);
@@ -193,6 +193,16 @@ class KalmanPatRecPlots {
         aida.histogram1D("seed slope",100,0.,0.3);
         aida.histogram1D("seed z intercept",100,0.,10.);
         aida.histogram1D("seed y intercept",100,-100.,100.);
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            aida.histogram1D(String.format("Missed hit residual/ det=%d, stereo=%b",topBottom,true), 200, -10.0, 10.0);
+            aida.histogram1D(String.format("Missed hit residual/ det=%d, stereo=%b",topBottom,false), 200, -10.0, 10.0);
+            for (int lyr=8; lyr<14; ++lyr) {
+                boolean isStereo;
+                if (topBottom == 0) isStereo = lyr%2 == 0;
+                else isStereo = lyr%2 != 0;
+                aida.histogram1D(String.format("Missed hit residual/ det=%d, lyr=%d, stereo=%b",topBottom,lyr,isStereo), 100, -10.0, 10.0);
+            }
+        }
     }
     
     void process(EventHeader event, List<HpsSiSensor> sensors, ArrayList<KalTrack>[] kPatList, 
@@ -488,6 +498,41 @@ class KalmanPatRecPlots {
                     aida.histogram1D("tanl error estimate").fill(Math.sqrt(thisCov.unsafe_get(4, 4)));
                 }
                 
+                // Analyze high momentum tracks for missing hits in the outer layers
+                if (pMag > 2.0) {
+                    //System.out.format("pMag=%12.6f\n", pMag);
+                    int firstLayer = kTk.SiteList.get(0).m.Layer;
+                    if (firstLayer < 2) {
+                        int lastSite = 999;
+                        for (int idx = kTk.SiteList.size()-1; idx >= 0; --idx) {
+                            lastSite = idx;
+                            if (kTk.SiteList.get(idx).hitID >= 0) break;
+                        }
+                        int lastLayer = kTk.SiteList.get(lastSite).m.Layer;
+                        //System.out.format("firstLayer=%d lastLayer=%d\n", firstLayer, lastLayer);
+                        if (lastLayer >= 7 && lastLayer <= 9 && kTk.nHits >= 8) {
+                            for (MeasurementSite site: kTk.SiteList) {
+                                if (site.hitID >= 0) continue;
+                                SiModule mod = site.m;
+                                if (mod == null) continue;
+                                if (mod.Layer < 8) continue;
+                                //System.out.format("  Layer %d\n", mod.Layer);
+                                double [] rGbl = null;
+                                double hitV = kTk.moduleIntercept(mod, rGbl)[1];
+                                double minResid = 9.9e9;
+                                for (Measurement m : mod.hits) {
+                                    double resid = m.v - hitV;
+                                    if (Math.abs(resid) < Math.abs(minResid)) minResid = resid;                                  
+                                }
+                                if (Math.abs(minResid) < 10.) {
+                                    aida.histogram1D(String.format("Missed hit residual/ det=%d, stereo=%b",topBottom,mod.isStereo)).fill(minResid);
+                                    aida.histogram1D(String.format("Missed hit residual/ det=%d, lyr=%d, stereo=%b",topBottom,mod.Layer,mod.isStereo)).fill(minResid);
+                                }       
+                            }
+                        }
+                    }
+                }
+                
                 // Histogram residuals of hits in layers with no hits on the track and with hits
                 ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
                 ArrayList<Integer> mcCnt= new ArrayList<Integer>();
@@ -503,9 +548,9 @@ class KalmanPatRecPlots {
                             double minResid = 9.9e9;
                             for (Measurement m : mod.hits) {
                                 double resid = m.v - hitV;
-                                if (resid < minResid) minResid = resid;                                   
+                                if (Math.abs(resid) < Math.abs(minResid)) minResid = resid;                                   
                             } 
-                            if (kTk.nHits >= 10 && Math.abs(minResid) < 1.0) {
+                            if (kTk.nHits >= 10 && Math.abs(minResid) < 2.0) {
                                 aida.histogram1D("Kalman missed hit residual").fill(minResid);
                                 aida.histogram1D(String.format("Layers/Kalman missed hit residual in layer %d",mod.Layer)).fill(minResid);
                             }

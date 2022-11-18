@@ -47,18 +47,21 @@ class KalmanTrackFit2 {
         tkr = null;
 
         // Create an state vector from the input seed to initialize the Kalman filter
-        Vec Bfield = KalmanInterface.getField(pivot, fM);
+        Vec Bfield = null;
+        if (kPar.uniformB) {
+            Bfield = KalmanInterface.getField(new Vec(0., kPar.SVTcenter, 0.), fM);
+        } else {
+            Bfield = KalmanInterface.getField(pivot, fM);
+        }
         double B = Bfield.mag();
         Vec t = Bfield.unitVec(B);
-        StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot);
+        StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot, kPar.uniformB);
 
         if (verbose) {
             System.out.format("KalmanTrackFit2: begin Kalman fit, start=%d, number iterations=%d\n", start, nIterations);
             pivot.print("KalmanTrackFit2 pivot point");
             sI.print("initial state for KalmanTrackFit");
         }
-
-        double mxResid = 9999.;
 
         sites = new ArrayList<MeasurementSite>();
         initialSite = 0;
@@ -135,7 +138,6 @@ class KalmanTrackFit2 {
             startSite = newSite;
         }
 
-        int nHits = 0;
         // Restart the fit at the first layer and iterate the fit if requested
         for (int iteration = 0; iteration < nIterations; iteration++) {
             StateVector sH = null;
@@ -246,7 +248,6 @@ class KalmanTrackFit2 {
                 }
                 if (currentSite.hitID >= 0) {
                     chi2s += currentSite.chi2inc;
-                    if (iteration == nIterations - 1) nHits++;
                 }
 
                 if (verbose) {

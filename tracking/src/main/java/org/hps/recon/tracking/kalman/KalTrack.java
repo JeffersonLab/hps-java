@@ -38,7 +38,7 @@ public class KalTrack {
     public boolean bad;
     HelixState helixAtOrigin;
     private boolean propagated;
-    private RotMatrix Rot;
+    private RotMatrix Rot;             // Rotation matrix between global and field coordinates at the beam spot
     private Vec originPoint;
     private Vec originMomentum;
     private ArrayList<Double> yScat;
@@ -60,8 +60,18 @@ public class KalTrack {
     private static boolean initialized;
     private double [] arcLength;
     private static LinearSolverDense<DMatrixRMaj> solver;
+    private static final boolean uniformBatOrigin = false;
     static int [] nBadCov = {0, 0};
 
+    /**
+     * Track constructor
+     * @param evtNumb     event number
+     * @param tkID        integer ID for the track
+     * @param SiteList    list of measurement sites
+     * @param yScat       array of scattering planes to propagate through
+     * @param XLscat      scattering radiation lengths at each plane
+     * @param kPar        KalmanParams instance
+     */
     KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat, ArrayList<Double> XLscat, KalmanParams kPar) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
         eventNumber = evtNumb;
@@ -111,7 +121,12 @@ public class KalTrack {
         helixAtOrigin = null;
         propagated = false;
         MeasurementSite site0 = this.SiteList.get(0);
-        Vec B = KalmanInterface.getField(new Vec(3,kPar.beamSpot), site0.m.Bfield);
+        Vec B = null;
+        if (kPar.uniformB) {
+            B = KalmanInterface.getField(new Vec(0., kPar.SVTcenter, 0.), site0.m.Bfield);
+        } else {
+            B = KalmanInterface.getField(new Vec(3,kPar.beamSpot), site0.m.Bfield);
+        }
         Bmag = B.mag();
         tB = B.unitVec(Bmag);
         Vec yhat = new Vec(0., 1.0, 0.);
@@ -160,10 +175,17 @@ public class KalTrack {
         }
     }
 
+    /**
+     * Get the time of the track
+     * @return     time in ns
+     */
     public double getTime() {
         return time;
     }
     
+    /**
+     * Make a map between measurement sites and 3-vector intercepts of the track at the SSD planes of those sites
+     */
     public Map<MeasurementSite, Vec> interceptVects() {
         if (interceptVects == null) {
             interceptVects = new HashMap<MeasurementSite, Vec>(nHits);
@@ -179,6 +201,9 @@ public class KalTrack {
         return interceptVects;
     }
     
+    /**
+     * Make a map between measurement sites and 3-vector momentum at the intercept of the track and SSD plane
+     */
     public Map<MeasurementSite, Vec> interceptMomVects() {
         if (interceptMomVects == null) {
             interceptMomVects = new HashMap<MeasurementSite, Vec>();
@@ -194,9 +219,14 @@ public class KalTrack {
         return interceptMomVects;
     }
     
-    // Calculate and return the intersection point of the Kaltrack with an SiModule.
+    /**
+     * Calculate and return the intersection point of the Kaltrack with an SiModule.
     // Local sensor coordinates (u,v) are returned. 
     // The global intersection can be returned via rGbl if an array of length 3 is passed.
+     * @param mod       module
+     * @param rGbl      returned global intersection point
+     * @return          intersection point
+     */
     public double [] moduleIntercept(SiModule mod, double [] rGbl) {
         HelixState hx = null;
         for (MeasurementSite site : SiteList) {
@@ -226,6 +256,9 @@ public class KalTrack {
         return rtnArray;
     }
     
+    /**
+     * Make a map between the track measurement sites and the tracker layers
+     */
     private void makeLyrMap() {
         lyrMap = new HashMap<Integer, MeasurementSite>(nHits);
         for (MeasurementSite site : SiteList) {
@@ -233,6 +266,9 @@ public class KalTrack {
         }
     }
     
+    /**
+     * Make a map between the measurement sites and the corresponding Millipede IDs
+     */
     private void makeMillipedeMap() {
         millipedeMap = new HashMap<Integer, MeasurementSite>(nHits);
         for (MeasurementSite site : SiteList) {
@@ -240,7 +276,11 @@ public class KalTrack {
         }
     }
     
-    // Find the change in smoothed helix angle in XY between one layer and the next
+    /**
+     * Find the change in smoothed helix angle in XY between one layer and the next
+     * @param layer    layer from 0 to 13
+     * @return         difference angle in XY
+     */
     public double scatX(int layer) {
         if (lyrMap == null) makeLyrMap();
         if (!lyrMap.containsKey(layer)) return -999.;
@@ -262,7 +302,11 @@ public class KalTrack {
         return t1 - t2;
     }
 
-    // Find the change in smoothed helix angle in ZY between one layer and the next
+    /**
+     * Find the change in smoothed helix angle in ZY between one layer and the next
+     * @param layer     layer from 0 to 13
+     * @return          difference angle in ZY
+     */
     public double scatZ(int layer) {
         if (lyrMap == null) makeLyrMap();
         if (!lyrMap.containsKey(layer)) return -999.;
@@ -283,7 +327,11 @@ public class KalTrack {
         return t1 - t2;
     }
 
-    public double chi2prime() { // Alternative calculation of the fit chi^2, considering only residuals divided by the hit sigma
+    /**
+     * Alternative calculation of the fit chi^2, considering only residuals divided by the hit sigma
+     * @return   chi-squared
+     */
+    public double chi2prime() { 
         double c2 = 0.;
         for (MeasurementSite S : SiteList) {
             if (S.aS == null) continue;
@@ -299,6 +347,11 @@ public class KalTrack {
         return c2;
     }
 
+    /**
+     * Get track unbiased residuals by Millipede ID
+     * @param millipedeID
+     * @return pair of unbiased residual and its error estimate
+     */
     public Pair<Double,Double> unbiasedResidualMillipede(int millipedeID) {
         if (millipedeMap == null) makeMillipedeMap();
         if (millipedeMap.containsKey(millipedeID)) {
@@ -308,6 +361,11 @@ public class KalTrack {
         }
     }
     
+    /**
+     * Get track unbiased residual by layer number
+     * @param layer
+     * @return pair of unbiased residual and its error estimate
+     */
     public Pair<Double,Double> unbiasedResidual(int layer) {
         if (lyrMap == null) makeLyrMap();
         if (lyrMap.containsKey(layer)) {
@@ -317,7 +375,11 @@ public class KalTrack {
         }
     }   
     
-    // Returns the unbiased residual for the track at a given layer, together with the variance on that residual
+    /**
+     * Returns the unbiased residual for the track at a given site, together with the variance on that residual
+     * @param site  measurement site
+     * @return      residual and error
+     */
     public Pair<Double,Double> unbiasedResidual(MeasurementSite site) {
         double resid = -999.;
         double varResid = -999.;               
@@ -342,6 +404,11 @@ public class KalTrack {
         return new Pair<Double,Double>(resid, varResid);
     }
 
+    /**
+     * Returns the biased residual for the track at a given layer, together with the variance on that residual
+     * @param layer 
+     * @return      biased residual and error
+     */
     public Pair<Double,Double> biasedResidual(int layer) {
         if (lyrMap == null) makeLyrMap();
         if (lyrMap.containsKey(layer)) {
@@ -350,7 +417,12 @@ public class KalTrack {
             return new Pair<Double,Double>(-999., -999.);
         }
     }
-    
+
+    /**
+     * Get track biased residuals by Millipede ID
+     * @param millipedeID
+     * @return pair of biased residual and its error estimate
+     */
     public Pair<Double,Double> biasedResidualMillipede(int millipedeID) {
         if (millipedeMap == null) makeMillipedeMap();
         if (millipedeMap.containsKey(millipedeID)) {
@@ -359,7 +431,12 @@ public class KalTrack {
             return new Pair<Double,Double>(-999., -999.);
         }
     }
-    
+
+    /**
+     * Get track biased residuals by measurement site
+     * @param site
+     * @return pair of biased residual and its error estimate
+     */
     public Pair<Double,Double> biasedResidual(MeasurementSite site) {
         double resid = -999.;
         double varResid = -999.;               
@@ -370,9 +447,14 @@ public class KalTrack {
         return new Pair<Double,Double>(resid, varResid);
     }
     
+    /**
+     * Relatively short debug printout
+     * @param s    Arbitrary string for the user's reference
+     */
     public void print(String s) {
         System.out.format("\nKalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f, bad=%b\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax, bad);
         if (propagated) System.out.format("    Helix parameters at origin = %s\n", helixAtOrigin.a.toString());
+        System.out.format("     Magnetic field magnitude = %10.5f and direction = %s\n", Bmag, tB.toString());
         MeasurementSite site0 = this.SiteList.get(0);
         if (site0.aS != null) {
             System.out.format("    Helix at layer %d: %s, pivot=%s\n", site0.m.Layer, site0.aS.helix.a.toString(), site0.aS.helix.X0.toString());
@@ -395,11 +477,19 @@ public class KalTrack {
             }
         }
     }
-    
+
+    /**
+     * Long detailed debug printout
+     * @param s    Arbitrary string for the user's reference
+     */
     public void printLong(String s) {
         System.out.format("%s", this.toString(s));   
     }
-    
+
+    /**
+     * Long detailed debug printout to a string
+     * @param s    Arbitrary string for the user's reference
+     */
     String toString(String s) {
         String str = String.format("\n KalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f, bad=%b\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax, bad);
         if (propagated) {
@@ -448,8 +538,11 @@ public class KalTrack {
         return str;
     }
 
-    // Method to make simple yz plots of the track and the residuals. Note that in the yz plot of the track the hits are
-    // placed at the strip center, so they generally will not appear to be right on the track. Use gnuplot to display.
+    /**
+     * Method to make simple yz plots of the track and the residuals. Note that in the yz plot of the track the hits are
+     * placed at the strip center, so they generally will not appear to be right on the track. Use gnuplot to display.
+     * @param path     where to put the output
+     */
     public void plot(String path) {
         File file = new File(String.format("%s/Track%d_%d.gp", path, ID, eventNumber));
         file.getParentFile().mkdirs();
@@ -513,14 +606,20 @@ public class KalTrack {
         pW.close();
     }
 
-    // Arc length along track from the origin to the first measurement
+    /**
+     * Arc length along track from the origin to the first measurement
+     * @return     arc length in mm
+     */
     public double originArcLength() {
         if (!propagated || arcLength == null) originHelix();
         if (arcLength == null) return 0.;
         return arcLength[0];
     }
     
-    // Runge Kutta propagation of the helix to the origin
+    /**
+     * Runge Kutta propagation of the helix to the origin
+     * @return    helix state at the origin
+     */
     public boolean originHelix() {
         if (propagated) return true;
 
@@ -548,24 +647,34 @@ public class KalTrack {
         // The StateVector method propagateRungeKutta transforms the origin plane into the origin B-field frame
         Plane originPlane = new Plane(beamSpot, new Vec(0., 1., 0.)); 
         arcLength = new double[1];
-        helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, yScat, XLscat, innerSite.m.Bfield, arcLength);
-        if (debug) System.out.format("KalTrack::originHelix: arc length to the first measurement = %9.4f\n", arcLength[0]);
-        if (covNaN()) return false;
-        if (!solver.setA(helixAtOrigin.C.copy())) {
-            logger.fine("KalTrack:originHelix, cannot invert the covariance matrix");
-            for (int i=0; i<5; ++i) {      // Fill the matrix and inverse with something not too crazy and continue . . .
-                for (int j=0; j<5; ++j) {
-                    if (i == j) {
-                        Cinv.unsafe_set(i,j,1.0/Math.abs(helixAtOrigin.C.unsafe_get(i, j)));
-                        helixAtOrigin.C.unsafe_set(i, j, Math.abs(helixAtOrigin.C.unsafe_get(i, j)));
-                    } else {
-                        Cinv.unsafe_set(i, j, 0.);
-                        helixAtOrigin.C.unsafe_set(i, j, 0.);
-                    }
-                }
-            }          
+        if (uniformBatOrigin) {  // Just a simple pivot transform is needed if the field is assumed uniform
+            Vec origin = new Vec(0.,0.,0.);
+            Vec newHelixParams = innerSite.aS.helix.pivotTransform();
+            DMatrixRMaj newCovariance = innerSite.aS.covariancePivotTransform(newHelixParams);
+            helixAtOrigin = new HelixState(newHelixParams, origin, origin, newCovariance, Bmag, tB);
+            //innerSite.aS.helix.print("at innerSite");
+            //helixAtOrigin.print("uniformB");
         } else {
-            solver.invert(Cinv);
+            helixAtOrigin = innerSite.aS.helix.propagateRungeKutta(originPlane, yScat, XLscat, innerSite.m.Bfield, arcLength);
+            //helixAtOrigin.print("nonuniformB");
+            if (debug) System.out.format("KalTrack::originHelix: arc length to the first measurement = %9.4f\n", arcLength[0]);
+            if (covNaN()) return false;
+            if (!solver.setA(helixAtOrigin.C.copy())) {
+                logger.fine("KalTrack:originHelix, cannot invert the covariance matrix");
+                for (int i=0; i<5; ++i) {      // Fill the matrix and inverse with something not too crazy and continue . . .
+                    for (int j=0; j<5; ++j) {
+                        if (i == j) {
+                            Cinv.unsafe_set(i,j,1.0/Math.abs(helixAtOrigin.C.unsafe_get(i, j)));
+                            helixAtOrigin.C.unsafe_set(i, j, Math.abs(helixAtOrigin.C.unsafe_get(i, j)));
+                        } else {
+                            Cinv.unsafe_set(i, j, 0.);
+                            helixAtOrigin.C.unsafe_set(i, j, 0.);
+                        }
+                    }
+                }          
+            } else {
+                solver.invert(Cinv);
+            }
         }
 
         // Find the position and momentum of the particle near the origin, including covariance
@@ -597,31 +706,55 @@ public class KalTrack {
         return true;
     }
 
+    /**
+     * Get the extrapolate point in the plane of the origin
+     * @return  3-vector array of coordinates
+     */
     public double[] originX() {
         if (!propagated) originHelix();
         if (!propagated) return new double [] {0.,0.,0.};
         return originPoint.v.clone();
     }
 
+    /**
+     * Get the covariance of the track point in the origin plane
+     * @return     2D array, 3 by 3
+     */
     public double[][] originXcov() {
         return Cx.clone();
     }
 
-    public double[][] originPcov() {
-        return Cp.clone();
-    }
-
-    public double[] originPivot() {
-        if (propagated) return helixAtOrigin.X0.v.clone();
-        else return null;
-    }
-    
+    /**
+     * Get the track momentum at the origin
+     * @return    3-vector momentum
+     */
     public double[] originP() {
         if (!propagated) originHelix();
         if (!propagated) return new double [] {0.,0.,0.};
         return originMomentum.v.clone();
     }
 
+    /**
+     * Get the covariance of the momentum at the origin
+     * @return    3 by 3 array
+     */
+    public double[][] originPcov() {
+        return Cp.clone();
+    }
+
+    /**
+     * Get the helix pivot point near the origin
+     * @return    3-vector array
+     */
+    public double[] originPivot() {
+        if (propagated) return helixAtOrigin.X0.v.clone();
+        else return null;
+    }
+    
+    /**
+     * Get the covariance of helix parameters at the origin
+     * @return   5 by 5 array
+     */
     public double[][] originCovariance() {
         if (!propagated) originHelix(); 
         double [][] M = new double[5][5];
@@ -634,17 +767,30 @@ public class KalTrack {
         return M;
     }
 
+    /**
+     * Check whether all elements of the covariance are real numbers
+     * @return    false if the covariance is rotten
+     */
     public boolean covNaN() { 
         if (helixAtOrigin.C == null) return true;
         return MatrixFeatures_DDRM.hasNaN(helixAtOrigin.C);
     }
     
+    /**
+     * Return the helix parameters of the track at the origin
+     * @return   array of 5 doubles
+     */
     public double[] originHelixParms() {
         if (propagated) return helixAtOrigin.a.v.clone();
         else return null;
     }
     
-    //Update the helix parameters at the "origin" by using the target position or vertex as a constraint
+    /**
+     * Update the helix parameters at the "origin" by using the target position or vertex as a constraint
+     * @param vtx        vertex location
+     * @param vtxCov     vertex error matrix
+     * @return           constrained helix state
+     */
     public HelixState originConstraint(double [] vtx, double [][] vtxCov) {
         if (!propagated) originHelix();
         if (!propagated) return null;
@@ -799,7 +945,14 @@ public class KalTrack {
         }
     }
     
-    //Find the helix turning alpha phi for the point on the helix 'a' closest to the point 'v'
+    /**
+     * Find the helix turning alpha phi for the point on the helix 'a' closest to the point 'v'
+     * @param a      helix parameters
+     * @param v      point v
+     * @param X0     pivot point
+     * @param alpha  magnetic field constant
+     * @return       turning angle
+     */
     private static double phiDOCA(Vec a, Vec v, Vec X0, double alpha) {
         
         Plane p = new Plane(v, new Vec(0.,1.,0.));
@@ -815,12 +968,19 @@ public class KalTrack {
         return phiDoca;
     }
 
-    // Safe Newton-Raphson zero finding from Numerical Recipes in C, used here to solve for the point of closest approach.
+    /**
+     * Safe Newton-Raphson zero finding from Numerical Recipes in C, used here to solve for the point of closest approach.
+     * @param xGuess initial guess at the solution
+     * @param x1     minimum phi of solution
+     * @param x2     maximum phi of solution
+     * @param xacc   accuracy
+     * @param a      helix parameters
+     * @param v      point of interest
+     * @param X0     pivot point of helix
+     * @param alpha  magnetic field parameters
+     * @return       phi of the DOCA point
+     */
     private static double rtSafe(double xGuess, double x1, double x2, double xacc, Vec a, Vec v, Vec X0, double alpha) {
-        // Here xGuess is a starting guess for the phi angle of the helix DOCA point
-        // x1 and x2 give a range for the value of the solution
-        // xacc specifies the accuracy needed
-        // The output is an accurate result for the phi of the DOCA point
         double df, dx, dxold, f, fh, fl;
         double temp, xh, xl, rts;
         int MAXIT = 100;
@@ -889,14 +1049,30 @@ public class KalTrack {
         return rts;
     }
     
-    // Function that is zero when the helix turning angle phi is at the point of closest approach to v
+    /**
+     * Function that is zero when the helix turning angle phi is at the point of closest approach to v
+     * @param phi     turning angle
+     * @param a       helix parameters
+     * @param v       point of interest
+     * @param X0      helix pivot point
+     * @param alpha   magnetic field constant
+     * @return        deviation from zero
+     */
     private static double fDOCA(double phi, Vec a, Vec v, Vec X0, double alpha) {
         Vec t = tangentVec(a, phi, alpha);
         Vec x = HelixState.atPhi(X0, a, phi, alpha);
         return (v.dif(x)).dot(t);
     }
     
-    // derivative of the fDOCA function with respect to phi, for the zero-finding algorithm
+    /**
+     * derivative of the fDOCA function with respect to phi, for the zero-finding algorithm
+     * @param phi     turning angle
+     * @param a       helix parameters
+     * @param v       point of interest
+     * @param X0      helix pivot point
+     * @param alpha   magnetic field constant
+     * @return    derivative
+     */
     private static double dfDOCAdPhi(double phi, Vec a, Vec v, Vec X0, double alpha) {
         Vec x = HelixState.atPhi(X0, a, phi, alpha);
         Vec dxdphi = dXdPhi(a, phi, alpha);
@@ -907,13 +1083,25 @@ public class KalTrack {
         return dfdphi;
     }
     
-    // Derivatives of position along a helix with respect to the turning angle phi
+    /**
+     * Derivatives of position along a helix with respect to the turning angle phi
+     * @param a       helix parameters
+     * @param phi     turning angle
+     * @param alpha   magnetic field parameter
+     * @return        derivative
+     */
     private static Vec dXdPhi(Vec a, double phi, double alpha) {
         return new Vec((alpha / a.v[2]) * FastMath.sin(a.v[1] + phi), -(alpha / a.v[2]) * FastMath.cos(a.v[1] + phi),
                 -(alpha / a.v[2]) * a.v[4]);
     }
     
-    // A vector tangent to the helix 'a' at the alpha phi
+    /**
+     * A vector tangent to the helix 'a' at the alpha phi
+     * @param a       helix parameters
+     * @param phi     turning angle
+     * @param alpha   magnetic field parameter
+     * @return        tangent vector
+     */
     private static Vec tangentVec(Vec a, double phi, double alpha) {
         return new Vec((alpha/a.v[2])*FastMath.sin(a.v[1]+phi), -(alpha/a.v[2])*FastMath.cos(a.v[1]+phi), -(alpha/a.v[2])*a.v[4]);
     }
@@ -922,14 +1110,16 @@ public class KalTrack {
         return new Vec((alpha/a.v[2])*FastMath.cos(a.v[1]+phi), (alpha/a.v[2])*FastMath.sin(a.v[2]+phi), 0.);
     }
     
-    //Derivative matrix for the helix 'a' point of closet approach to point 'v'
+    /**
+     * /Derivative matrix for the helix 'a' point of closet approach to point 'v'
+     * @param a        helix parameters
+     * @param v        3D point for which we are finding the DOCA (the "measurement" point)
+     * @param X0       pivot point of helix
+     * @param phi      angle along helix to the point of closet approach
+     * @param alpha    constant to convert from curvature to 1/pt
+     * @return         derivative matrix
+     */
     private static double [][] buildH(Vec a, Vec v, Vec X0, double phi, double alpha) {
-        // a = helix parameters
-        // X0 = pivot point of helix
-        // phi = angle along helix to the point of closet approach
-        // v = 3D point for which we are finding the DOCA (the "measurement" point)
-        // alpha = constant to convert from curvature to 1/pt
-        
         Vec x = HelixState.atPhi(X0, a, phi, alpha);
         Vec dxdphi = dXdPhi(a, phi, alpha);
         Vec t = tangentVec(a, phi, alpha);
@@ -974,21 +1164,40 @@ public class KalTrack {
         return H;
     }
 
+    /**
+     * Return the error on one of the helix parameters at the origin
+     * @param i    0 to 4 to select which parameter
+     * @return     the error estimate
+     */
     public double helixErr(int i) {
         return FastMath.sqrt(helixAtOrigin.C.unsafe_get(i, i));
     }
 
+    /**
+     * Rotate a 3-vector from local field coordinates to global coordinates
+     * @param x     input 3-vector
+     * @return      output 3-vector
+     */
     public double[] rotateToGlobal(double[] x) {
         Vec xIn = new Vec(x[0], x[1], x[2]);
         return Rot.inverseRotate(xIn).v.clone();
     }
 
+    /**
+     * Rotate a 3-vector from global coordinates to local field coordinates 
+     * @param x     input 3-vector
+     * @return      output 3-vector
+     */
     public double[] rotateToLocal(double[] x) {
         Vec xIn = new Vec(x[0], x[1], x[2]);
         return Rot.rotate(xIn).v.clone();
     }
 
-    // Figure out which measurement site on this track points to a given detector module
+    /**
+     * Figure out which measurement site on this track points to a given detector module
+     * @param module    silicon module
+     * @return          measurement site
+     */
     public int whichSite(SiModule module) {
         if (lyrMap != null) {
             return SiteList.indexOf(lyrMap.get(module.Layer));
@@ -1001,11 +1210,22 @@ public class KalTrack {
         return -1;
     }
 
+    /**
+     * Sort the measurement sites in order of SVT layer number
+     * @param ascending      true for ascending order, false for descending
+     */
     public void sortSites(boolean ascending) {
         if (ascending) Collections.sort(SiteList, MeasurementSite.SiteComparatorUp);
         else Collections.sort(SiteList, MeasurementSite.SiteComparatorDn);
     }
 
+    /**
+     * Remove a selected hit from a KalTrack object.  Try to add a different hit.
+     * @param site       The measurement site of the hit to be removed
+     * @param mxChi2Inc    Maximum chi^2 increment to add another hit in the same layer
+     * @param mxTdif       Maximum time difference of all hits to add another hit in the same layer
+     * @return
+     */
     public boolean removeHit(MeasurementSite site, double mxChi2Inc, double mxTdif) {
         boolean exchange = false;
         if (debug) System.out.format("Event %d track %d remove hit %d on layer %d detector %d\n", 
@@ -1043,7 +1263,15 @@ public class KalTrack {
         return exchange;
     }
     
-    // Try to add missing hits to the track
+    /**
+     * Try to add missing hits to the track
+     * @param data       All the SVT data
+     * @param mxResid    Maximum residual
+     * @param mxChi2inc  Maximum chi^2 increase
+     * @param mxTdif     Maximum time difference of all hits, including the new one
+     * @param verbose    true to spew lots of printout
+     * @return           number of hits added
+     */
     public int addHits(ArrayList<SiModule> data, double mxResid, double mxChi2inc, double mxTdif, boolean verbose) {
         int numAdded  = 0;
         int numLayers = 14;
@@ -1142,9 +1370,12 @@ public class KalTrack {
         return numAdded;
     }
         
-    // re-fit the track 
+    /**
+     * Re-fit the track 
+     * @param keep    true if there might be another recursion after dropping more hits
+     * @return        true if the refit was successful
+     */
     public boolean fit(boolean keep) {
-        // keep = true if there might be another recursion after dropping more hits
         double chi2s = 0.;
         if (debug) System.out.format("Entering KalTrack.fit for event %d, track %d\n", eventNumber, ID);
         StateVector sH = SiteList.get(0).aS.copy();
@@ -1247,7 +1478,11 @@ public class KalTrack {
         return true;
     }
 
-    // Derivative matrix for propagating the covariance of the helix parameters to a covariance of momentum
+    /**
+     * Derivative matrix for propagating the covariance of the helix parameters to a covariance of momentum
+     * @param a     helix parameters
+     * @return      2D array of derivatives
+     */
     static double[][] DpTOa(Vec a) {
         double[][] M = new double[3][5];
         double K = Math.abs(a.v[2]);
@@ -1261,8 +1496,11 @@ public class KalTrack {
         return M;
     }
 
-    // Derivative matrix for propagating the covariance of the helix parameter to a
-    // covariance of the point of closest approach to the origin (i.e. at phi=0)
+    /**
+     * Derivative matrix for propagating the covariance of the helix parameter to a
+     * covariance of the point of closest approach to the origin (i.e. at phi=0)
+     * @param a    helix parameters
+     */
     static double[][] DxTOa(Vec a) {
         double[][] M = new double[3][5];
         M[0][0] = FastMath.cos(a.v[1]);
@@ -1273,7 +1511,9 @@ public class KalTrack {
         return M;
     }
 
-    // Comparator function for sorting tracks by quality
+    /**
+     *  Comparator function for sorting tracks by quality
+     */
     static Comparator<KalTrack> TkrComparator = new Comparator<KalTrack>() {
         public int compare(KalTrack t1, KalTrack t2) {
             double penalty1 = 1.0;
@@ -1287,6 +1527,11 @@ public class KalTrack {
         }
     };
 
+    /**
+     * Transform a DMatrixRMaj object into a Kalman SquareMatrix object
+     * @param M    DMatrixRMaj object
+     * @return     the SquareMatrix equivalent
+     */
     static SquareMatrix mToS(DMatrixRMaj M) {
         SquareMatrix S = new SquareMatrix(M.numRows);
         if (M.numCols != M.numRows) return null;
@@ -1298,6 +1543,11 @@ public class KalTrack {
         return S;
     }
     
+    /**
+     * Check whether two tracks are redundant.
+     * @param  other     the other track object besides self
+     * @return           true if they are equivalent
+     */
     @Override
     public boolean equals(Object other) { // Consider two tracks to be equal if they have the same hits
         if (this == other) return true;
