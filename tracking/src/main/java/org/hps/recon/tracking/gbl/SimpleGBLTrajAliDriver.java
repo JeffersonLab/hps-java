@@ -502,6 +502,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
         }
 
+        //System.out.println("DEBUG::Tom::Deduced a track type of "+TrackType);
+
         //If using Seed Tracker, get the hits from the event
         if (TrackType == 0) {
             hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
@@ -544,7 +546,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
 
             if (enableAlignmentCuts) {
-                System.out.println("DEBUG::Tom::alignment cuts enabled...");
+                //System.out.println("DEBUG::Tom::alignment cuts enabled...");
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
@@ -592,7 +594,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     else if (trackSide == 1 && !TrackUtils.isHoleTrack(track)) 
                         continue;
                 }
-                System.out.println("DEBUG::Tom::Pass with " + track.getTrackerHits().size() + " hits");
+                //System.out.println("DEBUG::Tom::Pass with " + track.getTrackerHits().size() + " hits");
             }
             
             
@@ -919,8 +921,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     continue;
                 
                 if (writeMilleBinary) {
+                    /*
                     System.out.println("DEBUG::Tom::Writing track with "
                         + points_on_traj.size() + " hits to mille binary.");
+                     */
                     trajForMPII.milleOut(mille);
                 }
                 
@@ -937,7 +941,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
                     Track gblTrk = newTrack.getFirst();
 
-                    System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");
+                    //System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");
                     
                     if(computeGBLResiduals) {
                         
@@ -1032,6 +1036,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
         
         
         if (correctTrack) {
+            /*
+            System.out.print("Refitted tracks (" + outputCollectionName + ") N hits: ");
+            for (Track trk : refittedTracks) {
+              System.out.print(trk.getTrackerHits().size()+" ");
+            }
+            System.out.println();
+             */
+
             // Put the tracks back into the event and exit
             int flag = 1 << LCIOConstants.TRBIT_HITS;
             event.put(outputCollectionName, refittedTracks, Track.class, flag);

@@ -143,8 +143,10 @@ public class KalmanToGBLDriver extends Driver {
             FittedGblTrajectory fitGbl_traj = HpsGblRefitter.fit(list_kfSCDs, bfac, false);
             GblTrajectory gbl_fit_trajectory =  fitGbl_traj.get_traj();
 
+            /*
             System.out.println("DEBUG::Tom::KalmanToGBLDriver - converted KF track to GBL track with "
                 + gbl_fit_trajectory.getNumPoints() + " hits");
+             */
             
             
             // Compute the residuals
