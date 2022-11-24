@@ -37,6 +37,7 @@ public class KalTrack {
     public int eventNumber;
     public boolean bad;
     HelixState helixAtOrigin;
+    HelixState energyConstrainedHelix;
     private boolean propagated;
     private RotMatrix Rot;             // Rotation matrix between global and field coordinates at the beam spot
     private Vec originPoint;
@@ -119,6 +120,7 @@ public class KalTrack {
         }
         
         helixAtOrigin = null;
+        energyConstrainedHelix = null;
         propagated = false;
         MeasurementSite site0 = this.SiteList.get(0);
         Vec B = null;
@@ -502,7 +504,18 @@ public class KalTrack {
             str=str+originMomentum.toString("momentum of the particle at closest approach to the origin\n");
             SquareMatrix C2 = new SquareMatrix(3, Cp);
             str=str+C2.toString("covariance matrix for the momentum");
+            double tanL = helixAtOrigin.a.v[4];
+            double K = helixAtOrigin.a.v[2];
+            double energy = FastMath.sqrt(1.0+tanL*tanL)/Math.abs(K);
+            str=str+String.format("    Energy unconstrained = %10.6f\n", energy);
         } 
+        if (energyConstrainedHelix != null) {
+            double tanL = energyConstrainedHelix.a.v[4];
+            double K = energyConstrainedHelix.a.v[2];
+            double energy = FastMath.sqrt(1.0+tanL*tanL)/Math.abs(K);
+            str=str+String.format("    Energy with constraint = %10.6f\n", energy);
+            str=str+energyConstrainedHelix.toString("helix state with energy constraint");
+        }
         MeasurementSite site0 = this.SiteList.get(0);
         if (site0.aS != null) {
             str=str + String.format("    Helix at layer %d: %s\n", site0.m.Layer, site0.aS.helix.a.toString());
@@ -1478,6 +1491,14 @@ public class KalTrack {
         return true;
     }
 
+    void energyConstraint(double E, double sigmaE) {
+        if (!propagated) {
+            originHelix();
+            propagated = true;
+        }
+        energyConstrainedHelix = helixAtOrigin.energyConstrained(E, sigmaE);
+    }
+    
     /**
      * Derivative matrix for propagating the covariance of the helix parameters to a covariance of momentum
      * @param a     helix parameters

@@ -11,7 +11,9 @@ import org.ejml.data.DMatrix3x3;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.row.MatrixFeatures_DDRM;
+import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
 import org.ejml.dense.fixed.CommonOps_DDF3;
+import org.ejml.interfaces.linsol.LinearSolverDense;
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
 
@@ -31,6 +33,11 @@ class HelixState implements Cloneable {
     private Logger logger;
     private HelixPlaneIntersect hpi;
     private Vec xPlaneRK;
+    private static LinearSolverDense<DMatrixRMaj> solver;
+    private static boolean initialized;
+    private static DMatrixRMaj Cinv;     // Temporary working area   
+    private static DMatrixRMaj X, V, H;
+    final static private boolean debug = false;
     
     public Object clone() {
         try {
@@ -103,6 +110,104 @@ class HelixState implements Cloneable {
      */
     HelixState copy() {
         return new HelixState(a.copy(), X0.copy(), origin.copy(), C.copy(), B, tB.copy());
+    }
+    
+    /**
+     * Invert the covariance matrix of this HelixState and store the result in a static array Cinv
+     */
+    private void invertC() {
+        if (!HelixState.initialized) {
+            HelixState.Cinv = new DMatrixRMaj(5,5);
+            HelixState.X = new DMatrixRMaj(5,1);
+            HelixState.V = new DMatrixRMaj(5,1);
+            HelixState.H = new DMatrixRMaj(5,1);
+            solver = LinearSolverFactory_DDRM.symmPosDef(5);
+            HelixState.initialized = true;
+        }
+        if (!solver.setA(C.copy())) {
+            SquareMatrix invrs = KalTrack.mToS(C).fastInvert();
+            if (invrs == null) {
+                logger.warning("StateVector:smooth, inversion of the covariance matrix failed");
+                C.print();
+                for (int i=0; i<5; ++i) {      // Fill the inverse with something not too crazy and continue . . .
+                    for (int j=0; j<5; ++j) {
+                        if (i == j) {
+                            HelixState.Cinv.unsafe_set(i,j,1.0/C.unsafe_get(i,j));
+                        } else {
+                            HelixState.Cinv.unsafe_set(i, j, 0.);
+                            C.unsafe_set(i, j, 0.);
+                        }
+                    }
+                }          
+            } else {
+                for (int i=0; i<5; ++i) {
+                    for (int j=0; j<5; ++j) {
+                        HelixState.Cinv.unsafe_set(i, j, invrs.M[i][j]);
+                    }
+                }
+            }
+        } else {
+            HelixState.solver.invert(HelixState.Cinv);
+        }
+    }
+    
+    /**
+     * Make a new HelixState with an energy constraint (from the ECAL). This uses the Kalman weighted-means formalism to "filter"
+     * the helix state vector.
+     * @param E      The energy from the ECAL cluster
+     * @param sigmaE The energy uncertainty for the ECAL cluster
+     * @return       A new HelixState with the energy constraint incorporated
+     */
+    HelixState energyConstrained(double E, double sigmaE) {
+        double tanL = a.v[4];
+        double K = a.v[2];
+        double m = (1.0/E)*Math.signum(K);
+        double sigma_m = sigmaE/(E*E);
+        double G = 1.0/(sigma_m*sigma_m);
+        double dmdK = 1.0/FastMath.sqrt(1.0+tanL*tanL);
+        double dmdtanL = -K*tanL/FastMath.pow(1.0 + tanL*tanL, 1.5);
+        HelixState hsNew = this.copy();
+
+        invertC();
+        HelixState.H.unsafe_set(2, 0, dmdK);
+        HelixState.H.unsafe_set(4, 0, dmdtanL);
+        for (int i=0; i<5; ++i) {
+            X.unsafe_set(i, 0, a.v[i]);
+        }
+        CommonOps_DDRM.mult(HelixState.Cinv, HelixState.X, HelixState.V);
+        CommonOps_DDRM.scale(G*m, HelixState.H);
+        CommonOps_DDRM.addEquals(HelixState.V, HelixState.H);
+        
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<5; ++j) {
+                hsNew.C.unsafe_set(i, j, HelixState.Cinv.unsafe_get(i, j));
+            }
+        }        
+        hsNew.C.unsafe_set(2, 2, HelixState.Cinv.unsafe_get(2, 2) + (dmdK*dmdK)*G);
+        hsNew.C.unsafe_set(4, 4, HelixState.Cinv.unsafe_get(4, 4) + (dmdtanL*dmdtanL)*G);
+        hsNew.C.unsafe_set(2, 4, HelixState.Cinv.unsafe_get(2, 4) + (dmdK*dmdtanL)*G);
+        hsNew.C.unsafe_set(4, 2, HelixState.Cinv.unsafe_get(4, 2) + (dmdtanL*dmdK)*G);
+        hsNew.invertC();
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<5; ++j) {
+                hsNew.C.unsafe_set(i, j, HelixState.Cinv.unsafe_get(i, j));
+            }
+        }        
+        CommonOps_DDRM.mult(HelixState.Cinv, HelixState.V, HelixState.X);
+        for (int i=0; i<5; ++i) {
+            hsNew.a.v[i] = HelixState.X.unsafe_get(i, 0);
+        }
+        if (debug) {
+            System.out.println("Original helix params X:"); X.print();
+            System.out.println("Derivative vector H:"); H.print();
+            hsNew.a.print("New helix params");
+            System.out.println("New covariance:"); hsNew.C.print();
+            double varK = C.unsafe_get(2, 2);
+            double A = 1.0/FastMath.sqrt(1.0+tanL*tanL);
+            double Kprime = (K/varK + A*m*G)/(1.0/varK + G/(A*A));
+            System.out.format("   Simple weighted mean update of kappa = %10.6f\n", Kprime);
+        }
+        return hsNew;
     }
     
     /**
