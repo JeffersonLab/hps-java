@@ -111,7 +111,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private String trackResidualsRelColName = "TrackResidualsGBLRelations";
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String gblStripClusterDataRelations = "KFGBLStripClusterDataRelations";
-        
+    
+    private int nTracksTotal = 0;
     private double bfield;
     private FieldMap bFieldMap;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
@@ -986,6 +987,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                             }
                             
                             
+                            gbl_fit_traj_u.delete();
                         } // loop on sensor map
 
 
@@ -1000,13 +1002,15 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     
                     
                     
-                    
-                    
-                    
+                    //System.out.println("Refitted track chi2 " + gblTrk.getChi2());
                     refittedTracks.add(gblTrk);
+                    nTracksTotal += refittedTracks.size();
                     kinkDataCollection.add(newTrack.getSecond());
                     kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
                 }
+                
+                trajForMPII.delete();
+                trajForMPII_unconstrained.delete();
                 
             }// composite Alignment
             

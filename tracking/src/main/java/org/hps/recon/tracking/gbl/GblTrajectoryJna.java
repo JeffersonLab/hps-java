@@ -30,6 +30,7 @@ public class GblTrajectoryJna {
         void GblTrajectory_fit(Pointer self, DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, char [] optionList, int aLabel);
         void GblTrajectory_addPoint(Pointer self, Pointer point);
         int  GblTrajectory_isValid(Pointer self);
+        void GblTrajectory_delete(Pointer self);
         int  GblTrajectory_getNumPoints(Pointer self);
         void GblTrajectory_printTrajectory(Pointer self, int level);
         void GblTrajectory_printData(Pointer self);
@@ -62,7 +63,9 @@ public class GblTrajectoryJna {
         }
         
         self = GblTrajectoryInterface.INSTANCE.GblTrajectoryCtorPtrArray(ppoints, points.size(), flagCurv, flagU1dir, flagU2dir);
-        
+        if (self == Pointer.NULL)
+            System.out.println("Failed generating trajectory");
+                
     }
 
     //Simple trajectory constructor with seed 
@@ -157,7 +160,12 @@ public class GblTrajectoryJna {
         GblTrajectoryInterface.INSTANCE.GblTrajectory_printPoints(self,level);
     }
     
-
+    //Call delete on the underlying objects
+    public void delete() {
+        GblTrajectoryInterface.INSTANCE.GblTrajectory_delete(self);
+    }
+    
+    
     public void getMeasResults(int aLabel, int numData[], List<Double> aResiduals,List<Double> aMeasErrors, List<Double> aResErrors, List<Double> aDownWeights) {
         
         double[] d_aResiduals  = new double[2];
