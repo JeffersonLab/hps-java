@@ -1,5 +1,7 @@
 package org.hps.digi;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -21,6 +23,10 @@ import org.lcsim.geometry.subdetector.Hodoscope_v1;
 
 import org.hps.conditions.hodoscope.HodoscopeConditions;
 
+import org.hps.record.daqconfig2019.ConfigurationManager2019;
+import org.hps.record.daqconfig2019.DAQConfig2019;
+import org.hps.record.daqconfig2019.FADCConfigHodo2019;
+
 /**
  * Class <code>HodoscopeDigitizationWithPulserDataMergingReadoutDriver</code> is an
  * implementation of the {@link
@@ -32,6 +38,13 @@ import org.hps.conditions.hodoscope.HodoscopeConditions;
  * @author Tongtong Cao <caot@jlab.org>
  */
 public class HodoscopeDigitizationWithPulserDataMergingReadoutDriver extends DigitizationWithPulserDataMergingReadoutDriver<Hodoscope_v1> {
+    // The DAQ configuration manager for FADC parameters.
+    private FADCConfigHodo2019 config = new FADCConfigHodo2019();
+    private boolean configStat = false; // Indicates if DAQ configuration is loaded
+
+    // The number of nanoseconds in a clock-cycle (sample).
+    private static final int nsPerSample = 4;   
+    
     /** Stores the set of all channel IDs for  the hodoscope. */
     private Set<Long> channelIDSet = new HashSet<Long>();
     /** Maps hodoscope channels to the gain for that channel. */
@@ -42,7 +55,10 @@ public class HodoscopeDigitizationWithPulserDataMergingReadoutDriver extends Dig
     private Map<Long, HodoscopeCalibration> channelToCalibrationsMap = new HashMap<Long, HodoscopeCalibration>();
     /** Factor for gain conversion from self-define-unit/ADC to MeV/ADC. */
     private double factorGainConversion = 0.000833333;
-    
+    /** Gain scaling factor for raw energy (self-defined unit) of FADC hits.
+     * In DAQ configuration, gains are scaled by the gain scaling factor for two-hole tiles. 
+     * Such gains from DAQ configuration should be divided by the factor.
+     */
     
     private HodoscopeConditions hodoConditions = null;
     
@@ -62,6 +78,41 @@ public class HodoscopeDigitizationWithPulserDataMergingReadoutDriver extends Dig
         setPulseTimeParameter(4.0);
         setPhotoelectronsPerMeV(10.0);
     }
+    
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfigurationAppliedintoReadout(boolean state) {
+        // If the DAQ configuration should be read, attach a listener
+        // to track when it updates.               
+        if (state) {
+            ConfigurationManager2019.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig2019 daq = ConfigurationManager2019.getInstance();
+
+                    // Load the DAQ settings from the configuration manager.
+                    numSamplesAfter = daq.getHodoFADCConfig().getNSA() / nsPerSample;
+                    numSamplesBefore = daq.getHodoFADCConfig().getNSB() / nsPerSample;
+                    readoutWindow = daq.getHodoFADCConfig().getWindowWidth() / nsPerSample;
+                    pulserDataWindow = readoutWindow;                    
+
+                    // Get the FADC configuration.
+                    config = daq.getHodoFADCConfig();
+                    configStat = true;
+                    integrationThreshold = config.getThreshold((int)10);
+                }
+            });
+        }
+
+    } 
+         
     
     @Override
     public void detectorChanged(Detector detector) {
@@ -104,11 +155,12 @@ public class HodoscopeDigitizationWithPulserDataMergingReadoutDriver extends Dig
     }
     
     @Override
-    protected double getPedestalConditions(long channelID) {
-        if(channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
+    protected double getPedestalConditions(long channelID) { 
+        if (channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
             return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
         } else {
-            throw new IllegalArgumentException("No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
+            throw new IllegalArgumentException(
+                    "No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
         }
     }
     

@@ -8,7 +8,7 @@
     -->
     <execute>
         <!-- Skip events with known bad conditions -->
-        <driver name="PreCleanupDriver" />
+        <!-- <driver name="PreCleanupDriver" />-->
         <driver name="EventFlagFilter"/>
         <!--RF driver-->
         <driver name="RfFitter"/>
@@ -151,7 +151,7 @@
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>GBLTracks</trackCollectionNames>
-            <trackCollectionName>GBLTracks</trackCollectionName>
+            <matcherTrackCollectionName>GBLTracks</matcherTrackCollectionName>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>true</useInternalVertexXYPositions>
             <beamPositionX> -0.224 </beamPositionX>
@@ -165,7 +165,7 @@
 	    <maxVertexClusterDt> 2.5 </maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
             <trackClusterTimeOffset>55</trackClusterTimeOffset>
-            <trackClusterMatchPlots>true</trackClusterMatchPlots>
+            <trackClusterMatchPlots>false</trackClusterMatchPlots>
             <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
         </driver>  
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >

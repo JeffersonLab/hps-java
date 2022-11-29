@@ -141,16 +141,13 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
     
     @Override
     protected double getPedestalConditions(long channelID) { 
-        if(configStat == true) return config.getPedestal((int)channelID);
-        else {
-            if (channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
-                return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
-            } else {
-                throw new IllegalArgumentException(
-                        "No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
-            }
+        if (channelToCalibrationsMap.containsKey(Long.valueOf(channelID))) {
+            return channelToCalibrationsMap.get(Long.valueOf(channelID)).getPedestal();
+        } else {
+            throw new IllegalArgumentException(
+                    "No pedestal conditions exist for hodoscope channel ID \"" + channelID + "\".");
         }
-    }    
+    }   
     
     @Override
     protected double getTimeShiftConditions(long channelID) {

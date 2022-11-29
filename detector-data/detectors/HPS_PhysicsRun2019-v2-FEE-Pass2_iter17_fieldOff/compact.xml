@@ -1,0 +1,1083 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+
+<info name="HPS_PhysicsRun2019-v2-FEE-Pass2_iter17_fieldOff">
+    <comment>HPS detector for 2019 run with field off,
+    Tracker at nominal opening angle.
+    SVT Survey for back of the detector from 2016.
+    SVT Survey for front of the detector from 2019 measurements only Ty corrections.
+    This detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV.
+    Includes L0 and Hodoscope.
+    ECAL with survey alignment for HPSEcal3 (global y/z translations).
+    This detector has the full hierarchical alignment structure.
+    SVT Alignment is done using FEEs, momentum constraint and beamspot constraint.
+    Alignment of the back of the detector to be performed. All iterations included in the constants
+    for debugging purposes. [PF]
+    </comment>
+  </info>
+
+  <define>
+
+    <!-- world -->
+    <constant name="world_side" value="500.0*cm" />
+    <constant name="world_x" value="world_side" />
+    <constant name="world_y" value="world_side" />
+    <constant name="world_z" value="world_side" />
+
+    <!-- beam -->
+    <constant name="beam_angle" value="0.03052" /> <!--30.52 mrad-->
+
+    <!-- tracking region -->
+    <constant name="tracking_region_radius" value="200.0*cm" />
+    <constant name="tracking_region_min" value="5.0*cm" />
+    <constant name="tracking_region_zmax" value="136.8*cm" />
+
+    <!--  dipole magnet and  B-field -->
+    <constant name="dipoleMagnetPositionX" value="2.117*cm" />
+    <constant name="dipoleMagnetPositionZ" value="45.72*cm" />
+    <constant name="dipoleMagnetHeight" value="100*cm" />
+    <constant name="dipoleMagnetWidth" value="100*cm" />
+    <constant name="dipoleMagnetLength" value="108*cm" />
+    <constant name="constBFieldY" value="-1.08" /><!-- set for 4.5GeV running -->
+
+
+    <!-- ECAL crystal dimensions -->
+    <constant name="ecal_front" value="13.3/2*mm" />
+    <constant name="ecal_back" value="16/2*mm" />
+    <constant name="ecal_z" value="160/2*mm" />
+
+    <!-- ECal Z position -->
+    <!-- Old position without hodo :<constant name="ecal_dface" value="139.3*cm"/> -->
+    <constant name="ecal_dface" value="144.8*cm" /> <!-- plus 5.5 cm -->
+
+    <!-- ECal placement parameters for NEW ECAL -->
+    <constant name="beam_angle" value="0.03052" />
+    <constant name="ecal_front" value="13.3/2*mm" />
+    <constant name="ecal_back" value="16/2*mm" />
+    <constant name="ecal_z" value="160/2*mm" />
+    <!-- ECal Modules translation parameters -->
+    <constant name="top_tr_x" value="-0.71" />
+    <constant name="top_tr_y" value="2.725" />
+    <constant name="top_tr_z" value="4.9375" />
+    <constant name="bot_tr_x" value="-0.405" />
+    <constant name="bot_tr_y" value="-0.9125" />
+    <constant name="bot_tr_z" value="2.6225" />
+    <!-- ECal Modules rotation parameters(Rz(alpha)Ry(beta)Rx(gamma)) -->
+    <constant name="top_rot_alpha" value="0.00064964212772" />
+    <constant name="top_rot_beta" value="0.0" />
+    <constant name="top_rot_gamma" value="-0.00046882347412" />
+    <constant name="bot_rot_alpha" value="0.0005150274940439" />
+    <constant name="bot_rot_beta" value="0.0" />
+    <constant name="bot_rot_gamma" value="0.0013469727279283583" />
+
+    <!-- HODOSCOPE PARAMETERS -->
+    <!-- Hodoscope thickness -->
+    <constant name="hodoscopeXMin1" value="48-4.452" />
+    <constant name="hodoscopeXMin2" value="48" />
+    <constant name="hodoscopeThickness" value="10*mm" />
+    <constant name="hodoscopePixelHeight" value="59.225*mm" />
+
+    <!-- Distance between hodoscope and scoring planes -->
+    <constant name="hodoscopeScoreDisplacement" value="1.000" />
+    <constant name="hodoscopeZ" value="1098.5*mm" />
+
+
+    <!-- SVT PARAMETERS -->
+    <!-- SVT module dimensions -->
+    <constant name="moduleLength" value="100.0" />
+    <constant name="moduleWidth" value="40.34" />
+
+    <!-- SVT sensor dimensions -->
+    <constant name="sensorLength" value="98.33" />
+
+    <!--scoring plane thickness-->
+    <constant name="scoringThickness" value="0.001" />
+
+    <!--left and right edges of the electron gap for the ECal scoring plane, measured as distances from the BL edge of the flange-->
+    <constant name="electronGapLeftEdge" value="382.16+20*0.0166" />
+    <constant name="electronGapRightEdge" value="471.94+20*0.1511" />
+
+    <!-- Sensor width slightly less than 38.34 mm so sisim works. -->
+    <constant name="sensorWidth" value="38.3399" />
+    <constant name="zst" value="1" />
+    <constant name="SA1" value="0.1" />
+    <constant name="SA2" value="0.05" />
+    <constant name="PI" value="3.14159265359" />
+    <!-- positions derived from drawing assuming 1.35/1.2 degress open on top/bottom -->
+
+    <constant name="x_rot_top" value="0" />
+    <constant name="x_rot_bot" value="0" />
+
+    <!--  monkey with the rotations  -->
+    <constant name="x_rot_top_add" value="0.00" />  <!-- -ive means further closed -->
+    <constant name="x_rot_bot_add" value="0.00" /> <!-- +ive means further closed -->
+    <!--  distance from target to pivot...this is from an email schematic from Tim on may 12, 2012 -->
+    <constant name="pivot" value="791" />
+
+    <constant name="y_rot" value="beam_angle" />
+    <!--        <constant name="x_off" value = "-15.0"/> -->
+    <constant name="x_off" value="0.0" />
+
+    <!-- Positions of thin 15 cm planes -->
+    <constant name="y01t" value="150*sin(0.015)+sensorWidth/2" />
+    <constant name="y02t" value="150*sin(0.015)+sensorWidth/2" />
+    <constant name="y01b" value="-(150*sin(0.015)+sensorWidth/2)" />
+    <constant name="y02b" value="-(150*sin(0.015)+sensorWidth/2)" />
+
+    <constant name="z01t" value="0+142.5-3.685" />
+    <constant name="z02t" value="0+142.5+3.685" />
+    <constant name="z01b" value="0+157.5-3.685" />
+    <constant name="z02b" value="0+157.5+3.685" />
+
+  </define>
+
+  <materials>
+    <!-- Set the world material to vacuum. -->
+    <material name="WorldMaterial">
+      <D type="density" unit="g/cm3" value="0.0000000000000001" />
+      <fraction n="1.0" ref="Vacuum" />
+    </material>
+    <!-- Set tracking material to vacuum. -->
+    <material name="TrackingMaterial">
+      <D type="density" unit="g/cm3" value="0.0000000000000001" />
+      <fraction n="1.0" ref="Vacuum" />
+    </material>
+    <!-- ECal crystal material. -->
+    <material name="LeadTungstate">
+      <D value="8.28" unit="g/cm3" />
+      <composite n="1" ref="Pb" />
+      <composite n="1" ref="W" />
+      <composite n="4" ref="O" />
+    </material>
+    <!-- Hodoscope material. -->
+    <material name="EJ204_PlasticScintillator">
+      <D value="1.032" unit="g/cm3" />
+      <fraction n="0.523618" ref="H" />
+      <fraction n="0.476382" ref="C" />
+    </material>
+    <material name="TitaniumDioxide">
+      <D value="4.23" unit="g/cm3" />
+      <composite n="1" ref="Ti" />
+      <composite n="2" ref="O" />
+    </material>
+    <material name="Mylar">
+      <D value="1.4" unit="g/cm3" />
+      <fraction n="0.041958" ref="H" />
+      <fraction n="0.625017" ref="C" />
+      <fraction n="0.333025" ref="O" />
+    </material>
+    <material name="GenericFoam">
+      <D value="0.052" unit="g/cm3" />
+      <fraction n="0.5" ref="H" />
+      <fraction n="0.5" ref="C" />
+    </material>
+  </materials>
+
+
+  <display>
+    <vis name="ECALVis" r="0.8" g="0.5" b="0.1" />
+    <vis name="HodoscopeVis" alpha="1.0" r="0.0" g="0.33725490196" b="0.50980392156" drawingStyle="solid" visible="true" />
+    <vis name="ChamberVis" alpha="1.0" r="1.0" g="0.0" b="1.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="SvtBoxVis" alpha="1.0" r="1.0" g="1.0" b="0.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="SensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="ActiveSensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="CarbonFiberVis" alpha="1.0" r="0.88" g="0.88" b="0.88" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="KaptonVis" alpha="1.0" r="0.91" g="0.77" b="0.06" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="HybridVis" alpha="1.0" r="0.0" g="1.0" b="0" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="HalfModuleVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="wireframe" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="ColdBlockVis" alpha="1.0" r="0.75" g="0.73" b="0.75" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="ModuleVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="wireframe" lineStyle="dotted" showDaughters="true" visible="true" />
+    <vis name="SupportPlateVis" alpha="1.0" r="0.45" g="0.45" b="0.45" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="SupportVolumeVis" alpha="1.0" r="0.75" g="0.73" b="0.75" drawingStyle="wireframe" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="BasePlateVis" alpha="1.0" r="0.35" g="0.35" b="0.35" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="LayerVis" alpha="0.0" r="0.0" g="0.0" b="1.0" drawingStyle="wireframe" showDaughters="true" visible="false" />
+    <vis name="ComponentVis" alpha="0.0" r="0.0" g="0.2" b="0.4" drawingStyle="solid" showDaughters="false" visible="false" />
+    <vis name="BeamPlaneVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="false" visible="true" />
+  </display>
+
+  <detectors>
+
+    <detector id="1" name="Tracker" type="HPSTracker2019" readout="TrackerHits">
+
+            <SurveyVolumes>
+        <!-- U-channel in Svt box survey -->
+        <!-- not available for 2019 -->
+        <!-- I used the 2016 survey for the back of the detector -->
+
+        <!-- The Uchannels were pulled out and placed back in. There might be some change that should be fixed by alignment. The current survey constants should be valid-->
+
+        <!-- Originally the x of the bottom was -5.9779 +1.0, but that seems like a hack -->
+        <SurveyVolume name="support_bottom_L46" desc="B46 ball basis in box fiducial frame:">
+          <origin x="-5.9779" y="-8.4112" z="789.6352" />
+          <unitvec name="X" x="9.9955e-01" y="-7.7349e-05" z="-3.0082e-02" />
+          <unitvec name="Y" x="7.6453e-05" y="1.0000e+00" z="-3.0945e-05" />
+          <unitvec name="Z" x="3.0082e-02" y="2.8631e-05" z="9.9955e-01" />
+        </SurveyVolume>
+        <SurveyVolume name="support_top_L46" desc="T46 ball basis in box fiducial frame:">
+          <origin x="-6.3106" y="8.462" z="773.7906" />
+          <unitvec name="X" x="9.9954e-01" y="7.3687e-05" z="-3.0209e-02" />
+          <unitvec name="Y" x="-7.2695e-05" y="1.0000e+00" z="3.3946e-05" />
+          <unitvec name="Z" x="3.0209e-02" y="-3.1734e-05" z="9.9954e-01" />
+        </SurveyVolume>
+
+        <!-- Originally the x of the bottom was 0.0 +1.0, but that seems like a hack -->
+
+        <SurveyVolume name="support_bottom_L13" desc="B13 ball basis in pivot frame:">
+          <origin x="0" y="59.9476" z="-304.9173" />
+          <unitvec name="X" x="1." y="0." z="0." />
+          <unitvec name="Y" x="0." y="1." z="0." />
+          <unitvec name="Z" x="0." y="0." z="1." />
+        </SurveyVolume>
+        <SurveyVolume name="c_support_kin_L13b" desc="B13 pivot basis in box frame:">
+          <origin x="-37.3429" y="-68.3632" z="695.2994" />
+          <unitvec name="X" x="9.9954e-01" y="1.3427e-04" z="-3.0350e-02" />
+          <unitvec name="Y" x="-1.3440e-04" y="1.0000e+00" z="-2.1271e-06" />
+          <unitvec name="Z" x="3.0350e-02" y="6.2051e-06" z="9.9954e-01" />
+        </SurveyVolume>
+        <SurveyVolume name="support_top_L13" desc="T13 ball basis in pivot frame:">
+          <origin x="0." y="-50.9272" z="-319.7481" />
+          <unitvec name="X" x="1." y="0." z="0." />
+          <unitvec name="Y" x="0." y="1." z="0." />
+          <unitvec name="Z" x="0." y="0." z="1." />
+        </SurveyVolume>
+        <SurveyVolume name="c_support_kin_L13t" desc="T13 pivot basis in box frame:">
+          <origin x="-36.9837" y="59.4777" z="694.2924" />
+          <unitvec name="X" x="9.9952e-01" y="4.2882e-05" z="-3.1132e-02" />
+          <unitvec name="Y" x="-5.2348e-05" y="1.0000e+00" z="-3.0325e-04" />
+          <unitvec name="Z" x="3.1132e-02" y="3.0473e-04" z="9.9952e-01" />
+        </SurveyVolume>
+
+
+
+        <!-- Module support surface survey -->
+        <!-- not available for 2019 -->
+        <!-- I used the 2016 survey for L5, L6. L7 Top/Bottom have been refurbished. -->
+        <!-- Caution:: Ly5 in 2016 is Ly6 in 2019! -->
+
+
+        <SurveyVolume name="module_L5t" desc="Top L5 pin basis in U-channel fiducial frame:">
+          <origin x="-149.2748" y="53.2984" z="-9.568" />
+          <unitvec name="X" x="1.0000e+00" y="1.3154e-04" z="-1.6050e-04" />
+          <unitvec name="Y" x="1.3166e-04" y="-1.0000e+00" z="7.2035e-04" />
+          <unitvec name="Z" x="-1.6041e-04" y="-7.2037e-04" z="-1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6t" desc="Top L6 pin basis in U-channel fiducial frame:">
+          <origin x="-149.2454" y="56.3526" z="190.4708" />
+          <unitvec name="X" x="1.0000e+00" y="2.0492e-04" z="-2.5400e-04" />
+          <unitvec name="Y" x="2.0495e-04" y="-1.0000e+00" z="1.1388e-04" />
+          <unitvec name="Z" x="-2.5398e-04" y="-1.1393e-04" z="-1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L5b" desc="Bottom L5 pin basis in U-channel fiducial frame:">
+          <origin x="-149.1868" y="-53.3685" z="9.5839" />
+          <unitvec name="X" x="1.0000e+00" y="1.1536e-04" z="-1.7794e-04" />
+          <unitvec name="Y" x="-1.1535e-04" y="1.0000e+00" z="9.3250e-05" />
+          <unitvec name="Z" x="1.7795e-04" y="-9.3229e-05" z="1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6b" desc="Bottom L6 pin basis in U-channel fiducial frame:">
+          <origin x="-149.1631" y="-56.3514" z="209.5891" />
+          <unitvec name="X" x="1.0000e+00" y="6.1076e-05" z="-8.7472e-05" />
+          <unitvec name="Y" x="-6.1071e-05" y="1.0000e+00" z="5.2874e-05" />
+          <unitvec name="Z" x="8.7475e-05" y="-5.2869e-05" z="1.0000e+00" />
+        </SurveyVolume>
+
+
+        <!-- Sensor position survey  -->
+
+        <!-- For 2019 only the front sensors L1, L2, L3 and L4 have been surveyed -->
+        <!-- The constants reported here are in the surveyed UChannel frame       -->
+        <!-- The unit vectors are not extracted from MRSolt measurements.         -->
+        <!-- The survey uchannel is rotated around z of +90 wrt the hps-java uchannel -->
+        <!-- Thin sensors have full position survey -->
+
+        <!--
+        <SurveyVolume name="module_L1t_halfmodule_axial" desc="Top L1A sensor basis in survey uchannel frame">
+          <origin x="-54.09130816" y="-28.4573564" z="0.57462736" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+
+        <SurveyVolume name="module_L1t_halfmodule_stereo" desc="Top L1S sensor basis in survey uchannel frame">
+          <origin x="-46.07324877" y="-29.27938576" z="0.58657069" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+
+        <SurveyVolume name="module_L2t_halfmodule_axial" desc="Top L2A sensor basis in survey uchannel frame">
+          <origin x="-4.04991950e+00" y="-2.80562825e+01" z="-5.32043994e-03 + 0.245" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+
+        <SurveyVolume name="module_L2t_halfmodule_stereo" desc="Top L2S sensor basis in survey uchannel frame">
+          <origin x="3.90907439" y="-28.93918784" z="0.14580778" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+
+        <SurveyVolume name="module_L1b_halfmodule_axial" desc="Bot L1A sensor basis in survey uchannel frame">
+          <origin x="-45.91264914" y="28.09104069" z="0.4509968" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+
+        <SurveyVolume name="module_L1b_halfmodule_stereo" desc="Bot L1S sensor basis in survey uchannel frame">
+          <origin x="-53.97045143" y="28.92468524" z="0.60123394" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+
+        <SurveyVolume name="module_L2b_halfmodule_axial" desc="Bot L2A sensor basis in survey uchannel frame">
+          <origin x="4.14396344" y="28.00850183" z="0.07518008" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+
+        <SurveyVolume name="module_L2b_halfmodule_stereo" desc="Bot L2S sensor basis in survey uchannel frame">
+          <origin x="-3.90396965" y="28.8457762" z="0.16825288" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+        -->
+
+
+        <!-- L3 and L4 sensors only have position along UChannel surveyed. -->
+        <!-- Only x here has meaning and has been measured directly on the UChannel -->
+        <!-- I haven't found a smart way to apply these yet -->
+
+        <!--<SurveyVolume name = "module_L3t_halfmodule_axial" desc="Top L3A sensor basis in survey uchannel frame">
+            <origin x="95.83884" y="-9999" z="-9999" />
+            <unitvec name="X" x="1" y="0" z="0" />
+            <unitvec name="Y" x="0" y="1" z="0" />
+            <unitvec name="Z" x="0" y="0" z="1" />
+            </SurveyVolume>
+
+        <SurveyVolume name = "module_L3t_halfmodule_stereo" desc="Top L3S sensor basis in survey uchannel frame">
+          <origin x="104.55273" y="-9999" z="-9999" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+
+        <SurveyVolume name = "module_L3t_halfmodule_axial" desc="Top L4A sensor basis in survey uchannel frame">
+          <origin x="195.91052" y="-9999" z="-9999" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume>
+
+        <SurveyVolume name = "module_L3t_halfmodule_stereo" desc="Top L4S sensor basis in survey uchannel frame">
+          <origin x="204.36921" y="-9999" z="-9999" />
+          <unitvec name="X" x="1" y="0" z="0" />
+          <unitvec name="Y" x="0" y="1" z="0" />
+          <unitvec name="Z" x="0" y="0" z="1" />
+        </SurveyVolume> -->
+
+
+        <SurveyVolume name="module_L5t_halfmodule_stereo_hole" desc="Top L5SE sensor basis in pin frame:">
+          <origin x="98.9408" y="32.5693" z="-13.4153" />
+          <unitvec name="X" x="9.9876e-01" y="4.9698e-02" z="7.4726e-04" />
+          <unitvec name="Y" x="4.9698e-02" y="-9.9876e-01" z="-2.8540e-04" />
+          <unitvec name="Z" x="7.3215e-04" y="3.2219e-04" z="-1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L5t_halfmodule_stereo_slot" desc="Top L5SP sensor basis in pin frame:">
+          <origin x="199.738" y="37.5894" z="-13.3495" />
+          <unitvec name="X" x="-9.9874e-01" y="-5.0146e-02" z="-8.1304e-05" />
+          <unitvec name="Y" x="-5.0146e-02" y="9.9874e-01" z="2.0390e-03" />
+          <unitvec name="Z" x="-2.1046e-05" y="2.0405e-03" z="-1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L5t_halfmodule_axial_hole" desc="Top L5AE sensor basis in pin frame:">
+          <origin x="98.8726" y="35.0629" z="-5.6233" />
+          <unitvec name="X" x="1.0000e+00" y="-1.9858e-04" z="7.0769e-04" />
+          <unitvec name="Y" x="1.9834e-04" y="1.0000e+00" z="3.3003e-04" />
+          <unitvec name="Z" x="-7.0775e-04" y="-3.2989e-04" z="1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L5t_halfmodule_axial_slot" desc="Top L5AP sensor basis in pin frame:">
+          <origin x="199.7988" y="35.073" z="-5.5463" />
+          <unitvec name="X" x="-1.0000e+00" y="7.4687e-05" z="-1.6979e-04" />
+          <unitvec name="Y" x="-7.4415e-05" y="-1.0000e+00" z="-1.5993e-03" />
+          <unitvec name="Z" x="-1.6991e-04" y="-1.5993e-03" z="1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6t_halfmodule_stereo_hole" desc="Top L6SE sensor basis in pin frame:">
+          <origin x="98.9704" y="32.5777" z="-13.4754" />
+          <unitvec name="X" x="9.9877e-01" y="4.9627e-02" z="3.8919e-04" />
+          <unitvec name="Y" x="4.9627e-02" y="-9.9877e-01" z="1.6862e-04" />
+          <unitvec name="Z" x="3.9708e-04" y="-1.4910e-04" z="-1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6t_halfmodule_stereo_slot" desc="Top L6SP sensor basis in pin frame:">
+          <origin x="199.7857" y="37.6067" z="-13.3934" />
+          <unitvec name="X" x="-9.9877e-01" y="-4.9603e-02" z="-1.3625e-04" />
+          <unitvec name="Y" x="-4.9603e-02" y="9.9877e-01" z="1.2110e-03" />
+          <unitvec name="Z" x="7.6015e-05" y="1.2163e-03" z="-1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6t_halfmodule_axial_hole" desc="Top L6AE sensor basis in pin frame:">
+          <origin x="98.8471" y="35.0645" z="-5.5394" />
+          <unitvec name="X" x="1.0000e+00" y="-2.4000e-04" z="1.9643e-03" />
+          <unitvec name="Y" x="2.4031e-04" y="1.0000e+00" z="-1.5337e-04" />
+          <unitvec name="Z" x="-1.9643e-03" y="1.5385e-04" z="1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6t_halfmodule_axial_slot" desc="Top L6AP sensor basis in pin frame:">
+          <origin x="199.7314" y="35.0702" z="-5.4992" />
+          <unitvec name="X" x="-1.0000e+00" y="1.3550e-04" z="1.0488e-03" />
+          <unitvec name="Y" x="-1.3623e-04" y="-1.0000e+00" z="-7.0117e-04" />
+          <unitvec name="Z" x="1.0487e-03" y="-7.0132e-04" z="1.0000e+00" />
+        </SurveyVolume>
+
+
+        <SurveyVolume name="module_L5b_halfmodule_stereo_hole" desc="Bottom L5SE sensor basis in pin frame:">
+          <origin x="98.8403" y="32.5506" z="-13.4188" />
+          <unitvec name="X" x="0.9988" y="0.049" z="0.0011" />
+          <unitvec name="Y" x="0.049" y="-0.9988" z="0.0024" />
+          <unitvec name="Z" x="0.0012" y="-0.0024" z="-1." />
+        </SurveyVolume>
+        <SurveyVolume name="module_L5b_halfmodule_stereo_slot" desc="Bottom L5SP sensor basis in pin frame:">
+          <origin x="199.7647" y="37.5793" z="-13.416" />
+          <unitvec name="X" x="-9.9872e-01" y="-5.0612e-02" z="2.0998e-04" />
+          <unitvec name="Y" x="-5.0612e-02" y="9.9872e-01" z="-1.3244e-03" />
+          <unitvec name="Z" x="-1.4268e-04" y="-1.3333e-03" z="-1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L5b_halfmodule_axial_hole" desc="Bottom L5AE sensor basis in pin frame:">
+          <origin x="98.8498" y="35.0796" z="-5.5914" />
+          <unitvec name="X" x="1.0000e+00" y="1.6064e-04" z="1.7363e-04" />
+          <unitvec name="Y" x="-1.6025e-04" y="1.0000e+00" z="-2.2311e-03" />
+          <unitvec name="Z" x="-1.7399e-04" y="2.2310e-03" z="1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L5b_halfmodule_axial_slot" desc="Bottom L5AP sensor basis in pin frame:">
+          <origin x="199.702" y="35.0743" z="-5.5911" />
+          <unitvec name="X" x="-1.0000e+00" y="-1.5578e-04" z="1.9209e-04" />
+          <unitvec name="Y" x="1.5591e-04" y="-1.0000e+00" z="6.6840e-04" />
+          <unitvec name="Z" x="1.9199e-04" y="6.6843e-04" z="1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6b_halfmodule_stereo_hole" desc="Bottom L6SE sensor basis in pin frame:">
+          <origin x="98.8719" y="32.5577" z="-13.446" />
+          <unitvec name="X" x="9.9875e-01" y="5.0030e-02" z="-3.1473e-04" />
+          <unitvec name="Y" x="5.0030e-02" y="-9.9875e-01" z="-4.8047e-04" />
+          <unitvec name="Z" x="-3.3837e-04" y="4.6412e-04" z="-1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6b_halfmodule_stereo_slot" desc="Bottom L6SP sensor basis in pin frame:">
+          <origin x="199.7055" y="37.5879" z="-13.4429" />
+          <unitvec name="X" x="-9.9874e-01" y="-5.0097e-02" z="-6.1898e-04" />
+          <unitvec name="Y" x="-5.0098e-02" y="9.9874e-01" z="1.5008e-03" />
+          <unitvec name="Z" x="5.4301e-04" y="1.5299e-03" z="-1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6b_halfmodule_axial_hole" desc="Bottom L6AE sensor basis in pin frame:">
+          <origin x="98.8068" y="35.0685" z="-5.5251" />
+          <unitvec name="X" x="1.0000e+00" y="1.8826e-04" z="3.5947e-04" />
+          <unitvec name="Y" x="-1.8795e-04" y="1.0000e+00" z="-8.7064e-04" />
+          <unitvec name="Z" x="-3.5963e-04" y="8.7057e-04" z="1.0000e+00" />
+        </SurveyVolume>
+        <SurveyVolume name="module_L6b_halfmodule_axial_slot" desc="Bottom L6AP sensor basis in pin frame:">
+          <origin x="199.7322" y="35.0648" z="-5.5156" />
+          <unitvec name="X" x="-1.0000e+00" y="-2.2109e-04" z="7.2234e-04" />
+          <unitvec name="Y" x="2.2099e-04" y="-1.0000e+00" z="-1.3682e-04" />
+          <unitvec name="Z" x="7.2237e-04" y="-1.3666e-04" z="1.0000e+00" />
+        </SurveyVolume>
+      </SurveyVolumes>
+
+
+      <millepede_constants>
+
+          <!-- top half-module translations -->
+          <!-- top half-module translations -->
+        <millepede_constant name="11101" value="0.0 + 0.0860 +     0.0 + -0.014203 + -0.016385 + -0.003371 + 0.025300 + 0.001700 + 0.000100 + 0.001900" />
+        <millepede_constant name="11102" value="0.0 + 0.11243500 + 0.0 + 0.014275 + 0.016468 + 0.003388 + 0.022900 + 0.001700 + -0.000400 + -0.003000" />
+        <millepede_constant name="11103" value="0.0 + 0.121 +      0.0 + 0.026565 + 0.021302 + 0.001782 + 0.009700 + 0.000700 + 0.007300 + 0.000500" />
+        <millepede_constant name="11104" value="0.0 + 0.25173500 + 0.0 + -0.026699 + -0.021409 + -0.001791 + 0.007300 + 0.000700 + -0.003200 + -0.001400" />
+        <millepede_constant name="11105" value="0.0 - 0.055 +      0.0 + -0.011829 + -0.005295 + 0.000176 + -0.021600 + 0.000400 + -0.001100" />
+        <millepede_constant name="11106" value="0.0 + 0.054725000 +0.0 + -0.011888 + -0.005321 + 0.000177 + 0.023800 + -0.000400 + 0.001100" />
+        <millepede_constant name="11107" value="0.0 - 0.062 +      0.0 + -0.000533 + 0.000378 + 0.001413 + -0.052900 + 0.000400 + -0.002200" />
+        <millepede_constant name="11108" value="0.0 + 0.061690000 + 0.0 + -0.000536 + 0.000380 + 0.001420 + 0.054900 + -0.000400 + 0.002200" />
+        <millepede_constant name="11109" value="0.0 + -0.061553 + -0.003519 + -0.000707 + 0.037900 + 0.010700 + -0.002100 + 0.025100" />
+        <millepede_constant name="11110" value="0.0 + 0.045459 + -0.000341 + -0.003129 + -0.037900 + -0.010700 + -0.004100 + 0.011300 + -0.012100" />
+        <millepede_constant name="11111" value="0.0 + 0.068445 + 0.002110 + 0.004191 + -0.037900 + -0.010700 + 0.001700 + -0.016300 + 0.000500" />
+        <millepede_constant name="11112" value="0.0 + -0.050798 + 0.001291 + -0.005603 + 0.037900 + 0.010700 + 0.008100 + 0.022100 + 0.001700" />
+
+        <millepede_constant name="11113" value="0.0 -0.039347 + 0.037900 + 0.012800 + -0.000800 + 0.022600" />
+        <millepede_constant name="11114" value="0.0 + 0.029229 + -0.037900 + -0.012700 + -0.007900 + 0.015100 + -0.011500" />
+        <millepede_constant name="11115" value="0.0 + 0.042370 + -0.037900 + -0.012800 + -0.002000 + -0.022400 + 0.002500" />
+        <millepede_constant name="11116" value="0.0 -0.033294 + 0.037900 + 0.012700 + 0.020400 + 0.028600 + 0.001300" />
+
+        <millepede_constant name="11117" value="0.0 + 0.037900" />
+        <millepede_constant name="11118" value="0.0 + -0.037900" />
+        <millepede_constant name="11119" value="0.0 + -0.037900" />
+        <millepede_constant name="11120" value="0.0 + 0.037900" />
+
+        <millepede_constant name="11121" value="0.0" />
+        <millepede_constant name="11122" value="0.0" />
+
+        <millepede_constant name="11201" value="0.0" />
+        <millepede_constant name="11202" value="0.0 + 0.011281468 + 0.002300 + 0.000200" />
+        <millepede_constant name="11203" value="0.0" />
+        <millepede_constant name="11204" value="0.0 + 0.025258508 + 0.000700 + 0.000100" />
+        <millepede_constant name="11205" value="0.0" />
+        <millepede_constant name="11206" value="0.0 + 0.0054909800 + 0.002400 + 0.000100" />
+        <millepede_constant name="11207" value="0.0" />
+        <millepede_constant name="11208" value="0.0 + 0.0061898320 + 0.005500 + 0.000200" />
+        <millepede_constant name="11209" value="0.0" />
+        <millepede_constant name="11210" value="0.0 + -0.001900 + -0.000500" />
+        <millepede_constant name="11211" value="0.0" />
+        <millepede_constant name="11212" value="0.0 + 0.001900 + 0.000500" />
+        <millepede_constant name="11213" value="0.0" />
+        <millepede_constant name="11214" value="0.0 + -0.001900 + -0.000600" />
+        <millepede_constant name="11215" value="0.0" />
+        <millepede_constant name="11216" value="0.0 + 0.001900 + 0.000600" />
+        <millepede_constant name="11217" value="0.0" />
+        <millepede_constant name="11218" value="0.0 + -0.001900" />
+        <millepede_constant name="11219" value="0.0" />
+        <millepede_constant name="11220" value="0.0 + 0.001900" />
+        <millepede_constant name="11221" value="0.0" />
+        <millepede_constant name="11222" value="0.0" />
+
+        <millepede_constant name="11301" value="0.0 + 0.002300" />
+        <millepede_constant name="11302" value="0.0 + -0.002300" />
+        <millepede_constant name="11303" value="0.0 + 0.002200" />
+        <millepede_constant name="11304" value="0.0 + -0.002200" />
+        <millepede_constant name="11305" value="0.0 + -0.002000" />
+        <millepede_constant name="11306" value="0.0 + 0.002000" />
+        <millepede_constant name="11307" value="0.0 + -0.002400" />
+        <millepede_constant name="11308" value="0.0 + 0.002400" />
+        <millepede_constant name="11309" value="0.0" />
+        <millepede_constant name="11310" value="0.0" />
+        <millepede_constant name="11311" value="0.0" />
+        <millepede_constant name="11312" value="0.0 + -0.000100" />
+        <millepede_constant name="11313" value="0.0" />
+        <millepede_constant name="11314" value="0.0" />
+        <millepede_constant name="11315" value="0.0" />
+        <millepede_constant name="11316" value="0.0 + -0.000100" />
+        <millepede_constant name="11317" value="0.0" />
+        <millepede_constant name="11318" value="0.0" />
+        <millepede_constant name="11319" value="0.0" />
+        <millepede_constant name="11320" value="0.0" />
+        <millepede_constant name="11321" value="0.0" />
+        <millepede_constant name="11322" value="0.0" />
+
+        <!-- top half-module rotations -->
+
+        <millepede_constant name="12101" value="0.0" />
+        <millepede_constant name="12102" value="0.0" />
+        <millepede_constant name="12103" value="0.0" />
+        <millepede_constant name="12104" value="0.0" />
+        <millepede_constant name="12105" value="0.0" />
+        <millepede_constant name="12106" value="0.0" />
+        <millepede_constant name="12107" value="0.0" />
+        <millepede_constant name="12108" value="0.0" />
+        <millepede_constant name="12109" value="0.0" />
+        <millepede_constant name="12110" value="0.0" />
+        <millepede_constant name="12111" value="0.0" />
+        <millepede_constant name="12112" value="0.0" />
+        <millepede_constant name="12113" value="0.0" />
+        <millepede_constant name="12114" value="0.0" />
+        <millepede_constant name="12115" value="0.0" />
+        <millepede_constant name="12116" value="0.0" />
+        <millepede_constant name="12117" value="0.0" />
+        <millepede_constant name="12118" value="0.0" />
+        <millepede_constant name="12119" value="0.0" />
+        <millepede_constant name="12120" value="0.0" />
+        <millepede_constant name="12121" value="0.0" />
+        <millepede_constant name="12122" value="0.0" />
+
+        <millepede_constant name="12201" value="0.0 - 0.000300" />
+        <millepede_constant name="12202" value="0.0 - -0.000300" />
+        <millepede_constant name="12203" value="0.0 - 0.000300" />
+        <millepede_constant name="12204" value="0.0 - -0.000300" />
+        <millepede_constant name="12205" value="0.0 - 0.000300" />
+        <millepede_constant name="12206" value="0.0 - 0.000300" />
+        <millepede_constant name="12207" value="0.0 - 0.000300" />
+        <millepede_constant name="12208" value="0.0 - 0.000300" />
+        <millepede_constant name="12209" value="0.0" />
+        <millepede_constant name="12210" value="0.0" />
+        <millepede_constant name="12211" value="0.0" />
+        <millepede_constant name="12212" value="0.0" />
+        <millepede_constant name="12213" value="0.0" />
+        <millepede_constant name="12214" value="0.0" />
+        <millepede_constant name="12215" value="0.0" />
+        <millepede_constant name="12216" value="0.0" />
+        <millepede_constant name="12217" value="0.0" />
+        <millepede_constant name="12218" value="0.0" />
+        <millepede_constant name="12219" value="0.0" />
+        <millepede_constant name="12220" value="0.0" />
+        <millepede_constant name="12221" value="0.0" />
+        <millepede_constant name="12222" value="0.0" />
+
+        <millepede_constant name="12301" value="0.0 - -0.002500 - -0.001700" />
+        <millepede_constant name="12302" value="0.0 - -0.004700 - -0.001600" />
+        <millepede_constant name="12303" value="0.0 - -0.008000 - -0.000200" />
+        <millepede_constant name="12304" value="0.0 - -0.008000 - -0.000900" />
+        <millepede_constant name="12305" value="0.0" />
+        <millepede_constant name="12306" value="0.0" />
+        <millepede_constant name="12307" value="0.0" />
+        <millepede_constant name="12308" value="0.0" />
+        <millepede_constant name="12309" value="0.0 - -0.000084 - 0.000013 - -0.000800" />
+        <millepede_constant name="12310" value="0.0 - 0.000066 - 0.000080 - -0.000300 - 0.000500" />
+        <millepede_constant name="12311" value="0.0 - -0.000041 - -0.000102 - 0.000500 - 0.000300" />
+        <millepede_constant name="12312" value="0.0 - 0.000116 - 0.000167 - -0.000400 - -0.000100" />
+        <millepede_constant name="12313" value="0.0 - -0.001100" />
+        <millepede_constant name="12314" value="0.0 - 0.000100 - -0.000600 - 0.000700" />
+        <millepede_constant name="12315" value="0.0 - 0.000700 - 0.000400" />
+        <millepede_constant name="12316" value="0.0 - 0.000100 - -0.000300 - -0.000200" />
+        <millepede_constant name="12317" value="0.0" />
+        <millepede_constant name="12318" value="0.0" />
+        <millepede_constant name="12319" value="0.0" />
+        <millepede_constant name="12320" value="0.0" />
+        <millepede_constant name="12321" value="0.0" />
+        <millepede_constant name="12322" value="0.0" />
+
+        <!-- bottom half-module translations -->
+
+        <millepede_constant name="21101" value="0.0 + 0.09751+    0.0 + 0.004180 + 0.012205 + 0.004966 + 0.004800" />
+        <millepede_constant name="21102" value="0.0 + 0.2+        0.0 + -0.004159 + 0.006249 + 0.002215 + 0.004800" />
+        <millepede_constant name="21103" value="0.0 + 0.22984500+ 0.0 + -0.018176 + 0.006439 + 0.004523 + 0.005100" />
+        <millepede_constant name="21104" value="0.0 + 0.285+      0.0 + 0.018085 + 0.005709 + 0.002136 + 0.005100" />
+        <millepede_constant name="21105" value="0.0 - 0.011940000+0.0 + -0.004565 + -0.004562 + -0.005500" />
+        <millepede_constant name="21106" value="0.0 + 0.012 +      0.0 + -0.004542 + 0.001842 + 0.005600" />
+        <millepede_constant name="21107" value="0.0 + 0.035422000 +0.0 + -0.009431 + -0.009100 + 0.007200 + -0.000200" />
+        <millepede_constant name="21108" value="0.0 - 0.0356 +     0.0 + -0.009384 + 0.009200 + -0.007200 + 0.003100" />
+
+        <millepede_constant name="21109" value="0.0 + 0.008729 + 0.005390 + 0.004936 + 0.027400 + -0.007400 + -0.007700 + -0.005400 + -0.000500 + 0.000900" />
+        <millepede_constant name="21110" value="0.0 + 0.002665 + 0.001729 + 0.002079 + -0.027500 + -0.001900 + 0.000400 + -0.004100 + -0.000500 + 0.000300" />
+        <millepede_constant name="21111" value="0.0 + -0.011812 + -0.004302 + -0.000752 + -0.027400 + 0.036600 + 0.003800" />
+        <millepede_constant name="21112" value="0.0 + 0.001441 + -0.001231 + -0.000326 + 0.027500 + 0.035100 + 0.001300" />
+
+        <millepede_constant name="21113" value="0.0 + -0.020524 + 0.009100 + 0.043800 + -0.020600 + -0.004900 + -0.000100 + -0.000100" />
+        <millepede_constant name="21114" value="0.0 + 0.006178 + -0.009100 + -0.043800 + 0.017500 + 0.000500 + -0.004600 + -0.000100 + 0.000300" />
+        <millepede_constant name="21115" value="0.0 + 0.018966 + -0.009100 + -0.043800 + 0.007300 + 0.027800 + 0.000800 + 0.009800" />
+        <millepede_constant name="21116" value="0.0 + -0.003756 + 0.009100 + 0.043800 + -0.021900 + -0.004200 + -0.000300 + -0.000800 + -0.009300" />
+
+        <millepede_constant name="21117" value="0.0 + 0.022200 + 0.061200 + -0.009600 + -0.013800 + -0.001900 + 0.001700" />
+        <millepede_constant name="21118" value="0.0 + -0.022200 + -0.061300 + 0.015000 + 0.021500 + -0.003000 + 0.011000 + -0.009000" />
+        <millepede_constant name="21119" value="0.0 + -0.022200 + -0.061200 + 0.014600 + 0.037200 + 0.003100 + -0.002600 + 0.017500" />
+        <millepede_constant name="21120" value="0.0 + 0.022200 + 0.061300 + -0.000400 + 0.008000 + -0.010400 + 0.011000 + -0.014800" />
+
+        <millepede_constant name="21121" value="0.0" />
+        <millepede_constant name="21122" value="0.0" />
+
+        <millepede_constant name="21201" value="0.0 + 0.0097839280 + 0.000500" />
+        <millepede_constant name="21202" value="0.0" />
+        <millepede_constant name="21203" value="0.0 + 0.023062116 + 0.000500" />
+        <millepede_constant name="21204" value="0.0" />
+        <millepede_constant name="21205" value="0.0 - 0.0011980320 + -0.000600" />
+        <millepede_constant name="21206" value="0.0" />
+        <millepede_constant name="21207" value="0.0 + 0.0035541616 + -0.000900 + 0.000700" />
+        <millepede_constant name="21208" value="0.0" />
+        <millepede_constant name="21209" value="0.0 + 0.001400" />
+        <millepede_constant name="21210" value="0.0" />
+        <millepede_constant name="21211" value="0.0 + -0.001400" />
+        <millepede_constant name="21212" value="0.0" />
+        <millepede_constant name="21213" value="0.0 + 0.000500 + 0.002200" />
+        <millepede_constant name="21214" value="0.0" />
+        <millepede_constant name="21215" value="0.0 + -0.000500 + -0.002200" />
+        <millepede_constant name="21216" value="0.0" />
+        <millepede_constant name="21217" value="0.0 + 0.001100 + 0.003100" />
+        <millepede_constant name="21218" value="0.0" />
+        <millepede_constant name="21219" value="0.0 + -0.001100 + -0.003100" />
+        <millepede_constant name="21220" value="0.0" />
+        <millepede_constant name="21221" value="0.0" />
+        <millepede_constant name="21222" value="0.0" />
+
+        <millepede_constant name="21301" value="0.0" />
+        <millepede_constant name="21302" value="0.0" />
+        <millepede_constant name="21303" value="0.0" />
+        <millepede_constant name="21304" value="0.0" />
+        <millepede_constant name="21305" value="0.0" />
+        <millepede_constant name="21306" value="0.0" />
+        <millepede_constant name="21307" value="0.0" />
+        <millepede_constant name="21308" value="0.0" />
+        <millepede_constant name="21309" value="0.0" />
+        <millepede_constant name="21310" value="0.0" />
+        <millepede_constant name="21311" value="0.0" />
+        <millepede_constant name="21312" value="0.0" />
+        <millepede_constant name="21313" value="0.0" />
+        <millepede_constant name="21314" value="0.0" />
+        <millepede_constant name="21315" value="0.0" />
+        <millepede_constant name="21316" value="0.0" />
+        <millepede_constant name="21317" value="0.0" />
+        <millepede_constant name="21318" value="0.0" />
+        <millepede_constant name="21319" value="0.0" />
+        <millepede_constant name="21320" value="0.0" />
+        <millepede_constant name="21321" value="0.0" />
+        <millepede_constant name="21322" value="0.0" />
+
+        <!-- bottom half-module rotations -->
+
+        <millepede_constant name="22101" value="0.0" />
+        <millepede_constant name="22102" value="0.0" />
+        <millepede_constant name="22103" value="0.0" />
+        <millepede_constant name="22104" value="0.0" />
+        <millepede_constant name="22105" value="0.0" />
+        <millepede_constant name="22106" value="0.0" />
+        <millepede_constant name="22107" value="0.0" />
+        <millepede_constant name="22108" value="0.0" />
+        <millepede_constant name="22109" value="0.0" />
+        <millepede_constant name="22110" value="0.0" />
+        <millepede_constant name="22111" value="0.0" />
+        <millepede_constant name="22112" value="0.0" />
+        <millepede_constant name="22113" value="0.0" />
+        <millepede_constant name="22114" value="0.0" />
+        <millepede_constant name="22115" value="0.0" />
+        <millepede_constant name="22116" value="0.0" />
+        <millepede_constant name="22117" value="0.0" />
+        <millepede_constant name="22118" value="0.0" />
+        <millepede_constant name="22119" value="0.0" />
+        <millepede_constant name="22120" value="0.0" />
+        <millepede_constant name="22121" value="0.0" />
+        <millepede_constant name="22122" value="0.0" />
+
+        <millepede_constant name="22201" value="0.0" />
+        <millepede_constant name="22202" value="0.0" />
+        <millepede_constant name="22203" value="0.0" />
+        <millepede_constant name="22204" value="0.0" />
+        <millepede_constant name="22205" value="0.0" />
+        <millepede_constant name="22206" value="0.0" />
+        <millepede_constant name="22207" value="0.0" />
+        <millepede_constant name="22208" value="0.0" />
+        <millepede_constant name="22209" value="0.0" />
+        <millepede_constant name="22210" value="0.0" />
+        <millepede_constant name="22211" value="0.0" />
+        <millepede_constant name="22212" value="0.0" />
+        <millepede_constant name="22213" value="0.0" />
+        <millepede_constant name="22214" value="0.0" />
+        <millepede_constant name="22215" value="0.0" />
+        <millepede_constant name="22216" value="0.0" />
+        <millepede_constant name="22217" value="0.0" />
+        <millepede_constant name="22218" value="0.0" />
+        <millepede_constant name="22219" value="0.0" />
+        <millepede_constant name="22220" value="0.0" />
+        <millepede_constant name="22221" value="0.0" />
+        <millepede_constant name="22222" value="0.0" />
+
+        <millepede_constant name="22301" value="0.0 - -0.008033 - -0.001779" />
+        <millepede_constant name="22302" value="0.0 - 0.003447 - 0.001482" />
+        <millepede_constant name="22303" value="0.0 - -0.011274 - -0.001217" />
+        <millepede_constant name="22304" value="0.0 - 0.005886 - 0.001047" />
+        <millepede_constant name="22305" value="0.0 - -0.000925" />
+        <millepede_constant name="22306" value="0.0 - 0.000750" />
+        <millepede_constant name="22307" value="0.0" />
+        <millepede_constant name="22308" value="0.0" />
+        <millepede_constant name="22309" value="0.0 - 0.000080 - -0.000138 - 0.000300 - 0.000200 - 0.000100" />
+        <millepede_constant name="22310" value="0.0 - -0.000016 - -0.000031 - 0.000300 - 0.000100 - 0.000100" />
+        <millepede_constant name="22311" value="0.0 - -0.000025 - 0.000023 - 0.000300" />
+        <millepede_constant name="22312" value="0.0 - -0.000087 - -0.000012 - 0.000300" />
+        <millepede_constant name="22313" value="0.0 - 0.000100 - 0.000500 - 0.000200" />
+        <millepede_constant name="22314" value="0.0 - 0.000100 - 0.000100" />
+        <millepede_constant name="22315" value="0.0 - 0.000100 - -0.000900" />
+        <millepede_constant name="22316" value="0.0 - 0.000100" />
+        <millepede_constant name="22317" value="0.0 - 0.000100 - 0.000200 - 0.000300" />
+        <millepede_constant name="22318" value="0.0 - 0.000100 - -0.000500" />
+        <millepede_constant name="22319" value="0.0 - 0.000100 - -0.000900" />
+        <millepede_constant name="22320" value="0.0 - 0.000100 - 0.000200" />
+        <millepede_constant name="22321" value="0.0" />
+        <millepede_constant name="22322" value="0.0" />
+
+        <!-- L1Top Module translations and angles -->
+        <millepede_constant name="11161" value="0.0 + -0.005043 + 0.011009 + 0.004542 + 0.000474" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11261" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11361" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12161" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12261" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12361" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21161" value="0.0 + -0.062197 + -0.023929 + -0.004881 + -0.001066 + -0.003685" /> <!-- u -->
+        <millepede_constant name="21261" value="0.0" /> <!-- v -->
+        <millepede_constant name="21361" value="0.0" /> <!-- w -->
+        <millepede_constant name="22161" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22261" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22361" value="0.0" /> <!-- rw -->
+
+        <!-- L2 Top/Bottom translations and angles -->
+        <millepede_constant name="11162" value="0.0 + -0.036344 + -0.006792 + 0.000880 + 0.000617" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11262" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11362" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12162" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12262" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12362" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21162" value="0.0 + -0.032614 + -0.015713 + -0.003676 + -0.000917 + -0.002945" /> <!-- u -->
+        <millepede_constant name="21262" value="0.0" /> <!-- v -->
+        <millepede_constant name="21362" value="0.0" /> <!-- w -->
+        <millepede_constant name="22162" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22262" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22362" value="0.0" /> <!-- rw -->
+
+        <!-- L3 Top/Bottom translations and angles -->
+        <millepede_constant name="11163" value="0.0 + 0.018801 + 0.000277 + -0.001333 + -0.000319" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11263" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11363" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12163" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12263" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12363" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21163" value="0.0 + 0.002791" /> <!-- u -->
+        <millepede_constant name="21263" value="0.0" /> <!-- v -->
+        <millepede_constant name="21363" value="0.0" /> <!-- w -->
+        <millepede_constant name="22163" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22263" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22363" value="0.0" /> <!-- rw -->
+
+        <!-- L4 Top/Bottom translations and angles -->
+        <millepede_constant name="11164" value="0.0 + 0.022586 + -0.004495 + -0.004089 + -0.000772" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11264" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11364" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12164" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12264" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12364" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21164" value="0.0 + 0.003839" /> <!-- u -->
+        <millepede_constant name="21264" value="0.0" /> <!-- v -->
+        <millepede_constant name="21364" value="0.0" /> <!-- w -->
+        <millepede_constant name="22164" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22264" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22364" value="0.0" /> <!-- rw -->
+
+        <!-- L5 Top/Bottom translations and angles -->
+        <millepede_constant name="11165" value="0.0" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11265" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11365" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12165" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12265" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12365" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21165" value="0.0" /> <!-- u -->
+        <millepede_constant name="21265" value="0.0" /> <!-- v -->
+        <millepede_constant name="21365" value="0.0" /> <!-- w -->
+        <millepede_constant name="22165" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22265" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22365" value="0.0" /> <!-- rw -->
+
+
+        <!-- L6 Top/Bottom translations and angles -->
+        <millepede_constant name="11166" value="0.0" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11266" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11366" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12166" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12266" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12366" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21166" value="0.0" /> <!-- u -->
+        <millepede_constant name="21266" value="0.0" /> <!-- v -->
+        <millepede_constant name="21366" value="0.0" /> <!-- w -->
+        <millepede_constant name="22166" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22266" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22366" value="0.0" /> <!-- rw -->
+
+
+        <!-- L7 Top/Bottom translations and angles -->
+        <millepede_constant name="11167" value="0.0 + 0.022231 + 0.002136 + 0.000500 + 0.000784" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11267" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11367" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12167" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12267" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12367" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21167" value="0.0 + 0.003058 + 0.001044 + 0.000254 + 0.000070" /> <!-- u -->
+        <millepede_constant name="21267" value="0.0" /> <!-- v -->
+        <millepede_constant name="21367" value="0.0" /> <!-- w -->
+        <millepede_constant name="22167" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22267" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22367" value="0.0" /> <!-- rw -->
+
+        <!-- top support front translations -->
+        <millepede_constant name="11180" value="0.0 + -0.636090 + -0.123290 + -0.000292 + -0.256510 + -0.033879" />     <!-- + opening global X-->
+        <millepede_constant name="11280" value="0.0 + 0.877980" />     <!-- + opening global Z-->
+        <millepede_constant name="11380" value="0.0 + 0.096841 + 0.022731 + -0.029719 + 0.028933 + 0.010131 + 0.000845 + -0.045571 + -0.040349" />     <!-- + opening global Y-->
+
+        <!-- top support front tilt angles -->
+
+        <millepede_constant name="12180" value="-0.0001 + -0.000123 + -0.000043 + -0.000004 + -0.000001" /> <!-- + means opening-->
+        <millepede_constant name="12280" value="0.0" />
+        <millepede_constant name="12380" value="0.0" />
+
+
+        <!-- top support back translations -->
+        <millepede_constant name="11190" value="0.0 + -0.244390 + -0.014508" />     <!-- + opening global X-->
+        <millepede_constant name="11290" value="0.0" />     <!-- + opening global Z-->
+        <millepede_constant name="11390" value="0.0 + 0.046110 + 0.003477" />     <!-- + opening global Y-->
+
+        <!-- top support back tilt angles -->
+
+        <millepede_constant name="12190" value="0.0" /> <!-- + means opening-->
+        <millepede_constant name="12290" value="0.0" />
+        <millepede_constant name="12390" value="0.0" />
+
+        <!-- bottom support translations -->
+        <millepede_constant name="21180" value="0.0 + 0.991020 + -0.075507 + -0.036106 + -0.020808" />     <!-- + opening global X-->
+        <millepede_constant name="21280" value="0.0 + 0.223920" />     <!-- + opening global Z-->
+        <millepede_constant name="21380" value="0.0 + 0.018919 + 0.004137 + 0.011636 + 0.004590 + 0.001019 + 0.000232 + 0.033083 + -0.165940 + -0.014889 + 0.009021" />     <!-- + opening global Y-->
+
+        <!-- bottom support tilt angles -->
+        <millepede_constant name="22180" value="0.0001 + 0.000262 + 0.000049 + -0.000063 + 0.000258 + 0.000013 + -0.000002" />  <!-- - means opening -->
+        <millepede_constant name="22280" value="0.0" />
+        <millepede_constant name="22380" value="0.0" />
+
+
+        <!-- bottom support back translations -->
+        <millepede_constant name="21190" value="0.0 + 1.007900 + 0.345190 + 0.080289" />
+        <millepede_constant name="21290" value="0.0" />
+        <millepede_constant name="21390" value="0.0 + -0.137440 + -0.022874 + -0.001883" />
+
+        <!-- bottom support back tilt angles -->
+
+        <millepede_constant name="22190" value="0.0" />
+        <millepede_constant name="22290" value="0.0" />
+        <millepede_constant name="22390" value="0.0" />
+
+
+      </millepede_constants>
+    </detector>
+
+
+
+    <detector id="29" name="ECalScoring" type="HPSTracker2" readout="TrackerHitsECal" insideTrackingVolume="false">
+      <comment>Scoring plane after ECal flange for calibration studies</comment>
+      <module name="BeamLeft">
+        <box x="electronGapLeftEdge" y="457.2/2-17" />
+        <module_component thickness="scoringThickness" material="Vacuum" sensitive="true" />
+      </module>
+      <module name="ElectronGap">
+        <box x="electronGapRightEdge-electronGapLeftEdge" y="(457.2-64.66)/2" />
+        <module_component thickness="scoringThickness" material="Vacuum" sensitive="true" />
+      </module>
+      <module name="BeamRight">
+        <box x="768.35-electronGapRightEdge" y="457.2/2-14" />
+        <module_component thickness="scoringThickness" material="Vacuum" sensitive="true" />
+      </module>
+      <layer id="1"><!--top-->
+        <module_placement name="BeamLeft" id="0" x="(768.35-electronGapLeftEdge)/2+21.17" y="(457.2/2+17)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-PI/2" />
+        <module_placement name="ElectronGap" id="0" x="768.35/2-electronGapRightEdge+(electronGapRightEdge-electronGapLeftEdge)/2+21.17" y="(457.2/2+64.66/2)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-PI/2" />
+        <module_placement name="BeamRight" id="0" x="-1*electronGapRightEdge/2+21.17" y="(457.2/2+14)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-PI/2" />
+      </layer>
+      <layer id="2"><!--bottom-->
+        <module_placement name="BeamLeft" id="0" x="(768.35-electronGapLeftEdge)/2+21.17" y="-1*(457.2/2+17)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-3*PI/2" />
+        <module_placement name="ElectronGap" id="0" x="768.35/2-electronGapRightEdge+(electronGapRightEdge-electronGapLeftEdge)/2+21.17" y="-1*(457.2/2+64.66/2)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-3*PI/2" />
+        <module_placement name="BeamRight" id="0" x="-1*electronGapRightEdge/2+21.17" y="-1*(457.2/2+14)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-3*PI/2" />
+      </layer>
+    </detector>
+
+    <detector id="30" name="Hodoscope" type="Hodoscope_v1" readout="HodoscopeHits" insideTrackingVolume="true" vis="HodoscopeVis">
+      <!--
+	  It is mandatory to define hodoscope crystal materials!
+      -->
+      <scintillator_material value="Polystyrene" />
+      <cover_material value="TitaniumDioxide" />
+      <reflector_material value="Mylar" />
+      <buffer_material value="Carbon" />
+
+      <!--
+	  These variables allow the hodoscope to be shifted
+	  without modification of the code. These variables do
+	  NOT need to be specified. If they are not declared,
+	  the nominal value will used instead. Note that any
+	  combination of these variables can be declared or
+	  excluded freely.
+      -->
+      <layer1_top_x value="44.56*mm" />
+      <layer1_top_y value="14.2*mm" />
+      <layer1_top_z value="hodoscopeZ" />
+      <layer1_bot_x value="44.56*mm" />
+      <layer1_bot_y value="14.2*mm" />
+      <layer1_bot_z value="hodoscopeZ" />
+
+      <layer2_top_x value="47.9*mm" />
+      <layer2_top_y value="14.2*mm" />
+      <layer2_bot_x value="47.9*mm" />
+      <layer2_bot_y value="14.2*mm" />
+
+      <scintillator_depth value="9.5*mm" />
+      <scintillator_depth_height value="59.9*mm" />
+      <cover_depth value="0.25*mm" />
+      <reflector_depth value="0.05*mm" />
+
+      <buffer_depth value="2*mm" />
+      <buffer_width value="187.64*mm" />
+      <buffer_x value="39.0*mm" />
+
+      <!--
+	  Defines the hodoscope pixel widths and count. One
+	  pixel will be added to the specified hodoscope layer
+	  for each entry in the list below. The pixel will be
+	  of the specified width in millimeters. Note that the
+	  top and bottom parts of the hodoscope will use the
+	  same set of widths. It is not necessary to define
+	  these arguments.
+      -->
+      <scintillator_width_layer1 value="15.7,34.1,44,44,44" />
+      <scintillator_width_layer2 value="19,44,44,44,30.8" />
+    </detector>
+
+
+    <!--  OLDER ECAL -->
+    <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
+      <comment>The crystal ECal</comment>
+      <material name="LeadTungstate" />
+      <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
+      <layout beamgapBottom="21.4*mm" beamgapTop="22.3*mm" nx="46" ny="5" dface="ecal_dface">
+        <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
+        <top dx="(ecal_dface-50)*tan(beam_angle)" dy="0." dz="0." />
+        <bottom dx="(ecal_dface-50)*tan(beam_angle)" dy="0." dz="0." />
+      </layout>
+    </detector>
+  </detectors>
+  <!-- New adjustable ECAL -->
+  <!--
+      <detector id="13" name="Ecal" type="HPSEcal4" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
+      <comment>The crystal ECal</comment>
+      <material name="LeadTungstate" />
+      <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
+      <translations top_tr_x="top_tr_x" top_tr_y="top_tr_y" top_tr_z="top_tr_z" bot_tr_x="bot_tr_x" bot_tr_y="bot_tr_y" bot_tr_z="bot_tr_z" />
+      <rotations top_rot_alpha="top_rot_alpha" top_rot_beta="top_rot_beta" top_rot_gamma="top_rot_gamma" bot_rot_alpha="bot_rot_alpha" bot_rot_beta="bot_rot_beta" bot_rot_gamma="bot_rot_gamma" />
+      <layout beamgap="20.0*mm" nx="46" ny="5" dface="ecal_dface">
+      <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
+      <top dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+      <bottom dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+      </layout>
+      </detector>
+  -->
+
+  <readouts>
+    <readout name="TrackerHits">
+      <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+    </readout>
+    <readout name="TrackerHitsFieldDef">
+      <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+      <processor type="ScoringTrackerHitProcessor" />
+    </readout>
+    <readout name="TrackerHitsECal">
+      <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+      <processor type="ScoringTrackerHitProcessor" />
+    </readout>
+    <readout name="HodoscopeHits">
+      <id>system:6,barrel:3,layer:4,ix:4,iy:-3,hole:-3</id>
+    </readout>
+    <readout name="HodoscopeForeHits">
+      <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+      <processor type="ScoringTrackerHitProcessor" />
+    </readout>
+    <readout name="EcalHits">
+      <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+      <id>system:6,layer:2,ix:-8,iy:-6</id>
+    </readout>
+
+  </readouts>
+
+  <fields>
+    <field type="BoxDipole" name="AnalyzingDipole" x="dipoleMagnetPositionX" y="0*cm" z="dipoleMagnetPositionZ" dx="dipoleMagnetWidth/2.0" dy="dipoleMagnetHeight/2.0" dz="dipoleMagnetLength/2.0" bx="0.0" by="constBFieldY" bz="0.0" />
+<!--    <field type="FieldMap3D" name="HPSDipoleFieldMap3D" filename="fieldmap/418acm2_10kg_corrected_unfolded_scaled_1.0319.dat" url="https://raw.githubusercontent.com/JeffersonLab/hps-fieldmaps/master/418acm2_10kg_corrected_unfolded_scaled_1.0319.tar.gz" xoffset="2.117*cm" yoffset="0.0*cm" zoffset="45.72*cm" /> -->
+  </fields>
+
+  <!--
+       <fields>
+       <field type="BoxDipole" name="AnalyzingDipole" x="dipoleMagnetPositionX" y="0*cm" z="dipoleMagnetPositionZ" dx="dipoleMagnetWidth/2.0" dy="dipoleMagnetHeight/2.0" dz="dipoleMagnetLength/2.0" bx="0.0" by="constBFieldY" bz="0.0" />
+       </fields>
+  -->
+  <includes>
+    <gdmlFile file="gdml/ecal_vacuum_flange_complete_v3.gdml" />
+    <gdmlFile file="gdml/hps_hodoscope_assembly.gdml" />
+    <gdmlFile file="gdml/svt_chamber_v2.gdml" />
+  </includes>
+</lccdd>
