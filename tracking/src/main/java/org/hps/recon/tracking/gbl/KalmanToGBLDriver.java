@@ -141,7 +141,6 @@ public class KalmanToGBLDriver extends Driver {
             //I'm using the OLD way to refit for the moment.
             
             FittedGblTrajectory fitGbl_traj = HpsGblRefitter.fit(list_kfSCDs, bfac, false);
-            GblTrajectory gbl_fit_trajectory =  fitGbl_traj.get_traj();
 
             /*
             System.out.println("DEBUG::Tom::KalmanToGBLDriver - converted KF track to GBL track with "
@@ -150,7 +149,7 @@ public class KalmanToGBLDriver extends Driver {
             
             
             // Compute the residuals
-            if (computeGBLResiduals) { 
+            if (computeGBLResiduals && fitGbl_traj != null) { 
                 
                 TrackResidualsData resData  = GblUtils.computeGblResiduals(trk, fitGbl_traj);
                 trackResidualsCollection.add(resData);
@@ -170,6 +169,7 @@ public class KalmanToGBLDriver extends Driver {
             // Get the derivatives
             
             /*
+            GblTrajectory gbl_fit_trajectory =  fitGbl_traj.get_traj();
             for (GblData gbldata : gbl_fit_trajectory.getTrajData()) {
             float vals[] = new float[2];
                 List<Integer> indLocal = new ArrayList<Integer>();
