@@ -152,7 +152,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double maxtanL  = -999;
     private double minPhi   = -999;
     private double maxPhi   = 999;
-    private int    nHitsCut = 4;
+    private int    nHitsCut = 6;
     private boolean useParticles = false;
     private double clusterEnergyCutMin = -1;  
     private double clusterEnergyCutMax = 999;
@@ -179,6 +179,9 @@ public class SimpleGBLTrajAliDriver extends Driver {
     }
     public void setPosEoP (double val) {
         posEoP = val;
+    }
+    public void setNHits (int val) {
+        nHitsCut = val;
     }
 
     public void setEleEoP (double val) {
@@ -382,7 +385,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         if (writeMilleBinary)
             mille.close();
         
-        
+        System.out.println("Total Number of processed Tracks " + nTracksTotal);
         //Save the plots?
         
         //try {
@@ -545,6 +548,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
+
+                
                 
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
@@ -812,7 +817,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
             //if (enableStandardCuts && gblTrk.getChi2() > cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
             //    continue;
-
+            
             //This should GBL Trajectories for both the ST+GBL and KF+GBL depending on the setup.
             
             //I think this should take the track->trackerHits and refit those with a GBL otherwise I think I miss the momentum constraint.. ?
@@ -902,6 +907,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     trajForMPII.printData();
                 
                 
+
                 //Fit the trajectory to get the Chi2
                 trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
 
@@ -924,7 +930,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
                     Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
                     Track gblTrk = newTrack.getFirst();
-                    
+
                     if(computeGBLResiduals) {
                         
                         List<Double> b_residuals = new ArrayList<Double>();
@@ -1020,6 +1026,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         if (correctTrack) {
             // Put the tracks back into the event and exit
             int flag = 1 << LCIOConstants.TRBIT_HITS;
+            
             event.put(outputCollectionName, refittedTracks, Track.class, flag);
             
             

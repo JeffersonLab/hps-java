@@ -67,17 +67,19 @@ public class GBLOutputDriver extends Driver {
     //This should be moved to the GBL Refitter!!!
     //The field map for extrapolation
     private FieldMap bFieldMap;
-
+    
     //The location of the extrapolation
     private double bsZ = 0.;
 
     //Spacing between top and bottom in the 2D histos
     private int mod = 5;
 
-    private double minMom = 1.;
-    private double maxMom = 6.;
-    
-    private int nHits = 6;
+    private double minMom  = 1.;
+    private double maxMom  = 6.;
+    private double minTanL = 0.0001;
+    private int nHits = 0;
+    int nTotalTracks = 0;
+    int nPassedTracks = 0;
     
 
     public void setDataRelationCollection (String val) {
@@ -151,7 +153,7 @@ public class GBLOutputDriver extends Driver {
     @Override
     public void process(EventHeader event) {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
-
+        
         int TrackType = 0;
         
         if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) {
@@ -174,23 +176,26 @@ public class GBLOutputDriver extends Driver {
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
         
+       
+        nTotalTracks += tracks.size();
+
         for (Track trk : tracks) {
             
             //Some Track selection
             
             //System.out.println("Track loop");
             
-            if (trk.getChi2() > chi2Cut)
-                continue;
-
-
-            //System.out.println("Track passed chi2");
+            //if (trk.getChi2() > chi2Cut)
+            //    continue;
+            
+            //if (trk.getChi2() > 40 )
+            //    System.out.println("Track passed chi2 " + trk.getChi2());
             
             //Remove tracks with less than 10 hits
             if (trk.getTrackerHits().size() < nHits)
                 continue;
 
-
+            
             //System.out.println("Track passed hits");
             
             Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
@@ -204,8 +209,8 @@ public class GBLOutputDriver extends Driver {
             //System.out.println("Track passed momentum");
             
             TrackState trackState = trk.getTrackStates().get(0);
-            if (Math.abs(trackState.getTanLambda()) < 0.015)
-                continue;
+            //if (Math.abs(trackState.getTanLambda()) < minTanL)
+            //    continue;
             
             //System.out.println("Track passed tanLambda");
             
@@ -264,6 +269,8 @@ public class GBLOutputDriver extends Driver {
                 }
                 
             }
+
+            nPassedTracks++;
             
             doBasicGBLtrack(trk,sensorHits);
             if (b_doGBLresiduals) 
@@ -396,6 +403,11 @@ public class GBLOutputDriver extends Driver {
         //Momentum maps
         FillGBLTrackPlot(trkpFolder+"p_vs_phi",isTop,charge,trackState.getPhi(),trackp);
         FillGBLTrackPlot(trkpFolder+"p_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackp);
+        if (TrackUtils.isHoleTrack(trk))
+            FillGBLTrackPlot(trkpFolder+"p_vs_tanLambda_hole",isTop,charge,trackState.getTanLambda(),trackp);
+        else
+            FillGBLTrackPlot(trkpFolder+"p_vs_tanLambda_slot",isTop,charge,trackState.getTanLambda(),trackp);
+        
         FillGBLTrackPlot(trkpFolder+"p_vs_phi_tanLambda",isTop,charge,trackState.getPhi(),trackState.getTanLambda(),trackp);
         
         double tanLambda = trackState.getTanLambda();
@@ -907,6 +919,8 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram2D(trkpFolder+"p_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
                 aidaGBL.histogram2D(trkpFolder+"p_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
                 aidaGBL.histogram3D(trkpFolder+"p_vs_phi_tanLambda"+vol+charge, 50,-0.3,0.3,50,-0.2,0.2,100,0.,pmax);
+                aidaGBL.histogram2D(trkpFolder+"p_vs_tanLambda_hole"+vol+charge, 50,-0.3,0.3,100,0.,pmax);
+                aidaGBL.histogram2D(trkpFolder+"p_vs_tanLambda_slot"+vol+charge, 50,-0.3,0.3,100,0.,pmax);
 
                 aidaGBL.histogram2D(trkpFolder+"pT_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
                 aidaGBL.histogram2D(trkpFolder+"pT_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
@@ -932,6 +946,10 @@ public class GBLOutputDriver extends Driver {
     }
     
     public void endOfData() {
+
+        System.out.println("GBLOutputDriver:: Number of processed Tracks " + nTotalTracks);
+        System.out.println("GBLOutputDriver:: Number of passed Tracks " + nPassedTracks);
+
         if (outputPlots != null) {
             try {
                 aidaGBL.saveAs(outputPlots);

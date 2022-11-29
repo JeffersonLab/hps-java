@@ -74,12 +74,36 @@ public class GBLRefitterDriver extends Driver {
     private List<AlignableDetectorElement>  Alignabledes = new ArrayList<AlignableDetectorElement>();
     private List<SiSensor> sensors = new ArrayList<SiSensor>();
     private boolean usePoints = true;
+    private double minMom   = -999;
+    private double maxMom   = 999;
         
     //Calculator for Frame to Frame derivatives
     private FrameToFrameDers f2fD = new FrameToFrameDers();
         
     //Setting 0 is a single refit, 1 refit twice and so on..
     private int gblRefitIterations = 5; 
+
+
+    public void setMinMom(double val) {
+        minMom = val;
+    }
+
+    /*
+    public void setMaxtanL(double val) {
+        maxtanL = val;
+    }
+
+    public void setMinPhi(double val) {
+        minPhi = val;
+    }
+
+    public void setMaxPhi(double val) {
+        maxPhi = val;
+    }
+    */
+    public void setMaxMom(double val) {
+        maxMom = val;
+    }
     
     public void setUsePoints (boolean val) {
         usePoints = val;
@@ -254,10 +278,10 @@ public class GBLRefitterDriver extends Driver {
                 //At least 1 GeV
                 Hep3Vector momentum = new BasicHep3Vector(gblTrk.getTrackStates().get(0).getMomentum());
                 
-                
-                if (momentum.magnitude() < 1)
+                if (momentum.magnitude() < minMom || momentum.magnitude() > maxMom) {
                     continue;
-                
+                }
+                                
                 ////At least 6 hits
                 //if (gblTrk.getTrackerHits().size() < 6) 
                 //continue;
