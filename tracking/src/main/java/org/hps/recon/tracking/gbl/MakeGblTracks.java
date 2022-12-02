@@ -82,6 +82,9 @@ public class MakeGblTracks {
         BaseTrack trk = new BaseTrack();
 
         /*
+         * we could look into converting the points listed with the GBL
+         * trajectory into the actual TrackerHits in the GBL track.
+         * This was confusing so I didn't do it.
         // Add the hits to the track, converting them to 1D hits
         // that inherit from TrackerHit
         for (GblPoint pt : fittedGblTrajectory.get_traj().getSinglePoints()) {

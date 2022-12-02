@@ -149,6 +149,8 @@ public class KalmanToGBLDriver extends Driver {
             
             
             // Compute the residuals
+            // sometimes the GBL trajectory isn't fitted properly and null is returned
+            // so we should make sure that the trajectory was fit before continuing
             if (computeGBLResiduals && fitGbl_traj != null) { 
                 
                 TrackResidualsData resData  = GblUtils.computeGblResiduals(trk, fitGbl_traj);

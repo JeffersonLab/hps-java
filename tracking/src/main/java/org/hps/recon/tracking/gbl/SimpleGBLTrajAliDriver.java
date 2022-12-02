@@ -112,7 +112,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String gblStripClusterDataRelations = "KFGBLStripClusterDataRelations";
     
-    private int nTracksTotal = 0;
     private double bfield;
     private FieldMap bFieldMap;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
@@ -578,6 +577,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 if (TrackType == 1 && track.getTrackerHits().size() % 2 == 1) {
                     // this is a KF track with an odd number of hits which /cannot/
                     // be equivalent to a GBL track so we are going to skip it
+                    // in a future where KF-based alignment is the standard,
+                    // we probably want to remove this
                     continue;
                 }
                 
@@ -1022,7 +1023,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     
                     //System.out.println("Refitted track chi2 " + gblTrk.getChi2());
                     refittedTracks.add(gblTrk);
-                    nTracksTotal += refittedTracks.size();
                     kinkDataCollection.add(newTrack.getSecond());
                     kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
                 }
