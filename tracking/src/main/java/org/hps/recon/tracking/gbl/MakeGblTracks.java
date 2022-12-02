@@ -101,7 +101,7 @@ public class MakeGblTracks {
         }
         */
         for (TrackerHit hit : hitsOnTrack) {
-          trk.addHit(hit);
+            trk.addHit(hit);
         }
 
         // Set state at IP

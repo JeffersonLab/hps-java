@@ -195,10 +195,10 @@ public class GBLOutputDriver extends Driver {
             
             //Remove tracks with less than 10 hits
             if ((TrackType == 0 && trk.getTrackerHits().size() < nHits) 
-                || (TrackType == 1 && trk.getTrackerHits().size() < 2*nHits)) {
-              System.out.println("DEBUG::Tom::"+trk.getClass().getSimpleName()
-                  +" got to GBLOutputDriver with "+trk.getTrackerHits().size()+" hits.");
-              continue;
+                    || (TrackType == 1 && trk.getTrackerHits().size() < 2*nHits)) {
+                System.out.println("DEBUG::Tom::"+trk.getClass().getSimpleName()
+                        +" got to GBLOutputDriver with "+trk.getTrackerHits().size()+" hits.");
+                continue;
             }
 
 
