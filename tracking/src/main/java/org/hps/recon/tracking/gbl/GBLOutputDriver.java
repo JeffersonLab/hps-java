@@ -76,6 +76,9 @@ public class GBLOutputDriver extends Driver {
 
     private double minMom = 1.;
     private double maxMom = 6.;
+
+    private double minPhi = -999.9;
+    private double maxPhi = 999.9;
     
     private int nHits = 6;
     
@@ -94,6 +97,14 @@ public class GBLOutputDriver extends Driver {
 
     public void setMaxMom (double val) {
         maxMom = val;
+    }
+
+    public void setMinPhi (double val) {
+        minPhi = val;
+    }
+
+    public void setMaxPhi (double val) {
+        maxPhi = val;
     }
 
     //Override the Z of the target.
@@ -205,6 +216,12 @@ public class GBLOutputDriver extends Driver {
             
             TrackState trackState = trk.getTrackStates().get(0);
             if (Math.abs(trackState.getTanLambda()) < 0.015)
+                continue;
+            
+            if (Math.abs(trackState.getPhi()) < minPhi)
+                continue;
+
+            if (Math.abs(trackState.getPhi()) > maxPhi)
                 continue;
             
             //System.out.println("Track passed tanLambda");
