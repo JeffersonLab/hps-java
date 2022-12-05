@@ -111,7 +111,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private String trackResidualsRelColName = "TrackResidualsGBLRelations";
     private String rawHitCollectionName = "SVTRawTrackerHits";
     private String gblStripClusterDataRelations = "KFGBLStripClusterDataRelations";
-        
+    
     private double bfield;
     private FieldMap bFieldMap;
     private final MultipleScattering _scattering = new MultipleScattering(new MaterialSupervisor());
@@ -345,6 +345,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
         enableStandardCuts = val;
     }
 
+    public void setNHitsCut(int val) {
+        nHitsCut = val;
+    }
+
     public void setMinMom(double val) {
         minMom = val;
     }
@@ -497,6 +501,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
         }
 
+        //System.out.println("DEBUG::Tom::Deduced a track type of "+TrackType);
+
         //If using Seed Tracker, get the hits from the event
         if (TrackType == 0) {
             hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
@@ -539,29 +545,40 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
 
             if (enableAlignmentCuts) {
-                
-                
+                //System.out.println("DEBUG::Tom::alignment cuts enabled...");
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
                 
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
+                //System.out.print("Enabled alignment cuts with hits cut = ");
                 //Kalman
-                if (TrackType == 1)
-                    nHitsCut = 2*nHitsCut;
+                int actualHitCut = nHitsCut;
+                if (TrackType == 1) {
+                    actualHitCut = 2*nHitsCut;
+                }
+                //System.out.println(actualHitCut);
                 
                 if (momentum.magnitude() < minMom || momentum.magnitude() > maxMom) {
                     continue;
                 }
                 
                 if (Math.abs(tanLambda) < maxtanL) {
-
                     continue;
                 }
                 
                 //Align with tracks with at least 6 hits
-                if ((tanLambda > 0 && track.getTrackerHits().size() < nHitsCut) || (tanLambda < 0 && track.getTrackerHits().size() < nHitsCut))  {
+                if ((tanLambda > 0 && track.getTrackerHits().size() < actualHitCut) 
+                        || (tanLambda < 0 && track.getTrackerHits().size() < actualHitCut))  {
+                    continue;
+                }
+
+                if (TrackType == 1 && track.getTrackerHits().size() % 2 == 1) {
+                    // this is a KF track with an odd number of hits which /cannot/
+                    // be equivalent to a GBL track so we are going to skip it
+                    // in a future where KF-based alignment is the standard,
+                    // we probably want to remove this
                     continue;
                 }
                 
@@ -578,6 +595,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     else if (trackSide == 1 && !TrackUtils.isHoleTrack(track)) 
                         continue;
                 }
+                //System.out.println("DEBUG::Tom::Pass with " + track.getTrackerHits().size() + " hits");
             }
             
             
@@ -890,16 +908,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
                     trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
-                }
-                
-                else {
-                    
+                } else {
                     trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
                 }
                 
-                if (debugAlignmentDs)
-                    trajForMPII.printData();
-                
+                if (debugAlignmentDs) trajForMPII.printData();
                 
                 //Fit the trajectory to get the Chi2
                 trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
@@ -908,8 +921,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
                     continue;
                 
-                if (writeMilleBinary)
+                if (writeMilleBinary) {
+                    /*
+                    System.out.println("DEBUG::Tom::Writing track with "
+                        + points_on_traj.size() + " hits to mille binary.");
+                     */
                     trajForMPII.milleOut(mille);
+                }
                 
                 if (correctTrack) {                
 
@@ -923,6 +941,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
                     Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
                     Track gblTrk = newTrack.getFirst();
+
+                    //System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");
                     
                     if(computeGBLResiduals) {
                         
@@ -986,6 +1006,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                             }
                             
                             
+                            gbl_fit_traj_u.delete();
                         } // loop on sensor map
 
 
@@ -1000,13 +1021,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     
                     
                     
-                    
-                    
-                    
+                    //System.out.println("Refitted track chi2 " + gblTrk.getChi2());
                     refittedTracks.add(gblTrk);
                     kinkDataCollection.add(newTrack.getSecond());
                     kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
                 }
+                
+                trajForMPII.delete();
+                trajForMPII_unconstrained.delete();
                 
             }// composite Alignment
             
@@ -1014,6 +1036,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
         
         
         if (correctTrack) {
+            /*
+            System.out.print("Refitted tracks (" + outputCollectionName + ") N hits: ");
+            for (Track trk : refittedTracks) {
+              System.out.print(trk.getTrackerHits().size()+" ");
+            }
+            System.out.println();
+             */
+
             // Put the tracks back into the event and exit
             int flag = 1 << LCIOConstants.TRBIT_HITS;
             event.put(outputCollectionName, refittedTracks, Track.class, flag);
