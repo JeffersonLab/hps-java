@@ -679,9 +679,11 @@ public abstract class ReconParticleDriver extends Driver {
         List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
 
         // VERBOSE :: Output the number of clusters in the event.
-        printDebug("Clusters :: " + clusters.size());
-        for(Cluster clustername : clusters) {
-            printDebug("Cluster:" + clustername);
+        if (debug) { 
+            printDebug("Clusters :: " + clusters.size());
+            for(Cluster clustername : clusters) {
+                printDebug("Cluster:" + clustername);
+            }
         }
 
         // Get all collections of the type Track from the event. This is
