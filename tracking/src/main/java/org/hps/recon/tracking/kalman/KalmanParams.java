@@ -39,6 +39,7 @@ public class KalmanParams {
     double edgeTolerance;
     static final int numLayers = 14;
     boolean uniformB;
+    boolean eLoss;
     
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
     private String [] tb;
@@ -83,6 +84,7 @@ public class KalmanParams {
         System.out.format("  Maximum time difference among the hits on a track: %8.2f ns\n", mxTdif);
         System.out.format("  Threshold to remove redundant seeds (-1 to disable): %8.2f\n", seedCompThr);
         System.out.format("  Maximum chi^2 for 5-hit tracks with a vertex constraint: %8.2f\n", mxChi2Vtx);
+        System.out.format("  Include ionization energy loss in fit = %b\n", eLoss);
         System.out.format("  Default origin to use for vertex constraints:\n");
         for (int i=0; i<3; ++i) {
             System.out.format("      %d: %8.3f +- %8.3f\n", i, beamSpot[i], vtxSize[i]);
@@ -131,6 +133,7 @@ public class KalmanParams {
         // The index is the iteration number.
         // The second iteration generally will have looser cuts.
         uniformB = false;
+        eLoss = false;
         nTrials = 2;        // Number of global iterations of the pattern recognition
         nIterations = 1;    // Number of Kalman filter iterations per track in the final fit
         edgeTolerance = 1.; // Tolerance on checking if a track is within the detector bounds
@@ -225,6 +228,11 @@ public class KalmanParams {
     public void setUniformB(boolean input) {
         logger.config(String.format("Setting the field to be uniform? %b", input));
         uniformB = input;
+    }
+    
+    public void setEloss(boolean eLoss) {
+    	logger.config(String.format("Setting the energy loss to %b", eLoss));
+    	this.eLoss = eLoss;
     }
     
     public void setLowPhThreshold(double cut) {

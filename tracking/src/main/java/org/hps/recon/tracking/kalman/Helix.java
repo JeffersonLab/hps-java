@@ -21,17 +21,19 @@ class Helix {
     Vec origin; // Origin of the B-field reference frame in global coordinates
     private FieldMap fM;
     private Random rndm;
+    private boolean doeLoss;
 
     // Construct a helix starting from a momentum vector
-    Helix(double Q, Vec Xinit, Vec Pinit, Vec origin, FieldMap fM, Random rndm) {
+    Helix(double Q, Vec Xinit, Vec Pinit, Vec origin, FieldMap fM, Random rndm, boolean doeLoss) {
         this.Q = Q;
         this.origin = origin.copy();
+        this.doeLoss = doeLoss;
         this.fM = fM;
         Vec Bf = new Vec(3,fM.getField(Xinit));
         B = Bf.mag();
         double c = 2.99793e8;
         alpha = 1000.0 * 1.0E9 / (c * B); // Units are Tesla, mm, GeV
-        rho = 2.329; // Density of silicon in g/cm^2
+        rho = 2.329; // Density of silicon in g/cm^3
         tB = Bf.unitVec(B);
         Vec yhat = new Vec(0., 1.0, 0.);
         uB = yhat.cross(tB).unitVec();
@@ -53,9 +55,10 @@ class Helix {
     }
 
     // Construct a helix from given helix parameters (given in B field frame)
-    Helix(Vec HelixParams, Vec pivotGlobal, Vec origin, FieldMap fM, Random rndm) {
+    Helix(Vec HelixParams, Vec pivotGlobal, Vec origin, FieldMap fM, Random rndm, boolean doeLoss) {
         this.origin = origin.copy();
         this.fM = fM;
+        this.doeLoss = doeLoss;
         p = HelixParams.copy();
         Vec Bf = new Vec(3,fM.getField(pivotGlobal));
         B = Bf.mag();
@@ -85,7 +88,7 @@ class Helix {
     }
 
     Helix copy() {
-        return new Helix(p, R.inverseRotate(X0).sum(origin), origin, fM, rndm);
+        return new Helix(p, R.inverseRotate(X0).sum(origin), origin, fM, rndm, doeLoss);
     }
 
     void print(String s) {
@@ -216,8 +219,12 @@ class Helix {
         tnew = RB.rotate(tnew);
 
         double E = pmom.mag(); // Everything is assumed electron
-        double sp = 0.0; // 0.002; // Estar collision stopping power for electrons in silicon at about a
-                         // GeV, in GeV cm2/g
+        double sp = 0.;
+        if (doeLoss) {
+        	sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
+        	sp = sp*20; // ToDo temporary!!!  
+        }
+        sp = sp*20; // ToDo temporary!!!  
         double dEdx = 0.1 * sp * rho; // in GeV/mm
         double eLoss = dEdx * X / ct;
         // System.out.format("randomScat: energy=%10.7f, energy loss=%10.7f\n", E, eLoss);
@@ -229,26 +236,6 @@ class Helix {
         Vec H = new Vec(0., phi0, K, 0., tanl); // Pivot point is on the helix, at the plane intersection point, so drho and dz are zero
         // H.print("scattered helix parameters");
 
-        return new Helix(H, r, P.X(), fM, rndm); // Create the new helix with new origin and pivot point
-    }
-
-    Vec pivotTransform(Vec pivot) {
-        double xC = X0.v[0] + (p.v[0] + alpha / p.v[2]) * Math.cos(p.v[1]); // Center of the helix circle
-        double yC = X0.v[1] + (p.v[0] + alpha / p.v[2]) * Math.sin(p.v[1]);
-        // System.out.format("pivotTransform center=%10.6f, %10.6f\n", xC, yC);
-
-        // Predicted state vector
-        double[] aP = new double[5];
-        aP[2] = p.v[2];
-        aP[4] = p.v[4];
-        if (p.v[2] > 0) {
-            aP[1] = Math.atan2(yC - pivot.v[1], xC - pivot.v[0]);
-        } else {
-            aP[1] = Math.atan2(pivot.v[1] - yC, pivot.v[0] - xC);
-        }
-        aP[0] = (xC - pivot.v[0]) * Math.cos(aP[1]) + (yC - pivot.v[1]) * Math.sin(aP[1]) - alpha / p.v[2];
-        aP[3] = X0.v[2] - pivot.v[2] + p.v[3] - (alpha / p.v[2]) * (aP[1] - p.v[1]) * p.v[4];
-
-        return new Vec(5, aP);
+        return new Helix(H, r, P.X(), fM, rndm, doeLoss); // Create the new helix with new origin and pivot point
     }
 }

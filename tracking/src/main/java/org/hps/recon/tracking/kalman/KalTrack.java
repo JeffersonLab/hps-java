@@ -26,6 +26,7 @@ public class KalTrack {
     public int ID;
     public int nHits;
     public double chi2;
+    public double chi2_Econstraint;
     private double reducedChi2;
 
     ArrayList<MeasurementSite> SiteList;
@@ -37,8 +38,8 @@ public class KalTrack {
     public int eventNumber;
     public boolean bad;
     HelixState helixAtOrigin;
-    HelixState energyConstrainedHelix;
-    private boolean propagated;
+    HelixState helixAtOriginEconstraint;
+    private boolean propagated, propagatedE;
     private RotMatrix Rot;             // Rotation matrix between global and field coordinates at the beam spot
     private Vec originPoint;
     private Vec originMomentum;
@@ -59,7 +60,7 @@ public class KalTrack {
     private static DMatrixRMaj Cinv;
     private static Logger logger;
     private static boolean initialized;
-    private double [] arcLength;
+    private double [] arcLength, arcLengthE;
     private static LinearSolverDense<DMatrixRMaj> solver;
     private static final boolean uniformBatOrigin = false;
     static int [] nBadCov = {0, 0};
@@ -86,7 +87,7 @@ public class KalTrack {
         
         if (!initialized) {
             logger = Logger.getLogger(KalTrack.class.getName());
-            tempV = new DMatrixRMaj(5,1);
+            if (tempV == null) tempV = new DMatrixRMaj(5,1);
             Cinv = new DMatrixRMaj(5,5);
             initialized = true;
             solver = LinearSolverFactory_DDRM.symmPosDef(5);
@@ -120,8 +121,9 @@ public class KalTrack {
         }
         
         helixAtOrigin = null;
-        energyConstrainedHelix = null;
+        helixAtOriginEconstraint = null;
         propagated = false;
+        propagatedE = false;
         MeasurementSite site0 = this.SiteList.get(0);
         Vec B = null;
         if (kPar.uniformB) {
@@ -354,10 +356,10 @@ public class KalTrack {
      * @param millipedeID
      * @return pair of unbiased residual and its error estimate
      */
-    public Pair<Double,Double> unbiasedResidualMillipede(int millipedeID) {
+    public Pair<Double,Double> unbiasedResidualMillipede(int millipedeID, boolean eConstrain) {
         if (millipedeMap == null) makeMillipedeMap();
         if (millipedeMap.containsKey(millipedeID)) {
-            return unbiasedResidual(millipedeMap.get(millipedeID));
+            return unbiasedResidual(millipedeMap.get(millipedeID), eConstrain);
         } else {       
             return new Pair<Double,Double>(-999., -999.);
         }
@@ -368,10 +370,10 @@ public class KalTrack {
      * @param layer
      * @return pair of unbiased residual and its error estimate
      */
-    public Pair<Double,Double> unbiasedResidual(int layer) {
+    public Pair<Double,Double> unbiasedResidual(int layer, boolean eConstrain) {
         if (lyrMap == null) makeLyrMap();
         if (lyrMap.containsKey(layer)) {
-            return unbiasedResidual(lyrMap.get(layer));
+            return unbiasedResidual(lyrMap.get(layer), eConstrain);
         } else {       
             return new Pair<Double,Double>(-999., -999.);
         }
@@ -382,20 +384,22 @@ public class KalTrack {
      * @param site  measurement site
      * @return      residual and error
      */
-    public Pair<Double,Double> unbiasedResidual(MeasurementSite site) {
+    public Pair<Double,Double> unbiasedResidual(MeasurementSite site, boolean eConstrain) {
         double resid = -999.;
         double varResid = -999.;               
         Vec aStar = null;  
         if (site.hitID >= 0) {
+        	StateVector aA = site.aS;
+        	if (eConstrain) aA = site.aES;
             double sigma = site.m.hits.get(site.hitID).sigma;
             DMatrixRMaj Cstar = new DMatrixRMaj(5,5);
-            aStar = site.aS.inverseFilter(site.H, sigma*sigma, Cstar);
+            aStar = aA.inverseFilter(site.H, sigma*sigma, Cstar);
             HelixPlaneIntersect hpi = new HelixPlaneIntersect();
-            Plane pTrans = site.m.p.toLocal(site.aS.helix.Rot, site.aS.helix.origin);
-            double phiInt = hpi.planeIntersect(aStar, site.aS.helix.X0, site.aS.helix.alpha, pTrans);
+            Plane pTrans = site.m.p.toLocal(aA.helix.Rot, aA.helix.origin);
+            double phiInt = hpi.planeIntersect(aStar, aA.helix.X0, aA.helix.alpha, pTrans);
             if (!Double.isNaN(phiInt)) {
-                Vec intPnt = HelixState.atPhi(site.aS.helix.X0, aStar, phiInt, site.aS.helix.alpha);
-                Vec globalInt = site.aS.helix.toGlobal(intPnt);
+                Vec intPnt = HelixState.atPhi(aA.helix.X0, aStar, phiInt, aA.helix.alpha);
+                Vec globalInt = aA.helix.toGlobal(intPnt);
                 Vec localInt = site.m.toLocal(globalInt);
                 resid = site.m.hits.get(site.hitID).v - localInt.v[1];
                 
@@ -456,6 +460,7 @@ public class KalTrack {
     public void print(String s) {
         System.out.format("\nKalTrack %s: Event %d, ID=%d, %d hits, chi^2=%10.5f, t=%5.1f from %5.1f to %5.1f, bad=%b\n", s, eventNumber, ID, nHits, chi2, time, tMin, tMax, bad);
         if (propagated) System.out.format("    Helix parameters at origin = %s\n", helixAtOrigin.a.toString());
+        if (propagatedE) System.out.format("    Helix parameters at origin energy constrainted = %s\n", helixAtOriginEconstraint.a.toString());
         System.out.format("     Magnetic field magnitude = %10.5f and direction = %s\n", Bmag, tB.toString());
         MeasurementSite site0 = this.SiteList.get(0);
         if (site0.aS != null) {
@@ -470,10 +475,10 @@ public class KalTrack {
             if (hitID>=0) {
                 System.out.format(" t=%5.1f ", site.m.hits.get(site.hitID).time);
                 double residual = site.m.hits.get(hitID).v - site.aS.mPred;
-                Pair<Double,Double> unBiasedResid = unbiasedResidual(site);
+                Pair<Double,Double> unBiasedResid = unbiasedResidual(site, false);
                 double [] lclint = moduleIntercept(m, null);
-                System.out.format("    measurement=%10.5f, predicted=%10.5f, residual=%9.5f, x=%9.5f limit=%9.5f \n", site.m.hits.get(hitID).v, site.aS.mPred, 
-                        residual, lclint[0], m.xExtent[1]);
+                System.out.format("    measurement=%10.5f, predicted=%10.5f, residual=%9.5f, unbiased=%9.5f, x=%9.5f limit=%9.5f \n", site.m.hits.get(hitID).v, site.aS.mPred, 
+                        residual, unBiasedResid.getFirstElement(), lclint[0], m.xExtent[1]);
             } else {
                 System.out.format("\n");
             }
@@ -509,16 +514,25 @@ public class KalTrack {
             double energy = FastMath.sqrt(1.0+tanL*tanL)/Math.abs(K);
             str=str+String.format("    Energy unconstrained = %10.6f\n", energy);
         } 
-        if (energyConstrainedHelix != null) {
-            double tanL = energyConstrainedHelix.a.v[4];
-            double K = energyConstrainedHelix.a.v[2];
+        if (propagatedE) {
+        	str=str+String.format("Chi-squared of energy constrained fit = %10.5f\n", chi2_Econstraint);
+            str=str+helixAtOriginEconstraint.toString("E-constrained helix state for a pivot at the origin")+"\n";
+            //str=str+originPoint.toString("point on the helix closest to the origin")+"\n";
+            //str=str+String.format("   arc length from the origin to the first measurement=%9.4f\n", arcLength[0]);
+            //SquareMatrix C1 = new SquareMatrix(3, Cx);
+            //str=str+C1.toString("covariance matrix for the point");
+            //str=str+originMomentum.toString("momentum of the particle at closest approach to the origin\n");
+            //SquareMatrix C2 = new SquareMatrix(3, Cp);
+            //str=str+C2.toString("covariance matrix for the momentum");
+            double tanL = helixAtOriginEconstraint.a.v[4];
+            double K = helixAtOriginEconstraint.a.v[2];
             double energy = FastMath.sqrt(1.0+tanL*tanL)/Math.abs(K);
-            str=str+String.format("    Energy with constraint = %10.6f\n", energy);
-            str=str+energyConstrainedHelix.toString("helix state with energy constraint");
-        }
+            str=str+String.format("    Energy constrained = %10.6f\n", energy);
+        } 
         MeasurementSite site0 = this.SiteList.get(0);
         if (site0.aS != null) {
             str=str + String.format("    Helix at layer %d: %s\n", site0.m.Layer, site0.aS.helix.a.toString());
+            str=str + String.format("    Energy constrained helix at layer %d: %s\n", site0.m.Layer, site0.aES.helix.a.toString());
         }
         for (int i = 0; i < SiteList.size(); i++) {
             MeasurementSite site = SiteList.get(i);
@@ -542,7 +556,7 @@ public class KalTrack {
                 Vec interceptVec = interceptVects().get(site);
                 Vec interceptMomVec = interceptMomVects().get(site);
                 double residual = site.m.hits.get(hitID).v - site.aS.mPred;
-                Pair<Double,Double> unBiasedResid = unbiasedResidual(site);
+                Pair<Double,Double> unBiasedResid = unbiasedResidual(site, false);
                 str=str+String.format("    Intercept=%s, p=%s, measurement=%10.5f, predicted=%10.5f, residual=%9.5f, unbiased=%9.5f+-%9.5f, error=%9.5f \n", interceptVec.toString(),
                         interceptMomVec.toString(), site.m.hits.get(hitID).v, site.aS.mPred, residual, unBiasedResid.getFirstElement(), unBiasedResid.getSecondElement(), FastMath.sqrt(site.aS.R));
             }
@@ -663,7 +677,7 @@ public class KalTrack {
         if (uniformBatOrigin) {  // Just a simple pivot transform is needed if the field is assumed uniform
             Vec origin = new Vec(0.,0.,0.);
             Vec newHelixParams = innerSite.aS.helix.pivotTransform();
-            DMatrixRMaj newCovariance = innerSite.aS.covariancePivotTransform(newHelixParams);
+            DMatrixRMaj newCovariance = innerSite.aS.covariancePivotTransform(newHelixParams, 1.0);
             helixAtOrigin = new HelixState(newHelixParams, origin, origin, newCovariance, Bmag, tB);
             //innerSite.aS.helix.print("at innerSite");
             //helixAtOrigin.print("uniformB");
@@ -1491,12 +1505,85 @@ public class KalTrack {
         return true;
     }
 
+    /**
+     * Starting from the most downstream tracker hit, run a filter to include
+     * the ECAL energy information (roughly a weighted mean with the SVT
+     * momentum measurement). Then smooth back to the first layer and propagate
+     * to the origin. 
+     * @param E            ECAL energy
+     * @param sigmaE       ECAL energy uncertainty
+     */
     void energyConstraint(double E, double sigmaE) {
-        if (!propagated) {
-            originHelix();
-            propagated = true;
+    	// The prediction step from the last tracker site to the ECAL has F=1,
+    	// since we don't alter an helix parameters in the prediction.
+    	// The HelixState.energyConstrained method then uses the Kalman weighted
+    	// means formalism for the filter step to update the helix parameters.
+    	// The smoothing gain matrix for the step to the ECAL is simply unity,
+    	// so the smoothed state vector with energy constraint at the last tracker
+    	// site is exactly what is returned by the energyConstrained method. The
+    	// smoothing back to the first tracker site can then proceed as usual.
+    	int idxLast = SiteList.size()-1;
+    	MeasurementSite lastSite = SiteList.get(idxLast);
+        HelixState energyConstrainedHelix = lastSite.aS.helix.energyConstrained(E, sigmaE);
+        //System.out.format("KalTrack:energyConstraint kappa=%9.4f, kappaE=%9.4f\n",lastSite.aS.helix.a.v[2],energyConstrainedHelix.a.v[2]);
+        lastSite.energyConstrained = true;
+        lastSite.aES = new StateVector(lastSite.aS.kLow, lastSite.aS.uniformB);
+        lastSite.aES.helix = energyConstrainedHelix;      
+        lastSite.aES.kUp = lastSite.aS.kUp;
+        lastSite.aES.F = lastSite.aS.F;  // Don't deep copy the F matrix
+        lastSite.aES.mPred = lastSite.aS.mPred;
+        lastSite.aES.R = lastSite.aS.R;
+        lastSite.aES.r = lastSite.aS.r;
+        lastSite.aES.K = lastSite.aS.K;
+        lastSite.chi2incE = (lastSite.aES.r * lastSite.aES.r) / lastSite.aES.R;
+        // Get the residual of the prediction at the ECAL
+        double kappa = energyConstrainedHelix.a.v[2];
+        double tanl = energyConstrainedHelix.a.v[4];
+        double ePredict = FastMath.sqrt(1.0+tanl*tanl)/Math.abs(kappa);
+        double chi = (E - ePredict)/sigmaE;
+        //System.out.format("KalTrack:energyConstraint E=%9.4f, Epredict=%9.4f, sigmaE=%9.4f, chi=%9.4f\n",E,ePredict,sigmaE,chi);
+        this.chi2_Econstraint = lastSite.chi2incE + chi*chi;
+        MeasurementSite nS = lastSite;
+        for (int idx=idxLast-1; idx>=0; --idx) {
+        	MeasurementSite thisSite = SiteList.get(idx);
+        	thisSite.aES = thisSite.aF.smooth(nS.aES, nS.aP);
+        	if (thisSite.hitID < 0) {
+        		thisSite.energyConstrained = true;
+        		continue;
+        	}
+            Measurement hit = thisSite.m.hits.get(thisSite.hitID);
+            double V = hit.sigma * hit.sigma;
+            double phiS = thisSite.aES.helix.planeIntersect(thisSite.m.p);
+
+            if (Double.isNaN(phiS)) { // This should almost never happen!
+                logger.log(Level.FINE, "KalTrack.energyConstraint: no intersection of helix with the plane exists.");
+                continue;
+            }
+            thisSite.aES.mPred = thisSite.h(thisSite.aES, thisSite.m, phiS);
+            thisSite.aES.r = hit.v - thisSite.aES.mPred;
+            if (tempV == null) tempV = new DMatrixRMaj(5,1);
+            CommonOps_DDRM.mult(thisSite.aES.helix.C, thisSite.H, tempV);
+            thisSite.aES.R = V - CommonOps_DDRM.dot(thisSite.H, tempV);
+            if (thisSite.aES.R < 0) {
+                if (debug) System.out.format("KalTrack.energyConstraint, measurement covariance %12.4e is negative\n", thisSite.aES.R);
+                //aS.print("the smoothed state");
+                //nS.print("the next site in the chain");
+                thisSite.aES.R = 0.25*V;  // A negative covariance makes no sense, hence this fudge
+            }
+
+            thisSite.chi2incE = (thisSite.aES.r * thisSite.aES.r) / thisSite.aES.R;
+            this.chi2_Econstraint += thisSite.chi2incE;
+            thisSite.energyConstrained = true;
+            nS = thisSite;
         }
-        energyConstrainedHelix = helixAtOrigin.energyConstrained(E, sigmaE);
+        Vec beamSpot = new Vec(3, kPar.beamSpot);
+        
+        // This propagated helix will have its pivot at the origin but is in the origin B-field frame
+        // The StateVector method propagateRungeKutta transforms the origin plane into the origin B-field frame
+        Plane originPlane = new Plane(beamSpot, new Vec(0., 1., 0.)); 
+        arcLengthE = new double[1];
+        helixAtOriginEconstraint = SiteList.get(0).aES.helix.propagateRungeKutta(originPlane, yScat, XLscat, SiteList.get(0).m.Bfield, arcLengthE);          
+        propagatedE = true;
     }
     
     /**
@@ -1542,12 +1629,16 @@ public class KalTrack {
             if (!t1.SiteList.get(0).aS.helix.goodCov()) penalty1 = 9.9e3;
             if (!t2.SiteList.get(0).aS.helix.goodCov()) penalty2 = 9.9e3;
 
-            Double chi1 = new Double((penalty1*t1.chi2) / t1.nHits + 300.0*(1.0 - (double)t1.nHits/14.));
-            Double chi2 = new Double((penalty2*t2.chi2) / t2.nHits + 300.0*(1.0 - (double)t2.nHits/14.));
+            Double chi1 = Double.valueOf((penalty1*t1.chi2) / t1.nHits + 300.0*(1.0 - (double)t1.nHits/14.));
+            Double chi2 = Double.valueOf((penalty2*t2.chi2) / t2.nHits + 300.0*(1.0 - (double)t2.nHits/14.));
             return chi1.compareTo(chi2);
         }
     };
 
+    static double sigmaECAL(double E) {
+    	return FastMath.sqrt(2.62 + (8.24 + 6.25*E)*E)/100.;
+    }
+    
     /**
      * Transform a DMatrixRMaj object into a Kalman SquareMatrix object
      * @param M    DMatrixRMaj object

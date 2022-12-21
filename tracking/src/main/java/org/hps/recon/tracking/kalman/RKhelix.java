@@ -19,13 +19,15 @@ class RKhelix {
     private HelixPlaneIntersect hpi;
     private double rho;
     private double radLen;
+    private boolean doeLoss;
     
-    RKhelix(Vec x, Vec p, double Q, org.lcsim.geometry.FieldMap fM, Random rndm) {
+    RKhelix(Vec x, Vec p, double Q, org.lcsim.geometry.FieldMap fM, Random rndm, boolean doeLoss) {
         this.rndm = rndm;
         this.fM = fM;
         this.x = x.copy();
         this.p = p.copy();
         this.Q = Q;
+        this.doeLoss = doeLoss;
         hpi = new HelixPlaneIntersect();
         rho = 2.329; // Density of silicon in g/cm^2
         radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
@@ -34,7 +36,7 @@ class RKhelix {
     RKhelix propagateRK(Plane pln) {
         Vec newP = new Vec(3);
         Vec newX = planeIntersect(pln, newP);
-        return new RKhelix(newX, newP, Q, fM, rndm);
+        return new RKhelix(newX, newP, Q, fM, rndm, doeLoss);
     }
     
     Vec planeIntersect(Plane pln, Vec pInt) { // phi value where the helix intersects the plane P (given in global coordinates)        
@@ -65,7 +67,7 @@ class RKhelix {
     }
     
     RKhelix copy() {        
-        return new RKhelix(x.copy(),p.copy(),Q,fM,rndm);
+        return new RKhelix(x.copy(),p.copy(),Q,fM,rndm, doeLoss);
     }
     
     RotMatrix R(Vec position) {
@@ -98,13 +100,17 @@ class RKhelix {
         Vec tnew = Rp.inverseRotate(tLoc);
 
         double E = p.mag(); // Everything is assumed electron
-        double sp = 0.0;    // 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
+        double sp = 0.0;
+        if (doeLoss) {
+        	sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
+        	sp = sp*20; // ToDo temporary!!!   
+        }
         double dEdx = 0.1 * sp * rho; // in GeV/mm
         double eLoss = dEdx * X / ct;
         E = E - eLoss;
         Vec pNew = tnew.scale(E);
 
-        return new RKhelix(x, pNew, Q, fM, rndm); // Create the new helix with new origin and pivot point
+        return new RKhelix(x, pNew, Q, fM, rndm, doeLoss); // Create the new helix with new origin and pivot point
     }
 
 }

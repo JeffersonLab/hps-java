@@ -21,7 +21,10 @@ class MeasurementSite {
     boolean filtered; // True if the filtered state vector has been built
     StateVector aS; // Smoothed state vector
     boolean smoothed; // True if the smoothed state vector has been built
+    StateVector aES; // Energy-constrained smoothed state vector
+    boolean energyConstrained;  // True if the energy constrained smoothed state vector has been built
     double chi2inc; // chi^2 increment for this site
+    double chi2incE; // chi^2 increment for the energy-constrainted track
     DMatrixRMaj H; // Derivatives of the transformation from state vector to measurement
     double arcLength; // Arc length from the previous measurement
     private double conFac; // Conversion from B to alpha
@@ -61,6 +64,7 @@ class MeasurementSite {
         } else if (predicted) { 
             str=str+"    This site has been predicted\n"; 
         }
+        if (energyConstrained) str=str+"    This site has been energy constrained\n";
         str=str+String.format("    Hit ID=%d, maximum allowed residual=%10.5f\n", hitID, kPar.mxResid[1]);
         str = str + m.toString("for this site");
         Vec Bfield = null;
@@ -73,11 +77,12 @@ class MeasurementSite {
         Vec tB = Bfield.unitVec();
         str=str+String.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", B, alpha);
         str = str + tB.toString("magnetic field direction") + "\n";
-        str=str+String.format("    chi^2 increment=%12.4e\n", chi2inc);
+        str=str+String.format("    chi^2 increment=%12.4e; E constrained=%12.4E\n", chi2inc, chi2incE);
         str=str+String.format("    x scattering angle=%10.8f, y scattering angle=%10.8f\n", scatX(), scatZ());
         if (predicted) str = str + aP.toString("predicted");
         if (filtered) str = str + aF.toString("filtered");
         if (smoothed) str = str + aS.toString("smoothed");
+        if (energyConstrained) str = str + aES.toString("energy-constrained");
         if (H != null) str = str + "matrix of the transformation from state vector to measurement:" + H.toString();
         str=str+String.format("      Assumed electron dE/dx in GeV/mm = %10.6f;  Detector thickness=%10.6f\n", dEdx, m.thickness);
         if (m.Layer < 0) {
@@ -112,11 +117,13 @@ class MeasurementSite {
         predicted = false;
         filtered = false;
         smoothed = false;
+        energyConstrained = false;
         double rho = 2.329; // Density of silicon in g/cm^3
         radLen = (21.82 / rho) * 10.0; // Radiation length of silicon in millimeters
         double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
         dEdx = -0.1 * sp * rho; // in GeV/mm
         chi2inc = 0.;
+        chi2incE = 0.;
         H = new DMatrixRMaj(5,1);
         if (!initialized) {
             tempV = new DMatrixRMaj(5,1);
@@ -195,12 +202,6 @@ class MeasurementSite {
      * @return                Flag: -2 for extrapolation not within detector, -1 for error, 1 for a hit was used, 0 no hit used
      */
     int makePrediction(StateVector pS, SiModule mPs, int hitNumber, boolean sharingOK, boolean pickup, boolean checkBounds, double [] tRange, int trial, boolean verbose2) { 
-        // pS = 
-        // mPS = 
-        // tRange = 
-        // minE = minimum hit energy for it to be picked up, unless no other hit exists
-        // sharingOK = 
-        // pickup = 
         int returnFlag = 0;
         double phi = pS.helix.planeIntersect(m.p);
         if (debug) verbose2 = true;
@@ -224,8 +225,6 @@ class MeasurementSite {
                     check);
         }
 
-        double deltaE = 0.; // dEdx*thickness/ct;
-
         Vec origin = m.p.X();
         Vec Bfield = null;
         if (kPar.uniformB) {
@@ -244,13 +243,16 @@ class MeasurementSite {
         // First we need the momentum direction to calculate how much silicon we pass through
         Vec pMom = pS.helix.Rot.inverseRotate(pS.helix.getMom(0.));
         double XL;
+        double deltaE = 0.;
         if (mPs == null) {
             XL = 0.;
             arcLength = 0.;
         } else {
             double ct = pMom.unitVec().dot(mPs.p.T()); // cos(theta) at the **previous** site
+            double dL = mPs.thickness/FastMath.abs(ct);
+            if (kPar.eLoss) deltaE = dEdx*dL;
             double radius = alpha/pS.helix.a.v[2];
-            XL = mPs.thickness / radLen / Math.abs(ct); // Si scattering thickness at previous site
+            XL = dL / radLen; // Si scattering thickness at previous site
             arcLength = -radius*phi*FastMath.sqrt(1.0 + pS.helix.a.v[4] * pS.helix.a.v[4]);
             if (debug) {
                 double dx = m.p.X().v[0]-mPs.p.X().v[0];
@@ -557,6 +559,7 @@ class MeasurementSite {
         if (hitID < 0) return false;
         hitID = -1;
         chi2inc = 0.;
+        chi2incE = 0.;
         smoothed = false;
         filtered = false;
         return true;

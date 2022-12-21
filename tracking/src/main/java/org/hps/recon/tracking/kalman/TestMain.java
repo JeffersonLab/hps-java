@@ -12,7 +12,7 @@ public class TestMain {
 
     public static void main(String[] args) {
 
-        String defaultPath = "C:\\Users\\Robert\\Desktop\\Kalman\\";
+        String defaultPath = "C:\\Users\\rjohn\\Desktop\\Kalman\\";
         String path; // Path to where the output histograms should be written
         if (args.length == 0) {
             path = defaultPath;

@@ -44,6 +44,7 @@ public class KalmanPatRecDriver extends Driver {
     private org.lcsim.geometry.FieldMap fm;
     private KalmanInterface KI;
     private boolean verbose = false;
+    private boolean eLoss = false;
     private boolean uniformB = false;           // If true, fit tracks assuming a uniform B field
     private boolean addResiduals = false;               // If true add the hit-on-track residuals to the LCIO event
     private String outputFullTrackCollectionName = "KalmanFullTracks";
@@ -128,9 +129,14 @@ public class KalmanPatRecDriver extends Driver {
      */
     public void setUniformB(boolean uniformB) {
         this.uniformB = uniformB;
-        System.out.format("KalmanPatRecDriver: a uniform field will be used in track fitting: %b\n", uniformB);
+        if (uniformB) System.out.println("KalmanPatRecDriver: a uniform field will be used in track fitting: %b");
     }
 
+    public void setELoss(boolean eLoss) {
+    	this.eLoss = eLoss;
+    	if (eLoss) System.out.println("KalmanPatRecDriver: energy loss will be included in fits.");
+    }
+    
     public void setMaterialManager(MaterialSupervisor mm) {
         _materialManager = mm;
     }
@@ -248,6 +254,7 @@ public class KalmanPatRecDriver extends Driver {
         if (mxChi2Vtx != 0.0) kPar.setMaxChi2Vtx(mxChi2Vtx);
         if (minSeedEnergy >= 0.) kPar.setMinSeedEnergy(minSeedEnergy);
         kPar.setUniformB(uniformB);
+        kPar.setEloss(eLoss);
       
         // Here we set the seed strategies for the pattern recognition
         if (strategies != null || (strategiesTop != null && strategiesBot != null)) {
@@ -491,7 +498,7 @@ public class KalmanPatRecDriver extends Driver {
                 List<Float> sigmas        = new ArrayList<Float>(); 
                 
                 for (int ilay = 0; ilay<14; ilay++) {
-                    Pair<Double,Double> res_and_sigma = kTk.unbiasedResidual(ilay);
+                    Pair<Double,Double> res_and_sigma = kTk.unbiasedResidual(ilay, false);
                     if (res_and_sigma.getSecondElement() > -1.)  {
                         layers.add(ilay);
                         residuals.add(res_and_sigma.getFirstElement());

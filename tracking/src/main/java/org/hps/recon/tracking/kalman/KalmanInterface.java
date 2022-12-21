@@ -431,7 +431,7 @@ public class KalmanInterface {
         if (!uniformB) {
             // Transform helix to a pivot point on the helix itself (so rho0 and z0 become zero)
             Vec helixParamsPivoted = helixState.pivotTransform(newPivot);         
-            helixState.makeF(helixParamsPivoted, F);
+            helixState.makeF(helixParamsPivoted, F, 1.0);
             if (debug) {
                 System.out.format("Entering KalmanInterface.toHPShelix");
                 helixState.print("provided");
@@ -460,7 +460,7 @@ public class KalmanInterface {
         
             // Pivot transform to the final pivot at the origin
             finalHelixParams = HelixState.pivotTransform(finalPivot, helixParamsRotated, pivotGlobal, alphaCenter, 0.);
-            HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter);
+            HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter, 1.0);
             CommonOps_DDRM.multTransB(covRotated, F, tempM);
             CommonOps_DDRM.mult(F, tempM, covRotated);
             if (debug) {
@@ -477,7 +477,7 @@ public class KalmanInterface {
         } else {  // For a uniform field, all we have to do is a pivot transform to the origin
             pivotGlobal = newPivot;   // Intersection with the provided plane
             finalHelixParams = helixState.pivotTransform(finalPivot);
-            helixState.makeF(finalHelixParams, F);
+            helixState.makeF(finalHelixParams, F, 1.0);
             CommonOps_DDRM.multTransB(helixState.C, F, tempM);
             CommonOps_DDRM.mult(F, tempM, covRotated);
         }

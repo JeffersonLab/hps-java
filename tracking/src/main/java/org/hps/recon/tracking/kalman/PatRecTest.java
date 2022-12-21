@@ -273,7 +273,7 @@ class PatRecTest {
             for (int i = 0; i < nHelices; i++) {
                 Vec momentum = new Vec(p[i] * initialDirection[i].v[0], p[i] * initialDirection[i].v[1], p[i] * initialDirection[i].v[2]);
                 if (verbose) momentum.print("initial helix momentum");
-                TkInitial[i] = new Helix(Q[i], helixOrigin, momentum, helixOrigin, fM, rnd);
+                TkInitial[i] = new Helix(Q[i], helixOrigin, momentum, helixOrigin, fM, rnd, kPar.eLoss);
                 drho[i] = TkInitial[i].p.v[0];
                 phi0[i] = TkInitial[i].p.v[1];
                 K[i] = TkInitial[i].p.v[2];
@@ -302,7 +302,7 @@ class PatRecTest {
                 Vec p1 = new Vec(3);
                 HelixPlaneIntersect hpi1 = new HelixPlaneIntersect();
                 Vec pivotBegin = hpi1.rkIntersect(si1.p, TkInitial[i].atPhiGlobal(0.), TkInitial[i].getMomGlobal(0.), Q[i], fM, p1);
-                helixBegin[i] = new Helix(Q[i], pivotBegin, p1, pivotBegin, fM, rnd);
+                helixBegin[i] = new Helix(Q[i], pivotBegin, p1, pivotBegin, fM, rnd, kPar.eLoss);
                 if (verbose) helixBegin[i].print("helixBegin");
             }
             PrintWriter printWriter2 = null;
@@ -642,7 +642,7 @@ class PatRecTest {
                     }
                 }
                 for (int layer=2; layer < nLayers; ++layer) {
-                    Pair<Double, Double> resid = tkr.unbiasedResidual(layer);
+                    Pair<Double, Double> resid = tkr.unbiasedResidual(layer, false);
                     if (resid.getSecondElement() > -999.) {                       
                         double unbResid =  resid.getFirstElement();
                         double variance = resid.getSecondElement();
