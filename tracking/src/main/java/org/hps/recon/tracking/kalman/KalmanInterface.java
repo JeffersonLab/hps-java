@@ -418,7 +418,7 @@ public class KalmanInterface {
      * @param pAtPlane        return 3-vector momentum at the intersection, in global coordinates
      * @return                3-vector point of intersection on the detector plane in global coordinates
      */
-    static double [] hpsHelixIntersect(double [] x, double [] p, double Q, double [] pointOnPlane, double [] uGlb, double [] vGlb, double [] tGlb,
+    public static double [] hpsHelixIntersect(double [] x, double [] p, double Q, double [] pointOnPlane, double [] uGlb, double [] vGlb, double [] tGlb,
     		org.lcsim.geometry.FieldMap fM, double [] xLocal, double [] pAtPlane) {
     	
     	// Transform the input information into Kalman coordinates
