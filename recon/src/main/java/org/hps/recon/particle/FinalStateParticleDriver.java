@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.javatuples.Triplet;
+
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.Cluster;
@@ -192,15 +194,21 @@ public class FinalStateParticleDriver extends Driver {
                 ? event.get(Track.class, trackCollectionName)
                 : new ArrayList<Track>();
       
-        // Loop through all of the track collections present in theevent and 
-        // create final state particles. These particles include those which 
-        // are composed by tracks or clusters only as well as track-cluster pairs.
-        List<ReconstructedParticle> finalStateParticles 
-                = makeFinalStateParticles(event, clusters, tracks);
+        // Loop through all of the track collections present in the event and 
+        // create the collection of final state particles, electrons and 
+        // positrons. These particles include those which are composed by 
+        // tracks or clusters only as well as track-cluster pairs.
+        Triplet<List<ReconstructedParticle>, List<ReconstructedParticle>, 
+                List<ReconstructedParticle>> finalStateParticles 
+                    = makeFinalStateParticles(event, clusters, tracks);
 
-        // Add the final state ReconstructedParticles to the event
+        // Add the ReconstructedParticles to the event. 
         event.put(finalStateParticlesCollName, 
-                  finalStateParticles, ReconstructedParticle.class, 0);
+                  finalStateParticles.getValue0(), ReconstructedParticle.class, 0);
+        event.put("FinalStateElectrons", 
+                  finalStateParticles.getValue1(), ReconstructedParticle.class, 0);
+        event.put("FinalStatePositrons", 
+                  finalStateParticles.getValue2(), ReconstructedParticle.class, 0);
         
     }
 
@@ -215,7 +223,8 @@ public class FinalStateParticleDriver extends Driver {
      * @param tracks The collection of SVT tracks.
      * @return A collection of ReconstructedParticles.
      */
-    private List<ReconstructedParticle> makeFinalStateParticles(
+    private Triplet<List<ReconstructedParticle>, List<ReconstructedParticle>, 
+            List<ReconstructedParticle>> makeFinalStateParticles(
             EventHeader event, List<Cluster> clusters, List<Track> tracks) { 
   
         // Create the list of list needed by the track-cluster matcher
@@ -234,14 +243,18 @@ public class FinalStateParticleDriver extends Driver {
         // Create a list in which to store reconstructed particles.
         List<ReconstructedParticle> particles 
                 = new ArrayList<ReconstructedParticle>();
+        List<ReconstructedParticle> electrons
+                = new ArrayList<ReconstructedParticle>(); 
+        List<ReconstructedParticle> positrons
+                = new ArrayList<ReconstructedParticle>(); 
 
-        // Create a list of final state particles that are composed of a track
-        // or a track-cluster pair.
+        // Create the list of final state particles, electrons and positrons.
+        // These list are composed of ReconstructedParticles that have a track
+        // or a track-cluster pair. 
         trackClusterPairs.entrySet().parallelStream()
                 .filter(entry -> entry.getKey() != null)
-                .forEach(entry -> particles.add(
-                            makeFinalStateParticle(entry.getKey(), 
-                                entry.getValue())));
+                .forEach(entry -> makeCollections(particles, electrons, 
+                    positrons, entry.getKey(), entry.getValue())); 
 
         // Create a list of final state particles out of unmatched clusters.
         // These would be track-cluster pairs where the track == null.
@@ -258,7 +271,23 @@ public class FinalStateParticleDriver extends Driver {
                     ecal, isMC);
         }
 
-        return particles;
+        return new Triplet<List<ReconstructedParticle>, 
+            List<ReconstructedParticle>, List<ReconstructedParticle>>(
+            particles, electrons, positrons); 
+
+    }
+
+    private void makeCollections(List<ReconstructedParticle> particles, 
+            List<ReconstructedParticle> electrons, 
+            List<ReconstructedParticle> positrons, Track track, 
+            Cluster cluster) {
+            
+        ReconstructedParticle particle 
+                = makeFinalStateParticle(track, cluster); 
+        particles.add(particle); 
+        if (particle.getParticleIDUsed().getPDG() == 11) 
+            electrons.add(particle);
+        else positrons.add(particle);
     }
 
     /**
