@@ -270,21 +270,36 @@ public class FinalStateParticleDriver extends Driver {
                     useTrackPositionForClusterCorrection, clusters, beamEnergy,
                     ecal, isMC);
         }
-
+        
+        // Add the collections to a triplet tuple and return.
         return new Triplet<List<ReconstructedParticle>, 
             List<ReconstructedParticle>, List<ReconstructedParticle>>(
             particles, electrons, positrons); 
 
     }
 
+    /**
+     * Create a FinalStateParticle and add it to the appropriate collection. 
+     * 
+     * @param particles The collections of FinalStateParticle's to add the 
+     *  created particles.
+     * @param electrons The collection of FinalStateParticle's identified as
+     *  as electrons.
+     * @param positrons The collection of FinalStateParticle's identified as
+     *  as positrons.
+     */
     private void makeCollections(List<ReconstructedParticle> particles, 
             List<ReconstructedParticle> electrons, 
             List<ReconstructedParticle> positrons, Track track, 
             Cluster cluster) {
-            
+        
+        // Create the FinalStateParticles out of the track and clusters. 
         ReconstructedParticle particle 
                 = makeFinalStateParticle(track, cluster); 
         particles.add(particle); 
+
+        // If the particle is identified as an electron or positrons, add
+        // it to the appropriate collection.
         if (particle.getParticleIDUsed().getPDG() == 11) 
             electrons.add(particle);
         else positrons.add(particle);
