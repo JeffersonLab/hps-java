@@ -403,6 +403,54 @@ public class KalmanInterface {
     }
     
     /**
+     * Find the intersection of a track with a detector plane. All of the input and output are assumed to
+     * be in HPS coordinates (not Kalman coordinates). Memory must be provided for xLoc and pAtPlane, the
+     * charge must be -1 or +1, and the axis unit vectors uGlb, vGlb, tGlb must be normalized and right-handed.
+     * @param x               3-vector coordinate on the track
+     * @param p               3-vector momentum at the point x
+     * @param Q               particle charge (-1.0 or +1.0)
+     * @param pointOnPlane    3-vector point on the detector plane
+     * @param uGlb            3-vector direction cosines of the u-axis of the detector plane (perp to strips)
+     * @param vGlb            3-vector direction cosines of the v-axis of the detector plane (parallel to strips)
+     * @param tGlb            3-vector direction cosines of the t-axis of the detector plane (perp to plane)
+     * @param fM              HPS field map
+     * @param xLocal          return 3-vector intersection in detector coordinates (u, v, t)
+     * @param pAtPlane        return 3-vector momentum at the intersection, in global coordinates
+     * @return                3-vector point of intersection on the detector plane in global coordinates
+     */
+    public static double [] hpsHelixIntersect(double [] x, double [] p, double Q, double [] pointOnPlane, double [] uGlb, double [] vGlb, double [] tGlb,
+    		org.lcsim.geometry.FieldMap fM, double [] xLocal, double [] pAtPlane) {
+    	
+    	// Transform the input information into Kalman coordinates
+        Vec uK = (vectorGlbToKalman(vGlb).scale(-1.0));  // u and v are reversed in hps compared to kalman
+        Vec vK = vectorGlbToKalman(uGlb);
+        Vec tK = vectorGlbToKalman(tGlb);
+        Vec pointOnPlaneTransformed = vectorGlbToKalman(pointOnPlane);
+        Vec xK = vectorGlbToKalman(x);
+        Vec pK = vectorGlbToKalman(p);
+        
+        // Define the detector plane (in Kalman coordinates)
+        Plane detPln = new Plane(pointOnPlaneTransformed, tK, uK, vK);
+        
+        // Integrate to find the intersection with the detector plane
+        HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+        Vec pInt = new Vec(3);
+        Vec intercept = hpi.rkIntersect(detPln, xK, pK, Q, fM, pInt);
+        
+        // Convert the results back to HPS coordinates
+        double [] interceptPos = vectorKalmanToGlb(intercept);
+        pAtPlane = vectorKalmanToGlb(pInt);
+        
+        // Transform the intersection to local coordinates in the Kalman sensor system
+        // and transform the result to HPS local coordinates.
+        RotMatrix R = new RotMatrix(detPln.U(), detPln.V(), detPln.T());
+        Vec xLocK = R.rotate(intercept.dif(detPln.X()));
+        xLocal = localKalToHps(xLocK);
+        
+    	return interceptPos;	
+    }
+    
+    /**
      *  Transform a Kalman helix to an HPS helix rotated to the global frame and with the pivot at the origin
      *  The calling routine must provide empty covHPS[15] and position[3] arrays.
      *  No rotations are needed if the field is assumed to be uniform.
@@ -431,7 +479,7 @@ public class KalmanInterface {
         if (!uniformB) {
             // Transform helix to a pivot point on the helix itself (so rho0 and z0 become zero)
             Vec helixParamsPivoted = helixState.pivotTransform(newPivot);         
-            helixState.makeF(helixParamsPivoted, F);
+            helixState.makeF(helixParamsPivoted, F, 1.0);
             if (debug) {
                 System.out.format("Entering KalmanInterface.toHPShelix");
                 helixState.print("provided");
@@ -460,7 +508,7 @@ public class KalmanInterface {
         
             // Pivot transform to the final pivot at the origin
             finalHelixParams = HelixState.pivotTransform(finalPivot, helixParamsRotated, pivotGlobal, alphaCenter, 0.);
-            HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter);
+            HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter, 1.0);
             CommonOps_DDRM.multTransB(covRotated, F, tempM);
             CommonOps_DDRM.mult(F, tempM, covRotated);
             if (debug) {
@@ -477,7 +525,7 @@ public class KalmanInterface {
         } else {  // For a uniform field, all we have to do is a pivot transform to the origin
             pivotGlobal = newPivot;   // Intersection with the provided plane
             finalHelixParams = helixState.pivotTransform(finalPivot);
-            helixState.makeF(finalHelixParams, F);
+            helixState.makeF(finalHelixParams, F, 1.0);
             CommonOps_DDRM.multTransB(helixState.C, F, tempM);
             CommonOps_DDRM.mult(F, tempM, covRotated);
         }

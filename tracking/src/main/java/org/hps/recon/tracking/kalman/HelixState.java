@@ -292,26 +292,27 @@ class HelixState implements Cloneable {
      * @param aP    Input transformed helix parameters
      * @param F     Returned derivative matrix
      */
-    void makeF(Vec aP, DMatrixRMaj F) {
-        makeF(aP, F, a, alpha);
+    void makeF(Vec aP, DMatrixRMaj F, double eFactor) {
+        makeF(aP, F, a, alpha, eFactor);
     }
 
     /**
-     * Create derivative matrix for the pivot transform (without energy loss or field rotations)
+     * Create derivative matrix for the pivot transform (without field rotations)
      * @param aP    Helix parameters
      * @param F     Returned derivative matrix
+     * @param eFactor   1.0-deltaE/E factor for energy loss
      */
-    static void makeF(Vec aP, DMatrixRMaj F, Vec a, double alpha) {
+    static void makeF(Vec aP, DMatrixRMaj F, Vec a, double alpha, double eFactor) {
         F.unsafe_set(0, 0, FastMath.cos(aP.v[1] - a.v[1]));
         F.unsafe_set(0, 1, (a.v[0] + alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]));
-        F.unsafe_set(0, 2, (alpha / (a.v[2] * a.v[2])) * (1.0 - FastMath.cos(aP.v[1] - a.v[1])));
+        F.unsafe_set(0, 2, eFactor*(alpha / (a.v[2] * a.v[2])) * (1.0 - FastMath.cos(aP.v[1] - a.v[1])));
         F.unsafe_set(1, 0, -FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         F.unsafe_set(1, 1, (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
-        F.unsafe_set(1, 2, (alpha / (a.v[2] * a.v[2])) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
-        F.unsafe_set(2, 2,  1.0);
+        F.unsafe_set(1, 2, eFactor*(alpha / (a.v[2] * a.v[2])) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        F.unsafe_set(2, 2,  eFactor);
         F.unsafe_set(3, 0, (alpha / a.v[2]) * a.v[4] * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         F.unsafe_set(3, 1, (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2])));
-        F.unsafe_set(3, 2, (alpha / (a.v[2] * a.v[2])) * a.v[4]
+        F.unsafe_set(3, 2, eFactor*(alpha / (a.v[2] * a.v[2])) * a.v[4]
                 * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2])));
         F.unsafe_set(3, 3, 1.0);
         F.unsafe_set(3, 4, -(alpha / a.v[2]) * (aP.v[1] - a.v[1]));
@@ -526,8 +527,7 @@ class HelixState implements Cloneable {
         double K = a.v[2] * (1.0 - deltaEoE); // Lose energy before propagating
         double xC = X0.v[0] + (a.v[0] + alpha / K) * FastMath.cos(a.v[1]); // Center of the helix circle
         double yC = X0.v[1] + (a.v[0] + alpha / K) * FastMath.sin(a.v[1]);
-        // if (verbose) System.out.format("pivotTransform center=%13.10f, %13.10f\n",
-        // xC, yC);
+        // if (verbose) System.out.format("pivotTransform center=%13.10f, %13.10f\n", xC, yC);
 
         // Predicted state vector
         double[] aP = new double[5];
@@ -677,7 +677,7 @@ class HelixState implements Cloneable {
      */
     static double projMSangle(double p, double XL) {
         if (XL <= 0.) return 0.;
-        return (0.0136 / Math.abs(p)) * FastMath.sqrt(XL) * (1.0 + 0.038 * FastMath.log(XL));
+        return (0.0136 / p) * FastMath.sqrt(XL) * (1.0 + 0.038 * FastMath.log(XL));
     }
 
     /**
@@ -690,6 +690,7 @@ class HelixState implements Cloneable {
      * All scattering layers are assumed to be of the same thickness XL, in radiation lengths
      * We assume that the starting StateVector is at a layer with a hit, in which case the Kalman filter has already accounted for
      * multiple scattering at that layer.    
+     * Note: energy loss is not included.
      * @param maxStep           Maximum step size, in mm
      * @param yScat             Locations of scattering planes
      * @param XL                radiation lengths of scattering planes
@@ -819,7 +820,7 @@ class HelixState implements Cloneable {
                 Vec newPoint = atPhi(newPivot, newHelixPivoted, dphi, localAlpha);
                 newPoint.print("new point of intersection, should be same as the old");
             }           
-            makeF(newHelixPivoted, F, newHelix, localAlpha);
+            makeF(newHelixPivoted, F, newHelix, localAlpha, 1.0);
             newHelix = newHelixPivoted;
 
             // Rotate the helix into the field system at the new origin
@@ -868,7 +869,7 @@ class HelixState implements Cloneable {
         Vec newOriginLocal = new Vec(0.,0.,0.);
         Vec oldPivot = RM.rotate(Origin.dif(newOrigin));
         Vec finalHx = pivotTransform(newOriginLocal, newHelix, oldPivot, localAlpha, 0.);
-        makeF(finalHx, F, newHelix, localAlpha);
+        makeF(finalHx, F, newHelix, localAlpha, 1.0);
         CommonOps_DDRM.multTransB(Cov, F, cIntermediate); 
         CommonOps_DDRM.mult(F,cIntermediate,Cov);
         if (debug) {

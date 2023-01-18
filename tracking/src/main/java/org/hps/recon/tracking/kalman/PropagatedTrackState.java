@@ -120,7 +120,7 @@ public class PropagatedTrackState {
             pMom.print(String.format("initial momentum from pivoted helix, p=%10.6f",pMom.mag()));
         }
         DMatrixRMaj F = new DMatrixRMaj(5,5);
-        HelixState.makeF(helixParamsPivoted, F, helixParams, alpha);
+        HelixState.makeF(helixParamsPivoted, F, helixParams, alpha, 1.0);
        
         // Then rotate the helix into the B-field reference frame
         DMatrixRMaj fRot = new DMatrixRMaj(5,5);
@@ -242,7 +242,7 @@ public class PropagatedTrackState {
     public double [][] getIntersectionCov() {
         Vec helixAtInt = getIntersectionHelix();
         DMatrixRMaj F = new DMatrixRMaj(5,5);
-        newHelixState.makeF(helixAtInt, F);
+        newHelixState.makeF(helixAtInt, F, 1.0);
         CommonOps_DDRM.multTransB(newHelixState.C, F, tempM);
         DMatrixRMaj covAtInt = new DMatrixRMaj(5,5);
         CommonOps_DDRM.mult(F, tempM, covAtInt);

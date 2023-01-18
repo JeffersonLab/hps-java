@@ -6,6 +6,7 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
+import org.apache.commons.math.util.FastMath;
 
 /**
  * Helix state vector (projected, filtered, or smoothed) for the Kalman filter
@@ -21,7 +22,7 @@ class StateVector {
     final static private boolean debug = false;
     DMatrixRMaj F;     // Propagator matrix to propagate from this site to the next site
     private static Logger logger;
-    private DMatrixRMaj K;      // Kalman gain matrix
+    DMatrixRMaj K;      // Kalman gain matrix
     
     // Working arrays for efficiency, to avoid creating temporary working space over and over
     private static DMatrixRMaj tempV;
@@ -33,7 +34,7 @@ class StateVector {
     private static DMatrixRMaj U;      // Unit matrix
     private static LinearSolverDense<DMatrixRMaj> solver;
     private static boolean initialized;
-    private boolean uniformB;
+    boolean uniformB;
 
     /**
      * Constructor for the initial state vector used to start the Kalman filter.
@@ -143,7 +144,7 @@ class StateVector {
         if (F != null) str = str + "Propagator matrix: " + F.toString();
         double sigmas;
         if (R > 0.) {
-            sigmas = r / Math.sqrt(R);
+            sigmas = r / FastMath.sqrt(R);
         } else {
             sigmas = 0.;
         }
@@ -171,8 +172,8 @@ class StateVector {
         aPrime.kUp = kUp;
         aPrime.helix.X0 = pivot; // pivot before helix rotation, in coordinate system of the previous site
 
-        double E = helix.a.v[2] * Math.sqrt(1.0 + helix.a.v[4] * helix.a.v[4]);
-        double deltaEoE = deltaE / E;
+        double momentum = FastMath.sqrt(1.0 + helix.a.v[4] * helix.a.v[4])/FastMath.abs(helix.a.v[2]);
+        double deltaEoE = deltaE / momentum;
 
         // Transform helix in old coordinate system to new pivot point lying on the next detector plane
         if (deltaE == 0.) {
@@ -188,12 +189,9 @@ class StateVector {
             helix.X0.print("old pivot");
         }
 
+        double eFactor = 1.0 - deltaEoE;
         F = new DMatrixRMaj(5,5);
-        this.helix.makeF(aPrime.helix.a, F); // Calculate derivatives of the pivot transform
-        if (deltaE != 0.) {
-            double factor = 1.0 - deltaEoE;
-            for (int i = 0; i < 5; i++) F.unsafe_set(i, 2, F.unsafe_get(i,2)*factor);  
-        }
+        this.helix.makeF(aPrime.helix.a, F, eFactor); // Calculate derivatives of the pivot transform
 
         // Transform to the coordinate system of the field at the new site
         // First, transform the pivot point to the new system
@@ -257,7 +255,6 @@ class StateVector {
             Cinv.set(this.helix.C);
             if (debug) System.out.format("StateVector.predict: XL=%9.6f\n", XL);
         } else {
-            double momentum = (1.0 / helix.a.v[2]) * Math.sqrt(1.0 + helix.a.v[4] * helix.a.v[4]);
             double sigmaMS = HelixState.projMSangle(momentum, XL);
             if (debug) System.out.format("StateVector.predict: momentum=%12.5e, XL=%9.6f sigmaMS=%12.5e\n", momentum, XL, sigmaMS);
             this.helix.getQ(sigmaMS, Q);
@@ -388,9 +385,9 @@ class StateVector {
 
     /**
      * Create a smoothed state vector from the filtered state vector
-     * @param snS        
-     * @param snP
-     * @return      Smoothed state vector
+     * @param snS        Smoothed state vector of the next layer out
+     * @param snP        Predicted state vector of the next layer out
+     * @return      Smoothed state vector corresponding to this layer's filtered state vector
      */
     StateVector smooth(StateVector snS, StateVector snP) {
         if (debug) System.out.format("StateVector.smooth of filtered state %d %d, using smoothed state %d %d and predicted state %d %d\n", kLow, kUp,
@@ -475,9 +472,9 @@ class StateVector {
      */
     Vec helixErrors(Vec aPrime) {
 
-        DMatrixRMaj tC = covariancePivotTransform(aPrime);
-        return new Vec(Math.sqrt(tC.unsafe_get(0,0)), Math.sqrt(tC.unsafe_get(1,1)), Math.sqrt(tC.unsafe_get(2,2)), 
-                Math.sqrt(tC.unsafe_get(3,3)), Math.sqrt(tC.unsafe_get(4,4)));
+        DMatrixRMaj tC = covariancePivotTransform(aPrime, 1.0);
+        return new Vec(FastMath.sqrt(tC.unsafe_get(0,0)), FastMath.sqrt(tC.unsafe_get(1,1)), FastMath.sqrt(tC.unsafe_get(2,2)), 
+                FastMath.sqrt(tC.unsafe_get(3,3)), FastMath.sqrt(tC.unsafe_get(4,4)));
     }
 
     /**
@@ -485,12 +482,12 @@ class StateVector {
      * @param aP       5-vector of helix parameters
      * @return         transformed helix parameters
      */
-    DMatrixRMaj covariancePivotTransform(Vec aP) {
+    DMatrixRMaj covariancePivotTransform(Vec aP, double eFactor) {
         // aP are the helix parameters for the new pivot point, assumed already to be
         // calculated by pivotTransform()
         // Note that no field rotation is assumed or accounted for here
         DMatrixRMaj mF = new DMatrixRMaj(5,5);
-        helix.makeF(aP, mF);
+        helix.makeF(aP, mF, eFactor);
         CommonOps_DDRM.multTransB(helix.C, mF, tempM);
         CommonOps_DDRM.mult(mF, tempM, tempA);
         return tempA;
