@@ -958,9 +958,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                             else hResid1.entry(site.aF.r / Math.sqrt(site.aF.R));
                         }
                         if (site.smoothed) {
-                            StateVector aA = null;
-                            if (residualsEconstrained) aA = site.aES;
-                            else aA = site.aS;
+                            StateVector aA = site.aS;
                             if (site.m.Layer == 4) hReducedErr.entry(Math.sqrt(aA.R));
                             chi2s += Math.pow(aA.mPred - site.m.hits.get(site.hitID).vTrue, 2) / aA.R;
                             hResidS0[siM.Layer].entry(aA.r / Math.sqrt(aA.R));
@@ -1165,23 +1163,22 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                         System.out.format("True energy = %10.4f,  ECAL energy = %10.4f,  sigma(E)=%8.3f\n",Etrue,E,sigmaE);
                         KalmanTrack.helixAtOrigin.a.print("helix at origin");
                         TkInitial.p.print("true helix");
-                        KalmanTrack.helixAtOriginEconstraint.a.print("energy constrained helix");
                         KalmanTrack.printLong("after adding energy constraint");
                     }
                     hChi2E.entry(KalmanTrack.chi2_Econstraint);
-                    for (int i = 0; i < 5; ++i) hErr[i] = (KalmanTrack.helixAtOriginEconstraint.a.v[i] - TkInitial.p.v[i]);
+                    for (int i = 0; i < 5; ++i) hErr[i] = (KalmanTrack.helixAtOrigin.a.v[i] - TkInitial.p.v[i]);
                     hEatanlcon.entry(hErr[4]);
                     hEakcon.entry(hErr[2]);
                     hERhocon.entry(hErr[0]);
                     hEPhi0con.entry(hErr[1]);
                     hEZ0con.entry(hErr[3]);
-                    hEdrhoCon.entry(hErr[0] / Math.sqrt(KalmanTrack.helixAtOriginEconstraint.C.unsafe_get(0,0)));
-                    hEphi0Con.entry(hErr[1] / Math.sqrt(KalmanTrack.helixAtOriginEconstraint.C.unsafe_get(1,1)));
-                    hEkCon.entry(hErr[2] / Math.sqrt(KalmanTrack.helixAtOriginEconstraint.C.unsafe_get(2,2)));
-                    hEdzCon.entry(hErr[3] / Math.sqrt(KalmanTrack.helixAtOriginEconstraint.C.unsafe_get(3,3)));
-                    hEtanlCon.entry(hErr[4] / Math.sqrt(KalmanTrack.helixAtOriginEconstraint.C.unsafe_get(4,4)));
+                    hEdrhoCon.entry(hErr[0] / Math.sqrt(KalmanTrack.helixAtOrigin.C.unsafe_get(0,0)));
+                    hEphi0Con.entry(hErr[1] / Math.sqrt(KalmanTrack.helixAtOrigin.C.unsafe_get(1,1)));
+                    hEkCon.entry(hErr[2] / Math.sqrt(KalmanTrack.helixAtOrigin.C.unsafe_get(2,2)));
+                    hEdzCon.entry(hErr[3] / Math.sqrt(KalmanTrack.helixAtOrigin.C.unsafe_get(3,3)));
+                    hEtanlCon.entry(hErr[4] / Math.sqrt(KalmanTrack.helixAtOrigin.C.unsafe_get(4,4)));
                     trueErr = new Vec(5,hErr);
-                    helixChi2 = trueErr.dot(trueErr.leftMultiply(KalTrack.mToS(KalmanTrack.helixAtOriginEconstraint.C).invert()));
+                    helixChi2 = trueErr.dot(trueErr.leftMultiply(KalTrack.mToS(KalmanTrack.helixAtOrigin.C).invert()));
                     hChi2HelixE.entry(helixChi2);
                 }
             }

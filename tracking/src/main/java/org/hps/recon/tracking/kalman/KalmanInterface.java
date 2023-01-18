@@ -77,6 +77,7 @@ public class KalmanInterface {
     public static BasicHep3Matrix HpsSvtToKalmanMatrix;
     private static DMatrixRMaj tempM;
     private static DMatrixRMaj Ft;
+    private static DMatrixRMaj helixCov;
     private int maxHits;
     private int nBigEvents;
     private int eventNumber;
@@ -213,6 +214,7 @@ public class KalmanInterface {
         
         tempM = new DMatrixRMaj(5,5);
         Ft = new DMatrixRMaj(5,5);
+        helixCov = null;
         
         hitMap = new HashMap<Measurement, TrackerHit>();
         simHitMap = new HashMap<Measurement, SimTrackerHit>();
@@ -778,7 +780,7 @@ public class KalmanInterface {
                 loc = TrackState.AtLastHit;
             
             /*
-              //DO Not att the missing layer track states yet.
+              //DO Not store the missing layer track states (yet).
             if (storeTrackStates) {
                 for (int k = 1; k < lay - prevID; k++) {
                     // uses new lcsim constructor
@@ -801,14 +803,39 @@ public class KalmanInterface {
         newTrack.getTrackStates().add(ts_ecal);
         
         // other track properties
-        newTrack.setChisq(kT.chi2);
-        newTrack.setNDF(kT.SiteList.size() - 5);
+        if (kT.energyConstrained) {
+        	newTrack.setChisq(kT.chi2_Econstraint);
+        	newTrack.setNDF(kT.SiteList.size() - 4);
+        } else {
+	        newTrack.setChisq(kT.chi2);
+	        newTrack.setNDF(kT.SiteList.size() - 5);
+        }
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
         newTrack.setFitSuccess(true);
         
         return newTrack;
     }
 
+    /**
+     * Create an HPS track from a Kalman seed
+     * 
+     * @param trk     Seed
+     * @return        HPS track
+     */
+    public BaseTrack createTrack(SeedTrack trk) {
+        double[] newPivot = { 0., 0., 0. };
+        double[] params = getLCSimParams(trk.pivotTransform(newPivot), alphaCenter);
+        SymmetricMatrix cov = getLCSimCov(trk.covariance(), alphaCenter);
+        BaseTrack newTrack = new BaseTrack();
+        newTrack.setTrackParameters(params, trk.B());
+        newTrack.setCovarianceMatrix(cov);
+        addHitsToTrack(newTrack);
+        newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
+        newTrack.setFitSuccess(trk.success);
+
+        return newTrack;
+    }
+    
     /**
      * Convert helix parameters from Kalman to LCSim
      * 
@@ -925,26 +952,6 @@ public class KalmanInterface {
             }
         }
         newTrack.setNDF(newTrack.getTrackerHits().size());
-    }
-
-    /**
-     * Create an HPS track from a Kalman seed
-     * 
-     * @param trk     Seed
-     * @return        HPS track
-     */
-    public BaseTrack createTrack(SeedTrack trk) {
-        double[] newPivot = { 0., 0., 0. };
-        double[] params = getLCSimParams(trk.pivotTransform(newPivot), alphaCenter);
-        SymmetricMatrix cov = getLCSimCov(trk.covariance(), alphaCenter);
-        BaseTrack newTrack = new BaseTrack();
-        newTrack.setTrackParameters(params, trk.B());
-        newTrack.setCovarianceMatrix(cov);
-        addHitsToTrack(newTrack);
-        newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
-        newTrack.setFitSuccess(trk.success);
-
-        return newTrack;
     }
 
     /**
@@ -1480,6 +1487,158 @@ public class KalmanInterface {
         return new KalmanTrackFit2(evtNumb, SiMoccupied, null, startIndex, nIt, pivot, helixParams, cov, kPar, fM);
     }
 
+    /**
+     * Refit an existing HPS track with the associated energy measurement added in.
+     * @param track
+     * @return
+     */
+    public Track refitTrackWithE(Track track, double energy) {
+        // First we need initial guesses for the helix parameters and covariance.
+        // Preferentially take them from a TrackState. If there is no TrackState,
+        // then estimate from a linear fit to the set of hits.
+        List<TrackState> tkrStates = track.getTrackStates();
+        TrackState theTrackState = null;
+        double [] helixParams = null;
+        Vec kalHelixParams = null;
+        Vec pivot = new Vec(0., 0., 0.);
+        if (tkrStates != null) {
+	        for (TrackState tkrState : tkrStates) {
+	        	if (tkrState.getLocation() == TrackState.AtFirstHit) {
+	        		theTrackState = tkrState;
+	        		break;
+	        	}
+	        }
+	        if (theTrackState == null) {
+		        for (TrackState tkrState : tkrStates) {
+		        	if (tkrState.getLocation() == TrackState.AtIP) {
+		        		theTrackState = tkrState;
+		        		break;
+		        	}
+		        }	        	
+	        }
+	        if (theTrackState != null) {
+	        	Vec refPnt = new Vec(3, theTrackState.getReferencePoint());
+	        	helixParams = theTrackState.getParameters();
+	        	double bField = KalmanInterface.getField(refPnt, fM).mag();
+                double c = 2.99793e8; // Speed of light in m/s
+                double alpha = 1000.0 * 1.0e9 / (c * bField);
+	        	kalHelixParams = new Vec(5, KalmanInterface.unGetLCSimParams(helixParams, alpha));
+                double[] covHPS = theTrackState.getCovMatrix();
+                DMatrixRMaj helixCov = new DMatrixRMaj(KalmanInterface.ungetLCSimCov(covHPS, alpha));
+	        }
+        }
+        // Get the list of tracker hits on this track
+        List<TrackerHit> hitsOnTrack = track.getTrackerHits();
+        double firstHitZ = fillMeasurements(hitsOnTrack, 0);
+        // Do a linear fit to the track hits to get the helix parameter guesses
+        if (theTrackState == null) {
+            if (debug) System.out.format("firstHitZ %f \n", firstHitZ);
+            SeedTrack seed = new SeedTrack(trackHitsKalman, firstHitZ, 0., kPar);
+            kalHelixParams = seed.helixParams();
+            helixCov = seed.covariance();
+            pivot.v[1] = seed.yOrigin;
+        }
+    
+        
+        ArrayList<SiModule> SiMoccupied = new ArrayList<SiModule>();
+        for (SiModule SiM : SiMlist) {
+            if (!SiM.hits.isEmpty()) SiMoccupied.add(SiM);
+        }
+        Collections.sort(SiMoccupied, new SortByLayer());
+        if (debug) {
+	        for (int i = 0; i < SiMoccupied.size(); i++) {
+	            SiModule SiM = SiMoccupied.get(i);
+	            SiM.print(String.format("SiMoccupied%d", i));
+	        }
+        }
+
+        int startIndex = 0;
+        if (debug) System.out.format("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); 
+        CommonOps_DDRM.scale(10., helixCov);   
+
+        // Do the Kalman track fit only up through the filter step
+        KalTrack newTrack = kalmanFilterTrack(0, track.hashCode(), SiMoccupied, null, kalHelixParams, pivot, helixCov);
+        
+        // Include the eCal information and smooth back toward the origin
+        double sigmaE = (kPar.eRes[0]/FastMath.sqrt(energy) + kPar.eRes[1])*energy/100.;
+        newTrack.energyConstraint(energy, sigmaE);
+        
+        // Convert the KalTrack object into and HPS Track and TrackState
+        Track outputTrack = createTrack(newTrack, true);
+        
+        trackHitsKalman.clear();
+    	return outputTrack;
+    }
+    
+    /**
+     * Run the Kalman filter (no smoothing) on a set of hits.
+     * @param eventNumber
+     * @param data         List of Si modules with data points to be included in the fit
+     * @param hits         Which hit to use in each SiModule. Can be null if each module has only 1 hit.
+     * @param helixParams  5 helix parameters for the starting "guess" helix
+     * @param pivot        Pivot point for the starting "guess" helix
+     * @param C            Full covariance matrix for the starting "guess" helix
+     * @return             The new filtered KalTrack object
+     */
+    KalTrack kalmanFilterTrack(int eventNumber, int tkID, ArrayList<SiModule> data, ArrayList<Integer> hits, Vec helixParams, Vec pivot, DMatrixRMaj C) {
+        if (hits == null) {
+            hits = new ArrayList<Integer>(data.size());
+            for (int i=0; i<data.size(); ++i) {
+                hits.add(0);
+            }
+        } 
+        // Create an state vector to initialize the Kalman filter
+        Vec Bfield = null;
+        if (kPar.uniformB) {
+            Bfield = KalmanInterface.getField(new Vec(0., kPar.SVTcenter, 0.), fM);
+        } else {
+            Bfield = KalmanInterface.getField(pivot, fM);
+        }
+        double B = Bfield.mag();
+        Vec t = Bfield.unitVec(B);
+        StateVector sI = new StateVector(-1, helixParams, C, new Vec(0., 0., 0.), B, t, pivot, kPar.uniformB);
+        ArrayList<MeasurementSite> sites = new ArrayList<MeasurementSite>(data.size());
+        MeasurementSite prevSite = null;
+        double chi2f = 0.;
+        MeasurementSite newSite = null;
+        boolean success = true;
+        for (int idx=0; idx<data.size(); ++idx) {
+        	SiModule m = data.get(idx);
+	        if (m.hits.size() <= 0) { 
+	            continue;
+	        }
+	        newSite = new MeasurementSite(idx, m, kPar);
+	        int hitNumber = hits.get(idx);
+	        if (prevSite == null) {
+	            if (newSite.makePrediction(sI, hitNumber, false, false) < 0) {
+	                logger.warning(String.format("kalmanFilterTrack: failed to make initial prediction at site %d, idx=%d.  Abort", sites.indexOf(newSite), idx));
+	                success = false;
+	                break;
+	            }
+	        } else {
+	            if (newSite.makePrediction(prevSite.aF, prevSite.m, hitNumber, false, false) < 0) {
+	                logger.warning(String.format("kalmanFilterTrack: failed to make prediction at site %d, idx=%d.  Abort", sites.indexOf(newSite), idx));
+	                success = false;
+	                break;
+	            }
+	        }
+	
+	        if (!newSite.filter()) {
+	            logger.warning(String.format("kalmanFilterTrack failed to filter at site %d, idx=%d.  Ignore remaining sites", sites.indexOf(newSite), idx));
+	            success = false;
+	            break;
+	        }
+	
+	        if (m.Layer >= 0 && hitNumber >= 0) chi2f += newSite.chi2inc;
+	
+	        sites.add(newSite);
+            prevSite = newSite;
+        }        
+        ArrayList<Double> yScat = null;
+        ArrayList<Double> XLscat = null;
+        return new KalTrack(eventNumber, tkID, sites, yScat, XLscat, kPar);
+    }
+    
     /**
      * Sort the Kalman-filter geometry objects according to tracker layer
      * 

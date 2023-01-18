@@ -21,8 +21,7 @@ class MeasurementSite {
     boolean filtered; // True if the filtered state vector has been built
     StateVector aS; // Smoothed state vector
     boolean smoothed; // True if the smoothed state vector has been built
-    StateVector aES; // Energy-constrained smoothed state vector
-    boolean energyConstrained;  // True if the energy constrained smoothed state vector has been built
+    boolean energyConstrained;  // True if the smoothed state vector is energy constrained
     double chi2inc; // chi^2 increment for this site
     double chi2incE; // chi^2 increment for the energy-constrainted track
     DMatrixRMaj H; // Derivatives of the transformation from state vector to measurement
@@ -82,7 +81,6 @@ class MeasurementSite {
         if (predicted) str = str + aP.toString("predicted");
         if (filtered) str = str + aF.toString("filtered");
         if (smoothed) str = str + aS.toString("smoothed");
-        if (energyConstrained) str = str + aES.toString("energy-constrained");
         if (H != null) str = str + "matrix of the transformation from state vector to measurement:" + H.toString();
         str=str+String.format("      Assumed electron dE/dx in GeV/mm = %10.6f;  Detector thickness=%10.6f\n", dEdx, m.thickness);
         if (m.Layer < 0) {

@@ -4,6 +4,12 @@ import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hps.recon.tracking.MaterialSupervisor;
+import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
+import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.hps.recon.tracking.kalman.KalmanInterface;
+import org.hps.recon.tracking.kalman.KalmanParams;
 import org.lcsim.detector.DetectorElementStore;
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.identifier.IExpandedIdentifier;
@@ -15,8 +21,10 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseReconstructedParticle;
+import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 
@@ -54,11 +62,59 @@ public class ReconstructedParticleRefitter extends Driver {
      * combination
      */
     private double _eOverpCut = 0.1;
-
+    
     /**
-     * The action
-     *
-     * @param event
+     * The interface to the Kalman Filter code 
+     */
+    private KalmanInterface KI;
+    private org.lcsim.geometry.FieldMap fm;
+    
+    private double eRes0 = -1.0;
+    private double eRes1 = -1.0;
+    
+    /**
+     * ECal energy resolution parameterization, for the resolution as a % of E.
+     * @param eRes0    coefficient of the 1/sqrt(E) term
+     */
+    public void setERes0(double eRes0) {
+        this.eRes0 = eRes0;
+    }
+    /**
+     * ECal energy resolution parameterization, for the resolution as a % of E.
+     * @param eRes1    the constant term
+     */
+    public void setERes1(double eRes1) {
+        this.eRes1 = eRes1;
+    }
+    
+    /**
+     * Set up the geometry and parameters for the Kalman-filter track finding and fitting.
+     */
+    @Override
+    public void detectorChanged(Detector det) {
+
+        MaterialSupervisor materialManager;
+        materialManager = new MaterialSupervisor();
+        materialManager.buildModel(det);
+        
+    	// Instantiate the interface to the Kalman-Filter code and set up the run parameters
+        KalmanParams kPar = new KalmanParams(); 
+        // Override the default resolution parameters with numbers from the steering file
+        if (eRes0 > 0. || eRes1 > 0.) kPar.setEnergyRes(eRes0, eRes1);
+        
+        fm = det.getFieldMap();              // The HPS magnetic field map
+        KI = new KalmanInterface(kPar, fm);  // Instantiate the Kalman interface
+        ArrayList<SiStripPlane> detPlanes = new ArrayList<SiStripPlane>();
+        List<ScatteringDetectorVolume> materialVols = ((MaterialSupervisor) (materialManager)).getMaterialVolumes();
+        for (ScatteringDetectorVolume vol : materialVols) {
+            detPlanes.add((SiStripPlane)(vol));
+        }
+        KI.createSiModules(detPlanes);   // The detector geometry objects used by the Kalman code
+    }
+    
+    /**
+     * The action per event
+     * @param event      The hps-java event header
      */
     public void process(EventHeader event) {
         if (event.hasCollection(ReconstructedParticle.class, _finalStateParticleCollectionName)) {
@@ -77,7 +133,7 @@ public class ReconstructedParticleRefitter extends Driver {
                         // quick check on E/p so we don't try to fit to the energy of MIP tracks
                         double eOverP = rp.getEnergy() / rp.getMomentum().magnitude();
                         aida.histogram1D("e over p", 100, 0., 2.).fill(eOverP);
-                        if (abs(eOverP - 1) < _eOverpCut) {
+                        if (abs(eOverP - 1.0) < _eOverpCut) {
                             // create a new ReconstructedParticle here...
                             refitReconstructedParticles.add(makeNewReconstructedParticle(rp));
                         } else {
@@ -139,13 +195,9 @@ public class ReconstructedParticleRefitter extends Driver {
         Cluster cluster = rp.getClusters().get(0);
         //the energy of the associated cluster
         double energy = cluster.getEnergy();
-        //the list of tracker hits
-        List<TrackerHit> hits = track.getTrackerHits();
-        // initial guess for the track parameters
-        Hep3Vector momentum = rp.getMomentum();
-        // TODO fit a new track with this list of hits and the cluster energy.
-        // for now simply return the existing track
-        return track;
+
+        // Fit a new track with this list of hits and the cluster energy.
+        return KI.refitTrackWithE(track, energy);
     }
 
     /**
@@ -209,8 +261,8 @@ public class ReconstructedParticleRefitter extends Driver {
     }
 
     /**
-     *
-     * @param d
+     * Set the cut on E/p from the steering file
+     * @param d    Maximum E/p allowed for electron/positron candidates
      */
     public void set_eOverpCut(double d) {
         _eOverpCut = d;

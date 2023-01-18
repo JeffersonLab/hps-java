@@ -40,6 +40,7 @@ public class KalmanParams {
     static final int numLayers = 14;
     boolean uniformB;
     boolean eLoss;
+    double [] eRes;
     
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
     private String [] tb;
@@ -86,6 +87,7 @@ public class KalmanParams {
         System.out.format("  Maximum chi^2 for 5-hit tracks with a vertex constraint: %8.2f\n", mxChi2Vtx);
         System.out.format("  Include ionization energy loss in fit = %b\n", eLoss);
         System.out.format("  Default origin to use for vertex constraints:\n");
+        System.out.format("  CAL energy resolution = %8.2f /sqrt(E) + %8.2f\n", eRes[0], eRes[1]);
         for (int i=0; i<3; ++i) {
             System.out.format("      %d: %8.3f +- %8.3f\n", i, beamSpot[i], vtxSize[i]);
         }
@@ -166,6 +168,9 @@ public class KalmanParams {
         firstLayer = 0;     // First layer in the tracking system (2 for pre-2019 data)
         lowPhThresh = 0.25; // Residual improvement ratio necessary to use a low-ph hit instead of high-ph
         seedCompThr = 0.05;  // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
+        eRes = new double[2];
+        eRes[0] = 3.0;       // Cal energy resolution parameters in %  sigmaE = eRes[0]/sqrt(E) + eRes[1]
+        eRes[1] = 1.0;
         
         // Load the default search strategies
         // Index 0 is for the bottom tracker (+z), 1 for the top (-z)
@@ -223,6 +228,12 @@ public class KalmanParams {
 //            beamSpot[1] = beamPosKal.v[1];
 //            beamSpot[2] = beamPosKal.v[2];
 //        }            
+    }
+    
+    public void setEnergyRes(double a, double b) {
+    	if (a > 0.) eRes[0] = a;
+    	if (b > 0.) eRes[1] = b;
+    	logger.config(String.format("Setting CAL energy resolution to %8.2f/sqrt(E) + %8.2f", eRes[0], eRes[1]));
     }
     
     public void setUniformB(boolean input) {
