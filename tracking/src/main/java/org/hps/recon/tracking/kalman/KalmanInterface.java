@@ -875,11 +875,11 @@ public class KalmanInterface {
 
         // other track properties
         if (kT.energyConstrained) {
-        	newTrack.setChisq(kT.chi2_Econstraint);
-        	newTrack.setNDF(kT.SiteList.size() - 4);
+            newTrack.setChisq(kT.chi2_Econstraint);
+            newTrack.setNDF(kT.SiteList.size() - 4);
         } else {
-	        newTrack.setChisq(kT.chi2);
-	        newTrack.setNDF(kT.SiteList.size() - 5);
+            newTrack.setChisq(kT.chi2);
+            newTrack.setNDF(kT.SiteList.size() - 5);
         }
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
         newTrack.setFitSuccess(true);
@@ -1652,30 +1652,30 @@ public class KalmanInterface {
         Vec kalHelixParams = null;
         Vec pivot = new Vec(0., 0., 0.);
         if (tkrStates != null) {
-	        for (TrackState tkrState : tkrStates) {
-	        	if (tkrState.getLocation() == TrackState.AtFirstHit) {
-	        		theTrackState = tkrState;
-	        		break;
-	        	}
-	        }
-	        if (theTrackState == null) {
-		        for (TrackState tkrState : tkrStates) {
-		        	if (tkrState.getLocation() == TrackState.AtIP) {
-		        		theTrackState = tkrState;
-		        		break;
-		        	}
-		        }	        	
-	        }
-	        if (theTrackState != null) {
-	        	Vec refPnt = new Vec(3, theTrackState.getReferencePoint());
-	        	helixParams = theTrackState.getParameters();
-	        	double bField = KalmanInterface.getField(refPnt, fM).mag();
+            for (TrackState tkrState : tkrStates) {
+                if (tkrState.getLocation() == TrackState.AtFirstHit) {
+                    theTrackState = tkrState;
+                    break;
+                }
+            }
+            if (theTrackState == null) {
+                for (TrackState tkrState : tkrStates) {
+                    if (tkrState.getLocation() == TrackState.AtIP) {
+                        theTrackState = tkrState;
+                        break;
+                    }
+                }               
+            }
+            if (theTrackState != null) {
+                Vec refPnt = new Vec(3, theTrackState.getReferencePoint());
+                helixParams = theTrackState.getParameters();
+                double bField = KalmanInterface.getField(refPnt, fM).mag();
                 double c = 2.99793e8; // Speed of light in m/s
                 double alpha = 1000.0 * 1.0e9 / (c * bField);
-	        	kalHelixParams = new Vec(5, KalmanInterface.unGetLCSimParams(helixParams, alpha));
+                kalHelixParams = new Vec(5, KalmanInterface.unGetLCSimParams(helixParams, alpha));
                 double[] covHPS = theTrackState.getCovMatrix();
                 DMatrixRMaj helixCov = new DMatrixRMaj(KalmanInterface.ungetLCSimCov(covHPS, alpha));
-	        }
+            }
         }
         // Get the list of tracker hits on this track
         List<TrackerHit> hitsOnTrack = track.getTrackerHits();
@@ -1696,10 +1696,10 @@ public class KalmanInterface {
         }
         Collections.sort(SiMoccupied, new SortByLayer());
         if (debug) {
-	        for (int i = 0; i < SiMoccupied.size(); i++) {
-	            SiModule SiM = SiMoccupied.get(i);
-	            SiM.print(String.format("SiMoccupied%d", i));
-	        }
+            for (int i = 0; i < SiMoccupied.size(); i++) {
+                SiModule SiM = SiMoccupied.get(i);
+                SiM.print(String.format("SiMoccupied%d", i));
+            }
         }
 
         int startIndex = 0;
@@ -1717,7 +1717,7 @@ public class KalmanInterface {
         Track outputTrack = createTrack(newTrack, true);
         
         trackHitsKalman.clear();
-    	return outputTrack;
+        return outputTrack;
     }
     
     /**
@@ -1753,35 +1753,35 @@ public class KalmanInterface {
         MeasurementSite newSite = null;
         boolean success = true;
         for (int idx=0; idx<data.size(); ++idx) {
-        	SiModule m = data.get(idx);
-	        if (m.hits.size() <= 0) { 
-	            continue;
-	        }
-	        newSite = new MeasurementSite(idx, m, kPar);
-	        int hitNumber = hits.get(idx);
-	        if (prevSite == null) {
-	            if (newSite.makePrediction(sI, hitNumber, false, false) < 0) {
-	                logger.warning(String.format("kalmanFilterTrack: failed to make initial prediction at site %d, idx=%d.  Abort", sites.indexOf(newSite), idx));
-	                success = false;
-	                break;
-	            }
-	        } else {
-	            if (newSite.makePrediction(prevSite.aF, prevSite.m, hitNumber, false, false) < 0) {
-	                logger.warning(String.format("kalmanFilterTrack: failed to make prediction at site %d, idx=%d.  Abort", sites.indexOf(newSite), idx));
-	                success = false;
-	                break;
-	            }
-	        }
-	
-	        if (!newSite.filter()) {
-	            logger.warning(String.format("kalmanFilterTrack failed to filter at site %d, idx=%d.  Ignore remaining sites", sites.indexOf(newSite), idx));
-	            success = false;
-	            break;
-	        }
-	
-	        if (m.Layer >= 0 && hitNumber >= 0) chi2f += newSite.chi2inc;
-	
-	        sites.add(newSite);
+            SiModule m = data.get(idx);
+            if (m.hits.size() <= 0) { 
+                continue;
+            }
+            newSite = new MeasurementSite(idx, m, kPar);
+            int hitNumber = hits.get(idx);
+            if (prevSite == null) {
+                if (newSite.makePrediction(sI, hitNumber, false, false) < 0) {
+                    logger.warning(String.format("kalmanFilterTrack: failed to make initial prediction at site %d, idx=%d.  Abort", sites.indexOf(newSite), idx));
+                    success = false;
+                    break;
+                }
+            } else {
+                if (newSite.makePrediction(prevSite.aF, prevSite.m, hitNumber, false, false) < 0) {
+                    logger.warning(String.format("kalmanFilterTrack: failed to make prediction at site %d, idx=%d.  Abort", sites.indexOf(newSite), idx));
+                    success = false;
+                    break;
+                }
+            }
+    
+            if (!newSite.filter()) {
+                logger.warning(String.format("kalmanFilterTrack failed to filter at site %d, idx=%d.  Ignore remaining sites", sites.indexOf(newSite), idx));
+                success = false;
+                break;
+            }
+    
+            if (m.Layer >= 0 && hitNumber >= 0) chi2f += newSite.chi2inc;
+    
+            sites.add(newSite);
             prevSite = newSite;
         }        
         ArrayList<Double> yScat = null;

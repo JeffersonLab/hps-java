@@ -1235,7 +1235,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                     }
                     hChi2E.entry(KalmanTrack.chi2_Econstraint);
                     for (int i = 0; i < 5; ++i) {
-                        hErr[i] = (KalmanTrack.helixAtOriginEconstraint.a.v[i] - TkInitial.p.v[i]);
+                        hErr[i] = (KalmanTrack.helixAtOrigin.a.v[i] - TkInitial.p.v[i]);
                     }
                     hEatanlcon.entry(hErr[4]);
                     hEakcon.entry(hErr[2]);

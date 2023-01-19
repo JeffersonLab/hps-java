@@ -40,7 +40,7 @@ public class KalTrack {
     public boolean bad;
     HelixState helixAtOrigin;
     private boolean propagated;
-	boolean energyConstrained;
+    boolean energyConstrained;
     private RotMatrix Rot;             // Rotation matrix between global and field coordinates at the beam spot
     private Vec originPoint;
     private Vec originMomentum;
@@ -473,7 +473,7 @@ public class KalTrack {
         double varResid = -999.;
         Vec aStar = null;
         if (site.hitID >= 0) {
-        	StateVector aA = site.aS;
+            StateVector aA = site.aS;
             double sigma = site.m.hits.get(site.hitID).sigma;
             DMatrixRMaj Cstar = new DMatrixRMaj(5, 5);
             aStar = aA.inverseFilter(site.H, sigma * sigma, Cstar);
@@ -610,7 +610,7 @@ public class KalTrack {
             str=str+String.format("    Energy unconstrained = %10.6f\n", energy);
         } 
         if (energyConstrained) {
-        	str=str+String.format("Chi-squared of energy constrained fit = %10.5f\n", chi2_Econstraint);
+            str=str+String.format("Chi-squared of energy constrained fit = %10.5f\n", chi2_Econstraint);
             //str=str+originPoint.toString("point on the helix closest to the origin")+"\n";
             //str=str+String.format("   arc length from the origin to the first measurement=%9.4f\n", arcLength[0]);
             //SquareMatrix C1 = new SquareMatrix(3, Cx);
@@ -618,8 +618,8 @@ public class KalTrack {
             //str=str+originMomentum.toString("momentum of the particle at closest approach to the origin\n");
             //SquareMatrix C2 = new SquareMatrix(3, Cp);
             //str=str+C2.toString("covariance matrix for the momentum");
-            double tanL = helixAtOriginEconstraint.a.v[4];
-            double K = helixAtOriginEconstraint.a.v[2];
+            double tanL = helixAtOrigin.a.v[4];
+            double K = helixAtOrigin.a.v[2];
             double energy = FastMath.sqrt(1.0 + tanL * tanL) / Math.abs(K);
             str = str + String.format("    Energy constrained = %10.6f\n", energy);
         }
@@ -1796,7 +1796,7 @@ public class KalTrack {
         MeasurementSite nS = lastSite;
         for (int idx = idxLast - 1; idx >= 0; --idx) {
             MeasurementSite thisSite = SiteList.get(idx);
-            thisSite.aES = thisSite.aF.smooth(nS.aES, nS.aP);
+            thisSite.aS = thisSite.aF.smooth(nS.aS, nS.aP);
             if (thisSite.hitID < 0) {
                 thisSite.energyConstrained = true;
                 continue;
@@ -1809,20 +1809,20 @@ public class KalTrack {
                 logger.log(Level.FINE, "KalTrack.energyConstraint: no intersection of helix with the plane exists.");
                 continue;
             }
-            thisSite.aES.mPred = thisSite.h(thisSite.aES, thisSite.m, phiS);
-            thisSite.aES.r = hit.v - thisSite.aES.mPred;
+            thisSite.aS.mPred = thisSite.h(thisSite.aS, thisSite.m, phiS);
+            thisSite.aS.r = hit.v - thisSite.aS.mPred;
             if (tempV == null) {
                 tempV = new DMatrixRMaj(5, 1);
             }
-            CommonOps_DDRM.mult(thisSite.aES.helix.C, thisSite.H, tempV);
-            thisSite.aES.R = V - CommonOps_DDRM.dot(thisSite.H, tempV);
-            if (thisSite.aES.R < 0) {
+            CommonOps_DDRM.mult(thisSite.aS.helix.C, thisSite.H, tempV);
+            thisSite.aS.R = V - CommonOps_DDRM.dot(thisSite.H, tempV);
+            if (thisSite.aS.R < 0) {
                 if (debug) {
-                    System.out.format("KalTrack.energyConstraint, measurement covariance %12.4e is negative\n", thisSite.aES.R);
+                    System.out.format("KalTrack.energyConstraint, measurement covariance %12.4e is negative\n", thisSite.aS.R);
                 }
                 //aS.print("the smoothed state");
                 //nS.print("the next site in the chain");
-                thisSite.aES.R = 0.25 * V;  // A negative covariance makes no sense, hence this fudge
+                thisSite.aS.R = 0.25 * V;  // A negative covariance makes no sense, hence this fudge
             }
 
             thisSite.chi2incE = (thisSite.aS.r * thisSite.aS.r) / thisSite.aS.R;

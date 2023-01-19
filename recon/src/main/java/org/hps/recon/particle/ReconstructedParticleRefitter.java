@@ -1,6 +1,5 @@
 package org.hps.recon.particle;
 
-import hep.physics.vec.Hep3Vector;
 import static java.lang.Math.abs;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +20,6 @@ import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackState;
-import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -97,7 +94,7 @@ public class ReconstructedParticleRefitter extends Driver {
         materialManager = new MaterialSupervisor();
         materialManager.buildModel(det);
         
-    	// Instantiate the interface to the Kalman-Filter code and set up the run parameters
+        // Instantiate the interface to the Kalman-Filter code and set up the run parameters
         KalmanParams kPar = new KalmanParams(); 
         // Override the default resolution parameters with numbers from the steering file
         if (eRes0 > 0. || eRes1 > 0.) kPar.setEnergyRes(eRes0, eRes1);

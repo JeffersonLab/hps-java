@@ -235,9 +235,9 @@ public class KalmanParams {
     }
     
     public void setEnergyRes(double a, double b) {
-    	if (a > 0.) eRes[0] = a;
-    	if (b > 0.) eRes[1] = b;
-    	logger.config(String.format("Setting CAL energy resolution to %8.2f/sqrt(E) + %8.2f", eRes[0], eRes[1]));
+        if (a > 0.) eRes[0] = a;
+        if (b > 0.) eRes[1] = b;
+        logger.config(String.format("Setting CAL energy resolution to %8.2f/sqrt(E) + %8.2f", eRes[0], eRes[1]));
     }
 
     public void setUniformB(boolean input) {
