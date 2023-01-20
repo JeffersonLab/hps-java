@@ -54,7 +54,7 @@ public class KalTrack {
     private double time;
     double tMin;
     double tMax;
-    static final boolean debug = false;
+    private static final boolean debug = false;
     private KalmanParams kPar;
     private double chi2incVtx;
     private static DMatrixRMaj tempV;
@@ -118,8 +118,8 @@ public class KalTrack {
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
         for (int idx = firstSite; idx <= lastSite; ++idx) {
             MeasurementSite site = SiteList.get(idx);
-            if (site.aS == null) {  // This should never happen
-                logger.log(Level.SEVERE, String.format("Event %d: site of track %d is missing smoothed state vector for layer %d detector %d",
+            if (site.aS == null && site.aF == null) {  // This should never happen
+                logger.log(Level.SEVERE, String.format("Event %d: site of track %d is missing a state vector for layer %d detector %d",
                         eventNumber, ID, site.m.Layer, site.m.detector));
                 logger.log(Level.WARNING, site.toString("bad site"));
                 bad = true;
@@ -169,7 +169,9 @@ public class KalTrack {
             tMax = Math.max(tMax, site.m.hits.get(site.hitID).time);
             this.chi2 += site.chi2inc;
             if (debug) {
-                System.out.format("  Layer %d, chi^2 increment=%10.5f, a=%s\n", site.m.Layer, site.chi2inc, site.aS.helix.a.toString());
+                StateVector aA = site.aS;
+                if (aA == null) aA = site.aF;
+                System.out.format("  Layer %d, chi^2 increment=%10.5f, a=%s\n", site.m.Layer, site.chi2inc, aA.helix.a.toString());
             }
         }
         time = time / (double) nHits;
@@ -260,9 +262,12 @@ public class KalTrack {
      */
     public double[] moduleIntercept(SiModule mod, double[] rGbl) {
         HelixState hx = null;
+        StateVector aA = null;
         for (MeasurementSite site : SiteList) {
+            if (site.aS == null) aA = site.aF;
+            else aA = site.aS;
             if (site.m == mod) {
-                hx = site.aS.helix;
+                hx = aA.helix;
             }
         }
         if (hx == null) {
@@ -273,12 +278,17 @@ public class KalTrack {
                 }
                 if (site.m.Layer > mxLayer) {
                     mxLayer = site.m.Layer;
-                    hx = site.aS.helix;
+                    if (site.aS == null) aA = site.aF;
+                    else aA = site.aS;
+                    hx = aA.helix;
                 }
             }
         }
         if (hx == null) {
-            hx = SiteList.get(0).aS.helix;
+            MeasurementSite site = SiteList.get(0);
+            if (site.aS == null) aA = site.aF;
+            else aA = site.aS;
+            hx = aA.helix;
         }
         double phiS = hx.planeIntersect(mod.p);
         if (Double.isNaN(phiS)) {
@@ -474,6 +484,7 @@ public class KalTrack {
         Vec aStar = null;
         if (site.hitID >= 0) {
             StateVector aA = site.aS;
+            if (aA == null) aA = site.aF;
             double sigma = site.m.hits.get(site.hitID).sigma;
             DMatrixRMaj Cstar = new DMatrixRMaj(5, 5);
             aStar = aA.inverseFilter(site.H, sigma * sigma, Cstar);
@@ -556,8 +567,13 @@ public class KalTrack {
         }
         System.out.format("     Magnetic field magnitude = %10.5f and direction = %s\n", Bmag, tB.toString());
         MeasurementSite site0 = this.SiteList.get(0);
-        if (site0.aS != null) {
-            System.out.format("    Helix at layer %d: %s, pivot=%s\n", site0.m.Layer, site0.aS.helix.a.toString(), site0.aS.helix.X0.toString());
+        StateVector aA = site0.aS;
+        if (aA == null) aA = site0.aF;
+        if (aA != null) {
+            double tanL = aA.helix.a.v[4];
+            double K = aA.helix.a.v[2];
+            double energy = FastMath.sqrt(1.0+tanL*tanL)/Math.abs(K);
+            System.out.format("    Helix at layer %d: %s, pivot=%s, E=%9.4f\n", site0.m.Layer, aA.helix.a.toString(), aA.helix.X0.toString(), energy);
         }
         for (int i = 0; i < SiteList.size(); i++) {
             MeasurementSite site = SiteList.get(i);
@@ -566,11 +582,13 @@ public class KalTrack {
             System.out.format("    Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f ", m.Layer, m.detector, m.isStereo,
                     site.chi2inc);
             if (hitID >= 0) {
+                if (site.aS == null) aA = site.aF;
+                else aA = site.aS;
                 System.out.format(" t=%5.1f ", site.m.hits.get(site.hitID).time);
-                double residual = site.m.hits.get(hitID).v - site.aS.mPred;
+                double residual = site.m.hits.get(hitID).v - aA.mPred;
                 Pair<Double, Double> unBiasedResid = unbiasedResidual(site, false);
                 double[] lclint = moduleIntercept(m, null);
-                System.out.format("    measurement=%10.5f, predicted=%10.5f, residual=%9.5f, unbiased=%9.5f, x=%9.5f limit=%9.5f \n", site.m.hits.get(hitID).v, site.aS.mPred,
+                System.out.format("    measurement=%10.5f, predicted=%10.5f, residual=%9.5f, unbiased=%9.5f, x=%9.5f limit=%9.5f \n", site.m.hits.get(hitID).v, aA.mPred,
                         residual, unBiasedResid.getFirstElement(), lclint[0], m.xExtent[1]);
             } else {
                 System.out.format("\n");
@@ -1774,10 +1792,10 @@ public class KalTrack {
         // smoothing back to the first tracker site can then proceed as usual.
         int idxLast = SiteList.size() - 1;
         MeasurementSite lastSite = SiteList.get(idxLast);
-        HelixState energyConstrainedHelix = lastSite.aS.helix.energyConstrained(E, sigmaE);
-        //System.out.format("KalTrack:energyConstraint kappa=%9.4f, kappaE=%9.4f\n",lastSite.aS.helix.a.v[2],energyConstrainedHelix.a.v[2]);
+        HelixState energyConstrainedHelix = lastSite.aF.helix.energyConstrained(E, sigmaE);
+        if (debug) System.out.format("KalTrack:energyConstraint kappa=%9.4f, kappaE=%9.4f\n",lastSite.aF.helix.a.v[2],energyConstrainedHelix.a.v[2]);
         lastSite.energyConstrained = true;
-        lastSite.aS = new StateVector(lastSite.aS.kLow, lastSite.aS.uniformB);
+        lastSite.aS = new StateVector(lastSite.aF.kLow, lastSite.aF.uniformB);
         lastSite.aS.helix = energyConstrainedHelix;      
         lastSite.aS.kUp = lastSite.aF.kUp;
         lastSite.aS.F = lastSite.aF.F;  // Don't deep copy the F matrix
@@ -1791,7 +1809,7 @@ public class KalTrack {
         double tanl = energyConstrainedHelix.a.v[4];
         double ePredict = FastMath.sqrt(1.0 + tanl * tanl) / Math.abs(kappa);
         double chi = (E - ePredict) / sigmaE;
-        //System.out.format("KalTrack:energyConstraint E=%9.4f, Epredict=%9.4f, sigmaE=%9.4f, chi=%9.4f\n",E,ePredict,sigmaE,chi);
+        if (debug) System.out.format("KalTrack:energyConstraint E=%9.4f, Epredict=%9.4f, sigmaE=%9.4f, chi=%9.4f\n",E,ePredict,sigmaE,chi);
         this.chi2_Econstraint = lastSite.chi2incE + chi * chi;
         MeasurementSite nS = lastSite;
         for (int idx = idxLast - 1; idx >= 0; --idx) {

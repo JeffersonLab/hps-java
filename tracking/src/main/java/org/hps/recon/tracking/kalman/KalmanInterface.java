@@ -1651,10 +1651,17 @@ public class KalmanInterface {
         double [] helixParams = null;
         Vec kalHelixParams = null;
         Vec pivot = new Vec(0., 0., 0.);
+        boolean debug = true;
+        if (debug) {
+            System.out.format("Entering refitTrackWithE: energy = %10.4f\n", energy);
+        }
         if (tkrStates != null) {
             for (TrackState tkrState : tkrStates) {
                 if (tkrState.getLocation() == TrackState.AtFirstHit) {
                     theTrackState = tkrState;
+                    if (debug) {
+                        System.out.println("refitTrackWithE: trackstate at first hit");
+                    }
                     break;
                 }
             }
@@ -1662,6 +1669,9 @@ public class KalmanInterface {
                 for (TrackState tkrState : tkrStates) {
                     if (tkrState.getLocation() == TrackState.AtIP) {
                         theTrackState = tkrState;
+                        if (debug) {
+                            System.out.println("refitTrackWithE: trackstate at IP");
+                        }
                         break;
                     }
                 }               
@@ -1674,7 +1684,14 @@ public class KalmanInterface {
                 double alpha = 1000.0 * 1.0e9 / (c * bField);
                 kalHelixParams = new Vec(5, KalmanInterface.unGetLCSimParams(helixParams, alpha));
                 double[] covHPS = theTrackState.getCovMatrix();
-                DMatrixRMaj helixCov = new DMatrixRMaj(KalmanInterface.ungetLCSimCov(covHPS, alpha));
+                helixCov = new DMatrixRMaj(KalmanInterface.ungetLCSimCov(covHPS, alpha));
+                if (debug) {
+                    System.out.format("refitTrackWithE: helix params = %s\n", kalHelixParams.toString("helix"));
+                }
+            }
+        } else {
+            if (debug) {
+                System.out.println("KalmanInterface:refitTrackWithE, no track states exist ");
             }
         }
         // Get the list of tracker hits on this track
@@ -1682,14 +1699,13 @@ public class KalmanInterface {
         double firstHitZ = fillMeasurements(hitsOnTrack, 0);
         // Do a linear fit to the track hits to get the helix parameter guesses
         if (theTrackState == null) {
-            if (debug) System.out.format("firstHitZ %f \n", firstHitZ);
+            if (debug) System.out.format("refitTrackWithE: firstHitZ %f \n", firstHitZ);
             SeedTrack seed = new SeedTrack(trackHitsKalman, firstHitZ, 0., kPar);
             kalHelixParams = seed.helixParams();
             helixCov = seed.covariance();
             pivot.v[1] = seed.yOrigin;
         }
-    
-        
+          
         ArrayList<SiModule> SiMoccupied = new ArrayList<SiModule>();
         for (SiModule SiM : SiMlist) {
             if (!SiM.hits.isEmpty()) SiMoccupied.add(SiM);
@@ -1698,20 +1714,27 @@ public class KalmanInterface {
         if (debug) {
             for (int i = 0; i < SiMoccupied.size(); i++) {
                 SiModule SiM = SiMoccupied.get(i);
-                SiM.print(String.format("SiMoccupied%d", i));
+                int lyr = SiM.Layer;
+                int nHits = SiM.hits.size();
+                if (nHits == 0) continue;
+                double vHit = SiM.hits.get(0).v;
+                double eHit = SiM.hits.get(0).sigma;
+                System.out.format("refitTrackWithE: layer %d stereo=%b #hits=%d m=%10.5f+-%9.5f\n", lyr, SiM.isStereo, nHits, vHit, eHit);
             }
         }
 
         int startIndex = 0;
-        if (debug) System.out.format("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); 
+        if (debug) System.out.format("refitTrackWithE: createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); 
         CommonOps_DDRM.scale(10., helixCov);   
 
         // Do the Kalman track fit only up through the filter step
         KalTrack newTrack = kalmanFilterTrack(0, track.hashCode(), SiMoccupied, null, kalHelixParams, pivot, helixCov);
+        if (debug) newTrack.print("filtered track");
         
         // Include the eCal information and smooth back toward the origin
         double sigmaE = (kPar.eRes[0]/FastMath.sqrt(energy) + kPar.eRes[1])*energy/100.;
         newTrack.energyConstraint(energy, sigmaE);
+        if (debug) newTrack.print("energy constrainted");
         
         // Convert the KalTrack object into and HPS Track and TrackState
         Track outputTrack = createTrack(newTrack, true);
@@ -1783,9 +1806,16 @@ public class KalmanInterface {
     
             sites.add(newSite);
             prevSite = newSite;
-        }        
-        ArrayList<Double> yScat = null;
-        ArrayList<Double> XLscat = null;
+        }
+        boolean debug = true;
+        if (debug) {
+            for (MeasurementSite site : sites) {
+                System.out.format("kalmanFilterTrack: hit on layer %d\n", site.m.Layer);
+            }
+            System.out.format("kalmanFilterTrack: filter chi^2 = %9.3f\n", chi2f);
+        }
+        ArrayList<Double> yScat = new ArrayList<Double>();
+        ArrayList<Double> XLscat = new ArrayList<Double>();
         return new KalTrack(eventNumber, tkID, sites, yScat, XLscat, kPar);
     }
     
