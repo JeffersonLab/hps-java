@@ -10,6 +10,7 @@ import org.lcsim.event.base.BaseReconstructedParticle;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.EventHeader.LCMetaData;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.geometry.Detector;
@@ -209,7 +210,12 @@ public class FinalStateParticleDriver extends Driver {
                   finalStateParticles.getValue1(), ReconstructedParticle.class, 0);
         event.put("FinalStatePositrons", 
                   finalStateParticles.getValue2(), ReconstructedParticle.class, 0);
-        
+       
+        LCMetaData fseMeta = event.getMetaData(finalStateParticles.getValue1());
+        fseMeta.setTransient(true);
+
+        LCMetaData fspMeta = event.getMetaData(finalStateParticles.getValue2());
+        fspMeta.setTransient(true);
     }
 
     /**
