@@ -573,14 +573,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         || (tanLambda < 0 && track.getTrackerHits().size() < actualHitCut))  {
                     continue;
                 }
-
-                if (TrackType == 1 && track.getTrackerHits().size() % 2 == 1) {
-                    // this is a KF track with an odd number of hits which /cannot/
-                    // be equivalent to a GBL track so we are going to skip it
-                    // in a future where KF-based alignment is the standard,
-                    // we probably want to remove this
-                    continue;
-                }
                 
                 // ask tracks only on a side
                 if (trackSide >= 0) {
