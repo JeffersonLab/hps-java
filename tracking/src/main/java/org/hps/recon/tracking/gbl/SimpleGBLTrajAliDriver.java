@@ -783,7 +783,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     
                     
                     //Provide the energy correction
-                    double targetP  = p * posEoP;
+                    double targetP  = p * eleEoP;
                     double targetPt = targetP * cosLambda;
                     double corrected_c = sign*(bfield*momentum_param)/(targetPt);
                     trk_prms[BaseTrack.OMEGA] = corrected_c;
