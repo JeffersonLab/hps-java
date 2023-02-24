@@ -3,7 +3,7 @@
        xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
   
-  <info name="HPS_Nominal_iter0">
+  <info name="HPS_Design_iter0">
     <comment>HPS detector for 2019 run with fieldmap,
     Tracker at nominal opening angle, no SVT survey,  
     this detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV.
@@ -319,7 +319,7 @@
           <unitvec name="Z" x="0" y="0" z="1" />
         </SurveyVolume>
 
-	    <SurveyVolume name="module_L1b_halfmodule_axial" desc="Bot L1A sensor basis in survey uchannel frame">
+        <SurveyVolume name="module_L1b_halfmodule_axial" desc="Bot L1A sensor basis in survey uchannel frame">
           <origin x="123.65 +0.08737 " y="52.095 -0.0437" z="-5.8420 +0.5025" /> 
           <unitvec name="X" x="1" y="0" z="0" />
           <unitvec name="Y" x="0" y="1" z="0" />
@@ -340,15 +340,12 @@
           <unitvec name="Z" x="0" y="0" z="1" />
         </SurveyVolume>
 
-        
         <SurveyVolume name="module_L2b_halfmodule_stereo" desc="Bot L2S sensor basis in survey uchannel frame">
           <origin x="124.42 +0.1198468967" y="52.134 -0.121019833" z="-13.437 +0.2775" />
           <unitvec name="X" x="-0.99500" y="-0.099833" z="0" />
           <unitvec name="Y" x="-0.099833" y="0.99500" z="0" />
           <unitvec name="Z" x="0" y="0" z="1" />
         </SurveyVolume>
-
-
 
         <!-- L3 and L4 sensors only have position along UChannel surveyed. -->
         <!-- Only x here has meaning and has been measured directly on the UChannel -->
@@ -382,8 +379,6 @@
           <unitvec name="Y" x="0.099833" y="-0.99500" z="0" />
           <unitvec name="Z" x="0" y="0" z="1" />
         </SurveyVolume> 
-
-
         <SurveyVolume name="module_L3b_halfmodule_stereo" desc="Bottom L3S sensor basis in pin frame:">
           <origin x="124.2553 -0.42277" y="39.2506 -0.1082" z="-13.6328 +0.1737" />
           <unitvec name="X" x="9.9502e-01" y="9.9709e-02" z="1.7627e-05" />
@@ -408,8 +403,6 @@
           <unitvec name="Y" x="-7.0712e-05" y="1.0000e+00" z="-2.2793e-03" />
           <unitvec name="Z" x="-2.5016e-03" y="2.2791e-03" z="9.9999e-01" />
         </SurveyVolume>
-
-
 
         <SurveyVolume name="module_L5t_halfmodule_stereo_hole" desc="Top L5SE sensor basis in pin frame:">
           <origin x="98.9408 - 0.09888814995" y="32.5693 -0.01894804817" z="-13.4153 -0.0185" />
@@ -460,12 +453,12 @@
           <unitvec name="Z" x="1.0487e-03" y="-7.0132e-04" z="1.0000e+00" />
         </SurveyVolume>
 
-         <SurveyVolume name="module_L5b_halfmodule_stereo_hole" desc="Bottom L5SE sensor basis in pin frame:">
+        <SurveyVolume name="module_L5b_halfmodule_stereo_hole" desc="Bottom L5SE sensor basis in pin frame:">
           <origin x="98.8403 +0.04811185005" y="32.5506 +0.01805195183" z="-13.4188-0.0485" />
           <unitvec name="X" x="0.9988" y="0.049" z="0.0011" />
           <unitvec name="Y" x="0.049" y="-0.9988" z="0.0024" />
           <unitvec name="Z" x="0.0012" y="-0.0024" z="-1." />
-         </SurveyVolume>
+        </SurveyVolume>
         <SurveyVolume name="module_L5b_halfmodule_stereo_slot" desc="Bottom L5SP sensor basis in pin frame:">
           <origin x="199.7647" y="37.5793+0.03394804817" z="-13.416-0.0685" />
           <unitvec name="X" x="-9.9872e-01" y="-5.0612e-02" z="2.0998e-04" />
@@ -509,7 +502,7 @@
           <unitvec name="Z" x="7.2237e-04" y="-1.3666e-04" z="1.0000e+00" />
         </SurveyVolume>
 
-        <SurveyVolume name="module_L7b_halfmodule_stereo_hole" desc="Bottom L6SE sensor basis in pin frame:">
+	<SurveyVolume name="module_L7b_halfmodule_stereo_hole" desc="Bottom L6SE sensor basis in pin frame:">
           <origin x="98.8719 + 0.2151118501" y="32.5577 -0.01594804817" z="-13.446 +0.0315" />
           <unitvec name="X" x="9.9875e-01" y="5.0030e-02" z="-3.1473e-04" />
           <unitvec name="Y" x="5.0030e-02" y="-9.9875e-01" z="-4.8047e-04" />
@@ -533,7 +526,6 @@
           <unitvec name="Y" x="2.2099e-04" y="-1.0000e+00" z="-1.3682e-04" />
           <unitvec name="Z" x="7.2237e-04" y="-1.3666e-04" z="1.0000e+00" />
         </SurveyVolume>
-        
       </SurveyVolumes>
       
 
