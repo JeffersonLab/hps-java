@@ -2,6 +2,8 @@ package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
 
+import org.lcsim.event.MCParticle;
+
 /**
  * Holds a single silicon-strip measurement (single-sided), to interface with the Kalman fit
  */
@@ -14,7 +16,8 @@ class Measurement { //
     double vTrue; // MC truth measurement value
     Vec rGlobal; // Global MC truth
     ArrayList<KalTrack> tracks;     // Tracks that this hit lies on
-    ArrayList<Integer> tksMC;       // MC tracks that contributed to this hit
+    ArrayList<Integer> tksMC;       // MC track IDs that contributed to this hit (for stand-alone test program)
+    ArrayList<MCParticle> pMC;      // List of hps-java MCparticle objects that contributed to this hit
 
     /**
      * Constructor with no MC truth info stored
@@ -29,6 +32,7 @@ class Measurement { //
         vTrue = 0.;
         rGlobal = null;
         tksMC = null;
+        pMC = null;
     }
     
     /**
@@ -51,6 +55,7 @@ class Measurement { //
         this.vTrue = vTrue;
         tracks = new ArrayList<KalTrack>();
         tksMC = new ArrayList<Integer>();
+        pMC = null;
     }
     
     /**
@@ -66,15 +71,7 @@ class Measurement { //
      * @param s   Arbitrary string for the user's reference
      */
     void print(String s) {
-        System.out.format("Measurement %s: Measurement value=%10.5f+-%8.6f; xStrip=%7.2f, MC truth=%10.5f; t=%8.3f; E=%8.3f", s, v, sigma, x, vTrue, time, energy);
-        if (tracks.size() == 0) {
-            System.out.format("  Not on any track.\n");
-        } else {
-            System.out.format("  Tracks: ");
-            for (KalTrack tk : tracks) System.out.format(" %d ", tk.ID);
-            System.out.format("\n");
-        }
-        if (rGlobal != null) rGlobal.print("global location from MC truth"); 
+        System.out.format("%s", toString(s));
     }
     
     /**
@@ -91,6 +88,12 @@ class Measurement { //
             str = str + String.format("\n");
         }
         if (rGlobal != null) str = str + rGlobal.toString("global location from MC truth"); 
+        if (pMC != null) {
+            str = str + "\n";
+            for (MCParticle mcp : pMC) {
+                str = str + String.format("    MC particle type %d, E=%9.5f\n", mcp.getPDGID(),mcp.getEnergy());
+            }
+        }
         return str;
     }
 }

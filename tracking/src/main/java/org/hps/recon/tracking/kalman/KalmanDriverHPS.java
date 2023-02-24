@@ -261,7 +261,7 @@ public class KalmanDriverHPS extends Driver {
             if (createSeed) { // Start with the linear helix fit
                 if (verbose)
                     System.out.println("Use a linear helix fit to get a starting guess for the Kalman filter\n");
-                SeedTrack seedKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
+                SeedTrack seedKalmanTrack = KI.createKalmanSeedTrack(event, trk, hitToStrips, hitToRotated);
                 if (verbose) {
                     System.out.println("\nPrinting info for Kalman SeedTrack:");
                     seedKalmanTrack.print("testKalmanTrack");
@@ -278,7 +278,7 @@ public class KalmanDriverHPS extends Driver {
                 outputSeedTracks.add(HPStrk);
 
                 //full track
-                ktf2 = KI.createKalmanTrackFit(evtNumb, seedKalmanTrack, trk, hitToStrips, hitToRotated, 2);
+                ktf2 = KI.createKalmanTrackFit(event, seedKalmanTrack, trk, hitToStrips, hitToRotated, 2);
                 if (!ktf2.success) {
                     KI.clearInterface();
                     continue;
@@ -344,7 +344,7 @@ public class KalmanDriverHPS extends Driver {
                     cov.print("GBL covariance for starting Kalman fit");
                 }
                 //full track
-                ktf2 = KI.createKalmanTrackFit(evtNumb, kalParams, newPivot, cov, trk, hitToStrips, hitToRotated, 2);
+                ktf2 = KI.createKalmanTrackFit(event, kalParams, newPivot, cov, trk, hitToStrips, hitToRotated, 2);
                 if (!ktf2.success) {
                     KI.clearInterface();
                     continue;

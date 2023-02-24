@@ -1,9 +1,13 @@
 package org.hps.recon.particle;
 
 import static java.lang.Math.abs;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.math.util.FastMath;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
@@ -17,10 +21,17 @@ import org.lcsim.detector.identifier.IIdentifierDictionary;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
+import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseReconstructedParticle;
+import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -41,7 +52,7 @@ public class ReconstructedParticleRefitter extends Driver {
      * The histogram handler
      */
     private AIDA aida = AIDA.defaultInstance();
-
+    private String outputFileName = "ReconPartRefit.root";
     /**
      * The name of the input ReconstructedParticle collection to process
      */
@@ -69,6 +80,7 @@ public class ReconstructedParticleRefitter extends Driver {
     private double eRes0 = -1.0;
     private double eRes1 = -1.0;
     
+    private static final boolean debug = false;
     /**
      * ECal energy resolution parameterization, for the resolution as a % of E.
      * @param eRes0    coefficient of the 1/sqrt(E) term
@@ -114,6 +126,21 @@ public class ReconstructedParticleRefitter extends Driver {
      * @param event      The hps-java event header
      */
     public void process(EventHeader event) {
+        if (debug) {
+            System.out.println("Entering process");
+            if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+                System.out.println("SVTTrueHitRelations are present");
+            }
+            if (event.hasCollection(SimTrackerHit.class, "TrackerHits")) {
+                System.out.println("Sim TrackerHits are present");
+            }
+            if (event.hasCollection(MCParticle.class, "MCParticles")) {
+                System.out.println("MCParticles are present");
+            }
+            if (event.hasCollection(LCRelation.class, "KalmanFullTracksToTruthTrackRelations")) {
+                System.out.println("KalmanFullTracksToTruthTrackRelations are present");
+            }
+        }
         if (event.hasCollection(ReconstructedParticle.class, _finalStateParticleCollectionName)) {
             // setup the hit-to-sensor associations
             // should not need to do this if not reading in events from disk
@@ -129,10 +156,53 @@ public class ReconstructedParticleRefitter extends Driver {
                     if (!rp.getClusters().isEmpty()) {
                         // quick check on E/p so we don't try to fit to the energy of MIP tracks
                         double eOverP = rp.getEnergy() / rp.getMomentum().magnitude();
-                        aida.histogram1D("e over p", 100, 0., 2.).fill(eOverP);
+                        aida.histogram1D("e over p before refit", 100, 0., 2.).fill(eOverP);
+                        if (debug) System.out.format("ReconstructedParticleRefitter: event %d, E/P=%10.5f, cut=%10.5f\n", event.getEventNumber(), eOverP, _eOverpCut);
                         if (abs(eOverP - 1.0) < _eOverpCut) {
+                            // Get the old track info
+                            Track oldTrack = rp.getTracks().get(0);
+                            TrackState oldTsAtIP = null;
+                            for (TrackState ts : oldTrack.getTrackStates()) {
+                                if (ts.getLocation() == TrackState.AtIP) {
+                                    oldTsAtIP = ts;
+                                    break;
+                                }
+                            }
+                            if (oldTsAtIP == null) oldTsAtIP = oldTrack.getTrackStates().get(0);
+                            double[] oldParams = oldTsAtIP.getParameters();
                             // create a new ReconstructedParticle here...
-                            refitReconstructedParticles.add(makeNewReconstructedParticle(rp));
+                            ReconstructedParticle refitParticle = makeNewReconstructedParticle(event, rp);
+                            refitReconstructedParticles.add(refitParticle);
+                            Track newTrack = refitParticle.getTracks().get(0);
+                            TrackState newTsAtIP = null;
+                            for (TrackState ts : newTrack.getTrackStates()) {
+                                if (ts.getLocation() == TrackState.AtIP) {
+                                    newTsAtIP = ts;
+                                    break;
+                                }
+                            }
+                            if (newTsAtIP == null) newTsAtIP = newTrack.getTrackStates().get(0);
+                            double[] newParams = newTsAtIP.getParameters();
+                            for (int i=0; i<5; ++i) {
+                                aida.histogram1D(String.format("Helix parameter %d new minus old over old", i), 100, -0.5, 0.5).fill((newParams[i]-oldParams[i])/oldParams[i]);
+                            }
+                            aida.histogram1D("old track chi2/dof", 100, 0., 50.).fill(oldTrack.getChi2()/oldTrack.getNDF());
+                            aida.histogram1D("new track chi2/dof", 100, 0., 50.).fill(newTrack.getChi2()/newTrack.getNDF());
+                            double [] P = newTsAtIP.getMomentum();
+                            double pMag = FastMath.sqrt(P[0]*P[0]+P[1]*P[1]+P[2]*P[2]);
+                            double changeInP = pMag/rp.getMomentum().magnitude();
+                            aida.histogram1D("new momentum over old momentum", 100, 0.5, 1.5).fill(changeInP);
+                            aida.histogram1D("new particle E over p", 100, 0., 2.).fill(rp.getEnergy()/pMag);
+                            if (debug) System.out.format("ReconstructedParticleRefitter: Event %d, eOverP=%10.4f, changeInP=%10.4f\n",
+                                    event.getEventNumber(), eOverP, changeInP);
+                            MCParticle theMatch = getMCmatch(event, rp);
+                            if (theMatch != null) {
+                                double eMC = theMatch.getEnergy();
+                                double newPoverEMC = pMag/eMC;
+                                if (debug) System.out.format("   MC match: p/E MC = %10.4f\n", newPoverEMC);
+                                aida.histogram1D("new momentum over MC energy", 100, 0.5, 1.5).fill(newPoverEMC);
+                                aida.histogram1D("old momentum over MC energy", 100, 0.5, 1.5).fill(rp.getMomentum().magnitude()/eMC);
+                            }
                         } else {
                             refitReconstructedParticles.add(rp);
                         }
@@ -146,6 +216,7 @@ public class ReconstructedParticleRefitter extends Driver {
             // add the new collection to the event
             event.put(_refitParticleCollectionName, refitReconstructedParticles, ReconstructedParticle.class, 0);
         }
+        KI.clearInterface();
     }
 
     /**
@@ -156,20 +227,24 @@ public class ReconstructedParticleRefitter extends Driver {
      * @param rp the ReconstructedParticle to refit
      * @return
      */
-    private ReconstructedParticle makeNewReconstructedParticle(ReconstructedParticle rp) {
+    private ReconstructedParticle makeNewReconstructedParticle(EventHeader event, ReconstructedParticle rp) {
         // Create a reconstructed particle to represent the track.
         ReconstructedParticle particle = new BaseReconstructedParticle();
         Cluster cluster = rp.getClusters().get(0);
         // refit the track with the cluster energy
-        Track newTrack = refitTrack(rp);
+        Track newTrack = refitTrack(event, rp);
         // Store the track in the particle.
-        particle.addTrack(newTrack);
+        particle.addTrack(newTrack); 
+        if (debug) {
+            double [] trackP = newTrack.getTrackStates().get(0).getMomentum();
+            double P=FastMath.sqrt(trackP[0]*trackP[0]+trackP[1]*trackP[1]+trackP[2]*trackP[2]);
+            System.out.format("makeNewReconstructedParticle:  track p=%10.4f\n", P);
+        }
 
-        // Set the type of the particle. This is used to identify
-        // the tracking strategy used in finding the track associated with
-        // this particle.
-        // Modify this to flag that we have refit with the energy
-        // for now, just add 1000
+        // Set the type of the particle. This is used to identify the tracking
+        // strategy used in finding the track associated with this particle.
+        // Modify this to flag that we have refit with the energy.
+        // For now, just add 1000
         ((BaseReconstructedParticle) particle).setType(1000 + newTrack.getType());
         ((BaseReconstructedParticle) particle).setParticleIdUsed(new SimpleParticleID(rp.getParticleIDUsed().getPDG(), 0, 0, 0));
         // add cluster to the particle:
@@ -181,20 +256,65 @@ public class ReconstructedParticleRefitter extends Driver {
         return particle;
     }
 
+    private MCParticle getMCmatch(EventHeader event, ReconstructedParticle rp) {
+        MCParticle theMatch = null;
+        RelationalTable rawtomc = null;
+        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+            rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+            for (LCRelation relation : trueHitRelations) {
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                    rawtomc.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        } else {
+            return theMatch;
+        }
+        if (debug) System.out.println("getMCmatch: relation table constructed.");
+        ArrayList<MCParticle> pMC = new ArrayList<MCParticle>(1);
+        ArrayList<Integer> cnt = new ArrayList<Integer>(1);
+        Track track = rp.getTracks().get(0);
+        List<TrackerHit> hitsOnTrack = track.getTrackerHits();
+        for (TrackerHit hit : hitsOnTrack) {
+            List<RawTrackerHit> rawHits = hit.getRawHits();
+            for (RawTrackerHit rawHit : rawHits) {
+                Set<SimTrackerHit> simHits = rawtomc.allFrom(rawHit);
+                for (SimTrackerHit simHit : simHits) {
+                    MCParticle mcp = simHit.getMCParticle();
+                    if (!pMC.contains(mcp)) {
+                        pMC.add(mcp);
+                        cnt.add(1);
+                    } else {
+                        int idx = pMC.indexOf(mcp);
+                        cnt.set(idx,cnt.get(idx)+1);
+                    }
+                }
+            }
+        }
+        if (debug) System.out.format("getMCmatch: %d MC matches found\n", pMC.size());
+        int maxCnt = 0;
+        for (int i=0; i<pMC.size(); ++i) {
+            if (cnt.get(i) > maxCnt) {
+                maxCnt = cnt.get(i);
+                theMatch = pMC.get(i);
+            }
+        }
+        return theMatch;
+    }
     /**
-     * Method stub for refitting a track
+     * Method for refitting a track
      *
      * @param rp The input ReconstructedParticle with track and matching cluster
      * @return the newly refit track including the cluster energy
      */
-    private Track refitTrack(ReconstructedParticle rp) {
+    private Track refitTrack(EventHeader event, ReconstructedParticle rp) {
         Track track = rp.getTracks().get(0);
         Cluster cluster = rp.getClusters().get(0);
         //the energy of the associated cluster
         double energy = cluster.getEnergy();
 
         // Fit a new track with this list of hits and the cluster energy.
-        return KI.refitTrackWithE(track, energy);
+        return KI.refitTrackWithE(event, track, energy);
     }
 
     /**
@@ -263,5 +383,16 @@ public class ReconstructedParticleRefitter extends Driver {
      */
     public void set_eOverpCut(double d) {
         _eOverpCut = d;
+    }
+    
+    public void endOfData() {
+        System.out.format("ReconstructedParticleRefitter: end-of-data reached.\n");
+        try {
+            System.out.format("Outputting the aida histograms now to file %s\n", outputFileName);
+            aida.saveAs(outputFileName);
+        } catch (IOException ex) {
+            System.out.println("ReconstructedParticleRefitter: exception when writing out histograms");
+        }
+        KI.summary();
     }
 }

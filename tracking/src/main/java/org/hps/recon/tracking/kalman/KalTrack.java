@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+//import java.util.List;
 import java.util.Map;
+//import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +20,7 @@ import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
 import org.hps.util.Pair;
+import org.lcsim.event.MCParticle;
 
 /**
  * Track followed and fitted by the Kalman filter
@@ -112,6 +115,12 @@ public class KalTrack {
             if (SiteList.get(idx).hitID >= 0) {
                 break;
             }
+        }
+        if (firstSite < 0 || lastSite == 999) {
+            firstSite = 0;
+            lastSite = SiteList.size() - 1;
+            logger.log(Level.WARNING, String.format("Event %d: no sites on track %d. Number of sites=%d",
+                    eventNumber, ID, SiteList.size()));
         }
 
         // Make a new list of sites, without empty sites at beginning or end
@@ -1857,6 +1866,44 @@ public class KalTrack {
         helixAtOrigin = SiteList.get(0).aS.helix.propagateRungeKutta(originPlane, yScat, XLscat, SiteList.get(0).m.Bfield, arcLengthE);          
         energyConstrained = true;
     }
+
+    /**
+     * Return the best matched MC particle for this track
+     * @return best match MCParticle
+     */
+    MCParticle getBestMCmatch() {
+        MCParticle bestMC = null;
+        ArrayList<MCParticle> mcParts = new ArrayList<MCParticle>();
+        ArrayList<Integer> mcCnt = new ArrayList<Integer>();
+        for (MeasurementSite site : SiteList) {
+            StateVector aS = site.aS;
+            SiModule mod = site.m;
+            if (aS != null && mod != null) {
+                if (site.hitID >= 0) {
+                    Measurement hit = mod.hits.get(site.hitID);
+                    if (hit.pMC != null) {
+                        for (MCParticle mcp : hit.pMC) {
+                            if (mcParts.contains(mcp)) {
+                                int id = mcParts.indexOf(mcp);
+                                mcCnt.set(id, mcCnt.get(id)+1);
+                            } else {
+                                mcParts.add(mcp);
+                                mcCnt.add(1);
+                            }
+                        }
+                    }                            
+                }
+            }
+        }
+        int maxCnt = 0;
+        for (int i=0; i<mcParts.size(); ++i) {
+            if (mcCnt.get(i) > maxCnt) {
+                maxCnt = mcCnt.get(i);
+                bestMC = mcParts.get(i);
+            }
+        }
+        return bestMC;
+    }    
 
     /**
      * Derivative matrix for propagating the covariance of the helix parameters
