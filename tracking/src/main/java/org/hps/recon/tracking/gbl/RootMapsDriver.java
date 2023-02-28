@@ -10,7 +10,7 @@ import org.lcsim.event.EventHeader;
 //import org.lcsim.event.base.BaseRelationalTable;
 //import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
-import org.lcsim.event.base.BaseTrack;
+//import org.lcsim.event.base.BaseTrack;
 
 import org.lcsim.util.Driver;
 import org.lcsim.geometry.Detector;
@@ -21,6 +21,7 @@ import org.lcsim.event.TrackState;
 //Fiducial cuts on the calorimeter cluster
 import org.hps.record.triggerbank.TriggerModule;
 import hep.physics.vec.BasicHep3Vector;
+
 
 public class RootMapsDriver extends Driver {
 
@@ -54,13 +55,13 @@ public class RootMapsDriver extends Driver {
             mapfile = new TFileJna("output_map_file.root","RECREATE");
             
             eop_pos_phi_tanL = new TH3DJna("eop_pos_phi_tanL", "eop_pos_phi_tanL",
-                                           100,-0.1,0.1,
-                                           100,-0.1,0.1,
+                                           100,-0.2,0.2,
+                                           100,-0.08,0.08,
                                            100,0.5,1.5);
             
             eop_ele_phi_tanL = new TH3DJna("eop_ele_phi_tanL", "eop_ele_phi_tanL",
-                                           100,-0.1,0.1,
-                                           100,-0.1,0.1,
+                                           100,-0.2,0.2,
+                                           100,-0.08,0.08,
                                            100,0.5,1.5);
             
         }
@@ -141,9 +142,13 @@ public class RootMapsDriver extends Driver {
             
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
-                double phi0 = trk_prms[BaseTrack.PHI];
-                double tanL = trk_prms[BaseTrack.TANLAMBDA];
-            
+                                
+                //double phi0 = trk_prms[BaseTrack.PHI];
+                //double tanL = trk_prms[BaseTrack.TANLAMBDA];
+                double tanL = trackState.getTanLambda();
+                double phi0 = trackState.getPhi();
+
+                
                 //Positrons - charge is flipped
                 if (track.getCharge() < 0) {
                     eop_pos_phi_tanL.fill(phi0,tanL,e_o_p);

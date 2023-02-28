@@ -19,6 +19,7 @@ public class TFileJna {
         void TFile_ls(Pointer self);
         void TFile_delete(Pointer self);
         Pointer TFile_Get1DHisto(Pointer self, String name);
+        Pointer TFile_Get2DHisto(Pointer self, String name);
     }
 
     private Pointer self;
@@ -50,6 +51,10 @@ public class TFileJna {
 
     Pointer get1DHisto(String name) {
         return TFileInterface.INSTANCE.TFile_Get1DHisto(self,name);
+    }
+
+    Pointer get2DHisto(String name) {
+        return TFileInterface.INSTANCE.TFile_Get2DHisto(self,name);
     }
   
 }
