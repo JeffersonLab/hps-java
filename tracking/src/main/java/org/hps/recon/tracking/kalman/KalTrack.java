@@ -1799,13 +1799,19 @@ public class KalTrack {
         // so the smoothed state vector with energy constraint at the last tracker
         // site is exactly what is returned by the energyConstrained method. The
         // smoothing back to the first tracker site can then proceed as usual.
+        //boolean debug = true;
+        final boolean noConstraint = false; // for debugging purposes, should just do a normal Kalman smoothing
         int idxLast = SiteList.size() - 1;
         MeasurementSite lastSite = SiteList.get(idxLast);
         HelixState energyConstrainedHelix = lastSite.aF.helix.energyConstrained(E, sigmaE);
         if (debug) System.out.format("KalTrack:energyConstraint kappa=%9.4f, kappaE=%9.4f\n",lastSite.aF.helix.a.v[2],energyConstrainedHelix.a.v[2]);
-        lastSite.energyConstrained = true;
-        lastSite.aS = new StateVector(lastSite.aF.kLow, lastSite.aF.uniformB);
-        lastSite.aS.helix = energyConstrainedHelix;      
+        lastSite.energyConstrained = !noConstraint;
+        lastSite.aS = new StateVector(lastSite.aF.kLow, lastSite.aF.uniformB);  // Blank new state vector
+        if (noConstraint) {
+            lastSite.aS.helix = lastSite.aF.helix;
+        } else {
+            lastSite.aS.helix = energyConstrainedHelix;   
+        }
         lastSite.aS.kUp = lastSite.aF.kUp;
         lastSite.aS.F = lastSite.aF.F;  // Don't deep copy the F matrix
         lastSite.aS.mPred = lastSite.aF.mPred;
@@ -1819,13 +1825,17 @@ public class KalTrack {
         double ePredict = FastMath.sqrt(1.0 + tanl * tanl) / Math.abs(kappa);
         double chi = (E - ePredict) / sigmaE;
         if (debug) System.out.format("KalTrack:energyConstraint E=%9.4f, Epredict=%9.4f, sigmaE=%9.4f, chi=%9.4f\n",E,ePredict,sigmaE,chi);
-        this.chi2_Econstraint = lastSite.chi2incE + chi * chi;
+        if (noConstraint) {
+            this.chi2_Econstraint = lastSite.chi2incE;
+        } else {
+            this.chi2_Econstraint = lastSite.chi2incE + chi * chi;
+        }
         MeasurementSite nS = lastSite;
         for (int idx = idxLast - 1; idx >= 0; --idx) {
             MeasurementSite thisSite = SiteList.get(idx);
             thisSite.aS = thisSite.aF.smooth(nS.aS, nS.aP);
             if (thisSite.hitID < 0) {
-                thisSite.energyConstrained = true;
+                thisSite.energyConstrained = !noConstraint;
                 continue;
             }
             Measurement hit = thisSite.m.hits.get(thisSite.hitID);
@@ -1854,7 +1864,7 @@ public class KalTrack {
 
             thisSite.chi2incE = (thisSite.aS.r * thisSite.aS.r) / thisSite.aS.R;
             this.chi2_Econstraint += thisSite.chi2incE;
-            thisSite.energyConstrained = true;
+            thisSite.energyConstrained = !noConstraint;
             nS = thisSite;
         }
         Vec beamSpot = new Vec(3, kPar.beamSpot);

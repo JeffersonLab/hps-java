@@ -1434,7 +1434,7 @@ public class KalmanInterface {
      *
      * @param hits1D 1-dimensional tracker hits
      * @param addMode 0 to skip layers not already having hits; 1 to skip layers
-     * already having hits
+     * already having hits; 2 not to skip
      * @return
      */
     private double fillMeasurements(EventHeader event, List<TrackerHit> hits1D, int addMode) {
@@ -1442,7 +1442,8 @@ public class KalmanInterface {
         //boolean debug = true;
         boolean hasMC = false;
         Map<HpsSiSensor, ArrayList<TrackerHit>> hitsMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
-
+        if (debug) System.out.format("Entering fillMeasurements in event %d for %d hits, addmode %d\n",
+                event.getEventNumber(), hits1D.size(), addMode);
         for (TrackerHit hit1D : hits1D) {
             HpsSiSensor temp = ((HpsSiSensor) ((RawTrackerHit) hit1D.getRawHits().get(0)).getDetectorElement());
             int lay = temp.getLayerNumber();
@@ -1729,7 +1730,9 @@ public class KalmanInterface {
                 double[] covHPS = theTrackState.getCovMatrix();
                 helixCov = new DMatrixRMaj(KalmanInterface.ungetLCSimCov(covHPS, alpha));
                 if (debug) {
-                    System.out.format("refitTrackWithE: helix params = %s\n", kalHelixParams.toString("helix"));
+                    System.out.format("refitTrackWithE: LCSim helix params = %9.5f %9.5f %9.5f %9.5f %9.5f\n",
+                            helixParams[0], helixParams[1], helixParams[2], helixParams[3], helixParams[4]);
+                    System.out.format("refitTrackWithE: Kalman helix params = %s\n", kalHelixParams.toString("helix"));
                 }
             }
         } else {
@@ -1739,7 +1742,7 @@ public class KalmanInterface {
         }
         // Get the list of tracker hits on this track
         List<TrackerHit> hitsOnTrack = track.getTrackerHits();
-        double firstHitZ = fillMeasurements(event, hitsOnTrack, 0);
+        double firstHitZ = fillMeasurements(event, hitsOnTrack, 2);
         // Do a linear fit to the track hits to get the helix parameter guesses
         if (theTrackState == null) {
             if (debug) System.out.format("refitTrackWithE: firstHitZ %f \n", firstHitZ);
@@ -1762,7 +1765,8 @@ public class KalmanInterface {
                 if (nHits == 0) continue;
                 double vHit = SiM.hits.get(0).v;
                 double eHit = SiM.hits.get(0).sigma;
-                System.out.format("refitTrackWithE: layer %d stereo=%b #hits=%d m=%10.5f+-%9.5f\n", lyr, SiM.isStereo, nHits, vHit, eHit);
+                double vTrue = SiM.hits.get(0).vTrue;
+                System.out.format("refitTrackWithE: layer %d stereo=%b #hits=%d m=%9.5f+-%8.5f vTrue=%9.5f\n", lyr, SiM.isStereo, nHits, vHit, eHit, vTrue);
             }
         }
 
@@ -1772,7 +1776,7 @@ public class KalmanInterface {
         }
         
         int startIndex = 0;
-        System.out.format("refitTrackWithE: createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); 
+        if (debug) System.out.format("refitTrackWithE: createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); 
         CommonOps_DDRM.scale(10., helixCov);   
 
         // Do the Kalman track fit only up through the filter step
@@ -1816,6 +1820,7 @@ public class KalmanInterface {
                 hits.add(0);
             }
         } 
+        //boolean debug = true;
         // Create an state vector to initialize the Kalman filter
         Vec Bfield = null;
         if (kPar.uniformB) {

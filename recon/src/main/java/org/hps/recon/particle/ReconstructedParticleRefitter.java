@@ -186,8 +186,8 @@ public class ReconstructedParticleRefitter extends Driver {
                             for (int i=0; i<5; ++i) {
                                 aida.histogram1D(String.format("Helix parameter %d new minus old over old", i), 100, -0.5, 0.5).fill((newParams[i]-oldParams[i])/oldParams[i]);
                             }
-                            aida.histogram1D("old track chi2/dof", 100, 0., 50.).fill(oldTrack.getChi2()/oldTrack.getNDF());
-                            aida.histogram1D("new track chi2/dof", 100, 0., 50.).fill(newTrack.getChi2()/newTrack.getNDF());
+                            aida.histogram1D("old track chi2 per dof", 100, 0., 50.).fill(oldTrack.getChi2()/oldTrack.getNDF());
+                            aida.histogram1D("new track chi2 per dof", 100, 0., 50.).fill(newTrack.getChi2()/newTrack.getNDF());
                             double [] P = newTsAtIP.getMomentum();
                             double pMag = FastMath.sqrt(P[0]*P[0]+P[1]*P[1]+P[2]*P[2]);
                             double changeInP = pMag/rp.getMomentum().magnitude();
@@ -202,6 +202,7 @@ public class ReconstructedParticleRefitter extends Driver {
                                 if (debug) System.out.format("   MC match: p/E MC = %10.4f\n", newPoverEMC);
                                 aida.histogram1D("new momentum over MC energy", 100, 0.5, 1.5).fill(newPoverEMC);
                                 aida.histogram1D("old momentum over MC energy", 100, 0.5, 1.5).fill(rp.getMomentum().magnitude()/eMC);
+                                aida.histogram1D("ECAL over MC energy", 100, 0.5, 1.5).fill(rp.getEnergy()/eMC);
                             }
                         } else {
                             refitReconstructedParticles.add(rp);
@@ -230,6 +231,7 @@ public class ReconstructedParticleRefitter extends Driver {
     private ReconstructedParticle makeNewReconstructedParticle(EventHeader event, ReconstructedParticle rp) {
         // Create a reconstructed particle to represent the track.
         ReconstructedParticle particle = new BaseReconstructedParticle();
+        if (debug) System.out.format("Entering makeNewReconstructedParticle for event %d\n", event.getEventNumber());
         Cluster cluster = rp.getClusters().get(0);
         // refit the track with the cluster energy
         Track newTrack = refitTrack(event, rp);
@@ -312,6 +314,9 @@ public class ReconstructedParticleRefitter extends Driver {
         Cluster cluster = rp.getClusters().get(0);
         //the energy of the associated cluster
         double energy = cluster.getEnergy();
+        int nHits = track.getTrackerHits().size();
+        if (debug) System.out.format("refitTrack in event %d with %d hits, chi2=%8.3f for %d dof, cluster E=%9.4f\n", 
+                event.getEventNumber(), nHits, track.getChi2(), track.getNDF(), energy);
 
         // Fit a new track with this list of hits and the cluster energy.
         return KI.refitTrackWithE(event, track, energy);

@@ -173,7 +173,7 @@ public class KalmanParams {
         lowPhThresh = 0.25; // Residual improvement ratio necessary to use a low-ph hit instead of high-ph
         seedCompThr = 0.05;  // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
         eRes = new double[2];
-        eRes[0] = 3.0;       // Cal energy resolution parameters in %  sigmaE = eRes[0]/sqrt(E) + eRes[1]
+        eRes[0] = 10.0;       // Cal energy resolution parameters in %  sigmaE = eRes[0]/sqrt(E) + eRes[1]
         eRes[1] = 1.0;
         
         // Load the default search strategies
