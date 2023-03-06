@@ -19,18 +19,36 @@ public class FeeAnalysis extends Driver {
     private AIDA _aida = AIDA.defaultInstance();
     String[] _finalStateParticleCollectionNames = {"FinalStateParticles", "FinalStateParticles_KF"};
     private int _minTrackNhits_GBL = 5;
-    private int _minTrackNhits_KF = 12;
+    private int _minTrackNhits_KF = 10;
 
     protected void process(EventHeader event) {
 
         int runNumber = event.getRunNumber();
         double feeEmin = 1.75;
         double feeEmax = 3.;
-        if (event.getRunNumber() > 14673 || event.getRunNumber() < 14626) {
+
+        // 2019 Run 4.55GeV
+        String runPeriod = "unknown";
+        if (runNumber > 10000 && runNumber < 10750) {
+            feeEmin = 4.0;
+            feeEmax = 7.0;
+            runPeriod = "2019 4.55Gev";
+        }
+        // 2021 Run 3.74GeV
+        if (runNumber > 14000 && runNumber < 15000) {
             feeEmin = 3.5;
             feeEmax = 7.0;
+            runPeriod = "2021 3.74Gev";
+            // 2021 Run 1.92GeV
+            if (runNumber > 14623 && runNumber < 14680) {
+                feeEmin = 1.75;
+                feeEmax = 3.;
+                runPeriod = "2021 1.92Gev";
+            }
         }
 
+        _aida.tree().mkdirs(runPeriod);
+        _aida.tree().cd(runPeriod);
         for (String s : _finalStateParticleCollectionNames) {
             if (event.hasCollection(ReconstructedParticle.class, s)) {
                 List<ReconstructedParticle> rpList = event.get(ReconstructedParticle.class, s);
@@ -80,6 +98,7 @@ public class FeeAnalysis extends Driver {
                 _aida.tree().cd("..");
             }
         }
+        _aida.tree().cd("..");
     }
 
     public void setMinTrackNhits_GBL(int i) {
