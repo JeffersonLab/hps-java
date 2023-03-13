@@ -20,6 +20,8 @@ public class GblPointJna {
         
         Pointer GblPointCtor(double [] array); 
         Pointer GblPointCtor2D(double matrix[][]); 
+
+        void GblPoint_delete(Pointer self);
         
         int GblPoint_hasMeasurement(Pointer self);
         double GblPoint_getMeasPrecMin(Pointer self);
@@ -32,7 +34,6 @@ public class GblPointJna {
         void GblPoint_getGlobalLabels(Pointer self, int[] labels);
         int GblPoint_getNumGlobals(Pointer self);
         void GblPoint_getGlobalDerivatives(Pointer self, double[] derArray);
-        
     }
     
     private Pointer self; 
@@ -96,6 +97,10 @@ public class GblPointJna {
     
     public Pointer getPtr() {
         return self;
+    }
+
+    public void delete() {
+        GblPointInterface.INSTANCE.GblPoint_delete(self);
     }
     
     public int getNumGlobals() {

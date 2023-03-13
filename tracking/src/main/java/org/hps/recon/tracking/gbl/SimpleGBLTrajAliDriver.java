@@ -375,6 +375,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     @Override
     protected void startOfData() {
+        System.out.println("DEBUG::Tom::startOfData");
         if (writeMilleBinary)
             mille = new MilleBinaryJna(milleBinaryFileName);
     }
@@ -400,6 +401,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
+        System.out.println("DEBUG::Tom::detectorChanged");
         
         bFieldMap = detector.getFieldMap();
         
@@ -417,9 +419,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
 
+        System.out.println("DEBUG::Tom::new GblTrajectoryMaker");
         _gblTrajMaker = new GblTrajectoryMaker(_scattering, bfield);
         //_gblTrajMaker.setIncludeMS(includeNoHitScatters);
         _gblTrajMaker.setIncludeMS(false);
+        System.out.println("DEBUG::Tom::GblTrajectoryMaker made");
         
 
         //Alignment Manager  - Get the composite structures.
@@ -459,6 +463,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     @Override
     protected void process(EventHeader event) {
+        System.out.println("DEBUG::Tom::process start");
 
         //Track collection
        
@@ -826,8 +831,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
             //I think this should take the track->trackerHits and refit those with a GBL otherwise I think I miss the momentum constraint.. ?
             
+            System.out.println("DEBUG::Tom::About to comput GBL strip cluster data...");
             List<GBLStripClusterData> trackGblStripClusterData  = computeGBLStripClusterData(track,TrackType,
                                                                                              temp,gblStripClusterDataRelations,event);
+            System.out.println("DEBUG::Tom::Done computing GBL strip cluster data.");
             
             //Printout the Cluster Data: 
             
