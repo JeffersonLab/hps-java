@@ -3,10 +3,10 @@ package org.hps.recon.tracking.gbl;
 import com.sun.jna.Library; 
 import com.sun.jna.Native; 
 import com.sun.jna.Pointer; 
+import com.sun.jna.ptr.IntByReference;
 
 import java.util.List;
 import java.util.ArrayList;
-
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -19,21 +19,17 @@ public class GblPointJna {
         GblPointInterface INSTANCE = (GblPointInterface) Native.loadLibrary("GBL", GblPointInterface.class); 
         
         Pointer GblPointCtor(double [] array); 
-        Pointer GblPointCtor2D(double matrix[][]); 
+        //Pointer GblPointCtor2D(double matrix[][]); 
 
         void GblPoint_delete(Pointer self);
         
-        int GblPoint_hasMeasurement(Pointer self);
-        double GblPoint_getMeasPrecMin(Pointer self);
         void GblPoint_addMeasurement2D(Pointer self, double[] projArray, double[] resArray, double[] precArray, 
                                        double minPrecision);
         void GblPoint_addScatterer(Pointer self, double[] resArray, double[] precArray);
         
         void GblPoint_printPoint(Pointer self, int i);
         void GblPoint_addGlobals(Pointer self, int[] labels, int nlabels, double[] derArray);
-        void GblPoint_getGlobalLabels(Pointer self, int[] labels);
-        int GblPoint_getNumGlobals(Pointer self);
-        void GblPoint_getGlobalDerivatives(Pointer self, double[] derArray);
+        void GblPoint_getGlobalLabelsAndDerivatives(Pointer self, IntByReference nlabels, int[] labels, double[] ders);
     }
     
     private Pointer self; 
@@ -55,14 +51,6 @@ public class GblPointJna {
             glabels[ilabel]=labels.get(ilabel);
         }
         GblPointInterface.INSTANCE.GblPoint_addGlobals(self, glabels, labels.size(), gders);
-    }
-    
-    public int hasMeasurement() {
-        return GblPointInterface.INSTANCE.GblPoint_hasMeasurement(self);
-    }
-    
-    public double getMeasPrecMin() {
-        return GblPointInterface.INSTANCE.GblPoint_getMeasPrecMin(self);
     }
     
     public void addMeasurement(Matrix aProjection, Vector aResiduals, Vector aPrecision) {
@@ -102,48 +90,21 @@ public class GblPointJna {
     public void delete() {
         GblPointInterface.INSTANCE.GblPoint_delete(self);
     }
-    
-    public int getNumGlobals() {
-        return GblPointInterface.INSTANCE.GblPoint_getNumGlobals(self);
-    }
-    
-    public List<Integer> getGlobalLabels(){ 
-        
-        int nlabels = getNumGlobals();
-        int [] labels = new int[nlabels];
-        List<Integer> glabels = new ArrayList<Integer>();
 
-        GblPointInterface.INSTANCE.GblPoint_getGlobalLabels(self, labels);
-        
-        for (int i=0; i<nlabels; i++) {
-            glabels.add(labels[i]);
-            //System.out.println(glabels.get(i));
+    public void getGlobalLabelsAndDerivatives(List<Integer> labels, Matrix ders) {
+        IntByReference nlabels = new IntByReference(0);
+        int []labels_array = new int[1];
+        double []ders_array = new double[1];
+        GblPointInterface.INSTANCE.GblPoint_getGlobalLabelsAndDerivatives(self, nlabels, labels_array, ders_array);
+
+        labels = new ArrayList<Integer>();
+        for (int i = 0; i < nlabels.getValue(); ++i) {
+            labels.add(labels_array[i]);
         }
-        
-        
 
-        return glabels;
-    }
-
-    public Matrix getGlobalDerivatives() {
-        
-        int ngders = getNumGlobals();
-        
-        Matrix gders = new Matrix(1,ngders);
-        double [] ders = new double[ngders];
-        
-        GblPointInterface.INSTANCE.GblPoint_getGlobalDerivatives(self, ders);
-        
-        for (int igd = 0; igd<ngders; igd++) {
-            gders.set(0,igd,ders[igd]);
+        ders = new Matrix(1, nlabels.getValue());
+        for (int i = 0; i < nlabels.getValue(); ++i) {
+            ders.set(0,i,ders_array[i]);
         }
-        
-        
-        //System.out.println("Derivatives");
-        //gders.print(6,6);
-        
-        return gders;
     }
-    
-    
 }

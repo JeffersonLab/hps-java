@@ -52,6 +52,7 @@ public class GblTrajectoryJna {
         self = GblTrajectoryInterface.INSTANCE.GblTrajectoryCtor(flagCurv, flagU1dir, flagU2dir);
     }
     
+    // copy a java-style list into a JNA C-style array that can then be copied into a std vector in GBL
     public GblTrajectoryJna(List<GblPointJna> points, int flagCurv, int flagU1dir, int flagU2dir) { 
         
         Pointer [] ppoints = new Pointer[points.size()];

@@ -378,10 +378,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
         System.out.println("DEBUG::Tom::startOfData");
         if (writeMilleBinary)
             mille = new MilleBinaryJna(milleBinaryFileName);
+        System.out.println("DEBUG::Tom::leaving startOfData");
     }
 
     @Override
     protected void endOfData() {
+        System.out.println("DEBUG::Tom::endOfData");
         //Should be closed directly when destructor is called
         if (writeMilleBinary)
             mille.close();
@@ -394,7 +396,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         //}
         //catch (IOException ex) {
         //}
-        
+        System.out.println("DEBUG::Tom::leaving endOfData");
     }
 
     
@@ -413,7 +415,9 @@ public class SimpleGBLTrajAliDriver extends Driver {
         //setupPlots();
         setupEoPPlots();
 
+        System.out.println("DEBUG::Tom::new GblTrajectoryCreator");
         _hpsGblTrajCreator = new HpsGblTrajectoryCreator();
+        System.out.println("DEBUG::Tom::GblTrajectoryCreator made");
 
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
@@ -1696,14 +1700,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private void ComputeCOMDerivatives(GblPointJna gblpoint) {
 
 
-        List<Integer> labels = gblpoint.getGlobalLabels();
+        List<Integer> labels = new ArrayList<Integer>();
+        Matrix g_ders = new Matrix(1,1);
+        gblpoint.getGlobalLabelsAndDerivatives(labels, g_ders);
         
         if (labels.size() < 1) 
             return;
-        
-        
-        
-        Matrix g_ders = gblpoint.getGlobalDerivatives();
+
         //The MPII ID + Volume is used to get the correct composite structure
         // 1 for top  2 for bottom
         int volume = labels.get(0) / MilleParameter.half_offset;
@@ -1845,12 +1848,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
     //This will compute and add to the buffers the derivatives 
     private void ComputeStructureDerivatives(GblPointJna gblpoint) {
         
-        List<Integer> labels = gblpoint.getGlobalLabels();
+        List<Integer> labels = new ArrayList<Integer>();
+        Matrix g_ders = new Matrix(1,1);
+        gblpoint.getGlobalLabelsAndDerivatives(labels, g_ders);
         
         if (labels.size() < 1) 
             return;
         
-        Matrix g_ders = gblpoint.getGlobalDerivatives();
         //The MPII ID + Volume is used to get the correct composite structure
         // 1 for top  2 for bottom
         int volume = labels.get(0) / MilleParameter.half_offset;
