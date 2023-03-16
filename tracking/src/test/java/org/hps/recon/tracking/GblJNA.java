@@ -3,7 +3,12 @@ package org.hps.recon.tracking;
 import org.junit.Test; 
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.Math;
 
+import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.ptr.DoubleByReference;
+
+import org.hps.util.RandomGaussian;
 import org.hps.recon.tracking.gbl.GblPointJna; 
 import org.hps.recon.tracking.gbl.GblTrajectoryJna; 
 import org.hps.recon.tracking.gbl.MilleBinaryJna; 
@@ -90,5 +95,216 @@ public class GblJNA  {
         GblTrajectoryJna traj = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
         System.out.printf("traj.isValid = %d\n", traj.isValid());
         traj.delete();
+    }
+
+    // manually translated to java from C++ from GBL CPP exampleUtil source
+    private Matrix gblSimpleJacobian(double ds, double cosl, double bfac) {
+        Matrix jac = new Matrix(5,5);
+        jac.UnitMatrix();
+        jac.set(1, 0, -bfac * ds * cosl);
+        jac.set(3, 0, -0.5 * bfac * ds * ds * cosl);
+        jac.set(3, 1, ds);
+        jac.set(4, 2, ds);
+        return jac;
+    }
+
+    @Test
+    public void GBLExample1_CreatePointsCreateTrajFitWrite() {
+        int nTry = 3;
+        int nLayer = 10;
+        // track direction
+        double sinLambda = 0.3;
+        double cosLambda = Math.sqrt(1.0 - sinLambda * sinLambda);
+        double sinPhi = 0.;
+        double cosPhi = Math.sqrt(1.0 - sinPhi * sinPhi);
+        // tDir = (cosLambda * cosPhi, cosLambda * sinPhi, sinLambda)
+        // U = Z x T / |Z x T|, V = T x U
+        Matrix uvDir = new Matrix(2, 3);
+        uvDir.set(0, 0, -sinPhi);
+        uvDir.set(0, 1, cosPhi);
+        uvDir.set(0, 2, 0.);
+        uvDir.set(1, 0, -sinLambda * cosPhi);
+        uvDir.set(1, 1, -sinLambda * sinPhi);
+        uvDir.set(1, 2, cosLambda);
+        // measurement resolution
+        Vector measErr = new Vector(2);
+        measErr.set(0, 0.001);
+        measErr.set(1, 0.001);
+        Vector measPrec = new Vector(2); // (independent) precisions
+        measPrec.set(0, 1.0 / (measErr.get(0) * measErr.get(0)));
+        measPrec.set(1, 1.0 / (measErr.get(1) * measErr.get(1)));
+        Matrix measInvCov = new Matrix(2, 2); // inverse covariance matrix
+        //measInvCov.setZero();
+        measInvCov.set(0, 0, measPrec.get(0));
+        measInvCov.set(1, 1, measPrec.get(1));
+        // scattering error
+        Vector scatErr = new Vector(2);
+        scatErr.set(0, 0.001);
+        scatErr.set(1, 0.001);
+        Vector scatPrec = new Vector(2); // (independent) precisions
+        scatPrec.set(0, 1.0 / (scatErr.get(0) * scatErr.get(0)));
+        scatPrec.set(1, 1.0 / (scatErr.get(1) * scatErr.get(1)));
+        // (RMS of) CurviLinear track parameters (Q/P, slopes, offsets)
+        Vector clErr = new Vector(5);
+        clErr.set(0, 0.001);
+        clErr.set(1, -0.1);
+        clErr.set(2, 0.2);
+        clErr.set(3, -0.15);
+        clErr.set(4, 0.25);
+        int seedLabel = 99999;
+        // additional parameters
+        Vector addPar = new Vector(2);
+        addPar.set(0, 0.0025);
+        addPar.set(1, -0.005);
+        List<Integer> globalLabels = new ArrayList<Integer>();
+        globalLabels.add(4711);
+        globalLabels.add(4712);
+        // global labels for MP
+        /*
+        List<Integer> mpGlobalLabels = new ArrayList<Integer>();
+        mpGlobalLabels.add(11);
+        mpGlobalLabels.add(12);
+        */
+
+        double bfac = 0.2998; // Bz*c for Bz=1
+        double step = 1.5 / cosLambda; // constant steps in RPhi
+
+        double Chi2Sum = 0.;
+        int NdfSum = 0;
+        double LostSum = 0.;
+        int numFit = 0;
+
+        for (int iTry = 1; iTry <= nTry; ++iTry) {
+            // curvilinear track parameters
+            Vector clPar = new Vector(5);
+            Matrix clCov = new Matrix(5,5);
+            Matrix clSeed = new Matrix(5,5);
+            //clCov.setZero();
+            for (int i = 0; i < 5; ++i) {
+                clPar.set(i, RandomGaussian.getGaussian(0.,clErr.get(i)));
+                clCov.set(i, i, 1.0 * (clErr.get(i) * clErr.get(i)));
+            }
+            Matrix addDer = new Matrix(2,2);
+            addDer.UnitMatrix();
+            // arclength
+            //double s = 0.;
+            Matrix jacPointToPoint = new Matrix(5, 5);
+            jacPointToPoint.UnitMatrix();
+            // create list of points
+            List<GblPointJna> listOfPoints = new ArrayList<GblPointJna>();
+            for (int iLayer = 0; iLayer < nLayer; ++iLayer) {
+                // measurement directions
+                double sinStereo = (iLayer % 2 == 0) ? 0. : 0.1;
+                double cosStereo = Math.sqrt(1.0 - sinStereo * sinStereo);
+                Matrix mDirT = new Matrix(3, 2);
+                //mDirT.setZero();
+                mDirT.set(1, 0, cosStereo);
+                mDirT.set(2, 0, sinStereo);
+                mDirT.set(1, 1, -sinStereo);
+                mDirT.set(2, 1, cosStereo);
+                // projection measurement to local (curvilinear uv) directions (duv/dm)
+                Matrix proM2l = uvDir.times(mDirT);
+                // projection local (uv) to measurement directions (dm/duv)
+                Matrix proL2m = proM2l.inverse();
+                // point with (independent) measurements (in measurement system)
+                GblPointJna pointMeas = new GblPointJna(jacPointToPoint);
+                // measurement - prediction in measurement system with error
+                Vector clParTail = new Vector(2);
+                clParTail.set(0, clPar.get(3));
+                clParTail.set(1, clPar.get(4)); 
+                Vector meas = proL2m.times(clParTail);
+                //MP      meas += addDer * addPar; // additional parameters
+                for (int i = 0; i < 2; ++i) {
+                    meas.set(i, RandomGaussian.getGaussian(meas.get(i), measErr.get(i)));
+                }
+                pointMeas.addMeasurement(proL2m, meas, measPrec);
+    
+                // additional local parameters?
+                //      point.addLocals(addDer);
+                //MP      point.addGlobals(globalLabels, addDer);
+                addDer = addDer.times(-1.); // Der flips sign every measurement
+                // add point to trajectory
+                listOfPoints.add(pointMeas);
+                int iLabel = listOfPoints.size();
+                if (iLabel == seedLabel) {
+                    clSeed = clCov.inverse();
+                }
+                // propagate to scatterer
+                jacPointToPoint = gblSimpleJacobian(step, cosLambda, bfac);
+                //jac2 = gblSimpleJacobian2(step, cosLambda, bfac);
+                clPar = jacPointToPoint.times(clPar);
+                clCov = jacPointToPoint.times(clCov).times(jacPointToPoint.transpose());
+                //s += step;
+                if (iLayer < nLayer - 1) {
+                    Vector scat = new Vector(2);
+                    //scat.Zero();
+                    // point with scatterer
+                    GblPointJna pointScat = new GblPointJna(jacPointToPoint);
+                    pointScat.addScatterer(scat, scatPrec);
+                    listOfPoints.add(pointScat);
+                    iLabel = listOfPoints.size();
+                    if (iLabel == seedLabel) {
+                        clSeed = clCov.inverse();
+                    }
+                    // scatter a little
+                    for (int i = 0; i < 2; ++i) {
+                        clPar.set(i+1, RandomGaussian.getGaussian(clPar.get(i+1), scatErr.get(i)));
+                        clCov.set(i+1, i+1, clCov.get(i+1, i+1) + scatErr.get(i)*scatErr.get(i));
+                    }
+                    // propagate to next measurement layer
+                    clPar = jacPointToPoint.times(clPar);
+                    clCov = jacPointToPoint.times(clCov).times(jacPointToPoint.transpose());
+                    //s += step;
+                }
+            } // end of number of layers (iLayer)
+            // create trajectory
+            GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,1,1);
+            //GblTrajectory traj(listOfPoints, seedLabel, clSeed); // with external seed
+            //traj.printPoints();
+            /*
+            if (not traj.isValid()) {
+                std::cout << " Invalid GblTrajectory -> skip" << std::endl;
+                continue;
+            }
+            */
+            // fit trajectory
+            DoubleByReference Chi2 = new DoubleByReference();
+            DoubleByReference lostWeight = new DoubleByReference();
+            IntByReference Ndf = new IntByReference();
+            traj.fit(Chi2, Ndf, lostWeight, "");
+            //std::cout << " Fit: " << Chi2 << ", " << Ndf << ", " << lostWeight << std::endl;
+            /* look at (track parameter) corrections
+            VectorXd aCorrection(5);
+            MatrixXd aCovariance(5, 5);
+            traj.getResults(1, aCorrection, aCovariance);
+            std::cout << " cor " << std::endl << aCorrection << std::endl;
+            std::cout << " cov " << std::endl << aCovariance << std::endl;
+            */
+            /* look at residuals
+            for (unsigned int label = 1; label <= listOfPoints.size(); ++label) {
+                unsigned int numData = 0;
+                std::cout << " measResults, label " << label << std::endl;
+                VectorXd residuals(2), measErr(2), resErr(2), downWeights(2);
+                traj.getMeasResults(label, numData, residuals, measErr, resErr, downWeights);
+                std::cout << " measResults, numData " << numData << std::endl;
+                for (unsigned int i = 0; i < numData; ++i) {
+                    std::cout << " measResults " << label << " " << i << " "
+                        << residuals[i] << " " << measErr[i] << " " << resErr[i]
+                        << std::endl;
+                }
+            } 
+            */
+            // debug printout
+            //traj.printTrajectory(1);
+            //traj.printPoints(1);
+            //traj.printData();
+            // write to MP binary file
+            //MP    traj.milleOut(mille);
+            Chi2Sum += Chi2.getValue();
+            NdfSum += Ndf.getValue();
+            LostSum += lostWeight.getValue();
+            numFit++;
+        } // end of number of tries (iTry)
+
     }
 }
