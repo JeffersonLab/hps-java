@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
      <execute>
@@ -19,6 +20,7 @@
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
            <outputClusterCollectionName>EcalClustersIter1</outputClusterCollectionName>
            <inputHitCollectionName>EcalHitsIter1</inputHitCollectionName>
+           <hitEnergyThreshold>0.030</hitEnergyThreshold>
         </driver>
         <driver name="FEEPlotter" type="org.hps.analysis.ecal.FEEClusterPlotter">
            <inputCollection>EcalClustersIter1</inputCollection>
