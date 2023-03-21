@@ -255,13 +255,13 @@ public class GblJNA  {
                     //s += step;
                 }
             } // end of number of layers (iLayer)
-            // create trajectory
-            GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,1,1);
-            //GblTrajectory traj(listOfPoints, seedLabel, clSeed); // with external seed
-            // fit trajectory
             DoubleByReference Chi2 = new DoubleByReference();
             DoubleByReference lostWeight = new DoubleByReference();
             IntByReference Ndf = new IntByReference();
+
+            // create trajectory without external seed
+            GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,1,1);
+            // fit trajectory
             traj.fit(Chi2, Ndf, lostWeight, "");
             // write to MP binary file
             traj.milleOut(mille);
@@ -269,6 +269,19 @@ public class GblJNA  {
             NdfSum += Ndf.getValue();
             LostSum += lostWeight.getValue();
             numFit++;
+            traj.delete();
+
+            // create trajectory with external seed
+            traj = new GblTrajectoryJna(listOfPoints,seedLabel,clSeed,1,1,1);
+            // fit trajectory
+            traj.fit(Chi2, Ndf, lostWeight, "");
+            // write to MP binary file
+            traj.milleOut(mille);
+            Chi2Sum += Chi2.getValue();
+            NdfSum += Ndf.getValue();
+            LostSum += lostWeight.getValue();
+            numFit++;
+            traj.delete();
         } // end of number of tries (iTry)
 
         System.out.printf("Chi2/ndf = %.2f over Nfit = %d\n", Chi2Sum / NdfSum, numFit);
