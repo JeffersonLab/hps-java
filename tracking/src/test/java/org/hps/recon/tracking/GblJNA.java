@@ -159,12 +159,6 @@ public class GblJNA  {
         List<Integer> globalLabels = new ArrayList<Integer>();
         globalLabels.add(4711);
         globalLabels.add(4712);
-        // global labels for MP
-        /*
-        List<Integer> mpGlobalLabels = new ArrayList<Integer>();
-        mpGlobalLabels.add(11);
-        mpGlobalLabels.add(12);
-        */
 
         double bfac = 0.2998; // Bz*c for Bz=1
         double step = 1.5 / cosLambda; // constant steps in RPhi
@@ -173,6 +167,8 @@ public class GblJNA  {
         int NdfSum = 0;
         double LostSum = 0.;
         int numFit = 0;
+
+        MilleBinaryJna mille = new MilleBinaryJna("write_traj_test.bin");
 
         for (int iTry = 1; iTry <= nTry; ++iTry) {
             // curvilinear track parameters
@@ -213,15 +209,17 @@ public class GblJNA  {
                 clParTail.set(0, clPar.get(3));
                 clParTail.set(1, clPar.get(4)); 
                 Vector meas = proL2m.times(clParTail);
-                //MP      meas += addDer * addPar; // additional parameters
+                //MP
+                meas = meas.plus(addDer.times(addPar)); // additional parameters
                 for (int i = 0; i < 2; ++i) {
                     meas.set(i, RandomGaussian.getGaussian(meas.get(i), measErr.get(i)));
                 }
                 pointMeas.addMeasurement(proL2m, meas, measPrec);
     
                 // additional local parameters?
-                //      point.addLocals(addDer);
-                //MP      point.addGlobals(globalLabels, addDer);
+                //pointMeas.addLocals(addDer);
+                //MP
+                pointMeas.addGlobals(globalLabels, addDer);
                 addDer = addDer.times(-1.); // Der flips sign every measurement
                 // add point to trajectory
                 listOfPoints.add(pointMeas);
@@ -260,51 +258,20 @@ public class GblJNA  {
             // create trajectory
             GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,1,1);
             //GblTrajectory traj(listOfPoints, seedLabel, clSeed); // with external seed
-            //traj.printPoints();
-            /*
-            if (not traj.isValid()) {
-                std::cout << " Invalid GblTrajectory -> skip" << std::endl;
-                continue;
-            }
-            */
             // fit trajectory
             DoubleByReference Chi2 = new DoubleByReference();
             DoubleByReference lostWeight = new DoubleByReference();
             IntByReference Ndf = new IntByReference();
             traj.fit(Chi2, Ndf, lostWeight, "");
-            //std::cout << " Fit: " << Chi2 << ", " << Ndf << ", " << lostWeight << std::endl;
-            /* look at (track parameter) corrections
-            VectorXd aCorrection(5);
-            MatrixXd aCovariance(5, 5);
-            traj.getResults(1, aCorrection, aCovariance);
-            std::cout << " cor " << std::endl << aCorrection << std::endl;
-            std::cout << " cov " << std::endl << aCovariance << std::endl;
-            */
-            /* look at residuals
-            for (unsigned int label = 1; label <= listOfPoints.size(); ++label) {
-                unsigned int numData = 0;
-                std::cout << " measResults, label " << label << std::endl;
-                VectorXd residuals(2), measErr(2), resErr(2), downWeights(2);
-                traj.getMeasResults(label, numData, residuals, measErr, resErr, downWeights);
-                std::cout << " measResults, numData " << numData << std::endl;
-                for (unsigned int i = 0; i < numData; ++i) {
-                    std::cout << " measResults " << label << " " << i << " "
-                        << residuals[i] << " " << measErr[i] << " " << resErr[i]
-                        << std::endl;
-                }
-            } 
-            */
-            // debug printout
-            //traj.printTrajectory(1);
-            //traj.printPoints(1);
-            //traj.printData();
             // write to MP binary file
-            //MP    traj.milleOut(mille);
+            traj.milleOut(mille);
             Chi2Sum += Chi2.getValue();
             NdfSum += Ndf.getValue();
             LostSum += lostWeight.getValue();
             numFit++;
         } // end of number of tries (iTry)
 
+        System.out.printf("Chi2/ndf = %.2f over Nfit = %d\n", Chi2Sum / NdfSum, numFit);
+        mille.close();
     }
 }
