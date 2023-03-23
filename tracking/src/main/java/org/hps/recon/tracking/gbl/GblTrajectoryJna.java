@@ -18,7 +18,6 @@ public class GblTrajectoryJna {
     public interface GblTrajectoryInterface extends Library {
         GblTrajectoryInterface INSTANCE = (GblTrajectoryInterface) Native.loadLibrary("GBL", GblTrajectoryInterface.class); 
         
-        Pointer GblTrajectoryCtor(int flagCurv, int flagU1dir, int flagU2dir);
         Pointer GblTrajectoryCtorPtrArray(Pointer [] points, int npoints, int flagCurv, int flagU1dir, int flagU2dir);
         Pointer GblTrajectoryCtorPtrArraySeed(Pointer [] points, int npoints, int aLabel, double [] seedArray, int flagCurv, int flagU1dir, int flagU2dir);
         
@@ -44,16 +43,9 @@ public class GblTrajectoryJna {
     
     private Pointer self;
     
-    public GblTrajectoryJna() {
-        self = GblTrajectoryInterface.INSTANCE.GblTrajectoryCtor(1,1,1);
-    }
-    
-    public GblTrajectoryJna(int flagCurv, int flagU1dir, int flagU2dir) {
-        self = GblTrajectoryInterface.INSTANCE.GblTrajectoryCtor(flagCurv, flagU1dir, flagU2dir);
-    }
-    
     // copy a java-style list into a JNA C-style array that can then be copied into a std vector in GBL
     public GblTrajectoryJna(List<GblPointJna> points, int flagCurv, int flagU1dir, int flagU2dir) { 
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJan(points, flags)");
         
         Pointer [] ppoints = new Pointer[points.size()];
 
@@ -71,6 +63,7 @@ public class GblTrajectoryJna {
 
     //Simple trajectory constructor with seed 
     public GblTrajectoryJna(List<GblPointJna> points, int aLabel, Matrix seed, int flagCurv, int flagU1dir, int flagU2dir) { 
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJan(points, label, seed, flags)");
         
         Pointer [] ppoints = new Pointer[points.size()];
 
@@ -95,6 +88,7 @@ public class GblTrajectoryJna {
     //Only 2 tracks, supported for the moment
     
     public GblTrajectoryJna(List < Pair <List<GblPointJna>, Matrix> > PointsAndTransList) {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJan(pointsAndTransList)");
         
         Pointer [] ppoints_1 = new Pointer[PointsAndTransList.get(0).getFirst().size()];
         Pointer [] ppoints_2 = new Pointer[PointsAndTransList.get(0).getFirst().size()];
@@ -124,6 +118,7 @@ public class GblTrajectoryJna {
     
     //to perform the full fit
     public void fit(DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, String optionList) {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.fit(no label)");
         
         char[] c_optionList = optionList.toCharArray();
         GblTrajectoryInterface.INSTANCE.GblTrajectory_fit(self, Chi2, Ndf, lostWeight, c_optionList,-999);
@@ -131,43 +126,52 @@ public class GblTrajectoryJna {
     
     //To perform the fit removing a particular point
     public void fit(DoubleByReference Chi2, IntByReference Ndf,  DoubleByReference lostWeight, String optionList, int aLabel) {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.fit(with label)");
         
         char [] c_optionList = optionList.toCharArray();
         GblTrajectoryInterface.INSTANCE.GblTrajectory_fit(self, Chi2, Ndf, lostWeight, c_optionList, aLabel);
     }
     
     public void addPoint(GblPointJna point) {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.addPoint");
         GblTrajectoryInterface.INSTANCE.GblTrajectory_addPoint(self, point.getPtr());
     }
     
     public int isValid () {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.isValid");
         return GblTrajectoryInterface.INSTANCE.GblTrajectory_isValid(self);
         
     }
 
     public int getNumPoints() {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.getNumPoints");
         return GblTrajectoryInterface.INSTANCE.GblTrajectory_getNumPoints(self);
     }
 
     public void printTrajectory(int level) {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.printTrajectory");
         GblTrajectoryInterface.INSTANCE.GblTrajectory_printTrajectory(self,level);
     }
     
     public void printData() {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.printData");
         GblTrajectoryInterface.INSTANCE.GblTrajectory_printData(self);
     }
 
     public void printPoints(int level) {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.printPoints");
         GblTrajectoryInterface.INSTANCE.GblTrajectory_printPoints(self,level);
     }
     
     //Call delete on the underlying objects
     public void delete() {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.delete");
         GblTrajectoryInterface.INSTANCE.GblTrajectory_delete(self);
     }
     
     
     public void getMeasResults(int aLabel, int numData[], List<Double> aResiduals,List<Double> aMeasErrors, List<Double> aResErrors, List<Double> aDownWeights) {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.getMeasResults");
         
         double[] d_aResiduals  = new double[2];
         double[] d_aMeasErrors = new double[2];
@@ -187,6 +191,7 @@ public class GblTrajectoryJna {
     
     //!! Only 5-localPar and 5x5 local Cov for the moment
     public int getResults(int aSignedLabel, Vector localPar, SymMatrix localCov) {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.getResults");
         
         double[] d_localPar = new double[5];
         double[] d_localCov = new double[25];
@@ -209,7 +214,8 @@ public class GblTrajectoryJna {
     }
 
     
-    public void milleOut(MilleBinaryJna millebinary) {       
+    public void milleOut(MilleBinaryJna millebinary) {
+        System.out.println("DEBUG::Tom::java::GblTrajectoryJna.milleOut");
         GblTrajectoryInterface.INSTANCE.GblTrajectory_milleOut(self, millebinary.getPtr());
     }
     

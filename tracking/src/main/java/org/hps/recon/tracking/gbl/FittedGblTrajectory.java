@@ -94,6 +94,7 @@ public class FittedGblTrajectory {
     
 
     public FittedGblTrajectory(GblTrajectoryJna traj_jna, double chi2, int ndf, double lost) {
+        System.out.println("DEBUG::Tom::java::FittedGblTrajectory(GblTrajectoryJna)");
         _traj_jna = traj_jna;
         _chi2 = chi2;
         _ndf = ndf;
@@ -201,6 +202,7 @@ public class FittedGblTrajectory {
     }
 
     public GblTrajectoryJna get_traj_jna(){
+        System.out.println("DEBUG::Tom::java::FittedTrajectory.get_traj_jna");
         return _traj_jna;
     }
     
