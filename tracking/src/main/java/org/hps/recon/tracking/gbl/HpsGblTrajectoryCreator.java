@@ -33,7 +33,7 @@ public class HpsGblTrajectoryCreator {
     }
 
     public List<GblPointJna> MakeGblPointsList(List<GBLStripClusterData> hits, GBLBeamSpotPoint bs, double bfac, Map<Integer, Integer> sensorMap, Map<Integer, Double> pathLengthMap) {
-        System.out.println("DEBUG::Tom::java::HpsGblTrajectoryCreator.MakeGblPointsList");
+        //System.out.println("DEBUG::Tom::java::HpsGblTrajectoryCreator.MakeGblPointsList");
         
         
         // Save the association between strip cluster and label, and between label and path length
@@ -343,7 +343,7 @@ public class HpsGblTrajectoryCreator {
         }
         */
 
-        System.out.println("DEBUG::Tom::java::leaving HpsGblTrajectoryCreator.MakeGblPointsList");
+        //System.out.println("DEBUG::Tom::java::leaving HpsGblTrajectoryCreator.MakeGblPointsList");
         return listOfPoints;
     }
     

@@ -375,15 +375,15 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     @Override
     protected void startOfData() {
-        System.out.println("DEBUG::Tom::java::startOfData");
+        //System.out.println("DEBUG::Tom::java::startOfData");
         if (writeMilleBinary)
             mille = new MilleBinaryJna(milleBinaryFileName);
-        System.out.println("DEBUG::Tom::java::leaving startOfData");
+        //System.out.println("DEBUG::Tom::java::leaving startOfData");
     }
 
     @Override
     protected void endOfData() {
-        System.out.println("DEBUG::Tom::java::endOfData");
+        //System.out.println("DEBUG::Tom::java::endOfData");
         //Should be closed directly when destructor is called
         if (writeMilleBinary)
             mille.close();
@@ -396,14 +396,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
         //}
         //catch (IOException ex) {
         //}
-        System.out.println("DEBUG::Tom::java::leaving endOfData");
+        //System.out.println("DEBUG::Tom::java::leaving endOfData");
     }
 
     
 
     @Override
     protected void detectorChanged(Detector detector) {
-        System.out.println("DEBUG::Tom::java::detectorChanged");
+        //System.out.println("DEBUG::Tom::java::detectorChanged");
         
         bFieldMap = detector.getFieldMap();
         
@@ -415,19 +415,19 @@ public class SimpleGBLTrajAliDriver extends Driver {
         //setupPlots();
         setupEoPPlots();
 
-        System.out.println("DEBUG::Tom::java::new GblTrajectoryCreator");
+        //System.out.println("DEBUG::Tom::java::new GblTrajectoryCreator");
         _hpsGblTrajCreator = new HpsGblTrajectoryCreator();
-        System.out.println("DEBUG::Tom::java::GblTrajectoryCreator made");
+        //System.out.println("DEBUG::Tom::java::GblTrajectoryCreator made");
 
         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
         _scattering.getMaterialManager().buildModel(detector);
         _scattering.setBField(bfield); // only absolute of B is needed as it's used for momentum calculation only
 
-        System.out.println("DEBUG::Tom::java::new GblTrajectoryMaker");
+        //System.out.println("DEBUG::Tom::java::new GblTrajectoryMaker");
         _gblTrajMaker = new GblTrajectoryMaker(_scattering, bfield);
         //_gblTrajMaker.setIncludeMS(includeNoHitScatters);
         _gblTrajMaker.setIncludeMS(false);
-        System.out.println("DEBUG::Tom::java::GblTrajectoryMaker made");
+        //System.out.println("DEBUG::Tom::java::GblTrajectoryMaker made");
         
 
         //Alignment Manager  - Get the composite structures.
@@ -467,7 +467,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     @Override
     protected void process(EventHeader event) {
-        System.out.println("DEBUG::Tom::process start");
+        //System.out.println("DEBUG::Tom::process start");
 
         //Track collection
        
@@ -835,10 +835,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
             //I think this should take the track->trackerHits and refit those with a GBL otherwise I think I miss the momentum constraint.. ?
             
-            System.out.println("DEBUG::Tom::About to comput GBL strip cluster data...");
+            //System.out.println("DEBUG::Tom::About to comput GBL strip cluster data...");
             List<GBLStripClusterData> trackGblStripClusterData  = computeGBLStripClusterData(track,TrackType,
                                                                                              temp,gblStripClusterDataRelations,event);
-            System.out.println("DEBUG::Tom::Done computing GBL strip cluster data.");
+            //System.out.println("DEBUG::Tom::Done computing GBL strip cluster data.");
             
             //Printout the Cluster Data: 
             
@@ -862,12 +862,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
             IntByReference Ndf = new IntByReference(0);
             
             //Create a trajectory with the beamspot 
-            System.out.println("DEBUG::Tom::java::new Array of GblPointJna");
+            //System.out.println("DEBUG::Tom::java::new Array of GblPointJna");
             List<GblPointJna> points_on_traj = new ArrayList<GblPointJna>();
             Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
             Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
             
-            System.out.println("DEBUG::Tom::java::About to make gbl points list");
+            //System.out.println("DEBUG::Tom::java::About to make gbl points list");
             if (constrainedBSFit)  {
                 points_on_traj = _hpsGblTrajCreator.MakeGblPointsList(trackGblStripClusterData, bsPoint, bfac,sensorMap, pathLengthMap);
             }
@@ -892,9 +892,9 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
                 
-                System.out.println("DEBUG::Tom::java::Create null GblTrajectoryJna");
+                //System.out.println("DEBUG::Tom::java::Create null GblTrajectoryJna");
                 GblTrajectoryJna trajForMPII = null;
-                System.out.println("DEBUG::Tom::java::Create unconstrained GblTrajectoryJna");
+                //System.out.println("DEBUG::Tom::java::Create unconstrained GblTrajectoryJna");
                 GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,1,1,1);
                 
                 //seed matrix q/p, yT', xT', xT, yT 
@@ -914,18 +914,18 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //seedPrecision.set(3,3,1000000);
                 
                 if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
-                    System.out.println("DEBUG::Tom::java::Create unconstrained GblTrajectoryJna");
+                    //System.out.println("DEBUG::Tom::java::Create unconstrained GblTrajectoryJna");
                     trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
                 } else {
-                    System.out.println("DEBUG::Tom::java::Create constrained GblTrajectoryJna");
+                    //System.out.println("DEBUG::Tom::java::Create constrained GblTrajectoryJna");
                     trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
                 }
                 
-                System.out.println("DEBUG::Tom::java::GblTrajectoryJna.printData");
+                //System.out.println("DEBUG::Tom::java::GblTrajectoryJna.printData");
                 if (debugAlignmentDs) trajForMPII.printData();
                 
                 //Fit the trajectory to get the Chi2
-                System.out.println("DEBUG::Tom::java::GblTrajectoryJna.fit");
+                //System.out.println("DEBUG::Tom::java::GblTrajectoryJna.fit");
                 trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
 
                 //Avoid to use tracks with terrible Chi2
@@ -937,14 +937,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     System.out.println("DEBUG::Tom::Writing track with "
                         + points_on_traj.size() + " hits to mille binary.");
                      */
-                    System.out.println("DEBUG::Tom::java::GblTrajectoryJna.milleOut");
                     trajForMPII.milleOut(mille);
                 }
                 
                 if (correctTrack) {                
 
                     //Form the FittedGblTrajectory for the unconstrained fit
-                    System.out.println("DEBUG::Tom::java::form the FittedGblTrajectory");
+                    //System.out.println("DEBUG::Tom::java::form the FittedGblTrajectory");
                     FittedGblTrajectory fitTraj = new FittedGblTrajectory(trajForMPII_unconstrained, Chi2.getValue(), Ndf.getValue(), lostWeight.getValue());
                     
                     fitTraj.setSensorMap(sensorMap);

@@ -36,7 +36,6 @@ public class GblPointJna {
     private Pointer self; 
 
     public GblPointJna(Matrix m) { 
-        System.out.println("DEBUG::Tom::java::GblPointJna(Matrix)");
         double [] array = m.getColumnPackedCopy();
         //Jacobian is always 5x5
         
@@ -50,8 +49,6 @@ public class GblPointJna {
     }
 
     public void addGlobals(List<Integer> labels, Matrix globalDers) {
-        System.out.println("DEBUG::Tom::java::GblPointJna.addGlobals");
-        
         double [] gders = globalDers.getRowPackedCopy(); 
         int  [] glabels = new int[labels.size()];
         for (int ilabel=0; ilabel<labels.size(); ilabel++) {
@@ -61,13 +58,10 @@ public class GblPointJna {
     }
     
     public void addMeasurement(Matrix aProjection, Vector aResiduals, Vector aPrecision) {
-        System.out.println("DEBUG::Tom::java::GblPointJna.addMeasurement(no min)");
         addMeasurement(aProjection, aResiduals, aPrecision,0.);
     }
     
     public void addMeasurement(Matrix aProjection, Vector aResiduals, Vector aPrecision, double minPrecision) {
-        System.out.println("DEBUG::Tom::java::GblPointJna.addMeasurement");
-        
         double [] projArray = aProjection.getColumnPackedCopy();
         double [] resArray  = aResiduals.getColumnPackedCopy();
         double [] precArray = aPrecision.getColumnPackedCopy();
@@ -79,7 +73,6 @@ public class GblPointJna {
     }
     
     public void addScatterer(Vector aResiduals, Vector aPrecision) {
-        System.out.println("DEBUG::Tom::java::GblPointJna.addScatterer");
         double [] resArray  = aResiduals.getColumnPackedCopy();
         double [] precArray = aPrecision.getColumnPackedCopy();
         
@@ -90,22 +83,18 @@ public class GblPointJna {
     }
 
     public void printPoint(int i) {
-        System.out.println("DEBUG::Tom::java::GblPointJna.printPoint");
         GblPointInterface.INSTANCE.GblPoint_printPoint(self,i);
     }
     
     public Pointer getPtr() {
-        System.out.println("DEBUG::Tom::java::GblPointJna.getPtr");
         return self;
     }
 
     public void delete() {
-        System.out.println("DEBUG::Tom::java::GblPointJna.delete");
         GblPointInterface.INSTANCE.GblPoint_delete(self);
     }
 
     public Matrix getGlobalLabelsAndDerivatives(List<Integer> labels) {
-        System.out.println("DEBUG::Tom::java::GblPointJna.getGlobalLabelsAndDerivatives");
         IntByReference nlabels = new IntByReference(0);
         PointerByReference labels_array_ptr = new PointerByReference();
         PointerByReference ders_array_ptr = new PointerByReference();
