@@ -59,6 +59,26 @@ public class GblJNA  {
     } 
 
     @Test
+    public void GblPoint_getGlobalLabelsAndDerivatives() {
+        // Create a 5 x 5 unit matrix.  This will be passed to instantiate
+        Matrix jacPointToPoint = new Matrix(5, 5); 
+        jacPointToPoint.UnitMatrix(); 
+
+        Matrix m = new Matrix(2,2);
+        m.UnitMatrix();
+        Vector v = new Vector(2);
+        v.set(0,0.);
+        v.set(1,1.);
+        
+        GblPointJna gblPointJna = new GblPointJna(jacPointToPoint);
+        gblPointJna.addMeasurement(m,v,v);
+
+        List<Integer> labels = new ArrayList<Integer>();
+        Matrix g_ders = new Matrix(1,1);
+        gblPointJna.getGlobalLabelsAndDerivatives(labels, g_ders);
+    }
+
+    @Test
     public void OpenCloseMilleBinary() {
         MilleBinaryJna mille = new MilleBinaryJna("hello_world.bin");
         mille.close();
