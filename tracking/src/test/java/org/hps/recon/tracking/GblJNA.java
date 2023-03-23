@@ -89,7 +89,7 @@ public class GblJNA  {
 
         assertTrue("New copy of labels from C is not the right size", new_labels.size() == og_labels.size());
         for (int i = 0; i < new_labels.size(); ++i) {
-          assertTrue("New copy of labels from C do not have the right content", new_labels[i] == og_labels[i]);
+          assertTrue("New copy of labels from C do not have the right content", new_labels.get(i) == og_labels.get(i));
         }
     }
 

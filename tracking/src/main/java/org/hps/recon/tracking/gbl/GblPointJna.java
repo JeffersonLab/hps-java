@@ -22,6 +22,7 @@ public class GblPointJna {
         //Pointer GblPointCtor2D(double matrix[][]); 
 
         void GblPoint_delete(Pointer self);
+        int GblPoint_getNumMeasurements(Pointer self);
         
         void GblPoint_addMeasurement2D(Pointer self, double[] projArray, double[] resArray, double[] precArray, 
                                        double minPrecision);
@@ -42,6 +43,10 @@ public class GblPointJna {
         if (m.getRowDimension() != 5 || m.getColumnDimension() != 5) 
             throw new RuntimeException("GBLPoint:: Malformed point. JacobianP2P needs to be a 5x5 matrix. ");
         self = GblPointInterface.INSTANCE.GblPointCtor(array); 
+    }
+
+    public int getNumMeasurements() {
+      return GblPointInterface.INSTANCE.GblPoint_getNumMeasurements(self);
     }
 
     public void addGlobals(List<Integer> labels, Matrix globalDers) {

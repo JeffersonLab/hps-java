@@ -1708,7 +1708,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
 
     private void ComputeCOMDerivatives(GblPointJna gblpoint) {
-
+        if (gblpoint.getNumMeasurements() == 0)
+            return;
 
         List<Integer> labels = new ArrayList<Integer>();
         Matrix g_ders = gblpoint.getGlobalLabelsAndDerivatives(labels);
@@ -1856,6 +1857,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
     //This will compute and add to the buffers the derivatives 
     private void ComputeStructureDerivatives(GblPointJna gblpoint) {
+        if (gblpoint.getNumMeasurements() == 0)
+            return;
         
         List<Integer> labels = new ArrayList<Integer>();
         Matrix g_ders = gblpoint.getGlobalLabelsAndDerivatives(labels);
