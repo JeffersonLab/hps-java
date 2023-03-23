@@ -4,9 +4,9 @@ import com.sun.jna.Library;
 import com.sun.jna.Native; 
 import com.sun.jna.Pointer; 
 import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.ptr.PointerByReference;
 
 import java.util.List;
-import java.util.ArrayList;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
@@ -29,7 +29,7 @@ public class GblPointJna {
         
         void GblPoint_printPoint(Pointer self, int i);
         void GblPoint_addGlobals(Pointer self, int[] labels, int nlabels, double[] derArray);
-        void GblPoint_getGlobalLabelsAndDerivatives(Pointer self, IntByReference nlabels, int[] labels, double[] ders);
+        void GblPoint_getGlobalLabelsAndDerivatives(Pointer self, IntByReference nlabels, PointerByReference labels, PointerByReference ders);
     }
     
     private Pointer self; 
@@ -99,21 +99,26 @@ public class GblPointJna {
         GblPointInterface.INSTANCE.GblPoint_delete(self);
     }
 
-    public void getGlobalLabelsAndDerivatives(List<Integer> labels, Matrix ders) {
+    public Matrix getGlobalLabelsAndDerivatives(List<Integer> labels) {
         System.out.println("DEBUG::Tom::java::GblPointJna.getGlobalLabelsAndDerivatives");
         IntByReference nlabels = new IntByReference(0);
-        int []labels_array = new int[1];
-        double []ders_array = new double[1];
-        GblPointInterface.INSTANCE.GblPoint_getGlobalLabelsAndDerivatives(self, nlabels, labels_array, ders_array);
+        PointerByReference labels_array_ptr = new PointerByReference();
+        PointerByReference ders_array_ptr = new PointerByReference();
+        GblPointInterface.INSTANCE.GblPoint_getGlobalLabelsAndDerivatives(self, nlabels, labels_array_ptr, ders_array_ptr);
 
-        labels = new ArrayList<Integer>();
+        int [] labels_array = labels_array_ptr.getValue().getIntArray(0, nlabels.getValue());
+        double [] ders_array = ders_array_ptr.getValue().getDoubleArray(0, nlabels.getValue());
+
+        labels.clear();
         for (int i = 0; i < nlabels.getValue(); ++i) {
             labels.add(labels_array[i]);
         }
 
-        ders = new Matrix(1, nlabels.getValue());
+        Matrix ders = new Matrix(1, nlabels.getValue());
         for (int i = 0; i < nlabels.getValue(); ++i) {
             ders.set(0,i,ders_array[i]);
         }
+
+        return ders;
     }
 }

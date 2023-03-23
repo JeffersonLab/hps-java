@@ -1,6 +1,10 @@
 package org.hps.recon.tracking;  
 
+import junit.framework.TestCase;
+
+import static org.junit.Assert.*;
 import org.junit.Test; 
+
 import java.util.ArrayList;
 import java.util.List;
 import java.lang.Math;
@@ -73,9 +77,20 @@ public class GblJNA  {
         GblPointJna gblPointJna = new GblPointJna(jacPointToPoint);
         gblPointJna.addMeasurement(m,v,v);
 
-        List<Integer> labels = new ArrayList<Integer>();
-        Matrix g_ders = new Matrix(1,1);
-        gblPointJna.getGlobalLabelsAndDerivatives(labels, g_ders);
+        List<Integer> og_labels = new ArrayList<Integer>();
+        og_labels.add(4711);
+        og_labels.add(4712);
+        Matrix og_ders = new Matrix(2,2);
+        og_ders.UnitMatrix();
+        gblPointJna.addGlobals(og_labels, og_ders);
+
+        List<Integer> new_labels = new ArrayList<Integer>();
+        Matrix new_ders = gblPointJna.getGlobalLabelsAndDerivatives(new_labels);
+
+        assertTrue("New copy of labels from C is not the right size", new_labels.size() == og_labels.size());
+        for (int i = 0; i < new_labels.size(); ++i) {
+          assertTrue("New copy of labels from C do not have the right content", new_labels[i] == og_labels[i]);
+        }
     }
 
     @Test
