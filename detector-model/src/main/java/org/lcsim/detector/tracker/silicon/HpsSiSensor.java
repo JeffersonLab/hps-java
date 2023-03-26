@@ -51,6 +51,7 @@ public class HpsSiSensor extends SiSensor {
     protected int febID;
     protected int febHybridID;
     protected double t0Shift = 0;
+    protected Double t0PhaseShifts[] = {0.,0.,0.,0.,0.,0.};
     protected boolean isAxial = false;
     protected boolean isStereo = false;
 
@@ -344,6 +345,13 @@ public class HpsSiSensor extends SiSensor {
     public double getT0Shift() {
         return this.t0Shift;
     }
+    /**
+     * get the  phase-dependent t0 shifts for this sensor
+     *  @return Array of phase dependent phase shifts.
+     */
+    public Double[] getT0PhaseShifts(){
+        return this.t0PhaseShifts;
+    }
 
     /**
      * Get the sensor side (ELECTRON or POSITRON). For single sensor half-modules, the side will always be ELECTRON.
@@ -470,6 +478,15 @@ public class HpsSiSensor extends SiSensor {
      */
     public void setT0Shift(final double t0Shift) {
         this.t0Shift = t0Shift;
+    }
+
+    /**
+     * Set the phase dependent t0 shifts for this sensor.
+     *
+     * @param t0Shift The t0 shift for this sensor.
+     */
+    public void setT0PhaseShifts(final Double[] t0PhaseShifts) {
+        this.t0PhaseShifts = t0PhaseShifts;
     }
 
     /**

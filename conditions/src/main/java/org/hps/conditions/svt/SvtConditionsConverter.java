@@ -4,6 +4,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+import org.hps.conditions.svt.SvtSensorEvtPhaseShift.SvtSensorEvtPhaseShiftCollection;
 import org.lcsim.conditions.ConditionsManager;
 
 /**
@@ -47,6 +48,11 @@ public final class SvtConditionsConverter extends AbstractSvtConditionsConverter
         final SvtT0ShiftCollection t0Shifts = dbConditionsManager.getCachedConditions(SvtT0ShiftCollection.class,
                 "svt_t0_shifts").getCachedData();
         this.conditions.setT0Shifts(t0Shifts);
+
+        // Get the collection of T0 shifts from the conditions database
+        final SvtSensorEvtPhaseShiftCollection t0PhaseShifts = dbConditionsManager.getCachedConditions(SvtSensorEvtPhaseShiftCollection.class,
+                "svt_t0_sensor_phase_shifts").getCachedData();
+        this.conditions.setT0PhaseShifts(t0PhaseShifts);
 
         this.conditions = super.getData(manager, name);
 

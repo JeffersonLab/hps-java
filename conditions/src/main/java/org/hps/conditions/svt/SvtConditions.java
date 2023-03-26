@@ -5,6 +5,7 @@ import static org.hps.conditions.svt.AbstractSvtChannel.MAX_NUMBER_OF_SAMPLES;
 import org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+import org.hps.conditions.svt.SvtSensorEvtPhaseShift.SvtSensorEvtPhaseShiftCollection;
 
 /**
  * This class contains all test run SVT conditions data by readout channel. {@link SvtChannel} objects from the SVT
@@ -40,6 +41,11 @@ public final class SvtConditions extends AbstractSvtConditions {
     @Override
     public SvtT0ShiftCollection getT0Shifts() {
         return (SvtT0ShiftCollection) this.t0Shifts;
+    }
+
+    @Override
+    public SvtSensorEvtPhaseShiftCollection getT0PhaseShifts() {
+        return (SvtSensorEvtPhaseShiftCollection) this.t0PhaseShifts;
     }
 
     /**

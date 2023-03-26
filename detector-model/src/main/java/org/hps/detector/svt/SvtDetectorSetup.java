@@ -15,6 +15,8 @@ import org.hps.conditions.svt.SvtConditions;
 import org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
 import org.hps.conditions.svt.SvtT0Shift;
 import org.hps.conditions.svt.SvtT0Shift.SvtT0ShiftCollection;
+import org.hps.conditions.svt.SvtSensorEvtPhaseShift;
+import org.hps.conditions.svt.SvtSensorEvtPhaseShift.SvtSensorEvtPhaseShiftCollection;
 import org.hps.util.Pair;
 import org.lcsim.conditions.ConditionsEvent;
 import org.lcsim.conditions.ConditionsListener;
@@ -107,7 +109,7 @@ public final class SvtDetectorSetup implements ConditionsListener {
         LOGGER.info("channel map has " + conditions.getChannelMap().size() + " entries");
         final SvtDaqMappingCollection daqMap = conditions.getDaqMap();
         final SvtT0ShiftCollection t0Shifts = conditions.getT0Shifts();
-
+        final SvtSensorEvtPhaseShiftCollection t0PhaseShifts = conditions.getT0PhaseShifts();
         // Loop over sensors.
         for (final HpsSiSensor sensor : sensors) {
 
@@ -178,6 +180,15 @@ public final class SvtDetectorSetup implements ConditionsListener {
                         + ", FEB hybrid ID " + daqPair.getFirstElement() + ", FEB ID " + daqPair.getSecondElement());
             }
             sensor.setT0Shift(sensorT0Shift.getT0Shift());
+ 
+           // Set the sensor and phase dependent t0 shift for the sensor...overrules 
+            final SvtSensorEvtPhaseShift sensorEvtPhaseShift = t0PhaseShifts.getT0PhaseShift(daqPair);
+            if (sensorEvtPhaseShift == null) {
+                throw new RuntimeException("Failed to find SensorEvtPhase t0shift for sensor: " + sensor.getName()
+                        + ", FEB hybrid ID " + daqPair.getFirstElement() + ", FEB ID " + daqPair.getSecondElement());
+            }
+            sensor.setT0PhaseShifts(sensorEvtPhaseShift.getPhaseShifts());
+
         }
     }
 

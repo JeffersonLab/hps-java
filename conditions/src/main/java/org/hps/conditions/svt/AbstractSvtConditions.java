@@ -6,6 +6,7 @@ import java.util.Map;
 import org.hps.conditions.svt.AbstractSvtChannel.AbstractSvtChannelCollection;
 import org.hps.conditions.svt.AbstractSvtDaqMapping.AbstractSvtDaqMappingCollection;
 import org.hps.conditions.svt.AbstractSvtT0Shift.AbstractSvtT0ShiftCollection;
+import org.hps.conditions.svt.AbstractSvtSensorEvtPhaseShift.AbstractSvtSensorEvtPhaseShiftCollection;
 
 /**
  * Abstract class providing some of the common functionality used to define an SVT conditions object.
@@ -34,7 +35,11 @@ public abstract class AbstractSvtConditions {
      */
     // FIXME: Should be private with accessor methods.
     protected AbstractSvtT0Shift.AbstractSvtT0ShiftCollection<? extends AbstractSvtT0Shift> t0Shifts = null;
-
+    /**
+     * The sensor and phase-dependent time shift collection.
+     */
+    // FIXME: Should be private with accessor methods.
+    protected AbstractSvtSensorEvtPhaseShift.AbstractSvtSensorEvtPhaseShiftCollection<? extends AbstractSvtSensorEvtPhaseShift> t0PhaseShifts = null;
     /**
      * Get the conditions constants for a specific channel. These will be created if they do not exist for the given
      * channel, BUT only channels in the current channel map are allowed as an argument.
@@ -76,6 +81,12 @@ public abstract class AbstractSvtConditions {
      * @return the t0 shifts by sensor
      */
     public abstract AbstractSvtT0ShiftCollection<? extends AbstractSvtT0Shift> getT0Shifts();
+    /**
+     * Get the t0 shifts for this conditions set.
+     *
+     * @return the t0 shifts by sensor and phase
+     */
+    public abstract AbstractSvtSensorEvtPhaseShiftCollection<? extends AbstractSvtSensorEvtPhaseShift> getT0PhaseShifts();
 
     /**
      * Set the SVT channel map for this conditions set.
@@ -102,5 +113,14 @@ public abstract class AbstractSvtConditions {
      */
     public final void setT0Shifts(final AbstractSvtT0ShiftCollection<? extends AbstractSvtT0Shift> t0Shifts) {
         this.t0Shifts = t0Shifts;
+    }
+
+    /**
+     * Set the sensor t0 shifts for this conditions set.
+     *
+     * @param t0Shifts for this conditions set
+     */
+    public final void setT0PhaseShifts(final AbstractSvtSensorEvtPhaseShiftCollection<? extends AbstractSvtSensorEvtPhaseShift> t0PhaseShifts) {
+        this.t0PhaseShifts = t0PhaseShifts;
     }
 }

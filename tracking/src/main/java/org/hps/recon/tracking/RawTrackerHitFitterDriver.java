@@ -38,6 +38,7 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean subtractTOF = false;
     private boolean subtractTriggerTime = false;
     private boolean correctChanT0 = true;
+    private boolean correctPhaseDepT0Shift = false; 
     private boolean subtractRFTime = false;
     private Boolean syncGood = true;
     private Boolean isMC = false;
@@ -238,6 +239,12 @@ public class RawTrackerHitFitterDriver extends Driver {
                     //===> fit.setT0(fit.getT0() - constants.getT0Shift());
                     fit.setT0(fit.getT0() - sensor.getT0Shift());
                 }
+                if (correctPhaseDepT0Shift){
+                    Double phaseShifts[]=sensor.getT0PhaseShifts(); 
+                    int phase=(int)((event.getTimeStamp()%24)/4);
+                    fit.setT0(fit.getT0()-phaseShifts[phase]);
+                }
+
                 if (subtractTOF) {
                     double tof = hit.getDetectorElement().getGeometry().getPosition().magnitude() / (Const.SPEED_OF_LIGHT * Const.nanosecond);
                     fit.setT0(fit.getT0() - tof);
