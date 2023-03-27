@@ -45,7 +45,7 @@ public class GblPointJna {
     }
 
     public int getNumMeasurements() {
-      return GblPointInterface.INSTANCE.GblPoint_getNumMeasurements(self);
+        return GblPointInterface.INSTANCE.GblPoint_getNumMeasurements(self);
     }
 
     public void addGlobals(List<Integer> labels, Matrix globalDers) {
