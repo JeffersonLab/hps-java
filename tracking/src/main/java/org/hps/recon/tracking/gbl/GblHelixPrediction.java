@@ -1,34 +1,11 @@
 package org.hps.recon.tracking.gbl;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.Pointer;
+import com.sun.jna.Pointer; 
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
 public class GblHelixPrediction {
-    
-    public interface GblHelixPredictionInterface extends Library {
-        
-        GblHelixPredictionInterface INSTANCE = (GblHelixPredictionInterface) Native.loadLibrary("GBL", GblHelixPredictionInterface.class);
-        
-        Pointer GblHelixPredictionCtor(double sArc, double[] aPred,
-                                       double [] tDir, double [] uDir, double [] vDir,
-                                       double [] nDir, double [] aPos);
-        
-        void GblHelixPrediction_delete(Pointer self);
-        double GblHelixPrediction_getArcLength(Pointer self);
-        void GblHelixPrediction_getMeasPred(Pointer self, double [] prediction);
-        void GblHelixPrediction_getPosition(Pointer self, double[] position);
-        void GblHelixPrediction_getDirection(Pointer self,double[] direction);
-        
-        double GblHelixPrediction_getCosIncidence(Pointer self);
-        
-        //array for the curvilinear directions (2x3 matrix)
-        void GblHelixPrediction_getCurvilinearDirs(Pointer self, double [] curvilinear);
-        
-    }
     
     private Pointer self;
     
@@ -42,7 +19,7 @@ public class GblHelixPrediction {
                               double [] tDir, double [] uDir, double [] vDir, 
                               double [] nDir, double [] aPos) {
         
-        self = GblHelixPredictionInterface.INSTANCE.GblHelixPredictionCtor(sArc, aPred,
+        self = GblInterface.INSTANCE.GblHelixPredictionCtor(sArc, aPred,
                                                                            tDir, uDir, vDir,
                                                                            nDir,aPos);
     }
@@ -52,7 +29,7 @@ public class GblHelixPrediction {
     }
 
     public void delete() {
-        GblHelixPredictionInterface.INSTANCE.GblHelixPrediction_delete(self);
+        GblInterface.INSTANCE.GblHelixPrediction_delete(self);
     }
 
     public GblHelixPrediction() {
@@ -65,7 +42,7 @@ public class GblHelixPrediction {
         double [] nDir = new double[2];
         double [] aPos = new double[2];
         
-        self = GblHelixPredictionInterface.INSTANCE.GblHelixPredictionCtor(sArc, aPred,
+        self = GblInterface.INSTANCE.GblHelixPredictionCtor(sArc, aPred,
                                                                            tDir, uDir, vDir,
                                                                            nDir,aPos);
         
@@ -81,29 +58,29 @@ public class GblHelixPrediction {
         double[] aPos  =  v_aPos.getColumnPackedCopy();
         
         
-        self = GblHelixPredictionInterface.INSTANCE.GblHelixPredictionCtor(sArc, aPred,
+        self = GblInterface.INSTANCE.GblHelixPredictionCtor(sArc, aPred,
                                                                            tDir, uDir, vDir,
                                                                            nDir, aPos);
     }
 
     public double getArcLength() {
-        return GblHelixPredictionInterface.INSTANCE.GblHelixPrediction_getArcLength(self);
+        return GblInterface.INSTANCE.GblHelixPrediction_getArcLength(self);
     }
     
     public void getMeasPred(double [] prediction) {
-        GblHelixPredictionInterface.INSTANCE.GblHelixPrediction_getMeasPred(self,prediction);
+        GblInterface.INSTANCE.GblHelixPrediction_getMeasPred(self,prediction);
     }
     
     public void getPosition(double [] position) {
-        GblHelixPredictionInterface.INSTANCE.GblHelixPrediction_getPosition(self, position);
+        GblInterface.INSTANCE.GblHelixPrediction_getPosition(self, position);
     }
     
     public void getDirection(double [] direction) {
-        GblHelixPredictionInterface.INSTANCE.GblHelixPrediction_getDirection(self, direction);
+        GblInterface.INSTANCE.GblHelixPrediction_getDirection(self, direction);
     }
     
     public double getCosIncidence() {
-        return GblHelixPredictionInterface.INSTANCE.GblHelixPrediction_getCosIncidence(self);
+        return GblInterface.INSTANCE.GblHelixPrediction_getCosIncidence(self);
     }
     
     public Matrix getCurvilinearDirs() {
@@ -111,7 +88,7 @@ public class GblHelixPrediction {
         Matrix curvilinearDirs = new Matrix(2,3);
         double[] dirArray = new double[6];
         
-        GblHelixPredictionInterface.INSTANCE.GblHelixPrediction_getCurvilinearDirs(self, dirArray);
+        GblInterface.INSTANCE.GblHelixPrediction_getCurvilinearDirs(self, dirArray);
         
         curvilinearDirs.set(0,0,dirArray[0]);
         curvilinearDirs.set(0,1,dirArray[1]);
