@@ -1041,6 +1041,9 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 trajForMPII.delete();
                 trajForMPII_unconstrained.delete();
+                for (GblPointJna point : points_on_traj) {
+                    point.delete();
+                }
                 
             }// composite Alignment
             

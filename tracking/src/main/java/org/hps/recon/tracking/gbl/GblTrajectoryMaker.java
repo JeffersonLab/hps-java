@@ -76,12 +76,6 @@ public class GblTrajectoryMaker {
      * @return the list of GBL strip cluster data
      */
     public List<GBLStripClusterData> makeStripData(HelicalTrackFit htf, List<TrackerHit> stripHits) {
-
-
-        GblSimpleHelix gblHelix = new GblSimpleHelix(htf.curvature(), htf.phi0(), htf.dca(), htf.slope(), htf.z0());
-        
-        
-        
         List<GBLStripClusterData> stripClusterDataList = new ArrayList<GBLStripClusterData>();
 
         // Find scatter points along the path

@@ -17,6 +17,7 @@ public class GblHelixPrediction {
                                        double [] tDir, double [] uDir, double [] vDir,
                                        double [] nDir, double [] aPos);
         
+        void GblHelixPrediction_delete(Pointer self);
         double GblHelixPrediction_getArcLength(Pointer self);
         void GblHelixPrediction_getMeasPred(Pointer self, double [] prediction);
         void GblHelixPrediction_getPosition(Pointer self, double[] position);
@@ -48,6 +49,10 @@ public class GblHelixPrediction {
     
     public GblHelixPrediction(Pointer ptr) {
         self = ptr;
+    }
+
+    public void delete() {
+        GblHelixPredictionInterface.INSTANCE.GblHelixPrediction_delete(self);
     }
 
     public GblHelixPrediction() {

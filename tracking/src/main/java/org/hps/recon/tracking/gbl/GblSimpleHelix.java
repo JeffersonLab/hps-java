@@ -11,7 +11,7 @@ public class GblSimpleHelix {
         GblSimpleHelixInterface INSTANCE = (GblSimpleHelixInterface) Native.loadLibrary("GBL", GblSimpleHelixInterface.class);
 
         Pointer GblSimpleHelixCtor(double aRinv, double aPhi0, double aDca, double aDzds, double aZ0);
-        
+        void GblSimpleHelix_delete(Pointer self);
         double GblSimpleHelix_getPhi(Pointer self, double aRadius);
         double GblSimpleHelix_getArcLengthR(Pointer self, double aRadius);
         double GblSimpleHelix_getArcLengthXY(Pointer self, double xPos, double yPos);
@@ -23,6 +23,10 @@ public class GblSimpleHelix {
 
     public GblSimpleHelix(double aRinv, double aPhi0, double aDca, double aDzds, double aZ0) {
         self = GblSimpleHelixInterface.INSTANCE.GblSimpleHelixCtor(aRinv, aPhi0, aDca, aDzds, aZ0);
+    }
+
+    public void delete() {
+        GblSimpleHelixInterface.INSTANCE.GblSimpleHelix_delete(self);
     }
     
     public double getPhi(double aRadius) {
