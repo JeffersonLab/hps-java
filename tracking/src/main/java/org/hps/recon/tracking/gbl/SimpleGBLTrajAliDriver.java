@@ -929,8 +929,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
 
                 //Avoid to use tracks with terrible Chi2
-                if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
+                if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut) {
+                    trajForMPII.delete();
+                    trajForMPII_unconstrained.delete();
+                    for (GblPointJna point : points_on_traj) {
+                        point.delete();
+                    }
                     continue;
+                }
                 
                 if (writeMilleBinary) {
                     /*
