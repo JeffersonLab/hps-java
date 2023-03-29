@@ -5,6 +5,7 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
 import java.awt.Point;
+import static java.lang.Math.exp;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,15 +28,17 @@ import org.lcsim.event.base.BaseCluster;
  * >CLAS-Note-2005-001</a>.
  * <p>
  * The analysis and position corrections are described in <a
- * href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS Note
- * 2014-001</a>.
+ * href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014">HPS
+ * Note 2014-001</a>.
  * <p>
- * The algorithm sorts hits from highest to lowest energy and builds clusters around each local
- * maximum/seed hit. Common hits are distributed between clusters when minimum between two clusters.
- * There is a threshold cut for minimum hit energy, minimum cluster energy, and minimum seed hit
- * energy. There is also a timing threshold with respect to the seed hit. All of these parameters
- * are tunable and should be refined with more analysis. Energy corrections are applied separately.
- * 
+ * The algorithm sorts hits from highest to lowest energy and builds clusters
+ * around each local maximum/seed hit. Common hits are distributed between
+ * clusters when minimum between two clusters. There is a threshold cut for
+ * minimum hit energy, minimum cluster energy, and minimum seed hit energy.
+ * There is also a timing threshold with respect to the seed hit. All of these
+ * parameters are tunable and should be refined with more analysis. Energy
+ * corrections are applied separately.
+ *
  * @see AbstractClusterer
  * @see Clusterer
  */
@@ -71,8 +74,8 @@ public class ReconClusterer extends AbstractClusterer {
     List<CalorimeterHit> rejectedHitList = new ArrayList<CalorimeterHit>();
 
     ReconClusterer() {
-        super(new String[] { "hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime","maxTime","timeWindow" },
-                new double[] { 0.0075, 0.05, 0.1, 0.0, -1.0, 8.0 });
+        super(new String[]{"hitEnergyThreshold", "seedEnergyThreshold", "clusterEnergyThreshold", "minTime", "maxTime", "timeWindow"},
+                new double[]{0.0075, 0.05, 0.1, 0.0, -1.0, 8.0});
     }
 
     void setUseTimeCut(boolean useTimeCut) {
@@ -92,7 +95,9 @@ public class ReconClusterer extends AbstractClusterer {
     }
 
     /**
-     * Get the list of rejected hits that was made from processing the last event.
+     * Get the list of rejected hits that was made from processing the last
+     * event.
+     *
      * @return The list of rejected hit.
      */
     List<CalorimeterHit> getRejectedHitList() {
@@ -108,18 +113,16 @@ public class ReconClusterer extends AbstractClusterer {
         rejectedHitList = new ArrayList<CalorimeterHit>();
 
         // if(!hitList.isEmpty()) { System.out.println("TrueType: " + hitList.get(0).getClass().getSimpleName() + "; Sim Hit: " + (hitList.get(0) instanceof org.lcsim.event.SimCalorimeterHit ? "SimCalorimeterHit" : "CalorimeterHit")); }
-
         // Create a list for the created clusters.
         ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
 
         // Sort the input hit list by energy.
         ClusterUtilities.sortHitsUniqueEnergy(hitList);
 
-      /*  System.out.println("BEFORE");
+        /*  System.out.println("BEFORE");
         for (CalorimeterHit hit : hitList) {
             System.out.println(hit.getCorrectedEnergy()+" "+hit.getTime());
         }*/
-        
         // Filter the hit list of any hits that fail to pass the
         // designated threshold.
         for (int index = hitList.size() - 1; index >= 0; index--) {
@@ -128,9 +131,7 @@ public class ReconClusterer extends AbstractClusterer {
                     || (maxTime > 0 && hitList.get(index).getTime() > maxTime)) {
                 rejectedHitList.add(hitList.get(index));
                 hitList.remove(index);
-            }
-
-            // Since the hits are sorted by energy from highest to
+            } // Since the hits are sorted by energy from highest to
             // lowest, any hit that is above threshold means that all
             // subsequent hits will also be above threshold. Continue through
             // list to check in time window.
@@ -139,16 +140,13 @@ public class ReconClusterer extends AbstractClusterer {
             }
         }
 
-      /*  System.out.println("AFTER");
+        /*  System.out.println("AFTER");
         for (CalorimeterHit hit : hitList) {
             System.out.println(hit.getCorrectedEnergy()+" "+hit.getTime());
         }*/
-        
         // Create a map to connect the cell ID of a calorimeter crystal to the hit which occurred in
         // that crystal.
-
         //        Map<Long, CalorimeterHit> hitMap = ClusterUtilities.createHitMap(hitList);
-
         LinkedHashMap<Long, CalorimeterHit> hitMap = new LinkedHashMap<Long, CalorimeterHit>();
 
         //boolean multihit = false;
@@ -170,7 +168,6 @@ public class ReconClusterer extends AbstractClusterer {
         //if (multihit == true) {
         //    System.err.println("Multiple CalorimeterHits found in same crystal!");            
         //}
-
         // Create a map to connect a seed hit to its cluster.
         Map<CalorimeterHit, BaseCluster> seedToCluster = new LinkedHashMap<CalorimeterHit, BaseCluster>();
 
@@ -210,7 +207,8 @@ public class ReconClusterer extends AbstractClusterer {
             // Loops through all the neighboring hits to determine if
             // the current hit is the local maximum within its set of
             // neighboring hits.
-            seedHitLoop: for (CalorimeterHit neighbor : neighborHits) {
+            seedHitLoop:
+            for (CalorimeterHit neighbor : neighborHits) {
                 if (!equalEnergies(hit, neighbor)) {
                     isSeed = false;
                     break seedHitLoop;
@@ -227,15 +225,13 @@ public class ReconClusterer extends AbstractClusterer {
                     seedToCluster.put(hit, cluster);
                     hitToSeed.put(hit, hit);
 
-                }
-                // Seed does not pass minimum threshold
+                } // Seed does not pass minimum threshold
                 else {
                     rejectedHitList.add(hit);
                     hitList.remove(ii);
                     ii--;
                 }
             } // end if isSeed
-
             // If this hit is not a seed hit, see if it should be
             // attached to any neighboring seed hits.
             else {
@@ -266,9 +262,7 @@ public class ReconClusterer extends AbstractClusterer {
 
                             // Put the common seed list back into the set.
                             commonHits.put(hit, commonHitList);
-                        }
-
-                        // If the neighboring hit is a seed hit and the
+                        } // If the neighboring hit is a seed hit and the
                         // current hit has not been added to a cluster yet
                         // associate it with the neighboring seed and note
                         // that it has been clustered.
@@ -281,7 +275,8 @@ public class ReconClusterer extends AbstractClusterer {
         } // End primary seed loop.
 
         // Performs second pass calculations for component hits.
-        secondaryHitsLoop: for (CalorimeterHit secondaryHit : hitList) {
+        secondaryHitsLoop:
+        for (CalorimeterHit secondaryHit : hitList) {
             // Look for hits that already have an associated seed/clustering.
             if (!hitToSeed.containsKey(secondaryHit)) {
                 continue secondaryHitsLoop;
@@ -321,7 +316,8 @@ public class ReconClusterer extends AbstractClusterer {
 
         // Performs second pass calculations for common hits.
         // TODO make this loop keySet-order independent
-        commonHitsLoop: for (CalorimeterHit clusteredHit : hitToSeed.keySet()) {
+        commonHitsLoop:
+        for (CalorimeterHit clusteredHit : hitToSeed.keySet()) {
 
             // Get the current clustered hit's neighboring crystals.
             Set<Long> clusteredNeighbors = neighborMap.get(clusteredHit.getCellID());
@@ -336,7 +332,6 @@ public class ReconClusterer extends AbstractClusterer {
                 CalorimeterHit clusteredNeighborHit = hitMap.get(neighbor);
 
                 // If it exists, add it to the neighboring hit list.
-
                 if (clusteredNeighborHit != null && hitToSeed.get(clusteredNeighborHit) != null && hitList.contains(clusteredNeighborHit)) {
                     clusteredNeighborHits.add(clusteredNeighborHit);
                 }
@@ -438,9 +433,7 @@ public class ReconClusterer extends AbstractClusterer {
                 if (inTimeWithA && inTimeWithB) {
                     clusterA.addHit(commHit.getKey(), hitcontributionA);
                     clusterB.addHit(commHit.getKey(), hitcontributionB);
-                }
-
-                //If the hit is only in 1 cluster's window, add the full contribution
+                } //If the hit is only in 1 cluster's window, add the full contribution
                 else if (inTimeWithA ^ inTimeWithB) {
                     if (inTimeWithA) {
                         clusterA.addHit(commHit.getKey());
@@ -472,8 +465,8 @@ public class ReconClusterer extends AbstractClusterer {
                 continue;
             }
         }
-        
-     /*  System.out.println("Number of clusters:"+clusterList.size());
+
+        /*  System.out.println("Number of clusters:"+clusterList.size());
         for(Cluster cluster : clusterList) {
            System.out.println(cluster.getEnergy());
         }*/
@@ -481,7 +474,9 @@ public class ReconClusterer extends AbstractClusterer {
     }
 
     /**
-     * Handles pathological case where multiple neighboring crystals have EXACTLY the same energy.
+     * Handles pathological case where multiple neighboring crystals have
+     * EXACTLY the same energy.
+     *
      * @param hit
      * @param neighbor Neighbor to hit
      * @return boolean value of if the hit is a seed
@@ -506,12 +501,16 @@ public class ReconClusterer extends AbstractClusterer {
     }
 
     /**
-     * Calculates the position of each cluster with no correction for particle type as documented in
-     * HPS Note 2014-001.
+     * Calculates the position of each cluster with no correction for particle
+     * type as documented in HPS Note 2014-001.
+     *
+     * 20230329 added energy-dependent w0 parameter, Norman A. Graf
+     *
      * @param cluster
      */
     private void calculatePosition(BaseCluster cluster) {
-        final double w0 = 3.1;
+//        final double w0 = 3.1;
+        double w0 = w0(cluster.getEnergy());
         // calculated cluster x position
         double xCl = 0.0;
         // calculated cluster y position
@@ -557,9 +556,36 @@ public class ReconClusterer extends AbstractClusterer {
     }
 
     /**
-     * This constructs a mapping of a crystal to an x,y position at the face of the ecal. This fills
-     * the correctedPositionMap with the position of a crystal's face from the index x,y of the
-     * crystal.
+     * This provides an energy-dependent threshold weighting parameter
+     *
+     *
+     * 20230329 Norman A. Graf
+     *
+     * @param energy the measured cluster energy
+     * @return the threshold weighting parameter
+     */
+    private double w0(double energy) {
+        // Fit h(x)=d + a/(1+exp(b*x-c)) to data from e-, e+, gamma from 0.75 to 4.5GeV
+        //
+        //        Final set of parameters            Asymptotic Standard Error
+        //=======================            ==========================
+        //a               = -4.99131         +/- 46.75        (936.7%)
+        //b               = 1.0113           +/- 0.8019       (79.29%)
+        //c               = -1.3715          +/- 10.95        (798.7%)
+        //d               = 3.62523          +/- 0.05048      (1.392%)
+        //
+        double a = -4.99131;
+        double b = 1.0113;
+        double c = -1.3715;
+        double d = 3.62523;
+        return d + a / (1 + exp(b * energy - c));
+    }
+
+    /**
+     * This constructs a mapping of a crystal to an x,y position at the face of
+     * the ecal. This fills the correctedPositionMap with the position of a
+     * crystal's face from the index x,y of the crystal.
+     *
      * @param hit
      */
     private void addToMap(CalorimeterHit hit) {
