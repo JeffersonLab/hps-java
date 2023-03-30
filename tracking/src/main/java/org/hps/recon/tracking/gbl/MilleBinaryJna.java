@@ -1,21 +1,23 @@
 package org.hps.recon.tracking.gbl;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 
 public class MilleBinaryJna {
     
-    public interface MilleBinaryInterface extends Library {
-        MilleBinaryInterface INSTANCE = (MilleBinaryInterface) Native.loadLibrary("GBL",MilleBinaryInterface.class);
-        Pointer MilleBinaryCtor(String fileName, int filenamesize, int doublePrec, int keepZeros, int aSize);
-        void MilleBinary_close(Pointer self);
+    private Pointer self;
+
+    /**
+     * full one-to-one constructor
+     */
+    public MilleBinaryJna(String fileName, int doublePrec, int keepZeros, int aSize) {
+        self = GblInterface.INSTANCE.MilleBinaryCtor(fileName, fileName.length(), doublePrec, keepZeros, aSize);
     }
     
-    private Pointer self;
-    
+    /**
+     * more useful constructor with HPS-sensible defaults
+     */
     public MilleBinaryJna(String fileName) {
-        self = MilleBinaryInterface.INSTANCE.MilleBinaryCtor(fileName,fileName.length(), 0, 0, 200000);
+        self = GblInterface.INSTANCE.MilleBinaryCtor(fileName, fileName.length(), 0, 0, 200000);
     }
 
     public Pointer getPtr() {
@@ -23,7 +25,7 @@ public class MilleBinaryJna {
     }
 
     public void close() {
-        MilleBinaryInterface.INSTANCE.MilleBinary_close(self);
+        GblInterface.INSTANCE.MilleBinary_close(self);
     }
 
 }
