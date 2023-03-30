@@ -7,6 +7,12 @@ import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.DoubleByReference;
 import com.sun.jna.ptr.PointerByReference;
 
+/**
+ * JNA Wrapper around the GBL C++ dynamic library
+ *
+ * All of the functions in this interface are bound to un-mangled wrapper functions
+ * in the GBL C++ dynamic library.
+ */
 public interface GblInterface extends Library {
     GblInterface INSTANCE = (GblInterface) Native.loadLibrary("GBL", GblInterface.class);
     Pointer MilleBinaryCtor(String fileName, int filenamesize, int doublePrec, int keepZeros, int aSize);
