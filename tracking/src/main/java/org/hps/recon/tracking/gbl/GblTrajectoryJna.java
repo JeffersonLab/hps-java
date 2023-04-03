@@ -61,7 +61,7 @@ public class GblTrajectoryJna {
         double [] seedArray = seed.getColumnPackedCopy();
         
         
-        self = GblInterface.INSTANCE.GblTrajectoryCtorPtrArraySeed(ppoints, points.size(), aLabel, seedArray, flagCurv, flagU1dir, flagU2dir);
+        self = GblInterface.INSTANCE.GblTrajectoryCtorPtrArraySeed(ppoints, points.size(), aLabel, seedArray, flagCurv?1:0, flagU1dir?1:0, flagU2dir?1:0);
         
     }
     

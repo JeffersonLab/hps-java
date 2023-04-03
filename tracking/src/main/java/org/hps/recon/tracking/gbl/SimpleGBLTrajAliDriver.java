@@ -895,7 +895,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //System.out.println("DEBUG::Tom::java::Create null GblTrajectoryJna");
                 GblTrajectoryJna trajForMPII = null;
                 //System.out.println("DEBUG::Tom::java::Create unconstrained GblTrajectoryJna");
-                GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,1,1,1);
+                GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,true,true,true);
                 
                 //seed matrix q/p, yT', xT', xT, yT 
                 SymMatrix seedPrecision = new SymMatrix(5);
@@ -915,10 +915,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
                     //System.out.println("DEBUG::Tom::java::Create unconstrained GblTrajectoryJna");
-                    trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
+                    trajForMPII =  new GblTrajectoryJna(points_on_traj,true,true,true);
                 } else {
                     //System.out.println("DEBUG::Tom::java::Create constrained GblTrajectoryJna");
-                    trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
+                    trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,true,true,true);
                 }
                 
                 //System.out.println("DEBUG::Tom::java::GblTrajectoryJna.printData");
@@ -990,7 +990,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                                 b_sigmas.add(aResErrors.get(i).floatValue());
                             }
                             
-                            GblTrajectoryJna gbl_fit_traj_u = new GblTrajectoryJna(points_on_traj,1,1,1);
+                            GblTrajectoryJna gbl_fit_traj_u = new GblTrajectoryJna(points_on_traj,true,true,true);
                             DoubleByReference Chi2_u = new DoubleByReference(0.);
                             DoubleByReference lostWeight_u = new DoubleByReference(0.);
                             IntByReference Ndf_u = new IntByReference(0);

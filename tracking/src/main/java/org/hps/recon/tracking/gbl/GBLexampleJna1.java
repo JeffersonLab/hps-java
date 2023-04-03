@@ -311,10 +311,10 @@ public class GBLexampleJna1 {
             Matrix seed = new SymMatrix(5);
             seed.set(0,0,100000);
             
-            //GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,1,1);
-            GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,seed,1,1,1);
+            //GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,true,true,true);
+            GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,seed,true,true,true);
             
-            if (traj.isValid() == 0 ) {
+            if (traj.isValid()) {
                 System.out.println("Example1: " + " Invalid GblTrajectory -> skip");
             }
 
