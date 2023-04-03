@@ -64,6 +64,13 @@ public class GBLexampleJna1 {
     private boolean debug = false;
     
     public AIDA aida;
+
+    public GBLexampleJna1(int nTry, int nLayer, boolean debug, String outputPlots) {
+        this.nTry = nTry;
+        this.nLayer = nLayer;
+        this.debug = debug;
+        this.outputPlots = outputPlots;
+    }
         
     public void setupPlots() {
         aida = AIDA.defaultInstance();
@@ -82,15 +89,14 @@ public class GBLexampleJna1 {
         aida.histogram1D("clPar_fit_2",100,-1.2,1.2);
         aida.histogram1D("clPar_fit_3",100,-1,1);
         aida.histogram1D("clPar_fit_4",100,-2.5,2.5);
+
+        
     }
     
-    public void runExample(int inTry, int inLayer,boolean idebug) {
-        nTry=inTry;
-        nLayer=inLayer;
-        debug = idebug;
-        
+    public void runExample() {
         setupPlots();
         System.out.println("Running GBL Example!");
+        System.out.println("  N Tries = "+nTry+" with N Layers = "+nLayer);
         long startTime = System.nanoTime();
         
         double sinLambda = 0.3;
@@ -420,8 +426,8 @@ public class GBLexampleJna1 {
             System.err.println(exp.getMessage());
         }
 
-        GBLexampleJna1 eg = new GBLexampleJna1();
-        eg.runExample(nTries, nLayers, debug);
+        GBLexampleJna1 eg = new GBLexampleJna1(nTries,nLayers,debug,outputFile);
+        eg.runExample();
     }
 }
 
