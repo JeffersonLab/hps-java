@@ -15,6 +15,27 @@ import com.sun.jna.ptr.DoubleByReference;
 //import hep.aida.IHistogram1D;
 import java.io.IOException;
 
+/**
+ * java translation of GBL's example 1 using GBL via JNA
+ * <p>
+ * This translation is helpful for a few reasons.
+ * <ol>
+ *  <li>
+ *    During development, it can be used to check for basic
+ *    functionality without having to have a full input data
+ *    file.
+ *  </li>
+ *  <li>
+ *    Validation of developments can be done by using this
+ *    to compare two different branches without worrying about
+ *    whether the input data is affecting the comparison.
+ *  </li>
+ *  <li>
+ *    It is a helpful example for how the GBL-JNA classes
+ *    should be used in this java package.
+ *  </li>
+ * </ol>
+ */
 public class GBLexampleJna1 {
     
     private int nTry = 100000;
@@ -43,12 +64,9 @@ public class GBLexampleJna1 {
         aida.histogram1D("clPar_fit_2",100,-1.2,1.2);
         aida.histogram1D("clPar_fit_3",100,-1,1);
         aida.histogram1D("clPar_fit_4",100,-2.5,2.5);
-
-        
     }
     
     public void runExample(int inTry, int inLayer,boolean idebug) {
-        
         nTry=inTry;
         nLayer=inLayer;
         debug = idebug;

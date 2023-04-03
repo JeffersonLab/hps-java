@@ -9,6 +9,17 @@ import com.sun.jna.ptr.PointerByReference;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
+/**
+ * wrapper for the GblPoint JNA functions
+ * <p>
+ * This class helps aid in the translation between java structures
+ * and the JNA function types. Specifically, the work done here 
+ * re-promotes the GblPoint JNA functions to be member functions
+ * of a class (like they are in the original C++) and then also
+ * provides translations between the more heirarchical matrix.Matrix
+ * and matrix.Vector classes with the C-style arrays that are
+ * required to pass the data into the C++ library via JNA.
+ */
 public class GblPointJna { 
     private Pointer self; 
 

@@ -11,6 +11,19 @@ import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
+/**
+ * wrapper class for GblTrajectory JNA functions
+ * <p>
+ * This class re-promotes these JNA functions to be
+ * class member functions while providing some translation
+ * capabilities form java types into their C-style
+ * counterparts required by JNA.
+ * <p>
+ * <b>Note</b>: While the points are passed into this constructor,
+ * the memory owned by those points is never owned by this
+ * class. It is up to the user to delete the points when they
+ * are done using them.
+ */
 public class GblTrajectoryJna {
     private Pointer self;
     

@@ -2,6 +2,13 @@ package org.hps.recon.tracking.gbl;
 
 import com.sun.jna.Pointer;
 
+/**
+ * wrapper class for MilleBinary JNA functions
+ * <p>
+ * This class re-promotes those JNA functions into
+ * class members and implements an extra constructor
+ * with more sensible HPS defaults
+ */
 public class MilleBinaryJna {
     
     private Pointer self;
