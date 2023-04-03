@@ -47,7 +47,12 @@ public class GBLexampleJna1 {
         
     }
     
-    public void runExample() {
+    public void runExample(int inTry, int inLayer,boolean idebug) {
+        
+        nTry=inTry;
+        nLayer=inLayer;
+        debug = idebug;
+        
         setupPlots();
         System.out.println("Running GBL Example!");
         long startTime = System.nanoTime();
@@ -231,7 +236,7 @@ public class GBLexampleJna1 {
                     System.out.println("Points::" + listOfPoints.size());
                 }
                 
-                jacPointToPoint = gblSimpleJacobianSvn(step, cosLambda, bfac);
+                jacPointToPoint = gblSimpleJacobian(step, cosLambda, bfac);
                 
                 clPar = jacPointToPoint.times(clPar);
                 clCov = jacPointToPoint.times(clCov.times(jacPointToPoint.transpose()));
@@ -294,19 +299,13 @@ public class GBLexampleJna1 {
             if (traj.isValid() == 0 ) {
                 System.out.println("Example1: " + " Invalid GblTrajectory -> skip");
             }
-            double[] dVals = new double[2];
-            int [] iVals = new int[1];
-            
-            DoubleByReference Chi2 = new DoubleByReference(0.);
-            DoubleByReference lostWeight = new DoubleByReference(0.);
-            IntByReference Ndf = new IntByReference(0);
-            
-            //traj.fit(dVals,iVals,"");
-            
-            traj.fit(Chi2,Ndf,lostWeight,"");
-            //Chi2Sum += dVals[0];
-            //NdfSum += iVals[0];
-            //LostSum += dVals[1];
+
+            DoubleByReference Chi2 = new DoubleByReference();
+            IntByReference Ndf = new IntByReference();
+            DoubleByReference lostWeight = new DoubleByReference();
+
+            traj.fit(Chi2, Ndf, lostWeight, "");
+
             Chi2Sum += Chi2.getValue();
             NdfSum += Ndf.getValue();
             LostSum += lostWeight.getValue();
@@ -315,6 +314,12 @@ public class GBLexampleJna1 {
             //aida.histogram1D("Chi2").fill(dVals[0]);
             //aida.histogram1D("Ndf").fill(iVals[0]);
             //aida.histogram1D("Chi2_Ndf").fill(dVals[0]/(double)iVals[0]);
+            
+            // memory cleanup
+            traj.delete();
+            for (GblPointJna pt : listOfPoints) {
+                pt.delete();
+            }
         }
 
         long endTime = System.nanoTime();
@@ -323,7 +328,6 @@ public class GBLexampleJna1 {
         System.out.printf("Time elapsed %f ms\n", (double)duration/1000000.);
         System.out.printf("Chi2/Ndf = %f \n", Chi2Sum / (double) NdfSum);
         System.out.printf("Tracks Fitted  %d \n", numFit);
-        
         
         if (outputPlots != null) {
             try {
@@ -335,9 +339,8 @@ public class GBLexampleJna1 {
         }
     }
 
-    
-    private Matrix gblSimpleJacobianSvn(double ds, double cosl, double bfac) {
-        
+    // manually translated to java from C++ from GBL CPP exampleUtil source
+    private Matrix gblSimpleJacobian(double ds, double cosl, double bfac) {
         Matrix jac = new Matrix(5,5);
         jac.UnitMatrix();
         jac.set(1, 0, -bfac * ds * cosl);
