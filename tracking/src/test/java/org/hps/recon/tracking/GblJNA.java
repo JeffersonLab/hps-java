@@ -152,7 +152,7 @@ public class GblJNA  {
 
     @Test
     public void GBLExample1_CreatePointsCreateTrajFitWrite() {
-        GBLexampleJna1 eg = new GBLexampleJna1();
-        eg.runExample(3, 10, false);
+        GBLexampleJna1 eg = new GBLexampleJna1(3, 10, false, "test_gbl_example1.root");
+        eg.runExample();
     }
 }
