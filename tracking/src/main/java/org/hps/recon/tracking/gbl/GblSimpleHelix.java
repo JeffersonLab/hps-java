@@ -2,6 +2,14 @@ package org.hps.recon.tracking.gbl;
 
 import com.sun.jna.Pointer; 
 
+/**
+ * wrapper class around GblSimpleHelix JNA functions
+ * <p>
+ * Allows access to the GBL C++ simple helix class which
+ * can follow a ideal helix through space allowing for
+ * simulating a "perfect" track in examples and comparison
+ * of our tracks to a "perfect" helix.
+ */
 public class GblSimpleHelix {
 
     private Pointer self;

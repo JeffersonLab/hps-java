@@ -11,13 +11,16 @@ import com.sun.jna.Pointer;
  */
 public class MilleBinaryJna {
     
+    /**
+     * internal handle to memory created and operated on by the GBL library
+     */
     private Pointer self;
 
     /**
      * full one-to-one constructor
      */
-    public MilleBinaryJna(String fileName, int doublePrec, int keepZeros, int aSize) {
-        self = GblInterface.INSTANCE.MilleBinaryCtor(fileName, fileName.length(), doublePrec, keepZeros, aSize);
+    public MilleBinaryJna(String fileName, boolean doublePrec, boolean keepZeros, int aSize) {
+        self = GblInterface.INSTANCE.MilleBinaryCtor(fileName, fileName.length(), doublePrec?1:0, keepZeros?1:0, aSize);
     }
     
     /**

@@ -5,6 +5,12 @@ import com.sun.jna.Pointer;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
+/**
+ * wrapper class for GblHelixPrediction JNA functions
+ * <p>
+ * Re-promote the JNA functions into class member functions while
+ * adding some helpful translation.
+ */
 public class GblHelixPrediction {
     
     private Pointer self;

@@ -28,7 +28,7 @@ public class GblTrajectoryJna {
     private Pointer self;
     
     // copy a java-style list into a JNA C-style array that can then be copied into a std vector in GBL
-    public GblTrajectoryJna(List<GblPointJna> points, int flagCurv, int flagU1dir, int flagU2dir) { 
+    public GblTrajectoryJna(List<GblPointJna> points, boolean flagCurv, boolean flagU1dir, boolean flagU2dir) { 
         Pointer [] ppoints = new Pointer[points.size()];
 
         int ipoint=-1;
@@ -37,14 +37,15 @@ public class GblTrajectoryJna {
             ppoints[ipoint]  = point.getPtr();
         }
         
-        self = GblInterface.INSTANCE.GblTrajectoryCtorPtrArray(ppoints, points.size(), flagCurv, flagU1dir, flagU2dir);
+        self = GblInterface.INSTANCE.GblTrajectoryCtorPtrArray(ppoints, points.size(), 
+            flagCurv?1:0, flagU1dir?1:0, flagU2dir?1:0);
         if (self == Pointer.NULL)
             System.out.println("Failed generating trajectory");
                 
     }
 
     //Simple trajectory constructor with seed 
-    public GblTrajectoryJna(List<GblPointJna> points, int aLabel, Matrix seed, int flagCurv, int flagU1dir, int flagU2dir) { 
+    public GblTrajectoryJna(List<GblPointJna> points, int aLabel, Matrix seed, boolean flagCurv, boolean flagU1dir, boolean flagU2dir) { 
         Pointer [] ppoints = new Pointer[points.size()];
 
         int ipoint=-1;
@@ -110,8 +111,8 @@ public class GblTrajectoryJna {
         GblInterface.INSTANCE.GblTrajectory_addPoint(self, point.getPtr());
     }
     
-    public int isValid () {
-        return GblInterface.INSTANCE.GblTrajectory_isValid(self);
+    public boolean isValid () {
+        return (GblInterface.INSTANCE.GblTrajectory_isValid(self)!=0);
         
     }
 
