@@ -118,7 +118,7 @@ public class GblJNA  {
             points_on_traj.add(new GblPointJna(jacPointToPoint));
         }
 
-        GblTrajectoryJna traj = new GblTrajectoryJna(points_on_traj,1,1,1);
+        GblTrajectoryJna traj = new GblTrajectoryJna(points_on_traj,true,true,true);
         System.out.printf("traj.isValid = %d\n", traj.isValid());
         traj.delete();
 
@@ -140,7 +140,7 @@ public class GblJNA  {
         }
 
         SymMatrix seedPrecision = new SymMatrix(5);
-        GblTrajectoryJna traj = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
+        GblTrajectoryJna traj = new GblTrajectoryJna(points_on_traj,1,seedPrecision,true,true,true);
         System.out.printf("traj.isValid = %d\n", traj.isValid());
         traj.delete();
 
