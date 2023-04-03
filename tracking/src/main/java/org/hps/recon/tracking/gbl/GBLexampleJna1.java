@@ -6,7 +6,14 @@ import org.hps.recon.tracking.gbl.matrix.Vector;
 import java.util.List;
 import java.util.ArrayList;
 import static java.lang.Math.sqrt;
+
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+
 import org.lcsim.util.aida.AIDA;
 
 import com.sun.jna.ptr.IntByReference;
@@ -35,15 +42,26 @@ import java.io.IOException;
  *    should be used in this java package.
  *  </li>
  * </ol>
+ * <p>
+ * <h2>Usage</h2>
+ * This class, while it is called in the unit testing,
+ * can also be called as its own executable. Since this
+ * example uses packages from outside the tracking package,
+ * it should be run from the central hps-distribution jar.
+ * <code>
+ * java \
+ *   -cp distribution/target/hps-distribution-XXX-SNAPSHOT-bin.jar \
+ *   org.hps.recon.tracking.gbl.GBLexampleJna1
+ * </code>
  */
 public class GBLexampleJna1 {
+
+    private NormalDistribution norm = new NormalDistribution();
     
     private int nTry = 100000;
     private int nLayer = 10;
-    private NormalDistribution norm = new NormalDistribution();
     private String outputPlots = "example1.root";
     private boolean debug = false;
-    
     
     public AIDA aida;
         
@@ -368,6 +386,43 @@ public class GBLexampleJna1 {
         return jac;
         
     }   
+
+    public static void main(String[] args) {
+        Options options = new Options();
+        options.addOption("v", false, "verbose debugging printouts");
+        options.addOption("h", false, "print help message and exit");
+        options.addOption("o", true , "output file for histograms of residuals");
+        options.addOption("t", true , "number of tries to run (default: 100)");
+        options.addOption("l", true , "number of layers to track through (default: 10)");
+
+        boolean debug = false;
+        int nTries = 100;
+        int nLayers = 10;
+        String outputFile = "example1.root";
+
+        DefaultParser parser = new DefaultParser();
+        try {
+            CommandLine cli = parser.parse(options, args);
+            if (cli.hasOption("h")) {
+                HelpFormatter help = new HelpFormatter();
+                help.printHelp("GBLexampleJna1", options);
+                return;
+            }
+            debug = cli.hasOption("v");
+            outputFile = cli.getOptionValue("o", outputFile);
+            if (cli.hasOption("t")) {
+                nTries = Integer.parseInt(cli.getOptionValue("t"));
+            }
+            if (cli.hasOption("l")) {
+                nLayers = Integer.parseInt(cli.getOptionValue("l"));
+            }
+        } catch (ParseException exp) {
+            System.err.println(exp.getMessage());
+        }
+
+        GBLexampleJna1 eg = new GBLexampleJna1();
+        eg.runExample(nTries, nLayers, debug);
+    }
 }
 
     
