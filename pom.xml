@@ -1,5 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
@@ -7,9 +10,9 @@
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>http://www.lcsim.org/sites/hps/</url>
-  
+
   <properties>
-    <project.scm.id>hps-java-github</project.scm.id>
+    <project.scm.id>github</project.scm.id>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
@@ -21,19 +24,19 @@
     <junitVersion>4.13.1</junitVersion>
     <etVersion>14.1</etVersion>
     <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+    <javaVersion>1.8</javaVersion>
+    <skipCheckstyle>true</skipCheckstyle>
   </properties>
-  
+
   <scm>
-    <connection>scm:git:ssh://git@github.com:JeffersonLab/hps-java.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/JeffersonLab/hps-java.git</developerConnection>
-    <url>https://github.com/jeffersonlab/hps-java</url>
+    <url>git@github.com:JeremyMcCormick/hps-java.git</url>
+    <connection>scm:git:${project.scm.url}</connection>
+    <developerConnection>scm:git:${project.scm.url}</developerConnection>
+    <!-- <url>https://github.com/jeffersonlab/hps-java</url> -->
     <tag>HEAD</tag>
   </scm>
+
   <distributionManagement>
-    <site>
-      <id>lcsim-site</id>
-      <url>dav:https://srs.slac.stanford.edu/nexus/content/sites/lcsim-site/hps/</url>
-    </site>
     <repository>
       <id>lcsim-repo-releases</id>
       <name>LCSIM Releases maven repository</name>
@@ -44,7 +47,12 @@
       <name>LCSIM Snapshots maven repository</name>
       <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
     </snapshotRepository>
+    <site>
+      <id>github</id>
+      <url>scm:git:${project.scm.url}</url>
+    </site>
   </distributionManagement>
+
   <repositories>
     <repository>
       <id>maven-central-repo</id>
@@ -90,6 +98,7 @@
       </releases>
     </repository>
   </repositories>
+
   <pluginRepositories>
     <pluginRepository>
       <id>freehep-maven-plugin-repo</id>
@@ -102,6 +111,7 @@
       <url>https://repo1.maven.org/maven2/</url>
     </pluginRepository>
   </pluginRepositories>
+
   <modules>
     <module>analysis</module>
     <module>conditions</module>
@@ -124,6 +134,7 @@
     <module>util</module>
     <module>integration-tests</module>
   </modules>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -132,6 +143,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -247,7 +259,7 @@
       <dependency>
         <groupId>org.jlab.coda</groupId>
         <artifactId>et</artifactId>
-        <!--<version>16.2</version>--> 
+        <!--<version>16.2</version>-->
         <version>${etVersion}</version>
       </dependency>
       <dependency>
@@ -284,16 +296,26 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junitVersion}</version>
-      </dependency>      
+      </dependency>
       <dependency>
         <groupId>org.jdom</groupId>
         <artifactId>jdom</artifactId>
         <version>1.1</version>
-      </dependency>      
+      </dependency>
       <dependency>
         <groupId>commons-cli</groupId>
         <artifactId>commons-cli</artifactId>
         <version>1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-csv</artifactId>
+        <version>1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.itextpdf</groupId>
+        <artifactId>itextpdf</artifactId>
+        <version>5.5.12</version>
       </dependency>
       <!-- lcsim deps below here -->
       <dependency>
@@ -323,15 +345,15 @@
         </exclusions>
       </dependency>
       <dependency>
-          <groupId>org.lcsim</groupId>
-          <artifactId>lcsim-job-manager</artifactId>
-          <version>${lcsimVersion}</version>
-          <exclusions>
-            <exclusion>
-              <groupId>jdom</groupId>
-              <artifactId>jdom</artifactId>
-            </exclusion>
-          </exclusions>
+        <groupId>org.lcsim</groupId>
+        <artifactId>lcsim-job-manager</artifactId>
+        <version>${lcsimVersion}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.lcsim</groupId>
@@ -368,89 +390,88 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
   <build>
     <defaultGoal>install</defaultGoal>
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.wagon</groupId>
-        <artifactId>wagon-webdav-jackrabbit</artifactId>
-        <version>2.8</version>
-      </extension>
-    </extensions>
     <pluginManagement>
       <plugins>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-eclipse-plugin</artifactId>
-          <version>2.9</version>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.11.0</version>
         </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.2.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>3.11.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
+          <version>3.1.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>4.0.0-M6</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-scm-publish-plugin</artifactId>
+          <version>3.2.1</version>
+          <configuration>
+            <scmBranch>gh-pages</scmBranch>
+          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.8</version>
+          <version>3.1.0</version>
         </plugin>
         <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <versionRange>
-                      [2.17,)
-                    </versionRange>
-                    <goals>
-                      <goal>check</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <versionRange>[1.7,)</versionRange>
-                    <goals>
-                      <goal>run</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <execute>
-                      <runOnIncremental>false</runOnIncremental>
-                    </execute>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.4.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.0.2</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>3.2.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-project-info-reports-plugin</artifactId>
+          <version>3.4.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jxr-plugin</artifactId>
+          <version>3.3.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.5.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>appassembler-maven-plugin</artifactId>
+          <version>1.10</version>
         </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-scm-plugin</artifactId>
-        <version>1.9.5</version>
-        <configuration>
-          <connectionType>connection</connectionType>
-        </configuration>
-      </plugin>
-      <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.1</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>${javaVersion}</source>
+          <target>${javaVersion}</target>
           <showWarnings>true</showWarnings>
           <showDeprecation>true</showDeprecation>
         </configuration>
@@ -458,7 +479,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.19.1</version>
         <configuration>
           <useFile>false</useFile>
           <trimStackTrace>false</trimStackTrace>
@@ -474,9 +494,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>${maven-release-plugin.version}</version>
         <configuration>
           <scmCommentPrefix>[hps-release skip]</scmCommentPrefix>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-scm-publish-plugin</artifactId>
+        <configuration>
+          <scmBranch>gh-pages</scmBranch>
         </configuration>
       </plugin>
       <plugin>
@@ -497,19 +522,9 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.0.0</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>3.0.2</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
         <configuration>
+          <skip>${skipCheckstyle}</skip>
           <logViolationsToConsole>true</logViolationsToConsole>
           <consoleOutput>true</consoleOutput>
           <includeResources>true</includeResources>
@@ -543,12 +558,11 @@
       </plugin>
     </plugins>
   </build>
+
   <reporting>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
-        <version>3.6</version>
         <configuration>
           <siteDirectory>${basedir}/site/src/site</siteDirectory>
           <outputDirectory>${project.build.directory}/site</outputDirectory>
@@ -561,9 +575,7 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.9</version>
         <configuration>
           <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
           <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
@@ -592,13 +604,11 @@
               <report>plugins</report>
               <report>project-team</report>
             </reports>
-          </reportSet>          
+          </reportSet>
         </reportSets>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jxr-plugin</artifactId>
-        <version>2.5</version>
         <configuration>
           <linkJavadoc>true</linkJavadoc>
         </configuration>
@@ -618,12 +628,10 @@
               <report>test-aggregate</report>
             </reports>
           </reportSet>
-        </reportSets>                      
+        </reportSets>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.10.4</version>
         <reportSets>
           <reportSet>
             <id>non-aggregate</id>
@@ -631,17 +639,17 @@
               <report>javadoc</report>
               <report>test-javadoc</report>
             </reports>
-          </reportSet>        
+          </reportSet>
           <reportSet>
             <id>aggregate</id>
             <inherited>false</inherited>
             <reports>
               <report>aggregate</report>
             </reports>
-          </reportSet>                             
+          </reportSet>
         </reportSets>
         <configuration>
-          <source>1.7</source>
+          <source>${javaVersion}</source>
           <show>private</show>
           <nohelp>true</nohelp>
           <author>true</author>
@@ -661,6 +669,7 @@
       </plugin>
     </plugins>
   </reporting>
+
   <developers>
     <developer>
       <name>Jeremy McCormick</name>
@@ -733,16 +742,6 @@
       <timezone>-8</timezone>
     </developer>
     <developer>
-      <name>Sho Uemura</name>
-      <email>meeg@slac.stanford.edu</email>
-      <organization>SLAC National Accelerator Laboratory</organization>
-      <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>-8</timezone>
-    </developer>
-    <developer>
       <name>Omar Moreno</name>
       <email>omoreno1@ucsc.edu</email>
       <organization>Santa Cruz Institute for Particle Physics</organization>
@@ -750,26 +749,6 @@
         <role>developer</role>
       </roles>
       <timezone>-8</timezone>
-    </developer>
-    <developer>
-      <name>Per Hansson</name>
-      <email>phansson@slac.stanford.edu</email>
-      <organization>SLAC National Accelerator Laboratory</organization>
-      <organizationUrl>http://www.slac.stanford.edu/</organizationUrl>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>-8</timezone>
-    </developer>
-    <developer>
-      <name>Holly Szumila-Vance</name>
-      <email>hvanc001@odu.edu</email>
-      <organization>Old Dominion University</organization>
-      <organizationUrl>http://www.odu.edu/physics/</organizationUrl>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>-5</timezone>
     </developer>
     <developer>
       <name>Andrea Celentano</name>
@@ -791,20 +770,8 @@
       </roles>
       <timezone>-5</timezone>
     </developer>
-    <developer>
-      <name>Sebouh Paul</name>
-      <email>sebouh.paul@gmail.com</email>
-      <organization>Thomas Jefferson National Accelerator Laboratory</organization>
-      <organizationUrl>http://www.jlab.org/</organizationUrl>
-      <roles>
-        <role>developer</role>
-      </roles>
-      <timezone>-5</timezone>
-      <properties>
-        <aim>SebouhPaul314</aim>
-      </properties>
-    </developer>
   </developers>
+
   <mailingLists>
     <mailingList>
       <name>hps-software</name>
@@ -814,14 +781,17 @@
       <archive>https://listserv.slac.stanford.edu/cgi-bin/wa?A0=HPS-SOFTWARE</archive>
     </mailingList>
   </mailingLists>
+
   <issueManagement>
     <system>Github</system>
     <url>https://github.com/JeffersonLab/hps-java/issues/</url>
   </issueManagement>
+
   <ciManagement>
     <system>Jenkins</system>
     <url>http://srs.slac.stanford.edu/hudson/view/HPS/</url>
   </ciManagement>
+
   <profiles>
     <profile>
       <id>default-cache-dir</id>
