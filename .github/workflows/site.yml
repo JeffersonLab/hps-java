@@ -1,5 +1,9 @@
 name: site
 
+permissions:
+  deployments: write
+  pages: write
+
 on:
   workflow_call:
     inputs:
