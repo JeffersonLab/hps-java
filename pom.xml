@@ -14,6 +14,7 @@
   <properties>
     <javaVersion>1.8</javaVersion>
     <skipSite>false</skipSite>
+    <skipSiteDeploy>true</skipSiteDeploy>
     <skipPlugin>true</skipPlugin>
     <skipCheckstyle>true</skipCheckstyle>
     <lcsimVersion>4.4.0</lcsimVersion>
@@ -625,7 +626,7 @@
           <generateSitemap>true</generateSitemap>
           <generateProjectInfo>true</generateProjectInfo>
           <skip>${skipSite}</skip>
-          <skipDeploy>${skipSite}</skipDeploy>
+          <skipDeploy>${skipSiteDeploy}</skipDeploy>
         </configuration>
       </plugin>
       <plugin>
@@ -648,15 +649,15 @@
             <id>aggregate</id>
             <inherited>false</inherited>
             <reports>
-              <report>cim</report>
+              <report>ci-management</report>
               <report>dependency-convergence</report>
               <report>index</report>
-              <report>issue-tracking</report>
-              <report>mailing-list</report>
+              <report>issue-management</report>
+              <report>mailing-lists</report>
               <report>modules</report>
               <report>plugin-management</report>
               <report>plugins</report>
-              <report>project-team</report>
+              <report>team</report>
             </reports>
           </reportSet>
         </reportSets>
@@ -707,17 +708,16 @@
           <show>private</show>
           <nohelp>true</nohelp>
           <author>true</author>
-          <detectLinks>true</detectLinks>
+          <detectLinks>false</detectLinks>
           <detectJavaApiLink>true</detectJavaApiLink>
           <failOnError>false</failOnError>
           <additionalparam>-Xdoclint:none</additionalparam>
           <links>
+            <link>http://www.lcsim.org/sites/lcsim/apidocs/</link>
             <link>http://java.freehep.org/freehep-physics/apidocs/</link>
             <link>http://java.freehep.org/heprep/apidocs/</link>
-            <link>http://www.jdom.org/docs/apidocs/</link>
-            <link>http://www.lcsim.org/sites/lcsim/apidocs/index.html</link>
-            <link>https://coda.jlab.org/drupal/content/evio-java-api-javadoc</link>
-            <link>https://coda.jlab.org/drupal/system/files/coda/et/et-16.1-docs/javadoc/</link>
+            <link>https://javadoc.io/doc/org.jdom/jdom/1.1/</link>
+            <link>https://junit.org/junit4/javadoc/4.13/</link>
           </links>
         </configuration>
       </plugin>
@@ -842,8 +842,8 @@
   </issueManagement>
 
   <ciManagement>
-    <system>Jenkins</system>
-    <url>http://srs.slac.stanford.edu/hudson/view/HPS/</url>
+    <system>Github Actions</system>
+    <url>https://github.com/JeffersonLab/hps-java/actions</url>
   </ciManagement>
 
   <profiles>
