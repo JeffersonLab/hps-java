@@ -795,4 +795,18 @@
     <url>http://srs.slac.stanford.edu/hudson/view/HPS/</url>
   </ciManagement>
 
+  <profiles>
+    <profile>
+      <id>default-cache-dir</id>
+      <activation>
+        <property>
+          <name>!org.lcsim.cacheDir</name>
+        </property>
+      </activation>
+      <properties>
+        <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
+      </properties>
+    </profile>
+  </profiles>
+
 </project>
