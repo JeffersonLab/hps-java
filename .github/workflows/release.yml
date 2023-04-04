@@ -94,7 +94,7 @@ jobs:
             echo "ERROR: Development version must end with -SNAPSHOT." 
             exit 1
           fi
-          echo " -DdevelopmentVersion=${{ inputs.development_version }}" >> ${{ env.MAVEN_ARGS_FILE }}
+          echo -n " -DdevelopmentVersion=${{ inputs.development_version }}" >> ${{ env.MAVEN_ARGS_FILE }}
         shell: bash
 
       - uses: webfactory/ssh-agent@v0.7.0
