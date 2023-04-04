@@ -9,9 +9,16 @@ import com.sun.jna.ptr.PointerByReference;
 
 /**
  * JNA Wrapper around the GBL C++ dynamic library
- *
+ * <p>
  * All of the functions in this interface are bound to un-mangled wrapper functions
- * in the GBL C++ dynamic library.
+ * in the GBL C++ dynamic library. This wraps GBL v3.1+ of the C++ library.
+ * <code>
+ * git clone --depth 1 --branch V03-01-00 https://gitlab.desy.de/claus.kleinwort/general-broken-lines.git
+ * cmake -B general-broken-lines/build -S general-broken-lines
+ * cmake --build general-broken-lines/build
+ * </code>
+ * The documentation for the GBL C++ library also has a page on how to access it
+ * <a href="https://www.desy.de/~kleinwrt/GBL/doc/cpp/html/jnausage.html">via JNA</a>.
  */
 public interface GblInterface extends Library {
     GblInterface INSTANCE = (GblInterface) Native.loadLibrary("GBL", GblInterface.class);
