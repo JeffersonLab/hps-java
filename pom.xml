@@ -12,27 +12,25 @@
   <url>http://www.lcsim.org/sites/hps/</url>
 
   <properties>
+    <javaVersion>1.8</javaVersion>
+    <skipSite>false</skipSite>
+    <skipPlugin>true</skipPlugin>
+    <skipCheckstyle>true</skipCheckstyle>
+    <lcsimVersion>4.4.0</lcsimVersion>
+    <etVersion>14.1</etVersion>
+    <evioVersion>4.4.6</evioVersion>
+    <junitVersion>4.13.1</junitVersion>
     <project.scm.id>github</project.scm.id>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <dependency.locations.enabled>false</dependency.locations.enabled>
-    <lcsimVersion>4.4.0</lcsimVersion>
-    <skipSite>false</skipSite>
-    <skipPlugin>false</skipPlugin>
-    <additionalparam>-Xdoclint:none</additionalparam>
     <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
-    <junitVersion>4.13.1</junitVersion>
-    <etVersion>14.1</etVersion>
-    <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-    <javaVersion>1.8</javaVersion>
-    <skipCheckstyle>true</skipCheckstyle>
   </properties>
 
   <scm>
     <url>git@github.com:JeremyMcCormick/hps-java.git</url>
     <connection>scm:git:${project.scm.url}</connection>
     <developerConnection>scm:git:${project.scm.url}</developerConnection>
-    <!-- <url>https://github.com/jeffersonlab/hps-java</url> -->
     <tag>HEAD</tag>
   </scm>
 
@@ -254,7 +252,7 @@
       <dependency>
         <groupId>org.jlab.coda</groupId>
         <artifactId>jevio</artifactId>
-        <version>4.4.6</version>
+        <version>${evioVersion}</version>
       </dependency>
       <dependency>
         <groupId>org.jlab.coda</groupId>
@@ -405,7 +403,7 @@
         </plugin>
         <plugin>
           <artifactId>maven-release-plugin</artifactId>
-          <version>3.11.0</version>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
@@ -451,7 +449,6 @@
           <version>3.4.2</version>
         </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jxr-plugin</artifactId>
           <version>3.3.0</version>
         </plugin>
@@ -792,26 +789,4 @@
     <url>http://srs.slac.stanford.edu/hudson/view/HPS/</url>
   </ciManagement>
 
-  <profiles>
-    <profile>
-      <id>default-cache-dir</id>
-      <activation>
-        <property>
-          <name>!org.lcsim.cacheDir</name>
-        </property>
-      </activation>
-      <properties>
-        <org.lcsim.cacheDir>${user.home}</org.lcsim.cacheDir>
-      </properties>
-    </profile>
-    <profile>
-      <id>no-plugin</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <skipPlugin>true</skipPlugin>
-      </properties>
-    </profile>
-  </profiles>
 </project>
