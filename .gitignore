@@ -45,3 +45,6 @@ target/
 
 # editor swap files
 .*.swp
+
+# local Maven repository
+.m2repo
