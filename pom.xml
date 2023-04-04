@@ -37,10 +37,6 @@
   </scm>
 
   <distributionManagement>
-    <site>
-      <id>lcsim-site</id>
-      <url>dav:https://srs.slac.stanford.edu/nexus/content/sites/lcsim-site/hps/</url>
-    </site>
     <repository>
       <id>lcsim-repo-releases</id>
       <name>LCSIM Releases maven repository</name>
@@ -51,6 +47,10 @@
       <name>LCSIM Snapshots maven repository</name>
       <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
     </snapshotRepository>
+    <site>
+      <id>github</id>
+      <url>scm:git:${project.scm.url}</url>
+    </site>
   </distributionManagement>
 
   <repositories>
