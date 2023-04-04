@@ -154,7 +154,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ./target/${{ github.event.repository.name }}-${{ env.MAVEN_RELEASE_VERSION }}-bin.jar
+            ./distribution/target/hps-distribution-${{ env.MAVEN_RELEASE_VERSION }}-bin.jar
   site:
     needs: release
     if: ${{ !inputs.dry_run && inputs.deploy_site }}
