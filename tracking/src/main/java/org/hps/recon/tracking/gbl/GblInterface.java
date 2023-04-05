@@ -12,11 +12,15 @@ import com.sun.jna.ptr.PointerByReference;
  * <p>
  * All of the functions in this interface are bound to un-mangled wrapper functions
  * in the GBL C++ dynamic library. This wraps GBL v3.1+ of the C++ library.
+ * <p>
  * <code>
  * git clone --depth 1 --branch V03-01-00 https://gitlab.desy.de/claus.kleinwort/general-broken-lines.git
+ * <p>
  * cmake -B general-broken-lines/build -S general-broken-lines
+ * <p>
  * cmake --build general-broken-lines/build
  * </code>
+ * <p>
  * The documentation for the GBL C++ library also has a page on how to access it
  * <a href="https://www.desy.de/~kleinwrt/GBL/doc/cpp/html/jnausage.html">via JNA</a>.
  */
