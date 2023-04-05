@@ -3,12 +3,14 @@
   <artifactId>hps-online-recon</artifactId>
   <name>online-recon</name>
   <description>online recon tools</description>
+
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
     <version>0.0.2-SNAPSHOT</version>
   </parent>
+
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
@@ -38,7 +40,6 @@
       <groupId>org.freehep</groupId>
       <artifactId>freehep-jaida-remote</artifactId>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.sonatype.nexus/google-guava-eventbus -->
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>google-guava-eventbus</artifactId>
@@ -56,9 +57,9 @@
       <artifactId>slf4j-log4j12</artifactId>
     </dependency>
   </dependencies>
+
   <build>
     <plugins>
-      <!-- https://www.mojohaus.org/appassembler/appassembler-maven-plugin/ -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>appassembler-maven-plugin</artifactId>
@@ -134,4 +135,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>

@@ -1,15 +1,18 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <artifactId>hps-conditions</artifactId>
   <name>conditions</name>
   <description>extensions to the org.lcsim conditions framework</description>
+
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
     <version>0.0.2-SNAPSHOT</version>
   </parent>
+
   <build>
     <plugins>
       <plugin>
@@ -23,6 +26,7 @@
       </plugin>
     </plugins>
   </build>
+
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
@@ -56,4 +60,5 @@
       <artifactId>commons-csv</artifactId>
     </dependency>
   </dependencies>
+
 </project>

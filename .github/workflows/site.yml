@@ -59,7 +59,6 @@ jobs:
       - name: Build site
         run: mvn clean site -q
 
-      # Remove links to non-existent module sub-pages from the sidebar.
       - name: Fix page sidebars
         run: |
           for f in $(find target/site/ -maxdepth 1 -name "*.html"); do

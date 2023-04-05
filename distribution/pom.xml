@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <artifactId>hps-distribution</artifactId>
   <name>distribution</name>
   <description>module for creating a standalone runnable bin jar for HPS Java</description>
+
   <properties>
     <maven.javadoc.skip>true</maven.javadoc.skip>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
   </properties>
+
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
     <version>0.0.2-SNAPSHOT</version>
   </parent>
+
   <build>
     <defaultGoal>install</defaultGoal>
     <resources>
@@ -126,6 +130,7 @@
       </plugin>
     </plugins>
   </build>
+
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
@@ -160,4 +165,5 @@
       <artifactId>hps-digi</artifactId>
     </dependency>
   </dependencies>
+
 </project>
