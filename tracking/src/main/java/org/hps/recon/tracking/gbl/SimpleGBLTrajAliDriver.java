@@ -375,15 +375,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     @Override
     protected void startOfData() {
-        //System.out.println("DEBUG::Tom::java::startOfData");
         if (writeMilleBinary)
             mille = new MilleBinaryJna(milleBinaryFileName);
-        //System.out.println("DEBUG::Tom::java::leaving startOfData");
     }
 
     @Override
     protected void endOfData() {
-        //System.out.println("DEBUG::Tom::java::endOfData");
         //Should be closed directly when destructor is called
         if (writeMilleBinary)
             mille.close();
@@ -396,7 +393,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
         //}
         //catch (IOException ex) {
         //}
-        //System.out.println("DEBUG::Tom::java::leaving endOfData");
     }
 
     

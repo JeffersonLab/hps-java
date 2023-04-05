@@ -48,6 +48,7 @@ import java.io.IOException;
  * can also be called as its own executable. Since this
  * example uses packages from outside the tracking package,
  * it should be run from the central hps-distribution jar.
+ * <p>
  * <code>
  * java \
  *   -cp distribution/target/hps-distribution-XXX-SNAPSHOT-bin.jar \
