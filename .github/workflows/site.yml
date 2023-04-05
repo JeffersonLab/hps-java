@@ -56,6 +56,9 @@ jobs:
           echo "Username: ${{ github.actor }}"
           echo "Email: ${{ steps.get_email.outputs.email }}"
 
+      - name: Build and install the project
+        run: mvn clean install -DskipTests -q
+
       - name: Build site
         run: mvn clean site -q
 
