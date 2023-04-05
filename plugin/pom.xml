@@ -5,12 +5,14 @@
   <artifactId>hps-plugin</artifactId>
   <name>plugin</name>
   <description>JAS3 Plugin</description>
+
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
     <version>5.2-SNAPSHOT</version>
   </parent>
+
   <build>
     <resources>
       <resource>
@@ -71,6 +73,7 @@
       </plugin>
     </plugins>
   </build>
+
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
@@ -89,47 +92,5 @@
       <artifactId>lcsim-event-heprep</artifactId>
     </dependency>
   </dependencies>
-  <profiles>
-    <!--
-    <profile>
-      <id>submit-plugin-descriptor</id>
-      <activation>
-        <property>
-          <name>performRelease</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.freehep</groupId>
-            <artifactId>freehep-jas-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>submit-descriptor</id>
-                <goals>
-                  <goal>submit-descriptor</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
--->
-    <profile>
-      <id>test-release</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.freehep</groupId>
-            <artifactId>freehep-jas-plugin</artifactId>
-            <configuration>
-              <skip>true</skip>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+
 </project>
