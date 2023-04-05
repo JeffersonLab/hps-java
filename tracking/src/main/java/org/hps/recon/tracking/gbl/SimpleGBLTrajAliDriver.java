@@ -570,7 +570,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 //Align with tracks with at least 6 hits
                 if ((tanLambda > 0 && track.getTrackerHits().size() < actualHitCut) 
-                    || (tanLambda < 0 && track.getTrackerHits().size() < actualHitCut))  {
+                        || (tanLambda < 0 && track.getTrackerHits().size() < actualHitCut))  {
                     continue;
                 }
                 
