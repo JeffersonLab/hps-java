@@ -9,6 +9,11 @@
   <description>HPS Java Maven Project</description>
   <url>https://jeffersonlab.github.io/hps-java/</url>
 
+  <organization>
+    <name>Heavy Photon Search (HPS)</name>
+    <url>https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment</url>
+  </organization>
+
   <properties>
     <javaVersion>1.8</javaVersion>
     <skipSite>false</skipSite>
@@ -492,6 +497,10 @@
         <plugin>
           <artifactId>maven-site-plugin</artifactId>
           <version>4.0.0-M6</version>
+          <configuration>
+            <!-- Don't deploy site with maven-site-plugin -->
+            <skipDeploy>true</skipDeploy>
+          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-scm-publish-plugin</artifactId>
@@ -634,14 +643,14 @@
       <plugin>
         <artifactId>maven-site-plugin</artifactId>
         <configuration>
-          <siteDirectory>${basedir}/site/src/site</siteDirectory>
+          <siteDirectory>${project.basedir}/site</siteDirectory>
           <outputDirectory>${project.build.directory}/site</outputDirectory>
           <chmod>false</chmod>
           <generateReports>true</generateReports>
           <generateSitemap>true</generateSitemap>
           <generateProjectInfo>true</generateProjectInfo>
           <skip>${skipSite}</skip>
-          <skipDeploy>${skipSite}</skipDeploy>
+          <skipDeploy>true</skipDeploy>
         </configuration>
       </plugin>
       <plugin>
