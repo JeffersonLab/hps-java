@@ -56,6 +56,22 @@ jobs:
           echo "Username: ${{ github.actor }}"
           echo "Email: ${{ steps.get_email.outputs.email }}"
 
-      - name: Publish site
+      - name: Build site
+        run: mvn clean site -q
+
+      # Remove links to non-existent module sub-pages from the sidebar.
+      - name: Fix page sidebars
         run: |
-          mvn clean site site:stage scm-publish:publish-scm -q
+          for f in $(find target/site/ -maxdepth 1 -name "*.html"); do
+            sed -i -r '/<li class="nav-header">Modules<\/li>/,/<li class="nav-header">Project\sDocumentation<\/li>/d' $f
+          done
+
+      - name: Stage site
+        run: mvn site:stage 
+        
+      - name: Cleanup staged site
+        run: |
+          for d in $(ls -d target/staging/hps-*); do rm -rf $d; done
+
+      - name: Publish site 
+        run: mvn scm-publish:publish-scm
