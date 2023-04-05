@@ -48,3 +48,6 @@ target/
 
 # local Maven repository
 .m2repo
+
+# ignore user VS Code settings
+.vscode
