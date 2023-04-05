@@ -71,7 +71,7 @@ jobs:
         
       - name: Cleanup staged site
         run: |
-          for d in $(ls -d target/staged/hps-*); do rm -rf $d; done
+          for d in $(ls -d target/staging/hps-*); do rm -rf $d; done
 
       - name: Publish site 
         run: mvn scm-publish:publish-scm
