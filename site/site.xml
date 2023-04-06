@@ -2,39 +2,47 @@
 <project xmlns="http://maven.apache.org/DECORATION/1.8.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 https://maven.apache.org/xsd/decoration-1.8.0.xsd"
-    name="Maven">
+    name="HPS Java">
+
+    <skin>
+        <groupId>org.apache.maven.skins</groupId>
+        <artifactId>maven-fluido-skin</artifactId>
+        <version>1.11.1</version>
+    </skin>
+
+    <bannerRight>
+        <name>HPS</name>
+        <src>https://confluence.slac.stanford.edu/download/attachments/84248493/heavy_photon_logo_50.jpg</src>
+        <href>https://jeremymccormick.github.io/hps-java/</href>
+    </bannerRight>
+
+    <version position="right" />
+    <publishDate position="right" />
 
     <body>
 
         <menu name="General">
             <item name="Home" href="index.html" />
+            <item name="Summary" href="summary.html" />
             <item name="Installation" href="install.html" />
             <item name="Wiki" href="wiki.html" />
-            <item name="Team" href="team-list.html" />
-            <item name="Mailing List" href="mail-lists.html" />
-        </menu>
-
-        <menu name="Source Documentation">
-            <item name="Javadoc" href="apidocs/index.html" />
-            <item name="Test Javadoc" href="testapidocs/index.html" />
-            <item name="Source Xref" href="xref/index.html" />
-            <item name="Test Source Xref" href="xref-test/index.html" />
-        </menu>
-
-        <menu name="Issue Tracking">
-            <item name="Bugs and Issues" href="issue-tracking.html" />
+            <item name="Team" href="team.html" />
+            <item name="Mailing List" href="mailing-lists.html" />
         </menu>
 
         <menu name="For Developers">
-            <item name="Continuous Integration" href="integration.html" />
+            <item name="Source Code Management" href="scm.html" />
+            <item name="Bugs and Issues" href="issue-management.html" />
+            <item name="Continuous Integration" href="ci-management.html" />
             <item name="Surefire Test Report" href="surefire-report.html" />
         </menu>
 
-        <menu name="Project Information">
-            <item name="Project Dependencies" href="dependency-convergence.html" />
+        <menu name="Source Code Documentation">
+            <item name="Javadoc" href="apidocs/index.html" />
+            <item name="Source Xref" href="xref/index.html" />
+            <item name="Test Javadoc" href="testapidocs/index.html" />
+            <item name="Test Source Xref" href="xref-test/index.html" />
         </menu>
-
-        <menu ref="reports" />
 
     </body>
 
