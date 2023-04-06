@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>hps-java</artifactId>
@@ -498,6 +500,7 @@
           <artifactId>maven-site-plugin</artifactId>
           <version>4.0.0-M6</version>
           <configuration>
+            <siteDirectory>${project.basedir}/site</siteDirectory>
             <!-- Don't deploy site with maven-site-plugin -->
             <skipDeploy>true</skipDeploy>
           </configuration>
@@ -643,7 +646,6 @@
       <plugin>
         <artifactId>maven-site-plugin</artifactId>
         <configuration>
-          <siteDirectory>${project.basedir}/site</siteDirectory>
           <outputDirectory>${project.build.directory}/site</outputDirectory>
           <chmod>false</chmod>
           <generateReports>true</generateReports>
@@ -661,15 +663,16 @@
         </configuration>
         <reportSets>
           <reportSet>
-            <id>non-aggregate</id>
-            <reports>
-            </reports>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
           </reportSet>
           <reportSet>
             <id>aggregate</id>
             <inherited>false</inherited>
             <reports>
               <report>ci-management</report>
+              <report>dependencies</report>
               <report>index</report>
               <report>issue-management</report>
               <report>mailing-lists</report>
@@ -687,9 +690,9 @@
         </configuration>
         <reportSets>
           <reportSet>
-            <id>non-aggregate</id>
-            <reports>
-            </reports>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
           </reportSet>
           <reportSet>
             <id>aggregate</id>
@@ -705,9 +708,9 @@
         <artifactId>maven-javadoc-plugin</artifactId>
         <reportSets>
           <reportSet>
-            <id>non-aggregate</id>
-            <reports>
-            </reports>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
           </reportSet>
           <reportSet>
             <id>aggregate</id>
@@ -735,6 +738,11 @@
             <link>https://junit.org/junit4/javadoc/4.13/</link>
           </links>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>3.0.0</version>
       </plugin>
     </plugins>
   </reporting>
