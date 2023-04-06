@@ -672,7 +672,6 @@
             <inherited>false</inherited>
             <reports>
               <report>ci-management</report>
-              <report>dependencies</report>
               <report>index</report>
               <report>issue-management</report>
               <report>mailing-lists</report>
