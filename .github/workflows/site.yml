@@ -56,24 +56,8 @@ jobs:
           echo "Username: ${{ github.actor }}"
           echo "Email: ${{ steps.get_email.outputs.email }}"
 
-      - name: Build and install the project
-        run: mvn clean install -DskipTests -q
+      - name: Build project and run tests
+        run: mvn clean install verify
 
-      - name: Build site
-        run: mvn clean site -q
-
-      - name: Fix page sidebars
-        run: |
-          for f in $(find target/site/ -maxdepth 1 -name "*.html"); do
-            sed -i -r '/<li class="nav-header">Modules<\/li>/,/<li class="nav-header">Project\sDocumentation<\/li>/d' $f
-          done
-
-      - name: Stage site
-        run: mvn site:stage 
-        
-      - name: Cleanup staged site
-        run: |
-          for d in $(ls -d target/staging/hps-*); do rm -rf $d; done
-
-      - name: Publish site 
-        run: mvn scm-publish:publish-scm
+      - name: Build and deploy the site
+        run: mvn site site:stage scm-publish:publish-scm -q
