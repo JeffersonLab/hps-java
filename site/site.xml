@@ -34,7 +34,7 @@
             <item name="Source Code Management" href="scm.html" />
             <item name="Bugs and Issues" href="issue-management.html" />
             <item name="Continuous Integration" href="ci-management.html" />
-            <item name="Surefire Test Report" href="surefire-report.html" />
+            <!-- <item name="Surefire Test Report" href="surefire-report.html" /> -->
         </menu>
 
         <menu name="Source Code Documentation">
