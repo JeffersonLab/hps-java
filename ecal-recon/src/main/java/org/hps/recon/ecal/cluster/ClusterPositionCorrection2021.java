@@ -48,67 +48,69 @@ final class ClusterPosResult21 {
 public final class ClusterPositionCorrection2021 {
 
     // Variables for positron position corrections.
-    static final double POSITRON_POS_Q_P0 = 1.35533;
-    static final double POSITRON_POS_Q_P1 = 5.72332;
-    static final double POSITRON_POS_Q_P2 = -0.541438;
+    static final double POSITRON_POS_Q_P0 = 0.493198;
+    static final double POSITRON_POS_Q_P1 = 6.59717;
+    static final double POSITRON_POS_Q_P2 = -0.417881;
+    
+    static final double POSITRON_POS_M_P0 = -0.0394542;
+    static final double POSITRON_POS_M_P1 = 0.0193778;
+    static final double POSITRON_POS_M_P2 = -0.459267;
+    
+    static final double POSITRON_POS_Q1_P0 = -3.28101;
+    static final double POSITRON_POS_Q1_P1 = 0.41683;
+    static final double POSITRON_POS_Q1_P2 = -2.27233;
+    
+    static final double POSITRON_POS_T_P0 = -0.0401421;
+    static final double POSITRON_POS_T_P1 = 0.00858886;
+    static final double POSITRON_POS_T_P2 = -1.81538;
+    
+    static final double POSITRON_POS_Q2_P0 = 2.4103;
+    static final double POSITRON_POS_Q2_P1 = -0.466663;
+    static final double POSITRON_POS_Q2_P2 = -2.20024;
 
-    static final double POSITRON_POS_M_P0 = -0.0340964;
-    static final double POSITRON_POS_M_P1 = 0.014045;
-    static final double POSITRON_POS_M_P2 = -0.545433;
-
-    static final double POSITRON_POS_Q1_P0 = -3.21226;
-    static final double POSITRON_POS_Q1_P1 = 0.339324;
-    static final double POSITRON_POS_Q1_P2 = -2.72148;
-
-    static final double POSITRON_POS_T_P0 = -0.0362339;
-    static final double POSITRON_POS_T_P1 = 0.00449926;
-    static final double POSITRON_POS_T_P2 = -2.91123;
-
-    static final double POSITRON_POS_Q2_P0 = 2.24442;
-    static final double POSITRON_POS_Q2_P1 = -0.282654;
-    static final double POSITRON_POS_Q2_P2 = -3.20633;
 
     // Variables for electron position corrections.
-    static final double ELECTRON_POS_Q_P0 = 5.05789;
-    static final double ELECTRON_POS_Q_P1 = -7.63708;
-    static final double ELECTRON_POS_Q_P2 = -0.593751;
-
-    static final double ELECTRON_POS_M_P0 = -0.0318827;
-    static final double ELECTRON_POS_M_P1 = 0.0100568;
-    static final double ELECTRON_POS_M_P2 = -0.676475;
-
-    static final double ELECTRON_POS_Q1_P0 = -2.71442;
-    static final double ELECTRON_POS_Q1_P1 = -0.456846;
-    static final double ELECTRON_POS_Q1_P2 = -0.772825;
-
-    static final double ELECTRON_POS_T_P0 = -0.0275841;
-    static final double ELECTRON_POS_T_P1 = -0.00844973;
-    static final double ELECTRON_POS_T_P2 = -0.628533;
-
-    static final double ELECTRON_POS_Q2_P0 = 1.72361;
-    static final double ELECTRON_POS_Q2_P1 = 0.524511;
-    static final double ELECTRON_POS_Q2_P2 = -0.697755;
-
+    static final double ELECTRON_POS_Q_P0 = 6.56483;
+    static final double ELECTRON_POS_Q_P1 = -9.14943;
+    static final double ELECTRON_POS_Q_P2 = -0.486418;
+    
+    static final double ELECTRON_POS_M_P0 = -0.0348992;
+    static final double ELECTRON_POS_M_P1 = 0.0130333;
+    static final double ELECTRON_POS_M_P2 = -0.646541;
+    
+    static final double ELECTRON_POS_Q1_P0 = -46.6899;
+    static final double ELECTRON_POS_Q1_P1 = 43.5666;
+    static final double ELECTRON_POS_Q1_P2 = -0.00624626;
+    
+    static final double ELECTRON_POS_T_P0 = -0.737195;
+    static final double ELECTRON_POS_T_P1 = 0.701706;
+    static final double ELECTRON_POS_T_P2 = -0.00788523;
+    
+    static final double ELECTRON_POS_Q2_P0 = 49.3347;
+    static final double ELECTRON_POS_Q2_P1 = -47.1272;
+    static final double ELECTRON_POS_Q2_P2 = -0.00638372;
+    
     // Variables for photon position corrections.
-    static final double PHOTON_POS_Q_P0 = 5.53107;
-    static final double PHOTON_POS_Q_P1 = -2.71633;
-    static final double PHOTON_POS_Q_P2 = -0.157991;
+    static final double PHOTON_POS_Q_P0 = 13.7256;
+    static final double PHOTON_POS_Q_P1 = -10.8981;
+    static final double PHOTON_POS_Q_P2 = -0.0476386;
+    
+    static final double PHOTON_POS_M_P0 = -0.265659;
+    static final double PHOTON_POS_M_P1 = 0.238601;
+    static final double PHOTON_POS_M_P2 = -0.0227604;
+    
+    static final double PHOTON_POS_Q1_P0 = -3.1811;
+    static final double PHOTON_POS_Q1_P1 = 0.191109;
+    static final double PHOTON_POS_Q1_P2 = -0.883268;
+    
+    static final double PHOTON_POS_T_P0 = -0.0389939;
+    static final double PHOTON_POS_T_P1 = 0.00609913;
+    static final double PHOTON_POS_T_P2 = -0.605562;
+    
+    static final double PHOTON_POS_Q2_P0 = 2.22461;
+    static final double PHOTON_POS_Q2_P1 = -0.200874;
+    static final double PHOTON_POS_Q2_P2 = -0.871185;
 
-    static final double PHOTON_POS_M_P0 = -0.0645554;
-    static final double PHOTON_POS_M_P1 = 0.0376413;
-    static final double PHOTON_POS_M_P2 = -0.119576;
-
-    static final double PHOTON_POS_Q1_P0 = -3.99615;
-    static final double PHOTON_POS_Q1_P1 = 0.967692;
-    static final double PHOTON_POS_Q1_P2 = -0.317565;
-
-    static final double PHOTON_POS_T_P0 = -0.0582419;
-    static final double PHOTON_POS_T_P1 = 0.0247615;
-    static final double PHOTON_POS_T_P2 = -0.233813;
-
-    static final double PHOTON_POS_Q2_P0 = 3.1551;
-    static final double PHOTON_POS_Q2_P1 = -1.09655;
-    static final double PHOTON_POS_Q2_P2 = -0.283272;
 
     /**
      * 

@@ -25,8 +25,8 @@ import org.lcsim.event.base.BaseCluster;
  * of the energy
  * 
  * Electrons and Positrons: parameter(E) = p0 + p1*pow(E,p2) for all parameters
- * Photons: par(E) = p0 + p1*pow(E,p2) | par = q,m par(E) = (a + b*E + c*E*E)/(d
- * + e*E + f*E*E) | par = q1,t,q2
+ * Photons: parameter(E) = p0 + p1*pow(E,p2) for all parameters
+ *
  */
 final class ClusterPosResult19 {
     private final double X;
@@ -228,14 +228,11 @@ public final class ClusterPositionCorrection2019 {
         double deltaX, deltaY;
 
         double q = PHOTON_POS_Q_P0 + PHOTON_POS_Q_P1 * Math.pow(Energy, PHOTON_POS_Q_P2);
-        double m = PHOTON_POS_M_P0 + PHOTON_POS_M_P1 * Math.pow(Energy, PHOTON_POS_M_P2);
-        double q1 = PHOTON_POS_Q1_A + PHOTON_POS_Q1_B * Energy + PHOTON_POS_Q1_C * Energy * Energy
-                / (PHOTON_POS_Q1_D + PHOTON_POS_Q1_E * Energy + PHOTON_POS_Q1_F * Energy * Energy);
-        double q2 = PHOTON_POS_Q2_A + PHOTON_POS_Q2_B * Energy + PHOTON_POS_Q2_C * Energy * Energy
-                / (PHOTON_POS_Q2_D + PHOTON_POS_Q2_E * Energy + PHOTON_POS_Q2_F * Energy * Energy);
-        double t = PHOTON_POS_T_A + PHOTON_POS_T_B * Energy + PHOTON_POS_T_C * Energy * Energy
-                / (PHOTON_POS_T_D + PHOTON_POS_T_E * Energy + PHOTON_POS_T_F * Energy * Energy);
-
+        double m = PHOTON_POS_M_P0 + PHOTON_POS_M_P1 * Math.pow(Energy, PHOTON_POS_M_P2); 
+        double q1 = PHOTON_POS_Q1_P0 + PHOTON_POS_Q1_P1 * Math.pow(Energy, PHOTON_POS_Q2_P2);
+        double q2 = PHOTON_POS_Q2_P0 + PHOTON_POS_Q2_P1 * Math.pow(Energy, PHOTON_POS_Q2_P2);
+        double t = PHOTON_POS_T_P0 + PHOTON_POS_T_P1 * Math.pow(Energy, PHOTON_POS_T_P2);
+        
         deltaX = q + m * xPos;
 
         if (yPos < 0) {
