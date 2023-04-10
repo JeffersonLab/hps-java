@@ -4,7 +4,7 @@
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>0.0.5-SNAPSHOT</version>
+  <version>0.0.6</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>https://jeffersonlab.github.io/hps-java/</url>
@@ -34,7 +34,7 @@
     <url>https://github.com/JeremyMcCormick/hps-java.git</url>
     <connection>scm:git:${project.scm.url}</connection>
     <developerConnection>scm:git:git@github.com:JeremyMcCormick/hps-java.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>hps-java-0.0.6</tag>
   </scm>
 
   <distributionManagement>
