@@ -21,6 +21,12 @@ import com.sun.jna.ptr.PointerByReference;
  * cmake --build general-broken-lines/build
  * </code>
  * <p>
+ * Then make sure the full path of the GBL library is either in a system path (e.g. /usr/local/lib),
+ * or you tell JNA where the GBL library is with
+ * <code>
+ * -Djna.library.path=/full/path/to/general-broken-lines/build/lib
+ * </code>
+ * <p>
  * The documentation for the GBL C++ library also has a page on how to access it
  * <a href="https://www.desy.de/~kleinwrt/GBL/doc/cpp/html/jnausage.html">via JNA</a>.
  */
