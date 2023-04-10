@@ -160,7 +160,7 @@ jobs:
   site:
     needs: release
     if: ${{ !inputs.dry_run && inputs.deploy_site }}
-    uses: JeremyMcCormick/hps-java/.github/workflows/site.yml@master
+    uses: JeffersonLab/hps-java/.github/workflows/site.yml@master
     with:
       tag: ${{ needs.release.outputs.release_tag }}
     secrets: inherit
