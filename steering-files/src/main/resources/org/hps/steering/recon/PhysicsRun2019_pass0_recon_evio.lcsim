@@ -122,7 +122,7 @@
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-            <neighborDeltaT>8.0</neighborDeltaT>
+            <neighborDeltaT>24.0</neighborDeltaT>
             <saveMonsterEvents>false</saveMonsterEvents>
             <thresholdMonsterEvents>400</thresholdMonsterEvents>
             <debug>false</debug>
