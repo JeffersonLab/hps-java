@@ -41,6 +41,8 @@ deps.txt
 scratch/
 bin/
 target/
+html/
+latex/
 
 
 # editor swap files
