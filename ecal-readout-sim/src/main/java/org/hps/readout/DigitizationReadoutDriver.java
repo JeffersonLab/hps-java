@@ -354,7 +354,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
         // Reinstantiate the buffers.
         resetBuffers();
     }
-    
+   
     @Override
     public void process(EventHeader event) {                  
         /*
@@ -391,13 +391,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             // If noise should be added, calculate a random value for
             // the noise and add it to the truth energy deposition.
             if(addNoise) {
-                // Calculate a randomized noise value.
-                double noiseSigma = Math.sqrt(Math.pow(getNoiseConditions(hit.getCellID()) * getGainConditions(hit.getCellID()) * EcalUtils.MeV, 2)
-                        + hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
-                double noise = RandomGaussian.getGaussian(0, noiseSigma);
-                
-                // Increment the truth energy deposition by this amount.
-                energyAmplitude += noise;
+                energyAmplitude += getAmplitudeFluctuation(hit);
             }
             
             // Check to see if the hit time seems valid. This is done
@@ -414,11 +408,18 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             // pulse buffer for the subdetector channel on which the
             // hit occurred.
             for(int i = 0; i < BUFFER_LENGTH; i++) {
+
                 // Calculate the voltage deposition for the current
                 // buffer time.
                 double voltageDeposition = energyAmplitude * pulseAmplitude((i + 1) * READOUT_PERIOD + readoutTime()
                         - (ReadoutDataManager.getCurrentTime() + hit.getTime()) - getTimeShiftConditions(hit.getCellID()), hit.getCellID());
-                
+   
+                // If noise should be added, calculate a random value for
+                // the noise and add it to the voltage deposition.
+                if (addNoise) {
+                    voltageDeposition += getDigitizationFluctuation(hit);
+                }
+
                 // Increase the current buffer time's voltage value
                 // by the calculated amount.
                 voltageBuffer.addToCell(i, voltageDeposition);
@@ -847,7 +848,7 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
     /**
      * Gets the gain for the indicated subdetector channel.
      * @param channelID - The channel ID.
-     * @return Returns the value of the gain in units of ADC/MeV as a
+     * @return Returns the value of the gain in units of MeV/ADC as a
      * <code>double</code>.
      */
     protected abstract double getGainConditions(long channelID);
@@ -855,8 +856,8 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
     /**
      * Gets the noise sigma for the indicated subdetector channel.
      * @param channelID - The channel ID.
-     * @return Returns the value of the noise sigma as a
-     * <code>double</code>.
+     * @return Returns the value of the noise sigma in units of ADC for one
+     * 4-ns sample as a <code>double</code>.
      */
     protected abstract double getNoiseConditions(long channelID);
     
@@ -866,7 +867,29 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * @return Returns the timestamp flag as an <code>int</code>.
      */
     protected abstract int getTimestampFlag();
-    
+
+    /**
+     * Generate electronic/digitization noise for a single, 4-ns FADC sample.
+     * The sigma from the conditions system must be in units ADC and correspond
+     * to a single sample.
+     * @param hit - The hit for which to generate a fluctuation.
+     * @return Returns a fluctuation in units Volts.
+     */
+    protected double getDigitizationFluctuation(CalorimeterHit hit) {
+        double sigma = getNoiseConditions(hit.getCellID());
+        return RandomGaussian.getGaussian(0, sigma) * maxVolt / (Math.pow(2,nBit)-1);
+    }
+
+    /**
+     * Generate photoelectron/amplification noise for a pulse's amplitude.
+     * @param hit - The hit for which to generate a fluctuation.
+     * @return Returns a fluctuation in units GeV. 
+     */
+    protected double getAmplitudeFluctuation(CalorimeterHit hit) {
+        double sigma = Math.sqrt(hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
+        return RandomGaussian.getGaussian(0, sigma);
+    }
+
     @Override
     protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {
         // Create a list to store the extra collections.
