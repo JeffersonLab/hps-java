@@ -343,7 +343,6 @@ public class HpsGblTrajectoryCreator {
         */
 
         return listOfPoints;
-        
     }
     
     private static Matrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
