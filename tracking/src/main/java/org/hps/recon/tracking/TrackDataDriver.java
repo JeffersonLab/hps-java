@@ -227,6 +227,7 @@ public final class TrackDataDriver extends Driver {
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if (TrackType.isGBL(track.getType())) {
+                    
                     TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap,runPeriod);
                     if (stateEcal != null)
                         track.getTrackStates().add(stateEcal);

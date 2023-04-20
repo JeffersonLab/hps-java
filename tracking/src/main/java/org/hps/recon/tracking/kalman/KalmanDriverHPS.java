@@ -207,6 +207,7 @@ public class KalmanDriverHPS extends Driver {
         if (14131 < runNumber && runNumber < 14775) {
             runPeriod = TrackUtils.RunPeriod.PhysRun2021;
         }
+       
         KI.setRunPeriod(runPeriod);
         int evtNumb = event.getEventNumber();
         List<Track> tracks = event.get(Track.class, trackCollectionName);

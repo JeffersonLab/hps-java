@@ -644,17 +644,16 @@ public class TrackUtils {
 
     public static BaseTrackState getTrackExtrapAtEcal(TrackState track, FieldMap fieldMap, TrackUtils.RunPeriod runPeriod) {
         // extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, FieldMap fieldMap)
-        double zAtEcal = 0.;
-        switch (runPeriod) {
-            case EngRun2015:
-                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-            case EngRun2016:
-                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-            case PhysRun2019:
-                zAtEcal = BeamlineConstants.ECAL_FACE;
-            case PhysRun2021:
-                zAtEcal = BeamlineConstants.ECAL_FACE;
-        }
+        double zAtEcal = BeamlineConstants.ECAL_FACE;
+        if (runPeriod == RunPeriod.EngRun2015)
+            zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
+        else if (runPeriod == RunPeriod.EngRun2016)
+            zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
+        else if (runPeriod == RunPeriod.PhysRun2019)
+            zAtEcal = BeamlineConstants.ECAL_FACE;
+        else if (runPeriod == RunPeriod.PhysRun2021)
+            zAtEcal = BeamlineConstants.ECAL_FACE;
+        
         BaseTrackState bts = extrapolateTrackUsingFieldMap(track, BeamlineConstants.DIPOLE_EDGE_ENG_RUN, zAtEcal, 5.0, fieldMap);
         bts.setLocation(TrackState.AtCalorimeter);
         return bts;
@@ -666,18 +665,16 @@ public class TrackUtils {
 
     public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, double stepSize, TrackUtils.RunPeriod runPeriod) {
 
-        double zAtEcal = 0.;
-        switch (runPeriod) {
-            case EngRun2015:
-                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-            case EngRun2016:
-                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-            case PhysRun2019:
-                zAtEcal = BeamlineConstants.ECAL_FACE;
-            case PhysRun2021:
-                zAtEcal = BeamlineConstants.ECAL_FACE;
-        }
-
+        double zAtEcal = BeamlineConstants.ECAL_FACE;
+        if (runPeriod == RunPeriod.EngRun2015)
+            zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
+        else if (runPeriod == RunPeriod.EngRun2016)
+            zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
+        else if (runPeriod == RunPeriod.PhysRun2019)
+            zAtEcal = BeamlineConstants.ECAL_FACE;
+        else if (runPeriod == RunPeriod.PhysRun2021)
+            zAtEcal = BeamlineConstants.ECAL_FACE;
+ 
         Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
         Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
         double distanceZ = zAtEcal - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
@@ -783,13 +780,37 @@ public class TrackUtils {
     }
 
     @Deprecated
-    public static Hep3Vector getTrackPositionAtEcal(Track track) {
-        return extrapolateTrack(track, BeamlineConstants.ECAL_FACE);
+    public static Hep3Vector getTrackPositionAtEcal(Track track, TrackUtils.RunPeriod runPeriod) {
+        double zAtEcal = BeamlineConstants.ECAL_FACE;
+        switch (runPeriod) {
+            case EngRun2015:
+                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
+            case EngRun2016:
+                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
+            case PhysRun2019:
+                zAtEcal = BeamlineConstants.ECAL_FACE;
+            case PhysRun2021:
+                zAtEcal = BeamlineConstants.ECAL_FACE;
+        }
+        
+        return extrapolateTrack(track, zAtEcal);
     }
 
     @Deprecated
-    public static Hep3Vector getTrackPositionAtEcal(TrackState track) {
-        return extrapolateTrack(track, BeamlineConstants.ECAL_FACE);
+    public static Hep3Vector getTrackPositionAtEcal(TrackState track, TrackUtils.RunPeriod runPeriod) {
+        double zAtEcal = BeamlineConstants.ECAL_FACE;
+        switch (runPeriod) {
+            case EngRun2015:
+                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
+            case EngRun2016:
+                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
+            case PhysRun2019:
+                zAtEcal = BeamlineConstants.ECAL_FACE;
+            case PhysRun2021:
+                zAtEcal = BeamlineConstants.ECAL_FACE;
+        }
+        
+        return extrapolateTrack(track, zAtEcal);
     }
 
     /**
