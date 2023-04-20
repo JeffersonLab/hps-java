@@ -876,165 +876,166 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     
                 }//point loop
                 
-                
-                //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
-                
-                GblTrajectoryJna trajForMPII = null;
-                GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,1,1,1);
-                
-                //seed matrix q/p, yT', xT', xT, yT 
-                SymMatrix seedPrecision = new SymMatrix(5);
-                
-                if (constrainedFit) 
-                    seedPrecision.set(0,0,seed_precision);
-                if (constrainedTanLFit)
-                    seedPrecision.set(1,1,seed_precision);
-                if (constrainedPhi0Fit)
-                    seedPrecision.set(2,2,seed_precision);
-
-                //z0 constraint 
-                //seedPrecision.set(4,4,seed_precision);
-                
-                //d0 constraint
-                //seedPrecision.set(3,3,1000000);
-                
-                if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
-                    trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
-                } else {
-                    trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
-                }
-                
-                if (debugAlignmentDs) trajForMPII.printData();
-                
-                //Fit the trajectory to get the Chi2
-                trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
-
-                //Avoid to use tracks with terrible Chi2
-                if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
-                    continue;
-                
-                if (writeMilleBinary) {
-                    /*
-                    System.out.println("DEBUG::Tom::Writing track with "
-                        + points_on_traj.size() + " hits to mille binary.");
-                     */
-                    trajForMPII.milleOut(mille);
-                }
-                
-                if (correctTrack) {                
-
-                    //Form the FittedGblTrajectory for the unconstrained fit
-                    FittedGblTrajectory fitTraj = new FittedGblTrajectory(trajForMPII_unconstrained, Chi2.getValue(), Ndf.getValue(), lostWeight.getValue());
-                    
-                    fitTraj.setSensorMap(sensorMap);
-                    fitTraj.setPathLengthMap(pathLengthMap);
-                    
-                    Collection<TrackerHit> hth = track.getTrackerHits();
-                    List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
-                    Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
-                    Track gblTrk = newTrack.getFirst();
-
-                    //System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");
-                    
-                    if(computeGBLResiduals) {
-                        
-                        List<Double> b_residuals = new ArrayList<Double>();
-                        List<Float>   b_sigmas    = new ArrayList<Float>();
-                        List<Integer> r_sensors   = new ArrayList<Integer>();
-                        
-                        int numData[] = new int[1];
-                        Integer[] sensorsFromMapArray = fitTraj.getSensorMap().keySet().toArray(new Integer[0]);
-                        for (int i_s = 0; i_s < sensorsFromMapArray.length; i_s++) {
-                            int ilabel = sensorsFromMapArray[i_s];
-                            int mpid = fitTraj.getSensorMap().get(ilabel);
-                            List<Double> aResiduals   = new ArrayList<Double>();
-                            List<Double> aMeasErrors  = new ArrayList<Double>();
-                            List<Double> aResErrors   = new ArrayList<Double>();
-                            List<Double> aDownWeights = new ArrayList<Double>();
-                            trajForMPII_unconstrained.getMeasResults(ilabel,numData,aResiduals,aMeasErrors,aResErrors,aDownWeights);
-                            if (numData[0]>1) { 
-                                System.out.printf("GBLRefitterDriver::WARNING::We have SCT sensors. Residuals dimensions should be <=1\n");
-                            }
-                            for (int i=0; i<numData[0];i++) {
-                                //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
-                                //System.out.printf("Example1::measResults %d %d %d %f %f %f \n",ilabel, i, mpid, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));
-                                
-                                r_sensors.add(mpid);
-                                b_residuals.add(aResiduals.get(i));
-                                b_sigmas.add(aResErrors.get(i).floatValue());
-                            }
-                            
-                            GblTrajectoryJna gbl_fit_traj_u = new GblTrajectoryJna(points_on_traj,1,1,1);
-                            DoubleByReference Chi2_u = new DoubleByReference(0.);
-                            DoubleByReference lostWeight_u = new DoubleByReference(0.);
-                            IntByReference Ndf_u = new IntByReference(0);
-                            int[] u_numData  = new int[1]; 
-                            //Fit it once to have exactly the same starting point of gbl_fit_trajectory.
-                            gbl_fit_traj_u.fit(Chi2_u,Ndf_u,lostWeight_u,"");
-                            List<Double> u_aResiduals   = new ArrayList<Double>();   
-                            List<Double> u_aMeasErrors  = new ArrayList<Double>();
-                            List<Double> u_aResErrors   = new ArrayList<Double>();  
-                            List<Double> u_aDownWeights = new ArrayList<Double>();
-                            
-                            try {
-                                //Fit removing the measurement
-                                gbl_fit_traj_u.fit(Chi2_u,Ndf_u,lostWeight_u,"",ilabel);
-                                gbl_fit_traj_u.getMeasResults(ilabel,u_numData,u_aResiduals,u_aMeasErrors,u_aResErrors,u_aDownWeights); 
-                                for (int i=0; i<u_numData[0];i++) {
-                                    //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
-                                    //System.out.printf("Example1::UmeasResults %d %d %d %f %f %f \n",ilabel, i, mpid, u_aResiduals.get(i),u_aMeasErrors.get(i),u_aResErrors.get(i));
-                                    
-                                    r_sensors.add(mpid);
-                                    b_residuals.add(u_aResiduals.get(i));
-                                    b_sigmas.add(u_aResErrors.get(i).floatValue());
-                                }
-                            }
-                            catch (RuntimeException e){
-                                //  e.printStackTrack();
-                                r_sensors.add(-999);
-                                b_residuals.add(-9999.);
-                                b_sigmas.add((float)-9999.);
-                                //System.out.printf("Unbiasing fit fails! For label::%d\n",ilabel);
-                            }
-                            
-                            
-                            gbl_fit_traj_u.delete();
-                        } // loop on sensor map
-
-
-
-                        int trackerVolume = 0;
-                        if (gblTrk.getTrackStates().get(0).getTanLambda() < 0) trackerVolume = 1;
-                        TrackResidualsData resData  = new TrackResidualsData(trackerVolume,r_sensors,b_residuals,b_sigmas);
-                        trackResidualsCollection.add(resData);
-                        trackResidualsRelations.add(new BaseLCRelation(resData,gblTrk));
-
-                    } //computeResiduals
-                    
-                    
-                    
-                    //System.out.println("Refitted track chi2 " + gblTrk.getChi2());
-                    refittedTracks.add(gblTrk);
-                    kinkDataCollection.add(newTrack.getSecond());
-                    kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
-                }
-                
-                trajForMPII.delete();
-                trajForMPII_unconstrained.delete();
-                
             }// composite Alignment
+                
+            //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
+                
+            GblTrajectoryJna trajForMPII = null;
+            GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,1,1,1);
+                
+            //seed matrix q/p, yT', xT', xT, yT 
+            SymMatrix seedPrecision = new SymMatrix(5);
+                
+            if (constrainedFit) 
+                seedPrecision.set(0,0,seed_precision);
+            if (constrainedTanLFit)
+                seedPrecision.set(1,1,seed_precision);
+            if (constrainedPhi0Fit)
+                seedPrecision.set(2,2,seed_precision);
+
+            //z0 constraint 
+            //seedPrecision.set(4,4,seed_precision);
+                
+            //d0 constraint
+            //seedPrecision.set(3,3,1000000);
+                
+            if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
+                trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
+            } else {
+                trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
+            }
+                
+            if (debugAlignmentDs) trajForMPII.printData();
+                
+            //Fit the trajectory to get the Chi2
+            trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
+
+            //Avoid to use tracks with terrible Chi2
+            if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
+                continue;
+                
+            if (writeMilleBinary) {
+                /*
+                  System.out.println("DEBUG::Tom::Writing track with "
+                  + points_on_traj.size() + " hits to mille binary.");
+                */
+                trajForMPII.milleOut(mille);
+            }
+                
+            if (correctTrack) {                
+
+                //Form the FittedGblTrajectory for the unconstrained fit
+                FittedGblTrajectory fitTraj = new FittedGblTrajectory(trajForMPII_unconstrained, Chi2.getValue(), Ndf.getValue(), lostWeight.getValue());
+                    
+                fitTraj.setSensorMap(sensorMap);
+                fitTraj.setPathLengthMap(pathLengthMap);
+                    
+                Collection<TrackerHit> hth = track.getTrackerHits();
+                List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
+                Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
+                Track gblTrk = newTrack.getFirst();
+
+                //System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");
+                    
+                if(computeGBLResiduals) {
+                        
+                    List<Double> b_residuals = new ArrayList<Double>();
+                    List<Float>   b_sigmas    = new ArrayList<Float>();
+                    List<Integer> r_sensors   = new ArrayList<Integer>();
+                        
+                    int numData[] = new int[1];
+                    Integer[] sensorsFromMapArray = fitTraj.getSensorMap().keySet().toArray(new Integer[0]);
+                    for (int i_s = 0; i_s < sensorsFromMapArray.length; i_s++) {
+                        int ilabel = sensorsFromMapArray[i_s];
+                        int mpid = fitTraj.getSensorMap().get(ilabel);
+                        List<Double> aResiduals   = new ArrayList<Double>();
+                        List<Double> aMeasErrors  = new ArrayList<Double>();
+                        List<Double> aResErrors   = new ArrayList<Double>();
+                        List<Double> aDownWeights = new ArrayList<Double>();
+                        trajForMPII_unconstrained.getMeasResults(ilabel,numData,aResiduals,aMeasErrors,aResErrors,aDownWeights);
+                        if (numData[0]>1) { 
+                            System.out.printf("GBLRefitterDriver::WARNING::We have SCT sensors. Residuals dimensions should be <=1\n");
+                        }
+                        for (int i=0; i<numData[0];i++) {
+                            //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
+                            //System.out.printf("Example1::measResults %d %d %d %f %f %f \n",ilabel, i, mpid, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));
+                                
+                            r_sensors.add(mpid);
+                            b_residuals.add(aResiduals.get(i));
+                            b_sigmas.add(aResErrors.get(i).floatValue());
+                        }
+                            
+                        GblTrajectoryJna gbl_fit_traj_u = new GblTrajectoryJna(points_on_traj,1,1,1);
+                        DoubleByReference Chi2_u = new DoubleByReference(0.);
+                        DoubleByReference lostWeight_u = new DoubleByReference(0.);
+                        IntByReference Ndf_u = new IntByReference(0);
+                        int[] u_numData  = new int[1]; 
+                        //Fit it once to have exactly the same starting point of gbl_fit_trajectory.
+                        gbl_fit_traj_u.fit(Chi2_u,Ndf_u,lostWeight_u,"");
+                        List<Double> u_aResiduals   = new ArrayList<Double>();   
+                        List<Double> u_aMeasErrors  = new ArrayList<Double>();
+                        List<Double> u_aResErrors   = new ArrayList<Double>();  
+                        List<Double> u_aDownWeights = new ArrayList<Double>();
+                            
+                        try {
+                            //Fit removing the measurement
+                            gbl_fit_traj_u.fit(Chi2_u,Ndf_u,lostWeight_u,"",ilabel);
+                            gbl_fit_traj_u.getMeasResults(ilabel,u_numData,u_aResiduals,u_aMeasErrors,u_aResErrors,u_aDownWeights); 
+                            for (int i=0; i<u_numData[0];i++) {
+                                //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
+                                //System.out.printf("Example1::UmeasResults %d %d %d %f %f %f \n",ilabel, i, mpid, u_aResiduals.get(i),u_aMeasErrors.get(i),u_aResErrors.get(i));
+                                    
+                                r_sensors.add(mpid);
+                                b_residuals.add(u_aResiduals.get(i));
+                                b_sigmas.add(u_aResErrors.get(i).floatValue());
+                            }
+                        }
+                        catch (RuntimeException e){
+                            //  e.printStackTrack();
+                            r_sensors.add(-999);
+                            b_residuals.add(-9999.);
+                            b_sigmas.add((float)-9999.);
+                            //System.out.printf("Unbiasing fit fails! For label::%d\n",ilabel);
+                        }
+                            
+                            
+                        gbl_fit_traj_u.delete();
+                    } // loop on sensor map
+
+
+
+                    int trackerVolume = 0;
+                    if (gblTrk.getTrackStates().get(0).getTanLambda() < 0) trackerVolume = 1;
+                    TrackResidualsData resData  = new TrackResidualsData(trackerVolume,r_sensors,b_residuals,b_sigmas);
+                    trackResidualsCollection.add(resData);
+                    trackResidualsRelations.add(new BaseLCRelation(resData,gblTrk));
+
+                } //computeResiduals
+                    
+                    
+                    
+                //System.out.println("Refitted track chi2 " + gblTrk.getChi2());
+                refittedTracks.add(gblTrk);
+                kinkDataCollection.add(newTrack.getSecond());
+                kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
+            }
+                
+            trajForMPII.delete();
+            trajForMPII_unconstrained.delete();
+                
+
             
         }//loop on tracks
         
         
         if (correctTrack) {
             /*
-            System.out.print("Refitted tracks (" + outputCollectionName + ") N hits: ");
-            for (Track trk : refittedTracks) {
+              System.out.print("Refitted tracks (" + outputCollectionName + ") N hits: ");
+              for (Track trk : refittedTracks) {
               System.out.print(trk.getTrackerHits().size()+" ");
-            }
-            System.out.println();
-             */
+              }
+              System.out.println();
+            */
 
             // Put the tracks back into the event and exit
             int flag = 1 << LCIOConstants.TRBIT_HITS;
