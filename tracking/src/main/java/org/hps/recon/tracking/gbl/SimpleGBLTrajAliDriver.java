@@ -148,7 +148,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double momC     = 4.55;
     private double minMom   = -999;
     private double maxMom   = 999;
-    private double maxtanL  = -999;
+    private double minTanL  = 0;
+    private double maxTanL  = 999.9;
     private double minPhi   = -999;
     private double maxPhi   = 999;
     private int    nHitsCut = 4;
@@ -353,8 +354,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
         minMom = val;
     }
 
-    public void setMaxtanL(double val) {
-        maxtanL = val;
+    public void setMaxTanL(double val) {
+        maxTanL = val;
+    }
+
+    public void setMinTanL(double val) {
+        minTanL = val;
     }
 
     public void setMinPhi(double val) {
@@ -564,7 +569,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     continue;
                 }
                 
-                if (Math.abs(tanLambda) < maxtanL) {
+                if (Math.abs(tanLambda) < minTanL || Math.abs(tanLambda) > maxTanL) {
                     continue;
                 }
                 
