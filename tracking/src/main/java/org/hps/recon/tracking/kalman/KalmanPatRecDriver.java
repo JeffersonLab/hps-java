@@ -18,6 +18,7 @@ import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackResidualsData;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -278,6 +279,22 @@ public class KalmanPatRecDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        int runNumber = event.getRunNumber();
+        TrackUtils.RunPeriod runPeriod = TrackUtils.RunPeriod.PhysRun2021;
+        if (4441 < runNumber && runNumber < 5967) {
+            runPeriod = TrackUtils.RunPeriod.EngRun2015;
+        }
+        if (7219 < runNumber && runNumber < 8100) {
+            runPeriod = TrackUtils.RunPeriod.EngRun2016;
+        }
+        if (9001 < runNumber && runNumber < 10740) {
+            runPeriod = TrackUtils.RunPeriod.PhysRun2019;
+        }
+        if (14131 < runNumber && runNumber < 14775) {
+            runPeriod = TrackUtils.RunPeriod.PhysRun2021;
+        }
+       
+        KI.setRunPeriod(runPeriod);
                 
         List<Track> outputFullTracks = new ArrayList<Track>();
         

@@ -301,6 +301,20 @@ public abstract class TupleMaker extends Driver {
         if (isGBL != TrackType.isGBL(uncV0.getType())) {
             return false;
         }
+        int runNumber = event.getRunNumber();
+        TrackUtils.RunPeriod runPeriod = TrackUtils.RunPeriod.PhysRun2021;
+        if (4441 < runNumber && runNumber < 5967) {
+            runPeriod = TrackUtils.RunPeriod.EngRun2015;
+        }
+        if (7219 < runNumber && runNumber < 8100) {
+            runPeriod = TrackUtils.RunPeriod.EngRun2016;
+        }
+        if (9001 < runNumber && runNumber < 10740) {
+            runPeriod = TrackUtils.RunPeriod.PhysRun2019;
+        }
+        if (14131 < runNumber && runNumber < 14775) {
+            runPeriod = TrackUtils.RunPeriod.PhysRun2021;
+        }
         
         fillEventVariables(event, triggerData);
 
@@ -334,19 +348,19 @@ public abstract class TupleMaker extends Driver {
         tupleMap.put("minNegativeIso/D", minNegativeIso);
         tupleMap.put("minIso/D", minIso);
 
-        fillVertexVariables("unc", uncV0, false);
+        fillVertexVariables("unc", uncV0, false, runPeriod);
         if (unc2bsc != null) {
             ReconstructedParticle temp = unc2bsc.get(uncV0);
             if (temp == null)
                 isOK = false;
             else
-                fillVertexVariables("bsc", temp, false);
+                fillVertexVariables("bsc", temp, false, runPeriod);
         }
         if (unc2bsc != null) {
             ReconstructedParticle temp = unc2tar.get(uncV0);
             if (temp == null)
                 isOK = false;
-            fillVertexVariables("tar", temp, false);
+            fillVertexVariables("tar", temp, false, runPeriod);
         }
 
         return isOK;
@@ -1196,7 +1210,7 @@ public abstract class TupleMaker extends Driver {
         tupleMap.put(prefix + "CovZZ/D", theCov.e(2, 2));
     }
     
-    protected void fillVertexVariables(String prefix, ReconstructedParticle theV0, boolean isMoller) {
+    protected void fillVertexVariables(String prefix, ReconstructedParticle theV0, boolean isMoller, TrackUtils.RunPeriod runPeriod) {
         String[] mollerParticleNames = {"Top", "Bot"};
         String[] v0ParticleNames = {"Ele", "Pos"};
         
@@ -1280,15 +1294,15 @@ public abstract class TupleMaker extends Driver {
                             particle1.getTracks().get(0),
                             Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p1X"), 2)
                                     + Math.pow(theV0.getStartVertex().getParameters().get("p1Y"), 2)
-                                    + Math.pow(theV0.getStartVertex().getParameters().get("p1Z"), 2))));
+                                    + Math.pow(theV0.getStartVertex().getParameters().get("p1Z"), 2)), runPeriod));
 
             if (nClusters2>0) {
                 tupleMap.put(prefix+particleNames[1] + "WtP/D", MassCalculator.combinedMomentum(particle2.getClusters().get(0), particle2
                         .getTracks().get(0), Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p2X"), 2)
                                 + Math.pow(theV0.getStartVertex().getParameters().get("p2Y"), 2)
-                                + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2))));
+                                + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2)), runPeriod));
                 tupleMap.put(prefix+"WtM/D", MassCalculator.combinedMass(particle1.getClusters().get(0), particle2
-                        .getClusters().get(0), theV0));
+                        .getClusters().get(0), theV0, runPeriod));
             }
             else {
                 tupleMap.put(
@@ -1297,7 +1311,7 @@ public abstract class TupleMaker extends Driver {
                                 + Math.pow(theV0.getStartVertex().getParameters().get("p2Y"), 2)
                                 + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2)));
                 tupleMap.put(prefix+"WtM/D",
-                        MassCalculator.combinedMass(particle1.getClusters().get(0), particle2.getTracks().get(0), theV0));
+                        MassCalculator.combinedMass(particle1.getClusters().get(0), particle2.getTracks().get(0), theV0, runPeriod));
             }
         }
         if (nClusters2 > 0 && nClusters1 == 0) {// e+ has cluster, e- does not
@@ -1309,14 +1323,14 @@ public abstract class TupleMaker extends Driver {
                             particle2.getTracks().get(0),
                             Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p2X"), 2)
                                     + Math.pow(theV0.getStartVertex().getParameters().get("p2Y"), 2)
-                                    + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2))));
+                                    + Math.pow(theV0.getStartVertex().getParameters().get("p2Z"), 2)), runPeriod));
             tupleMap.put(
                     prefix+particleNames[0] + "WtP/D",
                     Math.sqrt(Math.pow(theV0.getStartVertex().getParameters().get("p1X"), 2)
                             + Math.pow(theV0.getStartVertex().getParameters().get("p1Y"), 2)
                             + Math.pow(theV0.getStartVertex().getParameters().get("p1Z"), 2)));
             tupleMap.put(prefix+"WtM/D",
-                    MassCalculator.combinedMass(particle1.getTracks().get(0), particle2.getClusters().get(0), theV0));
+                    MassCalculator.combinedMass(particle1.getTracks().get(0), particle2.getClusters().get(0), theV0, runPeriod));
         }
         if (nClusters2 == 0 && nClusters1 == 0) {
 
