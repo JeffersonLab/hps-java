@@ -11,7 +11,6 @@ import java.util.Map;
 import org.hps.analysis.MC.MCFullDetectorTruth;
 import org.hps.recon.particle.ReconParticleDriver;
 import org.hps.recon.tracking.TrackType;
-import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.CalorimeterHit;
