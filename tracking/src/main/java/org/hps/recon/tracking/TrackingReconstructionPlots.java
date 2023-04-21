@@ -355,8 +355,8 @@ public class TrackingReconstructionPlots extends Driver {
         }
     }
 
-    private void doClustersOnTrack(Track trk, List<Cluster> clusters,TrackUtils.RunPeriod runPeriod) {
-        Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk,runPeriod);
+    private void doClustersOnTrack(Track trk, List<Cluster> clusters, int runNumber) {
+        Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk,runNumber);
         Cluster clust = findClosestCluster(posAtEcal, clusters);
         if (clust == null)
             return;
@@ -446,19 +446,6 @@ public class TrackingReconstructionPlots extends Driver {
     @Override
     public void process(EventHeader event) {
         int runNumber = event.getRunNumber();
-        TrackUtils.RunPeriod runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        if (4441 < runNumber && runNumber < 5967) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2015;
-        }
-        if (7219 < runNumber && runNumber < 8100) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2016;
-        }
-        if (9001 < runNumber && runNumber < 10740) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2019;
-        }
-        if (14131 < runNumber && runNumber < 14775) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        }
         aida.tree().cd("/");
         if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName)) {
             System.out.println(helicalTrackHitCollectionName + " does not exist; skipping event");
@@ -545,7 +532,7 @@ public class TrackingReconstructionPlots extends Driver {
                 doAmplitude(fittedHits, trk);
 
             if (doMatchedClusterPlots)
-                doClustersOnTrack(trk, clusters,runPeriod);
+                doClustersOnTrack(trk, clusters,runNumber);
         }
 
         if (doElectronPositronPlots)

@@ -84,10 +84,10 @@ public class KalmanInterface {
     private static final double SVTcenter = 505.57;
     private static final double c = 2.99793e8; // Speed of light in m/s
     
-    private TrackUtils.RunPeriod runPeriod = TrackUtils.RunPeriod.PhysRun2021;
+    private int runNumber = 14168;
     
-    public void setRunPeriod(TrackUtils.RunPeriod runPeriod){
-        this.runPeriod = runPeriod;
+    public void setRunNumber(int runNumber){
+        this.runNumber = runNumber;
     }
     
     public void setSiHitsLimit(int limit) {
@@ -597,7 +597,7 @@ public class KalmanInterface {
         
         // Extrapolate to the ECAL and make a new trackState there.
        
-        BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runPeriod);
+        BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
         newTrack.getTrackStates().add(ts_ecal);
         
         // other track properties

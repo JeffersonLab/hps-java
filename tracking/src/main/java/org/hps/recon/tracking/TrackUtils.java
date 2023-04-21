@@ -634,46 +634,34 @@ public class TrackUtils {
      * @param track
      * @return position at ECAL
      */
-    public static BaseTrackState getTrackExtrapAtEcal(Track track, FieldMap fieldMap, TrackUtils.RunPeriod runPeriod) {
+    public static BaseTrackState getTrackExtrapAtEcal(Track track, FieldMap fieldMap, int runNumber) {
         TrackState stateAtLast = TrackUtils.getTrackStateAtLocation(track, TrackState.AtLastHit);
         if (stateAtLast == null) {
             return null;
         }
-        return getTrackExtrapAtEcal(stateAtLast, fieldMap, runPeriod);
+        return getTrackExtrapAtEcal(stateAtLast, fieldMap, runNumber);
     }
 
-    public static BaseTrackState getTrackExtrapAtEcal(TrackState track, FieldMap fieldMap, TrackUtils.RunPeriod runPeriod) {
+    public static BaseTrackState getTrackExtrapAtEcal(TrackState track, FieldMap fieldMap, int runNumber) {
         // extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, FieldMap fieldMap)
         double zAtEcal = BeamlineConstants.ECAL_FACE;
-        if (runPeriod == RunPeriod.EngRun2015)
+        if (4441 < runNumber && runNumber < 8100)
             zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-        else if (runPeriod == RunPeriod.EngRun2016)
-            zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-        else if (runPeriod == RunPeriod.PhysRun2019)
-            zAtEcal = BeamlineConstants.ECAL_FACE;
-        else if (runPeriod == RunPeriod.PhysRun2021)
-            zAtEcal = BeamlineConstants.ECAL_FACE;
         
         BaseTrackState bts = extrapolateTrackUsingFieldMap(track, BeamlineConstants.DIPOLE_EDGE_ENG_RUN, zAtEcal, 5.0, fieldMap);
         bts.setLocation(TrackState.AtCalorimeter);
         return bts;
     }
 
-    public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, TrackUtils.RunPeriod runPeriod) {
-        return getTrackExtrapAtEcalRK(ts, fM, 0, runPeriod);
+    public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, int runNumber) {
+        return getTrackExtrapAtEcalRK(ts, fM, 0, runNumber);
     }
 
-    public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, double stepSize, TrackUtils.RunPeriod runPeriod) {
+    public static BaseTrackState getTrackExtrapAtEcalRK(TrackState ts, FieldMap fM, double stepSize, int runNumber) {
 
         double zAtEcal = BeamlineConstants.ECAL_FACE;
-        if (runPeriod == RunPeriod.EngRun2015)
+        if (4441 < runNumber && runNumber < 8100)
             zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-        else if (runPeriod == RunPeriod.EngRun2016)
-            zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-        else if (runPeriod == RunPeriod.PhysRun2019)
-            zAtEcal = BeamlineConstants.ECAL_FACE;
-        else if (runPeriod == RunPeriod.PhysRun2021)
-            zAtEcal = BeamlineConstants.ECAL_FACE;
  
         Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
         Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
@@ -702,16 +690,16 @@ public class TrackUtils {
         return bts;
     }
 
-    public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM, double stepSize, TrackUtils.RunPeriod runPeriod) {
+    public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM, double stepSize, int runNumber) {
         BaseTrackState ts = (BaseTrackState) TrackStateUtils.getTrackStateAtLast(trk);
         if (ts != null) {
-            return getTrackExtrapAtEcalRK(ts, fM, stepSize, runPeriod);
+            return getTrackExtrapAtEcalRK(ts, fM, stepSize, runNumber);
         }
         return null;
     }
 
-    public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM, TrackUtils.RunPeriod runPeriod) {
-        return getTrackExtrapAtEcalRK(trk, fM, 0, runPeriod);
+    public static BaseTrackState getTrackExtrapAtEcalRK(Track trk, FieldMap fM, int runNumber) {
+        return getTrackExtrapAtEcalRK(trk, fM, 0, runNumber);
     }
 
     /**
@@ -780,35 +768,19 @@ public class TrackUtils {
     }
 
     @Deprecated
-    public static Hep3Vector getTrackPositionAtEcal(Track track, TrackUtils.RunPeriod runPeriod) {
+    public static Hep3Vector getTrackPositionAtEcal(Track track, int runNumber) {
         double zAtEcal = BeamlineConstants.ECAL_FACE;
-        switch (runPeriod) {
-            case EngRun2015:
-                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-            case EngRun2016:
-                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-            case PhysRun2019:
-                zAtEcal = BeamlineConstants.ECAL_FACE;
-            case PhysRun2021:
-                zAtEcal = BeamlineConstants.ECAL_FACE;
-        }
+        if (4441 < runNumber && runNumber < 8100)
+            zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
         
         return extrapolateTrack(track, zAtEcal);
     }
 
     @Deprecated
-    public static Hep3Vector getTrackPositionAtEcal(TrackState track, TrackUtils.RunPeriod runPeriod) {
+    public static Hep3Vector getTrackPositionAtEcal(TrackState track, int runNumber) {
         double zAtEcal = BeamlineConstants.ECAL_FACE;
-        switch (runPeriod) {
-            case EngRun2015:
-                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-            case EngRun2016:
-                zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
-            case PhysRun2019:
-                zAtEcal = BeamlineConstants.ECAL_FACE;
-            case PhysRun2021:
-                zAtEcal = BeamlineConstants.ECAL_FACE;
-        }
+        if (4441 < runNumber && runNumber < 8100)
+            zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
         
         return extrapolateTrack(track, zAtEcal);
     }

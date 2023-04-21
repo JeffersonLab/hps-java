@@ -30,8 +30,6 @@ import org.lcsim.event.base.BaseRelationalTable;
 
 public class RefitTrackTruthTupleDriver extends TupleMaker {
     
-    TrackUtils.RunPeriod runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-    
     private final String trackColName = "GBLTracks";
     private final String badTrackColName = "GBLTracks_bad";
     private final String simhitOutputColName = "TrackerHits_truth";
@@ -63,6 +61,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     private Map<ReconstructedParticle, ReconstructedParticle> unc2tarTruth = null;
     private int truthVertexHasMatch = 0;
     private int nEcalHit = 2;
+    private int runNumber = 14168;
     
     @Override
     protected void setupVariables() {
@@ -89,20 +88,8 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     @Override
     public void process(EventHeader event) {
         setupCollections(event);
-        int runNumber = event.getRunNumber();
-        
-        if (4441 < runNumber && runNumber < 5967) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2015;
-        }
-        if (7219 < runNumber && runNumber < 8100) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2016;
-        }
-        if (9001 < runNumber && runNumber < 10740) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2019;
-        }
-        if (14131 < runNumber && runNumber < 14775) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        }
+        runNumber = event.getRunNumber();
+
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             tupleMap.clear();
             boolean isOK = fillBasicRefitTuple(event, triggerData, uncV0);
@@ -196,7 +183,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         tupleMap.put("minNegativeIso/D", minNegativeIso);
         tupleMap.put("minIso/D", minIso);
         
-        fillVertexVariables("Badunc", uncV0, false, runPeriod);
+        fillVertexVariables("Badunc", uncV0, false, runNumber);
         
         List<LCRelation> badMCParticleRelation = event.get(LCRelation.class,badMCParticleRelationsColName);
         MCParticle badEle = null;
@@ -234,18 +221,18 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
                 
                 fillParticleVariables(event, electronTruth, "eleTruth", true, true, true, "GBLKinkDataRelations_truth");
                 fillParticleVariables(event, positronTruth, "posTruth", true, true, true, "GBLKinkDataRelations_truth");
-                fillVertexVariables("Truthunc", temp, false, runPeriod);
+                fillVertexVariables("Truthunc", temp, false, runNumber);
             }
             if (unc2bscTruth != null) {
                 ReconstructedParticle temp2 = unc2bscTruth.get(temp);
                 if (temp2 != null){
-                    fillVertexVariables("Truthbsc", temp2, false, runPeriod);
+                    fillVertexVariables("Truthbsc", temp2, false, runNumber);
                 }
             }
             if (unc2tarTruth != null) {
                 ReconstructedParticle temp2 = unc2tarTruth.get(temp);
                 if (temp2 != null){
-                    fillVertexVariables("Truthtar", temp2, false, runPeriod);
+                    fillVertexVariables("Truthtar", temp2, false, runNumber);
                 }
             }
         }
@@ -255,14 +242,14 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
             if (temp == null)
                 isOK = false;
             else{
-                fillVertexVariables("Badbsc", temp, false, runPeriod);
+                fillVertexVariables("Badbsc", temp, false, runNumber);
             }
         }
         if (unc2tar != null) {
             ReconstructedParticle temp = unc2tar.get(uncV0);
             if (temp == null)
                 isOK = false;
-            fillVertexVariables("Badtar", temp, false, runPeriod);
+            fillVertexVariables("Badtar", temp, false, runNumber);
         }
 
         return isOK;
