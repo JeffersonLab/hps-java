@@ -3,9 +3,8 @@ package org.hps.recon.ecal.cluster;
 import org.lcsim.event.base.BaseCluster;
 
 /**
- * This uses the uncorrected cluster energy to correct the position of the
- * cluster. This should be used before the energy is corrected on the Cluster
- * and after cluster-track matching. This is to be used with 2021 data
+ * This uses the corrected cluster energy to correct the position of the
+ * cluster. This is to be used with 2021 data
  *
  * To determine these corrections, we simulated e+ e- and gamma at fixed
  * energies over the ECAL acceptance, sampled the true hit position with MC
