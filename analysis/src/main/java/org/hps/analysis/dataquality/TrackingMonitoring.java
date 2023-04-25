@@ -328,19 +328,6 @@ public class TrackingMonitoring extends DataQualityMonitor {
     public void process(EventHeader event) {
 
         int runNumber = event.getRunNumber();
-        TrackUtils.RunPeriod runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        if (4441 < runNumber && runNumber < 5967) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2015;
-        }
-        if (7219 < runNumber && runNumber < 8100) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2016;
-        }
-        if (9001 < runNumber && runNumber < 10740) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2019;
-        }
-        if (14131 < runNumber && runNumber < 14775) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        }
         
         aida.tree().cd("/");
 
@@ -398,7 +385,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         int cntTop = 0;
         int cntBot = 0;
         for (Track trk : tracks) {
-            Hep3Vector trackPosAtEcalFace = TrackUtils.getTrackPositionAtEcal(trk, runPeriod);
+            Hep3Vector trackPosAtEcalFace = TrackUtils.getTrackPositionAtEcal(trk, runNumber);
             double xAtECal = trackPosAtEcalFace.x();
             double yAtECal = trackPosAtEcalFace.y();
             if (yAtECal > 0) {

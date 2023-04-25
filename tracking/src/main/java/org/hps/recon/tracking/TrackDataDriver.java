@@ -93,19 +93,6 @@ public final class TrackDataDriver extends Driver {
     @Override
     protected void process(EventHeader event) {
         int runNumber = event.getRunNumber();
-        TrackUtils.RunPeriod runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        if (4441 < runNumber && runNumber < 5967) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2015;
-        }
-        if (7219 < runNumber && runNumber < 8100) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2016;
-        }
-        if (9001 < runNumber && runNumber < 10740) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2019;
-        }
-        if (14131 < runNumber && runNumber < 14775) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        }
 
         // Check if the event contains a collection of the type Track. If it
         // doesn't skip the event.
@@ -228,7 +215,7 @@ public final class TrackDataDriver extends Driver {
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if (TrackType.isGBL(track.getType())) {
                     
-                    TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap,runPeriod);
+                    TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap,runNumber);
                     if (stateEcal != null)
                         track.getTrackStates().add(stateEcal);
                 }

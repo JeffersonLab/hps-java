@@ -29,19 +29,6 @@ public class SvtAlignmentFilter extends EventReconFilter {
     @Override
     protected void process(EventHeader event) {
         int runNumber = event.getRunNumber();
-        TrackUtils.RunPeriod runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        if (4441 < runNumber && runNumber < 5967) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2015;
-        }
-        if (7219 < runNumber && runNumber < 8100) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2016;
-        }
-        if (9001 < runNumber && runNumber < 10740) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2019;
-        }
-        if (14131 < runNumber && runNumber < 14775) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        }
         
         incrementEventProcessed();
         
@@ -56,7 +43,7 @@ public class SvtAlignmentFilter extends EventReconFilter {
         List<Track> selectedTracks = new ArrayList<Track>();
 
         for(Track track : tracks) {
-            Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(tracks.get(0),runPeriod);
+            Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(tracks.get(0),runNumber);
             Cluster cand_clust = findClosestCluster(posAtEcal, clusters);
             if(cand_clust!=null) {
                 if(Math.abs( posAtEcal.x() - cand_clust.getPosition()[0])<30.0 && 

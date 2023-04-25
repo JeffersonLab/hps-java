@@ -368,19 +368,6 @@ public class MollerMonitoring extends DataQualityMonitor {
         }
         
         int runNumber = event.getRunNumber();
-        TrackUtils.RunPeriod runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        if (4441 < runNumber && runNumber < 5967) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2015;
-        }
-        if (7219 < runNumber && runNumber < 8100) {
-            runPeriod = TrackUtils.RunPeriod.EngRun2016;
-        }
-        if (9001 < runNumber && runNumber < 10740) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2019;
-        }
-        if (14131 < runNumber && runNumber < 14775) {
-            runPeriod = TrackUtils.RunPeriod.PhysRun2021;
-        }
 
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class,
                 unconstrainedV0CandidatesColName);
@@ -440,8 +427,8 @@ public class MollerMonitoring extends DataQualityMonitor {
             Hep3Vector pTopRot = VecOp.mult(beamAxisRotation, top.getMomentum());
             Hep3Vector pBotRot = VecOp.mult(beamAxisRotation, bot.getMomentum());
 
-            Hep3Vector topAtEcal = TrackUtils.getTrackPositionAtEcal(top.getTracks().get(0), runPeriod);
-            Hep3Vector botAtEcal = TrackUtils.getTrackPositionAtEcal(bot.getTracks().get(0), runPeriod);
+            Hep3Vector topAtEcal = TrackUtils.getTrackPositionAtEcal(top.getTracks().get(0), runNumber);
+            Hep3Vector botAtEcal = TrackUtils.getTrackPositionAtEcal(bot.getTracks().get(0), runNumber);
 
             BilliorVertexer vtxFitter = new BilliorVertexer(TrackUtils.getBField(event.getDetector()).y());
             vtxFitter.setBeamSize(beamSize);
