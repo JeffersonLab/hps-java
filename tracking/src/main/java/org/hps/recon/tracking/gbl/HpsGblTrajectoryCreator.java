@@ -227,13 +227,15 @@ public class HpsGblTrajectoryCreator {
             // Add this GBL point to list that will be used in fit
             listOfPoints.add(point);
             iLabel = listOfPoints.size();
-            // save path length and sensor-number to each point
-            pathLengthMap.put(iLabel, s + step);
+            
 
             // Save in the sensor map only the sensors with measurements
-            if (strip.getScatterOnly() == 0)
+            // save path length and sensor-number to each point 
+            if (strip.getScatterOnly() == 0) {
+              pathLengthMap.put(iLabel, s + step);
               sensorMap.put(iLabel, strip.getId());
-
+            }
+            
             // // Calculate global derivatives for this point
             // track direction in tracking/global frame
             Hep3Vector tDirGlobal = new BasicHep3Vector(cosPhi * cosLambda, sinPhi * cosLambda, sinLambda);
