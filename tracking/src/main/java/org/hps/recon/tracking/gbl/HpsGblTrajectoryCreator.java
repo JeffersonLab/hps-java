@@ -229,7 +229,10 @@ public class HpsGblTrajectoryCreator {
             iLabel = listOfPoints.size();
             // save path length and sensor-number to each point
             pathLengthMap.put(iLabel, s + step);
-            sensorMap.put(iLabel, strip.getId());
+
+            // Save in the sensor map only the sensors with measurements
+            if (strip.getScatterOnly() == 0)
+              sensorMap.put(iLabel, strip.getId());
 
             // // Calculate global derivatives for this point
             // track direction in tracking/global frame
