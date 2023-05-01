@@ -1,6 +1,6 @@
 package org.hps.recon.tracking.gbl;
 
-import com.sun.jna.Pointer; 
+import com.sun.jna.Pointer;
 
 /**
  * wrapper class around GblSimpleHelix JNA functions
@@ -21,7 +21,7 @@ public class GblSimpleHelix {
     public void delete() {
         GblInterface.INSTANCE.GblSimpleHelix_delete(self);
     }
-    
+
     public double getPhi(double aRadius) {
         return GblInterface.INSTANCE.GblSimpleHelix_getPhi(self, aRadius);
     }
@@ -33,13 +33,12 @@ public class GblSimpleHelix {
     public double getArcLengthXY(double xPos, double yPos) {
         return GblInterface.INSTANCE.GblSimpleHelix_getArcLengthXY(self, xPos, yPos);
     }
-    
-    public void moveToXY(double xPos, double yPos, 
-                    double [] newPhi0, double [] newDca, double [] newZ0) {
+
+    public void moveToXY(double xPos, double yPos, double[] newPhi0, double[] newDca, double[] newZ0) {
         GblInterface.INSTANCE.GblSimpleHelix_moveToXY(self, xPos, yPos, newPhi0, newDca, newZ0);
     }
-    
-    GblHelixPrediction getPrediction(double [] refPos, double [] uDir, double[] vDir) {
+
+    GblHelixPrediction getPrediction(double[] refPos, double[] uDir, double[] vDir) {
         GblHelixPrediction prediction = new GblHelixPrediction(GblInterface.INSTANCE.GblSimpleHelix_getPrediction(self, refPos, uDir, vDir));
         return prediction;
     }

@@ -23,6 +23,7 @@ public class FittedGblTrajectory {
     public static Logger LOGGER = Logger.getLogger(FittedGblTrajectory.class.getName());
 
     public enum GBLPOINT {
+
         IP(0), LAST(1), VERTEX(2);
 
         private int numVal;
@@ -55,6 +56,7 @@ public class FittedGblTrajectory {
     }
 
     public static enum GBLPARIDX {
+
         QOVERP(0), YTPRIME(1), XTPRIME(2), XT(3), YT(4);
 
         private int _value;
@@ -91,7 +93,6 @@ public class FittedGblTrajectory {
         _ndf = ndf;
         _lost = lost;
     }
-    
 
     public FittedGblTrajectory(GblTrajectoryJna traj_jna, double chi2, int ndf, double lost) {
         _traj_jna = traj_jna;
@@ -151,8 +152,8 @@ public class FittedGblTrajectory {
         int ok = 0;
         if (_traj != null)
             ok = _traj.getResults(iLabel, locPar, locCov);
-        else 
-            ok = _traj_jna.getResults(iLabel, locPar, locCov);  
+        else
+            ok = _traj_jna.getResults(iLabel, locPar, locCov);
 
         // check that the fit was ok
         if (ok != 0)
@@ -200,10 +201,10 @@ public class FittedGblTrajectory {
         return _traj;
     }
 
-    public GblTrajectoryJna get_traj_jna(){
+    public GblTrajectoryJna get_traj_jna() {
         return _traj_jna;
     }
-    
+
     public double get_chi2() {
         return _chi2;
     }
@@ -280,43 +281,47 @@ public class FittedGblTrajectory {
         // The trajectory has this information already in the form of a map between GBL point and path length
         double pathLength = getPathLength(iLabel);
         Hep3Vector refPointVec = HelixUtils.PointOnHelix(helicalTrackFit, pathLength);
-        double[] refPoint = new double[] { refPointVec.x(), refPointVec.y() };
+        double[] refPoint = new double[] {refPointVec.x(), refPointVec.y()};
 
-        //System.out.printf("iLabel %d: pathLength %f -> refPointVec %s \n", iLabel, pathLength, refPointVec.toString());
+        // System.out.printf("iLabel %d: pathLength %f -> refPointVec %s \n", iLabel, pathLength, refPointVec.toString());
 
-        //LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
+        // LOGGER.finest("pathLength " + pathLength + " -> refPointVec " + refPointVec.toString());
 
         // Propagate the helix to new reference point
         double[] helixParametersAtPoint = TrackUtils.getParametersAtNewRefPoint(refPoint, helicalTrackFit);
 
         // Create a new helix with the new parameters and the new reference point
-        HpsHelicalTrackFit helicalTrackFitAtPoint = new HpsHelicalTrackFit(helixParametersAtPoint, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
-        //System.out.printf("raw params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPoint.dca(), helicalTrackFitAtPoint.z0());
+        HpsHelicalTrackFit helicalTrackFitAtPoint = new HpsHelicalTrackFit(helixParametersAtPoint, helicalTrackFit.covariance(), helicalTrackFit.chisq(),
+                                                                           helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
+        // System.out.printf("raw params at new ref point: d0 %f z0 %f \n", helicalTrackFitAtPoint.dca(), helicalTrackFitAtPoint.z0());
 
         // find the corrected perigee track parameters at this point
         double[] helixParametersAtPointCorrected = GblUtils.getCorrectedPerigeeParameters(locPar, helicalTrackFitAtPoint, bfield);
 
         // create a new helix
-        HpsHelicalTrackFit helicalTrackFitAtPointCorrected = new HpsHelicalTrackFit(helixParametersAtPointCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refPoint);
-        //System.out.printf("corrected params at new ref point: d0 %f  z0 %f \n", helicalTrackFitAtPointCorrected.dca(), helicalTrackFitAtPointCorrected.z0());
+        HpsHelicalTrackFit helicalTrackFitAtPointCorrected = new HpsHelicalTrackFit(helixParametersAtPointCorrected, helicalTrackFit.covariance(),
+                                                                                    helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), 
+                                                                                    helicalTrackFit.ScatterMap(), refPoint);
+        // System.out.printf("corrected params at new ref point: d0 %f z0 %f \n", helicalTrackFitAtPointCorrected.dca(), helicalTrackFitAtPointCorrected.z0());
 
         // change reference point back to the original one
         double[] helixParametersAtIPCorrected = TrackUtils.getParametersAtNewRefPoint(refIP, helicalTrackFitAtPointCorrected);
 
         // create a new helix for the new parameters at the IP reference point
-        HpsHelicalTrackFit helicalTrackFitAtIPCorrected = new HpsHelicalTrackFit(helixParametersAtIPCorrected, helicalTrackFit.covariance(), helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(), helicalTrackFit.ScatterMap(), refIP);
-        //System.out.printf("params at IP: d0 %f  z0 %f \n \n", helicalTrackFitAtIPCorrected.dca(), helicalTrackFitAtIPCorrected.z0());
+        HpsHelicalTrackFit helicalTrackFitAtIPCorrected = new HpsHelicalTrackFit(helixParametersAtIPCorrected, helicalTrackFit.covariance(),
+                                                                                 helicalTrackFit.chisq(), helicalTrackFit.ndf(), helicalTrackFit.PathMap(),
+                                                                                 helicalTrackFit.ScatterMap(), refIP);
+        // System.out.printf("params at IP: d0 %f z0 %f \n \n", helicalTrackFitAtIPCorrected.dca(), helicalTrackFitAtIPCorrected.z0());
 
         // Calculate the updated covariance
         Matrix jacobian = null;
-        
+
         try {
             jacobian = GblUtils.getCLToPerigeeJacobian(helicalTrackFit, helicalTrackFitAtIPCorrected, bfield);
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             return null;
         }
-        
+
         Matrix helixCovariance = jacobian.times(locCov.times(jacobian.transpose()));
         SymmetricMatrix cov = new SymmetricMatrix(5);
         for (int i = 0; i < 5; i++) {
@@ -326,13 +331,13 @@ public class FittedGblTrajectory {
                 }
             }
         }
-        //LOGGER.finest("corrected helix covariance:\n" + cov);
+        // LOGGER.finest("corrected helix covariance:\n" + cov);
 
         double parameters_gbl[] = helicalTrackFitAtIPCorrected.parameters();
 
         /*
         System.out.printf("parameters_gbl for pathLength %f  - %f %f %f %f %f\n", pathLength, parameters_gbl[BaseTrack.OMEGA], parameters_gbl[BaseTrack.TANLAMBDA], parameters_gbl[BaseTrack.PHI],parameters_gbl[BaseTrack.D0],parameters_gbl[BaseTrack.Z0]);
-
+        
         System.out.printf("Jacobian and Covariance Matrix::\n");
         jacobian.print(5,5);
         System.out.println(cov.toString());
@@ -350,11 +355,11 @@ public class FittedGblTrajectory {
         // get corrections from GBL fit
         Vector locPar = new Vector(5);
         SymMatrix locCov = new SymMatrix(5);
-        float[] lambdaKinks ;
-        double[] phiKinks ;
-        
+        float[] lambdaKinks;
+        double[] phiKinks;
+
         if (_traj != null) {
-        
+
             lambdaKinks = new float[_traj.getNumPoints() - 1];
             phiKinks = new double[_traj.getNumPoints() - 1];
 
@@ -375,7 +380,7 @@ public class FittedGblTrajectory {
         else {
             lambdaKinks = new float[_traj_jna.getNumPoints() - 1];
             phiKinks = new double[_traj_jna.getNumPoints() - 1];
-            
+
             double oldPhi = 0, oldLambda = 0;
             for (int i = 0; i < _traj_jna.getNumPoints(); i++) {
                 _traj_jna.getResults(i + 1, locPar, locCov); // vertex point
@@ -390,7 +395,7 @@ public class FittedGblTrajectory {
                 oldLambda = newLambda;
             }
         }
-        
+
         return new GBLKinkData(lambdaKinks, phiKinks);
     }
 

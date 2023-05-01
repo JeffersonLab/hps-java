@@ -141,7 +141,7 @@ public class HpsGblRefitter {
             // projection from local (uv) to measurement directions (dm/duv)
             Matrix proL2m = proM2l.copy();
 
-            //Invertible
+            // Invertible
             if (strip.getScatterOnly() == 0)
                 proL2m = proL2m.inverse();
 
@@ -187,7 +187,7 @@ public class HpsGblRefitter {
             GblPoint point = new GblPoint(jacPointToPoint);
             // Add measurement to the point
 
-            if (strip.getScatterOnly()==0)
+            if (strip.getScatterOnly() == 0)
                 point.addMeasurement(proL2m, meas, measPrec, 0.);
             // Add scatterer in curvilinear frame to the point
             // no direction in this frame
@@ -220,13 +220,13 @@ public class HpsGblRefitter {
             Hep3Vector tDirGlobal = new BasicHep3Vector(cosPhi * cosLambda, sinPhi * cosLambda, sinLambda);
 
             if (debug) {
-                System.out.println("track directions: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString() );
+                System.out.println("track directions: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
             }
 
             // Cross-check that the input is consistent
-            //if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
+            // if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
             if (VecOp.sub(tDirGlobal, strip.getTrackDirection()).magnitude() > 0.00001) {
-                //throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
+                // throw new RuntimeException("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
                 LOG.warning("track directions are inconsistent: " + tDirGlobal.toString() + " and " + strip.getTrackDirection().toString());
                 return null;
             }
@@ -239,8 +239,8 @@ public class HpsGblRefitter {
             double vmeas = 0.;
             double wmeas = 0.;
 
-            //Add derivatives only to measurements
-            if (strip.getScatterOnly()==0) {
+            // Add derivatives only to measurements
+            if (strip.getScatterOnly() == 0) {
                 // calculate and add derivatives to point
                 GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, strip.getTrackPos(), normalMeas);
 
@@ -253,7 +253,7 @@ public class HpsGblRefitter {
                 // need to make vector and matrices for interface
                 List<Integer> labGlobal = new ArrayList<Integer>();
 
-                //The Matrix addDer is a single row vector of the size of the milleParameters (6)
+                // The Matrix addDer is a single row vector of the size of the milleParameters (6)
                 Matrix addDer = new Matrix(1, milleParameters.size());
                 if (debug) {
                     System.out.println("PF::Derivatives Informations");
@@ -267,17 +267,18 @@ public class HpsGblRefitter {
                 if (debug) {
                     System.out.println("PF::Print the lables and the derivatives");
                     System.out.println(labGlobal.toString());
-                    addDer.print(6,6);
+                    addDer.print(6, 6);
                 }
 
                 point.addGlobals(labGlobal, addDer);
-                //            String logders = "";
-                //            for (int i = 0; i < milleParameters.size(); ++i) {
-                //                logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
-                //            }
-                //            LOGGER.info("\n" + logders);
+                // String logders = "";
+                // for (int i = 0; i < milleParameters.size(); ++i) {
+                // logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
+                // }
+                // LOGGER.info("\n" + logders);
 
-                //LOGGER.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
+                // LOGGER.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," +
+                // strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
             }
             // go to next point
             s += step;
@@ -292,20 +293,19 @@ public class HpsGblRefitter {
         try {
 
             if (!constrainedFit) {
-                //Unconstrained fit
+                // Unconstrained fit
                 traj = new GblTrajectory(listOfPoints);
             }
 
             else {
 
-                //Seed constrained fit
+                // Seed constrained fit
 
                 SymMatrix seedPrecision = new SymMatrix(5);
-                seedPrecision.set(0,0,1000000.);
-                traj = new GblTrajectory(listOfPoints,1,seedPrecision,true, true, true);
+                seedPrecision.set(0, 0, 1000000.);
+                traj = new GblTrajectory(listOfPoints, 1, seedPrecision, true, true, true);
 
             }
-
 
             if (!traj.isValid()) {
                 LOG.warning("Skipping invalid GblTrajectory");
@@ -330,8 +330,7 @@ public class HpsGblRefitter {
             fittedTraj.setSensorMap(sensorMap);
 
             return fittedTraj;
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             LOG.log(Level.WARNING, "Skipping invalid GblTrajectory - " + e.getMessage());
             return null;
         }

@@ -14,16 +14,16 @@ public class GBLStripClusterData implements GenericObject {
      * Interface enumerator to access the correct data
      */
     public static class GBLINT {
-        
-        //Millepede ID + Volume will identify the sensor where the strip cluster data is located
-        
-        //The millepede ID
+
+        // Millepede ID + Volume will identify the sensor where the strip cluster data is located
+
+        // The millepede ID
         public static final int ID = 0;
-        //Top or bottom (0 if top volume, 1 if bottom volume)
+        // Top or bottom (0 if top volume, 1 if bottom volume)
         public static final int VOL = 1;
-        //Is it a scatterOnly stripCluster
+        // Is it a scatterOnly stripCluster
         public static final int SCAT_ONLY = 2;
-        
+
         public static final int BANK_INT_SIZE = 3;
     }
 
@@ -68,15 +68,14 @@ public class GBLStripClusterData implements GenericObject {
         setId(id);
     }
 
-
     public void print() {
         for (int i = 0; i < GBLINT.BANK_INT_SIZE; ++i) {
-            System.out.println("bank int " + i+ " "+bank_int[i]);
+            System.out.println("bank int " + i + " " + bank_int[i]);
         }
         for (int i = 0; i < GBLDOUBLE.BANK_DOUBLE_SIZE; ++i) {
-            System.out.println("bank double " + i+ " "+bank_double[i]);
+            System.out.println("bank double " + i + " " + bank_double[i]);
         }
-        
+
     }
 
     /*
@@ -112,31 +111,28 @@ public class GBLStripClusterData implements GenericObject {
     public void setVolume(int val) {
         bank_int[GBLINT.VOL] = val;
     }
-    
-    /** 
+
+    /**
      * @return volume for this object
      */
-    
     public int getVolume() {
         return this.getIntVal(GBLINT.VOL);
     }
 
-    
     /**
      * @param val set scatterOnly to val
      */
     public void setScatterOnly(int val) {
         bank_int[GBLINT.SCAT_ONLY] = val;
     }
-    
-    /** 
+
+    /**
      * @return volume for this object
      */
-    
     public int getScatterOnly() {
         return this.getIntVal(GBLINT.SCAT_ONLY);
     }
-    
+
     /**
      * Set path length to this strip cluster
      * 
@@ -197,7 +193,6 @@ public class GBLStripClusterData implements GenericObject {
     /**
      * Set and get v vector for this strip sensor
      */
-
     public void setV(Hep3Vector v) {
         bank_double[GBLDOUBLE.VX] = v.x();
         bank_double[GBLDOUBLE.VY] = v.y();
@@ -223,7 +218,6 @@ public class GBLStripClusterData implements GenericObject {
     /**
      * Set and get w vector for this strip sensor
      */
-
     public void setW(Hep3Vector v) {
         bank_double[GBLDOUBLE.WX] = v.x();
         bank_double[GBLDOUBLE.WY] = v.y();
@@ -344,7 +338,6 @@ public class GBLStripClusterData implements GenericObject {
      * The functions below are all overide from
      * @see org.lcsim.event.GenericObject#getNInt()
      */
-
     public int getNInt() {
         return GBLINT.BANK_INT_SIZE;
     }

@@ -99,8 +99,8 @@ public class MilleBinary {
      * Write record to file.
      */
     public void writeRecord() {
-        //int recordLength = _intBuffer.size() * 2 * 4; // writing both ints and floats, each is 4 bytes
-        int recordLength = _intBuffer.size() * 2; //number of entries per record
+        // int recordLength = _intBuffer.size() * 2 * 4; // writing both ints and floats, each is 4 bytes
+        int recordLength = _intBuffer.size() * 2; // number of entries per record
         ByteBuffer b = ByteBuffer.allocate(4 * (recordLength + 1)); // total number bytes: one extra int for header
         b.order(ByteOrder.LITTLE_ENDIAN);
         b.putInt(recordLength);
@@ -110,13 +110,13 @@ public class MilleBinary {
         for (Integer i : _intBuffer) {
             b.putInt(i);
         }
-        ((Buffer)b).flip();
+        ((Buffer) b).flip();
         try {
             _channel.write(b);
         } catch (IOException ex) {
             Logger.getLogger(MilleBinary.class.getName()).log(Level.SEVERE, null, ex);
         }
-        ((Buffer)b).clear();
+        ((Buffer) b).clear();
         _floatBuffer.clear();
         _intBuffer.clear();
         _intBuffer.add(0); // first word is error counter

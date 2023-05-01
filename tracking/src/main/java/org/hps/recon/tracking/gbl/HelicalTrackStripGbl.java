@@ -72,8 +72,7 @@ public class HelicalTrackStripGbl {
     private Hep3Matrix getElectrodeToTrackingMatrix() {
         if (_electrodesToTracking == null) {
             SiSensorElectrodes electrodes = getElectrodes();
-            _electrodesToTracking = VecOp.mult(CoordinateTransformations.getMatrix(), electrodes.getLocalToGlobal()
-                    .getRotation().getRotationMatrix());
+            _electrodesToTracking = VecOp.mult(CoordinateTransformations.getMatrix(), electrodes.getLocalToGlobal().getRotation().getRotationMatrix());
         }
         return _electrodesToTracking;
     }
@@ -82,7 +81,8 @@ public class HelicalTrackStripGbl {
         if (_u == null) {
             if (_useGeomDef) {
                 _u = VecOp.mult(getElectrodeToTrackingMatrix(), getElectrodes().getMeasuredCoordinate(0));
-            } else {
+            }
+            else {
                 _u = _strip.u();
             }
         }
@@ -93,7 +93,8 @@ public class HelicalTrackStripGbl {
         if (_v == null) {
             if (_useGeomDef) {
                 _v = VecOp.mult(getElectrodeToTrackingMatrix(), getElectrodes().getUnmeasuredCoordinate(0));
-            } else {
+            }
+            else {
                 _v = _strip.v();
             }
         }
@@ -109,8 +110,8 @@ public class HelicalTrackStripGbl {
 
     @Override
     public String toString() {
-        return ("GBl Strip with u=" + u().toString() + "\n v=" + v().toString() + "\n w=" + w().toString() + "\n vmin="
-                + vmin() + "\n vmax=" + vmax() + "\n umeas=" + this.umeas() + "\n origin=" + this.origin().toString());
+        return ("GBl Strip with u=" + u().toString() + "\n v=" + v().toString() + "\n w=" + w().toString() + "\n vmin=" + vmin() + "\n vmax=" + vmax()
+                + "\n umeas=" + this.umeas() + "\n origin=" + this.origin().toString());
     }
 
 }

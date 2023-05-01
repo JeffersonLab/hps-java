@@ -27,8 +27,7 @@ public class GblPoint {
         }
     }
 
-    public void addMeasurement(hep.physics.matrix.Matrix proL2m, hep.physics.matrix.BasicMatrix meas,
-            hep.physics.matrix.BasicMatrix measPrec) {
+    public void addMeasurement(hep.physics.matrix.Matrix proL2m, hep.physics.matrix.BasicMatrix meas, hep.physics.matrix.BasicMatrix measPrec) {
 
         int ncols = proL2m.getNColumns();
         int nrows = proL2m.getNRows();
@@ -248,7 +247,8 @@ public class GblPoint {
         aTransformation.ResizeTo(measDim, measDim);
         if (transFlag) {
             aTransformation = measTransformation;
-        } else {
+        }
+        else {
             aTransformation.UnitMatrix();
         }
     }
@@ -319,7 +319,8 @@ public class GblPoint {
                     aTransformation.set(i, j, scatTransformation.get(i, j));
                 }
             }
-        } else {
+        }
+        else {
             aTransformation.UnitMatrix();
         }
     }
@@ -333,7 +334,8 @@ public class GblPoint {
             localDerivatives.ResizeTo(aDerivatives.getRowDimension(), aDerivatives.getColumnDimension());
             if (transFlag) {
                 localDerivatives = measTransformation.times(aDerivatives);
-            } else {
+            }
+            else {
                 localDerivatives = aDerivatives;
             }
         }
@@ -360,7 +362,8 @@ public class GblPoint {
             globalDerivatives.ResizeTo(aDerivatives.getRowDimension(), aDerivatives.getColumnDimension());
             if (transFlag) {
                 globalDerivatives = measTransformation.times(aDerivatives);
-            } else {
+            }
+            else {
                 globalDerivatives = aDerivatives;
             }
 
@@ -454,7 +457,8 @@ public class GblPoint {
             matJ = prevJacobian.sub(2, 3, 3);
             matWt = prevJacobian.sub(2, 3, 1).uminus();
             vecd = prevJacobian.subCol(2, 0, 3);
-        } else {
+        }
+        else {
             matJ = nextJacobian.sub(2, 3, 3);
             matWt = nextJacobian.sub(2, 3, 1);
             vecd = nextJacobian.subCol(2, 0, 3);

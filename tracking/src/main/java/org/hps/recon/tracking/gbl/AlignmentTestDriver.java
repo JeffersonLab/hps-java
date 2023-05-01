@@ -12,32 +12,29 @@ public class AlignmentTestDriver extends Driver {
 
     private List<SiSensor> sensors = new ArrayList<SiSensor>();
 
-    
     @Override
     protected void startOfData() {
     }
-    
+
     @Override
     protected void endOfData() {
     }
-    
-    
+
     @Override
     protected void detectorChanged(Detector detector) {
-        
-        //Alignment Manager  - Get the composite structures.
+
+        // Alignment Manager - Get the composite structures.
         IDetectorElement detectorElement = detector.getDetectorElement();
-        
+
         // Get the sensors subcomponents // This should be only HpsSiSensors
         sensors = detectorElement.findDescendants(SiSensor.class);
 
         System.out.println(":::AlignmentTestDriver:::");
         AlignmentStructuresBuilder asb = new AlignmentStructuresBuilder(sensors);
-        
+
     }
 
-    protected void process(EventHeader event){}
-
-
+    protected void process(EventHeader event) {
+    }
 
 }

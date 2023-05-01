@@ -9,9 +9,8 @@ import hep.physics.vec.VecOp;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.lcsim.geometry.compact.converter.MilleParameter;
 
-
 public class GlobalDers {
-    
+
     private final int _layer;
     private final Hep3Vector _t; // track direction
     private final Hep3Vector _p; // track prediction
@@ -19,7 +18,7 @@ public class GlobalDers {
     private final Matrix _dm_dg; // Global derivaties of the local measurements
     private final Matrix _dr_dm; // Derivatives of residuals w.r.t. measurement
     private final Matrix _dr_dg; // Derivatives of residuals w.r.t. global parameters
-    
+
     public GlobalDers(int layer, double umeas, double vmeas, double wmeas, Hep3Vector tDir, Hep3Vector tPred, Hep3Vector normal) {
         _layer = layer;
         _t = tDir;
@@ -62,7 +61,7 @@ public class GlobalDers {
         double dmw_dbeta = _p.x(); // self.umeas
         // Derivative of the local measurement for a rotation around w-axis (gamma)
         double dmu_dgamma = _p.y(); // self.vmeas
-        double dmv_dgamma = -1.0 * _p.x(); // -1.0 * self.umeas 
+        double dmv_dgamma = -1.0 * _p.x(); // -1.0 * self.umeas
         double dmw_dgamma = 0.;
         // put into matrix
         Matrix dm_dg = new Matrix(3, 6);
@@ -123,7 +122,8 @@ public class GlobalDers {
             if (ip > 3) {
                 transRot = 2;
                 direction = ((ip - 1) % 3) + 1;
-            } else {
+            }
+            else {
                 transRot = 1;
                 direction = ip;
             }
@@ -136,4 +136,3 @@ public class GlobalDers {
     }
 
 }
-
