@@ -136,6 +136,12 @@ public class KalTrack {
             }
             this.SiteList.add(site);
         }
+        if (debug) {
+            for (MeasurementSite site: SiteList) {
+                SiModule mod = site.m;
+                System.out.format("KalTrack: SiModule on layer %d wafer %d, %d hits\n", mod.Layer, mod.detector, mod.hits.size());
+            }
+        }
 
         helixAtOrigin = null;
         propagated = false;
@@ -587,9 +593,17 @@ public class KalTrack {
         for (int i = 0; i < SiteList.size(); i++) {
             MeasurementSite site = SiteList.get(i);
             SiModule m = site.m;
+            StateVector aSite = site.aS;
+            if (aSite == null) aSite = site.aF;
+            double energy = 0.;
+            if (aSite != null) {
+                double tanL = aSite.helix.a.v[4];
+                double K = aSite.helix.a.v[2];
+                energy = FastMath.sqrt(1.0+tanL*tanL)/Math.abs(K);
+            }
             int hitID = site.hitID;
-            System.out.format("    Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f ", m.Layer, m.detector, m.isStereo,
-                    site.chi2inc);
+            System.out.format("    Layer %d, detector %d, stereo=%b, chi^2 inc.=%10.6f E=%8.3f ", m.Layer, m.detector, m.isStereo,
+                    site.chi2inc, energy);
             if (hitID >= 0) {
                 if (site.aS == null) aA = site.aF;
                 else aA = site.aS;
@@ -1648,8 +1662,7 @@ public class KalTrack {
     /**
      * Re-fit the track
      *
-     * @param keep true if there might be another recursion after dropping more
-     * hits
+     * @param keep true if there might be another recursion after dropping more hits
      * @return true if the refit was successful
      */
     public boolean fit(boolean keep) {
@@ -1787,10 +1800,11 @@ public class KalTrack {
      * momentum measurement). Then smooth back to the first layer and propagate
      * to the origin.
      *
-     * @param E ECAL energy
-     * @param sigmaE ECAL energy uncertainty
+     * @param eConstraint       true to include the energy constraint
+     * @param E                 ECAL energy
+     * @param sigmaE            ECAL energy uncertainty
      */
-    void energyConstraint(double E, double sigmaE) {
+    void smoothIt(boolean eConstraint, double E, double sigmaE) {
         // The prediction step from the last tracker site to the ECAL has F=1,
         // since we don't alter an helix parameters in the prediction.
         // The HelixState.energyConstrained method then uses the Kalman weighted
@@ -1800,71 +1814,64 @@ public class KalTrack {
         // site is exactly what is returned by the energyConstrained method. The
         // smoothing back to the first tracker site can then proceed as usual.
         //boolean debug = true;
-        final boolean noConstraint = false; // for debugging purposes, should just do a normal Kalman smoothing
+        if (debug) System.out.format("Entering KalTrack.smoothIt, eConstraint=%b, E=%f, sigmaE=%f\n", eConstraint, E, sigmaE);
         int idxLast = SiteList.size() - 1;
         MeasurementSite lastSite = SiteList.get(idxLast);
-        HelixState energyConstrainedHelix = lastSite.aF.helix.energyConstrained(E, sigmaE);
-        if (debug) System.out.format("KalTrack:energyConstraint kappa=%9.4f, kappaE=%9.4f\n",lastSite.aF.helix.a.v[2],energyConstrainedHelix.a.v[2]);
-        lastSite.energyConstrained = !noConstraint;
-        lastSite.aS = new StateVector(lastSite.aF.kLow, lastSite.aF.uniformB);  // Blank new state vector
-        if (noConstraint) {
-            lastSite.aS.helix = lastSite.aF.helix;
+        lastSite.energyConstrained = eConstraint;
+        if (!eConstraint) {
+            lastSite.aS = lastSite.aF;
+            this.chi2 = lastSite.chi2inc;
         } else {
+            if (debug) {
+                double kappa = lastSite.aF.helix.a.v[2];
+                double tanl = lastSite.aF.helix.a.v[4];
+                double ePredict = FastMath.sqrt(1.0 + tanl * tanl) / Math.abs(kappa);
+                System.out.format("KalTrack.smoothIt at last layer, E=%9.4f\n", ePredict);
+            }
+            lastSite.aS = new StateVector(lastSite.aF.kLow, lastSite.aF.uniformB);  // Blank new state vector
+            HelixState energyConstrainedHelix = lastSite.aF.helix.energyConstrained(E, sigmaE);
             lastSite.aS.helix = energyConstrainedHelix;   
+            lastSite.aS.kUp = lastSite.aF.kUp;
+            lastSite.aS.F = lastSite.aF.F;  // Don't deep copy the F matrix
+            lastSite.aS.mPred = lastSite.aF.mPred;
+            lastSite.aS.R = lastSite.aF.R;
+            lastSite.aS.r = lastSite.aF.r;
+            lastSite.aS.K = lastSite.aF.K;
+            lastSite.smoothed = true;
+            lastSite.chi2inc = (lastSite.aS.r * lastSite.aS.r) / lastSite.aS.R;
+
+            // Get the residual of the prediction at the ECAL
+            double kappa = energyConstrainedHelix.a.v[2];
+            double tanl = energyConstrainedHelix.a.v[4];
+            double ePredict = FastMath.sqrt(1.0 + tanl * tanl) / Math.abs(kappa);
+            double chi = (E - ePredict) / sigmaE;
+            this.chi2_Econstraint = lastSite.chi2inc + chi * chi;
+            if (debug) {
+                System.out.format("KalTrack:smoothIt E=%9.4f, Epredict=%9.4f, sigmaE=%9.4f, chi=%9.4f\n",
+                                            E,ePredict,sigmaE,chi);
+                System.out.format("         constrained helix = %s\n", energyConstrainedHelix.a.toString());
+            }
         }
-        lastSite.aS.kUp = lastSite.aF.kUp;
-        lastSite.aS.F = lastSite.aF.F;  // Don't deep copy the F matrix
-        lastSite.aS.mPred = lastSite.aF.mPred;
-        lastSite.aS.R = lastSite.aF.R;
-        lastSite.aS.r = lastSite.aF.r;
-        lastSite.aS.K = lastSite.aF.K;
-        lastSite.chi2incE = (lastSite.aS.r * lastSite.aS.r) / lastSite.aS.R;
-        // Get the residual of the prediction at the ECAL
-        double kappa = energyConstrainedHelix.a.v[2];
-        double tanl = energyConstrainedHelix.a.v[4];
-        double ePredict = FastMath.sqrt(1.0 + tanl * tanl) / Math.abs(kappa);
-        double chi = (E - ePredict) / sigmaE;
-        if (debug) System.out.format("KalTrack:energyConstraint E=%9.4f, Epredict=%9.4f, sigmaE=%9.4f, chi=%9.4f\n",E,ePredict,sigmaE,chi);
-        if (noConstraint) {
-            this.chi2_Econstraint = lastSite.chi2incE;
-        } else {
-            this.chi2_Econstraint = lastSite.chi2incE + chi * chi;
-        }
+        lastSite.smoothed = true;
         MeasurementSite nS = lastSite;
         for (int idx = idxLast - 1; idx >= 0; --idx) {
             MeasurementSite thisSite = SiteList.get(idx);
-            thisSite.aS = thisSite.aF.smooth(nS.aS, nS.aP);
-            if (thisSite.hitID < 0) {
-                thisSite.energyConstrained = !noConstraint;
-                continue;
+            thisSite.smooth(nS);
+            thisSite.energyConstrained = eConstraint;
+            thisSite.smoothed = true;
+            if (eConstraint) {
+                this.chi2_Econstraint += thisSite.chi2inc;
+            } else {
+                this.chi2 += thisSite.chi2inc;
             }
-            Measurement hit = thisSite.m.hits.get(thisSite.hitID);
-            double V = hit.sigma * hit.sigma;
-            double phiS = thisSite.aS.helix.planeIntersect(thisSite.m.p);
-
-            if (Double.isNaN(phiS)) { // This should almost never happen!
-                logger.log(Level.FINE, "KalTrack.energyConstraint: no intersection of helix with the plane exists.");
-                continue;
-            }
-            thisSite.aS.mPred = thisSite.h(thisSite.aS, thisSite.m, phiS);
-            thisSite.aS.r = hit.v - thisSite.aS.mPred;
-            if (tempV == null) {
-                tempV = new DMatrixRMaj(5, 1);
-            }
-            CommonOps_DDRM.mult(thisSite.aS.helix.C, thisSite.H, tempV);
-            thisSite.aS.R = V - CommonOps_DDRM.dot(thisSite.H, tempV);
-            if (thisSite.aS.R < 0) {
+            if (KalmanPatRecHPS.negativeCov(thisSite.aS.helix.C)) {
                 if (debug) {
-                    System.out.format("KalTrack.energyConstraint, measurement covariance %12.4e is negative\n", thisSite.aS.R);
+                    System.out.format("KalTrack: event %d, ID %d, negative covariance after smoothing at layer %d\n",
+                            eventNumber, ID, thisSite.m.Layer);
                 }
-                //aS.print("the smoothed state");
-                //nS.print("the next site in the chain");
-                thisSite.aS.R = 0.25 * V;  // A negative covariance makes no sense, hence this fudge
+                bad = true;
+                KalmanPatRecHPS.fixCov(thisSite.aS.helix.C, thisSite.aS.helix.a);
             }
-
-            thisSite.chi2incE = (thisSite.aS.r * thisSite.aS.r) / thisSite.aS.R;
-            this.chi2_Econstraint += thisSite.chi2incE;
-            thisSite.energyConstrained = !noConstraint;
             nS = thisSite;
         }
         Vec beamSpot = new Vec(3, kPar.beamSpot);
@@ -1874,7 +1881,7 @@ public class KalTrack {
         Plane originPlane = new Plane(beamSpot, new Vec(0., 1., 0.));
         arcLengthE = new double[1];
         helixAtOrigin = SiteList.get(0).aS.helix.propagateRungeKutta(originPlane, yScat, XLscat, SiteList.get(0).m.Bfield, arcLengthE);          
-        energyConstrained = true;
+        energyConstrained = eConstraint;
     }
 
     /**

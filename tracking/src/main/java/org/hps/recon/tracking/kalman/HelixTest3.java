@@ -20,6 +20,7 @@ import org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
 
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
+import org.lcsim.geometry.Detector;
 
 /**
  * This is for stand-alone testing of the Kalman fit only and is not part of the
@@ -505,7 +506,8 @@ class HelixTest3 { // Program for testing the Kalman fitting code
         TkInitial.print("TkInitial: initial helix at the origin");
         helixBegin.print("helixBegin: starting helix at layer 1");
         RKhelix TkEnd = helixBeginRK;
-        KalmanInterface KI = new KalmanInterface(kPar, fM);
+        Detector detect = null;
+        KalmanInterface KI = new KalmanInterface(kPar, detect, fM);
         for (int iTrial = 0; iTrial < nTrials; iTrial++) {
             RKhelix Tk = helixBeginRK.copy();
             if (verbose) {
@@ -812,7 +814,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
             }
             double sigmaE = 0.03 * FastMath.sqrt(Etrue);
             double E = Etrue + rnd.nextGaussian() * sigmaE;
-            KalmanTrack.energyConstraint(E, sigmaE);
+            KalmanTrack.smoothIt(false, E, sigmaE);
 
             // Check on the covariance matrix
             Matrix C = new Matrix(KalmanTrack.originCovariance());

@@ -23,7 +23,6 @@ class MeasurementSite {
     boolean smoothed; // True if the smoothed state vector has been built
     boolean energyConstrained;  // True if the smoothed state vector is energy constrained
     double chi2inc; // chi^2 increment for this site
-    double chi2incE; // chi^2 increment for the energy-constrainted track
     DMatrixRMaj H; // Derivatives of the transformation from state vector to measurement
     double arcLength; // Arc length from the previous measurement
     private double conFac; // Conversion from B to alpha
@@ -76,7 +75,7 @@ class MeasurementSite {
         Vec tB = Bfield.unitVec();
         str=str+String.format("    Magnetic field strength=%10.6f;   alpha=%10.6f\n", B, alpha);
         str = str + tB.toString("magnetic field direction") + "\n";
-        str=str+String.format("    chi^2 increment=%12.4e; E constrained=%12.4E\n", chi2inc, chi2incE);
+        str=str+String.format("    chi^2 increment=%12.4e\n", chi2inc);
         str=str+String.format("    x scattering angle=%10.8f, y scattering angle=%10.8f\n", scatX(), scatZ());
         if (predicted) str = str + aP.toString("predicted");
         if (filtered) str = str + aF.toString("filtered");
@@ -121,7 +120,6 @@ class MeasurementSite {
         double sp = 0.002; // Estar collision stopping power for electrons in silicon at about a GeV, in GeV cm2/g
         dEdx = -0.1 * sp * rho; // in GeV/mm
         chi2inc = 0.;
-        chi2incE = 0.;
         H = new DMatrixRMaj(5,1);
         if (!initialized) {
             tempV = new DMatrixRMaj(5,1);
@@ -557,7 +555,6 @@ class MeasurementSite {
         if (hitID < 0) return false;
         hitID = -1;
         chi2inc = 0.;
-        chi2incE = 0.;
         smoothed = false;
         filtered = false;
         return true;

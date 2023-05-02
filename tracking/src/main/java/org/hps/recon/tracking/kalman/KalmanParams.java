@@ -173,7 +173,7 @@ public class KalmanParams {
         lowPhThresh = 0.25; // Residual improvement ratio necessary to use a low-ph hit instead of high-ph
         seedCompThr = 0.05;  // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
         eRes = new double[2];
-        eRes[0] = 10.0;       // Cal energy resolution parameters in %  sigmaE = eRes[0]/sqrt(E) + eRes[1]
+        eRes[0] = 5.0;       // Cal energy resolution parameters in %  sigmaE = eRes[0]/sqrt(E) + eRes[1]
         eRes[1] = 1.0;
         
         // Load the default search strategies
@@ -238,6 +238,13 @@ public class KalmanParams {
         if (a > 0.) eRes[0] = a;
         if (b > 0.) eRes[1] = b;
         logger.config(String.format("Setting CAL energy resolution to %8.2f/sqrt(E) + %8.2f", eRes[0], eRes[1]));
+    }
+    public double getEres(int i) {
+        if (i<0 || i>1) {
+            logger.warning(String.format("KalmanParams: invalid eRes index %d\n", i));
+            return eRes[0];
+        }
+        return eRes[i];
     }
 
     public void setUniformB(boolean input) {

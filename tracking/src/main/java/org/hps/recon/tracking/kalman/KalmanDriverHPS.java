@@ -174,7 +174,7 @@ public class KalmanDriverHPS extends Driver {
 
         KalmanParams kPar = new KalmanParams();
         kPar.setUniformB(uniformB);
-        KI = new KalmanInterface(kPar, fm);
+        KI = new KalmanInterface(kPar, det, fm);
         KI.createSiModules(detPlanes);
         
         System.out.format("KalmanDriver: the B field is assumed uniform? %b\n", uniformB);

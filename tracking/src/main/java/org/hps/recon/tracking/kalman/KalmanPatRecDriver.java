@@ -374,7 +374,7 @@ public class KalmanPatRecDriver extends Driver {
         logger.config("KalmanPatRecDriver: done with configuration changes.");
         kPar.print();
 
-        KI = new KalmanInterface(kPar, fm);
+        KI = new KalmanInterface(kPar, det, fm);
         KI.setSiHitsLimit(siHitsLimit);
         KI.createSiModules(detPlanes);
         decoder = det.getSubdetector("Tracker").getIDDecoder();
@@ -456,10 +456,8 @@ public class KalmanPatRecDriver extends Driver {
      * @param event input the header for this event
      * @param outputFullTracks output the list of HPS tracks
      * @param trackDataCollection output list of data that go with the tracks
-     * @param trackDataRelations output the relations between tracks and the
-     * data
-     * @param allClstrs output all the clusters needed for refitting the Kalman
-     * tracks by GBL
+     * @param trackDataRelations output the relations between tracks and the data
+     * @param allClstrs output all the clusters needed for refitting the Kalman tracks by GBL
      * @param gblStripClusterDataRelations output relations for the clusters
      * @param trackResiduals output the residuals for hits on Kalman tracks
      * @param trackResidualsRelations output relations for the residuals
@@ -476,7 +474,7 @@ public class KalmanPatRecDriver extends Driver {
         }
 
         long startTime = System.nanoTime();
-        ArrayList<KalTrack>[] kPatList = KI.KalmanPatRec(event, decoder);
+        ArrayList<KalTrack>[] kPatList = KI.KalmanPatRec(event);
         long endTime = System.nanoTime();
         double runTime = (double) (endTime - startTime) / 1000000.;
         executionTime += runTime;

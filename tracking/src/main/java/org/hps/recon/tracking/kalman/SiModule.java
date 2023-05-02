@@ -12,7 +12,7 @@ import org.hps.recon.tracking.TrackUtils;
 class SiModule {
     int Layer; // Tracker layer number, or a negative integer for a dummy layer added just for stepping in a
                // non-uniform field
-    int detector; // Detector number within the layer
+    int detector; // Detector or module number within the layer
     int millipedeID; // ID used by millipede for alignment
     ArrayList<Measurement> hits; // Hits ordered by coordinate value, from minimum to maximum
     Plane p; // Orientation and offset of the detector measurement plane in global coordinates 

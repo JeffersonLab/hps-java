@@ -69,7 +69,7 @@ public class KalmanKinkFitDriver extends Driver {
         KalmanParams kPar = new KalmanParams();
         kPar.print();
         
-        KI = new KalmanInterface(kPar, fm);
+        KI = new KalmanInterface(kPar, det, fm);
         KI.createSiModules(detPlanes);
 
     }
