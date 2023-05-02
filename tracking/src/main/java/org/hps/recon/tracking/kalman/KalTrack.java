@@ -458,12 +458,12 @@ public class KalTrack {
      * @param millipedeID
      * @return pair of unbiased residual and its error estimate
      */
-    public Pair<Double, Double> unbiasedResidualMillipede(int millipedeID, boolean eConstrain) {
+    public Pair<Double, Double> unbiasedResidualMillipede(int millipedeID) {
         if (millipedeMap == null) {
             makeMillipedeMap();
         }
         if (millipedeMap.containsKey(millipedeID)) {
-            return unbiasedResidual(millipedeMap.get(millipedeID), eConstrain);
+            return unbiasedResidual(millipedeMap.get(millipedeID));
         } else {
             return new Pair<Double, Double>(-999., -999.);
         }
@@ -475,12 +475,12 @@ public class KalTrack {
      * @param layer
      * @return pair of unbiased residual and its error estimate
      */
-    public Pair<Double, Double> unbiasedResidual(int layer, boolean eConstrain) {
+    public Pair<Double, Double> unbiasedResidual(int layer) {
         if (lyrMap == null) {
             makeLyrMap();
         }
         if (lyrMap.containsKey(layer)) {
-            return unbiasedResidual(lyrMap.get(layer), eConstrain);
+            return unbiasedResidual(lyrMap.get(layer));
         } else {
             return new Pair<Double, Double>(-999., -999.);
         }
@@ -493,7 +493,7 @@ public class KalTrack {
      * @param site measurement site
      * @return residual and error
      */
-    public Pair<Double, Double> unbiasedResidual(MeasurementSite site, boolean eConstrain) {
+    public Pair<Double, Double> unbiasedResidual(MeasurementSite site) {
         double resid = -999.;
         double varResid = -999.;
         Vec aStar = null;
@@ -609,7 +609,7 @@ public class KalTrack {
                 else aA = site.aS;
                 System.out.format(" t=%5.1f ", site.m.hits.get(site.hitID).time);
                 double residual = site.m.hits.get(hitID).v - aA.mPred;
-                Pair<Double, Double> unBiasedResid = unbiasedResidual(site, false);
+                Pair<Double, Double> unBiasedResid = unbiasedResidual(site);
                 double[] lclint = moduleIntercept(m, null);
                 System.out.format("    measurement=%10.5f, predicted=%10.5f, residual=%9.5f, unbiased=%9.5f, x=%9.5f limit=%9.5f \n", site.m.hits.get(hitID).v, aA.mPred,
                         residual, unBiasedResid.getFirstElement(), lclint[0], m.xExtent[1]);
@@ -690,7 +690,7 @@ public class KalTrack {
                 Vec interceptVec = interceptVects().get(site);
                 Vec interceptMomVec = interceptMomVects().get(site);
                 double residual = site.m.hits.get(hitID).v - site.aS.mPred;
-                Pair<Double, Double> unBiasedResid = unbiasedResidual(site, false);
+                Pair<Double, Double> unBiasedResid = unbiasedResidual(site);
                 str = str + String.format("    Intercept=%s, p=%s, measurement=%10.5f, predicted=%10.5f, residual=%9.5f, unbiased=%9.5f+-%9.5f, error=%9.5f \n", interceptVec.toString(),
                         interceptMomVec.toString(), site.m.hits.get(hitID).v, site.aS.mPred, residual, unBiasedResid.getFirstElement(), unBiasedResid.getSecondElement(), FastMath.sqrt(site.aS.R));
             }

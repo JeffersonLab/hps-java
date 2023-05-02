@@ -642,7 +642,7 @@ class PatRecTest {
                     }
                 }
                 for (int layer=2; layer < nLayers; ++layer) {
-                    Pair<Double, Double> resid = tkr.unbiasedResidual(layer, false);
+                    Pair<Double, Double> resid = tkr.unbiasedResidual(layer);
                     if (resid.getSecondElement() > -999.) {                       
                         double unbResid =  resid.getFirstElement();
                         double variance = resid.getSecondElement();

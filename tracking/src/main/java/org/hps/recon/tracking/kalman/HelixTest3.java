@@ -1021,7 +1021,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                 }
             }
             for (int layer = 0; layer < nLayers; ++layer) {
-                Pair<Double, Double> resid = KalmanTrack.unbiasedResidual(layer, residualsEconstrained);
+                Pair<Double, Double> resid = KalmanTrack.unbiasedResidual(layer);
                 if (resid.getSecondElement() > -999.) {
                     double variance = resid.getSecondElement();
                     double sigma = Math.sqrt(variance);

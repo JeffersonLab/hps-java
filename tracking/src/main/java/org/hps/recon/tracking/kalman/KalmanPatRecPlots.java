@@ -577,7 +577,7 @@ class KalmanPatRecPlots {
                                 aida.histogram1D(String.format("Layers/Kalman kink in xy, layer %d", mod.Layer)).fill(kTk.scatX(mod.Layer));
                                 aida.histogram1D(String.format("Layers/Kalman kink in zy, layer %d", mod.Layer)).fill(kTk.scatZ(mod.Layer));
                             }      
-                            Pair<Double, Double> residPr = kTk.unbiasedResidual(site.m.Layer, false);
+                            Pair<Double, Double> residPr = kTk.unbiasedResidual(site.m.Layer);
                             if (residPr.getSecondElement() > -999. && kTk.nHits >= 10) {
                                 double variance = residPr.getSecondElement();
                                 if (variance <= 0.) {

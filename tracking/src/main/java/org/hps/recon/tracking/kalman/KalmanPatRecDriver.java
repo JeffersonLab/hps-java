@@ -572,7 +572,7 @@ public class KalmanPatRecDriver extends Driver {
                 List<Float> sigmas = new ArrayList<Float>();
 
                 for (int ilay = 0; ilay < 14; ilay++) {
-                    Pair<Double, Double> res_and_sigma = kTk.unbiasedResidual(ilay, false);
+                    Pair<Double, Double> res_and_sigma = kTk.unbiasedResidual(ilay);
                     if (res_and_sigma.getSecondElement() > -1.) {
                         layers.add(ilay);
                         residuals.add(res_and_sigma.getFirstElement());

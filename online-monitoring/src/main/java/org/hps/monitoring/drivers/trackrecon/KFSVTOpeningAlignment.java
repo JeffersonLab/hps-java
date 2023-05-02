@@ -280,7 +280,7 @@ public class KFSVTOpeningAlignment extends Driver {
         kPar = new KalmanParams();
         kPar.print();
 
-        KI = new KalmanInterface(false, kPar, fm);
+        KI = new KalmanInterface(false, kPar, detector, fm);
         KI.createSiModules(detPlanes);
 
 //        plotterParsBot = pfac.create("Bot Track Pars");
