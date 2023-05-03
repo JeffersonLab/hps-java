@@ -390,9 +390,10 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             
             // If noise should be added, calculate a random value for
             // the noise and add it to the truth energy deposition.
+            
             if(addNoise) {
                 energyAmplitude += getAmplitudeFluctuation(hit);
-            }
+            }            
             
             // Check to see if the hit time seems valid. This is done
             // by calculating the time of the next readout cycle in
@@ -413,12 +414,6 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
                 // buffer time.
                 double voltageDeposition = energyAmplitude * pulseAmplitude((i + 1) * READOUT_PERIOD + readoutTime()
                         - (ReadoutDataManager.getCurrentTime() + hit.getTime()) - getTimeShiftConditions(hit.getCellID()), hit.getCellID());
-   
-                // If noise should be added, calculate a random value for
-                // the noise and add it to the voltage deposition.
-                if (addNoise) {
-                    voltageDeposition += getDigitizationFluctuation(hit);
-                }
 
                 // Increase the current buffer time's voltage value
                 // by the calculated amount.
@@ -465,9 +460,16 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
             // a value of maxVolt.
             double currentValue = voltageBuffer.getValue() * ((Math.pow(2, nBit) - 1) / maxVolt);
             
-            // Get the pedestal for the channel.
-            int pedestal = (int) Math.round(getPedestalConditions(cellID));            
+            // If noise should be added, calculate a random value for
+            // the noise and add it to the ADC value. 
+            if(addNoise) {
+                double sigma = getNoiseConditions(cellID);
+                currentValue += RandomGaussian.getGaussian(0, sigma);
+            }
             
+            // Get the pedestal for the channel.
+            int pedestal = (int) Math.round(getPedestalConditions(cellID));   
+                                                
             // An ADC value is not allowed to exceed 4095. If a
             // larger value is observed, 4096 (overflow) is given
             // instead. (This corresponds to >2 Volts.)
@@ -867,18 +869,6 @@ public abstract class DigitizationReadoutDriver<D extends Subdetector> extends R
      * @return Returns the timestamp flag as an <code>int</code>.
      */
     protected abstract int getTimestampFlag();
-
-    /**
-     * Generate electronic/digitization noise for a single, 4-ns FADC sample.
-     * The sigma from the conditions system must be in units ADC and correspond
-     * to a single sample.
-     * @param hit - The hit for which to generate a fluctuation.
-     * @return Returns a fluctuation in units Volts.
-     */
-    protected double getDigitizationFluctuation(CalorimeterHit hit) {
-        double sigma = getNoiseConditions(hit.getCellID());
-        return RandomGaussian.getGaussian(0, sigma) * maxVolt / (Math.pow(2,nBit)-1);
-    }
 
     /**
      * Generate photoelectron/amplification noise for a pulse's amplitude.
