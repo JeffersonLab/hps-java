@@ -197,6 +197,7 @@ public class KalmanDriverHPS extends Driver {
             System.out.println(trackCollectionName + " does not exist; skipping event");
             return;
         }
+       
         int evtNumb = event.getEventNumber();
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         List<Track> outputSeedTracks = new ArrayList<Track>();
@@ -393,7 +394,7 @@ public class KalmanDriverHPS extends Driver {
             }
             if (fullKalmanTrack != null) {
 
-                Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
+                Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true, event);
                 outputFullTracks.add(fullKalmanTrackHPS);
 
                 // Fill histograms here

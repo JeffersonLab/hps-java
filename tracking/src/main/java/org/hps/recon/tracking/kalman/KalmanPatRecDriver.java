@@ -391,7 +391,6 @@ public class KalmanPatRecDriver extends Driver {
      */
     @Override
     public void process(EventHeader event) {
-
         List<Track> outputFullTracks = new ArrayList<Track>();
 
         //For additional track information
@@ -517,7 +516,7 @@ public class KalmanPatRecDriver extends Driver {
                 nKalTracks++;
 
                 //Here is where the tracks to be persisted are formed
-                Track KalmanTrackHPS = KI.createTrack(kTk, true);
+                Track KalmanTrackHPS = KI.createTrack(kTk, true, event);
                 if (KalmanTrackHPS == null) {
                     continue;
                 }

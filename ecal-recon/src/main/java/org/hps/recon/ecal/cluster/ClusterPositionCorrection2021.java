@@ -3,10 +3,8 @@ package org.hps.recon.ecal.cluster;
 import org.lcsim.event.base.BaseCluster;
 
 /**
- * This uses the uncorrected cluster energy to correct the position of the cluster.
- * This should be used before the energy is corrected on the Cluster and after
- * cluster-track matching.
- * This is to be used with 2021 data
+ * This uses the corrected cluster energy to correct the position of the
+ * cluster. This is to be used with 2021 data
  *
  * To determine these corrections, we simulated e+ e- and gamma at fixed
  * energies over the ECAL acceptance, sampled the true hit position with MC
@@ -19,7 +17,7 @@ import org.lcsim.event.base.BaseCluster;
  * We then performed a fit to these with dX = q + m*X dY = q1 + t*Y if x < 0 ; =
  * q2 + t*Y if Y > 0
  * 
- * See also A.C. Talk at Nov. 2020 collaboration meeting
+ * See also A.C. Talk at Nov. 2022 collaboration meeting
  * 
  * We then checked the dependency of the q,m, q1,q2, t parameters as a function
  * of the energy
@@ -48,80 +46,69 @@ final class ClusterPosResult21 {
 }
 
 public final class ClusterPositionCorrection2021 {
-    // Parameterizations tested in MC using v3-fieldmap
-    // Nov 2015
 
     // Variables for positron position corrections.
-    static final double POSITRON_POS_Q_P0 = 0.966731;
-    static final double POSITRON_POS_Q_P1 = 6.80944;
-    static final double POSITRON_POS_Q_P2 = -0.517001;
+    static final double POSITRON_POS_Q_P0 = 1.35533;
+    static final double POSITRON_POS_Q_P1 = 5.72332;
+    static final double POSITRON_POS_Q_P2 = -0.541438;
 
-    static final double POSITRON_POS_M_P0 = -0.0321032;
-    static final double POSITRON_POS_M_P1 = 0.0137824;
-    static final double POSITRON_POS_M_P2 = -0.657067;
+    static final double POSITRON_POS_M_P0 = -0.0340964;
+    static final double POSITRON_POS_M_P1 = 0.014045;
+    static final double POSITRON_POS_M_P2 = -0.545433;
 
-    static final double POSITRON_POS_Q1_P0 = -3.38561;
-    static final double POSITRON_POS_Q1_P1 = 0.516986;
-    static final double POSITRON_POS_Q1_P2 = -1.58624;
+    static final double POSITRON_POS_Q1_P0 = -3.21226;
+    static final double POSITRON_POS_Q1_P1 = 0.339324;
+    static final double POSITRON_POS_Q1_P2 = -2.72148;
 
-    static final double POSITRON_POS_Q2_P0 = 2.43338;
-    static final double POSITRON_POS_Q2_P1 = -0.523349;
-    static final double POSITRON_POS_Q2_P2 = -1.5865;
+    static final double POSITRON_POS_T_P0 = -0.0362339;
+    static final double POSITRON_POS_T_P1 = 0.00449926;
+    static final double POSITRON_POS_T_P2 = -2.91123;
 
-    static final double POSITRON_POS_T_P0 = -0.03764;
-    static final double POSITRON_POS_T_P1 = 0.0086778;
-    static final double POSITRON_POS_T_P2 = -1.76526;
+    static final double POSITRON_POS_Q2_P0 = 2.24442;
+    static final double POSITRON_POS_Q2_P1 = -0.282654;
+    static final double POSITRON_POS_Q2_P2 = -3.20633;
 
     // Variables for electron position corrections.
-    static final double ELECTRON_POS_Q_P0 = 5.94692;
-    static final double ELECTRON_POS_Q_P1 = -9.50585;
-    static final double ELECTRON_POS_Q_P2 = -0.520818;
+    static final double ELECTRON_POS_Q_P0 = 5.05789;
+    static final double ELECTRON_POS_Q_P1 = -7.63708;
+    static final double ELECTRON_POS_Q_P2 = -0.593751;
 
-    static final double ELECTRON_POS_M_P0 = -0.0333753;
-    static final double ELECTRON_POS_M_P1 = 0.0141766;
-    static final double ELECTRON_POS_M_P2 = -0.590604;
+    static final double ELECTRON_POS_M_P0 = -0.0318827;
+    static final double ELECTRON_POS_M_P1 = 0.0100568;
+    static final double ELECTRON_POS_M_P2 = -0.676475;
 
-    static final double ELECTRON_POS_Q1_P0 = -3.33536;
-    static final double ELECTRON_POS_Q1_P1 = 0.367933;
-    static final double ELECTRON_POS_Q1_P2 = -2.50553;
+    static final double ELECTRON_POS_Q1_P0 = -2.71442;
+    static final double ELECTRON_POS_Q1_P1 = -0.456846;
+    static final double ELECTRON_POS_Q1_P2 = -0.772825;
 
-    static final double ELECTRON_POS_Q2_P0 = 2.38039;
-    static final double ELECTRON_POS_Q2_P1 = -0.335049;
-    static final double ELECTRON_POS_Q2_P2 = -2.6066;
+    static final double ELECTRON_POS_T_P0 = -0.0275841;
+    static final double ELECTRON_POS_T_P1 = -0.00844973;
+    static final double ELECTRON_POS_T_P2 = -0.628533;
 
-    static final double ELECTRON_POS_T_P0 = -0.0372583;
-    static final double ELECTRON_POS_T_P1 = 0.00688212;
-    static final double ELECTRON_POS_T_P2 = -2.45476;
+    static final double ELECTRON_POS_Q2_P0 = 1.72361;
+    static final double ELECTRON_POS_Q2_P1 = 0.524511;
+    static final double ELECTRON_POS_Q2_P2 = -0.697755;
 
     // Variables for photon position corrections.
-    static final double PHOTON_POS_Q_P0 = 6.05676;
-    static final double PHOTON_POS_Q_P1 = -3.35614;
-    static final double PHOTON_POS_Q_P2 = -0.129487;
+    static final double PHOTON_POS_Q_P0 = 5.53107;
+    static final double PHOTON_POS_Q_P1 = -2.71633;
+    static final double PHOTON_POS_Q_P2 = -0.157991;
 
-    static final double PHOTON_POS_M_P0 = -0.0604739;
-    static final double PHOTON_POS_M_P1 = 0.0345978;
-    static final double PHOTON_POS_M_P2 = -0.134836;
+    static final double PHOTON_POS_M_P0 = -0.0645554;
+    static final double PHOTON_POS_M_P1 = 0.0376413;
+    static final double PHOTON_POS_M_P2 = -0.119576;
 
-    static final double PHOTON_POS_Q1_A = -5.35288e-04;
-    static final double PHOTON_POS_Q1_B = -2.59465e-03;
-    static final double PHOTON_POS_Q1_C = -1.25344e-02;
-    static final double PHOTON_POS_Q1_D = 5.38706e-04;
-    static final double PHOTON_POS_Q1_E = -1.03844e-04;
-    static final double PHOTON_POS_Q1_F = 3.42212e-03;
+    static final double PHOTON_POS_Q1_P0 = -3.99615;
+    static final double PHOTON_POS_Q1_P1 = 0.967692;
+    static final double PHOTON_POS_Q1_P2 = -0.317565;
 
-    static final double PHOTON_POS_T_A = -2.94034e-05;
-    static final double PHOTON_POS_T_B = 5.01519e-05;
-    static final double PHOTON_POS_T_C = -1.61436e-04;
-    static final double PHOTON_POS_T_D = 9.81269e-04;
-    static final double PHOTON_POS_T_E = -1.72302e-03;
-    static final double PHOTON_POS_T_F = 3.44850e-03;
+    static final double PHOTON_POS_T_P0 = -0.0582419;
+    static final double PHOTON_POS_T_P1 = 0.0247615;
+    static final double PHOTON_POS_T_P2 = -0.233813;
 
-    static final double PHOTON_POS_Q2_A = 7.20260e-01;
-    static final double PHOTON_POS_Q2_B = -7.33752e-01;
-    static final double PHOTON_POS_Q2_C = 3.70987e+00;
-    static final double PHOTON_POS_Q2_D = 4.20218e-01;
-    static final double PHOTON_POS_Q2_E = -5.84695e-01;
-    static final double PHOTON_POS_Q2_F = 1.35651e+00;
+    static final double PHOTON_POS_Q2_P0 = 3.1551;
+    static final double PHOTON_POS_Q2_P1 = -1.09655;
+    static final double PHOTON_POS_Q2_P2 = -0.283272;
 
     /**
      * 
@@ -234,12 +221,9 @@ public final class ClusterPositionCorrection2021 {
 
         double q = PHOTON_POS_Q_P0 + PHOTON_POS_Q_P1 * Math.pow(Energy, PHOTON_POS_Q_P2);
         double m = PHOTON_POS_M_P0 + PHOTON_POS_M_P1 * Math.pow(Energy, PHOTON_POS_M_P2);
-        double q1 = PHOTON_POS_Q1_A + PHOTON_POS_Q1_B * Energy + PHOTON_POS_Q1_C * Energy * Energy
-                / (PHOTON_POS_Q1_D + PHOTON_POS_Q1_E * Energy + PHOTON_POS_Q1_F * Energy * Energy);
-        double q2 = PHOTON_POS_Q2_A + PHOTON_POS_Q2_B * Energy + PHOTON_POS_Q2_C * Energy * Energy
-                / (PHOTON_POS_Q2_D + PHOTON_POS_Q2_E * Energy + PHOTON_POS_Q2_F * Energy * Energy);
-        double t = PHOTON_POS_T_A + PHOTON_POS_T_B * Energy + PHOTON_POS_T_C * Energy * Energy
-                / (PHOTON_POS_T_D + PHOTON_POS_T_E * Energy + PHOTON_POS_T_F * Energy * Energy);
+        double q1 = PHOTON_POS_Q1_P0 + PHOTON_POS_Q1_P1 * Math.pow(Energy, PHOTON_POS_Q2_P2);
+        double q2 = PHOTON_POS_Q2_P0 + PHOTON_POS_Q2_P1 * Math.pow(Energy, PHOTON_POS_Q2_P2);
+        double t = PHOTON_POS_T_P0 + PHOTON_POS_T_P1 * Math.pow(Energy, PHOTON_POS_T_P2);
 
         deltaX = q + m * xPos;
 

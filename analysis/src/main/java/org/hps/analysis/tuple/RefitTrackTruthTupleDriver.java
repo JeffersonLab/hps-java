@@ -60,6 +60,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     private Map<ReconstructedParticle, ReconstructedParticle> unc2tarTruth = null;
     private int truthVertexHasMatch = 0;
     private int nEcalHit = 2;
+    private int runNumber = 14168;
     
     @Override
     protected void setupVariables() {
@@ -86,6 +87,8 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
     @Override
     public void process(EventHeader event) {
         setupCollections(event);
+        runNumber = event.getRunNumber();
+
         for (ReconstructedParticle uncV0 : unConstrainedV0List) {
             tupleMap.clear();
             boolean isOK = fillBasicRefitTuple(event, triggerData, uncV0);
@@ -179,7 +182,7 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
         tupleMap.put("minNegativeIso/D", minNegativeIso);
         tupleMap.put("minIso/D", minIso);
         
-        fillVertexVariables("Badunc", uncV0, false);
+        fillVertexVariables("Badunc", uncV0, false, runNumber);
         
         List<LCRelation> badMCParticleRelation = event.get(LCRelation.class,badMCParticleRelationsColName);
         MCParticle badEle = null;
@@ -217,18 +220,18 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
                 
                 fillParticleVariables(event, electronTruth, "eleTruth", true, true, true, "GBLKinkDataRelations_truth");
                 fillParticleVariables(event, positronTruth, "posTruth", true, true, true, "GBLKinkDataRelations_truth");
-                fillVertexVariables("Truthunc", temp, false);
+                fillVertexVariables("Truthunc", temp, false, runNumber);
             }
             if (unc2bscTruth != null) {
                 ReconstructedParticle temp2 = unc2bscTruth.get(temp);
                 if (temp2 != null){
-                    fillVertexVariables("Truthbsc", temp2, false);
+                    fillVertexVariables("Truthbsc", temp2, false, runNumber);
                 }
             }
             if (unc2tarTruth != null) {
                 ReconstructedParticle temp2 = unc2tarTruth.get(temp);
                 if (temp2 != null){
-                    fillVertexVariables("Truthtar", temp2, false);
+                    fillVertexVariables("Truthtar", temp2, false, runNumber);
                 }
             }
         }
@@ -238,14 +241,14 @@ public class RefitTrackTruthTupleDriver extends TupleMaker {
             if (temp == null)
                 isOK = false;
             else{
-                fillVertexVariables("Badbsc", temp, false);
+                fillVertexVariables("Badbsc", temp, false, runNumber);
             }
         }
         if (unc2tar != null) {
             ReconstructedParticle temp = unc2tar.get(uncV0);
             if (temp == null)
                 isOK = false;
-            fillVertexVariables("Badtar", temp, false);
+            fillVertexVariables("Badtar", temp, false, runNumber);
         }
 
         return isOK;

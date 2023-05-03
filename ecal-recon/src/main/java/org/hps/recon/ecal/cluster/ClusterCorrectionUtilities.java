@@ -302,7 +302,7 @@ public final class ClusterCorrectionUtilities {
     /**
      * Apply HPS-specific energy and position corrections to a cluster with track
      * information. In this case, ypos is the y position of the cluster, determined
-     * from clustering
+     * from tracking
      * 
      * @param cluster The input cluster.
      */

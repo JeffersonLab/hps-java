@@ -79,6 +79,7 @@
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+            <hitEnergyThreshold>0.030</hitEnergyThreshold>
         </driver>
         
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
@@ -117,6 +118,7 @@
         --> 
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
+            <fitTimeMinimizer>Migrad</fitTimeMinimizer>
             <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
             <useTimestamps>false</useTimestamps>     
             <!--offset to get times centered at 0 after timestamp correction-->                 

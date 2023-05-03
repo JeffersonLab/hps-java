@@ -28,7 +28,8 @@ public class SvtAlignmentFilter extends EventReconFilter {
     
     @Override
     protected void process(EventHeader event) {
-     
+        int runNumber = event.getRunNumber();
+        
         incrementEventProcessed();
         
         if(!event.hasCollection(Track.class,"MatchedTracks")) skipEvent();
@@ -42,7 +43,7 @@ public class SvtAlignmentFilter extends EventReconFilter {
         List<Track> selectedTracks = new ArrayList<Track>();
 
         for(Track track : tracks) {
-            Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(tracks.get(0));
+            Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(tracks.get(0),runNumber);
             Cluster cand_clust = findClosestCluster(posAtEcal, clusters);
             if(cand_clust!=null) {
                 if(Math.abs( posAtEcal.x() - cand_clust.getPosition()[0])<30.0 && 

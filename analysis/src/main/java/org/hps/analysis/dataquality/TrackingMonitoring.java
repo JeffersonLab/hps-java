@@ -327,6 +327,8 @@ public class TrackingMonitoring extends DataQualityMonitor {
     @Override
     public void process(EventHeader event) {
 
+        int runNumber = event.getRunNumber();
+        
         aida.tree().cd("/");
 
         if (!event.hasCollection(LCRelation.class, helicalTrackHitRelationsCollectionName) || !event.hasCollection(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName))
@@ -383,7 +385,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         int cntTop = 0;
         int cntBot = 0;
         for (Track trk : tracks) {
-            Hep3Vector trackPosAtEcalFace = TrackUtils.getTrackPositionAtEcal(trk);
+            Hep3Vector trackPosAtEcalFace = TrackUtils.getTrackPositionAtEcal(trk, runNumber);
             double xAtECal = trackPosAtEcalFace.x();
             double yAtECal = trackPosAtEcalFace.y();
             if (yAtECal > 0) {

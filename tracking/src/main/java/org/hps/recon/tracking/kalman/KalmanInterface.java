@@ -93,12 +93,14 @@ public class KalmanInterface {
     private static final boolean debug = false;
     private static final double c = 2.99793e8; // Speed of light in m/s
 
+
     /**
      * Set the limit on the maximum number of hits in an event to analyze
      * (larger events will be skipped)
      *
      * @param limit desired hit limit
      */
+
     public void setSiHitsLimit(int limit) {
         _siHitsLimit = limit;
     }
@@ -808,7 +810,7 @@ public class KalmanInterface {
      * @param storeTrackStates true to store in addition all of the track states
      * @return HPS track
      */
-    public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
+    public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates, EventHeader event) {
         
         //boolean debug = true;
         if (kT.SiteList == null) {
@@ -891,7 +893,8 @@ public class KalmanInterface {
         }
 
         // Extrapolate to the ECAL and make a new trackState there.
-        BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM);
+
+        BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, event.getRunNumber());
         if (debug) {
             double [] p = ts_ecal.getMomentum();
             double pmag = Math.sqrt(p[0]*p[0]+p[1]*p[1]+p[2]*p[2]);
@@ -907,6 +910,7 @@ public class KalmanInterface {
             newTrack.setChisq(kT.chi2);
             newTrack.setNDF(newTrack.getTrackerHits().size() - 5);
         }
+
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
         newTrack.setFitSuccess(true);
 
@@ -1971,7 +1975,7 @@ public class KalmanInterface {
         }
         
         // Convert the KalTrack object into and HPS Track and TrackState
-        Track outputTrack = createTrack(newTrack, true);
+        Track outputTrack = createTrack(newTrack, true, event);
         
         trackHitsKalman.clear();
         for (SiModule SiM : SiMlist) {

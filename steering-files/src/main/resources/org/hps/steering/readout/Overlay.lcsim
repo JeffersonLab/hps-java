@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <execute>
+        <driver name="OverlayDriver" />
+        <driver name="OutputDriver" />
+    </execute>
+    <drivers>
+        <driver name="OverlayDriver" type="org.hps.digi.DataOverlayDriver">
+            <!-- overlay file -->
+            <inputFile>${overlayFile}.slcio</inputFile>
+        </driver>
+        <driver name="OutputDriver" type="org.lcsim.util.loop.LCIODriver">
+            <!-- output file will contain MC collections from signal and data collections from background -->
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+    </drivers>
+</lcsim>

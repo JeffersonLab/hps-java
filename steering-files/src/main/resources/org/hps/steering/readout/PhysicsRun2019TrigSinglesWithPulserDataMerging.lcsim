@@ -405,8 +405,6 @@
             <!-- Units of 2 ns beam bunches. -->
             <deadTime>15</deadTime>            
 
-	    <geometryMatchingRequired>true</geometryMatchingRequired>
-
         </driver>
                     
 

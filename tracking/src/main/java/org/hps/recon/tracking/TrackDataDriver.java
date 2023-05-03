@@ -92,6 +92,7 @@ public final class TrackDataDriver extends Driver {
      */
     @Override
     protected void process(EventHeader event) {
+        int runNumber = event.getRunNumber();
 
         // Check if the event contains a collection of the type Track. If it
         // doesn't skip the event.
@@ -213,7 +214,8 @@ public final class TrackDataDriver extends Driver {
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if (TrackType.isGBL(track.getType())) {
-                    TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap);
+                    
+                    TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap,runNumber);
                     if (stateEcal != null)
                         track.getTrackStates().add(stateEcal);
                 }

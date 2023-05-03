@@ -104,9 +104,9 @@
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-            <neighborDeltaT>8.0</neighborDeltaT>
+            <neighborDeltaT>24.0</neighborDeltaT>
             <saveMonsterEvents>false</saveMonsterEvents>
-            <thresholdMonsterEvents>200</thresholdMonsterEvents>
+            <thresholdMonsterEvents>400</thresholdMonsterEvents>
             <debug>false</debug>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
