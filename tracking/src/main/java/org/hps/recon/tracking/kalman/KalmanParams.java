@@ -91,7 +91,7 @@ public class KalmanParams {
         System.out.format("  Maximum chi^2 for 5-hit tracks with a vertex constraint: %8.2f\n", mxChi2Vtx);
         System.out.format("  Include ionization energy loss in fit = %b\n", eLoss);
         System.out.format("  Default origin to use for vertex constraints:\n");
-        System.out.format("  CAL energy resolution = %8.2f /sqrt(E) + %8.2f\n", eRes[0], eRes[1]);
+        System.out.format("  ECAL percent energy resolution = %8.2f /E + %8.2f /sqrt(E) + %8.2f in quadrature\n", eRes[0], eRes[1], eRes[2]);
         for (int i=0; i<3; ++i) {
             System.out.format("      %d: %8.3f +- %8.3f\n", i, beamSpot[i], vtxSize[i]);
         }
@@ -172,9 +172,10 @@ public class KalmanParams {
         firstLayer = 0;     // First layer in the tracking system (2 for pre-2019 data)
         lowPhThresh = 0.25; // Residual improvement ratio necessary to use a low-ph hit instead of high-ph
         seedCompThr = 0.05;  // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
-        eRes = new double[2];
-        eRes[0] = 5.0;       // Cal energy resolution parameters in %  sigmaE = eRes[0]/sqrt(E) + eRes[1]
-        eRes[1] = 1.0;
+        eRes = new double[3];
+        eRes[0] = 1.62;       // Cal energy resolution parameters in %  sigmaE = eRes[0]/E + eRes[1]/sqrt(E) + eRes[2] in quadrature
+        eRes[1] = 2.87;
+        eRes[2] = 2.5;
         
         // Load the default search strategies
         // Index 0 is for the bottom tracker (+z), 1 for the top (-z)
@@ -234,10 +235,11 @@ public class KalmanParams {
 //        }            
     }
     
-    public void setEnergyRes(double a, double b) {
+    public void setEnergyRes(double a, double b, double c) {
         if (a > 0.) eRes[0] = a;
         if (b > 0.) eRes[1] = b;
-        logger.config(String.format("Setting CAL energy resolution to %8.2f/sqrt(E) + %8.2f", eRes[0], eRes[1]));
+        if (c > 0.) eRes[2] = c;
+        logger.config(String.format("Setting CAL energy resolution to %8.2f/E + %8.2f/sqrt(E) + %8.2f", eRes[0], eRes[1], eRes[2]));
     }
     public double getEres(int i) {
         if (i<0 || i>1) {

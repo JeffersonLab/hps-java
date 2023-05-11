@@ -1734,11 +1734,12 @@ public class KalmanInterface {
      * @param event            Event header
      * @param track            HPS track to refit
      * @param energy           ECal energy in case the constraint is needed (otherwise not used)
+     * @param sigmaE           ECAL energy resolution
      * @param eConstraint      true to include the ECal energy constraint
      * @param layerSkip        List of layers to skip in the fit (any hit on these layers is deleted)
      * @return                 The new HPS track
      */
-    public Track refitTrackWithE(EventHeader event, Track track, double energy, boolean eConstraint, ArrayList<Integer> layerSkip) {
+    public Track refitTrackWithE(EventHeader event, Track track, double energy, double sigmaE, boolean eConstraint, ArrayList<Integer> layerSkip) {
         // First we need initial guesses for the helix parameters and covariance.
         // Preferentially take them from a TrackState. If there is no TrackState,
         // then estimate from a linear fit to the set of hits.
@@ -1830,8 +1831,9 @@ public class KalmanInterface {
                 int Layer = decoder.getValue("layer") - 1;
                 for (int lyr : layerSkip) {
                     if (lyr == Layer) {
-                        hitsOnTrack.remove(hit);
+                        iter.remove();
                         if (debug) System.out.format("KalmanInterface.refitTrackWithE: removing hit on layer %d\n", Layer);
+                        break;
                     }
                 }
             }
@@ -1959,7 +1961,6 @@ public class KalmanInterface {
         }
         
         // Include the eCal information and smooth back toward the target
-        double sigmaE = (kPar.eRes[0]/FastMath.sqrt(energy) + kPar.eRes[1])*energy/100.;
         newTrack.smoothIt(eConstraint, energy, sigmaE);
         if (debug) {
             if (eConstraint) newTrack.print("energy constrained");

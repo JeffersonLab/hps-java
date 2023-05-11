@@ -91,6 +91,7 @@ public class ReconstructedParticleRefitter extends Driver {
     
     private double _eRes0 = -1.0;
     private double _eRes1 = -1.0;
+    private double _eRes2 = -1.0;
     
     private static final boolean debug = false;
     /**
@@ -129,7 +130,7 @@ public class ReconstructedParticleRefitter extends Driver {
     }
     /**
      * ECal energy resolution parameterization, for the resolution as a % of E.
-     * @param eRes0    coefficient of the 1/sqrt(E) term
+     * @param eRes0    coefficient of the 1/E term
      */
     public void set_eRes0(double eRes0) {
         System.out.format("ReconstructedParticleRefitter: setting the eRes0 ECAL resolution parameter to %9.4f\n", eRes0);
@@ -137,11 +138,19 @@ public class ReconstructedParticleRefitter extends Driver {
     }
     /**
      * ECal energy resolution parameterization, for the resolution as a % of E.
-     * @param eRes1    the constant term
+     * @param eRes1    coefficient of the 1/sqrt(E) term
      */
     public void set_eRes1(double eRes1) {
         System.out.format("ReconstructedParticleRefitter: setting the eRes1 ECAL resolution parameter to %9.4f\n", eRes1);
         _eRes1 = eRes1;
+    }    
+    /**
+     * ECal energy resolution parameterization, for the resolution as a % of E.
+     * @param eRes2    the constant term
+     */
+    public void set_eRes2(double eRes2) {
+        System.out.format("ReconstructedParticleRefitter: setting the eRes2 ECAL resolution parameter to %9.4f\n", eRes2);
+        _eRes2 = eRes2;
     }
     
     /**
@@ -169,7 +178,7 @@ public class ReconstructedParticleRefitter extends Driver {
         // Instantiate the interface to the Kalman-Filter code and set up the run parameters
         kPar = new KalmanParams(); 
         // Override the default resolution parameters with numbers from the steering file
-        if (_eRes0 > 0. || _eRes1 > 0.) kPar.setEnergyRes(_eRes0, _eRes1);
+        if (_eRes0 > 0. || _eRes1 > 0. || _eRes2 > 0.) kPar.setEnergyRes(_eRes0, _eRes1, _eRes2);
         
         fm = det.getFieldMap();              // The HPS magnetic field map
         KI = new KalmanInterface(kPar, det, fm);  // Instantiate the Kalman interface
@@ -268,7 +277,9 @@ public class ReconstructedParticleRefitter extends Driver {
                                 }
                             }
                             if (newTsAtIP == null) newTsAtIP = newTrack.getTrackStates().get(0);
-                            double[] newParams = newTsAtIP.getParameters();                     
+                            double[] newParams = newTsAtIP.getParameters();
+                            aida.histogram1D("New helix d0", 100, -5., 5.).fill(newParams[0]);
+                            aida.histogram1D("Old helix d0", 100, -5., 5.).fill(oldParams[0]);
                             aida.histogram1D("Helix parameter d0 new minus old over old", 100, -2.5, 2.5).fill((newParams[0]-oldParams[0])/oldParams[0]);
                             aida.histogram1D("Helix parameter phi0 new minus old over old", 100, -0.5, 0.5).fill((newParams[1]-oldParams[1])/oldParams[1]);
                             aida.histogram1D("Helix parameter omega new minus old over old", 100, -0.5, 0.5).fill((newParams[2]-oldParams[2])/oldParams[2]);
@@ -434,6 +445,20 @@ public class ReconstructedParticleRefitter extends Driver {
         }
         return theMatch;
     }
+    
+    /**
+     * ECAL energy resolution
+     * 
+     * @param   ECAL energy
+     * @return  expected sigma of the energy measurement
+     */
+    static double sigmaE(double E) {
+        double r1 = 1.62/E;
+        double r2 = 2.87/FastMath.sqrt(E);
+        double r3 = 2.5;
+        double res = FastMath.sqrt(r1*r1 + r2*r2 + r3*r3)/100.;
+        return res*E;
+    }
     /**
      * Method for refitting a track
      *
@@ -454,16 +479,15 @@ public class ReconstructedParticleRefitter extends Driver {
             MCParticle theMatch = getMCmatch(event, rp);
             if (theMatch != null) {
                 double energyMC = theMatch.getEnergy();
-                double sigmaE = (kPar.getEres(0)/FastMath.sqrt(energy) + kPar.getEres(1))*energy/100.;
-                energy = energyMC + sigmaE*ran.nextGaussian();
-                if (debug) System.out.format("refitTrack: MC cheat energy = %10.5f+=%9.5f\n", energy, sigmaE);
+                energy = energyMC + sigmaE(energyMC)*ran.nextGaussian();
+                if (debug) System.out.format("refitTrack: MC cheat energy = %10.5f+=%9.5f\n", energy, sigmaE(energyMC));
                 aida.histogram1D("Cheat ECAL over MC energy", 100, 0.5, 1.5).fill(energy/energyMC);
             } else {    
                 System.out.format("refitTrack: no MC match was found\n");
             }
         }
         if (layerSkip == null) layerSkip = new ArrayList<Integer>();
-        return KI.refitTrackWithE(event, track, energy, _doEconstraint, layerSkip);
+        return KI.refitTrackWithE(event, track, energy, sigmaE(energy), _doEconstraint, layerSkip);
     }
 
     /**
