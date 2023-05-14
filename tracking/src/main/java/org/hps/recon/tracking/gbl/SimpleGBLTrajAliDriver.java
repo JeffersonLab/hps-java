@@ -148,7 +148,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double momC     = 4.55;
     private double minMom   = -999;
     private double maxMom   = 999;
-    private double maxtanL  = -999;
+    private double minTanL  = 0;
+    private double maxTanL  = 999.9;
     private double minPhi   = -999;
     private double maxPhi   = 999;
     private int    nHitsCut = 4;
@@ -353,8 +354,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
         minMom = val;
     }
 
-    public void setMaxtanL(double val) {
-        maxtanL = val;
+    public void setMaxTanL(double val) {
+        maxTanL = val;
+    }
+
+    public void setMinTanL(double val) {
+        minTanL = val;
     }
 
     public void setMinPhi(double val) {
@@ -564,7 +569,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     continue;
                 }
                 
-                if (Math.abs(tanLambda) < maxtanL) {
+                if (Math.abs(tanLambda) < minTanL || Math.abs(tanLambda) > maxTanL) {
                     continue;
                 }
                 
@@ -881,7 +886,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
                 
             GblTrajectoryJna trajForMPII = null;
-            GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,1,1,1);
+            GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,true,true,true);
                 
             //seed matrix q/p, yT', xT', xT, yT 
             SymMatrix seedPrecision = new SymMatrix(5);
@@ -895,54 +900,60 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
             //z0 constraint 
             //seedPrecision.set(4,4,seed_precision);
-                
+            
             //d0 constraint
             //seedPrecision.set(3,3,1000000);
-                
+            
             if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
-                trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
+                trajForMPII =  new GblTrajectoryJna(points_on_traj,true,true,true);
             } else {
-                trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
+                trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,true,true,true);
             }
-                
+            
             if (debugAlignmentDs) trajForMPII.printData();
-                
+            
             //Fit the trajectory to get the Chi2
             trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
 
             //Avoid to use tracks with terrible Chi2
-            if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
+            if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut) {
+                trajForMPII.delete();
+                trajForMPII_unconstrained.delete();
+                for (GblPointJna point : points_on_traj) {
+                    point.delete();
+                }
                 continue;
-                
+            }
+            
             if (writeMilleBinary) {
                 /*
-                  System.out.println("DEBUG::Tom::Writing track with "
-                  + points_on_traj.size() + " hits to mille binary.");
-                */
+                System.out.println("DEBUG::Tom::Writing track with "
+                    + points_on_traj.size() + " hits to mille binary.");
+                 */
                 trajForMPII.milleOut(mille);
             }
-                
+            
             if (correctTrack) {                
 
                 //Form the FittedGblTrajectory for the unconstrained fit
                 FittedGblTrajectory fitTraj = new FittedGblTrajectory(trajForMPII_unconstrained, Chi2.getValue(), Ndf.getValue(), lostWeight.getValue());
-                    
+                
                 fitTraj.setSensorMap(sensorMap);
                 fitTraj.setPathLengthMap(pathLengthMap);
-                    
+                
                 Collection<TrackerHit> hth = track.getTrackerHits();
                 List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
                 Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
                 Track gblTrk = newTrack.getFirst();
 
                 //System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");
-                    
+                
                 if(computeGBLResiduals) {
-                        
+                    
                     List<Double> b_residuals = new ArrayList<Double>();
                     List<Float>   b_sigmas    = new ArrayList<Float>();
                     List<Integer> r_sensors   = new ArrayList<Integer>();
-                        
+                    
                     int numData[] = new int[1];
                     Integer[] sensorsFromMapArray = fitTraj.getSensorMap().keySet().toArray(new Integer[0]);
                     for (int i_s = 0; i_s < sensorsFromMapArray.length; i_s++) {
@@ -959,13 +970,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         for (int i=0; i<numData[0];i++) {
                             //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
                             //System.out.printf("Example1::measResults %d %d %d %f %f %f \n",ilabel, i, mpid, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));
-                                
+                            
                             r_sensors.add(mpid);
                             b_residuals.add(aResiduals.get(i));
                             b_sigmas.add(aResErrors.get(i).floatValue());
                         }
-                            
-                        GblTrajectoryJna gbl_fit_traj_u = new GblTrajectoryJna(points_on_traj,1,1,1);
+                        
+                        GblTrajectoryJna gbl_fit_traj_u = new GblTrajectoryJna(points_on_traj,true,true,true);
                         DoubleByReference Chi2_u = new DoubleByReference(0.);
                         DoubleByReference lostWeight_u = new DoubleByReference(0.);
                         IntByReference Ndf_u = new IntByReference(0);
@@ -976,7 +987,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         List<Double> u_aMeasErrors  = new ArrayList<Double>();
                         List<Double> u_aResErrors   = new ArrayList<Double>();  
                         List<Double> u_aDownWeights = new ArrayList<Double>();
-                            
+                        
                         try {
                             //Fit removing the measurement
                             gbl_fit_traj_u.fit(Chi2_u,Ndf_u,lostWeight_u,"",ilabel);
@@ -984,7 +995,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                             for (int i=0; i<u_numData[0];i++) {
                                 //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
                                 //System.out.printf("Example1::UmeasResults %d %d %d %f %f %f \n",ilabel, i, mpid, u_aResiduals.get(i),u_aMeasErrors.get(i),u_aResErrors.get(i));
-                                    
+                                
                                 r_sensors.add(mpid);
                                 b_residuals.add(u_aResiduals.get(i));
                                 b_sigmas.add(u_aResErrors.get(i).floatValue());
@@ -997,8 +1008,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
                             b_sigmas.add((float)-9999.);
                             //System.out.printf("Unbiasing fit fails! For label::%d\n",ilabel);
                         }
-                            
-                            
+                        
+                        
                         gbl_fit_traj_u.delete();
                     } // loop on sensor map
 
@@ -1011,19 +1022,21 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     trackResidualsRelations.add(new BaseLCRelation(resData,gblTrk));
 
                 } //computeResiduals
-                    
-                    
-                    
+                
+                
+                
                 //System.out.println("Refitted track chi2 " + gblTrk.getChi2());
                 refittedTracks.add(gblTrk);
                 kinkDataCollection.add(newTrack.getSecond());
                 kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
             }
-                
+            
             trajForMPII.delete();
             trajForMPII_unconstrained.delete();
+            for (GblPointJna point : points_on_traj) {
+                point.delete();
+            }
                 
-
             
         }//loop on tracks
         
@@ -1688,16 +1701,15 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
 
     private void ComputeCOMDerivatives(GblPointJna gblpoint) {
+        if (gblpoint.getNumMeasurements() == 0)
+            return;
 
-
-        List<Integer> labels = gblpoint.getGlobalLabels();
+        List<Integer> labels = new ArrayList<Integer>();
+        Matrix g_ders = gblpoint.getGlobalLabelsAndDerivatives(labels);
         
         if (labels.size() < 1) 
             return;
-        
-        
-        
-        Matrix g_ders = gblpoint.getGlobalDerivatives();
+
         //The MPII ID + Volume is used to get the correct composite structure
         // 1 for top  2 for bottom
         int volume = labels.get(0) / MilleParameter.half_offset;
@@ -1838,13 +1850,15 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
     //This will compute and add to the buffers the derivatives 
     private void ComputeStructureDerivatives(GblPointJna gblpoint) {
+        if (gblpoint.getNumMeasurements() == 0)
+            return;
         
-        List<Integer> labels = gblpoint.getGlobalLabels();
+        List<Integer> labels = new ArrayList<Integer>();
+        Matrix g_ders = gblpoint.getGlobalLabelsAndDerivatives(labels);
         
         if (labels.size() < 1) 
             return;
         
-        Matrix g_ders = gblpoint.getGlobalDerivatives();
         //The MPII ID + Volume is used to get the correct composite structure
         // 1 for top  2 for bottom
         int volume = labels.get(0) / MilleParameter.half_offset;
