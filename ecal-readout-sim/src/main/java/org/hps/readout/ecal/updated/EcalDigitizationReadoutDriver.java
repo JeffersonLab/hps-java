@@ -48,7 +48,7 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
         setTriggerPathTruthRelationsCollectionName("TriggerPathTruthRelations");
         setReadoutHitCollectionName("EcalReadoutHits");
         
-        setPhotoelectronsPerMeV(32.8);
+        setPhotoelectronsPerMeV(30.8);
         setPulseTimeParameter(9.6);
     }    
     
