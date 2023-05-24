@@ -2,6 +2,16 @@ package org.hps.recon.tracking;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+
+import org.apache.commons.math3.util.Pair;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.svt.SvtSyncStatus.SvtSyncStatusCollection;
 import org.hps.conditions.svt.SvtTimingConstants;
@@ -15,6 +25,8 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
+
+
 
 // TODO: Add class documentation.
 public class RawTrackerHitFitterDriver extends Driver {
@@ -37,16 +49,21 @@ public class RawTrackerHitFitterDriver extends Driver {
     private boolean useTruthTime = false;
     private boolean subtractTOF = false;
     private boolean subtractTriggerTime = false;
-    private boolean correctChanT0 = true;
+    private boolean correctChanT0 = false;
+    //    private boolean correctPhaseDepT0Shift = false; 
     private boolean subtractRFTime = false;
+    private boolean correctPerSensorPerPhase=false;
     private Boolean syncGood = true;
     private Boolean isMC = false;
+    private Map<Pair,Double> sensorPhaseCalibConstants=new HashMap<Pair,Double>();
 
     private double trigTimeScale = 43.0;//  the mean time of the trigger...changes with run period!!!  43.0 is for 2015 Eng. Run
-
     private double trigTimeOffset = 14.0;
-
     private double tsCorrectionScale = 240;
+
+    private boolean isFirstEvent=true;
+
+    private TrackerHitUtils tkHitUtils=new TrackerHitUtils();
 
     /**
      * Report time relative to the nearest expected truth event time.
@@ -91,6 +108,10 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     public void setSubtractRFTime(boolean subtractRFTime) {
         this.subtractRFTime = subtractRFTime;
+    }
+
+    public void setCorrectPerSensorPerPhase(boolean correctPerSensorPerPhase) {
+        this.correctPerSensorPerPhase = correctPerSensorPerPhase;
     }
 
     public void setTrigTimeScale(double time) {
@@ -161,6 +182,8 @@ public class RawTrackerHitFitterDriver extends Driver {
             syncGood = true;
             getLogger().config("svt_sync_statuses was not found.");
         }
+    
+        
     }
 
     @Override
@@ -168,7 +191,14 @@ public class RawTrackerHitFitterDriver extends Driver {
         if (!event.hasCollection(RawTrackerHit.class, rawHitCollectionName))
             // System.out.println(rawHitCollectionName + " does not exist; skipping event");
             return;
-
+        
+        if(isFirstEvent && correctPerSensorPerPhase){
+            //this loads the sensorPhaseCalibConstants or returns false if run not in range or calib file not found/broken
+            //...there should be a better way to get run number...right?  
+            correctPerSensorPerPhase=LoadPerSensorPerPhaseConstants(event);
+        }
+        isFirstEvent=false;
+        
         jitter = -666;
         if (subtractRFTime)
             if (event.hasCollection(TriggerTime.class, "TriggerTime")) {
@@ -238,6 +268,28 @@ public class RawTrackerHitFitterDriver extends Driver {
                     //===> fit.setT0(fit.getT0() - constants.getT0Shift());
                     fit.setT0(fit.getT0() - sensor.getT0Shift());
                 }
+
+                ////////////   mg 5/17/2023 ....  this is for reading sensor/phase dependent shifts using database...
+                ///////////                       I should make new branch for reading from db because we may want to
+                ///////////                       do that in future but for now remove
+                //                if (correctPhaseDepT0Shift){
+                //    Double phaseShifts[]=sensor.getT0PhaseShifts(); 
+                //    int phase=(int)((event.getTimeStamp()%24)/4);
+                //    fit.setT0(fit.getT0()-phaseShifts[phase]);
+                //}
+                // correct time per sensor and event phase (using the constants read in by resource file)
+                if(correctPerSensorPerPhase){
+                    String sensorName=sensor.getName();
+                    String simpleName=tkHitUtils.getSimpleNameFromSensorName(sensorName);
+                    //                    System.out.println(sensorName+" --> "+simpleName);
+                    Long evtPhaseL=(event.getTimeStamp() % 24)/4;
+                    Integer evtPhase=evtPhaseL.intValue();
+                    Pair<String,Integer> evtPair=new Pair(simpleName,evtPhase);
+                    Double calConstant=sensorPhaseCalibConstants.get(evtPair);
+                    //                    System.out.println("shifting t0 by "+calConstant); 
+                    fit.setT0(fit.getT0()-calConstant);
+                }
+
                 if (subtractTOF) {
                     double tof = hit.getDetectorElement().getGeometry().getPosition().magnitude() / (Const.SPEED_OF_LIGHT * Const.nanosecond);
                     fit.setT0(fit.getT0() - tof);
@@ -270,4 +322,48 @@ public class RawTrackerHitFitterDriver extends Driver {
         event.put(fitCollectionName, fits, ShapeFitParameters.class, genericObjectFlags);
         event.put(fittedHitCollectionName, hits, FittedRawTrackerHit.class, relationFlags);
     }
+
+    private boolean LoadPerSensorPerPhaseConstants(EventHeader event){
+        
+        // get run number from first event
+        int runNumber= event.getRunNumber();
+        String infilePreResDir = "/org/hps/recon/tracking/timingCorrections/"; 
+        String infilePre = "run";
+        String infilePost = "_calib_constants_final.txt";
+        String runString="foobar"; 
+        if (runNumber>14000 && runNumber<14566){
+            runString="14495";
+        }else if(runNumber>=14566 &&runNumber<14626){
+            runString="14569"; 
+        }else if(runNumber>=14626 && runNumber<14680){
+            runString="14654";
+        }else if(runNumber>=14680 && runNumber<15000){
+            runString="14720";
+        } else {
+            getLogger().config("Run is not in range defined by correctPerSensorPerPhase ... corrections not performed");
+            return false;
+        }
+        String infile=infilePreResDir+infilePre+runString+infilePost; 
+        InputStream inRatios = this.getClass().getResourceAsStream(infile);
+        System.out.println("reading in per-sensor per-phase calibs from "+infile);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inRatios));
+        String line;
+        String delims = "[ ]+";// this will split strings between one or more spaces
+        try {
+            while ((line = reader.readLine()) != null) {
+                String[] tokens = line.split(delims);
+                System.out.println("sensor_phase = " + tokens[0] + "; constant = " + tokens[1]);
+                String[] sensor_phase = tokens[0].split("_phase"); 
+                //                System.out.println("Making Pair::sensor name = "+sensor_phase[0]+", phase = "+Integer.parseInt(sensor_phase[1]));
+                Pair<String, Integer> senPhPair=new Pair(sensor_phase[0],Integer.parseInt(sensor_phase[1])); 
+                Double constant=Double.parseDouble(tokens[1]);
+                sensorPhaseCalibConstants.put(senPhPair, constant); 
+            }
+        } catch (IOException ex) {
+            getLogger().config("died while reading "+infile);
+            return false;
+        }        
+        return true;
+    }  
+    
 }
