@@ -18,6 +18,9 @@ import java.util.Set;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+//PI
+//import static java.lang.Math.PI;
+
 //import org.hps.recon.tracking.HpsHelicalTrackFit;
 
 import hep.physics.vec.Hep3Vector;
@@ -59,7 +62,7 @@ import org.hps.record.triggerbank.TriggerModule;
 //import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.FieldMap;
 import org.lcsim.fit.helicaltrack.HelicalTrackFit;
-
+ 
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
@@ -144,6 +147,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double bsZ = -7.5;
     private double bsX = 0.0;
     private double bsY = 0.0;
+    private double[] errTilt = new double[3];
     private int trackSide = -1;
     private boolean doCOMAlignment = false;
     private double momC     = 4.55;
@@ -152,7 +156,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double maxtanL  = -999;
     private double minPhi   = -999;
     private double maxPhi   = 999;
-    private int    nHitsCut = 6;
+    private double    nHitsCut = 6;
     private boolean useParticles = false;
     private double clusterEnergyCutMin = -1;  
     private double clusterEnergyCutMax = 999;
@@ -160,7 +164,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double eleEoP = -1;
     private boolean correctTrack = false;
     
+    protected String ecalClustersCollectionName = "EcalClustersCorr";
 
+    //Maps for EoP
+    private String inputMapFileName = "";
+    private TFileJna inputMapFile = null;
+    private TH2DJna pos_map = null;
+    private TH2DJna ele_map = null;
+    
     
     private GblTrajectoryMaker _gblTrajMaker;
     
@@ -173,6 +184,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
     //Setting 0 is a single refit, 1 refit twice and so on..
     private int gblRefitIterations = 5; 
 
+    
+    public void setMapFile(String val) {
+        inputMapFileName = val;
+                       
+    }
 
     public void setCorrectTrack (boolean val) {
         correctTrack = val;
@@ -180,7 +196,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     public void setPosEoP (double val) {
         posEoP = val;
     }
-    public void setNHits (int val) {
+    public void setNHits (double val) {
         nHitsCut = val;
     }
 
@@ -237,6 +253,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
     }
     public void setBsY(double val) {
         bsY = val;
+    }
+    public void setErrTilt(double[] val) {
+        errTilt[0] = val[0];
+        errTilt[1] = val[1];
+        errTilt[2] = val[2];
+        
     }
 
     public void setSeedPrecision(double val) {
@@ -345,7 +367,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     }
 
     public void setEnableStandardCuts(boolean val) {
-        System.out.println("SimpleGBLTrajAliDriver::WARNING:Enabling standardCuts!");
+        //System.out.println("SimpleGBLTrajAliDriver::WARNING:Enabling standardCuts!");
         enableStandardCuts = val;
     }
 
@@ -377,7 +399,27 @@ public class SimpleGBLTrajAliDriver extends Driver {
     protected void startOfData() {
         if (writeMilleBinary)
             mille = new MilleBinaryJna(milleBinaryFileName);
-    }
+
+        
+        if (posEoP > 0 || eleEoP > 0) {
+            System.out.println("Opening MAPS File");
+            inputMapFile = new TFileJna(inputMapFileName,"r");
+        }
+
+        //Initialize the EoP maps if I request
+        
+        if (inputMapFile != null) {
+            System.out.println("INFO:: Loading EoP maps from input root file");
+
+            if (posEoP > 0) {
+                pos_map = new TH2DJna(inputMapFile.get2DHisto("eop_pos_phi_tanL_mu_profiled_cb"));
+            }
+            
+            if (eleEoP > 0) {
+                ele_map = new TH2DJna(inputMapFile.get2DHisto("eop_ele_phi_tanL_mu_profiled_cb"));
+            }
+        }// load maps
+    } //start of data
 
     @Override
     protected void endOfData() {
@@ -386,6 +428,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
             mille.close();
         
         System.out.println("Total Number of processed Tracks " + nTracksTotal);
+
+        if (inputMapFile != null)
+            inputMapFile.close();
+        
         //Save the plots?
         
         //try {
@@ -461,7 +507,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
     protected void process(EventHeader event) {
 
         //Track collection
-       
         if (!useParticles && !event.hasCollection(Track.class, inputCollectionName)) {
             return;
         }
@@ -471,6 +516,20 @@ public class SimpleGBLTrajAliDriver extends Driver {
             return;
         }
         
+        // Get the list of Ecal clusters from an event.
+        //List<Cluster> clusters = event.get(Cluster.class, ecalClustersCollectionName);
+        
+        // if (clusterEnergyCutMin > 0 || clusterEnergyCutMax < 900) {
+        //    //remove non-FEE events
+        //    if (clusters.size() != 1)
+        //        return;
+        //    if (clusters.get(0).getEnergy() < clusterEnergyCutMin)
+        //        return;
+        //    if (clusters.get(0).getEnergy() > clusterEnergyCutMax)
+        //        return;
+        // }
+
+
         setupSensors(event);
         List<Track> tracks = new ArrayList<Track>(); 
         List<ReconstructedParticle> particles = null;
@@ -495,7 +554,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         List<LCRelation> trackResidualsRelations          = new ArrayList<LCRelation>();
 
         int TrackType = 0;
-        
+
         if (inputCollectionName.contains("Kalman") || inputCollectionName.contains("KF")) {
             TrackType = 1;
             //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
@@ -527,6 +586,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
         for (Track track : tracks) {
                                     
             List<TrackerHit> temp = null;
+            List<TrackerHit> hitsOnTrack = new ArrayList<TrackerHit>();
+            double ecal_e = 0.;
             
             if (TrackType == 0) {
                 if (hitToStrips == null || hitToRotated == null) {
@@ -537,37 +598,51 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 temp = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
                 
                 if (temp.size() == 0)
-                    //               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
+                    //System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");
                     continue;
+                
+                
+                for (TrackerHit hit : temp) {
+                    HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
+                    
+                    if (sensor != null) {
+                        
+                        String sensorName = sensor.getName();
+                        if (sensorName.contains("nothing"))
+                            continue;
+                        else if (sensorName.contains("stillnothing"))
+                            continue;
+                        else
+                            hitsOnTrack.add(hit);
+                    }
+                }
             }
             
-
             if (enableAlignmentCuts) {
                 
                 
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
-
-                
+                double minHits = nHitsCut;
                 
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
                 //Kalman
                 if (TrackType == 1)
-                    nHitsCut = 2*nHitsCut;
+                    minHits = 2*nHitsCut;
                 
                 if (momentum.magnitude() < minMom || momentum.magnitude() > maxMom) {
                     continue;
                 }
                 
                 if (Math.abs(tanLambda) < maxtanL) {
-
+                    
                     continue;
                 }
                 
                 //Align with tracks with at least 6 hits
-                if ((tanLambda > 0 && track.getTrackerHits().size() < nHitsCut) || (tanLambda < 0 && track.getTrackerHits().size() < nHitsCut))  {
+                if ((tanLambda > 0 && track.getTrackerHits().size() < minHits) || (tanLambda < 0 && track.getTrackerHits().size() < minHits))  {
                     continue;
                 }
                 
@@ -586,7 +661,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 }
             }
             
-            
             //Get the E/p from the cluster
             if (useParticles) {
                 
@@ -600,9 +674,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
                 double e_o_p = em_cluster.getEnergy() / trackp;
                 
+
                 
                 //compute the correction
-                momC = em_cluster.getEnergy();
+                ecal_e = em_cluster.getEnergy();
                 
                 //Cluster energy cut
                 if (clusterEnergyCutMin > 0 || clusterEnergyCutMax < 999) {
@@ -618,50 +693,50 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 double[] trk_prms = track.getTrackParameters(); 
                 
                 if (trk_prms[BaseTrack.TANLAMBDA] > 0) {
-                    aidaGBL.histogram1D(eopFolder+"Ecluster_top").fill(momC);
-                    aidaGBL.histogram1D(eopFolder+"EoP_top").fill(momC/trackp);
-                    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_top").fill(trk_prms[BaseTrack.PHI],momC/trackp);
-                    aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_top").fill(trackp,momC/trackp);
-                    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_top").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
+                    aidaGBL.histogram1D(eopFolder+"Ecluster_top").fill(ecal_e);
+                    aidaGBL.histogram1D(eopFolder+"EoP_top").fill(ecal_e/trackp);
+                    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_top").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
+                    aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_top").fill(trackp,ecal_e/trackp);
+                    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_top").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
                     
                     //Track sign is flipped
                     if (track.getCharge() > 0) {
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_ele_top").fill(trackp,momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_ele_top").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_ele_top").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_ele_top").fill(trackp,ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_ele_top").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_ele_top").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                     }
                     else {
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_pos_top").fill(trackp,momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_pos_top").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_pos_top").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_pos_top").fill(trackp,ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_pos_top").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_pos_top").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                     }
                 }
                 else {
-                    aidaGBL.histogram1D(eopFolder+"Ecluster_bottom").fill(momC);
-                    aidaGBL.histogram1D(eopFolder+"EoP_bottom").fill(momC/trackp);
-                    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_bottom").fill(trk_prms[BaseTrack.PHI],momC/trackp);
-                    aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_bottom").fill(trackp,momC/trackp);
-                    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_bottom").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
+                    aidaGBL.histogram1D(eopFolder+"Ecluster_bottom").fill(ecal_e);
+                    aidaGBL.histogram1D(eopFolder+"EoP_bottom").fill(ecal_e/trackp);
+                    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_bottom").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
+                    aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_bottom").fill(trackp,ecal_e/trackp);
+                    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_bottom").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
                     
                     //Track sign is flipped
                     if (track.getCharge() > 0) {
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_ele_bottom").fill(trackp,momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_ele_bottom").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_ele_bottom").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_ele_bottom").fill(trackp,ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_ele_bottom").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_ele_bottom").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                     }
                     else {
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_pos_bottom").fill(trackp,momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_pos_bottom").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_pos_bottom").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_pos_bottom").fill(trackp,ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_pos_bottom").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_pos_bottom").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                     }
                                         
                 }
                 
-                aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                aidaGBL.histogram2D(eopFolder+"EoP_vs_phi").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                aidaGBL.histogram2D(eopFolder+"EoP_vs_phi").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                 aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi").fill(trk_prms[BaseTrack.TANLAMBDA],
                                                                            trk_prms[BaseTrack.PHI],
-                                                                           momC/trackp);
+                                                                           ecal_e/trackp);
                 
                 
                 
@@ -669,50 +744,50 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 if (TriggerModule.inFiducialRegion(em_cluster)) {
                     
                     if (trk_prms[BaseTrack.TANLAMBDA] > 0) {
-                        aidaGBL.histogram1D(eopFolder+"Ecluster_top_fid").fill(momC);
-                        aidaGBL.histogram1D(eopFolder+"EoP_top_fid").fill(momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_top_fid").fill(trackp,momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_top_fid").fill(trk_prms[BaseTrack.PHI],momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_top_fid").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
+                        aidaGBL.histogram1D(eopFolder+"Ecluster_top_fid").fill(ecal_e);
+                        aidaGBL.histogram1D(eopFolder+"EoP_top_fid").fill(ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_top_fid").fill(trackp,ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_top_fid").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_top_fid").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
                         
                         //Track sign is flipped
                         if (track.getCharge() > 0) {
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_ele_top_fid").fill(trackp,momC/trackp);
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_ele_top_fid").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_ele_top_fid").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_ele_top_fid").fill(trackp,ecal_e/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_ele_top_fid").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_ele_top_fid").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                         }
                         else {
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_pos_top_fid").fill(trackp,momC/trackp);
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_pos_top_fid").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_pos_top_fid").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_pos_top_fid").fill(trackp,ecal_e/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_pos_top_fid").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_pos_top_fid").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                         }
                     }
                     else {
-                        aidaGBL.histogram1D(eopFolder+"Ecluster_bottom_fid").fill(momC);
-                        aidaGBL.histogram1D(eopFolder+"EoP_bottom_fid").fill(momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_bottom_fid").fill(trackp,momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_bottom_fid").fill(trk_prms[BaseTrack.PHI],momC/trackp);
-                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_bottom_fid").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
+                        aidaGBL.histogram1D(eopFolder+"Ecluster_bottom_fid").fill(ecal_e);
+                        aidaGBL.histogram1D(eopFolder+"EoP_bottom_fid").fill(ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_bottom_fid").fill(trackp,ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_bottom_fid").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
+                        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_bottom_fid").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
 
                         
                         //Track sign is flipped
                         if (track.getCharge() > 0) {
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_ele_bottom_fid").fill(trackp,momC/trackp);
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_ele_bottom_fid").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_ele_bottom_fid").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_ele_bottom_fid").fill(trackp,ecal_e/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_ele_bottom_fid").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_ele_bottom_fid").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                         }
                         else {
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_pos_bottom_fid").fill(trackp,momC/trackp);
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_pos_bottom_fid").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                            aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_pos_bottom_fid").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_pos_bottom_fid").fill(trackp,ecal_e/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_pos_bottom_fid").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                            aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_pos_bottom_fid").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                         }
                     }
                     
-                    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_fid").fill(trk_prms[BaseTrack.TANLAMBDA],momC/trackp);
-                    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(trk_prms[BaseTrack.PHI],momC/trackp);
+                    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_fid").fill(trk_prms[BaseTrack.TANLAMBDA],ecal_e/trackp);
+                    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(trk_prms[BaseTrack.PHI],ecal_e/trackp);
                     aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid").fill(trk_prms[BaseTrack.TANLAMBDA],
                                                                                    trk_prms[BaseTrack.PHI],
-                                                                                   momC/trackp);
+                                                                                   ecal_e/trackp);
                     
                 }
                 
@@ -731,7 +806,15 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 double pt = sqrt(track.getPX()*track.getPX() + track.getPY()*track.getPY());
                 int sign = trk_prms[BaseTrack.OMEGA] > 0. ? 1 : -1;
                 //Bias the FEEs to beam energy. Correct the curvature by projecting on  X / Y plane
-                double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
+                TrackState trackState = track.getTrackStates().get(0);
+                double tanLambda = trackState.getTanLambda();
+                //double phi = trk_prms[BaseTrack.PHI];
+                double phi = trackState.getPhi();
+
+                //The maps are between -pi/pi
+                if (phi > Math.PI)
+                    phi = phi - 2 * Math.PI;
+                
                 double cosLambda = 1. / (Math.sqrt(1+tanLambda*tanLambda));
                 
                 
@@ -746,6 +829,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     ((BaseTrack)track).setTrackParameters(trk_prms,bfield);
                 }
                 
+                
                 //Correct positrons. getCharge is flipped
                 if (posEoP>0 && (track.getCharge() < 0)) {
                     
@@ -754,8 +838,15 @@ public class SimpleGBLTrajAliDriver extends Driver {
                                      track.getPZ()*track.getPZ());
                     
                     
+                    //Get the correction from the ecal
+                    
+
+                    //Get the correction from the map
+                    double pos_eop_map = pos_map.getBinContent(pos_map.findBin(phi,tanLambda));
+                    //System.out.println("phi:"+phi+" tanL:"+tanLambda+ " eop:"+pos_eop_map);
+
                     //Provide the energy correction
-                    double targetP  = p * posEoP;
+                    double targetP  = p * pos_eop_map;
                     double targetPt = targetP * cosLambda;
                     double corrected_c = sign*(bfield*momentum_param)/(targetPt);
                     trk_prms[BaseTrack.OMEGA] = corrected_c;
@@ -770,8 +861,16 @@ public class SimpleGBLTrajAliDriver extends Driver {
                                      track.getPZ()*track.getPZ());
                     
                     
+                    //Get the correction from the map
+                    double ele_eop_map = ele_map.getBinContent(ele_map.findBin(phi,tanLambda));
+                    //System.out.println("phi:"+phi+" tanL:"+tanLambda+ " eop:"+ele_eop_map);
+
+                    //If I find a very bad fit, skip track
+                    if (ele_eop_map < 0.6 || ele_eop_map > 1.4)
+                        continue;
+
                     //Provide the energy correction
-                    double targetP  = p * posEoP;
+                    double targetP  = p * ele_eop_map;
                     double targetPt = targetP * cosLambda;
                     double corrected_c = sign*(bfield*momentum_param)/(targetPt);
                     trk_prms[BaseTrack.OMEGA] = corrected_c;
@@ -821,9 +920,9 @@ public class SimpleGBLTrajAliDriver extends Driver {
             //This should GBL Trajectories for both the ST+GBL and KF+GBL depending on the setup.
             
             //I think this should take the track->trackerHits and refit those with a GBL otherwise I think I miss the momentum constraint.. ?
-            
+
             List<GBLStripClusterData> trackGblStripClusterData  = computeGBLStripClusterData(track,TrackType,
-                                                                                             temp,gblStripClusterDataRelations,event);
+                                                                                             hitsOnTrack,gblStripClusterDataRelations,event);
             
             //Printout the Cluster Data: 
             
@@ -871,154 +970,158 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         ComputeCOMDerivatives(gblpoint);
                     
                 }//point loop
-                
-                
-                //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
-                
-                GblTrajectoryJna trajForMPII = null;
-                GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,1,1,1);
-                
-                //seed matrix q/p, yT', xT', xT, yT 
-                SymMatrix seedPrecision = new SymMatrix(5);
-                
-                if (constrainedFit) 
-                    seedPrecision.set(0,0,seed_precision);
-                if (constrainedTanLFit)
-                    seedPrecision.set(1,1,seed_precision);
-                if (constrainedPhi0Fit)
-                    seedPrecision.set(2,2,seed_precision);
-
-                //z0 constraint 
-                //seedPrecision.set(4,4,seed_precision);
-                
-                //d0 constraint
-                //seedPrecision.set(3,3,1000000);
-                
-                if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
-                    trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
-                }
-                
-                else {
-                    
-                    trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
-                }
-                
-                if (debugAlignmentDs)
-                    trajForMPII.printData();
-                
-                
-
-                //Fit the trajectory to get the Chi2
-                trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
-
-                //Avoid to use tracks with terrible Chi2
-                if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
-                    continue;
-                
-                if (writeMilleBinary)
-                    trajForMPII.milleOut(mille);
-                
-                if (correctTrack) {                
-
-                    //Form the FittedGblTrajectory for the unconstrained fit
-                    FittedGblTrajectory fitTraj = new FittedGblTrajectory(trajForMPII_unconstrained, Chi2.getValue(), Ndf.getValue(), lostWeight.getValue());
-                    
-                    fitTraj.setSensorMap(sensorMap);
-                    fitTraj.setPathLengthMap(pathLengthMap);
-                    
-                    Collection<TrackerHit> hth = track.getTrackerHits();
-                    List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
-                    Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
-                    Track gblTrk = newTrack.getFirst();
-
-                    if(computeGBLResiduals) {
-                        
-                        List<Double> b_residuals = new ArrayList<Double>();
-                        List<Float>   b_sigmas    = new ArrayList<Float>();
-                        List<Integer> r_sensors   = new ArrayList<Integer>();
-                        
-                        int numData[] = new int[1];
-                        Integer[] sensorsFromMapArray = fitTraj.getSensorMap().keySet().toArray(new Integer[0]);
-                        for (int i_s = 0; i_s < sensorsFromMapArray.length; i_s++) {
-                            int ilabel = sensorsFromMapArray[i_s];
-                            int mpid = fitTraj.getSensorMap().get(ilabel);
-                            List<Double> aResiduals   = new ArrayList<Double>();
-                            List<Double> aMeasErrors  = new ArrayList<Double>();
-                            List<Double> aResErrors   = new ArrayList<Double>();
-                            List<Double> aDownWeights = new ArrayList<Double>();
-                            trajForMPII_unconstrained.getMeasResults(ilabel,numData,aResiduals,aMeasErrors,aResErrors,aDownWeights);
-                            if (numData[0]>1) { 
-                                System.out.printf("GBLRefitterDriver::WARNING::We have SCT sensors. Residuals dimensions should be <=1\n");
-                            }
-                            for (int i=0; i<numData[0];i++) {
-                                //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
-                                //System.out.printf("Example1::measResults %d %d %d %f %f %f \n",ilabel, i, mpid, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));
-                                
-                                r_sensors.add(mpid);
-                                b_residuals.add(aResiduals.get(i));
-                                b_sigmas.add(aResErrors.get(i).floatValue());
-                            }
-                            
-                            GblTrajectoryJna gbl_fit_traj_u = new GblTrajectoryJna(points_on_traj,1,1,1);
-                            DoubleByReference Chi2_u = new DoubleByReference(0.);
-                            DoubleByReference lostWeight_u = new DoubleByReference(0.);
-                            IntByReference Ndf_u = new IntByReference(0);
-                            int[] u_numData  = new int[1]; 
-                            //Fit it once to have exactly the same starting point of gbl_fit_trajectory.
-                            gbl_fit_traj_u.fit(Chi2_u,Ndf_u,lostWeight_u,"");
-                            List<Double> u_aResiduals   = new ArrayList<Double>();   
-                            List<Double> u_aMeasErrors  = new ArrayList<Double>();
-                            List<Double> u_aResErrors   = new ArrayList<Double>();  
-                            List<Double> u_aDownWeights = new ArrayList<Double>();
-                            
-                            try {
-                                //Fit removing the measurement
-                                gbl_fit_traj_u.fit(Chi2_u,Ndf_u,lostWeight_u,"",ilabel);
-                                gbl_fit_traj_u.getMeasResults(ilabel,u_numData,u_aResiduals,u_aMeasErrors,u_aResErrors,u_aDownWeights); 
-                                for (int i=0; i<u_numData[0];i++) {
-                                    //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
-                                    //System.out.printf("Example1::UmeasResults %d %d %d %f %f %f \n",ilabel, i, mpid, u_aResiduals.get(i),u_aMeasErrors.get(i),u_aResErrors.get(i));
-                                    
-                                    r_sensors.add(mpid);
-                                    b_residuals.add(u_aResiduals.get(i));
-                                    b_sigmas.add(u_aResErrors.get(i).floatValue());
-                                }
-                            }
-                            catch (RuntimeException e){
-                                //  e.printStackTrack();
-                                r_sensors.add(-999);
-                                b_residuals.add(-9999.);
-                                b_sigmas.add((float)-9999.);
-                                //System.out.printf("Unbiasing fit fails! For label::%d\n",ilabel);
-                            }
-                            
-                            
-                            gbl_fit_traj_u.delete();
-                        } // loop on sensor map
-
-
-
-                        int trackerVolume = 0;
-                        if (gblTrk.getTrackStates().get(0).getTanLambda() < 0) trackerVolume = 1;
-                        TrackResidualsData resData  = new TrackResidualsData(trackerVolume,r_sensors,b_residuals,b_sigmas);
-                        trackResidualsCollection.add(resData);
-                        trackResidualsRelations.add(new BaseLCRelation(resData,gblTrk));
-
-                    } //computeResiduals
-                    
-                    
-                    
-                    //System.out.println("Refitted track chi2 " + gblTrk.getChi2());
-                    refittedTracks.add(gblTrk);
-                    nTracksTotal += refittedTracks.size();
-                    kinkDataCollection.add(newTrack.getSecond());
-                    kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
-                }
-                
-                trajForMPII.delete();
-                trajForMPII_unconstrained.delete();
-                
             }// composite Alignment
+                
+            //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
+                
+            GblTrajectoryJna trajForMPII = null;
+            GblTrajectoryJna trajForMPII_unconstrained = new GblTrajectoryJna(points_on_traj,1,1,1);
+                
+            //seed matrix q/p, yT', xT', xT, yT 
+            SymMatrix seedPrecision = new SymMatrix(5);
+                
+            if (constrainedFit) 
+                seedPrecision.set(0,0,seed_precision);
+            if (constrainedTanLFit)
+                seedPrecision.set(1,1,seed_precision);
+            if (constrainedPhi0Fit)
+                seedPrecision.set(2,2,seed_precision);
+
+            //z0 constraint 
+            //seedPrecision.set(4,4,seed_precision);
+                
+            //d0 constraint
+            //seedPrecision.set(3,3,1000000);
+                
+            if (!constrainedFit && !constrainedTanLFit && !constrainedPhi0Fit && !constrainedD0Fit && !constrainedZ0Fit) {
+                trajForMPII =  new GblTrajectoryJna(points_on_traj,1,1,1);
+            }
+                
+            else {
+                    
+                //System.out.println("Constrained Traj!");
+                trajForMPII = new GblTrajectoryJna(points_on_traj,1,seedPrecision,1,1,1);
+            }
+                
+            if (debugAlignmentDs)
+                trajForMPII.printData();
+                
+                
+
+            //Fit the trajectory to get the Chi2
+            trajForMPII_unconstrained.fit(Chi2,Ndf, lostWeight,"");
+
+            //Avoid to use tracks with terrible Chi2
+            if (Chi2.getValue() / Ndf.getValue() > writeMilleChi2Cut)
+                continue;
+                
+            if (writeMilleBinary)
+                trajForMPII.milleOut(mille);
+                
+            if (correctTrack) {                
+                
+                trajForMPII.fit(Chi2,Ndf, lostWeight,"");
+
+                //Form the FittedGblTrajectory for the unconstrained fit
+                //FittedGblTrajectory fitTraj = new FittedGblTrajectory(trajForMPII_unconstrained, Chi2.getValue(), Ndf.getValue(), lostWeight.getValue());
+                FittedGblTrajectory fitTraj = new FittedGblTrajectory(trajForMPII, Chi2.getValue(), Ndf.getValue(), lostWeight.getValue());
+                    
+                fitTraj.setSensorMap(sensorMap);
+                fitTraj.setPathLengthMap(pathLengthMap);
+                    
+                Collection<TrackerHit> hth = track.getTrackerHits();
+                List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
+                Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
+                Track gblTrk = newTrack.getFirst();
+                                
+                if(computeGBLResiduals) {
+                        
+                    List<Double> b_residuals = new ArrayList<Double>();
+                    List<Float>   b_sigmas    = new ArrayList<Float>();
+                    List<Integer> r_sensors   = new ArrayList<Integer>();
+                        
+                    int numData[] = new int[1];
+                    Integer[] sensorsFromMapArray = fitTraj.getSensorMap().keySet().toArray(new Integer[0]);
+                    for (int i_s = 0; i_s < sensorsFromMapArray.length; i_s++) {
+                        int ilabel = sensorsFromMapArray[i_s];
+                        int mpid = fitTraj.getSensorMap().get(ilabel);
+                        List<Double> aResiduals   = new ArrayList<Double>();
+                        List<Double> aMeasErrors  = new ArrayList<Double>();
+                        List<Double> aResErrors   = new ArrayList<Double>();
+                        List<Double> aDownWeights = new ArrayList<Double>();
+                        trajForMPII_unconstrained.getMeasResults(ilabel,numData,aResiduals,aMeasErrors,aResErrors,aDownWeights);
+                        if (numData[0]>1) { 
+                            System.out.printf("GBLRefitterDriver::WARNING::We have SCT sensors. Residuals dimensions should be <=1\n");
+                        }
+                        for (int i=0; i<numData[0];i++) {
+                            //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
+                            //System.out.printf("Example1::measResults %d %d %d %f %f %f \n",ilabel, i, mpid, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));
+                                
+                            r_sensors.add(mpid);
+                            b_residuals.add(aResiduals.get(i));
+                            b_sigmas.add(aResErrors.get(i).floatValue());
+                        }
+                            
+                        GblTrajectoryJna gbl_fit_traj_u = new GblTrajectoryJna(points_on_traj,1,1,1);
+                        DoubleByReference Chi2_u = new DoubleByReference(0.);
+                        DoubleByReference lostWeight_u = new DoubleByReference(0.);
+                        IntByReference Ndf_u = new IntByReference(0);
+                        int[] u_numData  = new int[1]; 
+                        //Fit it once to have exactly the same starting point of gbl_fit_trajectory.
+                        gbl_fit_traj_u.fit(Chi2_u,Ndf_u,lostWeight_u,"");
+                        List<Double> u_aResiduals   = new ArrayList<Double>();   
+                        List<Double> u_aMeasErrors  = new ArrayList<Double>();
+                        List<Double> u_aResErrors   = new ArrayList<Double>();  
+                        List<Double> u_aDownWeights = new ArrayList<Double>();
+                            
+                        try {
+                            //Fit removing the measurement
+                            gbl_fit_traj_u.fit(Chi2_u,Ndf_u,lostWeight_u,"",ilabel);
+                            gbl_fit_traj_u.getMeasResults(ilabel,u_numData,u_aResiduals,u_aMeasErrors,u_aResErrors,u_aDownWeights); 
+                            for (int i=0; i<u_numData[0];i++) {
+                                //System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");
+                                //System.out.printf("Example1::UmeasResults %d %d %d %f %f %f \n",ilabel, i, mpid, u_aResiduals.get(i),u_aMeasErrors.get(i),u_aResErrors.get(i));
+                                    
+                                r_sensors.add(mpid);
+                                b_residuals.add(u_aResiduals.get(i));
+                                b_sigmas.add(u_aResErrors.get(i).floatValue());
+                            }
+                        }
+                        catch (RuntimeException e){
+                            //  e.printStackTrack();
+                            r_sensors.add(-999);
+                            b_residuals.add(-9999.);
+                            b_sigmas.add((float)-9999.);
+                            //System.out.printf("Unbiasing fit fails! For label::%d\n",ilabel);
+                        }
+                            
+                            
+                        gbl_fit_traj_u.delete();
+                    } // loop on sensor map
+
+
+
+                    int trackerVolume = 0;
+                    if (gblTrk.getTrackStates().get(0).getTanLambda() < 0) trackerVolume = 1;
+                    TrackResidualsData resData  = new TrackResidualsData(trackerVolume,r_sensors,b_residuals,b_sigmas);
+                    trackResidualsCollection.add(resData);
+                    trackResidualsRelations.add(new BaseLCRelation(resData,gblTrk));
+
+                } //computeResiduals
+                    
+                    
+                    
+                //System.out.println("Refitted track chi2 " + gblTrk.getChi2());
+                refittedTracks.add(gblTrk);
+                nTracksTotal += refittedTracks.size();
+                kinkDataCollection.add(newTrack.getSecond());
+                kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
+            }
+                
+            trajForMPII.delete();
+            trajForMPII_unconstrained.delete();
+                
+            
             
         }//loop on tracks
         
@@ -1662,8 +1765,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
         
         //Hard coded uncertainties
         double[] bserror = new double[2];
-        bserror[0]=0.02;
-        bserror[1]=0.2;
+        bserror[0]=0.01;
+        bserror[1]=0.05;
         return GblUtils.gblMakeBsPoint(htf, center, udir, vdir, bserror);
     }
     

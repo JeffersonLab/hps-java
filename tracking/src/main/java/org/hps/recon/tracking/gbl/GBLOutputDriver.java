@@ -81,6 +81,21 @@ public class GBLOutputDriver extends Driver {
     int nTotalTracks = 0;
     int nPassedTracks = 0;
     
+    private TFileJna residualmaps;
+    private Map<String,TH3DJna> res_vs_uv_map        = new HashMap<String,TH3DJna>();
+    private Map<String,TH3DJna> res_vs_uv_map_5hits  = new HashMap<String,TH3DJna>();
+    private Map<String,TH3DJna> res_vs_uv_map_6hits  = new HashMap<String,TH3DJna>();
+    private Map<String,TH3DJna> res_vs_uv_map_lt2    = new HashMap<String,TH3DJna>();
+    private Map<String,TH3DJna> res_vs_uv_map_2_2_5  = new HashMap<String,TH3DJna>();
+    private Map<String,TH3DJna> res_vs_uv_map_2_5_3  = new HashMap<String,TH3DJna>();
+    private Map<String,TH3DJna> res_vs_uv_map_mt3    = new HashMap<String,TH3DJna>();
+
+    private boolean doResidualMaps = true;
+    
+
+    public void setDoResidualMaps (boolean val) {
+        doResidualMaps = val;
+    }
 
     public void setDataRelationCollection (String val) {
         dataRelationCollection = val;
@@ -127,7 +142,15 @@ public class GBLOutputDriver extends Driver {
         trackCollectionName=val;
     }
 
-
+    
+    @Override 
+    protected void startOfData() {
+        
+        if (doResidualMaps) {
+            residualmaps = new TFileJna("output_resmap_file.root","RECREATE");
+        }
+    }
+    
     @Override
     protected void detectorChanged(Detector detector) {
         if (aidaGBL == null)
@@ -152,13 +175,19 @@ public class GBLOutputDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
+
+        if (!event.hasCollection(Track.class, trackCollectionName)) {
+            return;
+        }
+
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         
         int TrackType = 0;
+        int minHits = nHits;
         
         if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) {
             TrackType = 1;
-            nHits = 2*nHits;
+            minHits = 2*nHits;
             //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
         }
 
@@ -192,7 +221,7 @@ public class GBLOutputDriver extends Driver {
             //    System.out.println("Track passed chi2 " + trk.getChi2());
             
             //Remove tracks with less than 10 hits
-            if (trk.getTrackerHits().size() < nHits)
+            if (trk.getTrackerHits().size() < minHits)
                 continue;
 
             
@@ -380,13 +409,19 @@ public class GBLOutputDriver extends Driver {
         //Hep3Vector mom = new BasicHep3Vector(trackState.getMomentum());
         //System.out.println("Track momentum " + mom.toString());
         double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
-        
+        double trackpx = trackState.getMomentum()[0];
+        double trackpy = trackState.getMomentum()[1];
+        double trackpz = trackState.getMomentum()[2];
         
         FillGBLTrackPlot(trkpFolder+"d0",isTop,charge,trackState.getD0());
         FillGBLTrackPlot(trkpFolder+"z0",isTop,charge,trackState.getZ0());
         FillGBLTrackPlot(trkpFolder+"phi",isTop,charge,trackState.getPhi());
         FillGBLTrackPlot(trkpFolder+"tanLambda",isTop,charge,trackState.getTanLambda());
         FillGBLTrackPlot(trkpFolder+"p",isTop,charge,trackp);
+        FillGBLTrackPlot(trkpFolder+"px",isTop,charge,trackpx);
+        FillGBLTrackPlot(trkpFolder+"py",isTop,charge,trackpy);
+        FillGBLTrackPlot(trkpFolder+"pz",isTop,charge,trackpz);
+        
         if (trk.getTrackerHits().size()==7)
             FillGBLTrackPlot(trkpFolder+"p7h",isTop,charge,trackp);
         if (trk.getTrackerHits().size()==6)
@@ -402,6 +437,7 @@ public class GBLOutputDriver extends Driver {
         
         //Momentum maps
         FillGBLTrackPlot(trkpFolder+"p_vs_phi",isTop,charge,trackState.getPhi(),trackp);
+        FillGBLTrackPlot(trkpFolder+"tanLambda_vs_phi",isTop,charge,trackState.getPhi(),trackState.getTanLambda());
         FillGBLTrackPlot(trkpFolder+"p_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackp);
         if (TrackUtils.isHoleTrack(trk))
             FillGBLTrackPlot(trkpFolder+"p_vs_tanLambda_hole",isTop,charge,trackState.getTanLambda(),trackp);
@@ -511,7 +547,8 @@ public class GBLOutputDriver extends Driver {
         Map<Integer,HpsSiSensor> sensorMPIDs   = new HashMap<Integer,HpsSiSensor>();
         double trackTime = 0.;
         double trackTimeSD = 0.;
-        
+        TrackState trackState = trk.getTrackStates().get(0);
+        double tanL = trackState.getTanLambda();
 
         for (HpsSiSensor sensor : sensorHits.keySet()) {
             //Also fill here the sensorMPIDs map
@@ -522,7 +559,7 @@ public class GBLOutputDriver extends Driver {
             // the hit information available on each sensor is meaningful only along the measurement direction,
             // Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
             // instead: extract the information of the hit of the track at the sensor position before GBL
-            TrackState trackState = trk.getTrackStates().get(0);
+            
             Hep3Vector hitTrackPos = TrackStateUtils.getLocationAtSensor(trackState, sensor, bfield);
             
             if (hitTrackPos == null) {
@@ -567,7 +604,7 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram2D(resFolder+"residual_after_GBL_vs_v_predicted_" + sensor.getName()).fill(extrapPosSensor.y(), resSensor.x());
             aidaGBL.histogram2D(resFolder+"residual_after_GBL_vs_u_hit_" + sensor.getName()).fill(hitPosSensor.x(), resSensor.x());
             aidaGBL.histogram1D(resFolder+"residual_after_GBL_" + sensor.getName()).fill(resSensor.x());
-
+            
 
             trackTime += sensorHits.get(sensor).getTime();
             
@@ -711,6 +748,36 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.profile1D(resFolder+"uresidual_GBL_mod_p").fill(trackRes.getIntVal(i_hit)+spacing,trackRes.getDoubleVal(i_hit));
                 aidaGBL.histogram1D(resFolder+"uresidual_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit));
                 aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_u_hit_" + sensorName).fill(hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
+
+                if (doResidualMaps) {
+                    res_vs_uv_map.get("uresidual_GBL_vs_u_v_"+sensorName).fill(extrapPosSensor.y(),hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
+
+                    /*
+                    if (trk.getTrackerHits().size() == 5)
+                        res_vs_uv_map_5hits.get("uresidual_GBL_vs_u_v_5hits_"+sensorName).fill(extrapPosSensor.y(),hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
+                    
+                    if (trk.getTrackerHits().size() == 6)
+                        res_vs_uv_map_6hits.get("uresidual_GBL_vs_u_v_6hits_"+sensorName).fill(extrapPosSensor.y(),hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
+                    
+                    Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
+
+                    if (momentum.magnitude() < 2)
+                        res_vs_uv_map_lt2.get("uresidual_GBL_vs_u_v_lt2_"+sensorName).fill(extrapPosSensor.y(),hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
+                    
+                    else if (momentum.magnitude() < 2.5)
+                        res_vs_uv_map_2_2_5.get("uresidual_GBL_vs_u_v_2_2_5_"+sensorName).fill(extrapPosSensor.y(),hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
+                    
+                    else if (momentum.magnitude() < 3)
+                        res_vs_uv_map_2_5_3.get("uresidual_GBL_vs_u_v_2_5_3_"+sensorName).fill(extrapPosSensor.y(),hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
+                    
+                    else
+                        res_vs_uv_map_mt3.get("uresidual_GBL_vs_u_v_mt_3"+sensorName).fill(extrapPosSensor.y(),hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
+                        
+                    */
+                }
+                
+                
+                aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_tanLambda_" + sensorName).fill(tanL,trackRes.getDoubleVal(i_hit));
                 aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_v_pred_" + sensorName).fill(extrapPosSensor.y(),trackRes.getDoubleVal(i_hit));
                 aidaGBL.histogram1D(epullFolder+"ureserror_GBL_" + sensorName).fill(trackRes.getFloatVal(i_hit));
                 aidaGBL.histogram1D(epullFolder+"ures_pull_GBL_" + sensorName).fill(trackRes.getDoubleVal(i_hit) / trackRes.getFloatVal(i_hit));
@@ -817,6 +884,7 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram1D(resFolder+"bresidual_GBL_" + sensor.getName(), nbins, -xmax, xmax);
             aidaGBL.histogram1D(resFolder+"uresidual_GBL_" + sensor.getName(), nbins, -xmax, xmax);
             aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_u_hit_" + sensor.getName(),100,-20.0,20.0,100,-0.1,0.1);
+            aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_tanLambda_" + sensor.getName(),200,-0.1,0.1,100,-0.1,0.1);
             aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_v_pred_" + sensor.getName(),300,-60.0,60.0,100,-0.1,0.1);
             aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_dT_hit_" + sensor.getName(),100,-10.0,10.0,100,-0.1,0.1);
             aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_dTs_hit_" + sensor.getName(),100,-5.0,5.0,100,-0.1,0.1);
@@ -831,6 +899,48 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram2D(hitFolder+"predicted_u_vs_v_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
             aidaGBL.histogram2D(hitFolder+"predicted_u_vs_v_pos_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
             aidaGBL.histogram2D(hitFolder+"predicted_u_vs_v_neg_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
+            
+            if (doResidualMaps) {
+                
+                res_vs_uv_map.put("uresidual_GBL_vs_u_v_"+sensor.getName(),new TH3DJna("uresidual_GBL_vs_u_v_"+sensor.getName(),
+                                                                                       "uresidual_GBL_vs_u_v_"+sensor.getName(),
+                                                                                       300,-60,60,100,-20,20,100,-0.2,0.2) );
+                
+                
+                res_vs_uv_map_5hits.put("uresidual_GBL_vs_u_v_5hits_"+sensor.getName(),new TH3DJna("uresidual_GBL_vs_u_v_5hits"+sensor.getName(),
+                                                                                             "uresidual_GBL_vs_u_v_5hits"+sensor.getName(),
+                                                                                             300,-60,60,100,-20,20,100,-0.2,0.2) );
+                
+                /*
+                res_vs_uv_map_6hits.put("uresidual_GBL_vs_u_v_6hits_"+sensor.getName(),new TH3DJna("uresidual_GBL_vs_u_v_6hits"+sensor.getName(),
+                                                                                             "uresidual_GBL_vs_u_v_6hits"+sensor.getName(),
+                                                                                             300,-60,60,100,-20,20,100,-0.2,0.2) );
+                
+                
+                res_vs_uv_map_lt2.put("uresidual_GBL_vs_u_v_lt2_"+sensor.getName(),new TH3DJna("uresidual_GBL_vs_u_v_lt2_"+sensor.getName(),
+                                                                                           "uresidual_GBL_vs_u_v_lt2_"+sensor.getName(),
+                                                                                           300,-60,60,100,-20,20,100,-0.2,0.2) );
+                
+                
+                res_vs_uv_map_2_2_5.put("uresidual_GBL_vs_u_v_2_2_5_"+sensor.getName(),new TH3DJna("uresidual_GBL_vs_u_v_2_2_5_"+sensor.getName(),
+                                                                                             "uresidual_GBL_vs_u_v_2_2_5_"+sensor.getName(),
+                                                                                             300,-60,60,100,-20,20,100,-0.2,0.2) );
+                
+                
+                res_vs_uv_map_2_5_3.put("uresidual_GBL_vs_u_v_2_5_3_"+sensor.getName(),new TH3DJna("uresidual_GBL_vs_u_v_2_5_3_"+sensor.getName(),
+                                                                                             "uresidual_GBL_vs_u_v_2_5_3_"+sensor.getName(),
+                                                                                             300,-60,60,100,-20,20,100,-0.2,0.2) );
+                
+                
+                res_vs_uv_map_mt3.put("uresidual_GBL_vs_u_v_mt3_"+sensor.getName(),new TH3DJna("uresidual_GBL_vs_u_v_mt3_"+sensor.getName(),
+                                                                                           "uresidual_GBL_vs_u_v_mt3_"+sensor.getName(),
+                                                                                           300,-60,60,100,-20,20,100,-0.2,0.2) );
+                
+                */
+
+            }
+            
+            
             
             xmax = 0.0006;
             if(l==1){
@@ -876,9 +986,12 @@ public class GBLOutputDriver extends Driver {
                 //TH1Ds
                 aidaGBL.histogram1D(trkpFolder+"d0"+vol+charge,nbins_t,-5.0,5.0);
                 aidaGBL.histogram1D(trkpFolder+"z0"+vol+charge,nbins_t,-1.3,1.3);
-                aidaGBL.histogram1D(trkpFolder+"phi"+vol+charge,nbins_t,-0.06,0.06);
+                aidaGBL.histogram1D(trkpFolder+"phi"+vol+charge,nbins_t,-0.2,0.2);
                 aidaGBL.histogram1D(trkpFolder+"tanLambda"+vol+charge,nbins_t,-0.2,0.2);
                 aidaGBL.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,pmax);
+                aidaGBL.histogram1D(trkpFolder+"px"+vol+charge,2*nbins_p,0.,pmax);
+                aidaGBL.histogram1D(trkpFolder+"py"+vol+charge,2*nbins_p,-1.,1.);
+                aidaGBL.histogram1D(trkpFolder+"pz"+vol+charge,2*nbins_p,-1.,1.);
                 aidaGBL.histogram1D(trkpFolder+"p7h"+vol+charge,nbins_p,0.,pmax);
                 aidaGBL.histogram1D(trkpFolder+"p6h"+vol+charge,nbins_p,0.,pmax);
                 aidaGBL.histogram1D(trkpFolder+"p5h"+vol+charge,nbins_p,0.,pmax);
@@ -917,6 +1030,7 @@ public class GBLOutputDriver extends Driver {
 
                 aidaGBL.histogram2D(trkpFolder+"p_Missing1Hit"+vol+charge,8,0,8,nbins_p,0.0,pmax);
                 aidaGBL.histogram2D(trkpFolder+"p_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
+                aidaGBL.histogram2D(trkpFolder+"tanLambda_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,-0.1,0.1);
                 aidaGBL.histogram2D(trkpFolder+"p_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
                 aidaGBL.histogram3D(trkpFolder+"p_vs_phi_tanLambda"+vol+charge, 50,-0.3,0.3,50,-0.2,0.2,100,0.,pmax);
                 aidaGBL.histogram2D(trkpFolder+"p_vs_tanLambda_hole"+vol+charge, 50,-0.3,0.3,100,0.,pmax);
@@ -946,7 +1060,7 @@ public class GBLOutputDriver extends Driver {
     }
     
     public void endOfData() {
-
+        
         System.out.println("GBLOutputDriver:: Number of processed Tracks " + nTotalTracks);
         System.out.println("GBLOutputDriver:: Number of passed Tracks " + nPassedTracks);
 
@@ -969,6 +1083,32 @@ public class GBLOutputDriver extends Driver {
             } catch (IOException ex) {
                 Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+
+        if (doResidualMaps)  {
+            //write map
+            for (TH3DJna h : res_vs_uv_map.values())
+                h.write(residualmaps);
+            /*
+            for (TH3DJna h : res_vs_uv_map_5hits.values())
+                h.write(residualmaps);
+            for (TH3DJna h : res_vs_uv_map_6hits.values())
+                h.write(residualmaps);
+            for (TH3DJna h : res_vs_uv_map_lt2.values())
+                h.write(residualmaps);
+            for (TH3DJna h : res_vs_uv_map_2_2_5.values())
+                h.write(residualmaps);
+            for (TH3DJna h : res_vs_uv_map_2_5_3.values())
+                h.write(residualmaps);
+            for (TH3DJna h : res_vs_uv_map_mt3.values())
+                h.write(residualmaps);
+            */
+            
+
+
+            
+            residualmaps.close();
+            residualmaps.delete();
         }
     }
 }
