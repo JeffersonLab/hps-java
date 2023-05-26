@@ -81,7 +81,28 @@ public class MakeGblTracks {
         // Create a new SeedTrack
         BaseTrack trk = new BaseTrack();
 
-        // Add the hits to the track
+        /*
+         * we could look into converting the points listed with the GBL
+         * trajectory into the actual TrackerHits in the GBL track.
+         * This was confusing so I didn't do it.
+        // Add the hits to the track, converting them to 1D hits
+        // that inherit from TrackerHit
+        for (GblPoint pt : fittedGblTrajectory.get_traj().getSinglePoints()) {
+           * GblPoint has
+           *  - P2P Jacobian
+           *  - Derivative matrices
+           *  - Position projected onto something?
+          SiTrackerHitStrip1D hit = new SiTrackerHitStrip1D(
+              ,// Hep3Vector position
+              ,// SymmetricMatrix covariance matrix
+              ,// double energy
+              ,// double time
+              ,// List<RawTrackerHit> raw hits
+              // TrackerHitType decoded type
+              );
+          trk.addHit(hit);
+        }
+        */
         for (TrackerHit hit : hitsOnTrack) {
             trk.addHit(hit);
         }

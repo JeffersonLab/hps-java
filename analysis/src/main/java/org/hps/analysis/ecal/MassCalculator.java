@@ -139,10 +139,10 @@ public class MassCalculator {
      * 
      * @return combined momentum (GeV)
      */
-    public static double combinedMomentum(Cluster cluster, Track track, double momentum) {
+    public static double combinedMomentum(Cluster cluster, Track track, double momentum, int runNumber) {
         double energy = cluster.getEnergy();
         TrackState trackState = track.getTrackStates().get(0);
-        Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trackState);
+        Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trackState, runNumber);
 
         int ix = ClusterUtilities.findSeedHit(cluster).getIdentifierFieldValue("ix");
         double yraw = posAtEcal.y();
@@ -168,14 +168,14 @@ public class MassCalculator {
      * 
      * @return weighted invariant mass (GeV)
      */
-    public static double combinedMass(Cluster clusterA, Cluster clusterB, ReconstructedParticle v0) {
+    public static double combinedMass(Cluster clusterA, Cluster clusterB, ReconstructedParticle v0, int runNumber) {
         double momentumA = Math.sqrt(Math.pow(v0.getStartVertex().getParameters().get("p1X"), 2)
                 + Math.pow(v0.getStartVertex().getParameters().get("p1Y"), 2) + Math.pow(v0.getStartVertex().getParameters().get("p1Z"), 2));
         double momentumB = Math.sqrt(Math.pow(v0.getStartVertex().getParameters().get("p2X"), 2)
                 + Math.pow(v0.getStartVertex().getParameters().get("p2Y"), 2) + Math.pow(v0.getStartVertex().getParameters().get("p2Z"), 2));
        
-        double energyA = combinedMomentum(clusterA, v0.getParticles().get(0).getTracks().get(0), momentumA);
-        double energyB = combinedMomentum(clusterB, v0.getParticles().get(1).getTracks().get(0), momentumB);
+        double energyA = combinedMomentum(clusterA, v0.getParticles().get(0).getTracks().get(0), momentumA, runNumber);
+        double energyB = combinedMomentum(clusterB, v0.getParticles().get(1).getTracks().get(0), momentumB, runNumber);
 
         double cosT = cosTheta(v0);
         double mass = Math.sqrt(2 * energyA * energyB * (1 - cosT));
@@ -192,13 +192,13 @@ public class MassCalculator {
      * 
      * @return weighted invariant mass (GeV)
      */
-    public static double combinedMass(Track trackA, Cluster clusterB, ReconstructedParticle v0) {
+    public static double combinedMass(Track trackA, Cluster clusterB, ReconstructedParticle v0, int runNumber) {
         double momentumA = Math.sqrt(Math.pow(v0.getStartVertex().getParameters().get("p1X"), 2)
                 + Math.pow(v0.getStartVertex().getParameters().get("p1Y"), 2) + Math.pow(v0.getStartVertex().getParameters().get("p1Z"), 2));
         double momentumB = Math.sqrt(Math.pow(v0.getStartVertex().getParameters().get("p2X"), 2)
                 + Math.pow(v0.getStartVertex().getParameters().get("p2Y"), 2) + Math.pow(v0.getStartVertex().getParameters().get("p2Z"), 2));
         double energyA = momentumA;
-        double energyB = combinedMomentum(clusterB, v0.getParticles().get(1).getTracks().get(0), momentumB);
+        double energyB = combinedMomentum(clusterB, v0.getParticles().get(1).getTracks().get(0), momentumB, runNumber);
 
         double cosT = cosTheta(v0);
         double mass = Math.sqrt(2 * energyA * energyB * (1 - cosT));
@@ -214,12 +214,12 @@ public class MassCalculator {
      * 
      * @return weighted invariant mass (GeV)
      */
-    public static double combinedMass(Cluster clusterA, Track trackB, ReconstructedParticle v0) {
+    public static double combinedMass(Cluster clusterA, Track trackB, ReconstructedParticle v0, int runNumber) {
         double momentumA = Math.sqrt(Math.pow(v0.getStartVertex().getParameters().get("p1X"), 2)
                 + Math.pow(v0.getStartVertex().getParameters().get("p1Y"), 2) + Math.pow(v0.getStartVertex().getParameters().get("p1Z"), 2));
         double momentumB = Math.sqrt(Math.pow(v0.getStartVertex().getParameters().get("p2X"), 2)
                 + Math.pow(v0.getStartVertex().getParameters().get("p2Y"), 2) + Math.pow(v0.getStartVertex().getParameters().get("p2Z"), 2));
-        double energyA = combinedMomentum(clusterA, v0.getParticles().get(0).getTracks().get(0), momentumA);
+        double energyA = combinedMomentum(clusterA, v0.getParticles().get(0).getTracks().get(0), momentumA, runNumber);
         double energyB = momentumB;
 
         double cosT = cosTheta(v0);

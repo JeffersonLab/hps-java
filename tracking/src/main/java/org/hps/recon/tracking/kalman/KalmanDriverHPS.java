@@ -193,6 +193,9 @@ public class KalmanDriverHPS extends Driver {
             System.out.println(trackCollectionName + " does not exist; skipping event");
             return;
         }
+        int runNumber = event.getRunNumber();
+       
+        KI.setRunNumber(runNumber);
         int evtNumb = event.getEventNumber();
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         List<Track> outputSeedTracks = new ArrayList<Track>();

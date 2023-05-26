@@ -30,6 +30,7 @@ import org.lcsim.event.TrackState;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.fit.helicaltrack.HelicalTrackCross;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
@@ -76,10 +77,14 @@ public class GBLOutputDriver extends Driver {
 
     private double minMom  = 1.;
     private double maxMom  = 6.;
-    private double minTanL = 0.0001;
     private int nHits = 0;
     int nTotalTracks = 0;
     int nPassedTracks = 0;
+    private double minPhi = -999.9;
+    private double maxPhi = 999.9;
+
+    private double minTanL = 0.015;
+    private double maxTanL = 999.9;
     
     private TFileJna residualmaps;
     private Map<String,TH3DJna> res_vs_uv_map        = new HashMap<String,TH3DJna>();
@@ -112,6 +117,23 @@ public class GBLOutputDriver extends Driver {
     public void setMaxMom (double val) {
         maxMom = val;
     }
+
+    public void setMinPhi (double val) {
+        minPhi = val;
+    }
+
+    public void setMaxPhi (double val) {
+        maxPhi = val;
+    }
+
+    public void setMinTanL (double val) {
+        minTanL = val;
+    }
+
+    public void setMaxTanL (double val) {
+        maxTanL = val;
+    }
+
 
     //Override the Z of the target.
     public void setBsZ (double input) {
@@ -183,11 +205,17 @@ public class GBLOutputDriver extends Driver {
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         
         int TrackType = 0;
-        int minHits = nHits;
-        
+                
+        /*
+        System.out.print("GBLOutputDriver tracks (" + trackCollectionName + ") N hits: ");
+        for (Track trk : tracks) {
+          System.out.print(trk.getTrackerHits().size()+" ");
+        }
+        System.out.println();
+         */
+
         if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) {
             TrackType = 1;
-            minHits = 2*nHits;
             //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
         }
 
@@ -221,9 +249,14 @@ public class GBLOutputDriver extends Driver {
             //    System.out.println("Track passed chi2 " + trk.getChi2());
             
             //Remove tracks with less than 10 hits
-            if (trk.getTrackerHits().size() < minHits)
+            if ((TrackType == 0 && trk.getTrackerHits().size() < nHits) 
+                || (TrackType == 1 && trk.getTrackerHits().size() < 2*nHits)) {
+                System.out.println("WARNING:: "+trk.getClass().getSimpleName()
+                                   +" got to GBLOutputDriver with "+trk.getTrackerHits().size()+" hits"
+                                   +" which is below the cut that should have been already applied.");
                 continue;
-
+            }
+            
             
             //System.out.println("Track passed hits");
             
@@ -238,8 +271,17 @@ public class GBLOutputDriver extends Driver {
             //System.out.println("Track passed momentum");
             
             TrackState trackState = trk.getTrackStates().get(0);
-            //if (Math.abs(trackState.getTanLambda()) < minTanL)
-            //    continue;
+            if (Math.abs(trackState.getTanLambda()) < minTanL)
+                continue;
+
+            if (Math.abs(trackState.getTanLambda()) > maxTanL)
+                continue;
+            
+            if (Math.abs(trackState.getPhi()) < minPhi)
+                continue;
+
+            if (Math.abs(trackState.getPhi()) > maxPhi)
+                continue;
             
             //System.out.println("Track passed tanLambda");
             
@@ -462,11 +504,16 @@ public class GBLOutputDriver extends Driver {
         
         FillGBLTrackPlot(trkpFolder+"Chi2",isTop,charge,trk.getChi2());
         FillGBLTrackPlot(trkpFolder+"Chi2_vs_p",isTop,charge,trackp,trk.getChi2());
-        
-        
 
-        aidaGBL.histogram1D(trkpFolder+"nHits" + isTop).fill(trk.getTrackerHits().size());
-        aidaGBL.histogram1D(trkpFolder+"nHits" + isTop+charge).fill(trk.getTrackerHits().size());
+        // deduce multiplication factor for ST-started GBL tracks
+        int nhits = trk.getTrackerHits().size();
+        if (nhits > 0 && trk.getTrackerHits().get(0) instanceof HelicalTrackCross) {
+            // tracks created from cross hits have 2 measurments per hit instead of only
+            // one so we have to double that count for an equal comparison
+            nhits *= 2;
+        }
+        aidaGBL.histogram1D(trkpFolder+"nHits" + isTop).fill(nhits);
+        aidaGBL.histogram1D(trkpFolder+"nHits" + isTop+charge).fill(nhits);
 
         Hep3Vector beamspot = CoordinateTransformations.transformVectorToDetector(TrackUtils.extrapolateHelixToXPlane(trackState, 0));
         if (debug)

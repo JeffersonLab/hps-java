@@ -84,6 +84,12 @@ public class KalmanInterface {
     private static final double SVTcenter = 505.57;
     private static final double c = 2.99793e8; // Speed of light in m/s
     
+    private int runNumber = 14168;
+    
+    public void setRunNumber(int runNumber){
+        this.runNumber = runNumber;
+    }
+    
     public void setSiHitsLimit(int limit) {
         _siHitsLimit = limit;
     }
@@ -590,12 +596,13 @@ public class KalmanInterface {
         }
         
         // Extrapolate to the ECAL and make a new trackState there.
-        BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM);
+       
+        BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
         newTrack.getTrackStates().add(ts_ecal);
         
         // other track properties
         newTrack.setChisq(kT.chi2);
-        newTrack.setNDF(kT.SiteList.size() - 5);
+        newTrack.setNDF(newTrack.getTrackerHits().size() - 5);
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
         newTrack.setFitSuccess(true);
         

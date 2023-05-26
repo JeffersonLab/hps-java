@@ -1,40 +1,26 @@
 package org.hps.recon.tracking.gbl; 
 
-import com.sun.jna.Library; 
-import com.sun.jna.Native; 
-import com.sun.jna.Pointer; 
-
 import java.util.List;
-import java.util.ArrayList;
 
+import com.sun.jna.Pointer; 
+import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.ptr.PointerByReference;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 
-
+/**
+ * wrapper for the GblPoint JNA functions
+ * <p>
+ * This class helps aid in the translation between java structures
+ * and the JNA function types. Specifically, the work done here 
+ * re-promotes the GblPoint JNA functions to be member functions
+ * of a class (like they are in the original C++) and then also
+ * provides translations between the more heirarchical matrix.Matrix
+ * and matrix.Vector classes with the C-style arrays that are
+ * required to pass the data into the C++ library via JNA.
+ */
 public class GblPointJna { 
-    
-    public interface GblPointInterface extends Library { 
-        
-        GblPointInterface INSTANCE = (GblPointInterface) Native.loadLibrary("GBL", GblPointInterface.class); 
-        
-        Pointer GblPointCtor(double [] array); 
-        Pointer GblPointCtor2D(double matrix[][]); 
-        
-        int GblPoint_hasMeasurement(Pointer self);
-        double GblPoint_getMeasPrecMin(Pointer self);
-        void GblPoint_addMeasurement2D(Pointer self, double[] projArray, double[] resArray, double[] precArray, 
-                                       double minPrecision);
-        void GblPoint_addScatterer(Pointer self, double[] resArray, double[] precArray);
-        
-        void GblPoint_printPoint(Pointer self, int i);
-        void GblPoint_addGlobals(Pointer self, int[] labels, int nlabels, double[] derArray);
-        void GblPoint_getGlobalLabels(Pointer self, int[] labels);
-        int GblPoint_getNumGlobals(Pointer self);
-        void GblPoint_getGlobalDerivatives(Pointer self, double[] derArray);
-        
-    }
-    
     private Pointer self; 
 
     public GblPointJna(Matrix m) { 
@@ -43,25 +29,20 @@ public class GblPointJna {
         
         if (m.getRowDimension() != 5 || m.getColumnDimension() != 5) 
             throw new RuntimeException("GBLPoint:: Malformed point. JacobianP2P needs to be a 5x5 matrix. ");
-        self = GblPointInterface.INSTANCE.GblPointCtor(array); 
+        self = GblInterface.INSTANCE.GblPointCtor(array); 
+    }
+
+    public int getNumMeasurements() {
+        return GblInterface.INSTANCE.GblPoint_getNumMeasurements(self);
     }
 
     public void addGlobals(List<Integer> labels, Matrix globalDers) {
-        
         double [] gders = globalDers.getRowPackedCopy(); 
         int  [] glabels = new int[labels.size()];
         for (int ilabel=0; ilabel<labels.size(); ilabel++) {
             glabels[ilabel]=labels.get(ilabel);
         }
-        GblPointInterface.INSTANCE.GblPoint_addGlobals(self, glabels, labels.size(), gders);
-    }
-    
-    public int hasMeasurement() {
-        return GblPointInterface.INSTANCE.GblPoint_hasMeasurement(self);
-    }
-    
-    public double getMeasPrecMin() {
-        return GblPointInterface.INSTANCE.GblPoint_getMeasPrecMin(self);
+        GblInterface.INSTANCE.GblPoint_addGlobals(self, glabels, labels.size(), gders);
     }
     
     public void addMeasurement(Matrix aProjection, Vector aResiduals, Vector aPrecision) {
@@ -69,13 +50,12 @@ public class GblPointJna {
     }
     
     public void addMeasurement(Matrix aProjection, Vector aResiduals, Vector aPrecision, double minPrecision) {
-        
         double [] projArray = aProjection.getColumnPackedCopy();
         double [] resArray  = aResiduals.getColumnPackedCopy();
         double [] precArray = aPrecision.getColumnPackedCopy();
         
         if (aProjection.getRowDimension() == 2 )
-            GblPointInterface.INSTANCE.GblPoint_addMeasurement2D(self,projArray, resArray, precArray, minPrecision);
+            GblInterface.INSTANCE.GblPoint_addMeasurement2D(self,projArray, resArray, precArray, minPrecision);
         else
             throw new RuntimeException("GBLPoint:: unsupported call to addMeasurement. RowDim==2 only..");
     }
@@ -85,60 +65,42 @@ public class GblPointJna {
         double [] precArray = aPrecision.getColumnPackedCopy();
         
         if (aPrecision.getColumnDimension() == 1 )
-            GblPointInterface.INSTANCE.GblPoint_addScatterer(self,resArray,precArray);
+            GblInterface.INSTANCE.GblPoint_addScatterer(self,resArray,precArray);
         else 
             throw new RuntimeException("GBLPoint:: unsupported call to addMeasurement. ColDim==1 only..");
     }
 
     public void printPoint(int i) {
-        GblPointInterface.INSTANCE.GblPoint_printPoint(self,i);
+        GblInterface.INSTANCE.GblPoint_printPoint(self,i);
     }
     
     public Pointer getPtr() {
         return self;
     }
-    
-    public int getNumGlobals() {
-        return GblPointInterface.INSTANCE.GblPoint_getNumGlobals(self);
-    }
-    
-    public List<Integer> getGlobalLabels(){ 
-        
-        int nlabels = getNumGlobals();
-        int [] labels = new int[nlabels];
-        List<Integer> glabels = new ArrayList<Integer>();
 
-        GblPointInterface.INSTANCE.GblPoint_getGlobalLabels(self, labels);
-        
-        for (int i=0; i<nlabels; i++) {
-            glabels.add(labels[i]);
-            //System.out.println(glabels.get(i));
+    public void delete() {
+        GblInterface.INSTANCE.GblPoint_delete(self);
+    }
+
+    public Matrix getGlobalLabelsAndDerivatives(List<Integer> labels) {
+        IntByReference nlabels = new IntByReference(0);
+        PointerByReference labels_array_ptr = new PointerByReference();
+        PointerByReference ders_array_ptr = new PointerByReference();
+        GblInterface.INSTANCE.GblPoint_getGlobalLabelsAndDerivatives(self, nlabels, labels_array_ptr, ders_array_ptr);
+
+        int [] labels_array = labels_array_ptr.getValue().getIntArray(0, nlabels.getValue());
+        double [] ders_array = ders_array_ptr.getValue().getDoubleArray(0, nlabels.getValue());
+
+        labels.clear();
+        for (int i = 0; i < nlabels.getValue(); ++i) {
+            labels.add(labels_array[i]);
         }
-        
-        
 
-        return glabels;
-    }
-
-    public Matrix getGlobalDerivatives() {
-        
-        int ngders = getNumGlobals();
-        
-        Matrix gders = new Matrix(1,ngders);
-        double [] ders = new double[ngders];
-        
-        GblPointInterface.INSTANCE.GblPoint_getGlobalDerivatives(self, ders);
-        
-        for (int igd = 0; igd<ngders; igd++) {
-            gders.set(0,igd,ders[igd]);
+        Matrix ders = new Matrix(1, nlabels.getValue());
+        for (int i = 0; i < nlabels.getValue(); ++i) {
+            ders.set(0,i,ders_array[i]);
         }
-        
-        
-        //System.out.println("Derivatives");
-        //gders.print(6,6);
-        
-        return gders;
+
+        return ders;
     }
-    
-    
 }
