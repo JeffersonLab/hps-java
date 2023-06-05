@@ -327,7 +327,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
         }
         else {
             TrackData trackdata = (TrackData) trackToData.from(track);
-            TrackState ts_ecal = track.getTrackStateAtECal(track);
+            TrackState ts_ecal = TrackUtils.getTrackStateAtECal(track);
             //If trackstate is null, upstream extrapolation error. Skip this
             //Track
             if(ts_ecal == null){
