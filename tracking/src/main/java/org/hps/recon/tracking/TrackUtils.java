@@ -1732,6 +1732,13 @@ public class TrackUtils {
         return RKint.integrate(startPosition, p0Trans, distance);
     }
 
+    public static BaseTrackState getTrackExtrapAtTarget(Track track, double target_pos, FieldMap fm)
+    {
+        BaseTrackState bts = extrapolateTrackUsingFieldMap(TrackStateUtils.getTrackStateAtIP(track),BeamlineConstants.DIPOLE_EDGE_ENG_RUN, target_pos, 0, fm);
+        bts.setLocation(TrackState.LastLocation);
+        return bts;
+    }
+
     public static BaseTrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, double epsilon, FieldMap fieldMap) {
         // Start by extrapolating the track to the approximate point where the
         // fringe field begins.
@@ -1867,6 +1874,10 @@ public class TrackUtils {
             }
         }
         return null;
+    }
+
+    public static TrackState getTrackStateAtTarget(Track trk){
+        return getTrackStateAtLocation(trk, TrackState.LastLocation);
     }
 
     public static TrackState getTrackStateAtECal(Track trk) {

@@ -7,7 +7,7 @@
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
-        <!-- <driver name="PreCleanupDriver"/>-->
+        <driver name="PreCleanupDriver"/>
         <!-- Skip events with known bad conditions -->
         <driver name="EventFlagFilter"/>
         <!--RF driver-->

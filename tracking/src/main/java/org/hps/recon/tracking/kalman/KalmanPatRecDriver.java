@@ -283,6 +283,10 @@ public class KalmanPatRecDriver extends Driver {
         KI.setRunNumber(runNumber);
                 
         List<Track> outputFullTracks = new ArrayList<Track>();
+        List<Track> outputTracksAtECal = new ArrayList<Track>();
+        List<LCRelation> tracksAtECalRelations = new ArrayList<LCRelation>();
+        List<Track> outputTracksAtTarget = new ArrayList<Track>();
+        List<LCRelation> tracksAtTargetRelations = new ArrayList<LCRelation>();
         
         //For additional track information
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
@@ -296,10 +300,14 @@ public class KalmanPatRecDriver extends Driver {
         List<TrackResidualsData> trackResiduals = new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations = new ArrayList<LCRelation>();
        
-        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
+        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations, outputTracksAtECal, tracksAtECalRelations, outputTracksAtTarget, tracksAtTargetRelations);
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
+        event.put(outputFullTrackCollectionName+"AtECal", outputTracksAtECal, Track.class, flag);
+        event.put(outputFullTrackCollectionName+"AtECalRelations", tracksAtECalRelations, LCRelation.class,0);
+        event.put(outputFullTrackCollectionName+"AtTarget", outputTracksAtTarget, Track.class, flag);
+        event.put(outputFullTrackCollectionName+"AtTargetRelations", tracksAtTargetRelations, LCRelation.class,0);
         event.put("KFGBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
         event.put("KFGBLStripClusterDataRelations", gblStripClusterDataRelations, LCRelation.class, flag);
         event.put("KFTrackData",trackDataCollection, TrackData.class,0);
@@ -339,7 +347,7 @@ public class KalmanPatRecDriver extends Driver {
         }
     }
 
-    private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
+    private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations, List<Track> outputTracksAtECal, List<LCRelation> tracksAtECalRelations, List<Track> outputTracksAtTarget, List<LCRelation> tracksAtTargetRelations) {
         
         int evtNumb = event.getEventNumber();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
@@ -398,6 +406,17 @@ public class KalmanPatRecDriver extends Driver {
                 //double pt = Math.abs(1./ptInv_check);
                 
                 outputFullTracks.add(KalmanTrackHPS);
+
+                //Add track at ECal using track state at ECal
+                Track trackAtECal = KI.createTrackAtECal(kTk, KalmanTrackHPS);
+                outputTracksAtECal.add(trackAtECal);
+                tracksAtECalRelations.add(new BaseLCRelation(trackAtECal,KalmanTrackHPS));
+
+                //Add track at Target using track state at Target
+                Track trackAtTarget = KI.createTrackAtTarget(kTk, KalmanTrackHPS);
+                outputTracksAtTarget.add(trackAtTarget);
+                tracksAtTargetRelations.add(new BaseLCRelation(trackAtTarget,KalmanTrackHPS));
+
                 List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);
                 if (verbose) {
                     for (GBLStripClusterData clstr : clstrs) {

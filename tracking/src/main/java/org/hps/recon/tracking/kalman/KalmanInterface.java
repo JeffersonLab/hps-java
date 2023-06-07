@@ -520,6 +520,59 @@ public class KalmanInterface {
     public PropagatedTrackState propagateTrackState(TrackState stateHPS, double [] location, double [] direction) {
         return new PropagatedTrackState(stateHPS, location, direction, detPlanes, fM);
     }
+
+    public BaseTrack createTrackAtTarget(KalTrack kT, Track track) {
+        if (kT.SiteList == null) {
+            logger.log(Level.WARNING, "KalmanInterface.createTrack: Kalman track is incomplete.");
+            return null;
+        }
+        if (kT.covNaN()) {
+            logger.log(Level.FINE, "KalmanInterface.createTrack: Kalman track has NaN cov matrix.");
+            return null;
+        }
+        kT.sortSites(true);
+        Vec Bfield = KalmanInterface.getField(new Vec(0., SVTcenter ,0.), kT.SiteList.get(0).m.Bfield);
+        double B = Bfield.mag();
+
+        BaseTrack trackAtTarget = new BaseTrack();
+        TrackState tsAtTarget = TrackUtils.getTrackStateAtTarget(track);
+        if (tsAtTarget == null){
+            logger.log(Level.WARNING, "KalmanInterface.createTrackAtTarget: No track state at Target exists.");
+            return null;
+        }
+        trackAtTarget.setTrackParameters(tsAtTarget.getParameters(), B);
+        trackAtTarget.setReferencePoint(tsAtTarget.getReferencePoint());
+        trackAtTarget.setCovarianceMatrix(new SymmetricMatrix(5, tsAtTarget.getCovMatrix(), true));
+        trackAtTarget.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
+        return trackAtTarget;
+    }
+
+    // Create a Track at ECal using existing Track State at ECal
+    public BaseTrack createTrackAtECal(KalTrack kT, Track track) {
+        if (kT.SiteList == null) {
+            logger.log(Level.WARNING, "KalmanInterface.createTrack: Kalman track is incomplete.");
+            return null;
+        }
+        if (kT.covNaN()) {
+            logger.log(Level.FINE, "KalmanInterface.createTrack: Kalman track has NaN cov matrix.");
+            return null;
+        }
+        kT.sortSites(true);
+        Vec Bfield = KalmanInterface.getField(new Vec(0., SVTcenter ,0.), kT.SiteList.get(0).m.Bfield);
+        double B = Bfield.mag();
+
+        BaseTrack trackAtECal = new BaseTrack();
+        TrackState tsAtECal = TrackUtils.getTrackStateAtECal(track);
+        if (tsAtECal == null){
+            logger.log(Level.WARNING, "KalmanInterface.createTrackAtECal: No track state at ECal exists.");
+            return null;
+        }
+        trackAtECal.setTrackParameters(tsAtECal.getParameters(), B);
+        trackAtECal.setReferencePoint(tsAtECal.getReferencePoint());
+        trackAtECal.setCovarianceMatrix(new SymmetricMatrix(5, tsAtECal.getCovMatrix(), true));
+        trackAtECal.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
+        return trackAtECal;
+    }
     
     // Create an HPS track from a Kalman track
     public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
@@ -596,9 +649,12 @@ public class KalmanInterface {
         }
         
         // Extrapolate to the ECAL and make a new trackState there.
-       
         BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
         newTrack.getTrackStates().add(ts_ecal);
+
+        // Extrapolate to Target and make a new trackState there.
+        BaseTrackState ts_target = TrackUtils.getTrackExtrapAtTarget(newTrack, -4.3, fM);
+        newTrack.getTrackStates().add(ts_target);
         
         // other track properties
         newTrack.setChisq(kT.chi2);
