@@ -7,7 +7,7 @@
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
-        <driver name="PreCleanupDriver"/>
+        <!-- <driver name="PreCleanupDriver"/> -->
         <!-- Skip events with known bad conditions -->
         <driver name="EventFlagFilter"/>
         <!--RF driver-->
@@ -126,6 +126,7 @@
             <!-- <addResiduals>true</addResiduals> -->
             <numEvtPlots>40</numEvtPlots>
             <verbose>false</verbose>
+            <beamPositionZ>-4.3</beamPositionZ>
           </driver>
 
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
