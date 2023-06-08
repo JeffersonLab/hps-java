@@ -331,7 +331,14 @@ public class RawTrackerHitFitterDriver extends Driver {
         String infilePre = "run";
         String infilePost = "_calib_constants_final.txt";
         String runString="foobar"; 
-        if (runNumber>14000 && runNumber<14566){
+
+        if(runNumber>10000 && runNumber<10464){
+            runString="10377";
+        }else if(runNumber>=10464 && runNumber<10660){
+            runString="10564"; 
+        }else if(runNumber>=10660 && runNumber<11000){
+            runString="10666"; 
+        }else if(runNumber>14000 && runNumber<14566){        //2021 constants
             runString="14495";
         }else if(runNumber>=14566 &&runNumber<14626){
             runString="14569"; 
@@ -343,6 +350,14 @@ public class RawTrackerHitFitterDriver extends Driver {
             getLogger().config("Run is not in range defined by correctPerSensorPerPhase ... corrections not performed");
             return false;
         }
+
+        //ok, overwrite the run string for some individual funny runs
+        if(runNumber==10687 || runNumber==10711||runNumber==10713||runNumber==10714){
+            runString=Integer.toString(runNumber);
+        }
+
+
+
         String infile=infilePreResDir+infilePre+runString+infilePost; 
         InputStream inRatios = this.getClass().getResourceAsStream(infile);
         System.out.println("reading in per-sensor per-phase calibs from "+infile);
