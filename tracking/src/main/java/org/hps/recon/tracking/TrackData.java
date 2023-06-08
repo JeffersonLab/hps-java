@@ -24,6 +24,13 @@ public class TrackData implements GenericObject {
     public static final int PY_INDEX = 2;
     public static final int PZ_INDEX = 3;
     public static final int TRACK_VOLUME_INDEX = 0;
+    public static final int TRACK_AT_ECAL_X_INDEX = 5; //Tracking coords
+    public static final int TRACK_AT_ECAL_Y_INDEX = 6; //Tracking coords
+    public static final int TRACK_AT_ECAL_Z_INDEX = 7; //Tracking coords
+    public static final int TRACK_AT_TARGET_X_INDEX = 8;//Tracking coords
+    public static final int TRACK_AT_TARGET_Y_INDEX = 9;//Tracking coords
+    public static final int TRACK_AT_TARGET_Z_INDEX = 10;//Tracking coords
+    public static final int TRACK_AT_TARGET_Z0_INDEX = 11;//Tracking coords
     public static final String TRACK_DATA_COLLECTION = "TrackData";
     public static final String TRACK_DATA_RELATION_COLLECTION = "TrackDataRelations";
 
@@ -74,6 +81,27 @@ public class TrackData implements GenericObject {
      * @param isolations : an array of doubles containing isolations for every
      * sensor layer
      * @param momentum   : an array of floats containing track momentum in the form (px,py,pz)
+     * @param trackEcalPos : an array of floats containing track (x,y,z) at ECal *in
+     * tracking coords
+     * @param trackTargPos: an array of floats containing track (x,y,z) at
+     * Target *in tracking coords
+     * @param trackTargz0: a float containing z0 for track at target
+     */
+    public TrackData(int trackVolume, float trackTime, double[] isolations, float[] momentum, float[] trackEcalPos, float[] trackTargPos, float trackTargZ0) {
+
+        this.doubles = isolations;
+        this.floats = new float[]{trackTime,momentum[0],momentum[1],momentum[2],trackEcalPos[0],trackEcalPos[1],trackEcalPos[2],trackTargPos[0],trackTargPos[1],trackTargPos[2],trackTargZ0};
+        this.ints = new int[]{trackVolume};
+    }
+
+    /**
+     * Constructor 
+     *
+     * @param trackVolume : SVT volume associated with the track
+     * @param trackTime : The track time
+     * @param isolations : an array of doubles containing isolations for every
+     * sensor layer
+     * @param momentum   : an array of floats containing track momentum in the form (px,py,pz)
      */
     public TrackData(int trackVolume, float trackTime, double[] isolations, float[] momentum) {
 
@@ -106,6 +134,27 @@ public class TrackData implements GenericObject {
         floats[PX_INDEX] = momentum[0];
         floats[PY_INDEX] = momentum[1];
         floats[PZ_INDEX] = momentum[2];
+    }
+
+    /**
+     * @return track position at Ecal in tracking coords
+     */
+    public float[] getTrackAtEcalPosition(){
+        return new float[]{floats[TRACK_AT_ECAL_X_INDEX],floats[TRACK_AT_ECAL_Y_INDEX],floats[TRACK_AT_ECAL_Z_INDEX]};
+    }
+
+    /**
+     * @return track position at target in tracking coords
+     */
+    public float[] getTrackAtTargetPosition(){
+        return new float[]{floats[TRACK_AT_TARGET_X_INDEX],floats[TRACK_AT_TARGET_Y_INDEX],floats[TRACK_AT_TARGET_Z_INDEX]};
+    }
+
+    /**
+     * @return z0 of track at target
+     */
+    public float getTrackAtTargetZ0(){
+        return floats[TRACK_AT_TARGET_Z0_INDEX];
     }
 
     /**

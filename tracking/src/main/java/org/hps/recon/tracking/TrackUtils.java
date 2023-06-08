@@ -755,6 +755,57 @@ public class TrackUtils {
         return getTrackExtrapAtHodoRK(trk, fM, 0, hodoLayer);
     }
 
+    public static BaseTrackState getTrackExtrapAtTargetRK(Track track, double target_z, FieldMap fM, double stepSize) {
+
+        TrackState ts = TrackStateUtils.getTrackStateAtFirst(track);
+ 
+        //if track passed to extrapolateHelixToXPlane, uses first track state
+        //by default, else if trackstate is passed, uses trackstate params.
+        //Forms HTF, projects to location, then returns point on helix
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, 0.0);
+        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
+        double distanceZ = target_z;
+        double charge = -1.0 * Math.signum(getR(ts));
+
+        //extrapolateTrackUsingFieldMapRK gets HTF of input track/trackstate
+        //if track is passed, defaults to first track state
+        //if trackstate is passed, uses trackstate params
+        org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
+        double bFieldY = fM.getField(RKresults.getFirstElement()).y();
+        Hep3Vector posTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
+        Hep3Vector momTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
+
+        Hep3Vector finalPos = posTrans;
+        if (RKresults.getFirstElement().z() != target_z) {
+            Hep3Vector mom = RKresults.getSecondElement();
+            double dz = target_z - RKresults.getFirstElement().z();
+            double dy = dz * mom.y() / mom.z();
+            double dx = dz * mom.x() / mom.z();
+            Hep3Vector dPos = new BasicHep3Vector(dx, dy, dz);
+            finalPos = CoordinateTransformations.transformVectorToTracking(VecOp.add(dPos, RKresults.getFirstElement()));
+        }
+        bFieldY = fM.getField(CoordinateTransformations.transformVectorToDetector(finalPos)).y();
+        //params are calculated with respect to ref = {trackX, trackY, z=0)
+        double[] params = getParametersFromPointAndMomentum(finalPos, momTrans, (int) charge, bFieldY);
+        BaseTrackState bts = new BaseTrackState(params, bFieldY);
+        //reference point is set to track position in X Y Z
+        bts.setReferencePoint(finalPos.v());
+        //Consider shifting reference point to (trackX, 0, 0)...otherwise d0=0
+        boolean case2 = false;
+        if (case2){
+            double [] paramsRefPoint = {finalPos.x(), finalPos.y(), 0.0};
+            bts.setReferencePoint(paramsRefPoint);
+            double[] newRef = {-4.3, 0.0, 0.0};
+            params = getParametersAtNewRefPoint(newRef, bts);
+            bts.setParameters(params, bFieldY);
+            //Again, persisted reference point is track position in XYZ, not
+            //ref point used to calculate track params (which is newRef)
+            bts.setReferencePoint(finalPos.v());
+        }
+        bts.setLocation(TrackState.LastLocation);
+        return bts;
+    }
+
     /**
      * Extrapolate track to given position. For backwards compatibility.
      *
@@ -1730,13 +1781,6 @@ public class TrackUtils {
         RK4integrator RKint = new RK4integrator(charge, stepSize, fM);
 
         return RKint.integrate(startPosition, p0Trans, distance);
-    }
-
-    public static BaseTrackState getTrackExtrapAtTarget(Track track, double target_pos, FieldMap fm)
-    {
-        BaseTrackState bts = extrapolateTrackUsingFieldMap(TrackStateUtils.getTrackStateAtIP(track),BeamlineConstants.DIPOLE_EDGE_ENG_RUN, target_pos, 0, fm);
-        bts.setLocation(TrackState.LastLocation);
-        return bts;
     }
 
     public static BaseTrackState extrapolateTrackUsingFieldMap(TrackState track, double startPositionX, double endPosition, double stepSize, double epsilon, FieldMap fieldMap) {
