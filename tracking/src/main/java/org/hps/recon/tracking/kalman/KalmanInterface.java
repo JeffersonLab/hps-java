@@ -526,32 +526,6 @@ public class KalmanInterface {
         return new PropagatedTrackState(stateHPS, location, direction, detPlanes, fM);
     }
 
-    public BaseTrack createTrackAtTarget(KalTrack kT, Track track) {
-        if (kT.SiteList == null) {
-            logger.log(Level.WARNING, "KalmanInterface.createTrack: Kalman track is incomplete.");
-            return null;
-        }
-        if (kT.covNaN()) {
-            logger.log(Level.FINE, "KalmanInterface.createTrack: Kalman track has NaN cov matrix.");
-            return null;
-        }
-        kT.sortSites(true);
-        Vec Bfield = KalmanInterface.getField(new Vec(0., SVTcenter ,0.), kT.SiteList.get(0).m.Bfield);
-        double B = Bfield.mag();
-
-        BaseTrack trackAtTarget = new BaseTrack();
-        TrackState tsAtTarget = TrackUtils.getTrackStateAtTarget(track);
-        if (tsAtTarget == null){
-            logger.log(Level.WARNING, "KalmanInterface.createTrackAtTarget: No track state at Target exists.");
-            return null;
-        }
-        trackAtTarget.setTrackParameters(tsAtTarget.getParameters(), B);
-        trackAtTarget.setReferencePoint(tsAtTarget.getReferencePoint());
-        trackAtTarget.setCovarianceMatrix(new SymmetricMatrix(5, tsAtTarget.getCovMatrix(), true));
-        trackAtTarget.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
-        return trackAtTarget;
-    }
-
     // Create an HPS track from a Kalman track
     public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
         if (kT.SiteList == null) {

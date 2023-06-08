@@ -16,7 +16,6 @@ import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackResidualsData;
-import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
@@ -292,8 +291,6 @@ public class KalmanPatRecDriver extends Driver {
         KI.setRunNumber(runNumber);
                 
         List<Track> outputFullTracks = new ArrayList<Track>();
-        List<Track> outputTracksAtTarget = new ArrayList<Track>();
-        List<LCRelation> tracksAtTargetRelations = new ArrayList<LCRelation>();
         
         //For additional track information
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
@@ -307,12 +304,10 @@ public class KalmanPatRecDriver extends Driver {
         List<TrackResidualsData> trackResiduals = new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations = new ArrayList<LCRelation>();
        
-        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations, outputTracksAtTarget, tracksAtTargetRelations);
+        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
-        event.put(outputFullTrackCollectionName+"AtTarget", outputTracksAtTarget, Track.class, flag);
-        event.put(outputFullTrackCollectionName+"AtTargetRelations", tracksAtTargetRelations, LCRelation.class,0);
         event.put("KFGBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
         event.put("KFGBLStripClusterDataRelations", gblStripClusterDataRelations, LCRelation.class, flag);
         event.put("KFTrackData",trackDataCollection, TrackData.class,0);
@@ -352,7 +347,7 @@ public class KalmanPatRecDriver extends Driver {
         }
     }
 
-    private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations, List<Track> outputTracksAtTarget, List<LCRelation> tracksAtTargetRelations) {
+    private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
         
         int evtNumb = event.getEventNumber();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
@@ -412,13 +407,6 @@ public class KalmanPatRecDriver extends Driver {
                 
                 outputFullTracks.add(KalmanTrackHPS);
 
-                //Add track at Target using track state at Target
-                Track trackAtTarget = KI.createTrackAtTarget(kTk, KalmanTrackHPS);
-                if (trackAtTarget != null){
-                    outputTracksAtTarget.add(trackAtTarget);
-                    tracksAtTargetRelations.add(new BaseLCRelation(trackAtTarget,KalmanTrackHPS));
-                }
-
                 List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);
                 if (verbose) {
                     for (GBLStripClusterData clstr : clstrs) {
@@ -453,27 +441,8 @@ public class KalmanPatRecDriver extends Driver {
                 momentum_f[1] = (float) momentum.y();
                 momentum_f[2] = (float) momentum.z();
 
-                //Get track position at ECal
-                float[] trackECalPos_f = new float[3];
-                if (TrackUtils.getTrackStateAtECal(KalmanTrackHPS) != null){
-                    trackECalPos_f[0] = (float) TrackUtils.getTrackStateAtECal(KalmanTrackHPS).getReferencePoint()[0];
-                    trackECalPos_f[1] = (float) TrackUtils.getTrackStateAtECal(KalmanTrackHPS).getReferencePoint()[1];
-                    trackECalPos_f[2] = (float) TrackUtils.getTrackStateAtECal(KalmanTrackHPS).getReferencePoint()[2];
-                }
-
-                //Get track position at Target
-                float[] trackTargetPos_f = new float[3];
-                float trackTargetZ0_f = (float) -999.9;
-                if (TrackUtils.getTrackStateAtTarget(KalmanTrackHPS) != null){
-                    trackTargetPos_f[0] = (float) TrackUtils.getTrackStateAtTarget(KalmanTrackHPS).getReferencePoint()[0];
-                    trackTargetPos_f[1] = (float) TrackUtils.getTrackStateAtTarget(KalmanTrackHPS).getReferencePoint()[1];
-                    trackTargetPos_f[2] = (float) TrackUtils.getTrackStateAtTarget(KalmanTrackHPS).getReferencePoint()[2];
-                    trackTargetZ0_f = (float) TrackUtils.getTrackStateAtTarget(KalmanTrackHPS).getZ0();
-                }
-                
                 //Add the Track Data 
-                //TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f);
-                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, trackECalPos_f, trackTargetPos_f, trackTargetZ0_f);
+                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f);
                 trackDataCollection.add(KFtrackData);
                 trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
 
