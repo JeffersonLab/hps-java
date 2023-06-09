@@ -790,12 +790,12 @@ public class TrackUtils {
         BaseTrackState bts = new BaseTrackState(params, bFieldY);
         //reference point is set to track position in X Y Z
         bts.setReferencePoint(finalPos.v());
-        //Consider shifting reference point to (trackX, 0, 0)...otherwise d0=0
+        //Consider shifting params reference point to (trackX, 0, 0)...otherwise d0=0
         boolean case2 = false;
         if (case2){
             double [] paramsRefPoint = {finalPos.x(), finalPos.y(), 0.0};
             bts.setReferencePoint(paramsRefPoint);
-            double[] newRef = {-4.3, 0.0, 0.0};
+            double[] newRef = {target_z, 0.0, 0.0};
             params = getParametersAtNewRefPoint(newRef, bts);
             bts.setParameters(params, bFieldY);
             //Again, persisted reference point is track position in XYZ, not
