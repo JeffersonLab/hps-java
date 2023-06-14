@@ -757,7 +757,7 @@ public class TrackUtils {
 
     public static BaseTrackState getTrackExtrapAtTargetRK(Track track, double target_z, double[] beamPosition, FieldMap fM, double stepSize) {
 
-        TrackState ts = track.getTrackStates().at(0);
+        TrackState ts = track.getTrackStates().get(0);
  
         //if track passed to extrapolateHelixToXPlane, uses first track state
         //by default, else if trackstate is passed, uses trackstate params.
