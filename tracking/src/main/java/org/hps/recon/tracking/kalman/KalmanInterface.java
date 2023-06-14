@@ -80,6 +80,7 @@ public class KalmanInterface {
     private int nBigEvents;
     private int eventNumber;
     private static double target_pos = -999.9;
+    private double[] beamPosition = null;
     
     private static final boolean debug = false;    
     private static final double SVTcenter = 505.57;
@@ -101,6 +102,10 @@ public class KalmanInterface {
 
     public void setTargetPosition(double target_pos){
         this.target_pos = target_pos;   
+    }
+
+    public void setBeamPosition(double[] beamPosition){
+        this.beamPosition = beamPosition;
     }
     
     // Get the HPS tracker hit corresponding to a Kalman hit
@@ -608,8 +613,10 @@ public class KalmanInterface {
         // Extrapolate to Target and make a new trackState there.
         BaseTrackState ts_target = new BaseTrackState();
         if (target_pos != -999.9){
-            ts_target = TrackUtils.getTrackExtrapAtTargetRK(newTrack, target_pos, fM, 0);
-            newTrack.getTrackStates().add(ts_target);
+            ts_target = TrackUtils.getTrackExtrapAtTargetRK(newTrack, target_pos, beamPosition, fM, 0);
+            if (ts_target != null){
+                newTrack.getTrackStates().add(ts_target);
+            }
         }
         
         // other track properties

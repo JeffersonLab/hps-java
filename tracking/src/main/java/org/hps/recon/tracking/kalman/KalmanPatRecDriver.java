@@ -253,6 +253,9 @@ public class KalmanPatRecDriver extends Driver {
         
         // Setup optional usage of beam positions from database.
         final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+        double[] beamPositionArr = {beamPositionX, beamPositionY, beamPositionZ};
+        System.out.println("useBPC: "+useBeamPositionConditions);
+        System.out.println("mgr: "+mgr.hasConditionsRecord("beam_positions"));
         if (useBeamPositionConditions && mgr.hasConditionsRecord("beam_positions")) {
             logger.config("Using Kalman beam position from the conditions database");
             BeamPositionCollection beamPositions = 
@@ -262,6 +265,13 @@ public class KalmanPatRecDriver extends Driver {
             else logger.config("Using fixed Kalman beam Z position: " + kPar.beamSpot[1]);
             kPar.setBeamSpotX(beamPositionCond.getPositionX());   // Includes a transformation to Kalman coordinates
             kPar.setBeamSpotZ(-beamPositionCond.getPositionY());
+            beamPositionArr[0] = beamPositionCond.getPositionX();
+            beamPositionArr[1] = beamPositionCond.getPositionY();
+            beamPositionArr[2] = beamPositionCond.getPositionZ();
+            System.out.println("beamPosition[0]: "+beamPositionArr[0]);
+            System.out.println("beamPosition[1]: "+beamPositionArr[1]);
+            System.out.println("beamPosition[2]: "+beamPositionArr[2]);
+
         } else {
             logger.config("Using Kalman beam position from the steering file or default");
         }
@@ -273,6 +283,7 @@ public class KalmanPatRecDriver extends Driver {
         kPar.print();
         
         KI = new KalmanInterface(uniformB, kPar, fm);
+        KI.setBeamPosition(beamPositionArr);
         if (target_pos != -999.9) {
             KI.setTargetPosition(target_pos);
         }

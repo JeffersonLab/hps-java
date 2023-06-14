@@ -755,9 +755,9 @@ public class TrackUtils {
         return getTrackExtrapAtHodoRK(trk, fM, 0, hodoLayer);
     }
 
-    public static BaseTrackState getTrackExtrapAtTargetRK(Track track, double target_z, FieldMap fM, double stepSize) {
+    public static BaseTrackState getTrackExtrapAtTargetRK(Track track, double target_z, double[] beamPosition, FieldMap fM, double stepSize) {
 
-        TrackState ts = TrackStateUtils.getTrackStateAtFirst(track);
+        TrackState ts = track.getTrackStates().at(0);
  
         //if track passed to extrapolateHelixToXPlane, uses first track state
         //by default, else if trackstate is passed, uses trackstate params.
@@ -790,18 +790,14 @@ public class TrackUtils {
         BaseTrackState bts = new BaseTrackState(params, bFieldY);
         //reference point is set to track position in X Y Z
         bts.setReferencePoint(finalPos.v());
-        //Consider shifting params reference point to (trackX, 0, 0)...otherwise d0=0
-        boolean case2 = false;
-        if (case2){
-            double [] paramsRefPoint = {finalPos.x(), finalPos.y(), 0.0};
-            bts.setReferencePoint(paramsRefPoint);
-            double[] newRef = {target_z, 0.0, 0.0};
-            params = getParametersAtNewRefPoint(newRef, bts);
-            bts.setParameters(params, bFieldY);
-            //Again, persisted reference point is track position in XYZ, not
-            //ref point used to calculate track params (which is newRef)
-            bts.setReferencePoint(finalPos.v());
-        }
+        //Define new reference point, to which track parameters are calc wrt
+        double[] newRef = {target_z, beamPosition[1], beamPosition[2]};
+        params = getParametersAtNewRefPoint(newRef, bts);
+        bts.setParameters(params, bFieldY);
+        //Reference point records final position of track.
+        //This does not hold the reference point to which the track params are
+        //calculated from 
+        bts.setReferencePoint(finalPos.v());
         bts.setLocation(TrackState.LastLocation);
         return bts;
     }
