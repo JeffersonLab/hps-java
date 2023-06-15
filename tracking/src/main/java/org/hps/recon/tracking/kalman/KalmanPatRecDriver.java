@@ -24,6 +24,7 @@ import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
@@ -452,8 +453,28 @@ public class KalmanPatRecDriver extends Driver {
                 momentum_f[1] = (float) momentum.y();
                 momentum_f[2] = (float) momentum.z();
 
+                //Get Bfield at origin
+                double origin_bFieldY = fm.getField((new BasicHep3Vector(0.0,0.0,0.0))).y();
+                //Get Bfield at target
+                double target_bFieldY = -999.9;
+                if (KalmanTrackHPS.getTrackStates().get(TrackState.LastLocation) != null)
+                {
+                    Hep3Vector target_pos = new BasicHep3Vector(KalmanTrackHPS.getTrackStates().get(TrackState.LastLocation).getReferencePoint());
+                    target_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(target_pos)).y();
+
+                }
+                if (target_pos != -999.9)
+                    target_bFieldY = fm.getField((new BasicHep3Vector(0.0,0.0,target_pos))).y();
+                //Get Bfield at ecal
+                double ecal_bFieldY = -999.9;
+                if (KalmanTrackHPS.getTrackStates().get(TrackState.AtCalorimeter) != null)
+                {
+                    Hep3Vector ecal_pos = new BasicHep3Vector(KalmanTrackHPS.getTrackStates().get(TrackState.AtCalorimeter).getReferencePoint());
+                    ecal_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(ecal_pos)).y();
+                }
+
                 //Add the Track Data 
-                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f);
+                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY);
                 trackDataCollection.add(KFtrackData);
                 trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
 

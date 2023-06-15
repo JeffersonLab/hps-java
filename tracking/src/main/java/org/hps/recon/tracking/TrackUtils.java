@@ -793,6 +793,9 @@ public class TrackUtils {
         //Define new reference point, to which track parameters are calc wrt
         double[] newRef = {target_z, beamPosition[1], beamPosition[2]};
         params = getParametersAtNewRefPoint(newRef, bts);
+        //Do I need to change the bFieldY to correspond to new ref point? (Such
+        //small change, field shouldnt be different anyways)
+        //bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(newRef[0], newRef[1], newRef[2]))).y();
         bts.setParameters(params, bFieldY);
         //Reference point records final position of track.
         //This does not hold the reference point to which the track params are
