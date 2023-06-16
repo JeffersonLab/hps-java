@@ -455,6 +455,7 @@ public class KalmanPatRecDriver extends Driver {
 
                 //Get Bfield at origin
                 double origin_bFieldY = fm.getField((new BasicHep3Vector(0.0,0.0,0.0))).y();
+
                 //Get Bfield at target
                 double target_bFieldY = -999.9;
                 if (KalmanTrackHPS.getTrackStates().get(TrackState.LastLocation) != null)
@@ -463,8 +464,6 @@ public class KalmanPatRecDriver extends Driver {
                     target_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(target_pos)).y();
 
                 }
-                if (target_pos != -999.9)
-                    target_bFieldY = fm.getField((new BasicHep3Vector(0.0,0.0,target_pos))).y();
                 //Get Bfield at ecal
                 double ecal_bFieldY = -999.9;
                 if (KalmanTrackHPS.getTrackStates().get(TrackState.AtCalorimeter) != null)
