@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.lcsim.detector.IDetectorElement;
 import org.lcsim.detector.ITransform3D;
@@ -272,6 +273,78 @@ public class TrackerHitUtils {
         // Pack and return the identifier
         return helper.pack(id);
 
+    }
+    //gets the sensor name that hps-java assigns from the simple name used in hpstr (and saved in e.g. the timing calibration resource files)
+    //  example:  simple name = "L0T_axial" --> "module_L1b_module_axial_sensor0"  
+    public String getSensorNameFromSimpleName(String simpleName){
+        //the format of simpleName == LX[T/B]_[axial/stereo]_[[[slot/hole if necessary]]]
+        //
+        String[] splitSimpleName=simpleName.split("_"); 
+        int lenSimpleName=splitSimpleName.length;
+        String layerSimple=splitSimpleName[0]; 
+        String axSt=splitSimpleName[1]; 
+        String slHoSimple="";
+        if(lenSimpleName == 3 )
+            slHoSimple=splitSimpleName[2]; 
+        String sensorLayer;  
+        if (layerSimple.contains("T"))
+            sensorLayer=layerSimple.replace("T","t");
+        else
+            sensorLayer=layerSimple.replace("B","b");
+        String sensorSlHo=""; 
+        if(lenSimpleName==3){
+            if(slHoSimple=="pos")
+                sensorSlHo="slot";
+            else
+                sensorSlHo="hole";
+        }
+
+        String sensorName="";
+        String sensorNamePre="module_"+sensorLayer+"_module_"+axSt+"_";
+        if(lenSimpleName==4)
+            sensorName=sensorNamePre+sensorSlHo+"_sensor0"; 
+        else
+            sensorName=sensorNamePre+"_sensor0"; 
+        return sensorName;   
+    }
+    // just the flip of above...get the simple name from sensor name
+    public String getSimpleNameFromSensorName(String sensorName){
+        //the format of simpleName == LX[T/B]_[axial/stereo]_[[[slot/hole if necessary]]]
+        //format for sensor name is:  "module_LX[t/b]_module_[axial/stereo]_[[[slot/hole if necessary]]]_sensor0"
+        String[] splitSensorName=sensorName.split("_"); 
+        int lenSensorName=splitSensorName.length;
+        String layerSensor=splitSensorName[1]; 
+        String axSt=splitSensorName[3]; 
+        String slHoSensor="";
+        //decrement the layer number...
+        Scanner in=new Scanner(layerSensor).useDelimiter("[^0-9]+");
+        int laySensor=in.nextInt();
+        int laySimple=laySensor-1; 
+        String layerSensorMid=layerSensor.replace(Integer.toString(laySensor),Integer.toString(laySimple)); 
+
+        if(lenSensorName == 6 )
+            slHoSensor=splitSensorName[4]; 
+        String simpleLayer="";  
+        if (layerSensorMid.contains("t"))
+            simpleLayer=layerSensorMid.replace("t","T");
+        else
+            simpleLayer=layerSensorMid.replace("b","B");
+        String simpleSlHo=""; 
+        //        System.out.println(sensorName+" "+slHoSensor);
+        if(lenSensorName==6){
+            if(slHoSensor.contains("slot"))
+                simpleSlHo="pos";
+            else
+                simpleSlHo="ele";
+        }
+
+        String simpleName="";
+        String simpleNamePre=simpleLayer+"_"+axSt;
+        if(lenSensorName==6)
+            simpleName=simpleNamePre+"_"+simpleSlHo; 
+        else
+            simpleName=simpleNamePre;
+        return simpleName;   
     }
 
     // public List<SiTrackerHit> stripClusterToSiHits(HelicalTrackStrip strip, List<SiTrackerHit>
