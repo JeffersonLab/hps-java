@@ -799,6 +799,13 @@ public class TrackUtils {
         //calculated from 
         bts.setReferencePoint(finalPos.v());
         bts.setLocation(TrackState.LastLocation);
+
+        //Get covariance matrix at target. This does not use RK extrap, but
+        //simple change of reference point
+        SymmetricMatrix originCovMatrix = new SymmetricMatrix(5, ts.getCovMatrix(),true);
+        SymmetricMatrix covtrans = getCovarianceAtNewRefPoint(newRef, ts.getReferencePoint(), ts.getParameters(), originCovMatrix); 
+        bts.setCovMatrix(covtrans.asPackedArray(true));
+
         return bts;
     }
 
