@@ -791,7 +791,7 @@ public class TrackUtils {
         //reference point is set to track position in X Y Z
         bts.setReferencePoint(finalPos.v());
         //Define new reference point, to which track parameters are calc wrt
-        double[] newRef = {target_z, beamPosition[1], beamPosition[2]};
+        double[] newRef = {target_z, beamPosition[0], beamPosition[1]};
         params = getParametersAtNewRefPoint(newRef, bts);
         bts.setParameters(params, bFieldY);
         //Reference point records final position of track.
