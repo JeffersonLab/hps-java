@@ -80,6 +80,7 @@ public class KalmanInterface {
     private int nBigEvents;
     private int eventNumber;
     private static double target_pos = -999.9;
+    private static boolean addTrackStateAtTarget = false;
     private double[] beamPosition = null;
     
     private static final boolean debug = false;    
@@ -102,6 +103,10 @@ public class KalmanInterface {
 
     public void setTargetPosition(double target_pos){
         this.target_pos = target_pos;   
+    }
+
+    public void setAddTrackStateAtTarget(boolean input){
+        this.addTrackStateAtTarget = input;
     }
 
     public void setBeamPosition(double[] beamPosition){
@@ -612,7 +617,7 @@ public class KalmanInterface {
 
         // Extrapolate to Target and make a new trackState there.
         BaseTrackState ts_target = new BaseTrackState();
-        if (target_pos != -999.9){
+        if (target_pos != -999.9 && addTrackStateAtTarget){
             ts_target = TrackUtils.getTrackExtrapAtTargetRK(newTrack, target_pos, beamPosition, fM, 0);
             if (ts_target != null){
                 newTrack.getTrackStates().add(ts_target);

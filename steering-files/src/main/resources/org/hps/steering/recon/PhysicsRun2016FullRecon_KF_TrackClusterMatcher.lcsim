@@ -126,7 +126,8 @@
             <!-- <addResiduals>true</addResiduals> -->
             <numEvtPlots>40</numEvtPlots>
             <verbose>false</verbose>
-            <!-- <targetPosition>-4.3</targetPosition> --> <!--Set to get Track State at Target-->
+            <targetPosition>-4.3</targetPosition> 
+            <addTrackStateAtTarget>false</addTrackStateAtTarget>
           </driver>
 
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
