@@ -133,6 +133,12 @@
             <rmsTimeCut>8.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
+        <driver name="TrackReconSeed456Conf3Extd21" type="org.hps.recon.tracking.TrackerReconDriver">
+            <trackCollectionName>Tracks_s456_c3_e21</trackCollectionName>
+            <strategyResource>HPS_s456_c3_e21.xml</strategyResource>
+            <debug>false</debug>
+            <rmsTimeCut>8.0</rmsTimeCut>
+        </driver>
         <driver name="TrackReconSeed345Conf6Extd7" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s345_c6_e7</trackCollectionName>
             <strategyResource>HPS_s345_c6_e7_2019.xml</strategyResource>
