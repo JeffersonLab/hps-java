@@ -6,7 +6,14 @@ import org.hps.recon.tracking.gbl.matrix.Vector;
 import java.util.List;
 import java.util.ArrayList;
 import static java.lang.Math.sqrt;
+
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+
 import org.lcsim.util.aida.AIDA;
 
 import com.sun.jna.ptr.IntByReference;
@@ -15,16 +22,56 @@ import com.sun.jna.ptr.DoubleByReference;
 //import hep.aida.IHistogram1D;
 import java.io.IOException;
 
+/**
+ * java translation of GBL's example 1 using GBL via JNA
+ * <p>
+ * This translation is helpful for a few reasons.
+ * <ol>
+ *  <li>
+ *    During development, it can be used to check for basic
+ *    functionality without having to have a full input data
+ *    file.
+ *  </li>
+ *  <li>
+ *    Validation of developments can be done by using this
+ *    to compare two different branches without worrying about
+ *    whether the input data is affecting the comparison.
+ *  </li>
+ *  <li>
+ *    It is a helpful example for how the GBL-JNA classes
+ *    should be used in this java package.
+ *  </li>
+ * </ol>
+ * <p>
+ * <h2>Usage</h2>
+ * This class, while it is called in the unit testing,
+ * can also be called as its own executable. Since this
+ * example uses packages from outside the tracking package,
+ * it should be run from the central hps-distribution jar.
+ * <p>
+ * <code>
+ * java \
+ *   -cp distribution/target/hps-distribution-XXX-SNAPSHOT-bin.jar \
+ *   org.hps.recon.tracking.gbl.GBLexampleJna1
+ * </code>
+ */
 public class GBLexampleJna1 {
+
+    private NormalDistribution norm = new NormalDistribution();
     
     private int nTry = 100000;
     private int nLayer = 10;
-    private NormalDistribution norm = new NormalDistribution();
     private String outputPlots = "example1.root";
     private boolean debug = false;
     
-    
     public AIDA aida;
+
+    public GBLexampleJna1(int nTry, int nLayer, boolean debug, String outputPlots) {
+        this.nTry = nTry;
+        this.nLayer = nLayer;
+        this.debug = debug;
+        this.outputPlots = outputPlots;
+    }
         
     public void setupPlots() {
         aida = AIDA.defaultInstance();
@@ -50,6 +97,7 @@ public class GBLexampleJna1 {
     public void runExample() {
         setupPlots();
         System.out.println("Running GBL Example!");
+        System.out.println("  N Tries = "+nTry+" with N Layers = "+nLayer);
         long startTime = System.nanoTime();
         
         double sinLambda = 0.3;
@@ -231,7 +279,7 @@ public class GBLexampleJna1 {
                     System.out.println("Points::" + listOfPoints.size());
                 }
                 
-                jacPointToPoint = gblSimpleJacobianSvn(step, cosLambda, bfac);
+                jacPointToPoint = gblSimpleJacobian(step, cosLambda, bfac);
                 
                 clPar = jacPointToPoint.times(clPar);
                 clCov = jacPointToPoint.times(clCov.times(jacPointToPoint.transpose()));
@@ -288,25 +336,19 @@ public class GBLexampleJna1 {
             Matrix seed = new SymMatrix(5);
             seed.set(0,0,100000);
             
-            //GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,1,1);
-            GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,seed,1,1,1);
+            //GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,true,true,true);
+            GblTrajectoryJna traj = new GblTrajectoryJna(listOfPoints,1,seed,true,true,true);
             
-            if (traj.isValid() == 0 ) {
+            if (traj.isValid()) {
                 System.out.println("Example1: " + " Invalid GblTrajectory -> skip");
             }
-            double[] dVals = new double[2];
-            int [] iVals = new int[1];
-            
-            DoubleByReference Chi2 = new DoubleByReference(0.);
-            DoubleByReference lostWeight = new DoubleByReference(0.);
-            IntByReference Ndf = new IntByReference(0);
-            
-            //traj.fit(dVals,iVals,"");
-            
-            traj.fit(Chi2,Ndf,lostWeight,"");
-            //Chi2Sum += dVals[0];
-            //NdfSum += iVals[0];
-            //LostSum += dVals[1];
+
+            DoubleByReference Chi2 = new DoubleByReference();
+            IntByReference Ndf = new IntByReference();
+            DoubleByReference lostWeight = new DoubleByReference();
+
+            traj.fit(Chi2, Ndf, lostWeight, "");
+
             Chi2Sum += Chi2.getValue();
             NdfSum += Ndf.getValue();
             LostSum += lostWeight.getValue();
@@ -315,6 +357,12 @@ public class GBLexampleJna1 {
             //aida.histogram1D("Chi2").fill(dVals[0]);
             //aida.histogram1D("Ndf").fill(iVals[0]);
             //aida.histogram1D("Chi2_Ndf").fill(dVals[0]/(double)iVals[0]);
+            
+            // memory cleanup
+            traj.delete();
+            for (GblPointJna pt : listOfPoints) {
+                pt.delete();
+            }
         }
 
         long endTime = System.nanoTime();
@@ -323,7 +371,6 @@ public class GBLexampleJna1 {
         System.out.printf("Time elapsed %f ms\n", (double)duration/1000000.);
         System.out.printf("Chi2/Ndf = %f \n", Chi2Sum / (double) NdfSum);
         System.out.printf("Tracks Fitted  %d \n", numFit);
-        
         
         if (outputPlots != null) {
             try {
@@ -335,9 +382,8 @@ public class GBLexampleJna1 {
         }
     }
 
-    
-    private Matrix gblSimpleJacobianSvn(double ds, double cosl, double bfac) {
-        
+    // manually translated to java from C++ from GBL CPP exampleUtil source
+    private Matrix gblSimpleJacobian(double ds, double cosl, double bfac) {
         Matrix jac = new Matrix(5,5);
         jac.UnitMatrix();
         jac.set(1, 0, -bfac * ds * cosl);
@@ -347,6 +393,43 @@ public class GBLexampleJna1 {
         return jac;
         
     }   
+
+    public static void main(String[] args) {
+        Options options = new Options();
+        options.addOption("v", false, "verbose debugging printouts");
+        options.addOption("h", false, "print help message and exit");
+        options.addOption("o", true , "output file for histograms of residuals");
+        options.addOption("t", true , "number of tries to run (default: 100)");
+        options.addOption("l", true , "number of layers to track through (default: 10)");
+
+        boolean debug = false;
+        int nTries = 100;
+        int nLayers = 10;
+        String outputFile = "example1.root";
+
+        DefaultParser parser = new DefaultParser();
+        try {
+            CommandLine cli = parser.parse(options, args);
+            if (cli.hasOption("h")) {
+                HelpFormatter help = new HelpFormatter();
+                help.printHelp("GBLexampleJna1", options);
+                return;
+            }
+            debug = cli.hasOption("v");
+            outputFile = cli.getOptionValue("o", outputFile);
+            if (cli.hasOption("t")) {
+                nTries = Integer.parseInt(cli.getOptionValue("t"));
+            }
+            if (cli.hasOption("l")) {
+                nLayers = Integer.parseInt(cli.getOptionValue("l"));
+            }
+        } catch (ParseException exp) {
+            System.err.println(exp.getMessage());
+        }
+
+        GBLexampleJna1 eg = new GBLexampleJna1(nTries,nLayers,debug,outputFile);
+        eg.runExample();
+    }
 }
 
     

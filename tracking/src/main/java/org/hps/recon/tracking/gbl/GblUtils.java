@@ -395,6 +395,9 @@ public class GblUtils {
 
         double prediction [] = new double[2];
         gblHelixPrediction.getMeasPred(prediction);
+
+        gblHelix.delete();
+        gblHelixPrediction.delete();
             
         //Curvilinear frame, UV Plane 
         Matrix uvDir_gbl = gblHelixPrediction.getCurvilinearDirs();

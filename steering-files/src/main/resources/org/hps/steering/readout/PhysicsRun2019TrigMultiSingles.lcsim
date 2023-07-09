@@ -242,7 +242,7 @@
                 the exact trigger-time clusters are not otherwise recoverable
                 after readout.
             -->
-            <persistent>false</persistent>
+            <persistent>true</persistent>
         </driver>
         
         <!--

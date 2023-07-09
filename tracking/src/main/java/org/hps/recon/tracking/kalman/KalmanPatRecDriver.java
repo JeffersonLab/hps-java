@@ -278,6 +278,9 @@ public class KalmanPatRecDriver extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        int runNumber = event.getRunNumber();
+       
+        KI.setRunNumber(runNumber);
                 
         List<Track> outputFullTracks = new ArrayList<Track>();
         

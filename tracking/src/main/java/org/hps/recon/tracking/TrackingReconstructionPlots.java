@@ -355,8 +355,8 @@ public class TrackingReconstructionPlots extends Driver {
         }
     }
 
-    private void doClustersOnTrack(Track trk, List<Cluster> clusters) {
-        Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk);
+    private void doClustersOnTrack(Track trk, List<Cluster> clusters, int runNumber) {
+        Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk,runNumber);
         Cluster clust = findClosestCluster(posAtEcal, clusters);
         if (clust == null)
             return;
@@ -445,6 +445,7 @@ public class TrackingReconstructionPlots extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        int runNumber = event.getRunNumber();
         aida.tree().cd("/");
         if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName)) {
             System.out.println(helicalTrackHitCollectionName + " does not exist; skipping event");
@@ -531,7 +532,7 @@ public class TrackingReconstructionPlots extends Driver {
                 doAmplitude(fittedHits, trk);
 
             if (doMatchedClusterPlots)
-                doClustersOnTrack(trk, clusters);
+                doClustersOnTrack(trk, clusters,runNumber);
         }
 
         if (doElectronPositronPlots)
