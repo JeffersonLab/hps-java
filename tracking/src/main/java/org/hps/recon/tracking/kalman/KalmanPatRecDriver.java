@@ -19,12 +19,12 @@ import org.hps.recon.tracking.TrackResidualsData;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
+import org.hps.recon.tracking.TrackUtils;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.Track;
-import org.lcsim.event.TrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseLCRelation;
 import org.lcsim.geometry.Detector;
@@ -466,17 +466,17 @@ public class KalmanPatRecDriver extends Driver {
 
                 //Get Bfield at target
                 double target_bFieldY = -999.9;
-                if (KalmanTrackHPS.getTrackStates().get(TrackState.LastLocation) != null)
+                if (TrackUtils.getTrackStateAtTarget(KalmanTrackHPS) != null)
                 {
-                    Hep3Vector target_pos = new BasicHep3Vector(KalmanTrackHPS.getTrackStates().get(TrackState.LastLocation).getReferencePoint());
+                    Hep3Vector target_pos = new BasicHep3Vector(TrackUtils.getTrackStateAtTarget(KalmanTrackHPS).getReferencePoint());
                     target_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(target_pos)).y();
 
                 }
                 //Get Bfield at ecal
                 double ecal_bFieldY = -999.9;
-                if (KalmanTrackHPS.getTrackStates().get(TrackState.AtCalorimeter) != null)
+                if (TrackUtils.getTrackStateAtECal(KalmanTrackHPS) != null)
                 {
-                    Hep3Vector ecal_pos = new BasicHep3Vector(KalmanTrackHPS.getTrackStates().get(TrackState.AtCalorimeter).getReferencePoint());
+                    Hep3Vector ecal_pos = new BasicHep3Vector(TrackUtils.getTrackStateAtECal(KalmanTrackHPS).getReferencePoint());
                     ecal_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(ecal_pos)).y();
                 }
 
