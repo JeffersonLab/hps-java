@@ -65,7 +65,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         
         //System.out.println("PF::Constructed TrackingVolume: " +  tracking.toString());
         
-        PSVacuumChamber chamber = new PSVacuumChamber("c_hamber", tracking, null);
+        PSVacuumChamber chamber = new PSVacuumChamber("chamber", tracking, null);
         surveyVolumes.add(chamber);
 
         //System.out.println("PF::Constructed PSVacuumChamber: " +  chamber.toString());
