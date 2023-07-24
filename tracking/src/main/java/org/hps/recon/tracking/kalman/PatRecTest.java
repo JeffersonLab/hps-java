@@ -26,7 +26,7 @@ class PatRecTest {
     PatRecTest(String path) {
         // Units are Tesla, GeV, mm
 
-        int nTrials = 1000;              // The number of test eventNumbers to generate for pattern recognition and fitting
+        int nTrials = 3;              // The number of test eventNumbers to generate for pattern recognition and fitting
         int mxPlot = 10;                  // Maximum number of single event plots
         int [] eventToPrint = {1,2,3,4,5,6,7,8,9,10};
         boolean perfect = false;
@@ -273,7 +273,7 @@ class PatRecTest {
             for (int i = 0; i < nHelices; i++) {
                 Vec momentum = new Vec(p[i] * initialDirection[i].v[0], p[i] * initialDirection[i].v[1], p[i] * initialDirection[i].v[2]);
                 if (verbose) momentum.print("initial helix momentum");
-                TkInitial[i] = new Helix(Q[i], helixOrigin, momentum, helixOrigin, fM, rnd);
+                TkInitial[i] = new Helix(Q[i], helixOrigin, momentum, helixOrigin, fM, rnd, kPar.eLoss);
                 drho[i] = TkInitial[i].p.v[0];
                 phi0[i] = TkInitial[i].p.v[1];
                 K[i] = TkInitial[i].p.v[2];
@@ -302,7 +302,7 @@ class PatRecTest {
                 Vec p1 = new Vec(3);
                 HelixPlaneIntersect hpi1 = new HelixPlaneIntersect();
                 Vec pivotBegin = hpi1.rkIntersect(si1.p, TkInitial[i].atPhiGlobal(0.), TkInitial[i].getMomGlobal(0.), Q[i], fM, p1);
-                helixBegin[i] = new Helix(Q[i], pivotBegin, p1, pivotBegin, fM, rnd);
+                helixBegin[i] = new Helix(Q[i], pivotBegin, p1, pivotBegin, fM, rnd, kPar.eLoss);
                 if (verbose) helixBegin[i].print("helixBegin");
             }
             PrintWriter printWriter2 = null;

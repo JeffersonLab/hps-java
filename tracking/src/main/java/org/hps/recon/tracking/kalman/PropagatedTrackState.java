@@ -15,7 +15,6 @@ import org.lcsim.event.TrackState;
  */
 public class PropagatedTrackState {
     private static final double c = 2.99793e8;
-    private static final double SVTcenter = 505.57;
     private static final boolean debug = false;
     private double conFac;
     private List<SiStripPlane> detPlanes;
@@ -33,7 +32,7 @@ public class PropagatedTrackState {
     private static DMatrixRMaj Ft;
     private static boolean initialized;
       
-    PropagatedTrackState (TrackState stateHPS, double [] location, double [] direction, List<SiStripPlane> detPlanes, org.lcsim.geometry.FieldMap fM) {
+    PropagatedTrackState (TrackState stateHPS, double [] location, double [] direction, List<SiStripPlane> detPlanes, double SVTcenter, org.lcsim.geometry.FieldMap fM) {
         logger = Logger.getLogger(PropagatedTrackState.class.getName());
         // stateHPS = HPS track state to be propagated
         // location = 3-D point on the plane to which the track is to be propagated
@@ -121,7 +120,7 @@ public class PropagatedTrackState {
             pMom.print(String.format("initial momentum from pivoted helix, p=%10.6f",pMom.mag()));
         }
         DMatrixRMaj F = new DMatrixRMaj(5,5);
-        HelixState.makeF(helixParamsPivoted, F, helixParams, alpha);
+        HelixState.makeF(helixParamsPivoted, F, helixParams, alpha, 1.0);
        
         // Then rotate the helix into the B-field reference frame
         DMatrixRMaj fRot = new DMatrixRMaj(5,5);
@@ -213,10 +212,18 @@ public class PropagatedTrackState {
         if (debug) printTrackState(trackState,"final");
     }
     
+    /**
+     * Get the track state
+     * @return    TrackState corresponding to the propagated helix
+     */
     public TrackState getTrackState() {
         return trackState;
     }
     
+    /**
+     * Get the predicted intersection with the destination plane, in global coordinates
+     * @return    3-vector array of doubles
+     */
     public double [] getIntersection() {
         double phi = newHelixState.planeIntersect(destinationPlane);
         if (Double.isNaN(phi)) {
@@ -228,10 +235,14 @@ public class PropagatedTrackState {
         return KalmanInterface.vectorKalmanToGlb(xPlaneGlb);
     }
     
+    /**
+     * Get the covariance matrix of the predicted intersection point
+     * @return    3 by 3 array of doubles
+     */
     public double [][] getIntersectionCov() {
         Vec helixAtInt = getIntersectionHelix();
         DMatrixRMaj F = new DMatrixRMaj(5,5);
-        newHelixState.makeF(helixAtInt, F);
+        newHelixState.makeF(helixAtInt, F, 1.0);
         CommonOps_DDRM.multTransB(newHelixState.C, F, tempM);
         DMatrixRMaj covAtInt = new DMatrixRMaj(5,5);
         CommonOps_DDRM.mult(F, tempM, covAtInt);
@@ -253,6 +264,10 @@ public class PropagatedTrackState {
         return Chps.M;
     }
     
+    /**
+     * Debug printout
+     * @param s    Arbitrary string for the user's reference
+     */
     public void print(String s) {
         System.out.format("Dump of PropagatedTrackState %s at plane %s\n", s, destinationPlane.toString());
         printTrackState(trackState,"internal");
@@ -264,6 +279,11 @@ public class PropagatedTrackState {
         System.out.format("End of PropagatedTrackState dump\n");
     }
   
+    /**
+     * Debug printout of a track state
+     * @param trackState      The instance to print
+     * @param s               Arbitrary string for the user's reference
+     */
     public static void printTrackState(TrackState trackState, String s) {
         double [] r = trackState.getReferencePoint();
         System.out.format("Dump of TrackState %s at location %d ref. pnt %10.6f %10.6f %10.6f\n", 
@@ -279,18 +299,34 @@ public class PropagatedTrackState {
         System.out.format("    %12.4e %12.4e %12.4e %12.4e %12.4e\n", C[10], C[11], C[12], C[13], C[14]);
     }
     
+    /**
+     * Get the 3-D point on the plane to which the track is to be propagated
+     * @return    3-vector of doubles
+     */
     public double [] getLocation() {
         return location;
     }
     
+    /**
+     * Get the direction cosines of the plane to which the track is to be propagated
+     * @return    3-vector of doubles
+     */
     public double [] getDirection() {
         return direction;
     }
     
+    /**
+     * Get the list of scattering planes through which the track is propagated
+     * @return     the list of silicon-strip plane objects
+     */
     public List<SiStripPlane> getDetPlanes() {
         return detPlanes;
     }
     
+    /**
+     * Get the helix parameters at the intersection point (in the local B-field coordinate system, of course)
+     * @return   5-vector of helix parameters
+     */
     private Vec getIntersectionHelix() {
         if (xPlane == null) getIntersection();
         Vec helixAtInt = newHelixState.pivotTransform(xPlane);

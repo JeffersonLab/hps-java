@@ -63,6 +63,10 @@ class KalmanPatRecHPS {
     static int [] nBadCov = {0, 0};
     private ArrayList<TrackCandidate> candidateList;
 
+    /**
+     * Constructor to call each event for each detector (top/bottom).
+     * @param kPar   Object containing all the cuts and parameters
+     */
     KalmanPatRecHPS(KalmanParams kPar) {
         startTime = (long)0.;
         this.kPar = kPar;     
@@ -92,14 +96,25 @@ class KalmanPatRecHPS {
         eventNumber = 0;
     }
     
-    // Override the default vertex location and size
+    /**
+     *  Override the default vertex location and size
+     * @param vtx       3-vector vertex position
+     * @param vtxCov    3 by 3 covariance matrix for the vertex position
+     */
     void patRecSetVtx(double [] vtx, double [][] vtxCov) {
         this.vtx = vtx;
         this.vtxCov = vtxCov;
     }
     
+    /**
+     * Execute the Kalman-Filter pattern recognition for a given detector in a given event.
+     * @param event           Event header
+     * @param hitMapHPS       Map between tracker hits and measurement objects
+     * @param data            Array of SiModule objects containing all the hit data
+     * @param topBottom       0 for the bottom tracker (z>0), 1 for the top tracker (z<0)
+     * @return
+     */
     ArrayList<KalTrack> kalmanPatRec(EventHeader event, Map<Measurement, TrackerHit> hitMapHPS, ArrayList<SiModule> data, int topBottom) {
-        // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
         
         if (event != null) eventNumber = event.getEventNumber();      
         else eventNumber++;
@@ -173,6 +188,14 @@ class KalmanPatRecHPS {
                 else System.out.format(" %d=A ",module.Layer);
             }
             System.out.format("\n");
+        }
+        
+        Vec tB = null;          // Magnetic field direction
+        double Bmag = 0.;       // Magnetic field magnitude
+        if (kPar.uniformB) {
+            Vec Bfield = KalmanInterface.getField(new Vec(0., kPar.SVTcenter, 0.), data.get(0).Bfield);
+            tB = new Vec(0., 0., 1.);
+            Bmag = Bfield.v[2];
         }
 
         // Loop over seed strategies, each with 2 non-stereo layers and 3 stereo layers
@@ -310,7 +333,7 @@ class KalmanPatRecHPS {
                                     if (redundantSeed) continue;
                                     
                                     // Fit the seed to extract helix parameters
-                                    SeedTrack seed = new SeedTrack(hitList, yOrigin, kPar.beamSpot[1]);
+                                    SeedTrack seed = new SeedTrack(hitList, yOrigin, kPar.beamSpot[1], kPar);
                                     if (!seed.success) {
                                         if (debug) {
                                             System.out.format("Seed %d %d %d %d %d failed fit\n",idx[0], idx[1], idx[2], idx[3], idx[4]);
@@ -378,9 +401,11 @@ class KalmanPatRecHPS {
                 }
 
                 // Kalman filter the sorted seeds
-                Vec Bfield = KalmanInterface.getField(pivot, m0.Bfield);
-                double Bmag = Bfield.mag();
-                Vec tB = Bfield.unitVec(Bmag);
+                if (!kPar.uniformB) {
+                    Vec Bfield = KalmanInterface.getField(pivot, m0.Bfield);  
+                    Bmag = Bfield.mag();
+                    tB = Bfield.unitVec(Bmag);
+                }               
                 seedLoop: for (SeedTrack seed : seedList) {
                     if (debug) {
                         System.out.format("\n\nStart the filter step for seed");
@@ -419,7 +444,7 @@ class KalmanPatRecHPS {
                     setInitCov(CovGuess, seed.helixParams(), true);
 
                     // Create an state vector from the input seed to initialize the Kalman filter
-                    StateVector sI = new StateVector(-1, seed.helixParams(), CovGuess, new Vec(0., 0., 0.), Bmag, tB, pivot);
+                    StateVector sI = new StateVector(-1, seed.helixParams(), CovGuess, new Vec(0., 0., 0.), Bmag, tB, pivot, kPar.uniformB);
                     TrackCandidate candidateTrack = new TrackCandidate(candID, seed.hits, kPar, hitMap, eventNumber);
                     candID++;
                     filterTrack(candidateTrack, list[0], KalmanParams.numLayers - 1, sI, trial, true, true);
@@ -1361,6 +1386,9 @@ class KalmanPatRecHPS {
         return TkrList;
     }
 
+    /**
+     * Print a debug summary of all the track candidates
+     */
     private void printCandidateList() {
         System.out.format("KalmanPatRecHPS: list of track candidates in event %d\n", eventNumber);
         for (TrackCandidate tkr : candidateList) {
@@ -1374,7 +1402,12 @@ class KalmanPatRecHPS {
         }
     }
     
-    // Remove the worst hit from lousy track candidates
+    /**
+     * Remove the worst hit from lousy track candidates
+     * @param tkr       The track candidate
+     * @param trial     Trial (0 or 1, to select what cuts are used in kPar)
+     * @return          true for success
+     */
     private boolean removeBadHits(TrackCandidate tkr, int trial) {
         
         if (tkr.chi2s/(double) tkr.hits.size() < kPar.chi2mx1[trial]) return false;
@@ -1411,7 +1444,10 @@ class KalmanPatRecHPS {
         return false;
     }
     
-    // Method to smooth an already filtered track candidate
+    /**
+     *  Method to smooth an already filtered track candidate
+     * @param filteredTkr     Track candidate to be smoothed
+     */
     private void smoothTrack(TrackCandidate filteredTkr) {
         MeasurementSite nextSite = null;
         boolean badCov = false;
@@ -1436,11 +1472,20 @@ class KalmanPatRecHPS {
         filteredTkr.smoothed = true;
     }
 
-    // Execute the Kalman prediction and filter steps over a range of SVT layers
+    /**
+     *  Execute the Kalman prediction and filter steps over a range of SVT layers
+     * @param tkrCandidate       Track candidate to be worked on
+     * @param lyrBegin           Beginning layer
+     * @param lyrEnd             Ending layer
+     * @param sI                 State vector to use for initialization
+     * @param trial              Trial level (0 or 1) to select what cuts and parameters to use
+     * @param startNew           Start the fit over from the beginning, if true
+     * @param pickUp             true to allow picking up new hits
+     */
     private void filterTrack(TrackCandidate tkrCandidate, int lyrBegin, // layer on which to start the filtering
-            int lyrEnd, // layer on which to end the filtering
-            StateVector sI, // initialization state vector
-            int trial, // trial level, for selecting cuts
+            int lyrEnd,       // layer on which to end the filtering
+            StateVector sI,   // initialization state vector
+            int trial,        // trial level, for selecting cuts
             boolean startNew, // Start the fit over
             boolean pickUp    // true to allow picking up new hits
     ) {
@@ -1636,6 +1681,12 @@ class KalmanPatRecHPS {
         return;
     }
 
+    /**
+     * Store a track candidate as a KalTrack object
+     * @param tkID       Integer ID for the track
+     * @param tkrCand    The candidate
+     * @return
+     */
     boolean storeTrack(int tkID, TrackCandidate tkrCand) {
         if (debug) System.out.format("entering storeTrack for track %d, debug=%b\n", tkID, debug);
 
@@ -1704,6 +1755,11 @@ class KalmanPatRecHPS {
         }
     };
     
+    /**
+     * Check for negative covariance in a simple way, by looking at just the diagonal elements
+     * @param C     Covariance matrix to check
+     * @return      true if it is not positive definite
+     */
     static boolean negativeCov(DMatrixRMaj C) {
         boolean badCov = false;
         for (int i=0; i<5; ++i) {
@@ -1715,6 +1771,12 @@ class KalmanPatRecHPS {
         return badCov;
     }
     
+    /**
+     * Make an initial-guess helix covariance matrix
+     * @param C         The covariance
+     * @param helix     The helix parameters
+     * @param newM      true if it is a new matrix (i.e. all elements are zero)
+     */
     static void setInitCov(DMatrixRMaj C, Vec helix, boolean newM) {
         C.unsafe_set(0, 0, 0.5);
         C.unsafe_set(1, 1, .00005);
@@ -1730,6 +1792,11 @@ class KalmanPatRecHPS {
         }
     }
 
+    /**
+     * Try to fix the helix covariance matrix
+     * @param C        The bad covariance matrix
+     * @param helix    The helix parameters
+     */
     static void fixCov(DMatrixRMaj C, Vec helix) {
         for (int i=0; i<5; ++i) {
             if (C.unsafe_get(i, i) < 0.) {
@@ -1761,7 +1828,12 @@ class KalmanPatRecHPS {
         }
     }    
     
-    // Quick check on where the seed track is heading, using only the two axial layers in the seed
+    /**
+     * Quick check on where the seed track is heading, using only the two axial layers in the seed
+     * @param j       The axial layer where we are interested
+     * @param iter    Iteration (0,1) for choosing the kPar cuts and parameters
+     * @return        true if the direction is no good for a track seed
+     */
     private boolean seedNoGood(int j, int iter) {
         // j must point to an axial layer in the seed.
         // Find the previous axial layer, if there is one. . .

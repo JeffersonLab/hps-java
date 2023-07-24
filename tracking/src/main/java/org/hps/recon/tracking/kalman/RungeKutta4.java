@@ -14,6 +14,12 @@ public class RungeKutta4 {
     private double alpha;
     private org.lcsim.geometry.FieldMap fM;
 
+    /**
+     * Constructor
+     * @param Q       Particle charge  (+ or - one)
+     * @param dx      Step size in mm
+     * @param fM      Field map
+     */
     public RungeKutta4(double Q, double dx, org.lcsim.geometry.FieldMap fM) {
         alpha = Q * 2.99792458e-4; // Q is the charge in units of the proton charge
         h = dx; // Step size in mm
@@ -21,10 +27,14 @@ public class RungeKutta4 {
         this.fM = fM; // Magnetic field map
     }
 
+    /**
+     * Execute the integration
+     * @param r0   The initial point 3-vector in mm
+     * @param p0   The initial 3-vector momentum in GeV/c
+     * @param s    Distance to propagate, along the trajectory
+     * @return     Final position 3-vector of doubles
+     */
     double[] integrate(Vec r0, Vec p0, double s) {
-        // r0 is the initial point in mm
-        // p0 is the initial momentum in GeV/c
-        // s is the distance to propagate (approximate to distance dx)
         double[] r = { r0.v[0], r0.v[1], r0.v[2], p0.v[0], p0.v[1], p0.v[2] };
         double[] k1 = new double[6];
         double[] k2 = new double[6];
@@ -49,7 +59,13 @@ public class RungeKutta4 {
         return r;
     }
 
-    private double[] f(Vec x, double[] p) { // Return all the derivatives
+    /**
+     * Return all the derivatives needed to make an integration step
+     * @param x      3-vector position in mm
+     * @param p      3-vector momentum in GeV/c
+     * @return       6 derivatives
+     */
+    private double[] f(Vec x, double[] p) { 
         double [] B = KalmanInterface.getFielD(x, fM);  // This field routine assumes the Kalman-Filter coordinate system.
         double[] d = new double[6];
         double pmag = FastMath.sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);

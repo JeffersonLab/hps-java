@@ -11,7 +11,9 @@ import org.ejml.data.DMatrix3x3;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import org.ejml.dense.row.MatrixFeatures_DDRM;
+import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
 import org.ejml.dense.fixed.CommonOps_DDF3;
+import org.ejml.interfaces.linsol.LinearSolverDense;
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
 
@@ -31,6 +33,11 @@ class HelixState implements Cloneable {
     private Logger logger;
     private HelixPlaneIntersect hpi;
     private Vec xPlaneRK;
+    private static LinearSolverDense<DMatrixRMaj> solver;
+    private static boolean initialized;
+    private static DMatrixRMaj Cinv;     // Temporary working area   
+    private static DMatrixRMaj X, V, H;
+    final static private boolean debug = false;
     
     public Object clone() {
         try {
@@ -42,6 +49,15 @@ class HelixState implements Cloneable {
         }
     }
     
+    /**
+     * Constructor with all helix information provided by the call  
+     * @param a         5 helix parameters
+     * @param X0        pivot point
+     * @param origin    coordinate system origin
+     * @param C         covariance matrix of helix parameters
+     * @param B         magnetic field magnitude 
+     * @param tB        magnetic field direction
+     */
     HelixState(Vec a, Vec X0, Vec origin, DMatrixRMaj C, double B, Vec tB) {
         logger = Logger.getLogger(HelixState.class.getName());
         this.a = a;
@@ -59,6 +75,12 @@ class HelixState implements Cloneable {
         Rot = new RotMatrix(u, v, tB);
     }
     
+    /**
+     * Constructor without helix supplied
+     * @param B        magnetic field magnitude
+     * @param tB       magnetic field direction
+     * @param origin   origin of coordinate system
+     */
     HelixState(double B, Vec tB, Vec origin) {
         logger = Logger.getLogger(HelixState.class.getName());
         this.origin = origin;
@@ -73,20 +95,134 @@ class HelixState implements Cloneable {
         Rot = new RotMatrix(u, v, tB);
     }
     
+    /**
+     * Empty constructor
+     */
     HelixState() {
         logger = Logger.getLogger(HelixState.class.getName());
         hpi = new HelixPlaneIntersect();
         c = 2.99793e8; // Speed of light in m/s        
     }
     
+    /**
+     * Deep copy
+     * @return new helix state
+     */
     HelixState copy() {
         return new HelixState(a.copy(), X0.copy(), origin.copy(), C.copy(), B, tB.copy());
     }
     
+    /**
+     * Invert the covariance matrix of this HelixState and store the result in a static array Cinv
+     */
+    private void invertC() {
+        if (!HelixState.initialized) {
+            HelixState.Cinv = new DMatrixRMaj(5,5);
+            HelixState.X = new DMatrixRMaj(5,1);
+            HelixState.V = new DMatrixRMaj(5,1);
+            HelixState.H = new DMatrixRMaj(5,1);
+            solver = LinearSolverFactory_DDRM.symmPosDef(5);
+            HelixState.initialized = true;
+        }
+        if (!solver.setA(C.copy())) {
+            SquareMatrix invrs = KalTrack.mToS(C).fastInvert();
+            if (invrs == null) {
+                logger.warning("StateVector:smooth, inversion of the covariance matrix failed");
+                C.print();
+                for (int i=0; i<5; ++i) {      // Fill the inverse with something not too crazy and continue . . .
+                    for (int j=0; j<5; ++j) {
+                        if (i == j) {
+                            HelixState.Cinv.unsafe_set(i,j,1.0/C.unsafe_get(i,j));
+                        } else {
+                            HelixState.Cinv.unsafe_set(i, j, 0.);
+                            C.unsafe_set(i, j, 0.);
+                        }
+                    }
+                }          
+            } else {
+                for (int i=0; i<5; ++i) {
+                    for (int j=0; j<5; ++j) {
+                        HelixState.Cinv.unsafe_set(i, j, invrs.M[i][j]);
+                    }
+                }
+            }
+        } else {
+            HelixState.solver.invert(HelixState.Cinv);
+        }
+    }
+    
+    /**
+     * Make a new HelixState with an energy constraint (from the ECAL). This uses the Kalman weighted-means formalism to "filter"
+     * the helix state vector.
+     * @param E      The energy from the ECAL cluster
+     * @param sigmaE The energy uncertainty for the ECAL cluster
+     * @return       A new HelixState with the energy constraint incorporated
+     */
+    HelixState energyConstrained(double E, double sigmaE) {
+        double tanL = a.v[4];
+        double K = a.v[2];
+        double m = (1.0/E)*Math.signum(K);
+        double sigma_m = sigmaE/(E*E);
+        double G = 1.0/(sigma_m*sigma_m);
+        double dmdK = 1.0/FastMath.sqrt(1.0+tanL*tanL);
+        double dmdtanL = -K*tanL/FastMath.pow(1.0 + tanL*tanL, 1.5);
+        HelixState hsNew = this.copy();
+
+        invertC();
+        HelixState.H.unsafe_set(2, 0, dmdK);
+        HelixState.H.unsafe_set(4, 0, dmdtanL);
+        for (int i=0; i<5; ++i) {
+            X.unsafe_set(i, 0, a.v[i]);
+        }
+        CommonOps_DDRM.mult(HelixState.Cinv, HelixState.X, HelixState.V);
+        CommonOps_DDRM.scale(G*m, HelixState.H);
+        CommonOps_DDRM.addEquals(HelixState.V, HelixState.H);
+        
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<5; ++j) {
+                hsNew.C.unsafe_set(i, j, HelixState.Cinv.unsafe_get(i, j));
+            }
+        }        
+        hsNew.C.unsafe_set(2, 2, HelixState.Cinv.unsafe_get(2, 2) + (dmdK*dmdK)*G);
+        hsNew.C.unsafe_set(4, 4, HelixState.Cinv.unsafe_get(4, 4) + (dmdtanL*dmdtanL)*G);
+        hsNew.C.unsafe_set(2, 4, HelixState.Cinv.unsafe_get(2, 4) + (dmdK*dmdtanL)*G);
+        hsNew.C.unsafe_set(4, 2, HelixState.Cinv.unsafe_get(4, 2) + (dmdtanL*dmdK)*G);
+        hsNew.invertC();
+        for (int i=0; i<5; ++i) {
+            for (int j=0; j<5; ++j) {
+                hsNew.C.unsafe_set(i, j, HelixState.Cinv.unsafe_get(i, j));
+            }
+        }        
+        CommonOps_DDRM.mult(HelixState.Cinv, HelixState.V, HelixState.X);
+        for (int i=0; i<5; ++i) {
+            hsNew.a.v[i] = HelixState.X.unsafe_get(i, 0);
+        }
+        if (debug) {
+            System.out.println("Original helix params X:"); X.print();
+            System.out.println("Derivative vector H:"); H.print();
+            hsNew.a.print("New helix params");
+            System.out.println("New covariance:"); hsNew.C.print();
+            double varK = C.unsafe_get(2, 2);
+            double A = 1.0/FastMath.sqrt(1.0+tanL*tanL);
+            double Kprime = (K/varK + A*m*G)/(1.0/varK + G/(A*A));
+            System.out.format("   Simple weighted mean update of kappa = %10.6f\n", Kprime);
+        }
+        return hsNew;
+    }
+    
+    /**
+     * Debug printout of the helix state
+     * @param s     A string used to identify the printout
+     */
     void print(String s) {
         System.out.format("%s", this.toString(s));
     }
     
+    /**
+     * Debug printout to a string
+     * @param s     A short string to identify the printout
+     * @return      A long string that can be printed
+     */
     String toString(String s) {
         String str;
         str = String.format("HelixState %s: helix parameters=%s,  pivot=%s\n", s, a.toString(), X0.toString());
@@ -97,18 +233,34 @@ class HelixState implements Cloneable {
         return str;
     }
 
+    /**
+     * Check whether the helix parameter covariance matrix is mathematically good
+     * @return      true or false
+     */
     boolean goodCov() {
         if (!MatrixFeatures_DDRM.isDiagonalPositive(C)) return false;
         if (MatrixFeatures_DDRM.hasNaN(C)) return false;
         return true;
     }
         
-    // Returns a point on the helix at the angle phi
+    /**
+     * Returns a point on the helix at the angle phi
+     * @param phi     The angle
+     * @return        3-vector point on the helix
+     */
     // Warning: the point returned is in the B-Field reference frame
     Vec atPhi(double phi) {
         return atPhi(X0, a, phi, alpha);
     }
 
+    /**
+     *  Returns a point on a provided helix at the angle phi
+     * @param X0      pivot point of the helix
+     * @param a       5 helix parameters
+     * @param phi     the angle
+     * @param alpha   parameter to transform between curvature and momentum
+     * @return        3-vector point on the helix
+     */
     static Vec atPhi(Vec X0, Vec a, double phi, double alpha) {
         double x = X0.v[0] + (a.v[0] + (alpha / a.v[2])) * FastMath.cos(a.v[1]) - (alpha / a.v[2]) * FastMath.cos(a.v[1] + phi);
         double y = X0.v[1] + (a.v[0] + (alpha / a.v[2])) * FastMath.sin(a.v[1]) - (alpha / a.v[2]) * FastMath.sin(a.v[1] + phi);
@@ -116,35 +268,51 @@ class HelixState implements Cloneable {
         return new Vec(x, y, z);
     }
 
-    // Calculate the phi angle to propagate on helix to the intersection with a
-    // measurement plane
+    /**
+     * Calculate the phi angle to propagate on helix to the intersection with a measurement plane
+     * @param pIn     point and direction cosines of the plane
+     * @return        turning angle from the pivot point to the plane
+     */
     double planeIntersect(Plane pIn) { // pIn is assumed to be defined in the global reference frame
         Plane p = pIn.toLocal(Rot, origin); // Transform the plane into the B-field local reference frame
         return hpi.planeIntersect(a, X0, alpha, p);
     }
     
-    // Return errors on the helix parameters at the present pivot point
+    /**
+     * Return errors on the helix parameters at the present pivot point
+     * @return    5-vector of helix parameter errors
+     */
     Vec helixErrors() {
         return new Vec(FastMath.sqrt(C.unsafe_get(0,0)), FastMath.sqrt(C.unsafe_get(1,1)), FastMath.sqrt(C.unsafe_get(2,2)), 
                 FastMath.sqrt(C.unsafe_get(3,3)), FastMath.sqrt(C.unsafe_get(4,4)));
     }
     
-    // Derivative matrix for the pivot transform (without energy loss or field rotations)
-    void makeF(Vec aP, DMatrixRMaj F) {
-        makeF(aP, F, a, alpha);
+    /**
+     * Create derivative matrix for the pivot transform (without energy loss or field rotations)
+     * @param aP    Input transformed helix parameters
+     * @param F     Returned derivative matrix
+     */
+    void makeF(Vec aP, DMatrixRMaj F, double eFactor) {
+        makeF(aP, F, a, alpha, eFactor);
     }
-    
-    static void makeF(Vec aP, DMatrixRMaj F, Vec a, double alpha) {
+
+    /**
+     * Create derivative matrix for the pivot transform (without field rotations)
+     * @param aP    Helix parameters
+     * @param F     Returned derivative matrix
+     * @param eFactor   1.0-deltaE/E factor for energy loss
+     */
+    static void makeF(Vec aP, DMatrixRMaj F, Vec a, double alpha, double eFactor) {
         F.unsafe_set(0, 0, FastMath.cos(aP.v[1] - a.v[1]));
         F.unsafe_set(0, 1, (a.v[0] + alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]));
-        F.unsafe_set(0, 2, (alpha / (a.v[2] * a.v[2])) * (1.0 - FastMath.cos(aP.v[1] - a.v[1])));
+        F.unsafe_set(0, 2, eFactor*(alpha / (a.v[2] * a.v[2])) * (1.0 - FastMath.cos(aP.v[1] - a.v[1])));
         F.unsafe_set(1, 0, -FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         F.unsafe_set(1, 1, (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
-        F.unsafe_set(1, 2, (alpha / (a.v[2] * a.v[2])) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
-        F.unsafe_set(2, 2,  1.0);
+        F.unsafe_set(1, 2, eFactor*(alpha / (a.v[2] * a.v[2])) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+        F.unsafe_set(2, 2,  eFactor);
         F.unsafe_set(3, 0, (alpha / a.v[2]) * a.v[4] * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
         F.unsafe_set(3, 1, (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2])));
-        F.unsafe_set(3, 2, (alpha / (a.v[2] * a.v[2])) * a.v[4]
+        F.unsafe_set(3, 2, eFactor*(alpha / (a.v[2] * a.v[2])) * a.v[4]
                 * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2])));
         F.unsafe_set(3, 3, 1.0);
         F.unsafe_set(3, 4, -(alpha / a.v[2]) * (aP.v[1] - a.v[1]));
@@ -153,12 +321,23 @@ class HelixState implements Cloneable {
         // All other values are always zero
     }
  
-    // Returns the particle momentum at the helix angle phi
-    // Warning! This is returned in the B-Field coordinate system.
+    /**
+     * Returns the particle momentum at the helix angle phi.
+     * Warning! This is returned in the B-Field coordinate system.
+     * @param phi    turning angle from the pivot to the helix point of interest
+     * @return       3-momentum at the given angle
+     */
     Vec getMom(double phi) {
         return getMom(phi, a);
     }
-    
+
+    /**
+     * Returns the particle momentum at the helix angle phi.
+     * Warning! This is returned in the B-Field coordinate system.
+     * @param phi    turning angle from the pivot to the helix point of interest
+     * @param a      5-vector of helix parameters
+     * @return       3-momentum at the given angle
+     */
     static Vec getMom(double phi, Vec a) {
         double px = -FastMath.sin(a.v[1] + phi) / Math.abs(a.v[2]);
         double py = FastMath.cos(a.v[1] + phi) / Math.abs(a.v[2]);
@@ -166,7 +345,11 @@ class HelixState implements Cloneable {
         return new Vec(px, py, pz);
     }
     
-    // Momentum at the start of the given helix (point closest to the pivot)
+    /**
+     * Momentum at the start of the given helix (point closest to the pivot)
+     * @param a     Helix parameters
+     * @return      3-momentum at pivot
+     */
     static Vec aTOp(Vec a) {
         double px = -FastMath.sin(a.v[1]) / Math.abs(a.v[2]);
         double py = FastMath.cos(a.v[1]) / Math.abs(a.v[2]);
@@ -174,7 +357,14 @@ class HelixState implements Cloneable {
         return new Vec(px, py, pz);
     }
 
-    // Transform from momentum at helix starting point back to the helix parameters
+    /**
+     *  Transform from momentum at helix starting point back to the helix parameters
+     * @param p        3-momentum at pivot
+     * @param drho     d-rho helix parameter (not transformed)
+     * @param dz       dz helix parameter (not transformed)
+     * @param Q        charge
+     * @return         4-vector of helix parameters
+     */
     // drho and dz are not modified
     static Vec pTOa(Vec p, double drho, double dz, double Q) {
         double phi0 = FastMath.atan2(-p.v[0], p.v[1]);
@@ -184,24 +374,39 @@ class HelixState implements Cloneable {
         return new Vec(drho, phi0, K, dz, tanl);
     }
 
-    // To transform a space point from global to local field coordinates, first subtract
-    // <origin> and then rotate by <Rot>.
+    /**
+     *  To transform a space point from global to local field coordinates, first subtract
+     *  <origin> and then rotate by <Rot>.
+     * @param xGlobal      global space point
+     * @return             local space point
+     */
     Vec toLocal(Vec xGlobal) {
         Vec xLocal = Rot.rotate(xGlobal.dif(origin));
         return xLocal;
     }
     
-    // To transform a space point from local field coordinates to global coordinates, first rotate by
-    // the inverse of <Rot> and then add the <origin>.
+    /**
+     * To transform a space point from local field coordinates to global coordinates, first rotate by
+     * the inverse of <Rot> and then add the <origin>.
+     * @param xLocal      local space point
+     * @return            global space point
+     */
     Vec toGlobal(Vec xLocal) {
         Vec xGlobal = Rot.inverseRotate(xLocal).sum(origin);
         return xGlobal;
     }
     
-    // Transformation of helix parameters from one B-field frame to another, by rotation R
-    // Warning: the pivot point has to be transformed too! Here we assume that the new pivot point
-    // will be on the helix at phi=0, so drho and dz will always be returned as zero. Therefore, before
-    // calling this routine, make sure that the current pivot point is on the helix (drho=dz=0)
+    /**
+     *  Transformation of helix parameters from one B-field frame to another, by rotation R
+     *  Warning: the pivot point has to be transformed too! Here we assume that the new pivot point
+     *  will be on the helix at phi=0, so drho and dz will always be returned as zero. Therefore, before
+     *  calling this routine, make sure that the current pivot point is on the helix (drho=dz=0).
+     *  This routine is not used if the B-Field is assumed uniform.
+     * @param a       5-vector of helix parameters
+     * @param R       rotation matrix
+     * @param fRot    returned derivative matrix
+     * @return        5 transformed helix parameters
+     */
     static Vec rotateHelix(Vec a, RotMatrix R, DMatrixRMaj fRot) {
         // The rotation is easily applied to the momentum vector, so first we transform from helix parameters
         // to momentum, apply the rotation, and then transform back to helix parameters.
@@ -281,29 +486,48 @@ class HelixState implements Cloneable {
         return aNew;
     }
     
-    // Transform the helix to a pivot back at the global origin
+    /**
+     * Transform the helix to a pivot back at the global origin
+     * @return     new helix parameters
+     */
     Vec pivotTransform() {
         Vec pivot = origin.scale(-1.0);
         return pivotTransform(pivot);
     }
 
-    // Pivot transform of the state vector, from the current pivot to the pivot in
-    // the argument (specified in local coordinates)
+    /**
+     * Pivot transform of the state vector, from the current pivot to the pivot provided
+     * @param pivot   the new pivot point (specified in local coordinates)
+     * @return        the new 5-vector of helix parameters
+     */
     Vec pivotTransform(Vec pivot) {
         return pivotTransform(pivot, a, X0, alpha, 0.);
     }
 
-    // Pivot transform including energy loss just before
+    /**
+     * Pivot transform including energy loss just before (energy loss formalism is still not tested and used)
+     * @param pivot
+     * @param deltaEoE
+     * @return
+     */
     Vec pivotTransform(Vec pivot, double deltaEoE) {
         return pivotTransform(pivot, a, X0, alpha, deltaEoE);
     }
 
+    /**
+     * Pivot transform of the state vector, from the current pivot to the pivot provided
+     * @param pivot      new pivot
+     * @param a          old helix parameters
+     * @param X0         old pivot
+     * @param alpha      parameter to transform between curvature and momentum
+     * @param deltaEoE   energy loss
+     * @return           new helix parameters
+     */
     static Vec pivotTransform(Vec pivot, Vec a, Vec X0, double alpha, double deltaEoE) {
         double K = a.v[2] * (1.0 - deltaEoE); // Lose energy before propagating
         double xC = X0.v[0] + (a.v[0] + alpha / K) * FastMath.cos(a.v[1]); // Center of the helix circle
         double yC = X0.v[1] + (a.v[0] + alpha / K) * FastMath.sin(a.v[1]);
-        // if (verbose) System.out.format("pivotTransform center=%13.10f, %13.10f\n",
-        // xC, yC);
+        // if (verbose) System.out.format("pivotTransform center=%13.10f, %13.10f\n", xC, yC);
 
         // Predicted state vector
         double[] aP = new double[5];
@@ -323,17 +547,28 @@ class HelixState implements Cloneable {
         return new Vec(5, aP);
     }
     
-    // Propagate a helix by Runge-Kutta integration to an arbitrary plane
+    /**
+     * Propagate a helix by Runge-Kutta integration to an arbitrary plane
+     * @param pln          plane to where the extrapolation is taking place in global coordinates.
+     *                     The origin of pln will be the new helix pivot point in global coordinates and the origin of the B-field system.
+     * @param yScat        input array of y values where scattering in silicon will take place. Only those between the start and finish points
+     *                     will be used, so including extras will just waste a bit of CPU time. Silicon is assumed to lie in a plane
+     *                     perpendicular to the beam axis at each of these yScat values.
+     * @param XL           input array of y values where scattering in silicon will take place. Only those between the start and finish points
+     *                     will be used, so including extras will just waste a bit of CPU time. Silicon is assumed to lie in a plane
+     *                     perpendicular to the beam axis at each of these yScat values.
+     * @param fM           HPS field map
+     * @param arcLength    return the arc length to the plane
+     * @return             helix state at the new pivot. These helix parameters are valid in the B-field coordinate system with
+     *                     origin at the pivot point and z axis in the direction of the B-field at the pivot.
+     */
     HelixState propagateRungeKutta(Plane pln, ArrayList<Double> yScat, ArrayList<Double> XL, org.lcsim.geometry.FieldMap fM, double [] arcLength) {
-        // pln   = plane to where the extrapolation is taking place in global coordinates.  
-        //         The origin of pln will be the new helix pivot point in global coordinates and the origin of the B-field system.
-        // yScat = input array of y values where scattering in silicon will take place. Only those between the start and finish points
-        //         will be used, so including extras will just waste a bit of CPU time. Silicon is assumed to lie in a plane
-        //         perpendicular to the beam axis at each of these yScat values.
+        // pln   =   
+        //         
+        // yScat = 
         // XL    = silicon thickness in radiation lengths at each of the scattering planes
-        // fM    = HPS field map
-        // return value = helix state at the new pivot. These helix parameters are valid in the B-field coordinate system with
-        //                origin at the pivot point and z axis in the direction of the B-field at the pivot.
+        // fM    = 
+        // return value = 
         
         final boolean debug = false;
         
@@ -418,30 +653,54 @@ class HelixState implements Cloneable {
         return newHelixState;
     }
 
-    // Optional interface for the case in which there are no scattering planes
+    /**
+     * Optional simplified interface for the case in which there are no scattering planes
+     */
     HelixState propagateRungeKutta(Plane pln, ArrayList<Double> XL, org.lcsim.geometry.FieldMap fM, double [] arcLength) {
         ArrayList<Double> yScat = new ArrayList<Double>();
         return propagateRungeKutta(pln, yScat, XL, fM, arcLength);
     }
     
+    /**
+     * Get the intersection point with the plane, as calculated by propagateRungeKutta
+     * @return    3-vector intersection point
+     */
     Vec getRKintersection() {
         return xPlaneRK;
     }
 
+    /**
+     * Calculated the expected rms projected multiple scattering angle.
+     * @param p       momentum magnitude
+     * @param XL      radiation lengths of the scattering material
+     * @return        rms projected angle
+     */
     static double projMSangle(double p, double XL) {
         if (XL <= 0.) return 0.;
-        return (0.0136 / Math.abs(p)) * FastMath.sqrt(XL) * (1.0 + 0.038 * FastMath.log(XL));
+        return (0.0136 / p) * FastMath.sqrt(XL) * (1.0 + 0.038 * FastMath.log(XL));
     }
 
-    boolean helixStepper(double maxStep, ArrayList<Double> yScat, ArrayList<Double> XL, DMatrixRMaj Covariance, Vec finalHelix, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {
-        // The old and new origin points are in global coordinates. The old helix and old pivot are defined
-        // in a coordinate system aligned with the field and centered at the old origin. The returned
-        // helix will be in a coordinate system aligned with the local field at the new origin, and the
-        // new pivot point will be at the new origin, in global coordinates, although to use it one should transform to the field frame, which
-        // is defined with its origin at newOrigin and aligned there with the local field.        
-        // All scattering layers are assumed to be of the same thickness XL, in radiation lengths
-        // We assume that the starting StateVector is at a layer with a hit, in which case the Kalman filter has already accounted for
-        // multiple scattering at that layer.       
+    /**
+     * Transform a helix in discrete steps through a non-uniform B field.  Each step assumes locally uniform field.
+     * The old and new origin points are in global coordinates. The old helix and old pivot are defined
+     * in a coordinate system aligned with the field and centered at the old origin. The returned
+     * helix will be in a coordinate system aligned with the local field at the new origin, and the
+     * new pivot point will be at the new origin, in global coordinates, although to use it one should transform to the field frame, which
+     * is defined with its origin at newOrigin and aligned there with the local field.        
+     * All scattering layers are assumed to be of the same thickness XL, in radiation lengths
+     * We assume that the starting StateVector is at a layer with a hit, in which case the Kalman filter has already accounted for
+     * multiple scattering at that layer.    
+     * Note: energy loss is not included.
+     * @param maxStep           Maximum step size, in mm
+     * @param yScat             Locations of scattering planes
+     * @param XL                radiation lengths of scattering planes
+     * @param Covariance        output the covariance matrix of the transformed helix
+     * @param finalHelix        output transformed helix
+     * @param newOrigin         new origin 3-vector point, in global coordinates
+     * @param fM                HPS field map
+     * @return                  successful conclusion if true
+     */
+    boolean helixStepper(double maxStep, ArrayList<Double> yScat, ArrayList<Double> XL, DMatrixRMaj Covariance, Vec finalHelix, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {   
                 
         final boolean debug = false;
         
@@ -561,7 +820,7 @@ class HelixState implements Cloneable {
                 Vec newPoint = atPhi(newPivot, newHelixPivoted, dphi, localAlpha);
                 newPoint.print("new point of intersection, should be same as the old");
             }           
-            makeF(newHelixPivoted, F, newHelix, localAlpha);
+            makeF(newHelixPivoted, F, newHelix, localAlpha, 1.0);
             newHelix = newHelixPivoted;
 
             // Rotate the helix into the field system at the new origin
@@ -610,7 +869,7 @@ class HelixState implements Cloneable {
         Vec newOriginLocal = new Vec(0.,0.,0.);
         Vec oldPivot = RM.rotate(Origin.dif(newOrigin));
         Vec finalHx = pivotTransform(newOriginLocal, newHelix, oldPivot, localAlpha, 0.);
-        makeF(finalHx, F, newHelix, localAlpha);
+        makeF(finalHx, F, newHelix, localAlpha, 1.0);
         CommonOps_DDRM.multTransB(Cov, F, cIntermediate); 
         CommonOps_DDRM.mult(F,cIntermediate,Cov);
         if (debug) {
@@ -626,17 +885,10 @@ class HelixState implements Cloneable {
         return true;
     }
     
-    // Transform the HelixState into a standard HPS TrackState (which loses a lot of information)
-    // In the returned TrackState the reference point gets set to the point on the helix closest to the
-    // original pivot point (e.g. the helix intersection with the plane of silicon).
-    // The pivot of the returned TrackState is always the origin (0,0,0)
-    TrackState toTrackState(double alphaCenter, Plane pln, int loc) {
-        // See TrackState for the different choices for loc (e.g. TrackState.atOther)
-        return KalmanInterface.toTrackState(this, pln, alphaCenter, loc);    
-    }
-     
-    // Transform a helix from one pivot to another through a non-uniform B field in several steps
-    // Deprecated original version without scattering planes
+    /**
+     *  Transform a helix from one pivot to another through a non-uniform B field in several steps
+     *   Deprecated original version without scattering planes
+     */
     Vec helixStepper(int nSteps, DMatrixRMaj Covariance, Vec newOrigin, org.lcsim.geometry.FieldMap fM) {
         double maxStep = Math.abs(newOrigin.v[1]-origin.v[1])/(double)nSteps;
         ArrayList<Double> yScats = new ArrayList<Double>();
@@ -645,8 +897,25 @@ class HelixState implements Cloneable {
         helixStepper(maxStep, yScats, XL, Covariance, transHelix, newOrigin, fM);
         return transHelix;
     }
+    
+    /**
+     *  Transform the HelixState into a standard HPS TrackState (which loses a lot of information)
+     *  In the returned TrackState the reference point gets set to the point on the helix closest to the
+     *  original pivot point (e.g. the helix intersection with the plane of silicon).
+     *  The pivot of the returned TrackState is always the origin (0,0,0)
+     * @param alphaCenter   parameter to transform between curvature and momentum at the tracker center
+     * @param pln           the position and direction cosines of the plane
+     * @param loc           location descriptor (from LCSIM)
+     * @return
+     */
+    TrackState toTrackState(double alphaCenter, Plane pln, int loc) {
+        // See TrackState for the different choices for loc (e.g. TrackState.atOther)
+        return KalmanInterface.toTrackState(this, pln, alphaCenter, loc);    
+    }
 
-    // Comparator function for sorting pairs in helixStepper by y
+    /**
+     *  Comparator function for sorting pairs in helixStepper by y
+     */
     static Comparator<Pair<Double,Double>> pairComparator = new Comparator<Pair<Double,Double>>() {
         public int compare(Pair<Double,Double> p1, Pair<Double,Double> p2) {
             if (p1.getFirstElement() < p2.getFirstElement()) {
@@ -657,8 +926,11 @@ class HelixState implements Cloneable {
         }
     };
 
-    // Multiple scattering matrix; assume a single thin scattering layer at the
-    // beginning of the helix propagation
+    /**
+     * Multiple scattering matrix; assume a single thin scattering layer at the beginning of the helix propagation
+     * @param sigmaMS      rms projected multiple scattering angle
+     * @param Q            returned multiple scattering matrix
+     */
     void getQ(double sigmaMS, DMatrixRMaj Q) {
         double V = sigmaMS * sigmaMS;
         Q.unsafe_set(1, 1,  V * (1.0 + a.v[4] * a.v[4]));

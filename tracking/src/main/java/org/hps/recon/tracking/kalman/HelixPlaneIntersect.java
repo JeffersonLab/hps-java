@@ -30,17 +30,19 @@ class HelixPlaneIntersect {
     double arcLength() {   // Return the arc length for the last call to rkIntersect
         return deltaS;
     }
-    // Runge Kutta integration extrapolation to a plane through a non-uniform field
-    // When close to the plane, then a helix is used to find the exact intersection
+    /**
+     * Runge Kutta integration extrapolation to a plane through a non-uniform field
+     * When close to the plane, then a helix is used to find the exact intersection
+     * 
+     * @param P      definition of the plane to which to extrapolate
+     * @param X0     3-D starting point for the extrapolation
+     * @param P0in   3-momentum at the start of the extrapolation
+     * @param Qin    sign of the particle charge (+1 or -1)
+     * @param fM     HPS field map
+     * @param pInt   return value for the momentum at the intersection
+     * @return       3-D intersection point
+     */
     Vec rkIntersect(Plane P, Vec X0, Vec P0in, double Qin, org.lcsim.geometry.FieldMap fM, Vec pInt) {
-        // P definition of the plane to which to extrapolate
-        // X0 3-D starting point for the extrapolation
-        // P0 3-momentum at the start of the extrapolation
-        // Q sign of the particle charge (+1 or -1)
-        // fM HPS field map
-        // pInt return value for the momentum at the intersection
-        // the function return value is the 3-D intersection point
-
         if (debug) {
             System.out.format("Entering HelixPlaneIntersect.rkIntersect for plane %s\n", P.toString());
             X0.print("rkIntersect start location, global coords");
@@ -144,10 +146,16 @@ class HelixPlaneIntersect {
         return xIntGlb;
     }
 
-    // Given the momentum and charge at a location, return the parameters of the helix,
-    // assuming a reference frame in which the magnetic field is in the z direction!
-    // The new pivot point is the location provided, so rho0 and z0 will always be
-    // zero.
+    /**
+     * Given the momentum and charge at a location, return the parameters of the helix,
+     * assuming a reference frame in which the magnetic field is in the z direction!
+     * The new pivot point is the location provided, so rho0 and z0 will always be
+     * zero.
+     * @param x    point on the track
+     * @param p    3-momentum at that point
+     * @param Q    charge
+     * @return     5-vector of helix parameters
+     */ 
     static Vec pToHelix(Vec x, Vec p, double Q) {
         double E = p.mag();
         Vec t = p.unitVec(E);
@@ -158,12 +166,15 @@ class HelixPlaneIntersect {
         return new Vec(0., phi0, K, 0., tanl);
     }
 
-    // Find the intersection of a helix with a plane.
+    /**
+     *  Find the intersection of a helix with a plane.
+     * @param a       5-vector of helix parameters
+     * @param pivot   helix pivot point
+     * @param alpha   10^12/c/B to convert curvature to momentum
+     * @param p       point and direction cosines of the plane
+     * @return        angle through which the helix turns going from the pivot point to the plane
+     */
     double planeIntersect(Vec a, Vec pivot, double alpha, Plane p) {
-        // p: Plane assumed to be defined in the local helix reference frame
-        // a: vector of 5 helix parameters
-        // alpha: 10^12/c/B
-
         // Take as a starting guess the solution for the case that the plane orientation is exactly y-hat.
         // System.out.format("HelixPlaneIntersection:planeIntersect, alpha=%f10.5\n", alpha);
         this.alpha = alpha;
@@ -183,9 +194,16 @@ class HelixPlaneIntersect {
         return phi;
     }
 
-    // Safe Newton-Raphson zero finding from Numerical Recipes in C
+    /**
+     *  Safe Newton-Raphson zero finding from Numerical Recipes in C
+     * @param xGuess      starting guess for the phi angle of the helix intersection
+     * @param x1          minimum of search range
+     * @param x2          maximum of search range
+     * @param xacc        specification of the required accuracy
+     * @return            a zero point between x1 and x2
+     */
     private double rtSafe(double xGuess, double x1, double x2, double xacc) {
-        // Here xGuess is a starting guess for the phi angle of the helix intersection
+        // Here xGuess is a 
         // x1 and x2 give a range for the value of the solution
         // xacc specifies the accuracy needed
         // The output is an accurate result for the phi of the intersection

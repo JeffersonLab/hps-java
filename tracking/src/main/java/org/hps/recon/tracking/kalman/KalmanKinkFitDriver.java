@@ -19,6 +19,10 @@ import org.lcsim.util.aida.AIDA;
 
 import hep.aida.IHistogram1D;
 
+/**
+ * Driver to study kinks in Kalman tracks, measured by breaking the track into two halves
+ *
+ */
 public class KalmanKinkFitDriver extends Driver {
 
     private ArrayList<SiStripPlane> detPlanes;
@@ -65,7 +69,7 @@ public class KalmanKinkFitDriver extends Driver {
         KalmanParams kPar = new KalmanParams();
         kPar.print();
         
-        KI = new KalmanInterface(false, kPar, fm);
+        KI = new KalmanInterface(kPar, det, fm);
         KI.createSiModules(detPlanes);
 
     }

@@ -17,9 +17,10 @@ import org.lcsim.event.RelationalTable;
 import java.util.Set;
 import org.lcsim.event.GenericObject;
 
-
-// Break a Kalman track into two halves and fit them separately.
-// Find the kink angle between the two halves
+/**
+ * Break a Kalman track into two halves and fit them separately.
+ * Find the kink angle between the two halves
+ */
 public class KalmanKinkFit {
     private KalmanTrackFit2 innerTrack, outerTrack;
     private Vec innerP, outerP;

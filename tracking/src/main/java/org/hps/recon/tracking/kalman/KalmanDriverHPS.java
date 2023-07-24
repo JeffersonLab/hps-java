@@ -37,8 +37,11 @@ import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.event.MCParticle;
-
-// $ java -jar ./distribution/target/hps-distribution-4.0-SNAPSHOT-bin.jar -b -DoutputFile=output -d HPS-EngRun2015-Nominal-v4-4-fieldmap -i tracking/tst_4-1.slcio -n 1 -R 5772 steering-files/src/main/resources/org/hps/steering/recon/KalmanTest.lcsim
+/**
+ * 
+ * This driver was used originally to test Kalman-Filter track fitting using hits on tracks found by SeedTracker and fit by GBL.
+ *
+ */
 public class KalmanDriverHPS extends Driver {
 
     private ArrayList<SiStripPlane> detPlanes;
@@ -170,7 +173,8 @@ public class KalmanDriverHPS extends Driver {
         sensors = det.getSubdetector("Tracker").getDetectorElement().findDescendants(HpsSiSensor.class);
 
         KalmanParams kPar = new KalmanParams();
-        KI = new KalmanInterface(this.uniformB, kPar, fm);
+        kPar.setUniformB(uniformB);
+        KI = new KalmanInterface(kPar, det, fm);
         KI.createSiModules(detPlanes);
         
         System.out.format("KalmanDriver: the B field is assumed uniform? %b\n", uniformB);
@@ -193,9 +197,7 @@ public class KalmanDriverHPS extends Driver {
             System.out.println(trackCollectionName + " does not exist; skipping event");
             return;
         }
-        int runNumber = event.getRunNumber();
        
-        KI.setRunNumber(runNumber);
         int evtNumb = event.getEventNumber();
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         List<Track> outputSeedTracks = new ArrayList<Track>();
@@ -260,7 +262,7 @@ public class KalmanDriverHPS extends Driver {
             if (createSeed) { // Start with the linear helix fit
                 if (verbose)
                     System.out.println("Use a linear helix fit to get a starting guess for the Kalman filter\n");
-                SeedTrack seedKalmanTrack = KI.createKalmanSeedTrack(trk, hitToStrips, hitToRotated);
+                SeedTrack seedKalmanTrack = KI.createKalmanSeedTrack(event, trk, hitToStrips, hitToRotated);
                 if (verbose) {
                     System.out.println("\nPrinting info for Kalman SeedTrack:");
                     seedKalmanTrack.print("testKalmanTrack");
@@ -277,7 +279,7 @@ public class KalmanDriverHPS extends Driver {
                 outputSeedTracks.add(HPStrk);
 
                 //full track
-                ktf2 = KI.createKalmanTrackFit(evtNumb, seedKalmanTrack, trk, hitToStrips, hitToRotated, 2);
+                ktf2 = KI.createKalmanTrackFit(event, seedKalmanTrack, trk, hitToStrips, hitToRotated, 2);
                 if (!ktf2.success) {
                     KI.clearInterface();
                     continue;
@@ -343,7 +345,7 @@ public class KalmanDriverHPS extends Driver {
                     cov.print("GBL covariance for starting Kalman fit");
                 }
                 //full track
-                ktf2 = KI.createKalmanTrackFit(evtNumb, kalParams, newPivot, cov, trk, hitToStrips, hitToRotated, 2);
+                ktf2 = KI.createKalmanTrackFit(event, kalParams, newPivot, cov, trk, hitToStrips, hitToRotated, 2);
                 if (!ktf2.success) {
                     KI.clearInterface();
                     continue;
@@ -392,7 +394,7 @@ public class KalmanDriverHPS extends Driver {
             }
             if (fullKalmanTrack != null) {
 
-                Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true);
+                Track fullKalmanTrackHPS = KI.createTrack(fullKalmanTrack, true, event);
                 outputFullTracks.add(fullKalmanTrackHPS);
 
                 // Fill histograms here

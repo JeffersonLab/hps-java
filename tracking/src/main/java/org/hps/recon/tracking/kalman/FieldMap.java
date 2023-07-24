@@ -133,7 +133,12 @@ public class FieldMap extends FieldOverlay {
         offsets.print("field map offsets");
     }
     
-    double [] getField(Vec r) { // Interpolate the 3D field map
+    /**
+     * Interpolate the 3D field map
+     * @param r       3-vector position
+     * @return        array of 3 field components
+     */
+    double [] getField(Vec r) {
         Vec rHPS;
         if (uniform) {
             rHPS = new Vec(0., 0., 505.57);
@@ -192,6 +197,17 @@ public class FieldMap extends FieldOverlay {
         return Bout; 
     }
 
+    /**
+     * Trilinear interpolation
+     * @param i     x index into array
+     * @param j     y index into array
+     * @param k     z index into array
+     * @param xd    x value
+     * @param yd    y value
+     * @param zd    z value
+     * @param f     3D array to interpolate
+     * @return      interpolated value of the array f at the given coordinates
+     */
     private double triLinear(int i, int j, int k, double xd, double yd, double zd, double[][][] f) {
         // System.out.format(" triLinear: xd=%10.7f, yd=%10.7f, zd=%10.7f\n", xd,yd,zd);
         // System.out.format(" 000=%12.4e, 100=%12.4e\n", f[i][j][k],f[i+1][j][k]);
@@ -210,7 +226,11 @@ public class FieldMap extends FieldOverlay {
         return c;
     }
 
-    void writeBinaryFile(String fName) { // Make a binary field map file that can be read much more quickly
+    /**
+     * Make a binary field map file that can be read much more quickly
+     * @param fName    Name of output file
+     */
+    void writeBinaryFile(String fName) { 
         FileOutputStream ofile;
         try {
             ofile = new FileOutputStream(fName);
