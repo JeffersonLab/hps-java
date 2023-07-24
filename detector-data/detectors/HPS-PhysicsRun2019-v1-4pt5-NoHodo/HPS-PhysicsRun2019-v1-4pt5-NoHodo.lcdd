@@ -2,20 +2,11 @@
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
     <detector name="HPS-PhysicsRun2019-v1-4pt5" />
-    <generator name="lcsim" version="1.0" file="/data/HPS/hps-java/detector-data/detectors/HPS-PhysicsRun2019-v1-4pt5/compact.xml" checksum="59463262" />
+    <generator name="lcsim" version="1.0" file="/sdf/group/hps/users/sgaiser/src/hps-java/detector-data/detectors/HPS-PhysicsRun2019-v1-4pt5-NoHodo/compact.xml" checksum="3974789502" />
     <author name="NONE" />
     <comment>HPS detector for 2019 run with fieldmap, Tracker at nominal opening angle, no SVT survey, this detector uses the corrected fieldmap scaled to -1.022T for 4.5 GeV. Includes L0 and Hodoscope.</comment>
   </header>
   <iddict>
-    <idspec name="HodoscopeForeHits" length="46">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="barrel" length="3" start="6" />
-      <idfield signed="false" label="layer" length="4" start="9" />
-      <idfield signed="false" label="module" length="12" start="13" />
-      <idfield signed="false" label="sensor" length="1" start="25" />
-      <idfield signed="true" label="side" length="2" start="32" />
-      <idfield signed="false" label="strip" length="12" start="34" />
-    </idspec>
     <idspec name="TrackerHitsFieldDef" length="46">
       <idfield signed="false" label="system" length="6" start="0" />
       <idfield signed="false" label="barrel" length="3" start="6" />
@@ -33,13 +24,6 @@
       <idfield signed="false" label="sensor" length="1" start="25" />
       <idfield signed="true" label="side" length="2" start="32" />
       <idfield signed="false" label="strip" length="12" start="34" />
-    </idspec>
-    <idspec name="HodoscopeHits" length="20">
-      <idfield signed="false" label="system" length="6" start="0" />
-      <idfield signed="false" label="barrel" length="3" start="6" />
-      <idfield signed="false" label="layer" length="4" start="9" />
-      <idfield signed="false" label="ix" length="4" start="13" />
-      <idfield signed="true" label="iy" length="3" start="17" />
     </idspec>
     <idspec name="EcalHits" length="22">
       <idfield signed="false" label="system" length="6" start="0" />
@@ -69,9 +53,6 @@
       <idspecref ref="EcalHits" />
       <grid_xyz grid_size_x="0.0" grid_size_y="0.0" grid_size_z="0.0" />
     </calorimeter>
-    <tracker name="Hodoscope" ecut="0.0" eunit="MeV" verbose="0" hits_collection="HodoscopeHits">
-      <idspecref ref="HodoscopeHits" />
-    </tracker>
   </sensitive_detectors>
   <limits />
   <regions>
@@ -98,9 +79,6 @@
     </vis>
     <vis name="ECALVis" line_style="unbroken" drawing_style="wireframe" show_daughters="true" visible="true">
       <color R="0.8" G="0.5" B="0.1" alpha="1.0" />
-    </vis>
-    <vis name="HodoscopeVis" line_style="unbroken" drawing_style="solid" show_daughters="true" visible="true">
-      <color R="0.0" G="0.3372549" B="0.50980395" alpha="1.0" />
     </vis>
     <vis name="BasePlateVis" line_style="dashed" drawing_style="solid" show_daughters="true" visible="true">
       <color R="0.35" G="0.35" B="0.35" alpha="1.0" />
@@ -225,103 +203,55 @@
       <rotation name="support_plate_bottom_L46_rotation" x="0.0" y="-0.0" z="3.1111093540316292" unit="radian" />
       <position name="support_plate_top_L46_position" x="0.14255566889328364" y="-354.53517226223204" z="65.573" unit="mm" />
       <rotation name="support_plate_top_L46_rotation" x="3.141592653589793" y="-0.0" z="0.030483299558163937" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_hole_position" x="-24.806237958500816" y="292.84587530110855" z="-7.790000000000013" unit="mm" />
-      <rotation name="module_L1b_halfmodule_axial_hole_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_slot_position" x="-14.810901176021957" y="293.15123182195816" z="-7.790000000000013" unit="mm" />
-      <rotation name="module_L1b_halfmodule_axial_slot_rotation" x="-1.5707963267948966" y="-0.030540399450088233" z="-1.5707963267948963" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_stereo_hole_position" x="-24.19925025118178" y="297.62914060721744" z="-8.25274744811096" unit="mm" />
-      <rotation name="module_L1b_halfmodule_stereo_hole_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
-      <position name="module_L1b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_stereo_slot_position" x="-14.253848519258668" y="297.9329716173576" z="-7.254413281642684" unit="mm" />
-      <rotation name="module_L1b_halfmodule_stereo_slot_rotation" x="1.5707963267948963" y="0.03054039945008829" z="-1.4707963267948967" unit="radian" />
-      <position name="module_L1b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1b_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_axial_hole_position" x="-24.855769643196368" y="307.1098677831444" z="7.790000000000013" unit="mm" />
-      <rotation name="module_L1t_halfmodule_axial_hole_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
-      <position name="module_L1t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_axial_slot_position" x="-14.86040021648165" y="307.414153871384" z="7.790000000000013" unit="mm" />
-      <rotation name="module_L1t_halfmodule_axial_slot_rotation" x="1.5707963267948966" y="0.03043330642417548" z="-1.5707963267948966" unit="radian" />
-      <position name="module_L1t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_stereo_hole_position" x="-23.958437185955518" y="302.372478678728" z="8.25274744811096" unit="mm" />
-      <rotation name="module_L1t_halfmodule_stereo_hole_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
-      <position name="module_L1t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_stereo_slot_position" x="-14.013002972881708" y="302.6752446039625" z="7.254413281642684" unit="mm" />
-      <rotation name="module_L1t_halfmodule_stereo_slot_rotation" x="-1.5707963267948968" y="-0.03043330642417548" z="-1.470796326794897" unit="radian" />
-      <position name="module_L1t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L1t_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L1t_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_halfmodule_axial_hole_position" x="-17.949579425430272" y="238.3698444824001" z="-7.790000000000013" unit="mm" />
-      <rotation name="module_L2b_halfmodule_axial_hole_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
-      <position name="module_L2b_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2b_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2b_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_halfmodule_axial_slot_position" x="-7.954242642951414" y="238.67520100324973" z="-7.790000000000013" unit="mm" />
-      <rotation name="module_L2b_halfmodule_axial_slot_rotation" x="-1.5707963267948966" y="-0.030540399450088233" z="-1.5707963267948963" unit="radian" />
-      <position name="module_L2b_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2b_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2b_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_halfmodule_stereo_hole_position" x="-17.342591718111237" y="243.15310978850903" z="-8.25274744811096" unit="mm" />
-      <rotation name="module_L2b_halfmodule_stereo_hole_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
-      <position name="module_L2b_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2b_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2b_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_halfmodule_stereo_slot_position" x="-7.397189986188124" y="243.4569407986492" z="-7.254413281642684" unit="mm" />
-      <rotation name="module_L2b_halfmodule_stereo_slot_rotation" x="1.5707963267948963" y="0.03054039945008829" z="-1.4707963267948967" unit="radian" />
-      <position name="module_L2b_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2b_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2b_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2b_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_halfmodule_axial_hole_position" x="-18.65801809786825" y="261.5973818503547" z="7.790000000000013" unit="mm" />
-      <rotation name="module_L2t_halfmodule_axial_hole_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
-      <position name="module_L2t_halfmodule_axial_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2t_halfmodule_axial_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_halfmodule_axial_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2t_halfmodule_axial_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_halfmodule_axial_slot_position" x="-8.662648671153534" y="261.90166793859424" z="7.790000000000013" unit="mm" />
-      <rotation name="module_L2t_halfmodule_axial_slot_rotation" x="1.5707963267948966" y="0.03043330642417548" z="-1.5707963267948966" unit="radian" />
-      <position name="module_L2t_halfmodule_axial_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2t_halfmodule_axial_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_halfmodule_axial_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2t_halfmodule_axial_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_halfmodule_stereo_hole_position" x="-17.7606856406274" y="256.85999274593826" z="8.25274744811096" unit="mm" />
-      <rotation name="module_L2t_halfmodule_stereo_hole_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
-      <position name="module_L2t_halfmodule_stereo_hole_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2t_halfmodule_stereo_hole_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_halfmodule_stereo_hole_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2t_halfmodule_stereo_hole_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_halfmodule_stereo_slot_position" x="-7.815251427553591" y="257.16275867117275" z="7.254413281642684" unit="mm" />
-      <rotation name="module_L2t_halfmodule_stereo_slot_rotation" x="-1.5707963267948968" y="-0.03043330642417548" z="-1.470796326794897" unit="radian" />
-      <position name="module_L2t_halfmodule_stereo_slot_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2t_halfmodule_stereo_slot_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L2t_halfmodule_stereo_slot_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
-      <rotation name="module_L2t_halfmodule_stereo_slot_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3b_halfmodule_axial_position" x="-44.86653535485047" y="136.9933936367715" z="-24.780800000000013" unit="mm" />
+      <position name="module_L1b_halfmodule_axial_position" x="-19.4763620296784" y="288.34652839479435" z="-7.762500000000017" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1b_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_position" x="-18.93367257553973" y="295.96125068179487" z="-7.723719832970694" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.03054039945008851" z="-1.4707963267948962" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1b_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1b_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_position" x="-20.179448539066072" y="311.57422898392844" z="7.762500000000017" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1t_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_position" x="-19.173757379240968" y="304.00672657938145" z="7.723719832970694" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.03043330642417548" z="-1.470796326794897" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L1t_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L1t_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_position" x="-18.19946284499224" y="238.36221056937887" z="-8.062500000000014" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2b_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_position" x="-17.656773390853573" y="245.97693285637936" z="-8.023719832970691" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.03054039945008851" z="-1.4707963267948962" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2b_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2b_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_position" x="-18.90790233353613" y="261.5897746981487" z="8.062500000000014" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_axial_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2t_halfmodule_axial_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_position" x="-17.902211173711024" y="254.02227229360167" z="8.023719832970691" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.03043330642417548" z="-1.470796326794897" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_sensor_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L2t_halfmodule_stereo_sensor_active_position" x="0.0" y="0.0" z="0.0" unit="mm" />
+      <rotation name="module_L2t_halfmodule_stereo_sensor_active_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
+      <position name="module_L3b_halfmodule_axial_position" x="-44.86653535485047" y="136.9933936367715" z="-25.58080000000001" unit="mm" />
       <rotation name="module_L3b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
       <position name="module_L3b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L3b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -333,7 +263,7 @@
       <rotation name="module_L3b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L3b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3b_halfmodule_stereo_position" x="-45.31340636973398" y="145.36415160545664" z="-20.962863274980403" unit="mm" />
+      <position name="module_L3b_halfmodule_stereo_position" x="-45.31340636973398" y="145.36415160545664" z="-21.7628632749804" unit="mm" />
       <rotation name="module_L3b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
       <position name="module_L3b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L3b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -345,7 +275,7 @@
       <rotation name="module_L3b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L3b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3t_halfmodule_axial_position" x="-45.616700407442764" y="161.2378444326587" z="24.780800000000013" unit="mm" />
+      <position name="module_L3t_halfmodule_axial_position" x="-45.616700407442764" y="161.2378444326587" z="25.58080000000001" unit="mm" />
       <rotation name="module_L3t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
       <position name="module_L3t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L3t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -357,7 +287,7 @@
       <rotation name="module_L3t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L3t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L3t_halfmodule_stereo_position" x="-45.552661057467056" y="152.8554115139946" z="20.962863274980403" unit="mm" />
+      <position name="module_L3t_halfmodule_stereo_position" x="-45.552661057467056" y="152.8554115139946" z="21.7628632749804" unit="mm" />
       <rotation name="module_L3t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
       <position name="module_L3t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L3t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -369,7 +299,7 @@
       <rotation name="module_L3t_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L3t_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L3t_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_halfmodule_axial_position" x="-41.81297014635422" y="37.040025811983014" z="-26.280800000000013" unit="mm" />
+      <position name="module_L4b_halfmodule_axial_position" x="-41.81297014635422" y="37.040025811983014" z="-27.08080000000001" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_rotation" x="-1.5707963267948963" y="-0.0305403994500879" z="1.5707963267948963" unit="radian" />
       <position name="module_L4b_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -381,7 +311,7 @@
       <rotation name="module_L4b_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L4b_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4b_halfmodule_stereo_position" x="-42.25984116123773" y="45.41078378066817" z="-22.462863274980403" unit="mm" />
+      <position name="module_L4b_halfmodule_stereo_position" x="-42.25984116123773" y="45.41078378066817" z="-23.2628632749804" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_rotation" x="1.5707963267948966" y="0.030540399450088178" z="1.6707963267948966" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -393,7 +323,7 @@
       <rotation name="module_L4b_halfmodule_stereo_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4b_halfmodule_stereo_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L4b_halfmodule_stereo_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_halfmodule_axial_position" x="-42.57383952504712" y="61.28415016551123" z="26.280800000000013" unit="mm" />
+      <position name="module_L4t_halfmodule_axial_position" x="-42.57383952504712" y="61.28415016551123" z="27.08080000000001" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_rotation" x="1.5707963267948966" y="0.030433306424175535" z="1.5707963267948966" unit="radian" />
       <position name="module_L4t_halfmodule_axial_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -405,7 +335,7 @@
       <rotation name="module_L4t_halfmodule_axial_cf_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
       <position name="module_L4t_halfmodule_axial_hybrid_position" x="-3.414999999999999" y="-55.0" z="0.12649999999999995" unit="mm" />
       <rotation name="module_L4t_halfmodule_axial_hybrid_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
-      <position name="module_L4t_halfmodule_stereo_position" x="-42.50980017507141" y="52.90171724684712" z="22.462863274980403" unit="mm" />
+      <position name="module_L4t_halfmodule_stereo_position" x="-42.50980017507141" y="52.90171724684712" z="23.2628632749804" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_rotation" x="-1.5707963267948966" y="-0.030433306424175702" z="1.6707963267948966" unit="radian" />
       <position name="module_L4t_halfmodule_stereo_sensor_position" x="-3.414999999999999" y="30.0" z="-0.50725" unit="mm" />
       <rotation name="module_L4t_halfmodule_stereo_sensor_rotation" x="0.0" y="-0.0" z="0.0" unit="radian" />
@@ -1517,149 +1447,6 @@
       <rotation name="crystal23-5_rot_pos_top" x="0.0759356980444989" y="-0.3796784902224945" z="0.0" unit="radian" />
       <position name="crystal23-5_pos_neg_top" x="-298.89084923246253" y="90.0427015552106" z="1520.0974000537913" unit="mm" />
       <rotation name="crystal23-5_rot_neg_top" x="0.0759356980444989" y="0.3796784902224945" z="0.0" unit="radian" />
-      <rotation name="hodo_rot" x="0.0" y="0.0" z="0.0" unit="radian" />
-      <position name="hodo_pos_L1TP0" x="73.63" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1TP0" x="73.63" y="44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1TP0" x="73.63" y="44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1TP0" x="65.75500000000001" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1TP0" x="81.50500000000001" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1TP0" x="73.63" y="74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1TP0" x="73.63" y="14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L1BP0" x="73.63" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1BP0" x="73.63" y="-44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1BP0" x="73.63" y="-44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1BP0" x="65.75500000000001" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1BP0" x="81.50500000000001" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1BP0" x="73.63" y="-14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1BP0" x="73.63" y="-74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L1TP1" x="98.63" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1TP1" x="98.63" y="44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1TP1" x="98.63" y="44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1TP1" x="81.555" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1TP1" x="115.70500000000001" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1TP1" x="98.63" y="74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1TP1" x="98.63" y="14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L1BP1" x="98.63" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1BP1" x="98.63" y="-44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1BP1" x="98.63" y="-44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1BP1" x="81.555" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1BP1" x="115.70500000000001" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1BP1" x="98.63" y="-14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1BP1" x="98.63" y="-74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L1TP2" x="137.78" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1TP2" x="137.78" y="44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1TP2" x="137.78" y="44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1TP2" x="115.75500000000001" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1TP2" x="159.805" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1TP2" x="137.78" y="74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1TP2" x="137.78" y="14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L1BP2" x="137.78" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1BP2" x="137.78" y="-44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1BP2" x="137.78" y="-44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1BP2" x="115.75500000000001" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1BP2" x="159.805" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1BP2" x="137.78" y="-14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1BP2" x="137.78" y="-74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L1TP3" x="181.88" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1TP3" x="181.88" y="44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1TP3" x="181.88" y="44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1TP3" x="159.855" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1TP3" x="203.905" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1TP3" x="181.88" y="74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1TP3" x="181.88" y="14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L1BP3" x="181.88" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1BP3" x="181.88" y="-44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1BP3" x="181.88" y="-44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1BP3" x="159.855" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1BP3" x="203.905" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1BP3" x="181.88" y="-14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1BP3" x="181.88" y="-74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L1TP4" x="225.98000000000002" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1TP4" x="225.98000000000002" y="44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1TP4" x="225.98000000000002" y="44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1TP4" x="203.955" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1TP4" x="248.00500000000002" y="44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1TP4" x="225.98000000000002" y="74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1TP4" x="225.98000000000002" y="14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L1BP4" x="225.98000000000002" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_forecover_pos_L1BP4" x="225.98000000000002" y="-44.2" z="1098.625" unit="mm" />
-      <position name="hodo_postcover_pos_L1BP4" x="225.98000000000002" y="-44.2" z="1108.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L1BP4" x="203.955" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L1BP4" x="248.00500000000002" y="-44.2" z="1103.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L1BP4" x="225.98000000000002" y="-14.225000000000003" z="1103.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L1BP4" x="225.98000000000002" y="-74.17500000000001" z="1103.5" unit="mm" />
-      <position name="hodo_pos_L2TP0" x="78.61999999999999" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2TP0" x="78.61999999999999" y="44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2TP0" x="78.61999999999999" y="44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2TP0" x="69.095" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2TP0" x="88.145" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2TP0" x="78.61999999999999" y="74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2TP0" x="78.61999999999999" y="14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_pos_L2BP0" x="78.61999999999999" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2BP0" x="78.61999999999999" y="-44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2BP0" x="78.61999999999999" y="-44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2BP0" x="69.095" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2BP0" x="88.145" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2BP0" x="78.61999999999999" y="-14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2BP0" x="78.61999999999999" y="-74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_pos_L2TP1" x="110.22" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2TP1" x="110.22" y="44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2TP1" x="110.22" y="44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2TP1" x="88.19500000000001" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2TP1" x="132.245" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2TP1" x="110.22" y="74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2TP1" x="110.22" y="14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_pos_L2BP1" x="110.22" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2BP1" x="110.22" y="-44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2BP1" x="110.22" y="-44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2BP1" x="88.19500000000001" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2BP1" x="132.245" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2BP1" x="110.22" y="-14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2BP1" x="110.22" y="-74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_pos_L2TP2" x="154.32000000000002" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2TP2" x="154.32000000000002" y="44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2TP2" x="154.32000000000002" y="44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2TP2" x="132.29500000000002" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2TP2" x="176.34500000000003" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2TP2" x="154.32000000000002" y="74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2TP2" x="154.32000000000002" y="14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_pos_L2BP2" x="154.32000000000002" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2BP2" x="154.32000000000002" y="-44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2BP2" x="154.32000000000002" y="-44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2BP2" x="132.29500000000002" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2BP2" x="176.34500000000003" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2BP2" x="154.32000000000002" y="-14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2BP2" x="154.32000000000002" y="-74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_pos_L2TP3" x="198.42000000000004" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2TP3" x="198.42000000000004" y="44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2TP3" x="198.42000000000004" y="44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2TP3" x="176.39500000000004" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2TP3" x="220.44500000000005" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2TP3" x="198.42000000000004" y="74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2TP3" x="198.42000000000004" y="14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_pos_L2BP3" x="198.42000000000004" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2BP3" x="198.42000000000004" y="-44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2BP3" x="198.42000000000004" y="-44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2BP3" x="176.39500000000004" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2BP3" x="220.44500000000005" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2BP3" x="198.42000000000004" y="-14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2BP3" x="198.42000000000004" y="-74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_pos_L2TP4" x="235.92000000000002" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2TP4" x="235.92000000000002" y="44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2TP4" x="235.92000000000002" y="44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2TP4" x="220.495" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2TP4" x="251.34500000000003" y="44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2TP4" x="235.92000000000002" y="74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2TP4" x="235.92000000000002" y="14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_pos_L2BP4" x="235.92000000000002" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_forecover_pos_L2BP4" x="235.92000000000002" y="-44.2" z="1110.625" unit="mm" />
-      <position name="hodo_postcover_pos_L2BP4" x="235.92000000000002" y="-44.2" z="1120.375" unit="mm" />
-      <position name="hodo_sidereflR_pos_L2BP4" x="220.495" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_siderefl2L_pos_L2BP4" x="251.34500000000003" y="-44.2" z="1115.5" unit="mm" />
-      <position name="hodo_topreflT_pos_L2BP4" x="235.92000000000002" y="-14.225000000000003" z="1115.5" unit="mm" />
-      <position name="hodo_toprefl2B_pos_L2BP4" x="235.92000000000002" y="-74.17500000000001" z="1115.5" unit="mm" />
-      <position name="hodo_bufferT_pos" x="153.99" y="54.2" z="1109.5" unit="mm" />
-      <position name="hodo_bufferB_pos" x="153.99" y="-54.2" z="1109.5" unit="mm" />
       <position name="front_flange_1inworld_volumepos" x="2.1420000000000003" y="0" z="137.80000000000001" unit="cm" />
       <position name="back_flange_1inworld_volumepos" x="-12.608499999999999" y="0" z="180.80000000000001" unit="cm" />
       <position name="ECAL_chamber_1inworld_volumepos" x="-11.940800000000001" y="0" z="159.30000000000001" unit="cm" />
@@ -1844,17 +1631,6 @@
         <fraction n="0.773" ref="Quartz" />
         <fraction n="0.147" ref="Epoxy" />
       </material>
-      <material name="Polystyrene">
-        <D value="1.032" unit="g/cm3" />
-        <composite n="19" ref="C" />
-        <composite n="21" ref="H" />
-      </material>
-      <material name="Carbon">
-        <RL type="X0" unit="cm" value="21.3485" />
-        <NIL type="lambda" unit="cm" value="40.1008" />
-        <D type="density" unit="g/cm3" value="2" />
-        <composite n="1" ref="C" />
-      </material>
       <material name="G4_Al" Z="13">
         <D unit="g/cm3" value="2.6989999999999998" />
         <atom unit="g/mole" value="26.981538" />
@@ -1943,54 +1719,30 @@
       <box name="support_plate_top_L14Box" x="234.95" y="456.4" z="9.524999999999999" />
       <box name="support_plate_bottom_L46Box" x="342.9" y="533.4" z="12.7" />
       <box name="support_plate_top_L46Box" x="342.9" y="533.4" z="12.7" />
-      <box name="module_L1b_halfmodule_axial_holeBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_axial_hole_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_axial_hole_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_axial_slotBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_axial_slot_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_axial_slot_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_stereo_holeBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_stereo_hole_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_stereo_hole_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_stereo_slotBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_stereo_slot_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1b_halfmodule_stereo_slot_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_axial_holeBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_axial_hole_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_axial_hole_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_axial_slotBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_axial_slot_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_axial_slot_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_stereo_holeBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_stereo_hole_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_stereo_hole_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_stereo_slotBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_stereo_slot_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L1t_halfmodule_stereo_slot_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_axial_holeBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_axial_hole_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_axial_hole_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_axial_slotBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_axial_slot_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_axial_slot_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_stereo_holeBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_stereo_hole_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_stereo_hole_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_stereo_slotBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_stereo_slot_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2b_halfmodule_stereo_slot_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_axial_holeBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_axial_hole_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_axial_hole_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_axial_slotBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_axial_slot_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_axial_slot_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_stereo_holeBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_stereo_hole_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_stereo_hole_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_stereo_slotBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_stereo_slot_sensorBox" x="14.58" y="10.0" z="0.2" />
-      <box name="module_L2t_halfmodule_stereo_slot_sensor_activeBox" x="14.08" y="10.0" z="0.2" />
+      <box name="module_L1b_halfmodule_axialBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L1b_halfmodule_axial_sensorBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L1b_halfmodule_axial_sensor_activeBox" x="14.025" y="30.0" z="0.2" />
+      <box name="module_L1b_halfmodule_stereoBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L1b_halfmodule_stereo_sensorBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L1b_halfmodule_stereo_sensor_activeBox" x="14.025" y="30.0" z="0.2" />
+      <box name="module_L1t_halfmodule_axialBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L1t_halfmodule_axial_sensorBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L1t_halfmodule_axial_sensor_activeBox" x="14.025" y="30.0" z="0.2" />
+      <box name="module_L1t_halfmodule_stereoBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L1t_halfmodule_stereo_sensorBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L1t_halfmodule_stereo_sensor_activeBox" x="14.025" y="30.0" z="0.2" />
+      <box name="module_L2b_halfmodule_axialBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L2b_halfmodule_axial_sensorBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L2b_halfmodule_axial_sensor_activeBox" x="14.025" y="30.0" z="0.2" />
+      <box name="module_L2b_halfmodule_stereoBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L2b_halfmodule_stereo_sensorBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L2b_halfmodule_stereo_sensor_activeBox" x="14.025" y="30.0" z="0.2" />
+      <box name="module_L2t_halfmodule_axialBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L2t_halfmodule_axial_sensorBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L2t_halfmodule_axial_sensor_activeBox" x="14.025" y="30.0" z="0.2" />
+      <box name="module_L2t_halfmodule_stereoBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L2t_halfmodule_stereo_sensorBox" x="14.525" y="30.0" z="0.2" />
+      <box name="module_L2t_halfmodule_stereo_sensor_activeBox" x="14.025" y="30.0" z="0.2" />
       <box name="module_L3b_halfmodule_axialBox" x="47.17" y="200.0" z="1.8405" />
       <box name="module_L3b_halfmodule_axial_sensorBox" x="40.34" y="100.0" z="0.32" />
       <box name="module_L3b_halfmodule_axial_sensor_activeBox" x="38.3399" y="98.33" z="0.32" />
@@ -2145,87 +1897,6 @@
       <box name="BeamRightVolume_component0Box" x="214.6" y="293.38800000000003" z="0.001" />
       <box name="BeamRightVolume_component0Sensor0Box" x="214.6" y="293.38800000000003" z="0.001" />
       <trd name="crystal_trap" x1="13.3" x2="16.0" y1="13.3" y2="16.0" z="160.0" />
-      <box name="hodo_pixel_L1TP0" x="15.7" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1TP0" x="15.7" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1TP0" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1TP0" x="15.799999999999999" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L1BP0" x="15.7" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1BP0" x="15.7" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1BP0" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1BP0" x="15.799999999999999" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L1TP1" x="34.1" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1TP1" x="34.1" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1TP1" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1TP1" x="34.2" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L1BP1" x="34.1" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1BP1" x="34.1" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1BP1" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1BP1" x="34.2" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L1TP2" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1TP2" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1TP2" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1TP2" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L1BP2" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1BP2" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1BP2" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1BP2" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L1TP3" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1TP3" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1TP3" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1TP3" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L1BP3" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1BP3" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1BP3" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1BP3" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L1TP4" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1TP4" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1TP4" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1TP4" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L1BP4" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L1BP4" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L1BP4" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L1BP4" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2TP0" x="19.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2TP0" x="19.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2TP0" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2TP0" x="19.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2BP0" x="19.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2BP0" x="19.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2BP0" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2BP0" x="19.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2TP1" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2TP1" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2TP1" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2TP1" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2BP1" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2BP1" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2BP1" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2BP1" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2TP2" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2TP2" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2TP2" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2TP2" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2BP2" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2BP2" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2BP2" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2BP2" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2TP3" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2TP3" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2TP3" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2TP3" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2BP3" x="44.0" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2BP3" x="44.0" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2BP3" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2BP3" x="44.1" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2TP4" x="30.8" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2TP4" x="30.8" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2TP4" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2TP4" x="30.900000000000002" y="0.05" z="10.0" />
-      <box name="hodo_pixel_L2BP4" x="30.8" y="59.9" z="9.5" />
-      <box name="hodo_cover_L2BP4" x="30.8" y="59.9" z="0.25" />
-      <box name="hodo_siderefl_L2BP4" x="0.05" y="59.9" z="10.0" />
-      <box name="hodo_toprefl_L2BP4" x="30.900000000000002" y="0.05" z="10.0" />
-      <box name="hodo_buffer" x="187.64" y="80.0" z="2.0" />
       <box name="world_volume_solid" x="2000" y="2000" z="2000" lunit="cm" />
       <box name="front_flange_box_shape" x="76.835000000000008" y="45.719999999999999" z="2" lunit="cm" />
       <trap name="front_chamber_trap_shape" z="3" theta="-0.98799999999999999" phi="0" x1="33.119799999999998" x2="33.119799999999998" x3="33.406400000000005" x4="33.406400000000005" y1="1.6000000000000001" y2="1.6000000000000001" alpha1="0" alpha2="0" aunit="deg" lunit="cm" />
@@ -2702,453 +2373,229 @@
         <solidref ref="support_plate_top_L46Box" />
         <visref ref="SupportPlateVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_axial_hole_sensor_active_volume">
+      <volume name="module_L1b_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1b_halfmodule_axial_hole_sensor_activeBox" />
+        <solidref ref="module_L1b_halfmodule_axial_sensor_activeBox" />
         <sdref ref="Tracker" />
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_axial_hole_sensor_volume">
+      <volume name="module_L1b_halfmodule_axial_sensor_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1b_halfmodule_axial_hole_sensorBox" />
+        <solidref ref="module_L1b_halfmodule_axial_sensorBox" />
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_axial_hole_sensor_active_volume" />
-          <positionref ref="module_L1b_halfmodule_axial_hole_sensor_active_position" />
-          <rotationref ref="module_L1b_halfmodule_axial_hole_sensor_active_rotation" />
+          <volumeref ref="module_L1b_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_axial_hole_volume">
+      <volume name="module_L1b_halfmodule_axial_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="module_L1b_halfmodule_axial_holeBox" />
+        <solidref ref="module_L1b_halfmodule_axialBox" />
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_axial_hole_sensor_volume" />
-          <positionref ref="module_L1b_halfmodule_axial_hole_sensor_position" />
-          <rotationref ref="module_L1b_halfmodule_axial_hole_sensor_rotation" />
+          <volumeref ref="module_L1b_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_sensor_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
-        <visref ref="ModuleVis" />
+        <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_axial_slot_sensor_active_volume">
+      <volume name="module_L1b_halfmodule_stereo_sensor_active_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1b_halfmodule_axial_slot_sensor_activeBox" />
+        <solidref ref="module_L1b_halfmodule_stereo_sensor_activeBox" />
         <sdref ref="Tracker" />
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_axial_slot_sensor_volume">
+      <volume name="module_L1b_halfmodule_stereo_sensor_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1b_halfmodule_axial_slot_sensorBox" />
+        <solidref ref="module_L1b_halfmodule_stereo_sensorBox" />
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_axial_slot_sensor_active_volume" />
-          <positionref ref="module_L1b_halfmodule_axial_slot_sensor_active_position" />
-          <rotationref ref="module_L1b_halfmodule_axial_slot_sensor_active_rotation" />
+          <volumeref ref="module_L1b_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_axial_slot_volume">
+      <volume name="module_L1b_halfmodule_stereo_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="module_L1b_halfmodule_axial_slotBox" />
+        <solidref ref="module_L1b_halfmodule_stereoBox" />
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_axial_slot_sensor_volume" />
-          <positionref ref="module_L1b_halfmodule_axial_slot_sensor_position" />
-          <rotationref ref="module_L1b_halfmodule_axial_slot_sensor_rotation" />
+          <volumeref ref="module_L1b_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_sensor_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
-        <visref ref="ModuleVis" />
+        <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_stereo_hole_sensor_active_volume">
+      <volume name="module_L1t_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1b_halfmodule_stereo_hole_sensor_activeBox" />
+        <solidref ref="module_L1t_halfmodule_axial_sensor_activeBox" />
         <sdref ref="Tracker" />
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_stereo_hole_sensor_volume">
+      <volume name="module_L1t_halfmodule_axial_sensor_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1b_halfmodule_stereo_hole_sensorBox" />
+        <solidref ref="module_L1t_halfmodule_axial_sensorBox" />
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_stereo_hole_sensor_active_volume" />
-          <positionref ref="module_L1b_halfmodule_stereo_hole_sensor_active_position" />
-          <rotationref ref="module_L1b_halfmodule_stereo_hole_sensor_active_rotation" />
+          <volumeref ref="module_L1t_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_stereo_hole_volume">
+      <volume name="module_L1t_halfmodule_axial_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="module_L1b_halfmodule_stereo_holeBox" />
+        <solidref ref="module_L1t_halfmodule_axialBox" />
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_stereo_hole_sensor_volume" />
-          <positionref ref="module_L1b_halfmodule_stereo_hole_sensor_position" />
-          <rotationref ref="module_L1b_halfmodule_stereo_hole_sensor_rotation" />
+          <volumeref ref="module_L1t_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_sensor_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
-        <visref ref="ModuleVis" />
+        <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_stereo_slot_sensor_active_volume">
+      <volume name="module_L1t_halfmodule_stereo_sensor_active_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1b_halfmodule_stereo_slot_sensor_activeBox" />
+        <solidref ref="module_L1t_halfmodule_stereo_sensor_activeBox" />
         <sdref ref="Tracker" />
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_stereo_slot_sensor_volume">
+      <volume name="module_L1t_halfmodule_stereo_sensor_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1b_halfmodule_stereo_slot_sensorBox" />
+        <solidref ref="module_L1t_halfmodule_stereo_sensorBox" />
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_stereo_slot_sensor_active_volume" />
-          <positionref ref="module_L1b_halfmodule_stereo_slot_sensor_active_position" />
-          <rotationref ref="module_L1b_halfmodule_stereo_slot_sensor_active_rotation" />
+          <volumeref ref="module_L1t_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1b_halfmodule_stereo_slot_volume">
+      <volume name="module_L1t_halfmodule_stereo_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="module_L1b_halfmodule_stereo_slotBox" />
+        <solidref ref="module_L1t_halfmodule_stereoBox" />
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_stereo_slot_sensor_volume" />
-          <positionref ref="module_L1b_halfmodule_stereo_slot_sensor_position" />
-          <rotationref ref="module_L1b_halfmodule_stereo_slot_sensor_rotation" />
+          <volumeref ref="module_L1t_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_sensor_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
-        <visref ref="ModuleVis" />
+        <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_axial_hole_sensor_active_volume">
+      <volume name="module_L2b_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1t_halfmodule_axial_hole_sensor_activeBox" />
+        <solidref ref="module_L2b_halfmodule_axial_sensor_activeBox" />
         <sdref ref="Tracker" />
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_axial_hole_sensor_volume">
+      <volume name="module_L2b_halfmodule_axial_sensor_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1t_halfmodule_axial_hole_sensorBox" />
+        <solidref ref="module_L2b_halfmodule_axial_sensorBox" />
         <physvol>
-          <volumeref ref="module_L1t_halfmodule_axial_hole_sensor_active_volume" />
-          <positionref ref="module_L1t_halfmodule_axial_hole_sensor_active_position" />
-          <rotationref ref="module_L1t_halfmodule_axial_hole_sensor_active_rotation" />
+          <volumeref ref="module_L2b_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_axial_hole_volume">
+      <volume name="module_L2b_halfmodule_axial_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="module_L1t_halfmodule_axial_holeBox" />
+        <solidref ref="module_L2b_halfmodule_axialBox" />
         <physvol>
-          <volumeref ref="module_L1t_halfmodule_axial_hole_sensor_volume" />
-          <positionref ref="module_L1t_halfmodule_axial_hole_sensor_position" />
-          <rotationref ref="module_L1t_halfmodule_axial_hole_sensor_rotation" />
+          <volumeref ref="module_L2b_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_sensor_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
-        <visref ref="ModuleVis" />
+        <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_axial_slot_sensor_active_volume">
+      <volume name="module_L2b_halfmodule_stereo_sensor_active_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1t_halfmodule_axial_slot_sensor_activeBox" />
+        <solidref ref="module_L2b_halfmodule_stereo_sensor_activeBox" />
         <sdref ref="Tracker" />
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_axial_slot_sensor_volume">
+      <volume name="module_L2b_halfmodule_stereo_sensor_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1t_halfmodule_axial_slot_sensorBox" />
+        <solidref ref="module_L2b_halfmodule_stereo_sensorBox" />
         <physvol>
-          <volumeref ref="module_L1t_halfmodule_axial_slot_sensor_active_volume" />
-          <positionref ref="module_L1t_halfmodule_axial_slot_sensor_active_position" />
-          <rotationref ref="module_L1t_halfmodule_axial_slot_sensor_active_rotation" />
+          <volumeref ref="module_L2b_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_axial_slot_volume">
+      <volume name="module_L2b_halfmodule_stereo_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="module_L1t_halfmodule_axial_slotBox" />
+        <solidref ref="module_L2b_halfmodule_stereoBox" />
         <physvol>
-          <volumeref ref="module_L1t_halfmodule_axial_slot_sensor_volume" />
-          <positionref ref="module_L1t_halfmodule_axial_slot_sensor_position" />
-          <rotationref ref="module_L1t_halfmodule_axial_slot_sensor_rotation" />
+          <volumeref ref="module_L2b_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_sensor_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
-        <visref ref="ModuleVis" />
+        <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_stereo_hole_sensor_active_volume">
+      <volume name="module_L2t_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1t_halfmodule_stereo_hole_sensor_activeBox" />
+        <solidref ref="module_L2t_halfmodule_axial_sensor_activeBox" />
         <sdref ref="Tracker" />
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_stereo_hole_sensor_volume">
+      <volume name="module_L2t_halfmodule_axial_sensor_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1t_halfmodule_stereo_hole_sensorBox" />
+        <solidref ref="module_L2t_halfmodule_axial_sensorBox" />
         <physvol>
-          <volumeref ref="module_L1t_halfmodule_stereo_hole_sensor_active_volume" />
-          <positionref ref="module_L1t_halfmodule_stereo_hole_sensor_active_position" />
-          <rotationref ref="module_L1t_halfmodule_stereo_hole_sensor_active_rotation" />
+          <volumeref ref="module_L2t_halfmodule_axial_sensor_active_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_sensor_active_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_stereo_hole_volume">
+      <volume name="module_L2t_halfmodule_axial_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="module_L1t_halfmodule_stereo_holeBox" />
+        <solidref ref="module_L2t_halfmodule_axialBox" />
         <physvol>
-          <volumeref ref="module_L1t_halfmodule_stereo_hole_sensor_volume" />
-          <positionref ref="module_L1t_halfmodule_stereo_hole_sensor_position" />
-          <rotationref ref="module_L1t_halfmodule_stereo_hole_sensor_rotation" />
+          <volumeref ref="module_L2t_halfmodule_axial_sensor_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_sensor_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_sensor_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
-        <visref ref="ModuleVis" />
+        <visref ref="HalfModuleVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_stereo_slot_sensor_active_volume">
+      <volume name="module_L2t_halfmodule_stereo_sensor_active_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1t_halfmodule_stereo_slot_sensor_activeBox" />
+        <solidref ref="module_L2t_halfmodule_stereo_sensor_activeBox" />
         <sdref ref="Tracker" />
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_stereo_slot_sensor_volume">
+      <volume name="module_L2t_halfmodule_stereo_sensor_volume">
         <materialref ref="Silicon" />
-        <solidref ref="module_L1t_halfmodule_stereo_slot_sensorBox" />
+        <solidref ref="module_L2t_halfmodule_stereo_sensorBox" />
         <physvol>
-          <volumeref ref="module_L1t_halfmodule_stereo_slot_sensor_active_volume" />
-          <positionref ref="module_L1t_halfmodule_stereo_slot_sensor_active_position" />
-          <rotationref ref="module_L1t_halfmodule_stereo_slot_sensor_active_rotation" />
+          <volumeref ref="module_L2t_halfmodule_stereo_sensor_active_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_sensor_active_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_sensor_active_rotation" />
           <physvolid field_name="sensor" value="0" />
         </physvol>
         <visref ref="SensorVis" />
       </volume>
-      <volume name="module_L1t_halfmodule_stereo_slot_volume">
+      <volume name="module_L2t_halfmodule_stereo_volume">
         <materialref ref="Vacuum" />
-        <solidref ref="module_L1t_halfmodule_stereo_slotBox" />
+        <solidref ref="module_L2t_halfmodule_stereoBox" />
         <physvol>
-          <volumeref ref="module_L1t_halfmodule_stereo_slot_sensor_volume" />
-          <positionref ref="module_L1t_halfmodule_stereo_slot_sensor_position" />
-          <rotationref ref="module_L1t_halfmodule_stereo_slot_sensor_rotation" />
+          <volumeref ref="module_L2t_halfmodule_stereo_sensor_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_sensor_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_sensor_rotation" />
           <physvolid field_name="component" value="0" />
         </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_axial_hole_sensor_active_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2b_halfmodule_axial_hole_sensor_activeBox" />
-        <sdref ref="Tracker" />
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_axial_hole_sensor_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2b_halfmodule_axial_hole_sensorBox" />
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_axial_hole_sensor_active_volume" />
-          <positionref ref="module_L2b_halfmodule_axial_hole_sensor_active_position" />
-          <rotationref ref="module_L2b_halfmodule_axial_hole_sensor_active_rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_axial_hole_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2b_halfmodule_axial_holeBox" />
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_axial_hole_sensor_volume" />
-          <positionref ref="module_L2b_halfmodule_axial_hole_sensor_position" />
-          <rotationref ref="module_L2b_halfmodule_axial_hole_sensor_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_axial_slot_sensor_active_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2b_halfmodule_axial_slot_sensor_activeBox" />
-        <sdref ref="Tracker" />
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_axial_slot_sensor_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2b_halfmodule_axial_slot_sensorBox" />
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_axial_slot_sensor_active_volume" />
-          <positionref ref="module_L2b_halfmodule_axial_slot_sensor_active_position" />
-          <rotationref ref="module_L2b_halfmodule_axial_slot_sensor_active_rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_axial_slot_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2b_halfmodule_axial_slotBox" />
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_axial_slot_sensor_volume" />
-          <positionref ref="module_L2b_halfmodule_axial_slot_sensor_position" />
-          <rotationref ref="module_L2b_halfmodule_axial_slot_sensor_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_stereo_hole_sensor_active_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2b_halfmodule_stereo_hole_sensor_activeBox" />
-        <sdref ref="Tracker" />
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_stereo_hole_sensor_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2b_halfmodule_stereo_hole_sensorBox" />
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_stereo_hole_sensor_active_volume" />
-          <positionref ref="module_L2b_halfmodule_stereo_hole_sensor_active_position" />
-          <rotationref ref="module_L2b_halfmodule_stereo_hole_sensor_active_rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_stereo_hole_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2b_halfmodule_stereo_holeBox" />
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_stereo_hole_sensor_volume" />
-          <positionref ref="module_L2b_halfmodule_stereo_hole_sensor_position" />
-          <rotationref ref="module_L2b_halfmodule_stereo_hole_sensor_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_stereo_slot_sensor_active_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2b_halfmodule_stereo_slot_sensor_activeBox" />
-        <sdref ref="Tracker" />
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_stereo_slot_sensor_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2b_halfmodule_stereo_slot_sensorBox" />
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_stereo_slot_sensor_active_volume" />
-          <positionref ref="module_L2b_halfmodule_stereo_slot_sensor_active_position" />
-          <rotationref ref="module_L2b_halfmodule_stereo_slot_sensor_active_rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2b_halfmodule_stereo_slot_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2b_halfmodule_stereo_slotBox" />
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_stereo_slot_sensor_volume" />
-          <positionref ref="module_L2b_halfmodule_stereo_slot_sensor_position" />
-          <rotationref ref="module_L2b_halfmodule_stereo_slot_sensor_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_axial_hole_sensor_active_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2t_halfmodule_axial_hole_sensor_activeBox" />
-        <sdref ref="Tracker" />
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_axial_hole_sensor_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2t_halfmodule_axial_hole_sensorBox" />
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_axial_hole_sensor_active_volume" />
-          <positionref ref="module_L2t_halfmodule_axial_hole_sensor_active_position" />
-          <rotationref ref="module_L2t_halfmodule_axial_hole_sensor_active_rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_axial_hole_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2t_halfmodule_axial_holeBox" />
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_axial_hole_sensor_volume" />
-          <positionref ref="module_L2t_halfmodule_axial_hole_sensor_position" />
-          <rotationref ref="module_L2t_halfmodule_axial_hole_sensor_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_axial_slot_sensor_active_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2t_halfmodule_axial_slot_sensor_activeBox" />
-        <sdref ref="Tracker" />
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_axial_slot_sensor_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2t_halfmodule_axial_slot_sensorBox" />
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_axial_slot_sensor_active_volume" />
-          <positionref ref="module_L2t_halfmodule_axial_slot_sensor_active_position" />
-          <rotationref ref="module_L2t_halfmodule_axial_slot_sensor_active_rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_axial_slot_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2t_halfmodule_axial_slotBox" />
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_axial_slot_sensor_volume" />
-          <positionref ref="module_L2t_halfmodule_axial_slot_sensor_position" />
-          <rotationref ref="module_L2t_halfmodule_axial_slot_sensor_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_stereo_hole_sensor_active_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2t_halfmodule_stereo_hole_sensor_activeBox" />
-        <sdref ref="Tracker" />
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_stereo_hole_sensor_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2t_halfmodule_stereo_hole_sensorBox" />
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_stereo_hole_sensor_active_volume" />
-          <positionref ref="module_L2t_halfmodule_stereo_hole_sensor_active_position" />
-          <rotationref ref="module_L2t_halfmodule_stereo_hole_sensor_active_rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_stereo_hole_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2t_halfmodule_stereo_holeBox" />
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_stereo_hole_sensor_volume" />
-          <positionref ref="module_L2t_halfmodule_stereo_hole_sensor_position" />
-          <rotationref ref="module_L2t_halfmodule_stereo_hole_sensor_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_stereo_slot_sensor_active_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2t_halfmodule_stereo_slot_sensor_activeBox" />
-        <sdref ref="Tracker" />
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_stereo_slot_sensor_volume">
-        <materialref ref="Silicon" />
-        <solidref ref="module_L2t_halfmodule_stereo_slot_sensorBox" />
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_stereo_slot_sensor_active_volume" />
-          <positionref ref="module_L2t_halfmodule_stereo_slot_sensor_active_position" />
-          <rotationref ref="module_L2t_halfmodule_stereo_slot_sensor_active_rotation" />
-          <physvolid field_name="sensor" value="0" />
-        </physvol>
-        <visref ref="SensorVis" />
-      </volume>
-      <volume name="module_L2t_halfmodule_stereo_slot_volume">
-        <materialref ref="Vacuum" />
-        <solidref ref="module_L2t_halfmodule_stereo_slotBox" />
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_stereo_slot_sensor_volume" />
-          <positionref ref="module_L2t_halfmodule_stereo_slot_sensor_position" />
-          <rotationref ref="module_L2t_halfmodule_stereo_slot_sensor_rotation" />
-          <physvolid field_name="component" value="0" />
-        </physvol>
-        <visref ref="ModuleVis" />
+        <visref ref="HalfModuleVis" />
       </volume>
       <volume name="module_L3b_halfmodule_axial_sensor_active_volume">
         <materialref ref="Silicon" />
@@ -4603,144 +4050,72 @@
           <rotationref ref="support_plate_top_L46_rotation" />
         </physvol>
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_axial_hole_volume" />
-          <positionref ref="module_L1b_halfmodule_axial_hole_position" />
-          <rotationref ref="module_L1b_halfmodule_axial_hole_rotation" />
+          <volumeref ref="module_L1b_halfmodule_axial_volume" />
+          <positionref ref="module_L1b_halfmodule_axial_position" />
+          <rotationref ref="module_L1b_halfmodule_axial_rotation" />
           <physvolid field_name="system" value="1" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="2" />
           <physvolid field_name="module" value="1" />
         </physvol>
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_axial_slot_volume" />
-          <positionref ref="module_L1b_halfmodule_axial_slot_position" />
-          <rotationref ref="module_L1b_halfmodule_axial_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="2" />
-          <physvolid field_name="module" value="3" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L1b_halfmodule_stereo_hole_volume" />
-          <positionref ref="module_L1b_halfmodule_stereo_hole_position" />
-          <rotationref ref="module_L1b_halfmodule_stereo_hole_rotation" />
+          <volumeref ref="module_L1b_halfmodule_stereo_volume" />
+          <positionref ref="module_L1b_halfmodule_stereo_position" />
+          <rotationref ref="module_L1b_halfmodule_stereo_rotation" />
           <physvolid field_name="system" value="1" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="1" />
           <physvolid field_name="module" value="1" />
         </physvol>
         <physvol>
-          <volumeref ref="module_L1b_halfmodule_stereo_slot_volume" />
-          <positionref ref="module_L1b_halfmodule_stereo_slot_position" />
-          <rotationref ref="module_L1b_halfmodule_stereo_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="module" value="3" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L1t_halfmodule_axial_hole_volume" />
-          <positionref ref="module_L1t_halfmodule_axial_hole_position" />
-          <rotationref ref="module_L1t_halfmodule_axial_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="module" value="2" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L1t_halfmodule_axial_slot_volume" />
-          <positionref ref="module_L1t_halfmodule_axial_slot_position" />
-          <rotationref ref="module_L1t_halfmodule_axial_slot_rotation" />
+          <volumeref ref="module_L1t_halfmodule_axial_volume" />
+          <positionref ref="module_L1t_halfmodule_axial_position" />
+          <rotationref ref="module_L1t_halfmodule_axial_rotation" />
           <physvolid field_name="system" value="1" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="1" />
           <physvolid field_name="module" value="0" />
         </physvol>
         <physvol>
-          <volumeref ref="module_L1t_halfmodule_stereo_hole_volume" />
-          <positionref ref="module_L1t_halfmodule_stereo_hole_position" />
-          <rotationref ref="module_L1t_halfmodule_stereo_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="2" />
-          <physvolid field_name="module" value="2" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L1t_halfmodule_stereo_slot_volume" />
-          <positionref ref="module_L1t_halfmodule_stereo_slot_position" />
-          <rotationref ref="module_L1t_halfmodule_stereo_slot_rotation" />
+          <volumeref ref="module_L1t_halfmodule_stereo_volume" />
+          <positionref ref="module_L1t_halfmodule_stereo_position" />
+          <rotationref ref="module_L1t_halfmodule_stereo_rotation" />
           <physvolid field_name="system" value="1" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="2" />
           <physvolid field_name="module" value="0" />
         </physvol>
         <physvol>
-          <volumeref ref="module_L2b_halfmodule_axial_hole_volume" />
-          <positionref ref="module_L2b_halfmodule_axial_hole_position" />
-          <rotationref ref="module_L2b_halfmodule_axial_hole_rotation" />
+          <volumeref ref="module_L2b_halfmodule_axial_volume" />
+          <positionref ref="module_L2b_halfmodule_axial_position" />
+          <rotationref ref="module_L2b_halfmodule_axial_rotation" />
           <physvolid field_name="system" value="1" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="4" />
           <physvolid field_name="module" value="1" />
         </physvol>
         <physvol>
-          <volumeref ref="module_L2b_halfmodule_axial_slot_volume" />
-          <positionref ref="module_L2b_halfmodule_axial_slot_position" />
-          <rotationref ref="module_L2b_halfmodule_axial_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="4" />
-          <physvolid field_name="module" value="3" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L2b_halfmodule_stereo_hole_volume" />
-          <positionref ref="module_L2b_halfmodule_stereo_hole_position" />
-          <rotationref ref="module_L2b_halfmodule_stereo_hole_rotation" />
+          <volumeref ref="module_L2b_halfmodule_stereo_volume" />
+          <positionref ref="module_L2b_halfmodule_stereo_position" />
+          <rotationref ref="module_L2b_halfmodule_stereo_rotation" />
           <physvolid field_name="system" value="1" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="3" />
           <physvolid field_name="module" value="1" />
         </physvol>
         <physvol>
-          <volumeref ref="module_L2b_halfmodule_stereo_slot_volume" />
-          <positionref ref="module_L2b_halfmodule_stereo_slot_position" />
-          <rotationref ref="module_L2b_halfmodule_stereo_slot_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="3" />
-          <physvolid field_name="module" value="3" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_axial_hole_volume" />
-          <positionref ref="module_L2t_halfmodule_axial_hole_position" />
-          <rotationref ref="module_L2t_halfmodule_axial_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="3" />
-          <physvolid field_name="module" value="2" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_axial_slot_volume" />
-          <positionref ref="module_L2t_halfmodule_axial_slot_position" />
-          <rotationref ref="module_L2t_halfmodule_axial_slot_rotation" />
+          <volumeref ref="module_L2t_halfmodule_axial_volume" />
+          <positionref ref="module_L2t_halfmodule_axial_position" />
+          <rotationref ref="module_L2t_halfmodule_axial_rotation" />
           <physvolid field_name="system" value="1" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="3" />
           <physvolid field_name="module" value="0" />
         </physvol>
         <physvol>
-          <volumeref ref="module_L2t_halfmodule_stereo_hole_volume" />
-          <positionref ref="module_L2t_halfmodule_stereo_hole_position" />
-          <rotationref ref="module_L2t_halfmodule_stereo_hole_rotation" />
-          <physvolid field_name="system" value="1" />
-          <physvolid field_name="barrel" value="0" />
-          <physvolid field_name="layer" value="4" />
-          <physvolid field_name="module" value="2" />
-        </physvol>
-        <physvol>
-          <volumeref ref="module_L2t_halfmodule_stereo_slot_volume" />
-          <positionref ref="module_L2t_halfmodule_stereo_slot_position" />
-          <rotationref ref="module_L2t_halfmodule_stereo_slot_rotation" />
+          <volumeref ref="module_L2t_halfmodule_stereo_volume" />
+          <positionref ref="module_L2t_halfmodule_stereo_position" />
+          <rotationref ref="module_L2t_halfmodule_stereo_rotation" />
           <physvolid field_name="system" value="1" />
           <physvolid field_name="barrel" value="0" />
           <physvolid field_name="layer" value="4" />
@@ -5117,431 +4492,6 @@
         <sdref ref="Ecal" />
         <visref ref="ECALVis" />
       </volume>
-      <volume name="hodo_vol_L1TP0">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1TP0" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1TP0">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1TP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1TP0">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1TP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1TP0">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1TP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L1BP0">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1BP0" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1BP0">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1BP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1BP0">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1BP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1BP0">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1BP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L1TP1">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1TP1" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1TP1">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1TP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1TP1">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1TP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1TP1">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1TP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L1BP1">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1BP1" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1BP1">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1BP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1BP1">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1BP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1BP1">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1BP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L1TP2">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1TP2" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1TP2">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1TP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1TP2">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1TP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1TP2">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1TP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L1BP2">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1BP2" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1BP2">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1BP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1BP2">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1BP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1BP2">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1BP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L1TP3">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1TP3" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1TP3">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1TP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1TP3">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1TP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1TP3">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1TP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L1BP3">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1BP3" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1BP3">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1BP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1BP3">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1BP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1BP3">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1BP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L1TP4">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1TP4" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1TP4">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1TP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1TP4">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1TP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1TP4">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1TP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L1BP4">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L1BP4" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L1BP4">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L1BP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L1BP4">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L1BP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L1BP4">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L1BP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2TP0">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2TP0" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2TP0">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2TP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2TP0">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2TP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2TP0">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2TP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2BP0">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2BP0" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2BP0">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2BP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2BP0">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2BP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2BP0">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2BP0" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2TP1">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2TP1" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2TP1">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2TP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2TP1">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2TP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2TP1">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2TP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2BP1">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2BP1" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2BP1">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2BP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2BP1">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2BP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2BP1">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2BP1" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2TP2">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2TP2" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2TP2">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2TP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2TP2">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2TP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2TP2">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2TP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2BP2">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2BP2" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2BP2">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2BP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2BP2">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2BP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2BP2">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2BP2" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2TP3">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2TP3" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2TP3">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2TP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2TP3">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2TP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2TP3">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2TP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2BP3">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2BP3" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2BP3">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2BP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2BP3">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2BP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2BP3">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2BP3" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2TP4">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2TP4" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2TP4">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2TP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2TP4">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2TP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2TP4">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2TP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_vol_L2BP4">
-        <materialref ref="Polystyrene" />
-        <solidref ref="hodo_pixel_L2BP4" />
-        <sdref ref="Hodoscope" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_cover_vol_L2BP4">
-        <materialref ref="TitaniumDioxide" />
-        <solidref ref="hodo_cover_L2BP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_siderefl_vol_L2BP4">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_siderefl_L2BP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_toprefl_vol_L2BP4">
-        <materialref ref="Mylar" />
-        <solidref ref="hodo_toprefl_L2BP4" />
-        <visref ref="HodoscopeVis" />
-      </volume>
-      <volume name="hodo_buffer_vol">
-        <materialref ref="Carbon" />
-        <solidref ref="hodo_buffer" />
-        <visref ref="HodoscopeVis" />
-      </volume>
       <volume name="front_flange">
         <materialref ref="G4_Al" />
         <solidref ref="front_flange_shape" />
@@ -5773,816 +4723,6 @@
           <volumeref ref="base_volume" />
           <positionref ref="base_position" />
           <rotationref ref="base_rotation" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1TP0" />
-          <positionref ref="hodo_pos_L1TP0" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="0" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP0" />
-          <positionref ref="hodo_forecover_pos_L1TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP0" />
-          <positionref ref="hodo_postcover_pos_L1TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP0" />
-          <positionref ref="hodo_sidereflR_pos_L1TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP0" />
-          <positionref ref="hodo_siderefl2L_pos_L1TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP0" />
-          <positionref ref="hodo_topreflT_pos_L1TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP0" />
-          <positionref ref="hodo_toprefl2B_pos_L1TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1BP0" />
-          <positionref ref="hodo_pos_L1BP0" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="0" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP0" />
-          <positionref ref="hodo_forecover_pos_L1BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP0" />
-          <positionref ref="hodo_postcover_pos_L1BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP0" />
-          <positionref ref="hodo_sidereflR_pos_L1BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP0" />
-          <positionref ref="hodo_siderefl2L_pos_L1BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP0" />
-          <positionref ref="hodo_topreflT_pos_L1BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP0" />
-          <positionref ref="hodo_toprefl2B_pos_L1BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1TP1" />
-          <positionref ref="hodo_pos_L1TP1" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="1" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP1" />
-          <positionref ref="hodo_forecover_pos_L1TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP1" />
-          <positionref ref="hodo_postcover_pos_L1TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP1" />
-          <positionref ref="hodo_sidereflR_pos_L1TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP1" />
-          <positionref ref="hodo_siderefl2L_pos_L1TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP1" />
-          <positionref ref="hodo_topreflT_pos_L1TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP1" />
-          <positionref ref="hodo_toprefl2B_pos_L1TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1BP1" />
-          <positionref ref="hodo_pos_L1BP1" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="1" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP1" />
-          <positionref ref="hodo_forecover_pos_L1BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP1" />
-          <positionref ref="hodo_postcover_pos_L1BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP1" />
-          <positionref ref="hodo_sidereflR_pos_L1BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP1" />
-          <positionref ref="hodo_siderefl2L_pos_L1BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP1" />
-          <positionref ref="hodo_topreflT_pos_L1BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP1" />
-          <positionref ref="hodo_toprefl2B_pos_L1BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1TP2" />
-          <positionref ref="hodo_pos_L1TP2" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="2" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP2" />
-          <positionref ref="hodo_forecover_pos_L1TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP2" />
-          <positionref ref="hodo_postcover_pos_L1TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP2" />
-          <positionref ref="hodo_sidereflR_pos_L1TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP2" />
-          <positionref ref="hodo_siderefl2L_pos_L1TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP2" />
-          <positionref ref="hodo_topreflT_pos_L1TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP2" />
-          <positionref ref="hodo_toprefl2B_pos_L1TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1BP2" />
-          <positionref ref="hodo_pos_L1BP2" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="2" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP2" />
-          <positionref ref="hodo_forecover_pos_L1BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP2" />
-          <positionref ref="hodo_postcover_pos_L1BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP2" />
-          <positionref ref="hodo_sidereflR_pos_L1BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP2" />
-          <positionref ref="hodo_siderefl2L_pos_L1BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP2" />
-          <positionref ref="hodo_topreflT_pos_L1BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP2" />
-          <positionref ref="hodo_toprefl2B_pos_L1BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1TP3" />
-          <positionref ref="hodo_pos_L1TP3" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="3" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP3" />
-          <positionref ref="hodo_forecover_pos_L1TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP3" />
-          <positionref ref="hodo_postcover_pos_L1TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP3" />
-          <positionref ref="hodo_sidereflR_pos_L1TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP3" />
-          <positionref ref="hodo_siderefl2L_pos_L1TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP3" />
-          <positionref ref="hodo_topreflT_pos_L1TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP3" />
-          <positionref ref="hodo_toprefl2B_pos_L1TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1BP3" />
-          <positionref ref="hodo_pos_L1BP3" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="3" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP3" />
-          <positionref ref="hodo_forecover_pos_L1BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP3" />
-          <positionref ref="hodo_postcover_pos_L1BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP3" />
-          <positionref ref="hodo_sidereflR_pos_L1BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP3" />
-          <positionref ref="hodo_siderefl2L_pos_L1BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP3" />
-          <positionref ref="hodo_topreflT_pos_L1BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP3" />
-          <positionref ref="hodo_toprefl2B_pos_L1BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1TP4" />
-          <positionref ref="hodo_pos_L1TP4" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="4" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP4" />
-          <positionref ref="hodo_forecover_pos_L1TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1TP4" />
-          <positionref ref="hodo_postcover_pos_L1TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP4" />
-          <positionref ref="hodo_sidereflR_pos_L1TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1TP4" />
-          <positionref ref="hodo_siderefl2L_pos_L1TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP4" />
-          <positionref ref="hodo_topreflT_pos_L1TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1TP4" />
-          <positionref ref="hodo_toprefl2B_pos_L1TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L1BP4" />
-          <positionref ref="hodo_pos_L1BP4" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="0" />
-          <physvolid field_name="ix" value="4" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP4" />
-          <positionref ref="hodo_forecover_pos_L1BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L1BP4" />
-          <positionref ref="hodo_postcover_pos_L1BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP4" />
-          <positionref ref="hodo_sidereflR_pos_L1BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L1BP4" />
-          <positionref ref="hodo_siderefl2L_pos_L1BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP4" />
-          <positionref ref="hodo_topreflT_pos_L1BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L1BP4" />
-          <positionref ref="hodo_toprefl2B_pos_L1BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2TP0" />
-          <positionref ref="hodo_pos_L2TP0" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="0" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP0" />
-          <positionref ref="hodo_forecover_pos_L2TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP0" />
-          <positionref ref="hodo_postcover_pos_L2TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP0" />
-          <positionref ref="hodo_sidereflR_pos_L2TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP0" />
-          <positionref ref="hodo_siderefl2L_pos_L2TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP0" />
-          <positionref ref="hodo_topreflT_pos_L2TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP0" />
-          <positionref ref="hodo_toprefl2B_pos_L2TP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2BP0" />
-          <positionref ref="hodo_pos_L2BP0" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="0" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP0" />
-          <positionref ref="hodo_forecover_pos_L2BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP0" />
-          <positionref ref="hodo_postcover_pos_L2BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP0" />
-          <positionref ref="hodo_sidereflR_pos_L2BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP0" />
-          <positionref ref="hodo_siderefl2L_pos_L2BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP0" />
-          <positionref ref="hodo_topreflT_pos_L2BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP0" />
-          <positionref ref="hodo_toprefl2B_pos_L2BP0" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2TP1" />
-          <positionref ref="hodo_pos_L2TP1" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="1" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP1" />
-          <positionref ref="hodo_forecover_pos_L2TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP1" />
-          <positionref ref="hodo_postcover_pos_L2TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP1" />
-          <positionref ref="hodo_sidereflR_pos_L2TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP1" />
-          <positionref ref="hodo_siderefl2L_pos_L2TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP1" />
-          <positionref ref="hodo_topreflT_pos_L2TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP1" />
-          <positionref ref="hodo_toprefl2B_pos_L2TP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2BP1" />
-          <positionref ref="hodo_pos_L2BP1" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="1" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP1" />
-          <positionref ref="hodo_forecover_pos_L2BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP1" />
-          <positionref ref="hodo_postcover_pos_L2BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP1" />
-          <positionref ref="hodo_sidereflR_pos_L2BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP1" />
-          <positionref ref="hodo_siderefl2L_pos_L2BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP1" />
-          <positionref ref="hodo_topreflT_pos_L2BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP1" />
-          <positionref ref="hodo_toprefl2B_pos_L2BP1" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2TP2" />
-          <positionref ref="hodo_pos_L2TP2" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="2" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP2" />
-          <positionref ref="hodo_forecover_pos_L2TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP2" />
-          <positionref ref="hodo_postcover_pos_L2TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP2" />
-          <positionref ref="hodo_sidereflR_pos_L2TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP2" />
-          <positionref ref="hodo_siderefl2L_pos_L2TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP2" />
-          <positionref ref="hodo_topreflT_pos_L2TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP2" />
-          <positionref ref="hodo_toprefl2B_pos_L2TP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2BP2" />
-          <positionref ref="hodo_pos_L2BP2" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="2" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP2" />
-          <positionref ref="hodo_forecover_pos_L2BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP2" />
-          <positionref ref="hodo_postcover_pos_L2BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP2" />
-          <positionref ref="hodo_sidereflR_pos_L2BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP2" />
-          <positionref ref="hodo_siderefl2L_pos_L2BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP2" />
-          <positionref ref="hodo_topreflT_pos_L2BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP2" />
-          <positionref ref="hodo_toprefl2B_pos_L2BP2" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2TP3" />
-          <positionref ref="hodo_pos_L2TP3" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="3" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP3" />
-          <positionref ref="hodo_forecover_pos_L2TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP3" />
-          <positionref ref="hodo_postcover_pos_L2TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP3" />
-          <positionref ref="hodo_sidereflR_pos_L2TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP3" />
-          <positionref ref="hodo_siderefl2L_pos_L2TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP3" />
-          <positionref ref="hodo_topreflT_pos_L2TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP3" />
-          <positionref ref="hodo_toprefl2B_pos_L2TP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2BP3" />
-          <positionref ref="hodo_pos_L2BP3" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="3" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP3" />
-          <positionref ref="hodo_forecover_pos_L2BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP3" />
-          <positionref ref="hodo_postcover_pos_L2BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP3" />
-          <positionref ref="hodo_sidereflR_pos_L2BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP3" />
-          <positionref ref="hodo_siderefl2L_pos_L2BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP3" />
-          <positionref ref="hodo_topreflT_pos_L2BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP3" />
-          <positionref ref="hodo_toprefl2B_pos_L2BP3" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2TP4" />
-          <positionref ref="hodo_pos_L2TP4" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="4" />
-          <physvolid field_name="iy" value="1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP4" />
-          <positionref ref="hodo_forecover_pos_L2TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2TP4" />
-          <positionref ref="hodo_postcover_pos_L2TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP4" />
-          <positionref ref="hodo_sidereflR_pos_L2TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2TP4" />
-          <positionref ref="hodo_siderefl2L_pos_L2TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP4" />
-          <positionref ref="hodo_topreflT_pos_L2TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2TP4" />
-          <positionref ref="hodo_toprefl2B_pos_L2TP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_vol_L2BP4" />
-          <positionref ref="hodo_pos_L2BP4" />
-          <rotationref ref="hodo_rot" />
-          <physvolid field_name="system" value="30" />
-          <physvolid field_name="barrel" value="1" />
-          <physvolid field_name="layer" value="1" />
-          <physvolid field_name="ix" value="4" />
-          <physvolid field_name="iy" value="-1" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP4" />
-          <positionref ref="hodo_forecover_pos_L2BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_cover_vol_L2BP4" />
-          <positionref ref="hodo_postcover_pos_L2BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP4" />
-          <positionref ref="hodo_sidereflR_pos_L2BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_siderefl_vol_L2BP4" />
-          <positionref ref="hodo_siderefl2L_pos_L2BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP4" />
-          <positionref ref="hodo_topreflT_pos_L2BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_toprefl_vol_L2BP4" />
-          <positionref ref="hodo_toprefl2B_pos_L2BP4" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_buffer_vol" />
-          <positionref ref="hodo_bufferT_pos" />
-          <rotationref ref="hodo_rot" />
-        </physvol>
-        <physvol>
-          <volumeref ref="hodo_buffer_vol" />
-          <positionref ref="hodo_bufferB_pos" />
-          <rotationref ref="hodo_rot" />
         </physvol>
         <physvol name="hodo_flange_1">
           <volumeref ref="hodo_flange" />
