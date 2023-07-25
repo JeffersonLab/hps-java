@@ -51,7 +51,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         AlignmentCorrection supBotCorrBack = getUChannelCorrection(false,90);
         supBotCorrBack.setNode(node);
         AlignmentCorrection supTopCorrBack = getUChannelCorrection(true,90);
-        supTopCorr.setNode(node);
+        supTopCorrBack.setNode(node);
         
         
         
@@ -65,7 +65,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         
         //System.out.println("PF::Constructed TrackingVolume: " +  tracking.toString());
         
-        PSVacuumChamber chamber = new PSVacuumChamber("c_hamber", tracking, null);
+        PSVacuumChamber chamber = new PSVacuumChamber("chamber", tracking, null);
         surveyVolumes.add(chamber);
 
         //System.out.println("PF::Constructed PSVacuumChamber: " +  chamber.toString());
@@ -556,7 +556,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         //2019 MRSolt survey
         //protected final static double L3_new_vertical_shift = 0.7 - 0.012;
         //2021 nominal
-        protected final static double L3_new_vertical_shift = 0.7;
+        protected final static double L3_new_vertical_shift = 0.;
         
         public ModuleL3Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -581,7 +581,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         //2019 MRSolt survey 
         //protected final static double L3_new_vertical_shift = 0.7 + 0.055;
         //2021 nominal
-        protected final static double L3_new_vertical_shift = 0.7;
+        protected final static double L3_new_vertical_shift = 0.;
 
         public ModuleL3Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -607,7 +607,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         //protected final static double L4_new_vertical_shift = 0.7 + 0.0356;
         
         //2021 nominal
-        protected final static double L4_new_vertical_shift = 0.7;
+        protected final static double L4_new_vertical_shift = 0.;
 
         public ModuleL4Bot(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);
@@ -632,7 +632,7 @@ public class HPSTracker2019GeometryDefinition extends HPSTracker2014v1GeometryDe
         //2019 MRSolt  survey 
         //protected final static double L4_new_vertical_shift = 0.7 + 0.062;
         //2021 nominal
-        protected final static double L4_new_vertical_shift = 0.7;
+        protected final static double L4_new_vertical_shift = 0.;
         
         public ModuleL4Top(String name, SurveyVolume mother, AlignmentCorrection alignmentCorrection, SurveyVolume ref) {
             super(name, mother, alignmentCorrection, ref);

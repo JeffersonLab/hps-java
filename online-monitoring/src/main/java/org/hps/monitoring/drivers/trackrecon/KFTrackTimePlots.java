@@ -69,6 +69,8 @@ public class KFTrackTimePlots extends Driver {
     double maxTime = 40;
     private boolean removeRandomEvents = true;
 
+    private boolean useStyles=false;
+
     public void setRemoveRandomEvents(boolean doit) {
         this.removeRandomEvents = doit;
     }
@@ -99,21 +101,22 @@ public class KFTrackTimePlots extends Driver {
         List<HpsSiSensor> sensors = detector.getSubdetector(subdetectorName).getDetectorElement()
                 .findDescendants(HpsSiSensor.class);
 
-        StyleRegistry styleRegistry = StyleRegistry.getStyleRegistry();
-        IStyleStore store = styleRegistry.getStore("DefaultStyleStore");
-        IPlotterStyle style2d = store.getStyle("DefaultColorMapStyle");
-        style2d.setParameter("hist2DStyle", "colorMap");
-        style2d.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
-        // style2d.zAxisStyle().setParameter("scale", "log");
-        style2d.zAxisStyle().setVisible(false);
-        style2d.dataBoxStyle().setVisible(false);
-
-        IPlotterStyle styleOverlay = store.getStyle("DefaultHistogram1DStyle");
-        styleOverlay.dataStyle().errorBarStyle().setVisible(true);
-        styleOverlay.dataStyle().fillStyle().setVisible(false);
-        styleOverlay.legendBoxStyle().setVisible(false);
-        styleOverlay.dataStyle().outlineStyle().setVisible(false);
-
+        if (useStyles){
+            StyleRegistry styleRegistry = StyleRegistry.getStyleRegistry();
+            IStyleStore store = styleRegistry.getStore("DefaultStyleStore");
+            IPlotterStyle style2d = store.getStyle("DefaultColorMapStyle");
+            style2d.setParameter("hist2DStyle", "colorMap");
+            style2d.dataStyle().fillStyle().setParameter("colorMapScheme", "rainbow");
+            // style2d.zAxisStyle().setParameter("scale", "log");
+            style2d.zAxisStyle().setVisible(false);
+            style2d.dataBoxStyle().setVisible(false);
+            
+            IPlotterStyle styleOverlay = store.getStyle("DefaultHistogram1DStyle");
+            styleOverlay.dataStyle().errorBarStyle().setVisible(true);
+            styleOverlay.dataStyle().fillStyle().setVisible(false);
+            styleOverlay.legendBoxStyle().setVisible(false);
+            styleOverlay.dataStyle().outlineStyle().setVisible(false);
+        }
         plotters.put("Track Hit Charge: L0-L3", plotterFactory.create("2a Hit Charge: L0-L3"));
         plotters.get("Track Hit Charge: L0-L3").createRegions(4, 4);
         plotters.put("Track Hit Charge: L4-L6", plotterFactory.create("2b Hit Charge: L4-L6"));
@@ -218,22 +221,22 @@ public class KFTrackTimePlots extends Driver {
                 .plot(trackTrigTime.get("Bottom"), SvtPlotUtils.createStyle(plotterFactory, "Track Time [ns]", "event time%24 (ns)"));
 
         trackTimeRange.put("Top",
-                histogramFactory.createHistogram1D("Top Track Time Range", 75, 0, 30.0));
+                histogramFactory.createHistogram1D("Top Track Time Range", 50, 0, 50.0));
         plotters.get("Track Hit Time Range")
                 .region(0)
                 .plot(trackTimeRange.get("Top"), SvtPlotUtils.createStyle(plotterFactory, "Track Time Range [ns]", ""));
         trackTimeRange.put("Bottom",
-                histogramFactory.createHistogram1D("Bottom Track Time Range", 75, 0, 30.0));
+                histogramFactory.createHistogram1D("Bottom Track Time Range", 50, 0, 50.0));
         plotters.get("Track Hit Time Range")
                 .region(1)
                 .plot(trackTimeRange.get("Bottom"), SvtPlotUtils.createStyle(plotterFactory, "Track Time Range [ns]", ""));
         trackTimeMinMax.put("Top",
-                histogramFactory.createHistogram2D("Top Earliest vs Latest Track Hit Times", 80, -25, 25.0, 80, -25, 25.0));
+                histogramFactory.createHistogram2D("Top Earliest vs Latest Track Hit Times", 80, -40, 40.0, 80, -40, 40.0));
         plotters.get("Track Hit Time Range")
                 .region(2)
                 .plot(trackTimeMinMax.get("Top"), SvtPlotUtils.createStyle(plotterFactory, "Earliest Time (ns)", "Latest Time (ns)"));
         trackTimeMinMax.put("Bottom",
-                histogramFactory.createHistogram2D("Bottom Earliest vs Latest Track Hit Times", 80, -25, 25.0, 80, -25, 25.0));
+                histogramFactory.createHistogram2D("Bottom Earliest vs Latest Track Hit Times", 80, -40, 40.0, 80, -40, 40.0));
         plotters.get("Track Hit Time Range")
                 .region(3)
                 .plot(trackTimeMinMax.get("Bottom"), SvtPlotUtils.createStyle(plotterFactory, "Earliest Time (ns)", "Latest Time (ns)"));
