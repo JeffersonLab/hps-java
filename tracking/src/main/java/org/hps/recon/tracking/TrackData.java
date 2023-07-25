@@ -18,11 +18,14 @@ public class TrackData implements GenericObject {
     public static final int L1_ISOLATION_INDEX = 0;
     public static final int L2_ISOLATION_INDEX = 1;
     public static final int N_ISOLATIONS = 14;  //Default
-    public static final int N_TRACK_PARAMS = 4;
+    public static final int N_TRACK_PARAMS = 7;
     public static final int TRACK_TIME_INDEX = 0;
     public static final int PX_INDEX = 1;
     public static final int PY_INDEX = 2;
     public static final int PZ_INDEX = 3;
+    public static final int ORIGIN_BFY_INDEX = 4; //BFieldY at Origin
+    public static final int TARGET_BFY_INDEX = 5; //BFieldY at Target TrackState
+    public static final int ECAL_BFY_INDEX = 6;   //BFieldY at ECal TrackState
     public static final int TRACK_VOLUME_INDEX = 0;
     public static final String TRACK_DATA_COLLECTION = "TrackData";
     public static final String TRACK_DATA_RELATION_COLLECTION = "TrackDataRelations";
@@ -79,6 +82,25 @@ public class TrackData implements GenericObject {
 
         this.doubles = isolations;
         this.floats = new float[]{trackTime,momentum[0],momentum[1],momentum[2]};
+        this.ints = new int[]{trackVolume};
+    }
+
+    /**
+     * Constructor 
+     *
+     * @param trackVolume : SVT volume associated with the track
+     * @param trackTime : The track time
+     * @param isolations : an array of doubles containing isolations for every
+     * sensor layer
+     * @param momentum   : an array of floats containing track momentum in the form (px,py,pz)
+     * @param origin_bfieldY : value of BfieldY at origin ref
+     * @param target_bfieldY : value of BfieldY at Target Track State
+     * @param ecal_bfieldY   : value of BfieldY at ECal Track State
+     */
+    public TrackData(int trackVolume, float trackTime, double[] isolations, float[] momentum, float origin_bfieldY, float target_bfieldY, float ecal_bfieldY) {
+
+        this.doubles = isolations;
+        this.floats = new float[]{trackTime,momentum[0],momentum[1],momentum[2],origin_bfieldY,target_bfieldY,ecal_bfieldY};
         this.ints = new int[]{trackVolume};
     }
         

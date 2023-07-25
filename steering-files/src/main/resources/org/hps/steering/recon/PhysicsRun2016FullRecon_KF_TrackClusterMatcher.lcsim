@@ -83,7 +83,7 @@
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-            <neighborDeltaT>8.0</neighborDeltaT>
+            <neighborDeltaT>24.0</neighborDeltaT>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
@@ -126,6 +126,8 @@
             <!-- <addResiduals>true</addResiduals> -->
             <numEvtPlots>40</numEvtPlots>
             <verbose>false</verbose>
+            <targetPosition>-4.3</targetPosition> 
+            <addTrackStateAtTarget>true</addTrackStateAtTarget>
           </driver>
 
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">

@@ -755,6 +755,60 @@ public class TrackUtils {
         return getTrackExtrapAtHodoRK(trk, fM, 0, hodoLayer);
     }
 
+    public static BaseTrackState getTrackExtrapAtTargetRK(Track track, double target_z, double[] beamPosition, FieldMap fM, double stepSize) {
+
+        TrackState ts = track.getTrackStates().get(0);
+ 
+        //if track passed to extrapolateHelixToXPlane, uses first track state
+        //by default, else if trackstate is passed, uses trackstate params.
+        //Forms HTF, projects to location, then returns point on helix
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, 0.0);
+        Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
+        double distanceZ = target_z;
+        double charge = -1.0 * Math.signum(getR(ts));
+
+        //extrapolateTrackUsingFieldMapRK gets HTF of input track/trackstate
+        //if track is passed, defaults to first track state
+        //if trackstate is passed, uses trackstate params
+        org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
+        double bFieldY = fM.getField(RKresults.getFirstElement()).y();
+        Hep3Vector posTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getFirstElement());
+        Hep3Vector momTrans = CoordinateTransformations.transformVectorToTracking(RKresults.getSecondElement());
+
+        Hep3Vector finalPos = posTrans;
+        if (RKresults.getFirstElement().z() != target_z) {
+            Hep3Vector mom = RKresults.getSecondElement();
+            double dz = target_z - RKresults.getFirstElement().z();
+            double dy = dz * mom.y() / mom.z();
+            double dx = dz * mom.x() / mom.z();
+            Hep3Vector dPos = new BasicHep3Vector(dx, dy, dz);
+            finalPos = CoordinateTransformations.transformVectorToTracking(VecOp.add(dPos, RKresults.getFirstElement()));
+        }
+        bFieldY = fM.getField(CoordinateTransformations.transformVectorToDetector(finalPos)).y();
+        //params are calculated with respect to ref = {trackX, trackY, z=0)
+        double[] params = getParametersFromPointAndMomentum(finalPos, momTrans, (int) charge, bFieldY);
+        BaseTrackState bts = new BaseTrackState(params, bFieldY);
+        //reference point is set to track position in X Y Z
+        bts.setReferencePoint(finalPos.v());
+        //Define new reference point, to which track parameters are calc wrt
+        double[] newRef = {target_z, beamPosition[0], beamPosition[1]};
+        params = getParametersAtNewRefPoint(newRef, bts);
+        bts.setParameters(params, bFieldY);
+        //Reference point records final position of track.
+        //This does not hold the reference point to which the track params are
+        //calculated from 
+        bts.setReferencePoint(finalPos.v());
+        bts.setLocation(TrackState.LastLocation);
+
+        //Get covariance matrix at target. This does not use RK extrap, but
+        //simple change of reference point
+        SymmetricMatrix originCovMatrix = new SymmetricMatrix(5, ts.getCovMatrix(),true);
+        SymmetricMatrix covtrans = getCovarianceAtNewRefPoint(newRef, ts.getReferencePoint(), ts.getParameters(), originCovMatrix); 
+        bts.setCovMatrix(covtrans.asPackedArray(true));
+
+        return bts;
+    }
+
     /**
      * Extrapolate track to given position. For backwards compatibility.
      *
@@ -1867,6 +1921,10 @@ public class TrackUtils {
             }
         }
         return null;
+    }
+
+    public static TrackState getTrackStateAtTarget(Track trk){
+        return getTrackStateAtLocation(trk, TrackState.LastLocation);
     }
 
     public static TrackState getTrackStateAtECal(Track trk) {

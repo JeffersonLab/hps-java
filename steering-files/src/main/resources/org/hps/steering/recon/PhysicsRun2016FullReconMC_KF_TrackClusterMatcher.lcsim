@@ -12,7 +12,7 @@
         <driver name="RfFitter"/>
  
         <!-- Ecal reconstruction drivers -->        
-        <!--<driver name="EcalRunningPedestal"/>-->
+        <driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="HitTimeSmear"/>
         <driver name="ReconClusterer" />
@@ -21,7 +21,7 @@
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-        <driver name="HelicalTrackHitDriver"/>
+        <!--<driver name="HelicalTrackHitDriver"/>-->
 
         <!-- <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
@@ -44,9 +44,9 @@
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->
-        <!--<driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
-        </driver>-->
+        </driver>
 
         <!--<driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
         </driver>-->
@@ -94,7 +94,7 @@
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-            <neighborDeltaT>8.0</neighborDeltaT>
+            <neighborDeltaT>24.0</neighborDeltaT>
         </driver>
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
@@ -111,6 +111,9 @@
             <!-- <siHitsLimit>50</siHitsLimit> -->
             <!-- <seedCompThr>0.05</seedCompThr> -->
             <!-- <addResiduals>true</addResiduals> -->
+            <numEvtPlots>40</numEvtPlots>
+            <targetPosition>-4.3</targetPosition>
+            <addTrackStateAtTarget>true</addTrackStateAtTarge>
             <verbose>false</verbose>
           </driver>
 
