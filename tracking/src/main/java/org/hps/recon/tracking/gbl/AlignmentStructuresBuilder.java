@@ -375,10 +375,12 @@ public class AlignmentStructuresBuilder {
         //Tracker.addLabel(12392);
         aliVolumeList.clear();
 
+        
+        System.out.println("AlignmentStructuresBuilder::dumping the structures");
         for (Map.Entry<String,AlignableVolume> entry : alignable_volumes.entrySet()) {
             entry.getValue().Print();
         }
-                
+             
         try {
             writer = new FileWriter("AlignmentTree.json");
             BufferedWriter bf = new BufferedWriter(writer);
@@ -659,6 +661,18 @@ class AlignableVolume implements IAlignableVolume {
                 bufferedWriter.write("\"parent\":\""+_parent.getName()+"\",\n");
             else 
                 bufferedWriter.write("\"parent\": \"\",\n");
+            //bufferedWriter.write("\"transform\": "+_l2g.toString()+",\n");
+            bufferedWriter.write("\"origin\": " +_l2g.getTranslation().getTranslationVector().toString()+",\n");
+
+            Hep3Matrix rot = _l2g.getRotation().getRotationMatrix();
+            Hep3Vector row1 = new BasicHep3Vector(rot.e(0,0),rot.e(0,1),rot.e(0,2));
+            Hep3Vector row2 = new BasicHep3Vector(rot.e(1,0),rot.e(1,1),rot.e(1,2));
+            Hep3Vector row3 = new BasicHep3Vector(rot.e(2,0),rot.e(2,1),rot.e(2,2));
+
+            bufferedWriter.write("\"rotation\": ["+row1.toString()+",\n");
+            bufferedWriter.write(row2.toString()+",\n");
+            bufferedWriter.write(row3.toString()+"],\n");
+            
             bufferedWriter.write("\"derivativeLabels\":"+derivativeLabels.toString()+",\n");
             bufferedWriter.write("\"daughters\":[");
             

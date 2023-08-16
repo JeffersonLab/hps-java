@@ -639,7 +639,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //System.out.print("Enabled alignment cuts with hits cut = ");
                 //Kalman
 
-                int actualHitCut = nHitsCut;
+                double actualHitCut = nHitsCut;
                 if (TrackType == 1) {
                     actualHitCut = 2*nHitsCut;
                 }
@@ -933,8 +933,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
             //This should GBL Trajectories for both the ST+GBL and KF+GBL depending on the setup.
             
-            //I think this should take the track->trackerHits and refit those with a GBL otherwise I think I miss the momentum constraint.. ?
-
             List<GBLStripClusterData> trackGblStripClusterData  = computeGBLStripClusterData(track,TrackType,
                                                                                              hitsOnTrack,gblStripClusterDataRelations,event);
             
@@ -1045,7 +1043,17 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 Collection<TrackerHit> hth = track.getTrackerHits();
                 List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
-                Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
+                
+                Pair<Track, GBLKinkData> newTrack;
+
+                try {
+
+                    newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
+                } 
+                catch (Exception e) {
+                    continue;
+                }
+                
                 Track gblTrk = newTrack.getFirst();
 
                 //System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");

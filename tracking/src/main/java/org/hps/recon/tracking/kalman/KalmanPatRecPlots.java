@@ -33,6 +33,7 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.event.TrackerHit;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.geometry.IDDecoder;
@@ -112,6 +113,17 @@ class KalmanPatRecPlots {
         aida.histogram1D("Kalman track Momentum 12-hit", 120, 0., 6.);
         aida.histogram1D("Kalman track Momentum 13-hit", 120, 0., 6.);
         aida.histogram1D("Kalman track Momentum 14-hit", 120, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_top_10", 100,0.,0.1,200, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_top_11", 100,0.,0.1,200, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_top_12", 100,0.,0.1,200, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_top_13", 100,0.,0.1,200, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_top_14", 100,0.,0.1,200, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_bot_10", 100,0.,0.1,200, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_bot_11", 100,0.,0.1,200, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_bot_12", 100,0.,0.1,200, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_bot_13", 100,0.,0.1,200, 0., 6.);
+        aida.histogram2D("p_vs_tanLambda_bot_14", 100,0.,0.1,200, 0., 6.);
+        
         aida.histogram1D("Vertex constrained Kalman track Momentum 14-hit", 120, 0., 6.);
         aida.histogram1D("GBL momentum, >= 12 hits", 100, 0., 5.);
         aida.histogram1D("dRho", 100, -5., 5.);
@@ -156,11 +168,19 @@ class KalmanPatRecPlots {
         aida.histogram1D("ptInv relative error estimate",50,0.,0.5);
         aida.histogram1D("dz error estimate",50,0.,0.2);
         aida.histogram1D("tanl error estimate",50,0.,.005);
+        
+        for (int mpid=0; mpid<21; ++mpid) {
+            aida.histogram2D(String.format("LayersKalman_unbiased_vs_tanL_top_%d",mpid), 100, -0.1, 0.1,100,-0.2,0.2);
+            aida.histogram2D(String.format("LayersKalman_unbiased_vs_tanL_bot_%d",mpid), 100, -0.1, 0.1,100,-0.2,0.2);
+        }
+
         for (int lyr=0; lyr<14; ++lyr) {
             aida.histogram1D(String.format("Layers/Kalman missed hit residual in layer %d",lyr), 100, -1.0, 1.0);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d",lyr), 100, -0.1, 0.1);
             aida.histogram1D(String.format("Layers/Kalman track hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
             aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d",lyr), 100, -0.1, 0.1);
+            
+            aida.histogram2D(String.format("LayersKalman_unbiased_vs_tanL_%d",lyr), 100, -0.1, 0.1,100,-0.2,0.2);
             aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",lyr), 100, -5., 5.);
             aida.histogram1D(String.format("Layers/Kalman true error in layer %d",lyr), 100, -0.2, 0.2);
             aida.histogram1D(String.format("Layers/Kalman layer %d chi^2 contribution", lyr), 100, 0., 20.);
@@ -409,18 +429,43 @@ class KalmanPatRecPlots {
                 aida.histogram1D("Kalman arc length to first measurement").fill(kTk.originArcLength());
                 double[] momentum = kTk.originP();
                 double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
+                double [] hParams = kTk.originHelixParms();
+                double tanLambda = -hParams[4];
+
                 switch (kTk.nHits) {
+                    case 10:
+                        if (tanLambda > 0)
+                            aida.histogram2D("p_vs_tanLambda_top_10").fill(tanLambda,pMag);
+                        else 
+                            aida.histogram2D("p_vs_tanLambda_bot_10").fill(tanLambda,pMag);
+
                     case 11:
                         aida.histogram1D("Kalman track Momentum 11-hit").fill(pMag);
+                        if (tanLambda > 0)
+                            aida.histogram2D("p_vs_tanLambda_top_11").fill(tanLambda,pMag);
+                        else 
+                            aida.histogram2D("p_vs_tanLambda_bot_11").fill(tanLambda,pMag);
                         break;
                     case 12:
                         aida.histogram1D("Kalman track Momentum 12-hit").fill(pMag);
+                        if (tanLambda > 0)
+                            aida.histogram2D("p_vs_tanLambda_top_12").fill(tanLambda,pMag);
+                        else 
+                            aida.histogram2D("p_vs_tanLambda_bot_12").fill(tanLambda,pMag);
                         break;
                     case 13:
+                        if (tanLambda > 0)
+                            aida.histogram2D("p_vs_tanLambda_top_13").fill(tanLambda,pMag);
+                        else 
+                            aida.histogram2D("p_vs_tanLambda_bot_13").fill(tanLambda,pMag);
                         aida.histogram1D("Kalman track Momentum 13-hit").fill(pMag);
                         break;
                     case 14:
                         aida.histogram1D("Kalman track Momentum 14-hit").fill(pMag);
+                        if (tanLambda > 0)
+                            aida.histogram2D("p_vs_tanLambda_top_14").fill(tanLambda,pMag);
+                        else 
+                            aida.histogram2D("p_vs_tanLambda_bot_14").fill(tanLambda,pMag);
                         aida.histogram1D("Vertex constrained Kalman track Momentum 14-hit").fill(pConstrained);
                         aida.histogram1D("Kalman track drho, 14-hit").fill(kTk.originHelixParms()[0]);
                         aida.histogram1D("Kalman track dz, 14-hit").fill(kTk.originHelixParms()[3]);
@@ -544,6 +589,26 @@ class KalmanPatRecPlots {
                                     double unbResid = residPr.getFirstElement();
                                     aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d",site.m.Layer)).fill(unbResid);
                                     aida.histogram1D(String.format("Layers/Kalman track unbiased hit residual in layer %d, sigmas",site.m.Layer)).fill(unbResid/sigma);
+                                    
+                                    double[] globalParams = kTk.originHelixParms();
+                                    Vec Bfield = KalmanInterface.getField(new Vec(0., 505.57 ,0.), kTk.SiteList.get(0).m.Bfield);
+                                    double B = Bfield.mag();
+                                    DMatrixRMaj globalCov = new DMatrixRMaj(kTk.originCovariance());
+                                    double[] newParams = KI.getLCSimParams(globalParams, KI.alphaCenter);
+                                    double[] newCov = KI.getLCSimCov(globalCov, KI.alphaCenter).asPackedArray(true);
+                                    TrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, TrackState.AtIP);
+                                    double tanL = ts.getTanLambda(); 
+                                    
+                                    tanL = -hParams[4];
+                                    
+                                    if (site.m.topBottom == 1) {
+                                        aida.histogram2D(String.format("LayersKalman_unbiased_vs_tanL_top_%d",site.m.millipedeID)).fill(tanL,unbResid);
+                                    }
+                                    else {
+                                        aida.histogram2D(String.format("LayersKalman_unbiased_vs_tanL_bot_%d",site.m.millipedeID)).fill(tanL,unbResid);
+                                    }
+                                    
+                                        
                                 }
                             }
                             TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
@@ -606,17 +671,19 @@ class KalmanPatRecPlots {
             
                 if (kTk.nHits >= 10) aida.histogram1D("Kalman number of wrong hits on track, >= 10 hits").fill(nBad);
                 MCParticle mcBest = null;
-                double [] hParams = kTk.originHelixParms();
+                //double [] hParams = kTk.originHelixParms();
                 double dRho = hParams[0];
                 double phi0 = -hParams[1];
                 double ptInv = hParams[2];
                 double z0 = -hParams[3];
-                double tanLambda = -hParams[4];
+                //double tanLambda = -hParams[4];
                 aida.histogram1D("dRho").fill(dRho);
                 aida.histogram1D("z0").fill(z0);
                 aida.histogram1D("phi0").fill(phi0);
                 aida.histogram1D("pt inverse").fill(ptInv);
                 aida.histogram1D("tanLambda").fill(tanLambda);
+                //double[] momentum = kTk.originP();
+                //double pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
                 if (idBest > -1) {
                     mcBest = mcParts.get(idBest); 
                     Hep3Vector pVec = mcBest.getMomentum();
