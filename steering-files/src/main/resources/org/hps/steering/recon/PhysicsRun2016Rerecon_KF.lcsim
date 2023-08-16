@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @brief Steering file that will be used for pass 1 reconstruction of 
-             the 2016 Engineering Run data. 
+      @brief 2016 Re-recon from GBL to KF
       @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
-        <!-- <driver name="PreCleanupDriver"/>-->
+        <driver name="PreCleanupDriver"/>
         <!-- Skip events with known bad conditions -->
         <driver name="EventFlagFilter"/>
         <!--RF driver-->
         <driver name="RfFitter"/>
  
         <!-- Ecal reconstruction drivers -->        
-        <driver name="EcalRunningPedestal"/>
+        <!--<driver name="EcalRunningPedestal"/>
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
-        <driver name="ReconClusterer" />
-        <driver name="ClusterRFTimeCorrDriver"/>
+        <driver name="ReconClusterer" />-->
+        <!--<driver name="ClusterRFTimeCorrDriver"/>-->
         <driver name="CopyCluster" />
         <!-- SVT reconstruction drivers -->
-        <driver name="RawTrackerHitSensorSetup"/>
-        <driver name="RawTrackerHitFitterDriver" />
+        <!--<driver name="RawTrackerHitSensorSetup"/>-->
+        <!--<driver name="RawTrackerHitFitterDriver" /> -->
+        <driver name="SensorSetup"/>
         <driver name="TrackerHitDriver"/>
-        <driver name="HelicalTrackHitDriver"/>
+        <!--<driver name="HelicalTrackHitDriver"/>-->
 
         <driver name="KalmanPatRecDriver"/>
         <driver name="ReconParticleDriver_Kalman" />
@@ -36,10 +36,8 @@
 
         <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
                   <!-- Clean all -->
-                   <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations </collectionNames>
-                  <!-- Clean tracking and Final state particles -->
-                  <!-- <collectionNames>FinalStateParticles GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations RotatedHelicalTrackHits RotatedHelicalTrackHitRelations TrackData  </collectionNames> -->
-                </driver>
+                  <collectionNames> EcalClustersCorr BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices FinalStateParticles GBLKinkData GBLKinkDataRelations GBLTracks HelicalTrackHitRelations HelicalTrackHits MatchedToGBLTrackRelations MatchedTracks OtherElectrons RotatedHelicalTrackHitRelations RotatedHelicalTrackHits StripClusterer_SiTrackerHitStrip1D TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices TrackData TrackDataRelations TrackResiduals TrackResidualsRelations UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices UnconstrainedVcCandidates UnconstrainedVcVertices </collectionNames>
+         </driver>
 
          <!-- Driver to reject "bad" events -->
          <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
@@ -69,6 +67,14 @@
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
+
+        <!-- SVT reconstruction drivers -->
+        <driver name="SensorSetup" type="org.hps.recon.tracking.SensorSetup" >
+          <readoutCollections>SVTRawTrackerHits</readoutCollections>
+          <fittedHitCollection>SVTFittedRawTrackerHits</fittedHitCollection>
+          <!-- <skipSensors>module_L7t module_L6t</skipSensors> -->
+        </driver>
+
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
             <useTimestamps>false</useTimestamps>

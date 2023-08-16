@@ -79,6 +79,9 @@ public class KalmanInterface {
     private int maxHits;
     private int nBigEvents;
     private int eventNumber;
+    private static double target_pos = -999.9;
+    private static boolean addTrackStateAtTarget = false;
+    private double[] beamPosition = null;
     
     private static final boolean debug = false;    
     private static final double SVTcenter = 505.57;
@@ -96,6 +99,18 @@ public class KalmanInterface {
     
     public int getSiHitsLimit() {
         return _siHitsLimit;
+    }
+
+    public void setTargetPosition(double target_pos){
+        this.target_pos = target_pos;   
+    }
+
+    public void setAddTrackStateAtTarget(boolean input){
+        this.addTrackStateAtTarget = input;
+    }
+
+    public void setBeamPosition(double[] beamPosition){
+        this.beamPosition = beamPosition;
     }
     
     // Get the HPS tracker hit corresponding to a Kalman hit
@@ -520,7 +535,7 @@ public class KalmanInterface {
     public PropagatedTrackState propagateTrackState(TrackState stateHPS, double [] location, double [] direction) {
         return new PropagatedTrackState(stateHPS, location, direction, detPlanes, fM);
     }
-    
+
     // Create an HPS track from a Kalman track
     public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
         if (kT.SiteList == null) {
@@ -596,9 +611,18 @@ public class KalmanInterface {
         }
         
         // Extrapolate to the ECAL and make a new trackState there.
-       
-        BaseTrackState ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
+        BaseTrackState ts_ecal = new BaseTrackState();
+        ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
         newTrack.getTrackStates().add(ts_ecal);
+
+        // Extrapolate to Target and make a new trackState there.
+        BaseTrackState ts_target = new BaseTrackState();
+        if (target_pos != -999.9 && addTrackStateAtTarget){
+            ts_target = TrackUtils.getTrackExtrapAtTargetRK(newTrack, target_pos, beamPosition, fM, 0);
+            if (ts_target != null){
+                newTrack.getTrackStates().add(ts_target);
+            }
+        }
         
         // other track properties
         newTrack.setChisq(kT.chi2);

@@ -19,6 +19,7 @@ import org.hps.recon.tracking.TrackResidualsData;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
+import org.hps.recon.tracking.TrackUtils;
 import org.hps.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
@@ -56,6 +57,8 @@ public class KalmanPatRecDriver extends Driver {
     private KalmanParams kPar;
     private KalmanPatRecPlots kPlot;
     private static Logger logger;
+    private static double target_pos = -999.9;
+    private static boolean addTrackStateAtTarget = false;
     
     // Parameters for the Kalman pattern recognition that can be set by the user in the steering file:
     private ArrayList<String> strategies;     // List of seed strategies for both top and bottom trackers, from steering
@@ -129,6 +132,14 @@ public class KalmanPatRecDriver extends Driver {
 
     public void setAddResiduals(boolean input) {
         addResiduals = input;
+    }
+
+    public void setTargetPosition(double target_pos){
+        this.target_pos = target_pos;
+    }
+
+    public void setAddTrackStateAtTarget(boolean input){
+        this.addTrackStateAtTarget = input;
     }
     
     @Override
@@ -248,17 +259,28 @@ public class KalmanPatRecDriver extends Driver {
         
         // Setup optional usage of beam positions from database.
         final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
-        if (useBeamPositionConditions && mgr.hasConditionsRecord("beam_positions")) {
-            logger.config("Using Kalman beam position from the conditions database");
+        double[] beamPositionArr = {beamPositionX, beamPositionY, beamPositionZ};
+        if (mgr.hasConditionsRecord("beam_positions")){
             BeamPositionCollection beamPositions = 
                     mgr.getCachedConditions(BeamPositionCollection.class, "beam_positions").getCachedData();
             BeamPosition beamPositionCond = beamPositions.get(0); 
-            if (!useFixedVertexZPosition) kPar.setBeamSpotY(beamPositionCond.getPositionZ());  
-            else logger.config("Using fixed Kalman beam Z position: " + kPar.beamSpot[1]);
-            kPar.setBeamSpotX(beamPositionCond.getPositionX());   // Includes a transformation to Kalman coordinates
-            kPar.setBeamSpotZ(-beamPositionCond.getPositionY());
-        } else {
-            logger.config("Using Kalman beam position from the steering file or default");
+            beamPositionArr[0] = beamPositionCond.getPositionX();
+            beamPositionArr[1] = beamPositionCond.getPositionY();
+            beamPositionArr[2] = beamPositionCond.getPositionZ();
+            System.out.println("beamPosition[0]: "+beamPositionArr[0]);
+            System.out.println("beamPosition[1]: "+beamPositionArr[1]);
+            System.out.println("beamPosition[2]: "+beamPositionArr[2]);
+            if (useBeamPositionConditions) {
+                logger.config("Using Kalman beam position from the conditions database");
+                if (!useFixedVertexZPosition) kPar.setBeamSpotY(beamPositionCond.getPositionZ());  
+                else logger.config("Using fixed Kalman beam Z position: " + kPar.beamSpot[1]);
+                kPar.setBeamSpotX(beamPositionCond.getPositionX());   // Includes a transformation to Kalman coordinates
+                kPar.setBeamSpotZ(-beamPositionCond.getPositionY());
+            } 
+            else {
+                logger.config("Using Kalman beam position from the steering file or default");
+            }
+
         }
         logger.config("Using Kalman beam position [ Z, X, Y ]: " + String.format("[ %f, %f, %f ]",
                        kPar.beamSpot[0], -kPar.beamSpot[2], kPar.beamSpot[1]) + " in HPS coordinates.");      
@@ -268,6 +290,12 @@ public class KalmanPatRecDriver extends Driver {
         kPar.print();
         
         KI = new KalmanInterface(uniformB, kPar, fm);
+        //Track State at Target uses beam position as track param reference
+        KI.setBeamPosition(beamPositionArr);
+        if (target_pos != -999.9 && addTrackStateAtTarget) {
+            KI.setAddTrackStateAtTarget(addTrackStateAtTarget);
+            KI.setTargetPosition(target_pos);
+        }
         KI.setSiHitsLimit(siHitsLimit);
         KI.createSiModules(detPlanes);
         decoder = det.getSubdetector("Tracker").getIDDecoder();
@@ -398,6 +426,7 @@ public class KalmanPatRecDriver extends Driver {
                 //double pt = Math.abs(1./ptInv_check);
                 
                 outputFullTracks.add(KalmanTrackHPS);
+
                 List<GBLStripClusterData> clstrs = KI.createGBLStripClusterData(kTk);
                 if (verbose) {
                     for (GBLStripClusterData clstr : clstrs) {
@@ -431,9 +460,28 @@ public class KalmanPatRecDriver extends Driver {
                 momentum_f[0] = (float) momentum.x();
                 momentum_f[1] = (float) momentum.y();
                 momentum_f[2] = (float) momentum.z();
-                
+
+                //Get Bfield at origin
+                double origin_bFieldY = fm.getField((new BasicHep3Vector(0.0,0.0,0.0))).y();
+
+                //Get Bfield at target
+                double target_bFieldY = -999.9;
+                if (TrackUtils.getTrackStateAtTarget(KalmanTrackHPS) != null)
+                {
+                    Hep3Vector target_pos = new BasicHep3Vector(TrackUtils.getTrackStateAtTarget(KalmanTrackHPS).getReferencePoint());
+                    target_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(target_pos)).y();
+
+                }
+                //Get Bfield at ecal
+                double ecal_bFieldY = -999.9;
+                if (TrackUtils.getTrackStateAtECal(KalmanTrackHPS) != null)
+                {
+                    Hep3Vector ecal_pos = new BasicHep3Vector(TrackUtils.getTrackStateAtECal(KalmanTrackHPS).getReferencePoint());
+                    ecal_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(ecal_pos)).y();
+                }
+
                 //Add the Track Data 
-                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f);
+                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY);
                 trackDataCollection.add(KFtrackData);
                 trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
 
