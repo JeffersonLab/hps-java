@@ -101,6 +101,7 @@
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>true</subtractTriggerTime>
             <correctChanT0>false</correctChanT0>
+            <correctPerSensorPerPhase>true</correctPerSensorPerPhase>
             <debug>false</debug>
         </driver>
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
