@@ -789,7 +789,7 @@ public class TrackUtils {
         double[] params = getParametersFromPointAndMomentum(finalPos, momTrans, (int) charge, bFieldY);
         BaseTrackState bts = new BaseTrackState(params, bFieldY);
         //reference point is set to track position in X Y Z
-        bts.setReferencePoint(finalPos.v());
+        bts.setReferencePoint(new double[]{finalPos.x(), finalPos.y(), 0.0});
         //Define new reference point, to which track parameters are calc wrt
         double[] newRef = {target_z, beamPosition[0], beamPosition[1]};
         params = getParametersAtNewRefPoint(newRef, bts);
