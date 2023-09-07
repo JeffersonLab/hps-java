@@ -16,7 +16,7 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>5.2.0-SNAPSHOT</version>
+    <version>0.0.9720232</version>
   </parent>
 
   <build>
