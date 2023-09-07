@@ -33,7 +33,7 @@
   <scm>
     <url>https://github.com/JeffersonLab/hps-java.git</url>
     <connection>scm:git:${project.scm.url}</connection>
-    <developerConnection>scm:git:git@github.com:JeremyMcCormick/hps-java.git</developerConnection>
+    <developerConnection>scm:git:git@github.com:JeffersonLab/hps-java.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
