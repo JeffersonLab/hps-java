@@ -1,0 +1,1071 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>KalmanPatRecPlots xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/recon/tracking/kalman/KalmanPatRecPlots.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.tracking.kalman;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.util.HashSet;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> java.util.Set;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Level;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.ejml.data.DMatrixRMaj;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.ejml.dense.row.MatrixFeatures_DDRM;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.FittedRawTrackerHit;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.gbl.matrix.EigenvalueDecomposition;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.gbl.matrix.Matrix;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.hps.util.Pair;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.DetectorElementStore;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.IDetectorElement;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IExpandedIdentifier;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IIdentifier;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IIdentifierDictionary;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.HpsSiSensor;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.SiSensor;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Cluster;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.LCRelation;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.MCParticle;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RelationalTable;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.SimTrackerHit;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackState;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackerHit;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseRelationalTable;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.IDDecoder;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">import</strong> hep.aida.IHistogram1D;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> hep.aida.IHistogramFactory;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment"> * Histograms and plots for Kalman Filter pattern recognition development</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <strong class="jxr_keyword">class</strong> <a name="KalmanPatRecPlots" href="../../../../../org/hps/recon/tracking/kalman/KalmanPatRecPlots.html#KalmanPatRecPlots">KalmanPatRecPlots</a> {
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <strong class="jxr_keyword">private</strong> <a name="KalmanInterface" href="../../../../../org/hps/recon/tracking/kalman/KalmanInterface.html#KalmanInterface">KalmanInterface</a> KI;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">private</strong> AIDA aida;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> nPlotted;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> nEvents;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> verbose;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">private</strong> String trackCollectionName = <span class="jxr_string">"GBLTracks"</span>;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">private</strong> org.lcsim.geometry.FieldMap fm;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">private</strong> IDDecoder decoder;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">private</strong> String outputFileName = <span class="jxr_string">"KalmanTestPlots.root"</span>;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">private</strong> String outputGnuPlotDir = <span class="jxr_string">"./"</span>;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">private</strong> RelationalTable hitToStrips;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">private</strong> RelationalTable hitToRotated;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> numEvtPlots;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">private</strong> IHistogram1D hp, hnh;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">private</strong> IHistogram1D hpf, hnhf;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">private</strong> IHistogramFactory hf;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">int</strong> nMCtracks;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      <strong class="jxr_keyword">int</strong> nMCtracksFound;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">private</strong> <a name="Efficiency" href="../../../../../org/hps/recon/tracking/kalman/Efficiency.html#Efficiency">Efficiency</a> pEff;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">private</strong> Logger logger;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> numBadCov;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">private</strong> String ecalClusterCollectionName = <span class="jxr_string">"EcalClusters"</span>;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">private</strong> String fittedHitsCollectionName = <span class="jxr_string">"SVTFittedRawTrackerHits"</span>;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">private</strong> String rawTrackerHitCollectionName = <span class="jxr_string">"SVTRawTrackerHits"</span>;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">private</strong> String stripHitInputCollectionName = <span class="jxr_string">"StripClusterer_SiTrackerHitStrip1D"</span>;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <a name="KalmanPatRecPlots" href="../../../../../org/hps/recon/tracking/kalman/KalmanPatRecPlots.html#KalmanPatRecPlots">KalmanPatRecPlots</a>(<strong class="jxr_keyword">boolean</strong> verbose, <a name="KalmanInterface" href="../../../../../org/hps/recon/tracking/kalman/KalmanInterface.html#KalmanInterface">KalmanInterface</a> KI, IDDecoder decoder, <strong class="jxr_keyword">int</strong> numEvtPlots, org.lcsim.geometry.FieldMap fm) {
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          <strong class="jxr_keyword">this</strong>.verbose = verbose;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          <strong class="jxr_keyword">this</strong>.KI = KI;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <strong class="jxr_keyword">this</strong>.decoder = decoder;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          <strong class="jxr_keyword">this</strong>.fm = fm;
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">this</strong>.numEvtPlots = numEvtPlots;
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>          logger = Logger.getLogger(KalmanPatRecPlots.<strong class="jxr_keyword">class</strong>.getName());
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>          
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          <strong class="jxr_keyword">if</strong> (aida == <strong class="jxr_keyword">null</strong>) aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>          aida.tree().cd(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>          nPlotted = 0;
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>          nEvents = 0;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          nMCtracks = 0;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          nMCtracksFound = 0;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          numBadCov = 0;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>          <em class="jxr_comment">// arguments to histogram1D: name, nbins, min, max</em>
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          aida.histogram1D(<span class="jxr_string">"Kalman number of tracks"</span>, 10, 0., 10.);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          aida.histogram1D(<span class="jxr_string">"Kalman Track Chi2"</span>, 100, 0., 200.);
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          aida.histogram1D(<span class="jxr_string">"Kalman Track Chi2, &gt;=10 hits"</span>, 100, 0., 200.);
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          aida.histogram1D(<span class="jxr_string">"Kalman Track Chi2, &gt;=12 hits"</span>, 100, 0., 200.);
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          aida.histogram1D(<span class="jxr_string">"Kalman Track simple Chi2, &gt;=10 hits"</span>, 50, 0., 100.);
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          aida.histogram2D(<span class="jxr_string">"number tracks Kalman vs GBL"</span>, 20, 0., 5., 20, 0., 5.);
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         aida.histogram1D(<span class="jxr_string">"helix chi-squared at origin"</span>, 100, 0., 25.);
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         aida.histogram1D(<span class="jxr_string">"GBL track chi^2"</span>, 100, 0., 200.);
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         aida.histogram1D(<span class="jxr_string">"GBL &gt;=12-hit track chi^2"</span>, 100, 0., 200.);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>         aida.histogram1D(<span class="jxr_string">"Kalman Track Number Hits"</span>, 20, 0., 20.);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>         aida.histogram1D(<span class="jxr_string">"GBL number tracks"</span>, 10, 0., 10.);
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         aida.histogram1D(<span class="jxr_string">"Kalman missed hit residual"</span>, 100, -1.0, 1.0);
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         aida.histogram1D(<span class="jxr_string">"Kalman track hit residual, sigmas"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         aida.histogram1D(<span class="jxr_string">"Kalman track hit residual &gt;= 10 hits, sigmas"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         aida.histogram1D(<span class="jxr_string">"Kalman track hit residual"</span>, 100, -0.1, 0.1);
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         aida.histogram1D(<span class="jxr_string">"Kalman hit true error"</span>, 100, -0.2, 0.2);
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>         aida.histogram1D(<span class="jxr_string">"Kalman hit true error over uncertainty"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>         aida.histogram1D(<span class="jxr_string">"Kalman track Momentum 11-hit"</span>, 120, 0., 6.);
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         aida.histogram1D(<span class="jxr_string">"Kalman track Momentum 12-hit"</span>, 120, 0., 6.);
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         aida.histogram1D(<span class="jxr_string">"Kalman track Momentum 13-hit"</span>, 120, 0., 6.);
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         aida.histogram1D(<span class="jxr_string">"Kalman track Momentum 14-hit"</span>, 120, 0., 6.);
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         aida.histogram1D(<span class="jxr_string">"Vertex constrained Kalman track Momentum 14-hit"</span>, 120, 0., 6.);
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         aida.histogram1D(<span class="jxr_string">"GBL momentum, &gt;= 12 hits"</span>, 100, 0., 5.);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         aida.histogram1D(<span class="jxr_string">"dRho"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         aida.histogram1D(<span class="jxr_string">"dRho error, sigmas"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         aida.histogram1D(<span class="jxr_string">"z0"</span>, 100, -2., 2.);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         aida.histogram1D(<span class="jxr_string">"z0 error, sigmas"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         aida.histogram1D(<span class="jxr_string">"pt inverse"</span>, 200, -1.5, 1.5);
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>         aida.histogram1D(<span class="jxr_string">"pt inverse True"</span>, 200, -1.5, 1.5);
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         aida.histogram1D(<span class="jxr_string">"pt inverse error, percent"</span>, 100, -50., 50.);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         aida.histogram1D(<span class="jxr_string">"pt inverse error, sigmas"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>         aida.histogram1D(<span class="jxr_string">"tanLambda"</span>, 100, -0.3, 0.3);
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>         aida.histogram1D(<span class="jxr_string">"GBL tanLambda"</span>, 100, -0.3, 0.3);
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>         aida.histogram1D(<span class="jxr_string">"tanLambda true"</span>, 100, -0.3, 0.3);
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         aida.histogram1D(<span class="jxr_string">"tanLambda error, sigmas"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         aida.histogram1D(<span class="jxr_string">"phi0 true"</span>, 100, -0.3, 0.3);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>         aida.histogram1D(<span class="jxr_string">"phi0"</span>, 100, -0.3, 0.3);
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         aida.histogram1D(<span class="jxr_string">"phi0 error, sigmas"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>         aida.histogram1D(<span class="jxr_string">"Kalman track drho"</span>,100,-5.,5.);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>         aida.histogram1D(<span class="jxr_string">"Kalman track dz"</span>,100,-2.,2.);
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>         aida.histogram1D(<span class="jxr_string">"Kalman track drho, 14-hit"</span>,100,-5.,5.);
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>         aida.histogram1D(<span class="jxr_string">"Kalman track dz, 14-hit"</span>,100,-2.,2.);
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>         aida.histogram1D(<span class="jxr_string">"Vertex constrained Kalman track drho, 14-hit"</span>,100,-5.,5.);
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         aida.histogram1D(<span class="jxr_string">"Vertex constrained Kalman track dz, 14-hit"</span>,100,-2.,2.);
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         aida.histogram1D(<span class="jxr_string">"Kalman track number MC particles"</span>,10,0.,10.);
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>         aida.histogram1D(<span class="jxr_string">"Kalman number of wrong hits on track"</span>,12,0.,12.);
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>         aida.histogram1D(<span class="jxr_string">"Kalman number of wrong hits on track, &gt;= 10 hits"</span>, 12, 0., 12.);
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>         aida.histogram1D(<span class="jxr_string">"GBL track number MC particles"</span>,10,0.,10.);
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>         aida.histogram1D(<span class="jxr_string">"Kalman arc length to first measurement"</span>,100,0.,200.);
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>         aida.histogram1D(<span class="jxr_string">"GBL number of wrong hits on track"</span>,12,0.,12.);
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>         aida.histogram1D(<span class="jxr_string">"MC hit z in local system (should be zero)"</span>, 50, -2., 2.);
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         aida.histogram1D(<span class="jxr_string">"Kalman track number of shared hits"</span>, 10, 0., 10.);
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>         aida.histogram1D(<span class="jxr_string">"GBL d0"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         aida.histogram1D(<span class="jxr_string">"GBL z0"</span>, 100, -2., 2.);
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>         aida.histogram1D(<span class="jxr_string">"GBL pt inverse"</span>, 200, -1.5, 1.5);
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>         aida.histogram1D(<span class="jxr_string">"GBL pt inverse, sigmas"</span>, 100, -5., 5.);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         aida.histogram1D(<span class="jxr_string">"Kalman track time range (ns)"</span>, 100, 0., 100.);
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         aida.histogram1D(<span class="jxr_string">"GBL number of hits"</span>,20,0.,20.);
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>         aida.histogram1D(<span class="jxr_string">"Kalman layer hit"</span>,20,0.,20.);
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         aida.histogram1D(<span class="jxr_string">"drho error estimate"</span>,50,0.,1.);
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>         aida.histogram1D(<span class="jxr_string">"phi0 error estimate"</span>,50,0.,.01);
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>         aida.histogram1D(<span class="jxr_string">"ptInv error estimate"</span>,50,0.,0.2);
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>         aida.histogram1D(<span class="jxr_string">"ptInv relative error estimate"</span>,50,0.,0.5);
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>         aida.histogram1D(<span class="jxr_string">"dz error estimate"</span>,50,0.,0.2);
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>         aida.histogram1D(<span class="jxr_string">"tanl error estimate"</span>,50,0.,.005);
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> lyr=0; lyr&lt;14; ++lyr) {
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman missed hit residual in layer %d"</span>,lyr), 100, -1.0, 1.0);
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman track hit residual in layer %d"</span>,lyr), 100, -0.1, 0.1);
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman track hit residual in layer %d, sigmas"</span>,lyr), 100, -5., 5.);
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman track unbiased hit residual in layer %d"</span>,lyr), 100, -0.1, 0.1);
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman track unbiased hit residual in layer %d, sigmas"</span>,lyr), 100, -5., 5.);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman true error in layer %d"</span>,lyr), 100, -0.2, 0.2);
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman layer %d chi^2 contribution"</span>, lyr), 100, 0., 20.);
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>             <strong class="jxr_keyword">if</strong> (lyr&lt;13) {
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>                 aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman kink in xy, layer %d"</span>, lyr),100, -0.001, .001);
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>                 aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman kink in zy, layer %d"</span>, lyr),100, -0.0025, .0025);
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>             }
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>         }
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>         aida.histogram1D(<span class="jxr_string">"projected track-state x error"</span>, 100, -25., 25.);
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>         aida.histogram1D(<span class="jxr_string">"projected track-state y error"</span>, 100, -25., 25.);
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>         aida.histogram1D(<span class="jxr_string">"projected track-state x uncertainty"</span>,100,0.,5.);
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>         aida.histogram1D(<span class="jxr_string">"projected track-state y uncertainty"</span>,100,0.,5.);
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>         aida.histogram1D(<span class="jxr_string">"projected track-state x error, sigmas"</span>, 100, -10., 10.);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>         aida.histogram1D(<span class="jxr_string">"projected track-state y error, sigmas"</span>, 100, -10., 10.);
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         aida.histogram1D(<span class="jxr_string">"Kalman projected track-state x error"</span>, 100, -25., 25.);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         aida.histogram1D(<span class="jxr_string">"Kalman projected track-state z error"</span>, 100, -25., 25.);
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>         hf = aida.histogramFactory();
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         hp = aida.histogram1D(<span class="jxr_string">"MC particle momentum"</span>,40,0.,4.);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         hpf = aida.histogram1D(<span class="jxr_string">"MC particle momentum, found"</span>,40,0.,4.);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         hnh = aida.histogram1D(<span class="jxr_string">"MC number hits"</span>,15,0.,15.);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         hnhf = aida.histogram1D(<span class="jxr_string">"MC number hits, found"</span>,15,0.,15.);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>         pEff = <strong class="jxr_keyword">new</strong> <a name="Efficiency" href="../../../../../org/hps/recon/tracking/kalman/Efficiency.html#Efficiency">Efficiency</a>(40,0.,0.1,<span class="jxr_string">"Track efficency vs momentum"</span>,<span class="jxr_string">"momentum (GeV)"</span>,<span class="jxr_string">"efficiency"</span>);
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         aida.histogram1D(<span class="jxr_string">"Bad/Number of hits on bad tracks"</span>, 20, 0., 20.);
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         aida.histogram1D(<span class="jxr_string">"Bad/Chi-squared of bad tracks"</span>, 100, 0., 200.);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         aida.histogram1D(<span class="jxr_string">"Bad/drho of bad tracks"</span>, 50, -8., 8.);
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         aida.histogram1D(<span class="jxr_string">"Bad/dz of bad tracks"</span>, 50, -4., 4.);
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         aida.histogram1D(<span class="jxr_string">"Bad/momentum of bad tracks"</span>, 60, 0., 6.);
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>         aida.histogram1D(<span class="jxr_string">"Bad/Number of MC particles associated"</span>, 10, 0., 10.);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         aida.histogram1D(<span class="jxr_string">"Bad/Number of wrong hits on track"</span>, 20, 0., 20.);
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>         aida.histogram1D(<span class="jxr_string">"seed slope"</span>,100,0.,0.3);
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         aida.histogram1D(<span class="jxr_string">"seed z intercept"</span>,100,0.,10.);
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>         aida.histogram1D(<span class="jxr_string">"seed y intercept"</span>,100,-100.,100.);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>     }
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>     
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>     <strong class="jxr_keyword">void</strong> process(EventHeader event, List&lt;HpsSiSensor&gt; sensors, ArrayList&lt;KalTrack&gt;[] kPatList, 
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>             List&lt;Track&gt; outputFullTracks) {
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>         
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>         nEvents++;
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>         
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>         setupSensors(event);
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>         
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>         <em class="jxr_comment">// Set up relatations between raw hits and MC hits</em>
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>         RelationalTable rawtomc = <strong class="jxr_keyword">new</strong> BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(LCRelation.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"SVTTrueHitRelations"</span>)) {
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>             List&lt;LCRelation&gt; trueHitRelations = event.get(LCRelation.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"SVTTrueHitRelations"</span>);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>             <strong class="jxr_keyword">for</strong> (LCRelation relation : trueHitRelations)
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>                 <strong class="jxr_keyword">if</strong> (relation != <strong class="jxr_keyword">null</strong> &amp;&amp; relation.getFrom() != <strong class="jxr_keyword">null</strong> &amp;&amp; relation.getTo() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>                     rawtomc.add(relation.getFrom(), relation.getTo());
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>                 }
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>         }
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>         
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         <em class="jxr_comment">// Analysis of tracker hits (noise hits versus real hits)</em>
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>         <em class="jxr_comment">// Get the list of fitted hits from the event</em>
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         List&lt;LCRelation&gt; fittedHits = event.get(LCRelation.<strong class="jxr_keyword">class</strong>, fittedHitsCollectionName);
+<a class="jxr_linenumber" name="L218" href="#L218">218</a> 
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         <em class="jxr_comment">// Map the fitted hits to their corresponding raw hits</em>
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         Map&lt;RawTrackerHit, LCRelation&gt; fittedRawTrackerHitMap = <strong class="jxr_keyword">new</strong> HashMap&lt;RawTrackerHit, LCRelation&gt;();
+<a class="jxr_linenumber" name="L221" href="#L221">221</a> 
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>         List&lt;RawTrackerHit&gt; rawHitsList = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, rawTrackerHitCollectionName);
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">for</strong> (LCRelation fittedHit : fittedHits) {
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>             fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>         }
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>         Map&lt;String, Integer&gt; hits = <strong class="jxr_keyword">new</strong> HashMap&lt;String, Integer&gt;();
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor : sensors) {
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>             hits.put(sensor.getName(), 0);
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>         }
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>         
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>         <em class="jxr_comment">// Map the raw hits to the Kalman tracks and to TrackerHit</em>
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         Map&lt;TrackerHit, KalTrack&gt; hitToTk = <strong class="jxr_keyword">new</strong> HashMap&lt;TrackerHit, KalTrack&gt;();
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> topBottom=0; topBottom&lt;2; ++topBottom) {
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>             <strong class="jxr_keyword">for</strong> (<a name="KalTrack" href="../../../../../org/hps/recon/tracking/kalman/KalTrack.html#KalTrack">KalTrack</a> kTk : kPatList[topBottom]) {
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>                 <strong class="jxr_keyword">for</strong> (<a name="MeasurementSite" href="../../../../../org/hps/recon/tracking/kalman/MeasurementSite.html#MeasurementSite">MeasurementSite</a> site : kTk.SiteList) {
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>                     <strong class="jxr_keyword">if</strong> (site.hitID &lt; 0) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>                     <a name="StateVector" href="../../../../../org/hps/recon/tracking/kalman/StateVector.html#StateVector">StateVector</a> aS = site.aS;
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>                     <a name="SiModule" href="../../../../../org/hps/recon/tracking/kalman/SiModule.html#SiModule">SiModule</a> mod = site.m;
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>                     <strong class="jxr_keyword">if</strong> (aS != <strong class="jxr_keyword">null</strong> &amp;&amp; mod != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>                         TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>                         hitToTk.put(hpsHit, kTk);
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>                         List&lt;RawTrackerHit&gt; rawHits = hpsHit.getRawHits();
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>                         <strong class="jxr_keyword">double</strong> totalPh = 0.;
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>                         <a name="HpsSiSensor" href="../../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>                         <strong class="jxr_keyword">int</strong> Layer = -1;
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>                         <strong class="jxr_keyword">int</strong> nstrip = 0;
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>                         <strong class="jxr_keyword">double</strong> chan = 0.;
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>                         <strong class="jxr_keyword">for</strong> (RawTrackerHit rawHit : rawHits) { 
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>                             <strong class="jxr_keyword">double</strong> amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rawHit));
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>                             totalPh += amplitude;
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>                             nstrip++;
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>                             chan += rawHit.getIdentifierFieldValue(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>                             <strong class="jxr_keyword">if</strong> (sensor == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>                                 sensor = (<a name="HpsSiSensor" href="../../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) rawHit.getDetectorElement();
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                                 Layer = sensor.getLayerNumber();
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>                             }
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>                         }
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                         chan = chan/(<strong class="jxr_keyword">double</strong>)nstrip;
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>                         aida.histogram1D(<span class="jxr_string">"hits/"</span> + sensor.getName() + <span class="jxr_string">" average channel with track"</span>, 640, 0, 640).fill(chan);
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>                         aida.histogram1D(<span class="jxr_string">"hits/dEdx of hits on tracks"</span>,250,0.,20.).fill(hpsHit.getdEdx()*1000000.);
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>                         aida.histogram1D(<span class="jxr_string">"hits/Layer "</span> + Integer.toString(Layer) + <span class="jxr_string">" cluster amplitude of hit on track"</span>, 250, 0., 5000.).fill(totalPh);
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                         aida.histogram1D(<span class="jxr_string">"hits/cluster amplitude of hit on track"</span>, 250, 0., 5000.).fill(totalPh);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>                     }
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>                 }
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>             }
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         }
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>         Map&lt;RawTrackerHit, TrackerHit&gt; hitToTkHit = <strong class="jxr_keyword">new</strong> HashMap&lt;RawTrackerHit, TrackerHit&gt;();
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>         List&lt;TrackerHit&gt; stripHits = event.get(TrackerHit.<strong class="jxr_keyword">class</strong>, stripHitInputCollectionName);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>         <strong class="jxr_keyword">if</strong> (stripHits != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>             <strong class="jxr_keyword">for</strong> (TrackerHit tkHit : stripHits) {
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>                 <a name="KalTrack" href="../../../../../org/hps/recon/tracking/kalman/KalTrack.html#KalTrack">KalTrack</a> kTk = hitToTk.get(tkHit);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>                 List&lt;RawTrackerHit&gt; rawHits = tkHit.getRawHits();
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>                 <strong class="jxr_keyword">double</strong> totalPh = 0.;
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>                 <a name="HpsSiSensor" href="../../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>                 <strong class="jxr_keyword">int</strong> Layer = -1;
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>                 <strong class="jxr_keyword">int</strong> nstrip = 0;
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>                 <strong class="jxr_keyword">double</strong> chan = 0.;
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>                 <strong class="jxr_keyword">for</strong> (RawTrackerHit rawHit : rawHits) { 
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>                     hitToTkHit.put(rawHit, tkHit);
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>                     <strong class="jxr_keyword">double</strong> amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rawHit));
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>                     totalPh += amplitude;
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>                     nstrip++;
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>                     chan += rawHit.getIdentifierFieldValue(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>                     <strong class="jxr_keyword">if</strong> (sensor == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>                         sensor = (<a name="HpsSiSensor" href="../../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) rawHit.getDetectorElement();
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>                         Layer = sensor.getLayerNumber();
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>                     }
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>                 }
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>                 <strong class="jxr_keyword">if</strong> (kTk == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                     chan = chan/(<strong class="jxr_keyword">double</strong>)nstrip;
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>                     aida.histogram1D(<span class="jxr_string">"hits/"</span> + sensor.getName() + <span class="jxr_string">" average channel with no track"</span>, 640, 0, 640).fill(chan);
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>                     aida.histogram1D(<span class="jxr_string">"hits/Layer "</span> + Integer.toString(Layer) + <span class="jxr_string">" cluster amplitude with no track"</span>, 250, 0., 5000.).fill(totalPh);
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>                     aida.histogram1D(<span class="jxr_string">"hits/"</span> + sensor.getName() + <span class="jxr_string">" cluster amplitude with no track"</span>, 250, 0., 5000.).fill(totalPh);
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>                     aida.histogram1D(<span class="jxr_string">"hits/cluster amplitude with no track"</span>, 250, 0., 5000.).fill(totalPh);
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>                 }
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>             }
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         }
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         <em class="jxr_comment">// Look for raw strip hits that were not associated with a tracker hit</em>
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>         <strong class="jxr_keyword">for</strong> (RawTrackerHit rawHit : rawHitsList) {
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>             <em class="jxr_comment">// Access the sensor associated with the raw hit</em>
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>             <a name="HpsSiSensor" href="../../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = (<a name="HpsSiSensor" href="../../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) rawHit.getDetectorElement();
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>             <strong class="jxr_keyword">int</strong> Layer = sensor.getLayerNumber();
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>             aida.histogram1D(<span class="jxr_string">"hits/layer number"</span>, 20,0.,20.).fill(Layer);
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>             Integer nHits = hits.get(sensor.getName());
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>             <strong class="jxr_keyword">if</strong> (nHits == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>                 nHits = 0;
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>             }
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>             nHits++;
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>             hits.put(rawHit.getDetectorElement().getName(), nHits);
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>             TrackerHit hpsHit = hitToTkHit.get(rawHit);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>             <strong class="jxr_keyword">if</strong> (hpsHit != <strong class="jxr_keyword">null</strong>) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>             
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>             <strong class="jxr_keyword">double</strong> amplitude = FittedRawTrackerHit.getAmp(fittedRawTrackerHitMap.get(rawHit));
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             aida.histogram1D(<span class="jxr_string">"hits/"</span> + sensor.getName() + <span class="jxr_string">" strip amplitude with no tracker hit"</span>, 250, 0., 5000.).fill(amplitude);
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>             aida.histogram1D(<span class="jxr_string">"hits/strip amplitude with no tracker hit"</span>, 250, 0., 5000.).fill(amplitude);
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>             <strong class="jxr_keyword">int</strong> channel = rawHit.getIdentifierFieldValue(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>             aida.histogram1D(<span class="jxr_string">"hits/"</span> + sensor.getName() + <span class="jxr_string">" channel with no tracker hit"</span>, 640, 0, 640).fill(channel);
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>             <strong class="jxr_keyword">double</strong> t0 = FittedRawTrackerHit.getT0(fittedRawTrackerHitMap.get(rawHit));
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>             aida.histogram1D(<span class="jxr_string">"hits/"</span> + sensor.getName() + <span class="jxr_string">" t0 with no tracker hit"</span>, 250, -400., 100.).fill(t0);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>         }
+<a class="jxr_linenumber" name="L321" href="#L321">321</a> 
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>         <em class="jxr_comment">// Tracker ECAL matching analysis</em>
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(Cluster.<strong class="jxr_keyword">class</strong>, ecalClusterCollectionName)) {
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>             List&lt;Cluster&gt; clusters = event.get(Cluster.<strong class="jxr_keyword">class</strong>, ecalClusterCollectionName);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>             <strong class="jxr_keyword">for</strong> (Track tkr : outputFullTracks) {            
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>                 <strong class="jxr_keyword">if</strong> (tkr.getTrackerHits().size() &lt; 12) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>                 <strong class="jxr_keyword">if</strong> (tkr.getChi2()/tkr.getNDF() &gt; 2.) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>                 List&lt;TrackState&gt; tkStates = tkr.getTrackStates();
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>                 TrackState lastState = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>                 <strong class="jxr_keyword">for</strong> (TrackState tkState : tkStates) {
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>                     <strong class="jxr_keyword">if</strong> (tkState.getLocation() == TrackState.AtLastHit) {
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>                         lastState = tkState;
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>                     }
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>                 }
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>                 <strong class="jxr_keyword">if</strong> (lastState != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>                     <em class="jxr_comment">// test propagation of a track state from one end of the track to the ECAL</em>
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>                     <strong class="jxr_keyword">for</strong> (Cluster cluster : clusters) {
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>                         <strong class="jxr_keyword">double</strong> [] location = cluster.getPosition();
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>                         <strong class="jxr_keyword">double</strong> [] direction = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[3];
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>                         direction[0] = 0.; direction[1] = 0.; direction[2] = 1.;
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>                         <a name="PropagatedTrackState" href="../../../../../org/hps/recon/tracking/kalman/PropagatedTrackState.html#PropagatedTrackState">PropagatedTrackState</a> pts = KI.propagateTrackState(lastState, location, direction);
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>                         <strong class="jxr_keyword">double</strong> [] intPnt = pts.getIntersection();
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>                         <strong class="jxr_keyword">double</strong> [][] intPntCov = pts.getIntersectionCov();
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>                         <em class="jxr_comment">//new Vec(3,location).print("ECAL cluster position");</em>
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>                         <em class="jxr_comment">//pts.print("to ECAL");</em>
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>                         aida.histogram1D(<span class="jxr_string">"projected track-state x error"</span>).fill(intPnt[0] - location[0]);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>                         aida.histogram1D(<span class="jxr_string">"projected track-state x uncertainty"</span>).fill(Math.sqrt(intPntCov[0][0]));
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>                         aida.histogram1D(<span class="jxr_string">"projected track-state x error, sigmas"</span>).fill((intPnt[0] - location[0])/Math.sqrt(intPntCov[0][0]));
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>                         aida.histogram1D(<span class="jxr_string">"projected track-state y error"</span>).fill(intPnt[1] - location[1]);
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>                         aida.histogram1D(<span class="jxr_string">"projected track-state y uncertainty"</span>).fill(Math.sqrt(intPntCov[1][1]));
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>                         aida.histogram1D(<span class="jxr_string">"projected track-state y error, sigmas"</span>).fill((intPnt[1] - location[1])/Math.sqrt(intPntCov[1][1]));                        
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>                     }
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>                 }
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>             }
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> topBottom=0; topBottom&lt;2; ++topBottom) {
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>                 <strong class="jxr_keyword">for</strong> (<a name="KalTrack" href="../../../../../org/hps/recon/tracking/kalman/KalTrack.html#KalTrack">KalTrack</a> tkr : kPatList[topBottom]) {
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>                     <strong class="jxr_keyword">if</strong> (tkr.nHits &lt; 12) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>                     <strong class="jxr_keyword">if</strong> (tkr.chi2/tkr.nHits &gt; 2.) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>                     <a name="MeasurementSite" href="../../../../../org/hps/recon/tracking/kalman/MeasurementSite.html#MeasurementSite">MeasurementSite</a> lastSite = tkr.SiteList.get(tkr.SiteList.size()-1);
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>                     <strong class="jxr_keyword">for</strong> (Cluster cluster : clusters) {
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>                         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> eCalPos = KalmanInterface.vectorGlbToKalman(cluster.getPosition());
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>                         <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> plnAtEcal = <strong class="jxr_keyword">new</strong> <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a>(eCalPos, <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0.,1.,0.));
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>                         ArrayList&lt;Double&gt; yScat = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>                         ArrayList&lt;Double&gt; XLscat = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>                         <em class="jxr_comment">//eCalPos.print("ECAL cluster position");</em>
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>                         <em class="jxr_comment">//lastSite.aS.helix.print("helix at last layer");</em>
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>                         <strong class="jxr_keyword">double</strong> [] arcLength = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[1];
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>                         <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a> helixAtEcal = lastSite.aS.helix.propagateRungeKutta(plnAtEcal, yScat, XLscat, fm, arcLength);
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>                         <strong class="jxr_keyword">if</strong> (MatrixFeatures_DDRM.hasNaN(helixAtEcal.C)) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>                         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> intPnt = helixAtEcal.getRKintersection();
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>                         <em class="jxr_comment">//helixAtEcal.print("helix at ECAL cluster");</em>
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>                         <em class="jxr_comment">//intPnt.print("RK intersection point");</em>
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>                         aida.histogram1D(<span class="jxr_string">"Kalman projected track-state x error"</span>).fill(intPnt.v[0] - eCalPos.v[0]);
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>                         aida.histogram1D(<span class="jxr_string">"Kalman projected track-state z error"</span>).fill(intPnt.v[2] - eCalPos.v[2]);
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>                     }
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>                 }
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>             }
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>         }
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>         
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>         <strong class="jxr_keyword">boolean</strong> doGBL = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>         <strong class="jxr_keyword">if</strong> (doGBL) {
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>             hitToStrips = TrackUtils.getHitToStripsTable(event);
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>             hitToRotated = TrackUtils.getHitToRotatedTable(event);
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>         }
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>         
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>         <strong class="jxr_keyword">int</strong> minHits = 999;
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>         <strong class="jxr_keyword">int</strong> nKalTracks = 0;
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>         <strong class="jxr_keyword">boolean</strong> sharedHitTrack = false;
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> topBottom=0; topBottom&lt;2; ++topBottom) {
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             <strong class="jxr_keyword">for</strong> (<a name="KalTrack" href="../../../../../org/hps/recon/tracking/kalman/KalTrack.html#KalTrack">KalTrack</a> kTk : kPatList[topBottom]) {
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>                 nKalTracks++;
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>                 aida.histogram1D(<span class="jxr_string">"Kalman Track Number Hits"</span>).fill(kTk.nHits);
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>                 <strong class="jxr_keyword">if</strong> (kTk.nHits &lt; minHits) minHits = kTk.nHits;
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>                 
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>                 <em class="jxr_comment">// Vertex constraint</em>
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>                 <strong class="jxr_keyword">double</strong> [] vtx = {0.1735, -3.168, 0.1687};
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>                 <strong class="jxr_keyword">double</strong> [][] vtxCov = {{0.686, 0., 0.}, {0., 10.09, 0.}, {0., 0., 0.017}};
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>                 <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a> constrained = kTk.originConstraint(vtx, vtxCov);
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>                 <strong class="jxr_keyword">if</strong> (constrained == <strong class="jxr_keyword">null</strong>) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>                 <strong class="jxr_keyword">double</strong> pConstrained = constrained.getMom(0.).mag(); 
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>                 <strong class="jxr_keyword">if</strong> (kTk.nHits &gt;= 10) {
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>                     aida.histogram1D(<span class="jxr_string">"Kalman Track Chi2, &gt;=10 hits"</span>).fill(kTk.chi2);
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>                     aida.histogram1D(<span class="jxr_string">"Kalman Track simple Chi2, &gt;=10 hits"</span>).fill(kTk.chi2prime());
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>                 }
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 <strong class="jxr_keyword">if</strong> (kTk.nHits &gt;= 12) aida.histogram1D(<span class="jxr_string">"Kalman Track Chi2, &gt;=12 hits"</span>).fill(kTk.chi2);
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>                 aida.histogram1D(<span class="jxr_string">"Kalman Track Chi2"</span>).fill(kTk.chi2);
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>                 aida.histogram1D(<span class="jxr_string">"Kalman arc length to first measurement"</span>).fill(kTk.originArcLength());
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>                 <strong class="jxr_keyword">double</strong>[] momentum = kTk.originP();
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>                 <strong class="jxr_keyword">double</strong> pMag = Math.sqrt(momentum[0]*momentum[0]+momentum[1]*momentum[1]+momentum[2]*momentum[2]);
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>                 <strong class="jxr_keyword">switch</strong> (kTk.nHits) {
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>                     <strong class="jxr_keyword">case</strong> 11:
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>                         aida.histogram1D(<span class="jxr_string">"Kalman track Momentum 11-hit"</span>).fill(pMag);
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>                     <strong class="jxr_keyword">case</strong> 12:
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>                         aida.histogram1D(<span class="jxr_string">"Kalman track Momentum 12-hit"</span>).fill(pMag);
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>                     <strong class="jxr_keyword">case</strong> 13:
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>                         aida.histogram1D(<span class="jxr_string">"Kalman track Momentum 13-hit"</span>).fill(pMag);
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>                     <strong class="jxr_keyword">case</strong> 14:
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>                         aida.histogram1D(<span class="jxr_string">"Kalman track Momentum 14-hit"</span>).fill(pMag);
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>                         aida.histogram1D(<span class="jxr_string">"Vertex constrained Kalman track Momentum 14-hit"</span>).fill(pConstrained);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>                         aida.histogram1D(<span class="jxr_string">"Kalman track drho, 14-hit"</span>).fill(kTk.originHelixParms()[0]);
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>                         aida.histogram1D(<span class="jxr_string">"Kalman track dz, 14-hit"</span>).fill(kTk.originHelixParms()[3]);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>                         aida.histogram1D(<span class="jxr_string">"Vertex constrained Kalman track drho, 14-hit"</span>).fill(constrained.a.v[0]);
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>                         aida.histogram1D(<span class="jxr_string">"Vertex constrained Kalman track dz, 14-hit"</span>).fill(constrained.a.v[3]);
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>                 }               
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>                 aida.histogram1D(<span class="jxr_string">"Kalman track drho"</span>).fill(kTk.originHelixParms()[0]);
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>                 aida.histogram1D(<span class="jxr_string">"Kalman track dz"</span>).fill(kTk.originHelixParms()[3]);
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>                 aida.histogram1D(<span class="jxr_string">"Kalman track time range (ns)"</span>).fill(kTk.tMax - kTk.tMin);
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>                 
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>                 <em class="jxr_comment">// Use good tracks to analyze seed cuts</em>
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>                 <strong class="jxr_keyword">if</strong> (kTk.nHits &gt;=10) {
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>                     <strong class="jxr_keyword">if</strong> (kTk.chi2 &lt; 15.) {
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>                         <strong class="jxr_keyword">for</strong> (<a name="MeasurementSite" href="../../../../../org/hps/recon/tracking/kalman/MeasurementSite.html#MeasurementSite">MeasurementSite</a> site : kTk.SiteList) {
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>                             <strong class="jxr_keyword">if</strong> (site.m.isStereo) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>                             <strong class="jxr_keyword">if</strong> (site.hitID &lt; 0) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>                             <a name="Measurement" href="../../../../../org/hps/recon/tracking/kalman/Measurement.html#Measurement">Measurement</a> hit1 = site.m.hits.get(site.hitID);
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>                             <strong class="jxr_keyword">double</strong> z1 = site.m.toGlobal(<strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0.,hit1.v,0.)).v[2];
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>                             <strong class="jxr_keyword">double</strong> y1 = site.m.p.X().v[1];
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>                             <strong class="jxr_keyword">for</strong> (<a name="MeasurementSite" href="../../../../../org/hps/recon/tracking/kalman/MeasurementSite.html#MeasurementSite">MeasurementSite</a> site2 : kTk.SiteList) {
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>                                 <strong class="jxr_keyword">if</strong> (site2.m.isStereo) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>                                 <strong class="jxr_keyword">if</strong> (site.m.Layer == site2.m.Layer) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>                                 <strong class="jxr_keyword">if</strong> (site2.hitID &lt; 0) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>                                 <a name="Measurement" href="../../../../../org/hps/recon/tracking/kalman/Measurement.html#Measurement">Measurement</a> hit2 = site2.m.hits.get(site2.hitID);
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>                                 <strong class="jxr_keyword">double</strong> z2 = site2.m.toGlobal(<strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0.,hit2.v,0.)).v[2];
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>                                 <strong class="jxr_keyword">double</strong> y2 = site2.m.p.X().v[1];   
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>                                 <strong class="jxr_keyword">double</strong> slope = (z2 - z1) / (y2 - y1);
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>                                 <strong class="jxr_keyword">double</strong> zIntercept = z1 - slope * y1;
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>                                 <strong class="jxr_keyword">double</strong> yIntercept = -(zIntercept/slope);
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>                                 aida.histogram1D(<span class="jxr_string">"seed slope"</span>).fill(Math.abs(slope));
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>                                 aida.histogram1D(<span class="jxr_string">"seed z intercept"</span>).fill(Math.abs(zIntercept));
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>                                 aida.histogram1D(<span class="jxr_string">"seed y intercept"</span>).fill(yIntercept);
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>                             }
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>                         }
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>                     }
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>                 }
+<a class="jxr_linenumber" name="L460" href="#L460">460</a> 
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>                 <em class="jxr_comment">// Check the covariance matrix</em>
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>                 <strong class="jxr_keyword">boolean</strong> badCov = false;
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>                 <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a> C = <strong class="jxr_keyword">new</strong> <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a>(kTk.originCovariance());
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>                 <a name="EigenvalueDecomposition" href="../../../../../org/hps/recon/tracking/gbl/matrix/EigenvalueDecomposition.html#EigenvalueDecomposition">EigenvalueDecomposition</a> eED= <strong class="jxr_keyword">new</strong> <a name="EigenvalueDecomposition" href="../../../../../org/hps/recon/tracking/gbl/matrix/EigenvalueDecomposition.html#EigenvalueDecomposition">EigenvalueDecomposition</a>(C);
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>                 <strong class="jxr_keyword">double</strong> [] e = eED.getRealEigenvalues();
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i=0; i&lt;5; ++i) {
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>                     <strong class="jxr_keyword">if</strong> (e[i] &lt; 0.) {
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>                         logger.warning(String.format(<span class="jxr_string">"Event %d, eigenvalue %d of covariance is negative!"</span>, event.getEventNumber(), i));
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>                         System.out.format(<span class="jxr_string">"Event %d, eigenvalue %d of covariance is negative for track %d!"</span>, event.getEventNumber(), i, kTk.ID);
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>                         badCov = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>                     }
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>                 }
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>                 <strong class="jxr_keyword">if</strong> (badCov || kTk.bad) {
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>                     aida.histogram1D(<span class="jxr_string">"Bad/Number of hits on bad tracks"</span>).fill(kTk.nHits);
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>                     aida.histogram1D(<span class="jxr_string">"Bad/Chi-squared of bad tracks"</span>).fill(kTk.chi2);
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>                     aida.histogram1D(<span class="jxr_string">"Bad/drho of bad tracks"</span>).fill(kTk.originHelixParms()[0]);
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>                     aida.histogram1D(<span class="jxr_string">"Bad/dz of bad tracks"</span>).fill(kTk.originHelixParms()[3]);
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>                     aida.histogram1D(<span class="jxr_string">"Bad/momentum of bad tracks"</span>).fill(pMag);
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>                 }
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>                 <strong class="jxr_keyword">if</strong> (kTk.nHits &gt;= 10) {
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>                     DMatrixRMaj thisCov = kTk.SiteList.get(0).aS.helix.C;
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>                     <strong class="jxr_keyword">double</strong> ptInv1 = kTk.SiteList.get(0).aS.helix.a.v[2];
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>                     aida.histogram1D(<span class="jxr_string">"drho error estimate"</span>).fill(Math.sqrt(thisCov.unsafe_get(0, 0)));
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>                     aida.histogram1D(<span class="jxr_string">"phi0 error estimate"</span>).fill(Math.sqrt(thisCov.unsafe_get(1, 1)));
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>                     aida.histogram1D(<span class="jxr_string">"ptInv relative error estimate"</span>).fill(Math.sqrt(thisCov.unsafe_get(2, 2))/Math.abs(ptInv1));
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>                     aida.histogram1D(<span class="jxr_string">"ptInv error estimate"</span>).fill(Math.sqrt(thisCov.unsafe_get(2, 2)));
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>                     aida.histogram1D(<span class="jxr_string">"dz error estimate"</span>).fill(Math.sqrt(thisCov.unsafe_get(3, 3)));
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>                     aida.histogram1D(<span class="jxr_string">"tanl error estimate"</span>).fill(Math.sqrt(thisCov.unsafe_get(4, 4)));
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>                 }
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>                 
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>                 <em class="jxr_comment">// Histogram residuals of hits in layers with no hits on the track and with hits</em>
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>                 ArrayList&lt;MCParticle&gt; mcParts = <strong class="jxr_keyword">new</strong> ArrayList&lt;MCParticle&gt;();
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>                 ArrayList&lt;Integer&gt; mcCnt= <strong class="jxr_keyword">new</strong> ArrayList&lt;Integer&gt;();
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>                 <strong class="jxr_keyword">int</strong> nShared = 0;
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>                 <strong class="jxr_keyword">for</strong> (<a name="MeasurementSite" href="../../../../../org/hps/recon/tracking/kalman/MeasurementSite.html#MeasurementSite">MeasurementSite</a> site : kTk.SiteList) {
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>                     <strong class="jxr_keyword">if</strong> (verbose) site.print(String.format(<span class="jxr_string">"track %d"</span>, kTk.ID));
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>                     <a name="StateVector" href="../../../../../org/hps/recon/tracking/kalman/StateVector.html#StateVector">StateVector</a> aS = site.aS;
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>                     <a name="SiModule" href="../../../../../org/hps/recon/tracking/kalman/SiModule.html#SiModule">SiModule</a> mod = site.m;
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>                     <strong class="jxr_keyword">if</strong> (aS != <strong class="jxr_keyword">null</strong> &amp;&amp; mod != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>                         <strong class="jxr_keyword">double</strong> [] rGbl = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>                         <strong class="jxr_keyword">double</strong> hitV = kTk.moduleIntercept(mod, rGbl)[1];
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>                         <strong class="jxr_keyword">if</strong> (site.hitID &lt; 0) {
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>                             <strong class="jxr_keyword">double</strong> minResid = 9.9e9;
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>                             <strong class="jxr_keyword">for</strong> (<a name="Measurement" href="../../../../../org/hps/recon/tracking/kalman/Measurement.html#Measurement">Measurement</a> m : mod.hits) {
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>                                 <strong class="jxr_keyword">double</strong> resid = m.v - hitV;
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>                                 <strong class="jxr_keyword">if</strong> (resid &lt; minResid) minResid = resid;                                   
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>                             } 
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>                             <strong class="jxr_keyword">if</strong> (kTk.nHits &gt;= 10 &amp;&amp; Math.abs(minResid) &lt; 1.0) {
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>                                 aida.histogram1D(<span class="jxr_string">"Kalman missed hit residual"</span>).fill(minResid);
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>                                 aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman missed hit residual in layer %d"</span>,mod.Layer)).fill(minResid);
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>                             }
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>                         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>                             <strong class="jxr_keyword">if</strong> (site.hitID &gt; mod.hits.size()-1) { <em class="jxr_comment">// This should never happen!!</em>
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>                                 logger.warning(String.format(<span class="jxr_string">"Event %d, hit missing in layer %d detector %d\n"</span>,event.getEventNumber(),mod.Layer,mod.detector));
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>                                 <em class="jxr_comment">//site.print("the bad site");</em>
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>                                 <em class="jxr_comment">//mod.print("the bad module");</em>
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>                                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>                             }
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>                             <strong class="jxr_keyword">if</strong> (mod.hits.get(site.hitID).tracks.size() &gt; 1) {
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>                                 nShared++;
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>                                 sharedHitTrack = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>                             }
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>                             aida.histogram1D(<span class="jxr_string">"Kalman layer hit"</span>).fill(mod.Layer);
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>                             <strong class="jxr_keyword">double</strong> resid = mod.hits.get(site.hitID).v - hitV;
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>                             <strong class="jxr_keyword">if</strong> (kTk.nHits &gt;= 10) aida.histogram1D(<span class="jxr_string">"Kalman track hit residual &gt;= 10 hits, sigmas"</span>).fill(resid/Math.sqrt(site.aS.R));
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>                             aida.histogram1D(<span class="jxr_string">"Kalman track hit residual"</span>).fill(resid);
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>                             aida.histogram1D(<span class="jxr_string">"Kalman track hit residual, sigmas"</span>).fill(resid/Math.sqrt(site.aS.R));
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>                             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman track hit residual in layer %d"</span>,mod.Layer)).fill(resid);
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>                             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman track hit residual in layer %d, sigmas"</span>,mod.Layer)).fill(resid/Math.sqrt(site.aS.R));
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>                             aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman layer %d chi^2 contribution"</span>, mod.Layer)).fill(site.chi2inc);
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>                             <strong class="jxr_keyword">if</strong> (mod.Layer&lt;13) {
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>                                 aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman kink in xy, layer %d"</span>, mod.Layer)).fill(kTk.scatX(mod.Layer));
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>                                 aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman kink in zy, layer %d"</span>, mod.Layer)).fill(kTk.scatZ(mod.Layer));
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>                             }      
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>                             Pair&lt;Double, Double&gt; residPr = kTk.unbiasedResidual(site.m.Layer);
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>                             <strong class="jxr_keyword">if</strong> (residPr.getSecondElement() &gt; -999. &amp;&amp; kTk.nHits &gt;= 10) {
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>                                 <strong class="jxr_keyword">double</strong> variance = residPr.getSecondElement();
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>                                 <strong class="jxr_keyword">if</strong> (variance &lt;= 0.) {
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>                                     numBadCov++;
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>                                 <em class="jxr_comment">//    System.out.format("Event %d layer %d, unbiased residual variance &lt; 0: %10.5f, chi2=%9.2f, hits=%d, resid=%9.6f\n", </em>
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>                                 <em class="jxr_comment">//                        event.getEventNumber(), site.m.Layer, variance, kTk.chi2, kTk.nHits, unbResid);</em>
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>                                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>                                     <strong class="jxr_keyword">double</strong> sigma = Math.sqrt(variance);
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>                                     <strong class="jxr_keyword">double</strong> unbResid = residPr.getFirstElement();
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>                                     aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman track unbiased hit residual in layer %d"</span>,site.m.Layer)).fill(unbResid);
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>                                     aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman track unbiased hit residual in layer %d, sigmas"</span>,site.m.Layer)).fill(unbResid/sigma);
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>                                 }
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>                             }
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>                             TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>                             List&lt;RawTrackerHit&gt; rawHits = hpsHit.getRawHits();
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>                             <strong class="jxr_keyword">for</strong> (RawTrackerHit rawHit : rawHits) {
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>                                 Set&lt;SimTrackerHit&gt; simHits = rawtomc.allFrom(rawHit);
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>                                 <strong class="jxr_keyword">for</strong> (SimTrackerHit simHit : simHits) {
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>                                     MCParticle mcp = simHit.getMCParticle();
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>                                     <strong class="jxr_keyword">if</strong> (mcParts.contains(mcp)) {
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>                                         <strong class="jxr_keyword">int</strong> id = mcParts.indexOf(mcp);
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>                                         mcCnt.set(id, mcCnt.get(id)+1);
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>                                     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>                                         mcParts.add(mcp);
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>                                         mcCnt.add(1);
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>                                     }
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>                                 }
+<a class="jxr_linenumber" name="L563" href="#L563">563</a>                             }                               
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>                         }
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>                     }
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>                 }
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>                 aida.histogram1D(<span class="jxr_string">"Kalman track number of shared hits"</span>).fill(nShared);
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>                 aida.histogram1D(<span class="jxr_string">"Kalman track number MC particles"</span>).fill(mcParts.size());
+<a class="jxr_linenumber" name="L569" href="#L569">569</a> 
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>                 <em class="jxr_comment">// Which MC particle is the best match?</em>
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>                 <strong class="jxr_keyword">int</strong> idBest = -1;
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>                 <strong class="jxr_keyword">int</strong> nMatch = 0;
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> id=0; id&lt;mcCnt.size(); ++id) {
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>                     <strong class="jxr_keyword">if</strong> (mcCnt.get(id) &gt; nMatch) {
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>                         nMatch = mcCnt.get(id);
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>                         idBest = id;
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>                     }
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>                 }
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>                 <strong class="jxr_keyword">int</strong> nBad = 0;
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>                 <strong class="jxr_keyword">for</strong> (<a name="MeasurementSite" href="../../../../../org/hps/recon/tracking/kalman/MeasurementSite.html#MeasurementSite">MeasurementSite</a> site : kTk.SiteList) {
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>                     <strong class="jxr_keyword">if</strong> (site.hitID &lt; 0) {
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>                         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>                     }
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>                     <a name="SiModule" href="../../../../../org/hps/recon/tracking/kalman/SiModule.html#SiModule">SiModule</a> mod = site.m;
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>                     TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>                     List&lt;RawTrackerHit&gt; rawHits = hpsHit.getRawHits();
+<a class="jxr_linenumber" name="L587" href="#L587">587</a>                     <strong class="jxr_keyword">boolean</strong> goodHit = false;
+<a class="jxr_linenumber" name="L588" href="#L588">588</a>                     <strong class="jxr_keyword">for</strong> (RawTrackerHit rawHit : rawHits) {
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>                         Set&lt;SimTrackerHit&gt; simHits = rawtomc.allFrom(rawHit);
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>                         <strong class="jxr_keyword">for</strong> (SimTrackerHit simHit : simHits) {
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>                             MCParticle mcp = simHit.getMCParticle();
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>                             <strong class="jxr_keyword">int</strong> id = mcParts.indexOf(mcp);
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>                             <strong class="jxr_keyword">if</strong> (id == idBest) {
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>                                 goodHit = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>                                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>                             }
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>                         }
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>                     }
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>                     <strong class="jxr_keyword">if</strong> (!goodHit) nBad++;
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>                 }
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>                 aida.histogram1D(<span class="jxr_string">"Kalman number of wrong hits on track"</span>).fill(nBad);
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>                 <strong class="jxr_keyword">if</strong> (badCov || kTk.bad) {
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>                     aida.histogram1D(<span class="jxr_string">"Bad/Number of MC particles associated"</span>).fill(mcParts.size());
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>                     aida.histogram1D(<span class="jxr_string">"Bad/Number of wrong hits on track"</span>).fill(nBad);
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>                 }
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>             
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>                 <strong class="jxr_keyword">if</strong> (kTk.nHits &gt;= 10) aida.histogram1D(<span class="jxr_string">"Kalman number of wrong hits on track, &gt;= 10 hits"</span>).fill(nBad);
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>                 MCParticle mcBest = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>                 <strong class="jxr_keyword">double</strong> [] hParams = kTk.originHelixParms();
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>                 <strong class="jxr_keyword">double</strong> dRho = hParams[0];
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>                 <strong class="jxr_keyword">double</strong> phi0 = -hParams[1];
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>                 <strong class="jxr_keyword">double</strong> ptInv = hParams[2];
+<a class="jxr_linenumber" name="L613" href="#L613">613</a>                 <strong class="jxr_keyword">double</strong> z0 = -hParams[3];
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>                 <strong class="jxr_keyword">double</strong> tanLambda = -hParams[4];
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>                 aida.histogram1D(<span class="jxr_string">"dRho"</span>).fill(dRho);
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>                 aida.histogram1D(<span class="jxr_string">"z0"</span>).fill(z0);
+<a class="jxr_linenumber" name="L617" href="#L617">617</a>                 aida.histogram1D(<span class="jxr_string">"phi0"</span>).fill(phi0);
+<a class="jxr_linenumber" name="L618" href="#L618">618</a>                 aida.histogram1D(<span class="jxr_string">"pt inverse"</span>).fill(ptInv);
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>                 aida.histogram1D(<span class="jxr_string">"tanLambda"</span>).fill(tanLambda);
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>                 <strong class="jxr_keyword">if</strong> (idBest &gt; -1) {
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>                     mcBest = mcParts.get(idBest); 
+<a class="jxr_linenumber" name="L622" href="#L622">622</a>                     Hep3Vector pVec = mcBest.getMomentum();
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>                     Hep3Vector rVec = mcBest.getOrigin();
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>                     <strong class="jxr_keyword">double</strong> ptTrue = Math.sqrt(pVec.x()*pVec.x() + pVec.z()*pVec.z());
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>                     <strong class="jxr_keyword">double</strong> ptInvTrue = mcBest.getCharge()/ptTrue;
+<a class="jxr_linenumber" name="L626" href="#L626">626</a>                     <em class="jxr_comment">//double [] pKal = kTk.originP();</em>
+<a class="jxr_linenumber" name="L627" href="#L627">627</a>                     <strong class="jxr_keyword">double</strong> tanLambdaTrue = pVec.y()/ptTrue;
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>                     <strong class="jxr_keyword">double</strong> phi0True = Math.atan2(pVec.x(), pVec.z());
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>                     <strong class="jxr_keyword">double</strong> phi0Err = kTk.helixErr(1);
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>                     <strong class="jxr_keyword">double</strong> ptInvErr = kTk.helixErr(2);
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>                     <strong class="jxr_keyword">double</strong> tanLambdaErr = kTk.helixErr(4);
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>                     <strong class="jxr_keyword">double</strong> z0True = rVec.y();
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>                     <strong class="jxr_keyword">double</strong> z0Err = kTk.helixErr(3);
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>                     <strong class="jxr_keyword">double</strong> dRhoTrue = -Math.sqrt(rVec.y()*rVec.y()+rVec.x()*rVec.x());  <em class="jxr_comment">// How to get the sign correct here in general?</em>
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>                     <strong class="jxr_keyword">double</strong> dRhoErr = kTk.helixErr(0);
+<a class="jxr_linenumber" name="L636" href="#L636">636</a>                     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> apTrue = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0.,-phi0True,ptInvTrue,-z0True,-tanLambdaTrue);
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>                     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> ap = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(5,hParams);
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>                     <a name="SquareMatrix" href="../../../../../org/hps/recon/tracking/kalman/SquareMatrix.html#SquareMatrix">SquareMatrix</a> Cov = <strong class="jxr_keyword">new</strong> <a name="SquareMatrix" href="../../../../../org/hps/recon/tracking/kalman/SquareMatrix.html#SquareMatrix">SquareMatrix</a>(5,kTk.originCovariance());
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>                     <a name="SquareMatrix" href="../../../../../org/hps/recon/tracking/kalman/SquareMatrix.html#SquareMatrix">SquareMatrix</a> CovInv = Cov.invert();
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>                     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> helixDiff = ap.dif(apTrue);
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>                     <strong class="jxr_keyword">double</strong> chi2Helix = helixDiff.dot(helixDiff.leftMultiply(CovInv));
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>                     <strong class="jxr_keyword">if</strong> (kTk.nHits &gt;= 10 &amp;&amp; kTk.chi2/(<strong class="jxr_keyword">double</strong>)kTk.nHits &lt; 2.0) {
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>                         aida.histogram1D(<span class="jxr_string">"helix chi-squared at origin"</span>).fill(chi2Helix);
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>                         aida.histogram1D(<span class="jxr_string">"dRho error, sigmas"</span>).fill((dRho-dRhoTrue)/dRhoErr);
+<a class="jxr_linenumber" name="L645" href="#L645">645</a>                         aida.histogram1D(<span class="jxr_string">"z0 error, sigmas"</span>).fill((z0-z0True)/z0Err);
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>                         aida.histogram1D(<span class="jxr_string">"phi0 true"</span>).fill(phi0True);
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>                         aida.histogram1D(<span class="jxr_string">"phi0 error, sigmas"</span>).fill((phi0-phi0True)/phi0Err);
+<a class="jxr_linenumber" name="L648" href="#L648">648</a>                         aida.histogram1D(<span class="jxr_string">"pt inverse True"</span>).fill(ptInvTrue);                        
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>                         aida.histogram1D(<span class="jxr_string">"pt inverse error, percent"</span>).fill(100.*(ptInv-ptInvTrue)/ptInvTrue);
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>                         aida.histogram1D(<span class="jxr_string">"pt inverse error, sigmas"</span>).fill((ptInv-ptInvTrue)/ptInvErr);    
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>                         aida.histogram1D(<span class="jxr_string">"tanLambda true"</span>).fill(tanLambdaTrue);
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>                         aida.histogram1D(<span class="jxr_string">"tanLambda error, sigmas"</span>).fill((tanLambda - tanLambdaTrue)/tanLambdaErr);
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>                     }
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>                 }
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>             }  <em class="jxr_comment">// Loop over Kalman tracks</em>
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>         } <em class="jxr_comment">// Loop over SVT trackers (top/bottom)</em>
+<a class="jxr_linenumber" name="L657" href="#L657">657</a>         
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>         aida.histogram1D(<span class="jxr_string">"Kalman number of tracks"</span>).fill(nKalTracks);
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>         
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>         <em class="jxr_comment">// Tracking efficiency analysis</em>
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>         <em class="jxr_comment">// Form MC "tracks" from collections of sim hits</em>
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>         String MCHitInputCollectionName = <span class="jxr_string">"TrackerHits"</span>;
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(SimTrackerHit.<strong class="jxr_keyword">class</strong>, MCHitInputCollectionName)) {
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>             List&lt;SimTrackerHit&gt; striphits = event.get(SimTrackerHit.<strong class="jxr_keyword">class</strong>, MCHitInputCollectionName);
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>             List&lt;TrackerHit&gt; reconHits = event.get(TrackerHit.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"StripClusterer_SiTrackerHitStrip1D"</span>);
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>             
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>             <em class="jxr_comment">// Make a mapping from sim hits to recon hits</em>
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>             Map&lt;SimTrackerHit, TrackerHit&gt; hitTohitMap = <strong class="jxr_keyword">new</strong> HashMap&lt;SimTrackerHit, TrackerHit&gt;();
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>             <strong class="jxr_keyword">for</strong> (TrackerHit hpsHit : reconHits) {
+<a class="jxr_linenumber" name="L670" href="#L670">670</a>                 List&lt;RawTrackerHit&gt; rawHits = hpsHit.getRawHits();
+<a class="jxr_linenumber" name="L671" href="#L671">671</a>                 <strong class="jxr_keyword">for</strong> (RawTrackerHit rawHit : rawHits) {
+<a class="jxr_linenumber" name="L672" href="#L672">672</a>                     Set&lt;SimTrackerHit&gt; simHits = rawtomc.allFrom(rawHit);
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>                     <strong class="jxr_keyword">for</strong> (SimTrackerHit simHit : simHits) {
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>                         hitTohitMap.put(simHit, hpsHit);
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>                     }
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>                 }
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>             }
+<a class="jxr_linenumber" name="L678" href="#L678">678</a>             
+<a class="jxr_linenumber" name="L679" href="#L679">679</a>             <em class="jxr_comment">// Make a mapping from MCparticle to recon hits (assume 1 sim hit cannot contribute to more than one recon hit)</em>
+<a class="jxr_linenumber" name="L680" href="#L680">680</a>             Map&lt;MCParticle, Set&lt;TrackerHit&gt;&gt; hitMcpMap = <strong class="jxr_keyword">new</strong> HashMap&lt;MCParticle, Set&lt;TrackerHit&gt;&gt;();
+<a class="jxr_linenumber" name="L681" href="#L681">681</a>             Set&lt;MCParticle&gt; mcParticles = <strong class="jxr_keyword">new</strong> HashSet&lt;MCParticle&gt;();
+<a class="jxr_linenumber" name="L682" href="#L682">682</a>             <strong class="jxr_keyword">for</strong> (SimTrackerHit hit1D : striphits) {
+<a class="jxr_linenumber" name="L683" href="#L683">683</a>                 <strong class="jxr_keyword">if</strong> (!hitTohitMap.containsKey(hit1D)) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>                 MCParticle mCP = hit1D.getMCParticle();
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>                 mcParticles.add(mCP);
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>                 Set&lt;TrackerHit&gt; hitsOnMcp = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>                 <strong class="jxr_keyword">if</strong> (hitMcpMap.containsKey(mCP)) {
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>                     hitsOnMcp = hitMcpMap.get(mCP);
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>                     hitsOnMcp = <strong class="jxr_keyword">new</strong> HashSet&lt;TrackerHit&gt;();
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>                 }
+<a class="jxr_linenumber" name="L692" href="#L692">692</a>                 hitsOnMcp.add(hitTohitMap.get(hit1D));
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>                 hitMcpMap.put(mCP, hitsOnMcp);
+<a class="jxr_linenumber" name="L694" href="#L694">694</a>             }
+<a class="jxr_linenumber" name="L695" href="#L695">695</a>                    
+<a class="jxr_linenumber" name="L696" href="#L696">696</a>             <em class="jxr_comment">// Make a list of recon hits for each Kalman track</em>
+<a class="jxr_linenumber" name="L697" href="#L697">697</a>             Map&lt;KalTrack, Set&lt;TrackerHit&gt;&gt; hitKalMap = <strong class="jxr_keyword">new</strong> HashMap&lt;KalTrack, Set&lt;TrackerHit&gt;&gt;(nKalTracks);
+<a class="jxr_linenumber" name="L698" href="#L698">698</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> topBottom=0; topBottom&lt;2; ++topBottom) {
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>                 <strong class="jxr_keyword">for</strong> (<a name="KalTrack" href="../../../../../org/hps/recon/tracking/kalman/KalTrack.html#KalTrack">KalTrack</a> kTk : kPatList[topBottom]) {
+<a class="jxr_linenumber" name="L700" href="#L700">700</a>                     Set&lt;TrackerHit&gt; hitsOnTk = <strong class="jxr_keyword">new</strong> HashSet&lt;TrackerHit&gt;();
+<a class="jxr_linenumber" name="L701" href="#L701">701</a>                     <strong class="jxr_keyword">for</strong> (<a name="MeasurementSite" href="../../../../../org/hps/recon/tracking/kalman/MeasurementSite.html#MeasurementSite">MeasurementSite</a> site : kTk.SiteList) {
+<a class="jxr_linenumber" name="L702" href="#L702">702</a>                         <a name="SiModule" href="../../../../../org/hps/recon/tracking/kalman/SiModule.html#SiModule">SiModule</a> mod = site.m;
+<a class="jxr_linenumber" name="L703" href="#L703">703</a>                         <strong class="jxr_keyword">if</strong> (site.hitID &lt; 0) {
+<a class="jxr_linenumber" name="L704" href="#L704">704</a>                             <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L705" href="#L705">705</a>                         }
+<a class="jxr_linenumber" name="L706" href="#L706">706</a>                         TrackerHit hpsHit = KI.getHpsHit(mod.hits.get(site.hitID));
+<a class="jxr_linenumber" name="L707" href="#L707">707</a>                         hitsOnTk.add(hpsHit);
+<a class="jxr_linenumber" name="L708" href="#L708">708</a>                     }
+<a class="jxr_linenumber" name="L709" href="#L709">709</a>                     hitKalMap.put(kTk, hitsOnTk);
+<a class="jxr_linenumber" name="L710" href="#L710">710</a>                 }
+<a class="jxr_linenumber" name="L711" href="#L711">711</a>             }
+<a class="jxr_linenumber" name="L712" href="#L712">712</a>             <strong class="jxr_keyword">if</strong> (verbose) {
+<a class="jxr_linenumber" name="L713" href="#L713">713</a>                 System.out.format(<span class="jxr_string">"KalmanPatRecPlots: MC track vs Kaltrack matching for event %d\n"</span>, event.getEventNumber());
+<a class="jxr_linenumber" name="L714" href="#L714">714</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> topBottom=0; topBottom&lt;2; ++topBottom) {
+<a class="jxr_linenumber" name="L715" href="#L715">715</a>                     <strong class="jxr_keyword">for</strong> (<a name="KalTrack" href="../../../../../org/hps/recon/tracking/kalman/KalTrack.html#KalTrack">KalTrack</a> kTk : kPatList[topBottom]) {
+<a class="jxr_linenumber" name="L716" href="#L716">716</a>                         System.out.format(<span class="jxr_string">"  Kaltrack %d with %d hits: ["</span>, kTk.ID, kTk.nHits);
+<a class="jxr_linenumber" name="L717" href="#L717">717</a>                         <strong class="jxr_keyword">for</strong> (TrackerHit hpsHt : hitKalMap.get(kTk)) {
+<a class="jxr_linenumber" name="L718" href="#L718">718</a>                             <strong class="jxr_keyword">int</strong> ID = reconHits.indexOf(hpsHt);
+<a class="jxr_linenumber" name="L719" href="#L719">719</a>                             System.out.format(<span class="jxr_string">"%d,"</span>, ID);
+<a class="jxr_linenumber" name="L720" href="#L720">720</a>                         }
+<a class="jxr_linenumber" name="L721" href="#L721">721</a>                         System.out.format(<span class="jxr_string">"]\n"</span>);
+<a class="jxr_linenumber" name="L722" href="#L722">722</a>                     }           
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>                 }
+<a class="jxr_linenumber" name="L724" href="#L724">724</a>             }
+<a class="jxr_linenumber" name="L725" href="#L725">725</a>             <strong class="jxr_keyword">for</strong> (MCParticle mCP : mcParticles) {
+<a class="jxr_linenumber" name="L726" href="#L726">726</a>                 Set&lt;TrackerHit&gt; mcHitList = hitMcpMap.get(mCP);
+<a class="jxr_linenumber" name="L727" href="#L727">727</a>                 <strong class="jxr_keyword">if</strong> (verbose) {
+<a class="jxr_linenumber" name="L728" href="#L728">728</a>                     System.out.format(<span class="jxr_string">"  MC particle of type %d, Q=%6.1f, p=%8.2f: ["</span>, mCP.getPDGID(), mCP.getCharge(), mCP.getMomentum().magnitude());
+<a class="jxr_linenumber" name="L729" href="#L729">729</a>                     <strong class="jxr_keyword">for</strong> (TrackerHit hpsHt : mcHitList) {
+<a class="jxr_linenumber" name="L730" href="#L730">730</a>                         <strong class="jxr_keyword">int</strong> ID = reconHits.indexOf(hpsHt);
+<a class="jxr_linenumber" name="L731" href="#L731">731</a>                         System.out.format(<span class="jxr_string">"%d,"</span>, ID);
+<a class="jxr_linenumber" name="L732" href="#L732">732</a>                     }
+<a class="jxr_linenumber" name="L733" href="#L733">733</a>                     System.out.format(<span class="jxr_string">"]\n"</span>);
+<a class="jxr_linenumber" name="L734" href="#L734">734</a>                 }
+<a class="jxr_linenumber" name="L735" href="#L735">735</a>                 <strong class="jxr_keyword">int</strong> nHits = Math.min(mcHitList.size(), 12);
+<a class="jxr_linenumber" name="L736" href="#L736">736</a>                 <strong class="jxr_keyword">if</strong> (nHits &lt; 6) <strong class="jxr_keyword">continue</strong>;          
+<a class="jxr_linenumber" name="L737" href="#L737">737</a>                 <a name="KalTrack" href="../../../../../org/hps/recon/tracking/kalman/KalTrack.html#KalTrack">KalTrack</a> tkBest = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L738" href="#L738">738</a>                 <strong class="jxr_keyword">int</strong> nMost = 0;
+<a class="jxr_linenumber" name="L739" href="#L739">739</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> topBottom=0; topBottom&lt;2; ++topBottom) {
+<a class="jxr_linenumber" name="L740" href="#L740">740</a>                     <strong class="jxr_keyword">for</strong> (<a name="KalTrack" href="../../../../../org/hps/recon/tracking/kalman/KalTrack.html#KalTrack">KalTrack</a> kTk : kPatList[topBottom]) {
+<a class="jxr_linenumber" name="L741" href="#L741">741</a>                         Set&lt;TrackerHit&gt; kalHitList = hitKalMap.get(kTk);
+<a class="jxr_linenumber" name="L742" href="#L742">742</a>                         Set&lt;TrackerHit&gt; intersection = <strong class="jxr_keyword">new</strong> HashSet&lt;TrackerHit&gt;(mcHitList);
+<a class="jxr_linenumber" name="L743" href="#L743">743</a>                         intersection.retainAll(kalHitList);
+<a class="jxr_linenumber" name="L744" href="#L744">744</a>                         <strong class="jxr_keyword">if</strong> (verbose) {
+<a class="jxr_linenumber" name="L745" href="#L745">745</a>                             System.out.format(<span class="jxr_string">"      Intersection with track %d: ["</span>, kTk.ID);
+<a class="jxr_linenumber" name="L746" href="#L746">746</a>                             <strong class="jxr_keyword">for</strong> (TrackerHit hpsHt : intersection) {
+<a class="jxr_linenumber" name="L747" href="#L747">747</a>                                 <strong class="jxr_keyword">int</strong> ID = reconHits.indexOf(hpsHt);
+<a class="jxr_linenumber" name="L748" href="#L748">748</a>                                 System.out.format(<span class="jxr_string">"%d,"</span>, ID);
+<a class="jxr_linenumber" name="L749" href="#L749">749</a>                             }
+<a class="jxr_linenumber" name="L750" href="#L750">750</a>                             System.out.format(<span class="jxr_string">"]\n"</span>);
+<a class="jxr_linenumber" name="L751" href="#L751">751</a>                         }
+<a class="jxr_linenumber" name="L752" href="#L752">752</a>                         <strong class="jxr_keyword">if</strong> (intersection.size() &gt; nMost) {
+<a class="jxr_linenumber" name="L753" href="#L753">753</a>                             nMost = intersection.size();
+<a class="jxr_linenumber" name="L754" href="#L754">754</a>                             tkBest = kTk;
+<a class="jxr_linenumber" name="L755" href="#L755">755</a>                         }
+<a class="jxr_linenumber" name="L756" href="#L756">756</a>                     }               
+<a class="jxr_linenumber" name="L757" href="#L757">757</a>                 }
+<a class="jxr_linenumber" name="L758" href="#L758">758</a>                 <strong class="jxr_keyword">if</strong> (verbose) {
+<a class="jxr_linenumber" name="L759" href="#L759">759</a>                     System.out.format(<span class="jxr_string">" MC match to KalTrack=%b\n"</span>,tkBest != <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L760" href="#L760">760</a>                     <strong class="jxr_keyword">if</strong> (tkBest != <strong class="jxr_keyword">null</strong>) System.out.format(<span class="jxr_string">"        The best track is %d with %d matching hits\n"</span>,tkBest.ID,nMost);
+<a class="jxr_linenumber" name="L761" href="#L761">761</a>                 }
+<a class="jxr_linenumber" name="L762" href="#L762">762</a>                 <strong class="jxr_keyword">double</strong> fracFnd = (<strong class="jxr_keyword">double</strong>)nMost/(<strong class="jxr_keyword">double</strong>)nHits;
+<a class="jxr_linenumber" name="L763" href="#L763">763</a>                 <strong class="jxr_keyword">boolean</strong> success = (nMost &gt;= 6 &amp;&amp; fracFnd &gt; 0.5 &amp;&amp; nMost &gt;= tkBest.nHits-2);
+<a class="jxr_linenumber" name="L764" href="#L764">764</a>                 Hep3Vector p = mCP.getMomentum();
+<a class="jxr_linenumber" name="L765" href="#L765">765</a>                 pEff.entry(p.magnitude(), success);
+<a class="jxr_linenumber" name="L766" href="#L766">766</a>                 hp.fill(p.magnitude());            
+<a class="jxr_linenumber" name="L767" href="#L767">767</a>                 <strong class="jxr_keyword">if</strong> (success) hpf.fill(p.magnitude());
+<a class="jxr_linenumber" name="L768" href="#L768">768</a>                 <strong class="jxr_keyword">if</strong> (p.magnitude() &gt; 0.7) {
+<a class="jxr_linenumber" name="L769" href="#L769">769</a>                     <strong class="jxr_keyword">if</strong> (nHits &gt;= 10) {
+<a class="jxr_linenumber" name="L770" href="#L770">770</a>                         nMCtracks++;
+<a class="jxr_linenumber" name="L771" href="#L771">771</a>                         <strong class="jxr_keyword">if</strong> (success) nMCtracksFound++;
+<a class="jxr_linenumber" name="L772" href="#L772">772</a>                     }
+<a class="jxr_linenumber" name="L773" href="#L773">773</a>                     hnh.fill(nHits);
+<a class="jxr_linenumber" name="L774" href="#L774">774</a>                     <strong class="jxr_keyword">if</strong> (success) hnhf.fill(nHits);
+<a class="jxr_linenumber" name="L775" href="#L775">775</a>                 }
+<a class="jxr_linenumber" name="L776" href="#L776">776</a>             }
+<a class="jxr_linenumber" name="L777" href="#L777">777</a>         }
+<a class="jxr_linenumber" name="L778" href="#L778">778</a>         
+<a class="jxr_linenumber" name="L779" href="#L779">779</a>         <em class="jxr_comment">// Analysis of helix+GBL tracks, for comparison</em>
+<a class="jxr_linenumber" name="L780" href="#L780">780</a>         <strong class="jxr_keyword">int</strong> nGBL = 0;
+<a class="jxr_linenumber" name="L781" href="#L781">781</a>         <strong class="jxr_keyword">if</strong> (doGBL &amp;&amp; event.hasCollection(Track.<strong class="jxr_keyword">class</strong>, trackCollectionName)) {
+<a class="jxr_linenumber" name="L782" href="#L782">782</a>             List&lt;Track&gt; tracksGBL = event.get(Track.<strong class="jxr_keyword">class</strong>, trackCollectionName);
+<a class="jxr_linenumber" name="L783" href="#L783">783</a>             nGBL = tracksGBL.size();
+<a class="jxr_linenumber" name="L784" href="#L784">784</a>             aida.histogram2D(<span class="jxr_string">"number tracks Kalman vs GBL"</span>).fill(nKalTracks, nGBL);
+<a class="jxr_linenumber" name="L785" href="#L785">785</a>             aida.histogram1D(<span class="jxr_string">"GBL number tracks"</span>).fill(nGBL);
+<a class="jxr_linenumber" name="L786" href="#L786">786</a>             <strong class="jxr_keyword">double</strong> c = 2.99793e8; <em class="jxr_comment">// Speed of light in m/s</em>
+<a class="jxr_linenumber" name="L787" href="#L787">787</a>             <strong class="jxr_keyword">double</strong> conFac = 1.0e12 / c;
+<a class="jxr_linenumber" name="L788" href="#L788">788</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> Bfield = KalmanInterface.getField(<strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0.,505.57,0.), fm); <em class="jxr_comment">// Field at the instrument center</em>
+<a class="jxr_linenumber" name="L789" href="#L789">789</a>             <strong class="jxr_keyword">double</strong> B = Bfield.mag();
+<a class="jxr_linenumber" name="L790" href="#L790">790</a>             <strong class="jxr_keyword">double</strong> alpha = conFac / B; <em class="jxr_comment">// Convert from pt in GeV to curvature in mm</em>
+<a class="jxr_linenumber" name="L791" href="#L791">791</a>             <strong class="jxr_keyword">for</strong> (Track tkrGBL : tracksGBL) {
+<a class="jxr_linenumber" name="L792" href="#L792">792</a>                 aida.histogram1D(<span class="jxr_string">"GBL track chi^2"</span>).fill(tkrGBL.getChi2());
+<a class="jxr_linenumber" name="L793" href="#L793">793</a>                 ArrayList&lt;MCParticle&gt; mcParts = <strong class="jxr_keyword">new</strong> ArrayList&lt;MCParticle&gt;();
+<a class="jxr_linenumber" name="L794" href="#L794">794</a>                 ArrayList&lt;Integer&gt; mcCnt= <strong class="jxr_keyword">new</strong> ArrayList&lt;Integer&gt;();
+<a class="jxr_linenumber" name="L795" href="#L795">795</a>                 List&lt;TrackerHit&gt; hitsOnTrack = TrackUtils.getStripHits(tkrGBL, hitToStrips, hitToRotated);
+<a class="jxr_linenumber" name="L796" href="#L796">796</a>                 <strong class="jxr_keyword">int</strong> nGBLhits = hitsOnTrack.size();
+<a class="jxr_linenumber" name="L797" href="#L797">797</a>                 <strong class="jxr_keyword">if</strong> (nGBLhits &gt;= 12) aida.histogram1D(<span class="jxr_string">"GBL &gt;=12-hit track chi^2"</span>).fill(tkrGBL.getChi2());
+<a class="jxr_linenumber" name="L798" href="#L798">798</a>                 aida.histogram1D(<span class="jxr_string">"GBL number of hits"</span>).fill(nGBLhits);
+<a class="jxr_linenumber" name="L799" href="#L799">799</a>                 <strong class="jxr_keyword">for</strong> (TrackerHit hit1D : hitsOnTrack) {
+<a class="jxr_linenumber" name="L800" href="#L800">800</a>                     List&lt;RawTrackerHit&gt; rawHits = hit1D.getRawHits();
+<a class="jxr_linenumber" name="L801" href="#L801">801</a>                     <strong class="jxr_keyword">for</strong> (RawTrackerHit rawHit : rawHits) {
+<a class="jxr_linenumber" name="L802" href="#L802">802</a>                         Set&lt;SimTrackerHit&gt; simHits = rawtomc.allFrom(rawHit);
+<a class="jxr_linenumber" name="L803" href="#L803">803</a>                         <strong class="jxr_keyword">for</strong> (SimTrackerHit simHit : simHits) {
+<a class="jxr_linenumber" name="L804" href="#L804">804</a>                             MCParticle mcp = simHit.getMCParticle();
+<a class="jxr_linenumber" name="L805" href="#L805">805</a>                             <strong class="jxr_keyword">if</strong> (mcParts.contains(mcp)) {
+<a class="jxr_linenumber" name="L806" href="#L806">806</a>                                 <strong class="jxr_keyword">int</strong> id = mcParts.indexOf(mcp);
+<a class="jxr_linenumber" name="L807" href="#L807">807</a>                                 mcCnt.set(id, mcCnt.get(id)+1);
+<a class="jxr_linenumber" name="L808" href="#L808">808</a>                             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L809" href="#L809">809</a>                                 mcParts.add(mcp);
+<a class="jxr_linenumber" name="L810" href="#L810">810</a>                                 mcCnt.add(1);
+<a class="jxr_linenumber" name="L811" href="#L811">811</a>                             }
+<a class="jxr_linenumber" name="L812" href="#L812">812</a>                         }<em class="jxr_comment">//simHits</em>
+<a class="jxr_linenumber" name="L813" href="#L813">813</a>                     }<em class="jxr_comment">//rawHits               </em>
+<a class="jxr_linenumber" name="L814" href="#L814">814</a>                 }<em class="jxr_comment">//hitsOnTrack</em>
+<a class="jxr_linenumber" name="L815" href="#L815">815</a>                 aida.histogram1D(<span class="jxr_string">"GBL track number MC particles"</span>).fill(mcParts.size());
+<a class="jxr_linenumber" name="L816" href="#L816">816</a>                 <em class="jxr_comment">// Which MC particle is the best match?</em>
+<a class="jxr_linenumber" name="L817" href="#L817">817</a>                 <strong class="jxr_keyword">int</strong> idBest = -1;
+<a class="jxr_linenumber" name="L818" href="#L818">818</a>                 <strong class="jxr_keyword">int</strong> nMatch = 0;
+<a class="jxr_linenumber" name="L819" href="#L819">819</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> id=0; id&lt;mcCnt.size(); ++id) {
+<a class="jxr_linenumber" name="L820" href="#L820">820</a>                     <strong class="jxr_keyword">if</strong> (mcCnt.get(id) &gt; nMatch) {
+<a class="jxr_linenumber" name="L821" href="#L821">821</a>                         nMatch = mcCnt.get(id);
+<a class="jxr_linenumber" name="L822" href="#L822">822</a>                         idBest = id;
+<a class="jxr_linenumber" name="L823" href="#L823">823</a>                     }
+<a class="jxr_linenumber" name="L824" href="#L824">824</a>                 }
+<a class="jxr_linenumber" name="L825" href="#L825">825</a>                 <strong class="jxr_keyword">int</strong> nBad = 0;
+<a class="jxr_linenumber" name="L826" href="#L826">826</a>                 <strong class="jxr_keyword">for</strong> (TrackerHit hit1D : hitsOnTrack) {
+<a class="jxr_linenumber" name="L827" href="#L827">827</a>                     List&lt;RawTrackerHit&gt; rawHits = hit1D.getRawHits();
+<a class="jxr_linenumber" name="L828" href="#L828">828</a>                     <strong class="jxr_keyword">boolean</strong> goodHit = false;
+<a class="jxr_linenumber" name="L829" href="#L829">829</a>                     <strong class="jxr_keyword">for</strong> (RawTrackerHit rawHit : rawHits) {
+<a class="jxr_linenumber" name="L830" href="#L830">830</a>                         Set&lt;SimTrackerHit&gt; simHits = rawtomc.allFrom(rawHit);
+<a class="jxr_linenumber" name="L831" href="#L831">831</a>                         <strong class="jxr_keyword">for</strong> (SimTrackerHit simHit : simHits) {
+<a class="jxr_linenumber" name="L832" href="#L832">832</a>                             MCParticle mcp = simHit.getMCParticle();
+<a class="jxr_linenumber" name="L833" href="#L833">833</a>                             <strong class="jxr_keyword">int</strong> id = mcParts.indexOf(mcp);
+<a class="jxr_linenumber" name="L834" href="#L834">834</a>                             <strong class="jxr_keyword">if</strong> (id == idBest) {
+<a class="jxr_linenumber" name="L835" href="#L835">835</a>                                 goodHit = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L836" href="#L836">836</a>                                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L837" href="#L837">837</a>                             }                          
+<a class="jxr_linenumber" name="L838" href="#L838">838</a>                         }
+<a class="jxr_linenumber" name="L839" href="#L839">839</a>                     }  
+<a class="jxr_linenumber" name="L840" href="#L840">840</a>                     <strong class="jxr_keyword">if</strong> (!goodHit) nBad++;
+<a class="jxr_linenumber" name="L841" href="#L841">841</a>                 }
+<a class="jxr_linenumber" name="L842" href="#L842">842</a>                 aida.histogram1D(<span class="jxr_string">"GBL number of wrong hits on track"</span>).fill(nBad);
+<a class="jxr_linenumber" name="L843" href="#L843">843</a>                 MCParticle mcBest = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L844" href="#L844">844</a>                 <strong class="jxr_keyword">double</strong> ptInvTrue = 1.;
+<a class="jxr_linenumber" name="L845" href="#L845">845</a>                 <strong class="jxr_keyword">if</strong> (idBest &gt; -1) {
+<a class="jxr_linenumber" name="L846" href="#L846">846</a>                     mcBest = mcParts.get(idBest); 
+<a class="jxr_linenumber" name="L847" href="#L847">847</a>                     Hep3Vector pVec = mcBest.getMomentum();
+<a class="jxr_linenumber" name="L848" href="#L848">848</a>                     <em class="jxr_comment">//Hep3Vector rVec = mcBest.getOrigin();</em>
+<a class="jxr_linenumber" name="L849" href="#L849">849</a>                     <strong class="jxr_keyword">double</strong> ptTrue = Math.sqrt(pVec.x()*pVec.x() + pVec.z()*pVec.z());
+<a class="jxr_linenumber" name="L850" href="#L850">850</a>                     ptInvTrue = mcBest.getCharge()/ptTrue;
+<a class="jxr_linenumber" name="L851" href="#L851">851</a>                 }
+<a class="jxr_linenumber" name="L852" href="#L852">852</a>                 List&lt;TrackState&gt; stLst = tkrGBL.getTrackStates();
+<a class="jxr_linenumber" name="L853" href="#L853">853</a>                 <strong class="jxr_keyword">for</strong> (TrackState st : stLst) {
+<a class="jxr_linenumber" name="L854" href="#L854">854</a>                     <strong class="jxr_keyword">if</strong> (st.getLocation() == TrackState.AtIP) {
+<a class="jxr_linenumber" name="L855" href="#L855">855</a>                         <strong class="jxr_keyword">double</strong> d0 = st.getParameter(0);
+<a class="jxr_linenumber" name="L856" href="#L856">856</a>                         aida.histogram1D(<span class="jxr_string">"GBL d0"</span>).fill(d0);
+<a class="jxr_linenumber" name="L857" href="#L857">857</a>                         <strong class="jxr_keyword">double</strong> z0 = st.getParameter(3);
+<a class="jxr_linenumber" name="L858" href="#L858">858</a>                         aida.histogram1D(<span class="jxr_string">"GBL z0"</span>).fill(z0);
+<a class="jxr_linenumber" name="L859" href="#L859">859</a>                         <strong class="jxr_keyword">double</strong> Omega = st.getOmega();
+<a class="jxr_linenumber" name="L860" href="#L860">860</a>                         <strong class="jxr_keyword">double</strong> ptInvGBL = -alpha * Omega;
+<a class="jxr_linenumber" name="L861" href="#L861">861</a>                         aida.histogram1D(<span class="jxr_string">"GBL pt inverse"</span>).fill(ptInvGBL);
+<a class="jxr_linenumber" name="L862" href="#L862">862</a>                         <strong class="jxr_keyword">double</strong> [] covGBL = st.getCovMatrix();
+<a class="jxr_linenumber" name="L863" href="#L863">863</a>                         <strong class="jxr_keyword">double</strong> ptInvErr = -alpha * Math.sqrt(covGBL[5]);
+<a class="jxr_linenumber" name="L864" href="#L864">864</a>                         <strong class="jxr_keyword">double</strong> tanLambdaGBL = st.getTanLambda();
+<a class="jxr_linenumber" name="L865" href="#L865">865</a>                         aida.histogram1D(<span class="jxr_string">"GBL tanLambda"</span>).fill(tanLambdaGBL);
+<a class="jxr_linenumber" name="L866" href="#L866">866</a>                         <strong class="jxr_keyword">if</strong> (mcBest != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L867" href="#L867">867</a>                             aida.histogram1D(<span class="jxr_string">"GBL pt inverse, sigmas"</span>).fill((ptInvGBL-ptInvTrue)/ptInvErr);
+<a class="jxr_linenumber" name="L868" href="#L868">868</a>                         }
+<a class="jxr_linenumber" name="L869" href="#L869">869</a>                         <strong class="jxr_keyword">double</strong> pMag = Math.sqrt(1.0+tanLambdaGBL*tanLambdaGBL)/Math.abs(ptInvGBL);
+<a class="jxr_linenumber" name="L870" href="#L870">870</a>                         <strong class="jxr_keyword">if</strong> (nGBLhits &gt;= 12) aida.histogram1D(<span class="jxr_string">"GBL momentum, &gt;= 12 hits"</span>).fill(pMag);
+<a class="jxr_linenumber" name="L871" href="#L871">871</a>                         <em class="jxr_comment">//System.out.format("d0=%10.5f +- %10.5f\n", d0, Math.sqrt(covGBL[0]));</em>
+<a class="jxr_linenumber" name="L872" href="#L872">872</a>                         <em class="jxr_comment">//System.out.format("phi0=%10.5f +- %10.5f\n", st.getParameter(1), Math.sqrt(covGBL[2]));</em>
+<a class="jxr_linenumber" name="L873" href="#L873">873</a>                         <em class="jxr_comment">//System.out.format("omega=%10.5f +- %10.5f\n", Omega, omegaErr);</em>
+<a class="jxr_linenumber" name="L874" href="#L874">874</a>                         <em class="jxr_comment">//System.out.format("z0=%10.5f +- %10.5f\n", z0, Math.sqrt(covGBL[9]));</em>
+<a class="jxr_linenumber" name="L875" href="#L875">875</a>                         <em class="jxr_comment">//System.out.format("tanL=%10.5f +- %10.5f\n", st.getParameter(4), Math.sqrt(covGBL[14]));</em>
+<a class="jxr_linenumber" name="L876" href="#L876">876</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L877" href="#L877">877</a>                     } <em class="jxr_comment">// Track State at IP</em>
+<a class="jxr_linenumber" name="L878" href="#L878">878</a>                 }<em class="jxr_comment">//loop on track states</em>
+<a class="jxr_linenumber" name="L879" href="#L879">879</a>             } <em class="jxr_comment">//loop on GBL Tracks</em>
+<a class="jxr_linenumber" name="L880" href="#L880">880</a>         } <em class="jxr_comment">//check if event has GBLTracks</em>
+<a class="jxr_linenumber" name="L881" href="#L881">881</a>         
+<a class="jxr_linenumber" name="L882" href="#L882">882</a>         <em class="jxr_comment">//int [] badEvents = {51753, 52531, 56183, 57958, 58050, 60199, 80324, 83798, 84933, 86351, 88796, 96749, 97230, 102986, 105578, 106654, </em>
+<a class="jxr_linenumber" name="L883" href="#L883">883</a>         <em class="jxr_comment">//        107191, 108542, 108886, 110453, 120457, 121129, 121311, 121525, 124355, 124910, 127335, 129360, 133951};</em>
+<a class="jxr_linenumber" name="L884" href="#L884">884</a>         <em class="jxr_comment">//int [] badEvents = {8788317, 8730045, 8724483, 8716465, 8697779, 8696553, 8565879, 8566151, 8563109, 196192, 155656, 144460, 135200,</em>
+<a class="jxr_linenumber" name="L885" href="#L885">885</a>         <em class="jxr_comment">//        110480, 69464, 20665, 9000031, 8882086, 8878414, 8750999};</em>
+<a class="jxr_linenumber" name="L886" href="#L886">886</a>         <strong class="jxr_keyword">int</strong> [] badEvents = {};
+<a class="jxr_linenumber" name="L887" href="#L887">887</a>         <strong class="jxr_keyword">if</strong> (nPlotted &lt; numEvtPlots) { <em class="jxr_comment">// &amp;&amp; sharedHitTrack) {</em>
+<a class="jxr_linenumber" name="L888" href="#L888">888</a>             <strong class="jxr_keyword">boolean</strong> plotIt = false;
+<a class="jxr_linenumber" name="L889" href="#L889">889</a>             <strong class="jxr_keyword">if</strong> (badEvents.length &gt; 0) {
+<a class="jxr_linenumber" name="L890" href="#L890">890</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i=0; i&lt;badEvents.length; ++i) {
+<a class="jxr_linenumber" name="L891" href="#L891">891</a>                     <strong class="jxr_keyword">if</strong> (event.getEventNumber() == badEvents[i]) {
+<a class="jxr_linenumber" name="L892" href="#L892">892</a>                         plotIt = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L893" href="#L893">893</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L894" href="#L894">894</a>                     }
+<a class="jxr_linenumber" name="L895" href="#L895">895</a>                 } 
+<a class="jxr_linenumber" name="L896" href="#L896">896</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L897" href="#L897">897</a>                 plotIt = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L898" href="#L898">898</a>                 KI.compareAllTracks(<span class="jxr_string">"GBLTracks"</span>, event, kPatList);
+<a class="jxr_linenumber" name="L899" href="#L899">899</a>             }
+<a class="jxr_linenumber" name="L900" href="#L900">900</a>             <strong class="jxr_keyword">if</strong> (plotIt) {
+<a class="jxr_linenumber" name="L901" href="#L901">901</a>                 KI.plotKalmanEvent(outputGnuPlotDir, event, kPatList);
+<a class="jxr_linenumber" name="L902" href="#L902">902</a>                 <em class="jxr_comment">//KI.plotGBLtracks(outputGnuPlotDir, event);</em>
+<a class="jxr_linenumber" name="L903" href="#L903">903</a>                 nPlotted++;
+<a class="jxr_linenumber" name="L904" href="#L904">904</a>             }
+<a class="jxr_linenumber" name="L905" href="#L905">905</a>         }
+<a class="jxr_linenumber" name="L906" href="#L906">906</a>         
+<a class="jxr_linenumber" name="L907" href="#L907">907</a>         simHitRes(event);
+<a class="jxr_linenumber" name="L908" href="#L908">908</a>     }
+<a class="jxr_linenumber" name="L909" href="#L909">909</a>     
+<a class="jxr_linenumber" name="L910" href="#L910">910</a>     <em class="jxr_comment">// Make histograms of the MC hit resolution</em>
+<a class="jxr_linenumber" name="L911" href="#L911">911</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> simHitRes(EventHeader event) {
+<a class="jxr_linenumber" name="L912" href="#L912">912</a>         <em class="jxr_comment">// Get the collection of 1D hits</em>
+<a class="jxr_linenumber" name="L913" href="#L913">913</a>         String stripHitInputCollectionName = <span class="jxr_string">"StripClusterer_SiTrackerHitStrip1D"</span>;
+<a class="jxr_linenumber" name="L914" href="#L914">914</a>         <strong class="jxr_keyword">if</strong> (!event.hasCollection(TrackerHit.<strong class="jxr_keyword">class</strong>, stripHitInputCollectionName)) <strong class="jxr_keyword">return</strong> 999.;
+<a class="jxr_linenumber" name="L915" href="#L915">915</a>         List&lt;TrackerHit&gt; stripHits = event.get(TrackerHit.<strong class="jxr_keyword">class</strong>, stripHitInputCollectionName);
+<a class="jxr_linenumber" name="L916" href="#L916">916</a>         
+<a class="jxr_linenumber" name="L917" href="#L917">917</a>         <strong class="jxr_keyword">if</strong> (stripHits == <strong class="jxr_keyword">null</strong>) <strong class="jxr_keyword">return</strong> 999.;
+<a class="jxr_linenumber" name="L918" href="#L918">918</a> 
+<a class="jxr_linenumber" name="L919" href="#L919">919</a>         <em class="jxr_comment">// Make a mapping from sensor to hits</em>
+<a class="jxr_linenumber" name="L920" href="#L920">920</a>         Map&lt;HpsSiSensor, ArrayList&lt;TrackerHit&gt;&gt; hitSensorMap = <strong class="jxr_keyword">new</strong> HashMap&lt;HpsSiSensor, ArrayList&lt;TrackerHit&gt;&gt;();
+<a class="jxr_linenumber" name="L921" href="#L921">921</a>         <strong class="jxr_keyword">for</strong> (TrackerHit hit1D : stripHits) {
+<a class="jxr_linenumber" name="L922" href="#L922">922</a>             <a name="HpsSiSensor" href="../../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = (<a name="HpsSiSensor" href="../../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) hit1D.getRawHits().get(0)).getDetectorElement();
+<a class="jxr_linenumber" name="L923" href="#L923">923</a> 
+<a class="jxr_linenumber" name="L924" href="#L924">924</a>             ArrayList&lt;TrackerHit&gt; hitsInSensor = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L925" href="#L925">925</a>             <strong class="jxr_keyword">if</strong> (hitSensorMap.containsKey(sensor)) {
+<a class="jxr_linenumber" name="L926" href="#L926">926</a>                 hitsInSensor = hitSensorMap.get(sensor);
+<a class="jxr_linenumber" name="L927" href="#L927">927</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L928" href="#L928">928</a>                 hitsInSensor = <strong class="jxr_keyword">new</strong> ArrayList&lt;TrackerHit&gt;();
+<a class="jxr_linenumber" name="L929" href="#L929">929</a>             }
+<a class="jxr_linenumber" name="L930" href="#L930">930</a>             hitsInSensor.add(hit1D);
+<a class="jxr_linenumber" name="L931" href="#L931">931</a>             hitSensorMap.put(sensor, hitsInSensor);
+<a class="jxr_linenumber" name="L932" href="#L932">932</a>         }
+<a class="jxr_linenumber" name="L933" href="#L933">933</a>         
+<a class="jxr_linenumber" name="L934" href="#L934">934</a>         String MCHitInputCollectionName = <span class="jxr_string">"TrackerHits"</span>;
+<a class="jxr_linenumber" name="L935" href="#L935">935</a>         <strong class="jxr_keyword">if</strong> (!event.hasCollection(SimTrackerHit.<strong class="jxr_keyword">class</strong>, MCHitInputCollectionName)) <strong class="jxr_keyword">return</strong> 999.;
+<a class="jxr_linenumber" name="L936" href="#L936">936</a>         List&lt;SimTrackerHit&gt; MChits = event.get(SimTrackerHit.<strong class="jxr_keyword">class</strong>, MCHitInputCollectionName);
+<a class="jxr_linenumber" name="L937" href="#L937">937</a>         
+<a class="jxr_linenumber" name="L938" href="#L938">938</a>         <strong class="jxr_keyword">if</strong> (MChits == <strong class="jxr_keyword">null</strong>) <strong class="jxr_keyword">return</strong> 999.;
+<a class="jxr_linenumber" name="L939" href="#L939">939</a> 
+<a class="jxr_linenumber" name="L940" href="#L940">940</a>         <em class="jxr_comment">// Make a map from MC particle to the hit in the layer</em>
+<a class="jxr_linenumber" name="L941" href="#L941">941</a>         Map&lt;Integer, ArrayList&lt;SimTrackerHit&gt;&gt; hitMCparticleMap = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer, ArrayList&lt;SimTrackerHit&gt;&gt;();
+<a class="jxr_linenumber" name="L942" href="#L942">942</a>         <strong class="jxr_keyword">for</strong> (SimTrackerHit hit1D : MChits) {
+<a class="jxr_linenumber" name="L943" href="#L943">943</a>             decoder.setID(hit1D.getCellID());
+<a class="jxr_linenumber" name="L944" href="#L944">944</a>             <strong class="jxr_keyword">int</strong> Layer = decoder.getValue(<span class="jxr_string">"layer"</span>) + 1;  <em class="jxr_comment">// Kalman layers go from 0 to 13, with 0 and 1 for new 2019 modules</em>
+<a class="jxr_linenumber" name="L945" href="#L945">945</a>             <em class="jxr_comment">//int Module = decoder.getValue("module");</em>
+<a class="jxr_linenumber" name="L946" href="#L946">946</a>             <em class="jxr_comment">//MCParticle MCpart = hit1D.getMCParticle();</em>
+<a class="jxr_linenumber" name="L947" href="#L947">947</a>             ArrayList&lt;SimTrackerHit&gt; partInLayer = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L948" href="#L948">948</a>             <strong class="jxr_keyword">if</strong> (hitMCparticleMap.containsKey(Layer)) {
+<a class="jxr_linenumber" name="L949" href="#L949">949</a>                 partInLayer = hitMCparticleMap.get(Layer);
+<a class="jxr_linenumber" name="L950" href="#L950">950</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L951" href="#L951">951</a>                 partInLayer = <strong class="jxr_keyword">new</strong> ArrayList&lt;SimTrackerHit&gt;();
+<a class="jxr_linenumber" name="L952" href="#L952">952</a>             }
+<a class="jxr_linenumber" name="L953" href="#L953">953</a>             partInLayer.add(hit1D);
+<a class="jxr_linenumber" name="L954" href="#L954">954</a>             hitMCparticleMap.put(Layer,partInLayer);
+<a class="jxr_linenumber" name="L955" href="#L955">955</a>         }
+<a class="jxr_linenumber" name="L956" href="#L956">956</a>         <em class="jxr_comment">//System.out.format("KalmanPatRecDriver.simHitRes: found both hit collections in event %d\n", event.getEventNumber());</em>
+<a class="jxr_linenumber" name="L957" href="#L957">957</a>         
+<a class="jxr_linenumber" name="L958" href="#L958">958</a>         <strong class="jxr_keyword">double</strong> maxErr = 0.;
+<a class="jxr_linenumber" name="L959" href="#L959">959</a>         ArrayList&lt;SiModule&gt; SiMlist = KI.getSiModuleList();
+<a class="jxr_linenumber" name="L960" href="#L960">960</a>         Map&lt;SiModule, SiStripPlane&gt; moduleMap = KI.getModuleMap();
+<a class="jxr_linenumber" name="L961" href="#L961">961</a>         <strong class="jxr_keyword">for</strong> (<a name="SiModule" href="../../../../../org/hps/recon/tracking/kalman/SiModule.html#SiModule">SiModule</a> siMod : SiMlist) {
+<a class="jxr_linenumber" name="L962" href="#L962">962</a>             <strong class="jxr_keyword">int</strong> layer = siMod.Layer;
+<a class="jxr_linenumber" name="L963" href="#L963">963</a>             <strong class="jxr_keyword">if</strong> (hitMCparticleMap.get(layer) == <strong class="jxr_keyword">null</strong>) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L964" href="#L964">964</a>             SiStripPlane plane = moduleMap.get(siMod);
+<a class="jxr_linenumber" name="L965" href="#L965">965</a>             <strong class="jxr_keyword">if</strong> (!hitSensorMap.containsKey(plane.getSensor())) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L966" href="#L966">966</a>             ArrayList&lt;TrackerHit&gt; hitsInSensor = hitSensorMap.get(plane.getSensor());
+<a class="jxr_linenumber" name="L967" href="#L967">967</a>             <strong class="jxr_keyword">if</strong> (hitsInSensor == <strong class="jxr_keyword">null</strong>) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L968" href="#L968">968</a>             <strong class="jxr_keyword">for</strong> (TrackerHit hit : hitsInSensor) {
+<a class="jxr_linenumber" name="L969" href="#L969">969</a>                 <em class="jxr_comment">//System.out.format("simHitRes: Hit in sensor of layer %d, detector %d\n",layer,siMod.detector);</em>
+<a class="jxr_linenumber" name="L970" href="#L970">970</a>                 <em class="jxr_comment">//Vec tkrHit = new Vec(3,hit.getPosition());</em>
+<a class="jxr_linenumber" name="L971" href="#L971">971</a>                 <em class="jxr_comment">//tkrHit.print("Tracker hit position");</em>
+<a class="jxr_linenumber" name="L972" href="#L972">972</a>                 <em class="jxr_comment">//SiTrackerHitStrip1D global = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);</em>
+<a class="jxr_linenumber" name="L973" href="#L973">973</a>                 <a name="SiTrackerHitStrip1D" href="../../../../../org/hps/recon/tracking/SiTrackerHitStrip1D.html#SiTrackerHitStrip1D">SiTrackerHitStrip1D</a> localHit = (<strong class="jxr_keyword">new</strong> <a name="SiTrackerHitStrip1D" href="../../../../../org/hps/recon/tracking/SiTrackerHitStrip1D.html#SiTrackerHitStrip1D">SiTrackerHitStrip1D</a>(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+<a class="jxr_linenumber" name="L974" href="#L974">974</a>                 <strong class="jxr_keyword">double</strong> du = Math.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
+<a class="jxr_linenumber" name="L975" href="#L975">975</a>                 <em class="jxr_comment">//Vec globalHPS = new Vec(3,global.getPosition());</em>
+<a class="jxr_linenumber" name="L976" href="#L976">976</a>                 <em class="jxr_comment">//Vec localHPS = new Vec(3,localHit.getPosition());</em>
+<a class="jxr_linenumber" name="L977" href="#L977">977</a>                 <em class="jxr_comment">//globalHPS.print("simulated hit in HPS global system");</em>
+<a class="jxr_linenumber" name="L978" href="#L978">978</a>                 <em class="jxr_comment">//localHPS.print("simulated hit in HPS local system");</em>
+<a class="jxr_linenumber" name="L979" href="#L979">979</a>                 
+<a class="jxr_linenumber" name="L980" href="#L980">980</a>                 <em class="jxr_comment">//Vec hitGlobal = KalmanInterface.vectorGlbToKalman(global.getPosition());</em>
+<a class="jxr_linenumber" name="L981" href="#L981">981</a>                 <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> hitLocal = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(-localHit.getPosition()[1], localHit.getPosition()[0], localHit.getPosition()[2]);
+<a class="jxr_linenumber" name="L982" href="#L982">982</a>                 
+<a class="jxr_linenumber" name="L983" href="#L983">983</a>                 <em class="jxr_comment">//hitGlobal.print("simulated hit Kal global position");</em>
+<a class="jxr_linenumber" name="L984" href="#L984">984</a>                 <em class="jxr_comment">//hitLocal.print("simulated hit Kal local position");</em>
+<a class="jxr_linenumber" name="L985" href="#L985">985</a>                 <em class="jxr_comment">//Vec kalGlobal = siMod.toGlobal(hitLocal);</em>
+<a class="jxr_linenumber" name="L986" href="#L986">986</a>                 <em class="jxr_comment">//kalGlobal.print("simulated hit global position from Kalman transformation");</em>
+<a class="jxr_linenumber" name="L987" href="#L987">987</a>                 <strong class="jxr_keyword">for</strong> (SimTrackerHit hitMC : hitMCparticleMap.get(layer)) {
+<a class="jxr_linenumber" name="L988" href="#L988">988</a>                     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> hitMCglobal = KalmanInterface.vectorGlbToKalman(hitMC.getPosition());
+<a class="jxr_linenumber" name="L989" href="#L989">989</a>                     <em class="jxr_comment">//hitMCglobal.print("true hit Kal global position");</em>
+<a class="jxr_linenumber" name="L990" href="#L990">990</a>                     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> kalMClocal = siMod.toLocal(hitMCglobal);
+<a class="jxr_linenumber" name="L991" href="#L991">991</a>                     <em class="jxr_comment">//kalMClocal.print("true hit Kal local position");</em>
+<a class="jxr_linenumber" name="L992" href="#L992">992</a>                     <em class="jxr_comment">//hitLocal.print("sim hit Kal local position");</em>
+<a class="jxr_linenumber" name="L993" href="#L993">993</a>                     <strong class="jxr_keyword">double</strong> hitError = hitLocal.v[1] - kalMClocal.v[1];
+<a class="jxr_linenumber" name="L994" href="#L994">994</a>                     <strong class="jxr_keyword">if</strong> (Math.abs(hitError) &gt; maxErr) maxErr = Math.abs(hitError);
+<a class="jxr_linenumber" name="L995" href="#L995">995</a>                     aida.histogram1D(<span class="jxr_string">"Kalman hit true error"</span>).fill(hitError);
+<a class="jxr_linenumber" name="L996" href="#L996">996</a>                     aida.histogram1D(<span class="jxr_string">"Kalman hit true error over uncertainty"</span>).fill(hitError/du);
+<a class="jxr_linenumber" name="L997" href="#L997">997</a>                     aida.histogram1D(String.format(<span class="jxr_string">"Layers/Kalman true error in layer %d"</span>,layer)).fill(hitError);
+<a class="jxr_linenumber" name="L998" href="#L998">998</a>                     aida.histogram1D(<span class="jxr_string">"MC hit z in local system (should be zero)"</span>).fill(kalMClocal.v[2]);
+<a class="jxr_linenumber" name="L999" href="#L999">999</a>                 }
+<a class="jxr_linenumber" name="L1000" href="#L1000">1000</a>             }
+<a class="jxr_linenumber" name="L1001" href="#L1001">1001</a>         }
+<a class="jxr_linenumber" name="L1002" href="#L1002">1002</a>         <strong class="jxr_keyword">return</strong> maxErr;
+<a class="jxr_linenumber" name="L1003" href="#L1003">1003</a>     }
+<a class="jxr_linenumber" name="L1004" href="#L1004">1004</a>     
+<a class="jxr_linenumber" name="L1005" href="#L1005">1005</a>     <strong class="jxr_keyword">void</strong> output() {
+<a class="jxr_linenumber" name="L1006" href="#L1006">1006</a>         pEff.plot(<span class="jxr_string">"./effVSp.gp"</span>, false, <span class="jxr_string">"errors"</span>, <span class="jxr_string">" "</span>);
+<a class="jxr_linenumber" name="L1007" href="#L1007">1007</a>         hf.divide(<span class="jxr_string">"Kalman track efficiency vs momentum"</span>, hpf, hp);
+<a class="jxr_linenumber" name="L1008" href="#L1008">1008</a>         hf.divide(<span class="jxr_string">"Kalman track efficiency vs number hits"</span>, hnhf, hnh);
+<a class="jxr_linenumber" name="L1009" href="#L1009">1009</a>         <strong class="jxr_keyword">double</strong> trackEfficiency = (<strong class="jxr_keyword">double</strong>)nMCtracksFound/(<strong class="jxr_keyword">double</strong>)nMCtracks;
+<a class="jxr_linenumber" name="L1010" href="#L1010">1010</a>         <strong class="jxr_keyword">int</strong> nMiss = nMCtracks - nMCtracksFound;
+<a class="jxr_linenumber" name="L1011" href="#L1011">1011</a>         <strong class="jxr_keyword">double</strong> err = Math.sqrt((<strong class="jxr_keyword">double</strong>)nMiss) / (<strong class="jxr_keyword">double</strong>)nMCtracks;
+<a class="jxr_linenumber" name="L1012" href="#L1012">1012</a>         System.out.format(<span class="jxr_string">"KalmanPatRecPlots: the track efficiency for p&gt;0.7 GeV and &gt;= 10 sim hits is %9.3f+-%9.3f\n"</span>, trackEfficiency, err);
+<a class="jxr_linenumber" name="L1013" href="#L1013">1013</a>         System.out.format(<span class="jxr_string">"KalmanPatRecPlots: the total number of hits with negative unbiased residual predicted variance=%d\n"</span>, numBadCov);
+<a class="jxr_linenumber" name="L1014" href="#L1014">1014</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L1015" href="#L1015">1015</a>             System.out.format(<span class="jxr_string">"Outputting the aida histograms now for %d events to file %s\n"</span>, nEvents, outputFileName);
+<a class="jxr_linenumber" name="L1016" href="#L1016">1016</a>             aida.saveAs(outputFileName);
+<a class="jxr_linenumber" name="L1017" href="#L1017">1017</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L1018" href="#L1018">1018</a>             logger.log(Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L1019" href="#L1019">1019</a>         }
+<a class="jxr_linenumber" name="L1020" href="#L1020">1020</a>     }
+<a class="jxr_linenumber" name="L1021" href="#L1021">1021</a>     
+<a class="jxr_linenumber" name="L1022" href="#L1022">1022</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setupSensors(EventHeader event) {
+<a class="jxr_linenumber" name="L1023" href="#L1023">1023</a>         List&lt;RawTrackerHit&gt; rawTrackerHits = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"SVTRawTrackerHits"</span>);
+<a class="jxr_linenumber" name="L1024" href="#L1024">1024</a>         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
+<a class="jxr_linenumber" name="L1025" href="#L1025">1025</a>         <em class="jxr_comment">// Get the ID dictionary and field information.</em>
+<a class="jxr_linenumber" name="L1026" href="#L1026">1026</a>         IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+<a class="jxr_linenumber" name="L1027" href="#L1027">1027</a>         <strong class="jxr_keyword">int</strong> fieldIdx = dict.getFieldIndex(<span class="jxr_string">"side"</span>);
+<a class="jxr_linenumber" name="L1028" href="#L1028">1028</a>         <strong class="jxr_keyword">int</strong> sideIdx = dict.getFieldIndex(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L1029" href="#L1029">1029</a>         <strong class="jxr_keyword">for</strong> (RawTrackerHit hit : rawTrackerHits) {
+<a class="jxr_linenumber" name="L1030" href="#L1030">1030</a>             <em class="jxr_comment">// The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.</em>
+<a class="jxr_linenumber" name="L1031" href="#L1031">1031</a>             IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
+<a class="jxr_linenumber" name="L1032" href="#L1032">1032</a>             expId.setValue(fieldIdx, 0);
+<a class="jxr_linenumber" name="L1033" href="#L1033">1033</a>             expId.setValue(sideIdx, 0);
+<a class="jxr_linenumber" name="L1034" href="#L1034">1034</a>             IIdentifier strippedId = dict.pack(expId);
+<a class="jxr_linenumber" name="L1035" href="#L1035">1035</a>             <em class="jxr_comment">// Find the sensor DetectorElement.</em>
+<a class="jxr_linenumber" name="L1036" href="#L1036">1036</a>             List&lt;IDetectorElement&gt; des = DetectorElementStore.getInstance().find(strippedId);
+<a class="jxr_linenumber" name="L1037" href="#L1037">1037</a>             <strong class="jxr_keyword">if</strong> (des == <strong class="jxr_keyword">null</strong> || des.size() == 0) {
+<a class="jxr_linenumber" name="L1038" href="#L1038">1038</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Failed to find any DetectorElements with stripped ID &lt;0x"</span> + Long.toHexString(strippedId.getValue()) + <span class="jxr_string">"&gt;."</span>);
+<a class="jxr_linenumber" name="L1039" href="#L1039">1039</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (des.size() == 1) {
+<a class="jxr_linenumber" name="L1040" href="#L1040">1040</a>                 hit.setDetectorElement((SiSensor) des.get(0));
+<a class="jxr_linenumber" name="L1041" href="#L1041">1041</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L1042" href="#L1042">1042</a>                 <em class="jxr_comment">// Use first sensor found, which should work unless there are sensors with duplicate IDs.</em>
+<a class="jxr_linenumber" name="L1043" href="#L1043">1043</a>                 <strong class="jxr_keyword">for</strong> (IDetectorElement de : des) {
+<a class="jxr_linenumber" name="L1044" href="#L1044">1044</a>                     <strong class="jxr_keyword">if</strong> (de instanceof SiSensor) {
+<a class="jxr_linenumber" name="L1045" href="#L1045">1045</a>                         hit.setDetectorElement((SiSensor) de);
+<a class="jxr_linenumber" name="L1046" href="#L1046">1046</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L1047" href="#L1047">1047</a>                     }
+<a class="jxr_linenumber" name="L1048" href="#L1048">1048</a>                 }
+<a class="jxr_linenumber" name="L1049" href="#L1049">1049</a>             }
+<a class="jxr_linenumber" name="L1050" href="#L1050">1050</a>             <em class="jxr_comment">// No sensor was found.</em>
+<a class="jxr_linenumber" name="L1051" href="#L1051">1051</a>             <strong class="jxr_keyword">if</strong> (hit.getDetectorElement() == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L1052" href="#L1052">1052</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No sensor was found for hit with stripped ID &lt;0x"</span> + Long.toHexString(strippedId.getValue()) + <span class="jxr_string">"&gt;."</span>);
+<a class="jxr_linenumber" name="L1053" href="#L1053">1053</a>             }
+<a class="jxr_linenumber" name="L1054" href="#L1054">1054</a>         }
+<a class="jxr_linenumber" name="L1055" href="#L1055">1055</a>     }
+<a class="jxr_linenumber" name="L1056" href="#L1056">1056</a>     
+<a class="jxr_linenumber" name="L1057" href="#L1057">1057</a> }
+<a class="jxr_linenumber" name="L1058" href="#L1058">1058</a> 
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

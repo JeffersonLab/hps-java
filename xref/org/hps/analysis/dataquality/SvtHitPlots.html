@@ -1,0 +1,291 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>SvtHitPlots xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/dataquality/SvtHitPlots.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.dataquality;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.aida.IAnalysisFactory;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogramFactory;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram1D;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> hep.aida.IHistogram2D;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> hep.aida.ITree;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.HpsSiSensor;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.GenericObject;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.LCRelation;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.SimTrackerHit;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackState;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackerHit;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.FittedRawTrackerHit;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.ShapeFitParameters;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> * Driver for analyzing hits in SVT</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="SvtHitPlots" href="../../../../org/hps/analysis/dataquality/SvtHitPlots.html#SvtHitPlots">SvtHitPlots</a> <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <em class="jxr_comment">// Plotting</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">protected</strong> AIDA aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      ITree tree; 
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      IHistogramFactory histogramFactory; 
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <em class="jxr_comment">//List of Sensors</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> List&lt;HpsSiSensor&gt; sensors = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      Map&lt;String, IHistogram1D&gt; fittedRawHitTime = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      Map&lt;String, IHistogram1D&gt; clusterTime = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      Map&lt;String, IHistogram1D&gt; helicalTrackHitTime = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      Map&lt;String, IHistogram2D&gt; fittedRawHitPosition = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      Map&lt;String, IHistogram1D&gt; fittedRawHitPositionZ = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      Map&lt;String, IHistogram2D&gt; clusterPosition = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      Map&lt;String, IHistogram2D&gt; clusterPositionSensorCoord = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      Map&lt;String, IHistogram1D&gt; clusterPositionZ = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      Map&lt;String, IHistogram1D&gt; clusterDiff = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      Map&lt;String, IHistogram2D&gt; clusterDiff2D = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      Map&lt;String, IHistogram2D&gt; helicalTrackHitPosition = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      Map&lt;String, IHistogram1D&gt; helicalTrackHitPositionZ = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      Map&lt;Integer, IHistogram2D&gt; trackerHitPositionTop = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      Map&lt;Integer, IHistogram1D&gt; trackerHitPositionTopZ = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      Map&lt;Integer, IHistogram2D&gt; trackerHitPositionBot = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      Map&lt;Integer, IHistogram1D&gt; trackerHitPositionBotZ = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      Map&lt;String, IHistogram2D&gt; xPosvsChan = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      Map&lt;String, IHistogram2D&gt; yPosvsChan = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      IHistogram1D trackP;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      IHistogram1D trackTopP;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      IHistogram1D trackBotP;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      IHistogram1D trackEleP;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      IHistogram1D trackEleTopP;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      IHistogram1D trackEleBotP;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      IHistogram1D trackPosP;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      IHistogram1D trackPosTopP;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      IHistogram1D trackPosBotP;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <em class="jxr_comment">//Histogram Settings</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">int</strong> nBins = 120;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">int</strong> nLay = 14;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <em class="jxr_comment">//Collection Strings</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">private</strong> String fittedHitsCollectionName = <span class="jxr_string">"SVTFittedRawTrackerHits"</span>;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">private</strong> String rawTrackerHitCollectionName = <span class="jxr_string">"SVTRawTrackerHits"</span>;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      <strong class="jxr_keyword">private</strong> String stripClusterHitCollectionName = <span class="jxr_string">"StripClusterer_SiTrackerHitStrip1D"</span>;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <strong class="jxr_keyword">private</strong> String helicalTrackerHitCollectionName = <span class="jxr_string">"HelicalTrackHits"</span>;
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">private</strong> String trackerHitCollectionName = <span class="jxr_string">"TrackerHits"</span>;
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      <strong class="jxr_keyword">private</strong> String trackCollectionName = <span class="jxr_string">"GBLTracks"</span>;
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>     
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String SUBDETECTOR_NAME = <span class="jxr_string">"Tracker"</span>;
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      <em class="jxr_comment">//Beam Energy</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">double</strong> ebeam;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector){
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          aida.tree().cd(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>          tree = aida.tree();
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          <em class="jxr_comment">//Set Beam Energy</em>
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          BeamEnergyCollection beamEnergyCollection = 
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>                  <strong class="jxr_keyword">this</strong>.getConditionsManager().getCachedConditions(BeamEnergyCollection.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"beam_energies"</span>).getCachedData();        
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          ebeam = beamEnergyCollection.get(0).getBeamEnergy();      
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         <em class="jxr_comment">// Get the HpsSiSensor objects from the tracker detector element</em>
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         sensors = detector.getSubdetector(SUBDETECTOR_NAME)
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>                           .getDetectorElement().findDescendants(HpsSiSensor.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>    
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         <em class="jxr_comment">// If the detector element had no sensors associated with it, throw</em>
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         <em class="jxr_comment">// an exception</em>
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         <strong class="jxr_keyword">if</strong> (sensors.size() == 0) {
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No sensors were found in this detector."</span>);
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         }
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>         trackP = aida.histogram1D(<span class="jxr_string">"Track Momentum"</span>, 100, 0, 5.0);
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         trackTopP = aida.histogram1D(<span class="jxr_string">"Track Top Momentum"</span>, 100, 0, 5.0);
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         trackBotP = aida.histogram1D(<span class="jxr_string">"Track Bot Momentum"</span>, 100, 0, 5.0);
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         trackEleP = aida.histogram1D(<span class="jxr_string">"Track Ele Momentum"</span>, 100, 0, 5.0);
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         trackEleTopP = aida.histogram1D(<span class="jxr_string">"Track Ele Top Momentum"</span>, 100, 0, 5.0);
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         trackEleBotP = aida.histogram1D(<span class="jxr_string">"Track Ele Bot Momentum"</span>, 100, 0, 5.0);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         trackPosP = aida.histogram1D(<span class="jxr_string">"Track Pos Momentum"</span>, 100, 0, 5.0);
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         trackPosTopP = aida.histogram1D(<span class="jxr_string">"Track Pos Top Momentum"</span>, 100, 0, 5.0);
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         trackPosBotP = aida.histogram1D(<span class="jxr_string">"Track Pos Bot Momentum"</span>, 100, 0, 5.0);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         <strong class="jxr_keyword">for</strong>(<strong class="jxr_keyword">int</strong> i = 0; i &lt; nLay; i++){
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>             <strong class="jxr_keyword">int</strong> layer = i + 1;
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>             trackerHitPositionTopZ.put(layer, histogramFactory.createHistogram1D(<span class="jxr_string">"Tracker Hit Z Top Layer "</span> + layer, 10000, 0, 1000));
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>             trackerHitPositionTop.put(layer, histogramFactory.createHistogram2D(<span class="jxr_string">"Tracker Hit X-Y Top Layer "</span> + layer, 100, -20, 20, 100,0,20));
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>             trackerHitPositionBotZ.put(layer, histogramFactory.createHistogram1D(<span class="jxr_string">"Tracker Hit Z Bot Layer "</span> + layer, 10000, 0, 1000));
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>             trackerHitPositionBot.put(layer, histogramFactory.createHistogram2D(<span class="jxr_string">"Tracker Hit X-Y Bot Layer "</span> + layer, 100, -20, 20, 100,-20,0));
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>         }
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         <strong class="jxr_keyword">for</strong>(<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor:sensors){
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>             fittedRawHitTime.put(sensor.getName(), histogramFactory.createHistogram1D(<span class="jxr_string">"Fitted Raw Hit Time "</span> + sensor.getName(), 100, -100, 100));
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>             clusterTime.put(sensor.getName(), histogramFactory.createHistogram1D(<span class="jxr_string">"1D Cluster Hit Time "</span> + sensor.getName(), 100, -100, 100));
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>             helicalTrackHitTime.put(sensor.getName(), histogramFactory.createHistogram1D(<span class="jxr_string">"Helical Track Hit Time "</span> + sensor.getName(), 100, -100, 100));
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>             fittedRawHitPositionZ.put(sensor.getName(), histogramFactory.createHistogram1D(<span class="jxr_string">"Fitted Raw Hit Z "</span> + sensor.getName(), 10000, 0, 1000));
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>             clusterPositionZ.put(sensor.getName(), histogramFactory.createHistogram1D(<span class="jxr_string">"1D Cluster Hit Z "</span> + sensor.getName(), 10000, 0, 1000));
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>             clusterDiff.put(sensor.getName(), histogramFactory.createHistogram1D(<span class="jxr_string">"1D Cluster Hit Distance "</span> + sensor.getName(), 100, 0, 100));
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>             clusterDiff2D.put(sensor.getName(), histogramFactory.createHistogram2D(<span class="jxr_string">"1D Cluster Hit Diff Y vs X "</span> + sensor.getName(), 100, -20, 20, 100, -10, 10));
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>             helicalTrackHitPositionZ.put(sensor.getName(), histogramFactory.createHistogram1D(<span class="jxr_string">"Helical Track Hit Z "</span> + sensor.getName(), 10000, 0, 1000));
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>             fittedRawHitPosition.put(sensor.getName(), histogramFactory.createHistogram2D(<span class="jxr_string">"Fitted Raw Hit X-Y "</span> + sensor.getName(), 100, -100, 100, 100,-100,100));
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>             clusterPositionSensorCoord.put(sensor.getName(), histogramFactory.createHistogram2D(<span class="jxr_string">"1D Cluster Hit U-V "</span> + sensor.getName(), 100, -15, 15, 100,-10,10));
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>             clusterPosition.put(sensor.getName(), histogramFactory.createHistogram2D(<span class="jxr_string">"1D Cluster Hit X-Y "</span> + sensor.getName(), 100, -10, 10, 100,-10,10));
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>             helicalTrackHitPosition.put(sensor.getName(), histogramFactory.createHistogram2D(<span class="jxr_string">"Helical Track Hit X-Y "</span> + sensor.getName(), 100, -20, 20, 100,-5,5));
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>             xPosvsChan.put(sensor.getName(), histogramFactory.createHistogram2D(<span class="jxr_string">"X vs Chan "</span> + sensor.getName(), 640, 0, 640, 100,-20,20));
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>             yPosvsChan.put(sensor.getName(), histogramFactory.createHistogram2D(<span class="jxr_string">"Y vs Chan "</span> + sensor.getName(), 640, 0, 640, 100,-20,20));
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>         }
+<a class="jxr_linenumber" name="L145" href="#L145">145</a> 
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>     }
+<a class="jxr_linenumber" name="L147" href="#L147">147</a> 
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event){
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>         aida.tree().cd(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         <em class="jxr_comment">// Get the list of fitted hits from the event</em>
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>         List&lt;LCRelation&gt; fittedHits = event.get(LCRelation.<strong class="jxr_keyword">class</strong>, fittedHitsCollectionName);
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>          
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>         <em class="jxr_comment">// Map the fitted hits to their corresponding raw hits</em>
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>         Map&lt;RawTrackerHit, LCRelation&gt; fittedRawTrackerHitMap = <strong class="jxr_keyword">new</strong> HashMap&lt;RawTrackerHit, LCRelation&gt;();
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> 
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>         List&lt;RawTrackerHit&gt; rawHits = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, rawTrackerHitCollectionName);
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>         
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>         List&lt;TrackerHit&gt; clusterHits = event.get(TrackerHit.<strong class="jxr_keyword">class</strong>, stripClusterHitCollectionName);
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>         
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         List&lt;TrackerHit&gt; helicalTrackHits = event.get(TrackerHit.<strong class="jxr_keyword">class</strong>, helicalTrackerHitCollectionName);
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>         
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>         <strong class="jxr_keyword">if</strong>(event.hasCollection(SimTrackerHit.<strong class="jxr_keyword">class</strong>, trackerHitCollectionName)){
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>             System.out.println(<span class="jxr_string">"Event has tracker hits!"</span>);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>             List&lt;SimTrackerHit&gt; trackerHits = event.get(SimTrackerHit.<strong class="jxr_keyword">class</strong>,trackerHitCollectionName);
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>             <strong class="jxr_keyword">for</strong>(SimTrackerHit hit : trackerHits){
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>                 <em class="jxr_comment">//HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());</em>
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>                 <strong class="jxr_keyword">int</strong> layer = hit.getLayer();
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>                 <strong class="jxr_keyword">if</strong>(hit.getPosition()[1] &gt; 0){
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>                     trackerHitPositionTopZ.get(layer).fill(hit.getPosition()[2]);
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>                     trackerHitPositionTop.get(layer).fill(hit.getPosition()[0],hit.getPosition()[1]);
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>                 }
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>                 <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>                     trackerHitPositionBotZ.get(layer).fill(hit.getPosition()[2]);
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>                     trackerHitPositionBot.get(layer).fill(hit.getPosition()[0],hit.getPosition()[1]);
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>                 }
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>             }
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         }
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>                  
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>         <strong class="jxr_keyword">for</strong> (LCRelation fittedHit : fittedHits) {
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>             fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         }
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         <strong class="jxr_keyword">for</strong> (LCRelation hit : fittedHits) {
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>             RawTrackerHit rth = (RawTrackerHit) hit.getFrom();
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>             GenericObject pars = (GenericObject) hit.getTo();
+<a class="jxr_linenumber" name="L187" href="#L187">187</a> 
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>             <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = ((<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) rth.getDetectorElement());
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>             <em class="jxr_comment">//this is a clever way to get the parameters we want from the generic object</em>
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>             <strong class="jxr_keyword">double</strong> t0 = ShapeFitParameters.getT0(pars);
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>             <strong class="jxr_keyword">double</strong> amp = ShapeFitParameters.getAmp(pars);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>             <strong class="jxr_keyword">double</strong> chiProb = ShapeFitParameters.getChiProb(pars);
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>             <strong class="jxr_keyword">int</strong> channel = rth.getIdentifierFieldValue(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>             fittedRawHitTime.get(sensor.getName()).fill(t0);
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>             fittedRawHitPositionZ.get(sensor.getName()).fill(rth.getPosition()[2]);
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>             fittedRawHitPosition.get(sensor.getName()).fill(rth.getPosition()[0],rth.getPosition()[1]);
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         }
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>         <strong class="jxr_keyword">for</strong>(TrackerHit hit : clusterHits){
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>             <a name="SiTrackerHitStrip1D" href="../../../../org/hps/recon/tracking/SiTrackerHitStrip1D.html#SiTrackerHitStrip1D">SiTrackerHitStrip1D</a> local = ((<a name="SiTrackerHitStrip1D" href="../../../../org/hps/recon/tracking/SiTrackerHitStrip1D.html#SiTrackerHitStrip1D">SiTrackerHitStrip1D</a>) hit).getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>             <a name="SiTrackerHitStrip1D" href="../../../../org/hps/recon/tracking/SiTrackerHitStrip1D.html#SiTrackerHitStrip1D">SiTrackerHitStrip1D</a> global = ((<a name="SiTrackerHitStrip1D" href="../../../../org/hps/recon/tracking/SiTrackerHitStrip1D.html#SiTrackerHitStrip1D">SiTrackerHitStrip1D</a>) hit).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>             <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = ((<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>             clusterPositionSensorCoord.get(sensor.getName()).fill(local.getPosition()[1],local.getPosition()[0]);
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             clusterTime.get(sensor.getName()).fill(hit.getTime());
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>             clusterPositionZ.get(sensor.getName()).fill(hit.getPosition()[2]);
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>             clusterPosition.get(sensor.getName()).fill(hit.getPosition()[0],hit.getPosition()[1]);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>             <strong class="jxr_keyword">int</strong> channel = ((RawTrackerHit) hit.getRawHits().get(0)).getIdentifierFieldValue(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>             xPosvsChan.get(sensor.getName()).fill(channel, hit.getPosition()[0]);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>             yPosvsChan.get(sensor.getName()).fill(channel, hit.getPosition()[1]);
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>             <strong class="jxr_keyword">double</strong> dist = 9999;
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>             <strong class="jxr_keyword">double</strong> [] pos1 = hit.getPosition();
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             <strong class="jxr_keyword">double</strong> [] minpos2 = {9999,9999,9999};
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>             <strong class="jxr_keyword">for</strong>(TrackerHit hit2 : clusterHits){
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>                 <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor2 = ((<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) hit2.getRawHits().get(0)).getDetectorElement());
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>                 <strong class="jxr_keyword">if</strong>(!(sensor.getLayerNumber() == sensor2.getLayerNumber())){
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>                 }
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>                 <strong class="jxr_keyword">if</strong>(sensor.isTopLayer() == sensor2.isTopLayer()){
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>                 }
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>                 <strong class="jxr_keyword">if</strong>(sensor.equals(sensor2)){
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>                 }
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>                 <strong class="jxr_keyword">double</strong> [] pos2 = hit2.getPosition();
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>                 <strong class="jxr_keyword">if</strong>(Math.sqrt((pos1[0]-pos2[0])*(pos1[0]-pos2[0])+(pos1[1]-pos2[1])*(pos1[1]-pos2[1])) &lt; dist){
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>                     dist = Math.sqrt((pos1[0]-pos2[0])*(pos1[0]-pos2[0])+(pos1[1]-pos2[1])*(pos1[1]-pos2[1]));
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>                     minpos2 = pos2;
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>                 }
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>                 <em class="jxr_comment">//System.out.println(sensor.getName() + " " + sensor2.getName() + " " + dist);</em>
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             }
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>             <em class="jxr_comment">//System.out.println("Min Distance " + dist);</em>
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>             clusterDiff.get(sensor.getName()).fill(dist);
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>             clusterDiff2D.get(sensor.getName()).fill(pos1[0]-minpos2[0],pos1[1]-minpos2[1]);
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>         }
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>         
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>         <strong class="jxr_keyword">for</strong>(TrackerHit hit : helicalTrackHits){
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             <strong class="jxr_keyword">int</strong> i = 1;
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>             <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor =  ((<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>             helicalTrackHitTime.get(sensor.getName()).fill(hit.getTime());
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>             helicalTrackHitPositionZ.get(sensor.getName()).fill(hit.getPosition()[2]);
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>             helicalTrackHitPosition.get(sensor.getName()).fill(hit.getPosition()[0],hit.getPosition()[1]);
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>         }
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>         <strong class="jxr_keyword">if</strong>(event.hasCollection(Track.<strong class="jxr_keyword">class</strong>, trackCollectionName)){
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>             List&lt;Track&gt; tracks = event.get(Track.<strong class="jxr_keyword">class</strong>, trackCollectionName);
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>             <strong class="jxr_keyword">for</strong>(Track track : tracks){
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>                 TrackState ts = track.getTrackStates().get(0);
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>                 <strong class="jxr_keyword">double</strong>[] p = ts.getMomentum();
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>                 <strong class="jxr_keyword">double</strong> pTot = Math.sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>                 trackP.fill(pTot);
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>                 <strong class="jxr_keyword">if</strong>(ts.getOmega() &gt; 0){
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>                     trackEleP.fill(pTot);
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>                 }
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>                 <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                     trackPosP.fill(pTot);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>                 }
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>                 <strong class="jxr_keyword">if</strong>(p[1] &gt; 0){
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                     trackTopP.fill(pTot);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>                     <strong class="jxr_keyword">if</strong>(ts.getOmega() &gt; 0){
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>                         trackEleTopP.fill(pTot);
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>                     }
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                     <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>                         trackPosTopP.fill(pTot);
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>                     }
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>                 }
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>                 <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>                     trackBotP.fill(pTot);
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>                     <strong class="jxr_keyword">if</strong>(ts.getOmega() &gt; 0){
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>                         trackEleBotP.fill(pTot);
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>                     }
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>                     <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>                         trackPosBotP.fill(pTot);
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>                     }
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>                 }
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>             }
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>         }
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>     }
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

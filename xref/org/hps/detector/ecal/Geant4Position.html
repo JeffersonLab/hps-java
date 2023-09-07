@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>Geant4Position xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/detector/ecal/Geant4Position.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.detector.ecal;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> * Calculate G4 position for a crystal, by it's front and back face coordinates calculates the position for the center</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> * of the crystal calculates the rotation of the crystal in convention of Tait-Bryan angles, {phi, theta, psi}</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> * phi-rotation around X theta-rotation around Y psi-rotation around Z</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a name="Geant4Position" href="../../../../org/hps/detector/ecal/Geant4Position.html#Geant4Position">Geant4Position</a> {
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>      <em class="jxr_comment">/* center coordinates */</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>      <strong class="jxr_keyword">private</strong> <a name="GVector" href="../../../../org/hps/detector/ecal/GVector.html#GVector">GVector</a> centerPoint;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <em class="jxr_comment">/* crystal vector formed by front face center point and back face center point */</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">private</strong> <a name="GVector" href="../../../../org/hps/detector/ecal/GVector.html#GVector">GVector</a> crysvec;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <em class="jxr_comment">/* { phi,theta,psi=0}; Tait-Bryan angles to define crystal orientation in the space */</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong>[] taitbriangles;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      <em class="jxr_comment">/* crystal center coordinates as a double[3] array */</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong>[] centerArr;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment">     * constructor</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment">     * @param point1 (x,y,z) of crystal front face center point as GVector</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment">     * @param point2 (x,y,z) of crystal back face center point as GVector</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <strong class="jxr_keyword">public</strong> <a name="Geant4Position" href="../../../../org/hps/detector/ecal/Geant4Position.html#Geant4Position">Geant4Position</a>(<a name="GVector" href="../../../../org/hps/detector/ecal/GVector.html#GVector">GVector</a> point1, <a name="GVector" href="../../../../org/hps/detector/ecal/GVector.html#GVector">GVector</a> point2) {
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          centerPoint = point2.Add(point1).Multiply(0.5);
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          centerArr = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[3];
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          centerArr[0] = centerPoint.x();
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          centerArr[1] = centerPoint.y();
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          centerArr[2] = centerPoint.z();
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          crysvec = (point2.Substract(centerPoint)).getUnitVector();
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          taitbriangles = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[3];
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          <strong class="jxr_keyword">this</strong>.calculateTaitBryanAngles();
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      }
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">     * @return center coordinates as a GVector</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">public</strong> <a name="GVector" href="../../../../org/hps/detector/ecal/GVector.html#GVector">GVector</a> getCenter() {
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.centerPoint;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      }
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">     * @return center coordinates as an array double[x_center, y_center, z_center]</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong>[] getCenterArr() {
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">return</strong> centerArr;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      }
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">     * @return Tait-Bryan angles as an array doubles [phi, theta, psi]</em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong>[] getTaitBryanAngles() {
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">this</strong>.taitbriangles;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <em class="jxr_comment">     * calculates Tait-Bryan angles for the object orientation defined by initial and final state vectors throws</em>
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <em class="jxr_comment">     * arithmetical exception if the phi angle is calculated wrong or 0</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_comment">     */</em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> calculateTaitBryanAngles() <strong class="jxr_keyword">throws</strong> ArithmeticException {
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <a name="CrystalTaitBryanAngleCalculator" href="../../../../org/hps/detector/ecal/CrystalTaitBryanAngleCalculator.html#CrystalTaitBryanAngleCalculator">CrystalTaitBryanAngleCalculator</a> crysTBang = <strong class="jxr_keyword">new</strong> <a name="CrystalTaitBryanAngleCalculator" href="../../../../org/hps/detector/ecal/CrystalTaitBryanAngleCalculator.html#CrystalTaitBryanAngleCalculator">CrystalTaitBryanAngleCalculator</a>(crysvec);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          <strong class="jxr_keyword">if</strong> (crysTBang.getPhi() == Double.NaN) {
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> ArithmeticException(<span class="jxr_string">"Calculated Tait-Bryan phi angle is NaN."</span>);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          }
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          <strong class="jxr_keyword">this</strong>.taitbriangles[0] = -crysTBang.getPhi();
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          <strong class="jxr_keyword">this</strong>.taitbriangles[1] = -crysTBang.getTheta();
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          <strong class="jxr_keyword">this</strong>.taitbriangles[2] = -crysTBang.getPsi();
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      }
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  <em class="jxr_javadoccomment">     * Print crystal center coordinates(X,Y,Z) and Tait-Bryan angles</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> Print() {
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          <strong class="jxr_keyword">this</strong>.centerPoint.Print();
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      }
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  <em class="jxr_javadoccomment">     * @return String of Geant4Position object attributes</em>
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>          <strong class="jxr_keyword">return</strong> (<span class="jxr_string">"\&quot;Crys Center coordinates:&#92;&#92;t\&quot;"</span> + <strong class="jxr_keyword">this</strong>.centerPoint.toString() + <span class="jxr_string">"Tait Brian angles phi = "</span>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>                  + Math.toDegrees(<strong class="jxr_keyword">this</strong>.taitbriangles[0]) + <span class="jxr_string">"\t theta = "</span> + Math.toDegrees(<strong class="jxr_keyword">this</strong>.taitbriangles[1])
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>                  + <span class="jxr_string">"\t psi = "</span> + Math.toDegrees(<strong class="jxr_keyword">this</strong>.taitbriangles[2]) + <span class="jxr_string">"\n"</span>);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      }
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

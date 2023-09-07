@@ -1,0 +1,415 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>SvtMonitoring xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/dataquality/SvtMonitoring.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.dataquality;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.aida.IAnalysisFactory;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.aida.IFitFactory;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.aida.IFitResult;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> hep.aida.IFitter;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram1D;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram2D;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> hep.aida.IPlotter;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> hep.aida.IPlotterStyle;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> java.sql.SQLException;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Level;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.FittedRawTrackerHit;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.ShapeFitParameters;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.DopedSilicon;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.HpsSiSensor;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.GenericObject;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.LCRelation;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RelationalTable;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackerHit;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseRelationalTable;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> * DQM driver for reconstructed track quantities plots</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> * things like occupancy, t0, amplitude, chi^2 (from APV25 sampling fit); each</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> * on a per/sensor basis saves to DQM database: &lt;occupancy&gt;</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_comment">//TODO:  add some more quantities to DQM database:  &lt;t0&gt; or &lt;sigma&gt;_t0 for intime events;  &lt;chi^2&gt;, &lt;amplitude&gt; etc</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="SvtMonitoring" href="../../../../org/hps/analysis/dataquality/SvtMonitoring.html#SvtMonitoring">SvtMonitoring</a> <strong class="jxr_keyword">extends</strong> <a name="DataQualityMonitor" href="../../../../org/hps/analysis/dataquality/DataQualityMonitor.html#DataQualityMonitor">DataQualityMonitor</a> {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Logger LOGGER = Logger.getLogger(SvtMonitoring.<strong class="jxr_keyword">class</strong>.getPackage().getName());
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">private</strong> String rawTrackerHitCollectionName = <span class="jxr_string">"SVTRawTrackerHits"</span>;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> String fittedTrackerHitCollectionName = <span class="jxr_string">"SVTFittedRawTrackerHits"</span>;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">private</strong> String trackerHitCollectionName = <span class="jxr_string">"StripClusterer_SiTrackerHitStrip1D"</span>;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">private</strong> Detector detector = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">private</strong> IPlotter plotter;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String trackerName = <span class="jxr_string">"Tracker"</span>;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">private</strong> List&lt;HpsSiSensor&gt; sensors;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      <strong class="jxr_keyword">private</strong> Map&lt;String, <strong class="jxr_keyword">int</strong>[]&gt; occupancyMap;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <strong class="jxr_keyword">private</strong> Map&lt;String, Double&gt; avgOccupancyMap;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">private</strong> Map&lt;String, String&gt; avgOccupancyNames;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">private</strong> Map&lt;String, Double&gt; avgt0Map;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> Map&lt;String, Double&gt; sigt0Map;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">private</strong> Map&lt;String, String&gt; avgt0Names;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">private</strong> Map&lt;String, String&gt; sigt0Names;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> eventCountRaw = 0;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> eventCountFit = 0;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> eventCountCluster = 0;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String nameStrip = <span class="jxr_string">"Tracker_TestRunModule_"</span>;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> maxChannels = 640;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String plotDir = <span class="jxr_string">"SvtMonitoring/"</span>;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> maxSamplePosition = 3;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> timeWindowWeight = 3;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">boolean</strong> makeExtraPlots = false;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> minChargeCut = 600.0;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> clTime=40; <em class="jxr_comment">//abs value (ns)</em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setRawTrackerHitCollectionName(String inputCollection) {
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          <strong class="jxr_keyword">this</strong>.rawTrackerHitCollectionName = inputCollection;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      }
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setFittedTrackerHitCollectionName(String inputCollection) {
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          <strong class="jxr_keyword">this</strong>.fittedTrackerHitCollectionName = inputCollection;
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      }
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setTrackerHitCollectionName(String inputCollection) {
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          <strong class="jxr_keyword">this</strong>.trackerHitCollectionName = inputCollection;
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      }
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> MakeExtraPlots(<strong class="jxr_keyword">boolean</strong> make) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          <strong class="jxr_keyword">this</strong>.makeExtraPlots = make;
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      }
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      @Override
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector) {
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          LOGGER.info(<span class="jxr_string">"Setting up the plotter"</span>);
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          <strong class="jxr_keyword">this</strong>.detector = detector;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          aida.tree().cd(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          <em class="jxr_comment">// Make a list of SiSensors in the SVT.</em>
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          sensors = <strong class="jxr_keyword">this</strong>.detector.getSubdetector(trackerName).getDetectorElement().findDescendants(HpsSiSensor.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          <em class="jxr_comment">// Reset the data structure that keeps track of strip occupancies.</em>
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          reset();
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         <em class="jxr_comment">// Setup the occupancy plots.</em>
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         aida.tree().cd(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor : sensors) {
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>             <strong class="jxr_keyword">int</strong> i = sensor.getLayerNumber();
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>             <strong class="jxr_keyword">double</strong> maxHTHX = 150.0;
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>             <strong class="jxr_keyword">double</strong> maxHTHY = 50.0;
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>             <strong class="jxr_keyword">if</strong> (i &lt; 5) {
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>                 maxHTHX = 10;
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>                 maxHTHY = 15;
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (i &lt; 9) {
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>                 maxHTHX = 50;
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>                 maxHTHY = 30;
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>             }
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>             <em class="jxr_comment">//IHistogram1D occupancyPlot = aida.histogram1D(sensor.getName().replaceAll("Tracker_TestRunModule_", ""), 640, 0, 639);</em>
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>             IHistogram1D occupancyPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"occupancy_"</span>, sensor, maxChannels, 0, maxChannels - 1, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>             IHistogram1D t0Plot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0Hit_"</span>, sensor, 200, -100., 100., <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>             IHistogram1D nHits = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"nHitsPerEvent_"</span>, sensor, 100, -0.5, 99.5, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>             IHistogram1D pileup = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"nFitsPerHit_"</span>, sensor, 3, 0.5, 3.5, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> 
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>             IHistogram1D amplitudePlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"amplitude_"</span>, sensor, 50, 0, 3000.0, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>             <strong class="jxr_keyword">if</strong> (makeExtraPlots) {
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>                 IHistogram2D t0AmpPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0AmpHit_"</span>, sensor, 200, -100., 100., 50, 0, 4000.0, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>                 IHistogram2D t0ChanPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0ChanBigHit_"</span>, sensor, 640, -0.5, 639.5, 200, -100., 100., <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>                 IHistogram2D ampChanPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"ampChanHit_"</span>, sensor, 640, -0.5, 639.5, 50, 0, 4000, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>                 IHistogram2D chiprobChanPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"chiprobChanBigHit_"</span>, sensor, 640, -0.5, 639.5, 50, 0, 1.0, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>             }
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>             IHistogram2D t0TrigTimeHitPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0BigHitTrigTime_"</span>, sensor, 200, -100., 100., 6, 0, 24, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>             IHistogram1D chiProbPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"chiProb_"</span>, sensor, 50, 0, 1.0, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>             IHistogram1D t0ClusterPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0Cluster_"</span>, sensor, 200, -100., 100., <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>             IHistogram2D t0TrigTimePlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0ClusterTrigTime_"</span>, sensor, 200, -100., 100., 6, 0, 24, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>             IHistogram2D clusterPositionPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"clusterPositionPlot_"</span>, sensor, 100, -maxHTHX, maxHTHX, 100, -maxHTHY, maxHTHY, <strong class="jxr_keyword">true</strong>);           
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>             IHistogram1D dedxClusterPlot = PlotAndFitUtilities.createSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"charge_"</span>, sensor, 50, 0., 2500., <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>             IHistogram2D dedxVsYClusterPlot = PlotAndFitUtilities.createSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"chargeVsY_"</span>, sensor, 100, 0.0, maxHTHY, 100, minChargeCut, 2500., <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>             occupancyPlot.reset();
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>         }
+<a class="jxr_linenumber" name="L136" href="#L136">136</a> 
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>     }
+<a class="jxr_linenumber" name="L138" href="#L138">138</a> 
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>     <strong class="jxr_keyword">public</strong> <a name="SvtMonitoring" href="../../../../org/hps/analysis/dataquality/SvtMonitoring.html#SvtMonitoring">SvtMonitoring</a>() {
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>     }
+<a class="jxr_linenumber" name="L141" href="#L141">141</a> 
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L143" href="#L143">143</a> 
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>         <em class="jxr_comment">//check to see if this event is from the correct trigger (or "all");</em>
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         <strong class="jxr_keyword">if</strong> (!matchTrigger(event))
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L147" href="#L147">147</a> 
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>         <em class="jxr_comment">/*  increment the strip occupancy arrays */</em>
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>         Map&lt;String, Integer&gt; hitsPerSensor = <strong class="jxr_keyword">new</strong> HashMap&lt;String, Integer&gt;();
+<a class="jxr_linenumber" name="L150" href="#L150">150</a> 
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(RawTrackerHit.<strong class="jxr_keyword">class</strong>, rawTrackerHitCollectionName)) {
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> <em class="jxr_comment">//            LOGGER.info("Found a raw hit collection");</em>
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>             List&lt;RawTrackerHit&gt; rawTrackerHits = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, rawTrackerHitCollectionName);
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>             <strong class="jxr_keyword">for</strong> (RawTrackerHit hit : rawTrackerHits) {
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>                 <strong class="jxr_keyword">short</strong>[] adcValues = hit.getADCValues();
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> 
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>                 <em class="jxr_comment">// Find the sample that has the largest amplitude. This should</em>
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>                 <em class="jxr_comment">// correspond to the peak of the shaper signal if the SVT is timed</em>
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>                 <em class="jxr_comment">// in correctly. Otherwise, the maximum sample value will default</em>
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>                 <em class="jxr_comment">// to 0.</em>
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>                 <strong class="jxr_keyword">int</strong> maxAmplitude = 0;
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>                 <strong class="jxr_keyword">int</strong> maxSamplePositionFound = -1;
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> sampleN = 0; sampleN &lt; 6; sampleN++)
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>                     <strong class="jxr_keyword">if</strong> (adcValues[sampleN] &gt; maxAmplitude) {
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>                         maxAmplitude = adcValues[sampleN];
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>                         maxSamplePositionFound = sampleN;
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>                     }
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>                 <strong class="jxr_keyword">if</strong> (maxSamplePosition == -1 || maxSamplePosition == maxSamplePositionFound)
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>                     occupancyMap.get(hit.getDetectorElement().getName())[hit.getIdentifierFieldValue(<span class="jxr_string">"strip"</span>)]++; <em class="jxr_comment">//                System.out.println("Filling occupancy");</em>
+<a class="jxr_linenumber" name="L170" href="#L170">170</a> 
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>                 Integer nHits = hitsPerSensor.get(hit.getDetectorElement().getName());
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>                 <strong class="jxr_keyword">if</strong> (nHits == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>                     nHits = 0;
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>                 nHits++;
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>                 hitsPerSensor.put(hit.getDetectorElement().getName(), nHits);
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>             }
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>             ++eventCountRaw;
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         }
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor : sensors) {
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>             IHistogram1D sensorHist = PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"nHitsPerEvent_"</span>, sensor, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>             Integer nHits = hitsPerSensor.get(sensor.getName());
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>             <strong class="jxr_keyword">if</strong> (nHits == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>                 sensorHist.fill(0);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>                 sensorHist.fill(nHits);
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         }
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         <em class="jxr_comment">/*  fill the FittedTrackerHit related histograms */</em>
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(LCRelation.<strong class="jxr_keyword">class</strong>, fittedTrackerHitCollectionName)) {
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>             List&lt;LCRelation&gt; fittedTrackerHits = event.get(LCRelation.<strong class="jxr_keyword">class</strong>, fittedTrackerHitCollectionName);
+<a class="jxr_linenumber" name="L190" href="#L190">190</a> 
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>             RelationalTable rthtofit = <strong class="jxr_keyword">new</strong> BaseRelationalTable(RelationalTable.Mode.ONE_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>             <strong class="jxr_keyword">for</strong> (LCRelation hit : fittedTrackerHits)
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>                 rthtofit.add(FittedRawTrackerHit.getRawTrackerHit(hit), FittedRawTrackerHit.getShapeFitParameters(hit));
+<a class="jxr_linenumber" name="L194" href="#L194">194</a> 
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>             <strong class="jxr_keyword">for</strong> (LCRelation hit : fittedTrackerHits) {
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>                 RawTrackerHit rth = (RawTrackerHit) hit.getFrom();
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>                 GenericObject pars = (GenericObject) hit.getTo();
+<a class="jxr_linenumber" name="L198" href="#L198">198</a> 
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>                 <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = ((<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) rth.getDetectorElement());
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>                 <em class="jxr_comment">//this is a clever way to get the parameters we want from the generic object</em>
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>                 <strong class="jxr_keyword">double</strong> t0 = ShapeFitParameters.getT0(pars);
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>                 <strong class="jxr_keyword">double</strong> amp = ShapeFitParameters.getAmp(pars) ;
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>                 <strong class="jxr_keyword">double</strong> chiProb = ShapeFitParameters.getChiProb(pars);
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>                 <strong class="jxr_keyword">int</strong> channel = rth.getIdentifierFieldValue(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"nFitsPerHit_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(rthtofit.allFrom(rth).size());
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0Hit_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(t0);
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"amplitude_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(amp);
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>                 <strong class="jxr_keyword">if</strong> (makeExtraPlots)
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0AmpHit_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(t0, amp);
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"chiProb_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(chiProb);
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>                 <strong class="jxr_keyword">if</strong> (makeExtraPlots)
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"ampChanHit_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(channel, amp);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>                 <strong class="jxr_keyword">if</strong> (amp &gt; minChargeCut &amp;&amp; makeExtraPlots) {
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0ChanBigHit_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(channel, t0);
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"chiprobChanBigHit_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(channel, chiProb);
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>                 }
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>                 <strong class="jxr_keyword">if</strong> (amp &gt; minChargeCut)
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0BigHitTrigTime_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(t0, event.getTimeStamp() % 24);
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>             }
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>             ++eventCountFit;
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         }
+<a class="jxr_linenumber" name="L222" href="#L222">222</a> 
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">if</strong> (event.hasItem(trackerHitCollectionName)) {
+<a class="jxr_linenumber" name="L224" href="#L224">224</a> <em class="jxr_comment">//            LOGGER.info("Found a Si cluster collection");</em>
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>             List&lt;TrackerHit&gt; siClusters = (List&lt;TrackerHit&gt;) event.get(trackerHitCollectionName);
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">for</strong> (TrackerHit cluster : siClusters) {
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>                 <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) cluster.getRawHits().get(0)).getDetectorElement();
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>                 <strong class="jxr_keyword">double</strong> t0 = cluster.getTime();
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>                 <strong class="jxr_keyword">double</strong> dedx = cluster.getdEdx() / DopedSilicon.ENERGY_EHPAIR;
+<a class="jxr_linenumber" name="L230" href="#L230">230</a> <em class="jxr_comment">//                LOGGER.info("dedx = "+dedx);</em>
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>                 PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"clusterPositionPlot_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(cluster.getPosition()[0], cluster.getPosition()[1]);
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0Cluster_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(t0);
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>                 PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0ClusterTrigTime_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(t0, event.getTimeStamp() % 24);
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>                 PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"charge_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(dedx);
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>                 <strong class="jxr_keyword">if</strong> (dedx &gt; minChargeCut &amp;&amp; Math.abs(t0)&lt;clTime)
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>                     PlotAndFitUtilities.getSensorPlot2D(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"chargeVsY_"</span>, sensor, <strong class="jxr_keyword">true</strong>).fill(Math.abs(cluster.getPosition()[1]), dedx);
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             }
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>         }
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>     }
+<a class="jxr_linenumber" name="L240" href="#L240">240</a> 
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> resetOccupancyMap() {
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>         occupancyMap = <strong class="jxr_keyword">new</strong> HashMap&lt;String, <strong class="jxr_keyword">int</strong>[]&gt;();
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         avgOccupancyMap = <strong class="jxr_keyword">new</strong> HashMap&lt;String, Double&gt;();
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>         avgOccupancyNames = <strong class="jxr_keyword">new</strong> HashMap&lt;String, String&gt;();
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>         avgt0Names = <strong class="jxr_keyword">new</strong> HashMap&lt;String, String&gt;();
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>         sigt0Names = <strong class="jxr_keyword">new</strong> HashMap&lt;String, String&gt;();
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>         avgt0Map = <strong class="jxr_keyword">new</strong> HashMap&lt;String, Double&gt;();
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>         sigt0Map = <strong class="jxr_keyword">new</strong> HashMap&lt;String, Double&gt;();
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>         <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor : sensors) {
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>             occupancyMap.put(sensor.getName(), <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[640]);
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>             avgOccupancyMap.put(sensor.getName(), -999.);
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>             String occName = <span class="jxr_string">"avgOcc_"</span> + getNiceSensorName(sensor);
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>             avgOccupancyNames.put(sensor.getName(), occName);
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>             String avgt0Name = <span class="jxr_string">"avgt0_"</span> + getNiceSensorName(sensor);
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>             String sigt0Name = <span class="jxr_string">"sigmat0_"</span> + getNiceSensorName(sensor);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a> 
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>             avgt0Names.put(sensor.getName(), avgt0Name);
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>             sigt0Names.put(sensor.getName(), sigt0Name);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>         }
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>     }
+<a class="jxr_linenumber" name="L261" href="#L261">261</a> 
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>     <strong class="jxr_keyword">private</strong> String getNiceSensorName(<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor) {
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>         <strong class="jxr_keyword">return</strong> sensor.getName().replaceAll(nameStrip, <span class="jxr_string">""</span>)
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>                 .replace(<span class="jxr_string">"module"</span>, <span class="jxr_string">"mod"</span>)
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>                 .replace(<span class="jxr_string">"layer"</span>, <span class="jxr_string">"lyr"</span>)
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>                 .replace(<span class="jxr_string">"sensor"</span>, <span class="jxr_string">"sens"</span>);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>     }
+<a class="jxr_linenumber" name="L268" href="#L268">268</a> 
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> reset() {
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>         eventCountRaw = 0;
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>         eventCountFit = 0;
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         eventCountCluster = 0;
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         resetOccupancyMap();
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>     }
+<a class="jxr_linenumber" name="L275" href="#L275">275</a> 
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     @Override
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> fillEndOfRunPlots() {
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>         <em class="jxr_comment">// Plot strip occupancies.</em>
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         LOGGER.info(<span class="jxr_string">"SvtMonitoring::endOfData  filling occupancy plots"</span>);
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor : sensors) {
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>             Double avg = 0.0;
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>             <em class="jxr_comment">//IHistogram1D sensorHist = aida.histogram1D(sensor.getName());</em>
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>             IHistogram1D sensorHist = PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"occupancy_"</span>, sensor, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>             sensorHist.reset();
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>             <strong class="jxr_keyword">int</strong>[] strips = occupancyMap.get(sensor.getName());
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; strips.length; i++) {
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>                 <strong class="jxr_keyword">double</strong> stripOccupancy = (<strong class="jxr_keyword">double</strong>) strips[i] / (<strong class="jxr_keyword">double</strong>) (eventCountRaw);
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>                 <strong class="jxr_keyword">if</strong> (stripOccupancy != 0)
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>                     sensorHist.fill(i, stripOccupancy / timeWindowWeight);
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                 avg += stripOccupancy;
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>             }
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>             <em class="jxr_comment">//do the end-of-run quantities here too since we've already done the loop.  </em>
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>             avg /= strips.length;
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>             avgOccupancyMap.put(sensor.getName(), avg);
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>         }
+<a class="jxr_linenumber" name="L296" href="#L296">296</a> 
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>     }
+<a class="jxr_linenumber" name="L298" href="#L298">298</a> 
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>     @Override
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> calculateEndOfRunQuantities() {
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>         IFitFactory fitFactory = analysisFactory.createFitFactory();
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         IFitter fitter = fitFactory.createFitter(<span class="jxr_string">"chi2"</span>);
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>         IPlotter plotterTop = analysisFactory.createPlotterFactory().create(<span class="jxr_string">"t0 Top"</span>);
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         IPlotter plotterBottom = analysisFactory.createPlotterFactory().create(<span class="jxr_string">"t0 Bottom"</span>);
+<a class="jxr_linenumber" name="L306" href="#L306">306</a> 
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>         plotterTop.createRegions(4, 5);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         IPlotterStyle pstyle = plotterTop.style();
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>         pstyle.legendBoxStyle().setVisible(false);
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>         plotterBottom.createRegions(4, 5);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>         IPlotterStyle pstyle2 = plotterBottom.style();
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>         pstyle2.legendBoxStyle().setVisible(false);
+<a class="jxr_linenumber" name="L313" href="#L313">313</a> 
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>         <strong class="jxr_keyword">int</strong> irTop = 0;
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>         <strong class="jxr_keyword">int</strong> irBot = 0;
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>         <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor : sensors) {
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>             IHistogram1D sensPlot = PlotAndFitUtilities.getSensorPlot(plotDir + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"t0Hit_"</span>, sensor, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>             IFitResult result = fitGaussian(sensPlot, fitter, <span class="jxr_string">"range=\&quot;(-8.0,8.0)\&quot;"</span>);
+<a class="jxr_linenumber" name="L319" href="#L319">319</a> 
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>             <strong class="jxr_keyword">boolean</strong> isTop = sensor.isTopLayer();
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>             <strong class="jxr_keyword">if</strong> (isTop) {
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>                 plotterTop.region(irTop).plot(sensPlot);
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>                 plotterTop.region(irTop).plot(result.fittedFunction());
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>                 irTop++;
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>                 plotterBottom.region(irBot).plot(sensPlot);
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>                 plotterBottom.region(irBot).plot(result.fittedFunction());
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>                 irBot++;
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>             }
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>             avgt0Map.put(sensor.getName(), result.fittedParameters()[1]);
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>             sigt0Map.put(sensor.getName(), result.fittedParameters()[2]);
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         }
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>         <strong class="jxr_keyword">if</strong> (outputPlots) {
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>                 plotterTop.writeToFile(outputPlotDir + <span class="jxr_string">"t0TopPlots.png"</span>);
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>             } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>                 Logger.getLogger(SvtMonitoring.<strong class="jxr_keyword">class</strong>.getName()).log(Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>             }
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>                 plotterBottom.writeToFile(outputPlotDir + <span class="jxr_string">"t0BottomPlots.png"</span>);
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>             } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>                 Logger.getLogger(SvtMonitoring.<strong class="jxr_keyword">class</strong>.getName()).log(Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>             }
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>         }
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>     }
+<a class="jxr_linenumber" name="L346" href="#L346">346</a> 
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>     @Override
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> dumpDQMData() {
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>         <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor : sensors) {
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>             String name = avgOccupancyNames.get(sensor.getName());
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>             <strong class="jxr_keyword">double</strong> occ = avgOccupancyMap.get(sensor.getName());
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>             checkAndUpdate(name, occ);
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>             String avgt0Name = avgt0Names.get(sensor.getName());
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>             <strong class="jxr_keyword">double</strong> avgt0 = avgt0Map.get(sensor.getName());
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>             checkAndUpdate(avgt0Name, avgt0);
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>             String sigt0Name = sigt0Names.get(sensor.getName());
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>             <strong class="jxr_keyword">double</strong> sigt0 = sigt0Map.get(sensor.getName());
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>             checkAndUpdate(sigt0Name, sigt0);
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>         }
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>     }
+<a class="jxr_linenumber" name="L361" href="#L361">361</a> 
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>     @Override
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> printDQMData() {
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>         <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor : sensors) {
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>             LOGGER.info(avgOccupancyNames.get(sensor.getName()) + <span class="jxr_string">"  "</span> + triggerType + <span class="jxr_string">" "</span> + avgOccupancyMap.get(sensor.getName()));
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>             LOGGER.info(avgt0Names.get(sensor.getName()) + <span class="jxr_string">"  "</span> + triggerType + <span class="jxr_string">" "</span> + avgt0Map.get(sensor.getName()));
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>             LOGGER.info(sigt0Names.get(sensor.getName()) + <span class="jxr_string">"  "</span> + triggerType + <span class="jxr_string">" "</span> + sigt0Map.get(sensor.getName()));
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>         }
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>     }
+<a class="jxr_linenumber" name="L370" href="#L370">370</a> 
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>     @Override
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> printDQMStrings() {
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>         <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor : sensors) {
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>             LOGGER.info(<span class="jxr_string">"ALTER TABLE dqm ADD "</span> + avgOccupancyNames.get(sensor.getName()) + <span class="jxr_string">" double;"</span>);
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>             LOGGER.info(<span class="jxr_string">"ALTER TABLE dqm ADD "</span> + avgt0Names.get(sensor.getName()) + <span class="jxr_string">" double;"</span>);
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>             LOGGER.info(<span class="jxr_string">"ALTER TABLE dqm ADD "</span> + sigt0Names.get(sensor.getName()) + <span class="jxr_string">" double;"</span>);
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>         }
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>     }
+<a class="jxr_linenumber" name="L379" href="#L379">379</a> 
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>     IFitResult fitGaussian(IHistogram1D h1d, IFitter fitter, String range) {
+<a class="jxr_linenumber" name="L381" href="#L381">381</a> <em class="jxr_comment">//        return fitter.fit(h1d, "g", range);</em>
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>         <strong class="jxr_keyword">double</strong>[] init = {20.0, 0.0, 4.0, 20, -1};
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>         <strong class="jxr_keyword">return</strong> fitter.fit(h1d, <span class="jxr_string">"g+p1"</span>, init, range);
+<a class="jxr_linenumber" name="L384" href="#L384">384</a> 
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>     }
+<a class="jxr_linenumber" name="L386" href="#L386">386</a> 
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>     <strong class="jxr_keyword">void</strong> checkAndUpdate(String name, <strong class="jxr_keyword">double</strong> val) {
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>         <strong class="jxr_keyword">boolean</strong> isnull = false;
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>             isnull = checkSelectionIsNULL(name);
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>         } <strong class="jxr_keyword">catch</strong> (SQLException ex) {
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             Logger.getLogger(SvtMonitoring.<strong class="jxr_keyword">class</strong>.getName()).log(Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>         }
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>         <strong class="jxr_keyword">if</strong> (!overwriteDB &amp;&amp; !isnull) {
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>             LOGGER.info(<span class="jxr_string">"Not writing because "</span> + name + <span class="jxr_string">" is already filled for this entry"</span>);
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>             <strong class="jxr_keyword">return</strong>; <em class="jxr_comment">//entry exists and I don't want to overwrite                </em>
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>         }
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>         String put = <span class="jxr_string">"update dqm SET "</span> + name + <span class="jxr_string">" = "</span> + val + <span class="jxr_string">" WHERE "</span> + getRunRecoString();
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>         LOGGER.info(put);
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>         manager.updateQuery(put);
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>     }
+<a class="jxr_linenumber" name="L402" href="#L402">402</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

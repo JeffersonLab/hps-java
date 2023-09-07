@@ -1,0 +1,681 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>HelixState xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/recon/tracking/kalman/HelixState.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.tracking.kalman;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.Collections;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.Comparator;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.util.logging.Level;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.apache.commons.math.util.FastMath;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.ejml.data.DMatrix3x3;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.ejml.data.DMatrixRMaj;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.ejml.dense.row.CommonOps_DDRM;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.ejml.dense.row.MatrixFeatures_DDRM;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.ejml.dense.fixed.CommonOps_DDF3;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.hps.util.Pair;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackState;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * Helix description for the Kalman filter</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">class</strong> <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a> <strong class="jxr_keyword">implements</strong> Cloneable {
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> a;                      <em class="jxr_comment">// Helix parameters: rho0, phi0, K, z0, tan(lambda)</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> X0;                     <em class="jxr_comment">// Pivot point of helix in the B-field reference frame (local field coordinates)</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a> Rot;              <em class="jxr_comment">// Rotation from the global coordinates to the local field coordinates </em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> origin;                 <em class="jxr_comment">// Origin of the local field coordinates in the global system.</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      DMatrixRMaj C;              <em class="jxr_comment">// Helix covariance matrix </em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <strong class="jxr_keyword">double</strong> B;                   <em class="jxr_comment">// Magnetic field magnitude at origin</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> tB;                     <em class="jxr_comment">// Magnetic field direction at origin</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <strong class="jxr_keyword">double</strong> alpha;               <em class="jxr_comment">// Conversion from 1/K to radius R</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> c;           <em class="jxr_comment">// Speed of light</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">private</strong> Logger logger;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">private</strong> <a name="HelixPlaneIntersect" href="../../../../../org/hps/recon/tracking/kalman/HelixPlaneIntersect.html#HelixPlaneIntersect">HelixPlaneIntersect</a> hpi;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <strong class="jxr_keyword">private</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> xPlaneRK;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">public</strong> Object clone() {
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>              <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">super</strong>.clone();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          } <strong class="jxr_keyword">catch</strong> (CloneNotSupportedException e) {
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>              logger.severe(<span class="jxr_string">"HelixState: unable to clone!"</span>);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>              e.printStackTrace();
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>              <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          }
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      }
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a>(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> a, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> X0, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> origin, DMatrixRMaj C, <strong class="jxr_keyword">double</strong> B, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> tB) {
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          logger = Logger.getLogger(HelixState.<strong class="jxr_keyword">class</strong>.getName());
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          <strong class="jxr_keyword">this</strong>.a = a;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">this</strong>.X0 = X0;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          <strong class="jxr_keyword">this</strong>.origin = origin;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          <strong class="jxr_keyword">this</strong>.C = C;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          <strong class="jxr_keyword">this</strong>.B = B;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>          <strong class="jxr_keyword">this</strong>.tB = tB;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          hpi = <strong class="jxr_keyword">new</strong> <a name="HelixPlaneIntersect" href="../../../../../org/hps/recon/tracking/kalman/HelixPlaneIntersect.html#HelixPlaneIntersect">HelixPlaneIntersect</a>();
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          c = 2.99793e8; <em class="jxr_comment">// Speed of light in m/s</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          alpha = 1.0e12 / (c * B); <em class="jxr_comment">// Convert from pt in GeV to curvature in mm</em>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> yhat = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0., 1.0, 0.);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> u = yhat.cross(tB).unitVec();
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> v = tB.cross(u);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          Rot = <strong class="jxr_keyword">new</strong> <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a>(u, v, tB);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      }
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a>(<strong class="jxr_keyword">double</strong> B, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> tB, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> origin) {
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          logger = Logger.getLogger(HelixState.<strong class="jxr_keyword">class</strong>.getName());
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          <strong class="jxr_keyword">this</strong>.origin = origin;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          <strong class="jxr_keyword">this</strong>.B = B;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <strong class="jxr_keyword">this</strong>.tB = tB;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          hpi = <strong class="jxr_keyword">new</strong> <a name="HelixPlaneIntersect" href="../../../../../org/hps/recon/tracking/kalman/HelixPlaneIntersect.html#HelixPlaneIntersect">HelixPlaneIntersect</a>();
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          c = 2.99793e8; <em class="jxr_comment">// Speed of light in m/s</em>
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          alpha = 1.0e12 / (c * B); <em class="jxr_comment">// Convert from pt in GeV to curvature in mm</em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> yhat = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0., 1.0, 0.);
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> u = yhat.cross(tB).unitVec();
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> v = tB.cross(u);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          Rot = <strong class="jxr_keyword">new</strong> <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a>(u, v, tB);
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      }
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a>() {
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          logger = Logger.getLogger(HelixState.<strong class="jxr_keyword">class</strong>.getName());
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          hpi = <strong class="jxr_keyword">new</strong> <a name="HelixPlaneIntersect" href="../../../../../org/hps/recon/tracking/kalman/HelixPlaneIntersect.html#HelixPlaneIntersect">HelixPlaneIntersect</a>();
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          c = 2.99793e8; <em class="jxr_comment">// Speed of light in m/s        </em>
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      }
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a> copy() {
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a>(a.copy(), X0.copy(), origin.copy(), C.copy(), B, tB.copy());
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      }
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      <strong class="jxr_keyword">void</strong> print(String s) {
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>          System.out.format(<span class="jxr_string">"%s"</span>, <strong class="jxr_keyword">this</strong>.toString(s));
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      }
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>      String toString(String s) {
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          String str;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          str = String.format(<span class="jxr_string">"HelixState %s: helix parameters=%s,  pivot=%s\n"</span>, s, a.toString(), X0.toString());
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>          str = str + String.format(<span class="jxr_string">"   Origin=%s,  B=%10.6f in direction %s\n"</span>, origin.toString(), B, tB.toString());
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          <strong class="jxr_keyword">if</strong> (C != <strong class="jxr_keyword">null</strong>) str = str + <span class="jxr_string">"Covariance:"</span> + C.toString();
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          <strong class="jxr_keyword">if</strong> (Rot != <strong class="jxr_keyword">null</strong>) str = str + Rot.toString(<span class="jxr_string">"from global coordinates to field coordinates"</span>);
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          str = str + <span class="jxr_string">"End of HelixState dump\n"</span>;
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          <strong class="jxr_keyword">return</strong> str;
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>      }
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     <strong class="jxr_keyword">boolean</strong> goodCov() {
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         <strong class="jxr_keyword">if</strong> (!MatrixFeatures_DDRM.isDiagonalPositive(C)) <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         <strong class="jxr_keyword">if</strong> (MatrixFeatures_DDRM.hasNaN(C)) <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     }
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     <em class="jxr_comment">// Returns a point on the helix at the angle phi</em>
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>     <em class="jxr_comment">// Warning: the point returned is in the B-Field reference frame</em>
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> atPhi(<strong class="jxr_keyword">double</strong> phi) {
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <strong class="jxr_keyword">return</strong> atPhi(X0, a, phi, alpha);
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     }
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> 
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>     <strong class="jxr_keyword">static</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> atPhi(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> X0, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> a, <strong class="jxr_keyword">double</strong> phi, <strong class="jxr_keyword">double</strong> alpha) {
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         <strong class="jxr_keyword">double</strong> x = X0.v[0] + (a.v[0] + (alpha / a.v[2])) * FastMath.cos(a.v[1]) - (alpha / a.v[2]) * FastMath.cos(a.v[1] + phi);
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         <strong class="jxr_keyword">double</strong> y = X0.v[1] + (a.v[0] + (alpha / a.v[2])) * FastMath.sin(a.v[1]) - (alpha / a.v[2]) * FastMath.sin(a.v[1] + phi);
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         <strong class="jxr_keyword">double</strong> z = X0.v[2] + a.v[3] - (alpha / a.v[2]) * phi * a.v[4];
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(x, y, z);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>     }
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> 
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>     <em class="jxr_comment">// Calculate the phi angle to propagate on helix to the intersection with a</em>
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>     <em class="jxr_comment">// measurement plane</em>
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>     <strong class="jxr_keyword">double</strong> planeIntersect(<a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> pIn) { <em class="jxr_comment">// pIn is assumed to be defined in the global reference frame</em>
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>         <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> p = pIn.toLocal(Rot, origin); <em class="jxr_comment">// Transform the plane into the B-field local reference frame</em>
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         <strong class="jxr_keyword">return</strong> hpi.planeIntersect(a, X0, alpha, p);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     }
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>     
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <em class="jxr_comment">// Return errors on the helix parameters at the present pivot point</em>
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> helixErrors() {
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(FastMath.sqrt(C.unsafe_get(0,0)), FastMath.sqrt(C.unsafe_get(1,1)), FastMath.sqrt(C.unsafe_get(2,2)), 
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>                 FastMath.sqrt(C.unsafe_get(3,3)), FastMath.sqrt(C.unsafe_get(4,4)));
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>     }
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>     
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>     <em class="jxr_comment">// Derivative matrix for the pivot transform (without energy loss or field rotations)</em>
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>     <strong class="jxr_keyword">void</strong> makeF(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> aP, DMatrixRMaj F) {
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>         makeF(aP, F, a, alpha);
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>     }
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> makeF(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> aP, DMatrixRMaj F, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> a, <strong class="jxr_keyword">double</strong> alpha) {
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         F.unsafe_set(0, 0, FastMath.cos(aP.v[1] - a.v[1]));
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>         F.unsafe_set(0, 1, (a.v[0] + alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]));
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>         F.unsafe_set(0, 2, (alpha / (a.v[2] * a.v[2])) * (1.0 - FastMath.cos(aP.v[1] - a.v[1])));
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>         F.unsafe_set(1, 0, -FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>         F.unsafe_set(1, 1, (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>         F.unsafe_set(1, 2, (alpha / (a.v[2] * a.v[2])) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>         F.unsafe_set(2, 2,  1.0);
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         F.unsafe_set(3, 0, (alpha / a.v[2]) * a.v[4] * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2]));
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>         F.unsafe_set(3, 1, (alpha / a.v[2]) * a.v[4] * (1.0 - (a.v[0] + alpha / a.v[2]) * FastMath.cos(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2])));
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         F.unsafe_set(3, 2, (alpha / (a.v[2] * a.v[2])) * a.v[4]
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>                 * (aP.v[1] - a.v[1] - (alpha / a.v[2]) * FastMath.sin(aP.v[1] - a.v[1]) / (aP.v[0] + alpha / a.v[2])));
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>         F.unsafe_set(3, 3, 1.0);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         F.unsafe_set(3, 4, -(alpha / a.v[2]) * (aP.v[1] - a.v[1]));
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         F.unsafe_set(4, 4, 1.0);
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> 
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         <em class="jxr_comment">// All other values are always zero</em>
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>     }
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>  
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>     <em class="jxr_comment">// Returns the particle momentum at the helix angle phi</em>
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>     <em class="jxr_comment">// Warning! This is returned in the B-Field coordinate system.</em>
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> getMom(<strong class="jxr_keyword">double</strong> phi) {
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>         <strong class="jxr_keyword">return</strong> getMom(phi, a);
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>     }
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>     
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>     <strong class="jxr_keyword">static</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> getMom(<strong class="jxr_keyword">double</strong> phi, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> a) {
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>         <strong class="jxr_keyword">double</strong> px = -FastMath.sin(a.v[1] + phi) / Math.abs(a.v[2]);
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>         <strong class="jxr_keyword">double</strong> py = FastMath.cos(a.v[1] + phi) / Math.abs(a.v[2]);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>         <strong class="jxr_keyword">double</strong> pz = a.v[4] / Math.abs(a.v[2]);
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(px, py, pz);
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>     }
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>     
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>     <em class="jxr_comment">// Momentum at the start of the given helix (point closest to the pivot)</em>
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     <strong class="jxr_keyword">static</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> aTOp(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> a) {
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>         <strong class="jxr_keyword">double</strong> px = -FastMath.sin(a.v[1]) / Math.abs(a.v[2]);
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>         <strong class="jxr_keyword">double</strong> py = FastMath.cos(a.v[1]) / Math.abs(a.v[2]);
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>         <strong class="jxr_keyword">double</strong> pz = a.v[4] / Math.abs(a.v[2]);
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(px, py, pz);
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>     }
+<a class="jxr_linenumber" name="L176" href="#L176">176</a> 
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     <em class="jxr_comment">// Transform from momentum at helix starting point back to the helix parameters</em>
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>     <em class="jxr_comment">// drho and dz are not modified</em>
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>     <strong class="jxr_keyword">static</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pTOa(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> p, <strong class="jxr_keyword">double</strong> drho, <strong class="jxr_keyword">double</strong> dz, <strong class="jxr_keyword">double</strong> Q) {
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>         <strong class="jxr_keyword">double</strong> phi0 = FastMath.atan2(-p.v[0], p.v[1]);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         <strong class="jxr_keyword">double</strong> K = Q / FastMath.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         <strong class="jxr_keyword">double</strong> tanl = p.v[2] / FastMath.sqrt(p.v[0] * p.v[0] + p.v[1] * p.v[1]);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a> 
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(drho, phi0, K, dz, tanl);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>     }
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> 
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>     <em class="jxr_comment">// To transform a space point from global to local field coordinates, first subtract</em>
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>     <em class="jxr_comment">// &lt;origin&gt; and then rotate by &lt;Rot&gt;.</em>
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> toLocal(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> xGlobal) {
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> xLocal = Rot.rotate(xGlobal.dif(origin));
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>         <strong class="jxr_keyword">return</strong> xLocal;
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>     }
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>     
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>     <em class="jxr_comment">// To transform a space point from local field coordinates to global coordinates, first rotate by</em>
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>     <em class="jxr_comment">// the inverse of &lt;Rot&gt; and then add the &lt;origin&gt;.</em>
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> toGlobal(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> xLocal) {
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> xGlobal = Rot.inverseRotate(xLocal).sum(origin);
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         <strong class="jxr_keyword">return</strong> xGlobal;
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>     }
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>     
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>     <em class="jxr_comment">// Transformation of helix parameters from one B-field frame to another, by rotation R</em>
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>     <em class="jxr_comment">// Warning: the pivot point has to be transformed too! Here we assume that the new pivot point</em>
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>     <em class="jxr_comment">// will be on the helix at phi=0, so drho and dz will always be returned as zero. Therefore, before</em>
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>     <em class="jxr_comment">// calling this routine, make sure that the current pivot point is on the helix (drho=dz=0)</em>
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>     <strong class="jxr_keyword">static</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> rotateHelix(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> a, <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a> R, DMatrixRMaj fRot) {
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>         <em class="jxr_comment">// The rotation is easily applied to the momentum vector, so first we transform from helix parameters</em>
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>         <em class="jxr_comment">// to momentum, apply the rotation, and then transform back to helix parameters.</em>
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>         <em class="jxr_comment">// The values for fRot, the corresponding derivative matrix, are also calculated and returned.</em>
+<a class="jxr_linenumber" name="L209" href="#L209">209</a> 
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> debug = false;
+<a class="jxr_linenumber" name="L211" href="#L211">211</a> 
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> phlx = aTOp(a); <em class="jxr_comment">// Momentum at point closest to helix</em>
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> p_prime = R.rotate(phlx); <em class="jxr_comment">// Momentum in new coordinate system</em>
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>         <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>             a.print(<span class="jxr_string">"input helix, in rotateHelix"</span>);
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>             R.print(<span class="jxr_string">"in rotateHelix"</span>);
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>             phlx.print(<span class="jxr_string">"momentum vector in rotateHelix"</span>);
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>             p_prime.print(<span class="jxr_string">"rotated momentum vector in rotateHelix"</span>);
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>             System.out.format(<span class="jxr_string">"in rotateHelix: p=%10.7f,  prot=%10.7f\n"</span>, phlx.mag(), p_prime.mag());
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         }
+<a class="jxr_linenumber" name="L221" href="#L221">221</a> 
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>         <strong class="jxr_keyword">double</strong> dpda00 = -FastMath.cos(a.v[1]) / Math.abs(a.v[2]);
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">double</strong> dpda01 = FastMath.sin(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>         <strong class="jxr_keyword">double</strong> dpda10 = -FastMath.sin(a.v[1]) / Math.abs(a.v[2]);
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>         <strong class="jxr_keyword">double</strong> dpda11 = -FastMath.cos(a.v[1]) / (a.v[2] * Math.abs(a.v[2]));
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>         <strong class="jxr_keyword">double</strong> dpda21 = -a.v[4] / (a.v[2] * Math.abs(a.v[2]));
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         <strong class="jxr_keyword">double</strong> dpda22 = 1. / Math.abs(a.v[2]);
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>         DMatrix3x3 dpda = <strong class="jxr_keyword">new</strong> DMatrix3x3(dpda00,dpda01,0., dpda10,dpda11,0., 0.,dpda21,dpda22);
+<a class="jxr_linenumber" name="L229" href="#L229">229</a> 
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>         DMatrix3x3 dprimedp = <strong class="jxr_keyword">new</strong> DMatrix3x3(R.M[0][0],R.M[0][1],R.M[0][2], R.M[1][0],R.M[1][1],R.M[1][2], R.M[2][0],R.M[2][1],R.M[2][2]);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a> 
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         <strong class="jxr_keyword">double</strong> Q = Math.signum(a.v[2]);
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>         <strong class="jxr_keyword">double</strong> pt2 = p_prime.v[0] * p_prime.v[0] + p_prime.v[1] * p_prime.v[1];
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>         <strong class="jxr_keyword">double</strong> pt = FastMath.sqrt(pt2);
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>         
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>         <strong class="jxr_keyword">double</strong> dadp00 = -p_prime.v[1] / pt2;
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>         <strong class="jxr_keyword">double</strong> dadp01 = p_prime.v[0] / pt2;
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>         <strong class="jxr_keyword">double</strong> dadp10 = -Q * p_prime.v[0] / (pt2 * pt);
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>         <strong class="jxr_keyword">double</strong> dadp11 = -Q * p_prime.v[1] / (pt2 * pt);
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>         <strong class="jxr_keyword">double</strong> dadp20 = -p_prime.v[0] * p_prime.v[2] / (pt2 * pt);
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>         <strong class="jxr_keyword">double</strong> dadp21 = -p_prime.v[1] * p_prime.v[2] / (pt2 * pt);
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>         <strong class="jxr_keyword">double</strong> dadp22 = 1.0 / (pt);
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         DMatrix3x3 dadp = <strong class="jxr_keyword">new</strong> DMatrix3x3(dadp00,dadp01,0., dadp10,dadp11,0., dadp20, dadp21, dadp22);
+<a class="jxr_linenumber" name="L244" href="#L244">244</a> 
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>         DMatrix3x3 c = <strong class="jxr_keyword">new</strong> DMatrix3x3();
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>         CommonOps_DDF3.mult(dprimedp, dpda, c);
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>         DMatrix3x3 prod = <strong class="jxr_keyword">new</strong> DMatrix3x3();
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>         CommonOps_DDF3.mult(dadp,c,prod);
+<a class="jxr_linenumber" name="L249" href="#L249">249</a> 
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>         fRot.zero();
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>         fRot.unsafe_set(0, 0, 1.0);
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>         fRot.unsafe_set(1, 1, prod.unsafe_get(0, 0));
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>         fRot.unsafe_set(1, 2, prod.unsafe_get(0, 1));
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         fRot.unsafe_set(1, 4, prod.unsafe_get(0, 2));
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>         fRot.unsafe_set(2, 1, prod.unsafe_get(1, 0));
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>         fRot.unsafe_set(2, 2, prod.unsafe_get(1, 1));
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>         fRot.unsafe_set(2, 4, prod.unsafe_get(1, 2));
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>         fRot.unsafe_set(3, 3, 1.0);
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>         fRot.unsafe_set(4, 1, prod.unsafe_get(2, 0));
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>         fRot.unsafe_set(4, 2, prod.unsafe_get(2, 1));
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>         fRot.unsafe_set(4, 4, prod.unsafe_get(2, 2));
+<a class="jxr_linenumber" name="L262" href="#L262">262</a> 
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>         <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L264" href="#L264">264</a> <em class="jxr_comment">         * if (verbose) { // derivative test Vec da = a.scale(0.005); Vec apda =</em>
+<a class="jxr_linenumber" name="L265" href="#L265">265</a> <em class="jxr_comment">         * a.sum(da); Vec ap = pTOa(R.rotate(aTOp(a)), a); Vec apdap =</em>
+<a class="jxr_linenumber" name="L266" href="#L266">266</a> <em class="jxr_comment">         * pTOa(R.rotate(aTOp(apda)), apda); Vec dap = apdap.dif(ap); Vec dap2 =</em>
+<a class="jxr_linenumber" name="L267" href="#L267">267</a> <em class="jxr_comment">         * da.leftMultiply(fRot);</em>
+<a class="jxr_linenumber" name="L268" href="#L268">268</a> <em class="jxr_comment">         * System.out.format("StateVector:rotateHelix: derivative test:\n");</em>
+<a class="jxr_linenumber" name="L269" href="#L269">269</a> <em class="jxr_comment">         * dap.print("actual difference in helix parameters");</em>
+<a class="jxr_linenumber" name="L270" href="#L270">270</a> <em class="jxr_comment">         * dap2.print("diff in helix params from derivatives"); }</em>
+<a class="jxr_linenumber" name="L271" href="#L271">271</a> <em class="jxr_comment">         */</em>
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         <em class="jxr_comment">// The parameters drho and dz are assumed not to change in the rotation. This will be correct</em>
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         <em class="jxr_comment">// if the rotation is about the pivot point, and the pivot is on the helix, in which case</em>
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         <em class="jxr_comment">// dz and drho are both zero. That is not necessarily valid if dz and drho are not zero. If the</em>
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         <em class="jxr_comment">// rotation were only about the z axis it would be, but any other sort of rotation will mix dz and drho.</em>
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>         <em class="jxr_comment">//if (Math.abs(a.v[0]) &gt; 0.001 || Math.abs(a.v[3]) &gt; 0.001) {</em>
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>         <em class="jxr_comment">//    System.out.format("StateVector.rotateHelix: warning, dz=%10.5f and drho=%10.5f are not zero.\n",a.v[3],a.v[0]);</em>
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>         <em class="jxr_comment">//}</em>
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> aNew = pTOa(p_prime, a.v[0], a.v[3], Q);
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         <strong class="jxr_keyword">if</strong> (debug) { aNew.print(<span class="jxr_string">"rotated helix in rotateHelix"</span>); }
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>         <strong class="jxr_keyword">return</strong> aNew;
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>     }
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>     
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>     <em class="jxr_comment">// Transform the helix to a pivot back at the global origin</em>
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pivotTransform() {
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pivot = origin.scale(-1.0);
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         <strong class="jxr_keyword">return</strong> pivotTransform(pivot);
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>     }
+<a class="jxr_linenumber" name="L289" href="#L289">289</a> 
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     <em class="jxr_comment">// Pivot transform of the state vector, from the current pivot to the pivot in</em>
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>     <em class="jxr_comment">// the argument (specified in local coordinates)</em>
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pivotTransform(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pivot) {
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>         <strong class="jxr_keyword">return</strong> pivotTransform(pivot, a, X0, alpha, 0.);
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>     }
+<a class="jxr_linenumber" name="L295" href="#L295">295</a> 
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>     <em class="jxr_comment">// Pivot transform including energy loss just before</em>
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pivotTransform(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pivot, <strong class="jxr_keyword">double</strong> deltaEoE) {
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         <strong class="jxr_keyword">return</strong> pivotTransform(pivot, a, X0, alpha, deltaEoE);
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>     }
+<a class="jxr_linenumber" name="L300" href="#L300">300</a> 
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>     <strong class="jxr_keyword">static</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pivotTransform(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pivot, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> a, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> X0, <strong class="jxr_keyword">double</strong> alpha, <strong class="jxr_keyword">double</strong> deltaEoE) {
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>         <strong class="jxr_keyword">double</strong> K = a.v[2] * (1.0 - deltaEoE); <em class="jxr_comment">// Lose energy before propagating</em>
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         <strong class="jxr_keyword">double</strong> xC = X0.v[0] + (a.v[0] + alpha / K) * FastMath.cos(a.v[1]); <em class="jxr_comment">// Center of the helix circle</em>
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>         <strong class="jxr_keyword">double</strong> yC = X0.v[1] + (a.v[0] + alpha / K) * FastMath.sin(a.v[1]);
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <em class="jxr_comment">// if (verbose) System.out.format("pivotTransform center=%13.10f, %13.10f\n",</em>
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <em class="jxr_comment">// xC, yC);</em>
+<a class="jxr_linenumber" name="L307" href="#L307">307</a> 
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         <em class="jxr_comment">// Predicted state vector</em>
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>         <strong class="jxr_keyword">double</strong>[] aP = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[5];
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>         aP[2] = K;
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>         aP[4] = a.v[4];
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>         <strong class="jxr_keyword">if</strong> (K &gt; 0) {
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>             aP[1] = FastMath.atan2(yC - pivot.v[1], xC - pivot.v[0]);
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>             aP[1] = FastMath.atan2(pivot.v[1] - yC, pivot.v[0] - xC);
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>         }
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>         aP[0] = (xC - pivot.v[0]) * FastMath.cos(aP[1]) + (yC - pivot.v[1]) * FastMath.sin(aP[1]) - alpha / K;
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>         aP[3] = X0.v[2] - pivot.v[2] + a.v[3] - (alpha / K) * (aP[1] - a.v[1]) * a.v[4];
+<a class="jxr_linenumber" name="L319" href="#L319">319</a> 
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>         <em class="jxr_comment">// xC = pivot.v[0] + (aP[0]+alpha/aP[2])*FastMath.cos(aP[1]);</em>
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         <em class="jxr_comment">// yC = pivot.v[1] + (aP[0]+alpha/aP[2])*FastMath.sin(aP[1]);</em>
+<a class="jxr_linenumber" name="L322" href="#L322">322</a> 
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(5, aP);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>     }
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>     
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>     <em class="jxr_comment">// Propagate a helix by Runge-Kutta integration to an arbitrary plane</em>
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>     <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a> propagateRungeKutta(<a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> pln, ArrayList&lt;Double&gt; yScat, ArrayList&lt;Double&gt; XL, org.lcsim.geometry.FieldMap fM, <strong class="jxr_keyword">double</strong> [] arcLength) {
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>         <em class="jxr_comment">// pln   = plane to where the extrapolation is taking place in global coordinates.  </em>
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>         <em class="jxr_comment">//         The origin of pln will be the new helix pivot point in global coordinates and the origin of the B-field system.</em>
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>         <em class="jxr_comment">// yScat = input array of y values where scattering in silicon will take place. Only those between the start and finish points</em>
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>         <em class="jxr_comment">//         will be used, so including extras will just waste a bit of CPU time. Silicon is assumed to lie in a plane</em>
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         <em class="jxr_comment">//         perpendicular to the beam axis at each of these yScat values.</em>
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>         <em class="jxr_comment">// XL    = silicon thickness in radiation lengths at each of the scattering planes</em>
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <em class="jxr_comment">// fM    = HPS field map</em>
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         <em class="jxr_comment">// return value = helix state at the new pivot. These helix parameters are valid in the B-field coordinate system with</em>
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         <em class="jxr_comment">//                origin at the pivot point and z axis in the direction of the B-field at the pivot.</em>
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>         
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> debug = false;
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>         
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>         <em class="jxr_comment">// Take the B-field reference frame to be at the position X of the plane. The returned helix will be in this frame.</em>
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> B = KalmanInterface.getField(pln.X(), fM);
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>         <strong class="jxr_keyword">double</strong> Bmag = B.mag();
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>         <strong class="jxr_keyword">double</strong> alphatarget = 1.0e12 / (c * Bmag);
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> tB = B.unitVec(Bmag);
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> yhat = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0., 1.0, 0.);
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> uB = yhat.cross(tB).unitVec();
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> vB = tB.cross(uB);
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>         <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a> targetRot = <strong class="jxr_keyword">new</strong> <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a>(uB, vB, tB); <em class="jxr_comment">// Rotation from the global system into the B-field system at the plane</em>
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>         
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>         <em class="jxr_comment">// Target plane after transforming to the B-field coordinate system </em>
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>         <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> targetPlane = pln.toLocal(targetRot, pln.X());    
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>         
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>         <em class="jxr_comment">// Point and momentum on the helix in the B-field system near the tracking layer from where we extrapolate</em>
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> x0Local = atPhi(0.);
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> p0Local = getMom(0.);
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> x0Global = toGlobal(x0Local);
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> p0Global = Rot.inverseRotate(p0Local);
+<a class="jxr_linenumber" name="L358" href="#L358">358</a> 
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>         <strong class="jxr_keyword">double</strong> Q = Math.signum(a.v[2]);
+<a class="jxr_linenumber" name="L360" href="#L360">360</a> 
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>         <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>             System.out.format(<span class="jxr_string">"\nHelixState.propagateRungeKutta, Q=%8.1f, origin=%10.5f %10.5f %10.5f:\n"</span>, Q, origin.v[0], origin.v[1],
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>                     origin.v[2]);
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>             System.out.format(<span class="jxr_string">"    At final plane B=%10.5f, t=%10.6f %10.6f %10.6f\n"</span>, Bmag, tB.v[0], tB.v[1], tB.v[2]);
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>             System.out.format(<span class="jxr_string">"    alpha=%10.6f,  alpha at final plane=%10.6f\n"</span>, alpha, alphatarget);
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>             targetRot.print(<span class="jxr_string">"to Bfield system at final plane"</span>);
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>             targetPlane.print(<span class="jxr_string">"at final plane in B-field system"</span>);
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>             origin.print(<span class="jxr_string">"origin of local detector system in global coordinates"</span>);
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>             X0.print(<span class="jxr_string">"helix pivot"</span>);
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>             a.print(<span class="jxr_string">"local helix parameters at initial point"</span>);
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>             x0Local.print(<span class="jxr_string">"point on helix, local at initial point"</span>);
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>             x0Global.print(<span class="jxr_string">"point on helix, global at initial point"</span>);
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>             p0Local.print(String.format(<span class="jxr_string">"helix momentum, local initial point, p=%10.6f"</span>,p0Local.mag()));
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>             p0Global.print(String.format(<span class="jxr_string">"helix momentum, global initial point, p=%10.6f"</span>,p0Global.mag()));
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>         }
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pInt = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(3);
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> xPlane = hpi.rkIntersect(pln, x0Global, p0Global, Q, fM, pInt); <em class="jxr_comment">// RK propagation to the target plane</em>
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>         arcLength[0] = hpi.arcLength();
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> XplaneLocal = targetRot.rotate(xPlane.dif(pln.X()));
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> helixAtIntersect = pTOa(targetRot.rotate(pInt), 0., 0., Q); <em class="jxr_comment">// Helix with pivot at Xplane (in field coordinates)</em>
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> helixAtTarget = pivotTransform(targetPlane.X(), helixAtIntersect, XplaneLocal, alphatarget, 0.);
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>         <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>             xPlane.print(<span class="jxr_string">"RK helix intersection with final plane"</span>);
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>             System.out.format(<span class="jxr_string">"    Arc length for the RK propatation=%9.4f\n"</span>, arcLength[0]);
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>             XplaneLocal.print(<span class="jxr_string">"RK helix intersection with final plane in local system"</span>);
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>             pInt.print(<span class="jxr_string">"RK momentum at helix intersection"</span>);
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>             <strong class="jxr_keyword">double</strong> pTanL = pInt.v[2]/FastMath.sqrt(pInt.v[0]*pInt.v[0]+pInt.v[1]*pInt.v[1]);
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pLoc = targetRot.rotate(pInt);
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>             <strong class="jxr_keyword">double</strong> pTanLlocal = pLoc.v[2]/FastMath.sqrt(pLoc.v[0]*pLoc.v[0]+pLoc.v[1]*pLoc.v[1]);
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>             System.out.format(<span class="jxr_string">"from momentum, global tan(lambda)=%10.6f, local tan(lambda)=%10.6f\n"</span>,pTanL,pTanLlocal);
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             helixAtIntersect.print(<span class="jxr_string">"helix at final-plane intersection"</span>);
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>             helixAtTarget.print(<span class="jxr_string">"helix with pivot at final plane"</span>);
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>             pln.X().print(<span class="jxr_string">"origin of final field system in global system"</span>);
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>             Rot.print(<span class="jxr_string">"rotation matrix from global to final field system"</span>);
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>         }
+<a class="jxr_linenumber" name="L397" href="#L397">397</a> 
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>         <em class="jxr_comment">// The covariance matrix is transformed assuming a sequence of pivot transforms (not Runge Kutta)</em>
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>         <strong class="jxr_keyword">double</strong> stepSize = 20.0;
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>         <em class="jxr_comment">// Step from the origin of this StateVector to pln.X(), both in global coordinates</em>
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> transHelix = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(5);
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>         DMatrixRMaj newCovariance = <strong class="jxr_keyword">new</strong> DMatrixRMaj(5,5);
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>         <strong class="jxr_keyword">if</strong> (!helixStepper(stepSize, yScat, XL, newCovariance, transHelix, pln.X(), fM)) {
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>             newCovariance.set(<strong class="jxr_keyword">this</strong>.C);
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>             transHelix.print(<span class="jxr_string">"helixStepper helix at final plane"</span>);
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>             System.out.println(<span class="jxr_string">"    Errors: "</span>);
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 5; ++i) { System.out.format(<span class="jxr_string">" %10.7f"</span>, FastMath.sqrt(C.get(i,i))); }
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>             System.out.println(<span class="jxr_string">"\n"</span>);
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>             newCovariance.print(<span class="jxr_string">"transformed covariance"</span>);
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>             System.out.println(<span class="jxr_string">"    Errors: "</span>);
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 5; ++i) { System.out.format(<span class="jxr_string">" %10.7f"</span>, FastMath.sqrt(newCovariance.get(i,i))); }
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>             System.out.println(<span class="jxr_string">"\n"</span>);
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>         }
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>         
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>         <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a> newHelixState = <strong class="jxr_keyword">new</strong> <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a>(helixAtTarget, <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0.,0.,0.), pln.X(), newCovariance, Bmag, tB);
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>         newHelixState.xPlaneRK = xPlane;
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>         <strong class="jxr_keyword">return</strong> newHelixState;
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>     }
+<a class="jxr_linenumber" name="L420" href="#L420">420</a> 
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>     <em class="jxr_comment">// Optional interface for the case in which there are no scattering planes</em>
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>     <a name="HelixState" href="../../../../../org/hps/recon/tracking/kalman/HelixState.html#HelixState">HelixState</a> propagateRungeKutta(<a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> pln, ArrayList&lt;Double&gt; XL, org.lcsim.geometry.FieldMap fM, <strong class="jxr_keyword">double</strong> [] arcLength) {
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>         ArrayList&lt;Double&gt; yScat = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>         <strong class="jxr_keyword">return</strong> propagateRungeKutta(pln, yScat, XL, fM, arcLength);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>     }
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>     
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> getRKintersection() {
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>         <strong class="jxr_keyword">return</strong> xPlaneRK;
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>     }
+<a class="jxr_linenumber" name="L430" href="#L430">430</a> 
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>     <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> projMSangle(<strong class="jxr_keyword">double</strong> p, <strong class="jxr_keyword">double</strong> XL) {
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>         <strong class="jxr_keyword">if</strong> (XL &lt;= 0.) <strong class="jxr_keyword">return</strong> 0.;
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>         <strong class="jxr_keyword">return</strong> (0.0136 / Math.abs(p)) * FastMath.sqrt(XL) * (1.0 + 0.038 * FastMath.log(XL));
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>     }
+<a class="jxr_linenumber" name="L435" href="#L435">435</a> 
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>     <strong class="jxr_keyword">boolean</strong> helixStepper(<strong class="jxr_keyword">double</strong> maxStep, ArrayList&lt;Double&gt; yScat, ArrayList&lt;Double&gt; XL, DMatrixRMaj Covariance, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> finalHelix, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> newOrigin, org.lcsim.geometry.FieldMap fM) {
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>         <em class="jxr_comment">// The old and new origin points are in global coordinates. The old helix and old pivot are defined</em>
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>         <em class="jxr_comment">// in a coordinate system aligned with the field and centered at the old origin. The returned</em>
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>         <em class="jxr_comment">// helix will be in a coordinate system aligned with the local field at the new origin, and the</em>
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>         <em class="jxr_comment">// new pivot point will be at the new origin, in global coordinates, although to use it one should transform to the field frame, which</em>
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>         <em class="jxr_comment">// is defined with its origin at newOrigin and aligned there with the local field.        </em>
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>         <em class="jxr_comment">// All scattering layers are assumed to be of the same thickness XL, in radiation lengths</em>
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>         <em class="jxr_comment">// We assume that the starting StateVector is at a layer with a hit, in which case the Kalman filter has already accounted for</em>
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>         <em class="jxr_comment">// multiple scattering at that layer.       </em>
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>                 
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> debug = false;
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>         
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>         <strong class="jxr_keyword">double</strong> tol = 2.0;  <em class="jxr_comment">// Tolerance in mm to determine whether a location is on a scattering plane. </em>
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>         <strong class="jxr_keyword">if</strong> (maxStep &lt; tol) tol = maxStep/2.0;
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>         <strong class="jxr_keyword">int</strong> nSteps = (<strong class="jxr_keyword">int</strong>)(Math.abs(newOrigin.v[1] - <strong class="jxr_keyword">this</strong>.origin.v[1])/maxStep);
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>         <strong class="jxr_keyword">if</strong> (nSteps &lt; 1) nSteps = 1;
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>         ArrayList&lt;Pair&lt;Double,Double&gt;&gt; stepPnts = <strong class="jxr_keyword">new</strong> ArrayList&lt;Pair&lt;Double,Double&gt;&gt;(nSteps+yScat.size());
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>         <strong class="jxr_keyword">double</strong> yDistance = newOrigin.v[1] - <strong class="jxr_keyword">this</strong>.origin.v[1];
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>         <strong class="jxr_keyword">double</strong> yStep = yDistance/(<strong class="jxr_keyword">double</strong>)nSteps;
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>         
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>         <em class="jxr_comment">//stepPnts.add(new Pair&lt;Double,Double&gt;(this.origin.v[1],0.)); </em>
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>         <strong class="jxr_keyword">double</strong> yNext = <strong class="jxr_keyword">this</strong>.origin.v[1];
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>         <strong class="jxr_keyword">double</strong> dir = Math.signum(yStep);
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i=0; i&lt;nSteps; ++i) {
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>             <strong class="jxr_keyword">double</strong> yLast = yNext;
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>             yNext += yStep;
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>             <strong class="jxr_keyword">double</strong> XLnext = 0.;
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> j=0; j&lt;yScat.size(); ++j) {
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>                 <strong class="jxr_keyword">double</strong> y = yScat.get(j);
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>                 <strong class="jxr_keyword">if</strong> (dir*y &gt; dir*yLast + tol &amp;&amp; dir*y &lt; dir*yNext - tol) { <em class="jxr_comment">// Add intermediate scattering layer</em>
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>                     Pair&lt;Double,Double&gt; newLayer = <strong class="jxr_keyword">new</strong> Pair&lt;Double,Double&gt;(y,XL.get(j));
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>                     stepPnts.add(newLayer);
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (y &gt;= yNext - tol &amp;&amp; y &lt;= yNext + tol) {
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>                     XLnext = XL.get(j);
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>                 }
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>             }
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>             stepPnts.add(<strong class="jxr_keyword">new</strong> Pair&lt;Double,Double&gt;(yNext,XLnext));         
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>         }
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>         <strong class="jxr_keyword">if</strong> (dir &gt; 0.) {
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>             Collections.sort(stepPnts, HelixState.pairComparator);
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>             Collections.sort(stepPnts, HelixState.pairComparator.reversed());
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>         }
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>         
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>         <strong class="jxr_keyword">double</strong> localAlpha = alpha;
+<a class="jxr_linenumber" name="L481" href="#L481">481</a> 
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>         <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a> RM = Rot;
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> newHelix = <strong class="jxr_keyword">this</strong>.a.copy();
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> Pivot = <strong class="jxr_keyword">this</strong>.X0.copy();
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> Origin = <strong class="jxr_keyword">this</strong>.origin.copy(); <em class="jxr_comment">// In global coordinates</em>
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>         DMatrixRMaj fRot = <strong class="jxr_keyword">new</strong> DMatrixRMaj(5,5);
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>         DMatrixRMaj Cov = <strong class="jxr_keyword">this</strong>.C.copy();
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> pMom = getMom(0.,newHelix);
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>         <strong class="jxr_keyword">double</strong> momentum = pMom.mag();
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>         <strong class="jxr_keyword">double</strong> ct = pMom.v[1]/momentum;
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>         <strong class="jxr_keyword">double</strong> thisXL = 0.;
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>         <em class="jxr_comment">// Account for scattering in the silicon layer from where we are starting if going in the beam direction.</em>
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>         <em class="jxr_comment">// When going toward the target, the Kalman smoother has already accounted for scattering in the first layer.</em>
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>         <strong class="jxr_keyword">if</strong> (yDistance &gt; 0.) {
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i=0; i&lt;yScat.size(); ++i) {
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>                 <strong class="jxr_keyword">double</strong> y = yScat.get(i);
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>                 <strong class="jxr_keyword">if</strong> (Math.abs(<strong class="jxr_keyword">this</strong>.origin.v[1]-y) &lt; tol) {
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>                     thisXL = XL.get(i);                    <em class="jxr_comment">// Find the amount of material at the starting layer</em>
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>                 }
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>             }
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>         }
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>         <strong class="jxr_keyword">double</strong> sigmaMS = projMSangle(momentum, thisXL/ct);
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>         DMatrixRMaj Q = <strong class="jxr_keyword">new</strong> DMatrixRMaj(5,5);
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>         <strong class="jxr_keyword">this</strong>.getQ(sigmaMS, Q);
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> yhat = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0., 1., 0.);
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>         <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>             System.out.format(<span class="jxr_string">"Entering helixStepper for %d steps, B=%10.7f, B direction=%10.7f %10.7f %10.7f\n"</span>, 
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>                     stepPnts.size(), B, RM.M[2][0],RM.M[2][1], RM.M[2][2]);
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>             <strong class="jxr_keyword">if</strong> (yScat.size() == 0) {
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>                 System.out.format(<span class="jxr_string">"     No scattering layers provided\n"</span>);
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>             }
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">double</strong> y : yScat) {
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>                 System.out.format(<span class="jxr_string">"    scattering at y=%9.4f with XL=%8.4f\n"</span>, y, XL.get(yScat.indexOf(y)));
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>             }
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>             <strong class="jxr_keyword">for</strong> (Pair&lt;Double,Double&gt; step : stepPnts) {
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>                 <strong class="jxr_keyword">double</strong> y = step.getFirstElement();
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>                 <strong class="jxr_keyword">double</strong> XLScat = step.getSecondElement();
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>                 System.out.format(<span class="jxr_string">"  stepping layer at y=%10.5f, R.L. scatter = %8.4f\n"</span>, y, XLScat);
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>             }
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>             <strong class="jxr_keyword">this</strong>.origin.print(<span class="jxr_string">"old origin"</span>);
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>             <strong class="jxr_keyword">this</strong>.X0.print(<span class="jxr_string">"old pivot"</span>);
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>             <strong class="jxr_keyword">this</strong>.a.print(<span class="jxr_string">"old helix"</span>);
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>             newOrigin.print(<span class="jxr_string">"new origin"</span>);
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>             RM.print(<span class="jxr_string">"to transform to the local field frame"</span>);
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>             <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> pln = <strong class="jxr_keyword">new</strong> <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a>(newOrigin, yhat);
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>             <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> plnLocal = pln.toLocal(RM, Origin);
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>             <strong class="jxr_keyword">double</strong> dphi = hpi.planeIntersect(newHelix, Pivot, localAlpha, plnLocal); <em class="jxr_comment">// Find the helix intersection with the plane</em>
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> newPivot = atPhi(Pivot, newHelix, dphi, localAlpha);
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>             newPivot.print(<span class="jxr_string">"new pivot in origin plane"</span>);
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> newHelix0 = pivotTransform(newPivot, newHelix, Pivot, localAlpha, 0.);
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>             newHelix0.print(<span class="jxr_string">"Pivot transform to final plane in a single step"</span>);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>         }
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>         CommonOps_DDRM.addEquals(Cov,Q);
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>         DMatrixRMaj cIntermediate = <strong class="jxr_keyword">new</strong> DMatrixRMaj(5,5);
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>         DMatrixRMaj Ft = <strong class="jxr_keyword">new</strong> DMatrixRMaj(5,5);
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>         DMatrixRMaj F = <strong class="jxr_keyword">new</strong> DMatrixRMaj(5,5);
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> step = 0; step &lt; stepPnts.size(); ++step) {
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>             Pair&lt;Double, Double&gt; thisStep = stepPnts.get(step);
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>             <strong class="jxr_keyword">double</strong> yInt = thisStep.getFirstElement();
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>             thisXL = thisStep.getSecondElement();
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>             <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> pln = <strong class="jxr_keyword">new</strong> <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a>(<strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0., yInt, 0.), yhat); <em class="jxr_comment">// Make a plane in global coordinates, perpendicular to the y axis</em>
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>             <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> plnLocal = pln.toLocal(RM, Origin); <em class="jxr_comment">// Transform the plane to local coordinates</em>
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>             <strong class="jxr_keyword">double</strong> dphi = hpi.planeIntersect(newHelix, Pivot, localAlpha, plnLocal); <em class="jxr_comment">// Find the helix intersection with the plane</em>
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>             <strong class="jxr_keyword">if</strong> (Double.isNaN(dphi)) {
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>                 logger.log(Level.FINE, String.format(<span class="jxr_string">"No intersection with the plane at step=%d\n"</span>, step));
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>                 <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>             }
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> newPivot = atPhi(Pivot, newHelix, dphi, localAlpha);
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> newHelixPivoted = pivotTransform(newPivot, newHelix, Pivot, localAlpha, 0.); <em class="jxr_comment">// Transform the helix pivot to the intersection point</em>
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>             <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>                 System.out.format(<span class="jxr_string">"Step %d, y=%8.3f, dphi=%10.7f, alpha=%10.7e\n"</span>, step, yInt, dphi, localAlpha);
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>                 pln.print(<span class="jxr_string">"to intersect, in global coordinate"</span>);
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>                 plnLocal.print(<span class="jxr_string">"to intersect, in local field coordinates"</span>);
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>                 Pivot.print(<span class="jxr_string">"old pivot"</span>);
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>                 newPivot.print(<span class="jxr_string">"new pivot at intersection of helix with plane"</span>);
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>                 <em class="jxr_comment">// pln.print("target");</em>
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>                 <em class="jxr_comment">// plnLocal.print("transformed to local coordinates");</em>
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>                 newHelix.print(<span class="jxr_string">"new helix after pivot transform"</span>);
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>                 dphi = hpi.planeIntersect(newHelixPivoted, newPivot, localAlpha, plnLocal);
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>                 System.out.format(<span class="jxr_string">"    New delta-phi=%13.10f; should be zero!\n"</span>, dphi);
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>                 <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> newPoint = atPhi(newPivot, newHelixPivoted, dphi, localAlpha);
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>                 newPoint.print(<span class="jxr_string">"new point of intersection, should be same as the old"</span>);
+<a class="jxr_linenumber" name="L563" href="#L563">563</a>             }           
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>             makeF(newHelixPivoted, F, newHelix, localAlpha);
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>             newHelix = newHelixPivoted;
+<a class="jxr_linenumber" name="L566" href="#L566">566</a> 
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>             <em class="jxr_comment">// Rotate the helix into the field system at the new origin</em>
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>             Origin = RM.inverseRotate(newPivot).sum(Origin); <em class="jxr_comment">// Make a new coordinate system with origin in global coords at the intersection point</em>
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> Bfield = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>             <strong class="jxr_keyword">if</strong> (step == stepPnts.size()-1) {   <em class="jxr_comment">// At the last step define the local field at the point provided by the calling routine</em>
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>                 Bfield = KalmanInterface.getField(newOrigin, fM);
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>                 Bfield = KalmanInterface.getField(Origin, fM);
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>             }     
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>             <strong class="jxr_keyword">double</strong> Bmag = Bfield.mag();
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> tB = Bfield.unitVec(Bmag); <em class="jxr_comment">// Local field at the new origin</em>
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> uB = yhat.cross(tB).unitVec();
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>             <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> vB = tB.cross(uB);
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>             <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a> RMnew = <strong class="jxr_keyword">new</strong> <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a>(uB, vB, tB);
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>             localAlpha = 1.0e12 / c / Bmag;
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>             <a name="RotMatrix" href="../../../../../org/hps/recon/tracking/kalman/RotMatrix.html#RotMatrix">RotMatrix</a> deltaRM = RMnew.multiply(RM.invert());    <em class="jxr_comment">// New coordinate system is rotated to align with local field</em>
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>             newHelix = rotateHelix(newHelix, deltaRM, fRot);    <em class="jxr_comment">// Rotate the helix into the new local field coordinate system</em>
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>             CommonOps_DDRM.mult(F, fRot, Ft);
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>             CommonOps_DDRM.multTransB(Cov, Ft, cIntermediate);   <em class="jxr_comment">// Similarity transformation to propagate the covariance matrix</em>
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>             CommonOps_DDRM.mult(Ft,cIntermediate,Cov);
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>             <em class="jxr_comment">// Add in multiple scattering if we are here passing through a plane with material</em>
+<a class="jxr_linenumber" name="L587" href="#L587">587</a>             <strong class="jxr_keyword">if</strong> (thisXL &gt; 0.) {                
+<a class="jxr_linenumber" name="L588" href="#L588">588</a>                 pMom = getMom(0.,newHelix);
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>                 momentum = pMom.mag();
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>                 ct = pMom.v[1]/momentum;
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>                 sigmaMS = projMSangle(momentum, thisXL/ct);
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>                 <strong class="jxr_keyword">this</strong>.getQ(sigmaMS, Q);
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>                 CommonOps_DDRM.addEquals(Cov, Q);
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>             }
+<a class="jxr_linenumber" name="L595" href="#L595">595</a> 
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>             <em class="jxr_comment">// In the next step the pivot will be right at the origin of the local system, except for the last step</em>
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>             Pivot.v[0] = 0.;
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>             Pivot.v[1] = 0.;
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>             Pivot.v[2] = 0.;
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>             <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>                 System.out.format(<span class="jxr_string">"  helixStepper after step %d, B=%10.7f"</span>, step, Bmag);
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>                 RMnew.print(<span class="jxr_string">"new rotation to field frame"</span>);
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>                 deltaRM.print(<span class="jxr_string">"rotation to field system"</span>);
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>                 Origin.print(<span class="jxr_string">"intermediate origin in global system"</span>);
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>                 newHelix.print(<span class="jxr_string">"new helix after rotation"</span>);
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>             }
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>             RM = RMnew;
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>         }
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>         <em class="jxr_comment">// Finally, move the pivot to the requested point in the final plane</em>
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> newOriginLocal = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(0.,0.,0.);
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> oldPivot = RM.rotate(Origin.dif(newOrigin));
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> finalHx = pivotTransform(newOriginLocal, newHelix, oldPivot, localAlpha, 0.);
+<a class="jxr_linenumber" name="L613" href="#L613">613</a>         makeF(finalHx, F, newHelix, localAlpha);
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>         CommonOps_DDRM.multTransB(Cov, F, cIntermediate); 
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>         CommonOps_DDRM.mult(F,cIntermediate,Cov);
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>         <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L617" href="#L617">617</a>             Origin.print(<span class="jxr_string">"helixStepper final origin and pivot on helix"</span>);
+<a class="jxr_linenumber" name="L618" href="#L618">618</a>             oldPivot.print(<span class="jxr_string">"  final origin in final local coordinate system"</span>);
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>             RM.print(<span class="jxr_string">"helixStepper final rotation to field system"</span>);
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>             newOriginLocal.print(<span class="jxr_string">"final origin on helix in local coordinates"</span>);
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>             newHelix.print(<span class="jxr_string">"helix before pivot transform"</span>);
+<a class="jxr_linenumber" name="L622" href="#L622">622</a>             finalHx.print(<span class="jxr_string">"final helix"</span>);
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>         }
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>         Covariance.set(Cov);
+<a class="jxr_linenumber" name="L625" href="#L625">625</a> 
+<a class="jxr_linenumber" name="L626" href="#L626">626</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L627" href="#L627">627</a>     }
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>     
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>     <em class="jxr_comment">// Transform the HelixState into a standard HPS TrackState (which loses a lot of information)</em>
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>     <em class="jxr_comment">// In the returned TrackState the reference point gets set to the point on the helix closest to the</em>
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>     <em class="jxr_comment">// original pivot point (e.g. the helix intersection with the plane of silicon).</em>
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>     <em class="jxr_comment">// The pivot of the returned TrackState is always the origin (0,0,0)</em>
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>     TrackState toTrackState(<strong class="jxr_keyword">double</strong> alphaCenter, <a name="Plane" href="../../../../../org/hps/recon/tracking/kalman/Plane.html#Plane">Plane</a> pln, <strong class="jxr_keyword">int</strong> loc) {
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>         <em class="jxr_comment">// See TrackState for the different choices for loc (e.g. TrackState.atOther)</em>
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>         <strong class="jxr_keyword">return</strong> KalmanInterface.toTrackState(<strong class="jxr_keyword">this</strong>, pln, alphaCenter, loc);    
+<a class="jxr_linenumber" name="L636" href="#L636">636</a>     }
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>      
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>     <em class="jxr_comment">// Transform a helix from one pivot to another through a non-uniform B field in several steps</em>
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>     <em class="jxr_comment">// Deprecated original version without scattering planes</em>
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> helixStepper(<strong class="jxr_keyword">int</strong> nSteps, DMatrixRMaj Covariance, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> newOrigin, org.lcsim.geometry.FieldMap fM) {
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>         <strong class="jxr_keyword">double</strong> maxStep = Math.abs(newOrigin.v[1]-origin.v[1])/(<strong class="jxr_keyword">double</strong>)nSteps;
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>         ArrayList&lt;Double&gt; yScats = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>         ArrayList&lt;Double&gt; XL = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> transHelix = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(5);
+<a class="jxr_linenumber" name="L645" href="#L645">645</a>         helixStepper(maxStep, yScats, XL, Covariance, transHelix, newOrigin, fM);
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>         <strong class="jxr_keyword">return</strong> transHelix;
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>     }
+<a class="jxr_linenumber" name="L648" href="#L648">648</a> 
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>     <em class="jxr_comment">// Comparator function for sorting pairs in helixStepper by y</em>
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>     <strong class="jxr_keyword">static</strong> Comparator&lt;Pair&lt;Double,Double&gt;&gt; pairComparator = <strong class="jxr_keyword">new</strong> Comparator&lt;Pair&lt;Double,Double&gt;&gt;() {
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> compare(Pair&lt;Double,Double&gt; p1, Pair&lt;Double,Double&gt; p2) {
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>             <strong class="jxr_keyword">if</strong> (p1.getFirstElement() &lt; p2.getFirstElement()) {
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>                 <strong class="jxr_keyword">return</strong> -1;
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>                 <strong class="jxr_keyword">return</strong> +1;
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>             }
+<a class="jxr_linenumber" name="L657" href="#L657">657</a>         }
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>     };
+<a class="jxr_linenumber" name="L659" href="#L659">659</a> 
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>     <em class="jxr_comment">// Multiple scattering matrix; assume a single thin scattering layer at the</em>
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>     <em class="jxr_comment">// beginning of the helix propagation</em>
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>     <strong class="jxr_keyword">void</strong> getQ(<strong class="jxr_keyword">double</strong> sigmaMS, DMatrixRMaj Q) {
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>         <strong class="jxr_keyword">double</strong> V = sigmaMS * sigmaMS;
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>         Q.unsafe_set(1, 1,  V * (1.0 + a.v[4] * a.v[4]));
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>         Q.unsafe_set(4, 4, V * (1.0 + a.v[4] * a.v[4]) * (1.0 + a.v[4] * a.v[4]));
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>         <em class="jxr_comment">// All other elements are always zero, so don't need to be reset</em>
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>     }
+<a class="jxr_linenumber" name="L668" href="#L668">668</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

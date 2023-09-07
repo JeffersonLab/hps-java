@@ -1,0 +1,905 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>HpsReconParticleDriver xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/recon/particle/HpsReconParticleDriver.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.particle;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.lang.Math.sqrt;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.hps.conditions.beam.BeamPosition;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.hps.conditions.beam.BeamPosition.BeamPositionCollection;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.hps.conditions.database.DatabaseConditionsManager;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.ecal.cluster.ClusterUtilities;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackType;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.vertexing.BilliorTrack;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.vertexing.BilliorVertex;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.vertexing.BilliorVertexer;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.hps.record.StandardCuts;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.HpsSiSensor;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.ReconstructedParticle;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackState;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackerHit;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Vertex;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseReconstructedParticle;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseTrackState;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelicalTrackFit;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelixUtils;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> hep.physics.matrix.SymmetricMatrix;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHepLorentzVector;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.HepLorentzVector;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.VecOp;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment"> * The main HPS implementation of ReconParticleDriver. Method generates V0</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment"> * candidates and does vertex fits.</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="HpsReconParticleDriver" href="../../../../org/hps/recon/particle/HpsReconParticleDriver.html#HpsReconParticleDriver">HpsReconParticleDriver</a> <strong class="jxr_keyword">extends</strong> <a name="ReconParticleDriver" href="../../../../org/hps/recon/particle/ReconParticleDriver.html#ReconParticleDriver">ReconParticleDriver</a> {
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">private</strong> Logger LOGGER = Logger.getLogger(HpsReconParticleDriver.<strong class="jxr_keyword">class</strong>.getPackage().getName());
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment">     * LCIO collection name for Moller candidate particles generated without</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">protected</strong> String unconstrainedMollerCandidatesColName = <span class="jxr_string">"UnconstrainedMollerCandidates"</span>;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment">     * LCIO collection name for Moller candidate particles generated with beam</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <em class="jxr_javadoccomment">     * spot constraints.</em>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">protected</strong> String beamConMollerCandidatesColName = <span class="jxr_string">"BeamspotConstrainedMollerCandidates"</span>;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  <em class="jxr_javadoccomment">     * LCIO collection name for Moller candidate particles generated with target</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">protected</strong> String targetConMollerCandidatesColName = <span class="jxr_string">"TargetConstrainedMollerCandidates"</span>;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  <em class="jxr_javadoccomment">     * LCIO collection name for Moller candidate vertices generated without</em>
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      <strong class="jxr_keyword">protected</strong> String unconstrainedMollerVerticesColName = <span class="jxr_string">"UnconstrainedMollerVertices"</span>;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  <em class="jxr_javadoccomment">     * LCIO collection name for Moller candidate vertices generated with beam</em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <em class="jxr_javadoccomment">     * spot constraints.</em>
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">protected</strong> String beamConMollerVerticesColName = <span class="jxr_string">"BeamspotConstrainedMollerVertices"</span>;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <em class="jxr_javadoccomment">     * LCIO collection name for Moller candidate vertices generated with target</em>
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">protected</strong> String targetConMollerVerticesColName = <span class="jxr_string">"TargetConstrainedMollerVertices"</span>;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  <em class="jxr_javadoccomment">     * Stores reconstructed Moller candidate particles generated without</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">protected</strong> List&lt;ReconstructedParticle&gt; unconstrainedMollerCandidates;
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <em class="jxr_javadoccomment">     * Stores reconstructed Moller candidate particles generated with beam spot</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">protected</strong> List&lt;ReconstructedParticle&gt; beamConMollerCandidates;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  <em class="jxr_javadoccomment">     * Stores reconstructed Moller candidate particles generated with target</em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      <strong class="jxr_keyword">protected</strong> List&lt;ReconstructedParticle&gt; targetConMollerCandidates;
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  <em class="jxr_javadoccomment">     * Stores reconstructed Moller candidate vertices generated without</em>
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>  <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      <strong class="jxr_keyword">protected</strong> List&lt;Vertex&gt; unconstrainedMollerVertices;
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L101" href="#L101">101</a> <em class="jxr_javadoccomment">     * Stores reconstructed Moller candidate vertices generated with beam spot</em>
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L103" href="#L103">103</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     <strong class="jxr_keyword">protected</strong> List&lt;Vertex&gt; beamConMollerVertices;
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L106" href="#L106">106</a> <em class="jxr_javadoccomment">     * Stores reconstructed Moller candidate vertices generated with target</em>
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> <em class="jxr_javadoccomment">     * constraints.</em>
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     <strong class="jxr_keyword">protected</strong> List&lt;Vertex&gt; targetConMollerVertices;
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <em class="jxr_comment">// converted V0 collections</em>
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>     <strong class="jxr_keyword">protected</strong> String unconstrainedVcCandidatesColName = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> 
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>     <strong class="jxr_keyword">protected</strong> String unconstrainedVcVerticesColName = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L115" href="#L115">115</a> 
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     <strong class="jxr_keyword">protected</strong> List&lt;ReconstructedParticle&gt; unconstrainedVcCandidates;
+<a class="jxr_linenumber" name="L117" href="#L117">117</a> 
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>     <strong class="jxr_keyword">protected</strong> List&lt;Vertex&gt; unconstrainedVcVertices;
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> 
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> makeConversionCols = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L121" href="#L121">121</a> 
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> makeMollerCols = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L123" href="#L123">123</a> 
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> includeUnmatchedTracksInFSP = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> 
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> <em class="jxr_javadoccomment">     * Whether to read beam positions from the conditions database. By default</em>
+<a class="jxr_linenumber" name="L128" href="#L128">128</a> <em class="jxr_javadoccomment">     * this is turned off.</em>
+<a class="jxr_linenumber" name="L129" href="#L129">129</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> useBeamPositionConditions = false;
+<a class="jxr_linenumber" name="L131" href="#L131">131</a> 
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L133" href="#L133">133</a> <em class="jxr_javadoccomment">     * Whether to use a fixed Z position for the 2016 run. By default this is</em>
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> <em class="jxr_javadoccomment">     * turned on.</em>
+<a class="jxr_linenumber" name="L135" href="#L135">135</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> useFixedVertexZPosition = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L137" href="#L137">137</a> 
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L139" href="#L139">139</a> <em class="jxr_javadoccomment">     * The actual beam position passed to the vertex fitter.</em>
+<a class="jxr_linenumber" name="L140" href="#L140">140</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L141" href="#L141">141</a> <em class="jxr_javadoccomment">     * This can come from the parent class's default or steering settings, or</em>
+<a class="jxr_linenumber" name="L142" href="#L142">142</a> <em class="jxr_javadoccomment">     * the conditions database, depending on flag settings.</em>
+<a class="jxr_linenumber" name="L143" href="#L143">143</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong>[] beamPositionToUse = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[3];
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> requireClustersForV0 = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L146" href="#L146">146</a> 
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L148" href="#L148">148</a> <em class="jxr_javadoccomment">     * Represents a type of constraint for vertex fitting.</em>
+<a class="jxr_linenumber" name="L149" href="#L149">149</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L150" href="#L150">150</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>     <strong class="jxr_keyword">private</strong> enum Constraint {
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> 
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L154" href="#L154">154</a> <em class="jxr_javadoccomment">         * Represents a fit with no constraints.</em>
+<a class="jxr_linenumber" name="L155" href="#L155">155</a> <em class="jxr_javadoccomment">         */</em>
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>         UNCONSTRAINED,
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>         <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L158" href="#L158">158</a> <em class="jxr_javadoccomment">         * Represents a fit with beam spot constraints.</em>
+<a class="jxr_linenumber" name="L159" href="#L159">159</a> <em class="jxr_javadoccomment">         */</em>
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>         BS_CONSTRAINED,
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L162" href="#L162">162</a> <em class="jxr_javadoccomment">         * Represents a fit with target constraints.</em>
+<a class="jxr_linenumber" name="L163" href="#L163">163</a> <em class="jxr_javadoccomment">         */</em>
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>         TARGET_CONSTRAINED
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>     }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>     <em class="jxr_comment">// #dof for fit for each Constraint</em>
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong>[] DOF = {1, 3, 4};
+<a class="jxr_linenumber" name="L168" href="#L168">168</a> 
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> _patchVertexTrackParameters = false;
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> _storeCovTrkMomList = false;
+<a class="jxr_linenumber" name="L171" href="#L171">171</a> 
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>     <strong class="jxr_keyword">public</strong> <a name="HpsReconParticleDriver" href="../../../../org/hps/recon/particle/HpsReconParticleDriver.html#HpsReconParticleDriver">HpsReconParticleDriver</a>() {
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>         <strong class="jxr_keyword">super</strong>();
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>     }
+<a class="jxr_linenumber" name="L175" href="#L175">175</a> 
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector) {
+<a class="jxr_linenumber" name="L177" href="#L177">177</a> 
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         <em class="jxr_comment">// Make sure super-class setup is activated.</em>
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         <strong class="jxr_keyword">super</strong>.detectorChanged(detector);
+<a class="jxr_linenumber" name="L180" href="#L180">180</a> 
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         <em class="jxr_comment">// Setup optional usage of beam positions from database.</em>
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         <strong class="jxr_keyword">final</strong> <a name="DatabaseConditionsManager" href="../../../../org/hps/conditions/database/DatabaseConditionsManager.html#DatabaseConditionsManager">DatabaseConditionsManager</a> mgr = DatabaseConditionsManager.getInstance();
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.useBeamPositionConditions &amp;&amp; mgr.hasConditionsRecord(<span class="jxr_string">"beam_positions"</span>)) {
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             LOGGER.config(<span class="jxr_string">"Using beam position from conditions database"</span>);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>             BeamPositionCollection beamPositions
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>                     = mgr.getCachedConditions(BeamPositionCollection.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"beam_positions"</span>).getCachedData();
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>             BeamPosition beamPositionCond = beamPositions.get(0);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>             beamPositionToUse = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>                 beamPositionCond.getPositionZ(),
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>                 beamPositionCond.getPositionX(),
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>                 beamPositionCond.getPositionY()
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>             };
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.useFixedVertexZPosition) {
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>                 LOGGER.config(<span class="jxr_string">"Using fixed Z position: "</span> + <strong class="jxr_keyword">this</strong>.beamPosition[0]);
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>                 beamPositionToUse[0] = <strong class="jxr_keyword">this</strong>.beamPosition[0];
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>             }
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>             LOGGER.config(<span class="jxr_string">"Using beam position from steering file or default"</span>);
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>             beamPositionToUse = beamPosition;
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>         }
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>         LOGGER.config(<span class="jxr_string">"Using beam position [ Z, X, Y ]: "</span> + String.format(<span class="jxr_string">"[ %f, %f, %f ]"</span>,
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>                 beamPositionToUse[0], beamPositionToUse[1], beamPositionToUse[2]));
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>     }
+<a class="jxr_linenumber" name="L204" href="#L204">204</a> 
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxMollerP(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>         <strong class="jxr_keyword">if</strong> (cuts == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>             cuts = <strong class="jxr_keyword">new</strong> <a name="StandardCuts" href="../../../../org/hps/record/StandardCuts.html#StandardCuts">StandardCuts</a>(beamEnergy);
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>         }
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>         cuts.setMaxMollerP(input);
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>     }
+<a class="jxr_linenumber" name="L211" href="#L211">211</a> 
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMinMollerP(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>         <strong class="jxr_keyword">if</strong> (cuts == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>             cuts = <strong class="jxr_keyword">new</strong> <a name="StandardCuts" href="../../../../org/hps/record/StandardCuts.html#StandardCuts">StandardCuts</a>(beamEnergy);
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         }
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>         cuts.setMinMollerP(input);
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>     }
+<a class="jxr_linenumber" name="L218" href="#L218">218</a> 
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxVertexClusterDt(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         <strong class="jxr_keyword">if</strong> (cuts == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>             cuts = <strong class="jxr_keyword">new</strong> <a name="StandardCuts" href="../../../../org/hps/record/StandardCuts.html#StandardCuts">StandardCuts</a>(beamEnergy);
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>         }
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         cuts.setMaxVertexClusterDt(input);
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>     }
+<a class="jxr_linenumber" name="L225" href="#L225">225</a> 
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxVertexP(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         <strong class="jxr_keyword">if</strong> (cuts == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>             cuts = <strong class="jxr_keyword">new</strong> <a name="StandardCuts" href="../../../../org/hps/record/StandardCuts.html#StandardCuts">StandardCuts</a>(beamEnergy);
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>         }
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>         cuts.setMaxVertexP(input);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>     }
+<a class="jxr_linenumber" name="L232" href="#L232">232</a> 
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMinMollerChisqProb(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>         <strong class="jxr_keyword">if</strong> (cuts == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>             cuts = <strong class="jxr_keyword">new</strong> <a name="StandardCuts" href="../../../../org/hps/record/StandardCuts.html#StandardCuts">StandardCuts</a>(beamEnergy);
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>         }
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>         cuts.setMinMollerChisqProb(input);
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>     }
+<a class="jxr_linenumber" name="L239" href="#L239">239</a> 
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMinVertexChisqProb(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>         <strong class="jxr_keyword">if</strong> (cuts == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>             cuts = <strong class="jxr_keyword">new</strong> <a name="StandardCuts" href="../../../../org/hps/record/StandardCuts.html#StandardCuts">StandardCuts</a>(beamEnergy);
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         }
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>         cuts.setMinVertexChisqProb(input);
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>     }
+<a class="jxr_linenumber" name="L246" href="#L246">246</a> 
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setIncludeUnmatchedTracksInFSP(<strong class="jxr_keyword">boolean</strong> setUMTrks) {
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>         includeUnmatchedTracksInFSP = setUMTrks;
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>     }
+<a class="jxr_linenumber" name="L250" href="#L250">250</a> 
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L252" href="#L252">252</a> <em class="jxr_javadoccomment">     * This method used to activate usage of the internal map of run numbers to</em>
+<a class="jxr_linenumber" name="L253" href="#L253">253</a> <em class="jxr_javadoccomment">     * beam positions.</em>
+<a class="jxr_linenumber" name="L254" href="#L254">254</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L255" href="#L255">255</a> <em class="jxr_javadoccomment">     * Now, it activates usage of the beam positions from the conditions</em>
+<a class="jxr_linenumber" name="L256" href="#L256">256</a> <em class="jxr_javadoccomment">     * database instead. This should result in the same behavior as before, and</em>
+<a class="jxr_linenumber" name="L257" href="#L257">257</a> <em class="jxr_javadoccomment">     * steering files should not need to be updated (though eventually they</em>
+<a class="jxr_linenumber" name="L258" href="#L258">258</a> <em class="jxr_javadoccomment">     * should be).</em>
+<a class="jxr_linenumber" name="L259" href="#L259">259</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L260" href="#L260">260</a> <em class="jxr_javadoccomment">     * @deprecated Use {@link #setUseBeamPositionConditions(boolean)} instead.</em>
+<a class="jxr_linenumber" name="L261" href="#L261">261</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>     @Deprecated
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setUseInternalVertexXYPositions(<strong class="jxr_keyword">boolean</strong> b) {
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>         <em class="jxr_comment">// Changed this method to activate reading of conditions from the database. --JM</em>
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         <strong class="jxr_keyword">this</strong>.useBeamPositionConditions = b;
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         LOGGER.warning(<span class="jxr_string">"The method HpsReconParticleDriver.setUseInternalVertexXYPositions() is deprecated.  Use setUseBeamPositionConditions() instead."</span>);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>     }
+<a class="jxr_linenumber" name="L268" href="#L268">268</a> 
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L270" href="#L270">270</a> <em class="jxr_javadoccomment">     * Set whether to use beam positions from the database.</em>
+<a class="jxr_linenumber" name="L271" href="#L271">271</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L272" href="#L272">272</a> <em class="jxr_javadoccomment">     * @param b True to use beam positions from the database</em>
+<a class="jxr_linenumber" name="L273" href="#L273">273</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setUseBeamPositionConditions(<strong class="jxr_keyword">boolean</strong> b) {
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         <strong class="jxr_keyword">this</strong>.useBeamPositionConditions = b;
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     }
+<a class="jxr_linenumber" name="L277" href="#L277">277</a> 
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setStoreCovTrkMomList(<strong class="jxr_keyword">boolean</strong> b) {
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         _storeCovTrkMomList = b;
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>     }
+<a class="jxr_linenumber" name="L281" href="#L281">281</a> 
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setRequireClustersForV0(<strong class="jxr_keyword">boolean</strong> b) {
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>         <strong class="jxr_keyword">this</strong>.requireClustersForV0 = b;
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>     }
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>     
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setUnconstrainedMollerCandidatesColName(String s)
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>     {
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         unconstrainedMollerCandidatesColName = s;
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>     }
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setUnconstrainedMollerVerticesColName(String s)
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>     {
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>         unconstrainedMollerVerticesColName = s;
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>     }
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>     
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setBeamConMollerCandidatesColName(String s)
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>     {
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         beamConMollerCandidatesColName = s;
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>     }
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>     
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setBeamConMollerVerticesColName(String s)
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>     {
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         beamConMollerVerticesColName = s;
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>     }
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>     
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setTargetConMollerCandidatesColName(String s)
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>     {
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         targetConMollerCandidatesColName = s;
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>     }
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>     
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setTargetConMollerVerticesColName(String s)
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>     {
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>         targetConMollerVerticesColName = s;
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>     }
+<a class="jxr_linenumber" name="L315" href="#L315">315</a> 
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L317" href="#L317">317</a> <em class="jxr_javadoccomment">     * Processes the track and cluster collections in the event into</em>
+<a class="jxr_linenumber" name="L318" href="#L318">318</a> <em class="jxr_javadoccomment">     * reconstructed particles and V0 candidate particles and vertices. These</em>
+<a class="jxr_linenumber" name="L319" href="#L319">319</a> <em class="jxr_javadoccomment">     * reconstructed particles are then stored in the event.</em>
+<a class="jxr_linenumber" name="L320" href="#L320">320</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L321" href="#L321">321</a> <em class="jxr_javadoccomment">     * @param event - The event to process.</em>
+<a class="jxr_linenumber" name="L322" href="#L322">322</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>     @Override
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>         <em class="jxr_comment">//beamPositionToUse = beamPosition;</em>
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>         <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L327" href="#L327">327</a> <em class="jxr_comment">        int runNumber = event.getRunNumber();</em>
+<a class="jxr_linenumber" name="L328" href="#L328">328</a> <em class="jxr_comment">        if (useInternalVertexXYPositions &amp;&amp; beamPositionMap.containsKey(runNumber)) {</em>
+<a class="jxr_linenumber" name="L329" href="#L329">329</a> <em class="jxr_comment">            beamPositionToUse = beamPositionMap.get(runNumber);</em>
+<a class="jxr_linenumber" name="L330" href="#L330">330</a> <em class="jxr_comment">            // only use one target z position</em>
+<a class="jxr_linenumber" name="L331" href="#L331">331</a> <em class="jxr_comment">            beamPositionToUse[0] = beamPosition[0];</em>
+<a class="jxr_linenumber" name="L332" href="#L332">332</a> <em class="jxr_comment">        }</em>
+<a class="jxr_linenumber" name="L333" href="#L333">333</a> <em class="jxr_comment">         */</em>
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <strong class="jxr_keyword">if</strong> (makeMollerCols) {
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>             unconstrainedMollerCandidates = <strong class="jxr_keyword">new</strong> ArrayList&lt;ReconstructedParticle&gt;();
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>             beamConMollerCandidates = <strong class="jxr_keyword">new</strong> ArrayList&lt;ReconstructedParticle&gt;();
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>             targetConMollerCandidates = <strong class="jxr_keyword">new</strong> ArrayList&lt;ReconstructedParticle&gt;();
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>             unconstrainedMollerVertices = <strong class="jxr_keyword">new</strong> ArrayList&lt;Vertex&gt;();
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>             beamConMollerVertices = <strong class="jxr_keyword">new</strong> ArrayList&lt;Vertex&gt;();
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>             targetConMollerVertices = <strong class="jxr_keyword">new</strong> ArrayList&lt;Vertex&gt;();
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>         }
+<a class="jxr_linenumber" name="L342" href="#L342">342</a> 
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>         <strong class="jxr_keyword">if</strong> (makeConversionCols) {
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>             unconstrainedVcCandidates = <strong class="jxr_keyword">new</strong> ArrayList&lt;ReconstructedParticle&gt;();
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>             unconstrainedVcVertices = <strong class="jxr_keyword">new</strong> ArrayList&lt;Vertex&gt;();
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         }
+<a class="jxr_linenumber" name="L347" href="#L347">347</a> 
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>         <strong class="jxr_keyword">super</strong>.process(event);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a> 
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>         <strong class="jxr_keyword">if</strong> (makeMollerCols) {
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>             event.put(unconstrainedMollerCandidatesColName, unconstrainedMollerCandidates, ReconstructedParticle.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>             event.put(beamConMollerCandidatesColName, beamConMollerCandidates, ReconstructedParticle.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>             event.put(targetConMollerCandidatesColName, targetConMollerCandidates, ReconstructedParticle.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>             event.put(unconstrainedMollerVerticesColName, unconstrainedMollerVertices, Vertex.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>             event.put(beamConMollerVerticesColName, beamConMollerVertices, Vertex.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>             event.put(targetConMollerVerticesColName, targetConMollerVertices, Vertex.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L357" href="#L357">357</a> 
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>         }
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>         <strong class="jxr_keyword">if</strong> (makeConversionCols) {
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>             event.put(unconstrainedVcCandidatesColName, unconstrainedVcCandidates, ReconstructedParticle.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>             event.put(unconstrainedVcVerticesColName, unconstrainedVcVertices, Vertex.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>         }
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>     }
+<a class="jxr_linenumber" name="L364" href="#L364">364</a> 
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMakeConversionCols(<strong class="jxr_keyword">boolean</strong> input) {
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>         makeConversionCols = input;
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>     }
+<a class="jxr_linenumber" name="L368" href="#L368">368</a> 
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMakeMollerCols(<strong class="jxr_keyword">boolean</strong> input) {
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>         makeMollerCols = input;
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>     }
+<a class="jxr_linenumber" name="L372" href="#L372">372</a> 
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setStoreVertexCovars(<strong class="jxr_keyword">boolean</strong> input) {
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>         _storeCovTrkMomList = input;
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>     }
+<a class="jxr_linenumber" name="L376" href="#L376">376</a> 
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>     @Override
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>     <strong class="jxr_keyword">protected</strong> List&lt;ReconstructedParticle&gt; particleCuts(List&lt;ReconstructedParticle&gt; finalStateParticles) {
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>         List&lt;ReconstructedParticle&gt; goodFinalStateParticles = <strong class="jxr_keyword">new</strong> ArrayList&lt;ReconstructedParticle&gt;();
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>         <strong class="jxr_keyword">for</strong> (ReconstructedParticle part : finalStateParticles) {
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>             <em class="jxr_comment">// good electrons</em>
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>             <strong class="jxr_keyword">if</strong> (part.getCharge() == -1) {
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>                 <strong class="jxr_keyword">if</strong> (part.getMomentum().magnitude() &lt; cuts.getMaxElectronP()) {
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>                     <strong class="jxr_keyword">if</strong> (includeUnmatchedTracksInFSP || part.getGoodnessOfPID() &lt; cuts.getMaxMatchChisq()) {
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>                         goodFinalStateParticles.add(part);
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>                     }
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>                 }
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>             } <em class="jxr_comment">// good positrons</em>
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>             <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (part.getCharge() == 1) {
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>                 <strong class="jxr_keyword">if</strong> (includeUnmatchedTracksInFSP || part.getGoodnessOfPID() &lt; cuts.getMaxMatchChisq()) {
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>                     goodFinalStateParticles.add(part);
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>                 }
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>             } <em class="jxr_comment">// photons</em>
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>             <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>                 goodFinalStateParticles.add(part);
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>             }
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>         }
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>         <strong class="jxr_keyword">return</strong> goodFinalStateParticles;
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>     }
+<a class="jxr_linenumber" name="L400" href="#L400">400</a> 
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> findV0s(List&lt;ReconstructedParticle&gt; electrons, List&lt;ReconstructedParticle&gt; positrons) {
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>         List&lt;ReconstructedParticle&gt; goodElectrons = particleCuts(electrons);
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>         List&lt;ReconstructedParticle&gt; goodPositrons = particleCuts(positrons);
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>         <strong class="jxr_keyword">for</strong> (ReconstructedParticle positron : goodPositrons) {
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>             <strong class="jxr_keyword">for</strong> (ReconstructedParticle electron : goodElectrons) {
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>                 <em class="jxr_comment">// Don't vertex a GBL track with a SeedTrack.</em>
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 <strong class="jxr_keyword">if</strong> (TrackType.isGBL(positron.getType()) != TrackType.isGBL(electron.getType())) {
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>                 }
+<a class="jxr_linenumber" name="L410" href="#L410">410</a> 
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>                 <em class="jxr_comment">// Make V0 candidates</em>
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>                     <strong class="jxr_keyword">this</strong>.makeV0Candidates(electron, positron);
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>                 } <strong class="jxr_keyword">catch</strong> (RuntimeException e) {
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>                     e.printStackTrace();
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>                     System.out.println(<span class="jxr_string">"HpsReconParticleDriver::makeV0Candidates fails:: skipping ele/pos pair."</span>);
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>                 }
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>             }
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>         }
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>     }
+<a class="jxr_linenumber" name="L422" href="#L422">422</a> 
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> findMollers(List&lt;ReconstructedParticle&gt; electrons) {
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>         List&lt;ReconstructedParticle&gt; topElectrons = <strong class="jxr_keyword">new</strong> ArrayList&lt;ReconstructedParticle&gt;();
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>         List&lt;ReconstructedParticle&gt; botElectrons = <strong class="jxr_keyword">new</strong> ArrayList&lt;ReconstructedParticle&gt;();
+<a class="jxr_linenumber" name="L426" href="#L426">426</a> 
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>         <strong class="jxr_keyword">for</strong> (ReconstructedParticle electron : electrons) {
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>             <strong class="jxr_keyword">if</strong> (electron.getTracks().get(0).getTrackStates().get(0).getTanLambda() &gt; 0) {
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>                 topElectrons.add(electron);
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>                 botElectrons.add(electron);
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>             }
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>         }
+<a class="jxr_linenumber" name="L434" href="#L434">434</a> 
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>         <strong class="jxr_keyword">if</strong> (topElectrons.size() &gt; 1 || botElectrons.size() &gt; 1) {
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>         }
+<a class="jxr_linenumber" name="L438" href="#L438">438</a> 
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>         <em class="jxr_comment">// Iterate over the collection of electrons and create e-e- pairs </em>
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>         <strong class="jxr_keyword">for</strong> (ReconstructedParticle topElectron : topElectrons) {
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>             <strong class="jxr_keyword">for</strong> (ReconstructedParticle botElectron : botElectrons) {
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>                 <em class="jxr_comment">// Don't vertex a GBL track with a SeedTrack.</em>
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>                 <strong class="jxr_keyword">if</strong> (TrackType.isGBL(topElectron.getType()) != TrackType.isGBL(botElectron.getType())) {
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>                 }
+<a class="jxr_linenumber" name="L446" href="#L446">446</a> 
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>                 <em class="jxr_comment">// Only vertex two particles if at least one strategy found both tracks. Take out this check once we reduce the number of tracks.</em>
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>                 <em class="jxr_comment">//if ((topElectron.getType() &amp; botElectron.getType() &amp; 0x1f) == 0)</em>
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>                 <em class="jxr_comment">//    continue;</em>
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>                 <em class="jxr_comment">// Make Moller candidates</em>
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>                 <strong class="jxr_keyword">this</strong>.makeMollerCandidates(topElectron, botElectron);
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>             }
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>         }
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>     }
+<a class="jxr_linenumber" name="L455" href="#L455">455</a> 
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L457" href="#L457">457</a> <em class="jxr_javadoccomment">     * Creates reconstructed V0 candidate particles and vertices for electron</em>
+<a class="jxr_linenumber" name="L458" href="#L458">458</a> <em class="jxr_javadoccomment">     * positron pairs using no constraints, beam constraints, and target</em>
+<a class="jxr_linenumber" name="L459" href="#L459">459</a> <em class="jxr_javadoccomment">     * constraints. These are saved to the appropriate lists in the super class.</em>
+<a class="jxr_linenumber" name="L460" href="#L460">460</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L461" href="#L461">461</a> <em class="jxr_javadoccomment">     * @param electrons - The list of electrons.</em>
+<a class="jxr_linenumber" name="L462" href="#L462">462</a> <em class="jxr_javadoccomment">     * @param positrons - The list of positrons.</em>
+<a class="jxr_linenumber" name="L463" href="#L463">463</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>     @Override
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> findVertices(List&lt;ReconstructedParticle&gt; electrons, List&lt;ReconstructedParticle&gt; positrons) {
+<a class="jxr_linenumber" name="L466" href="#L466">466</a> 
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>         <em class="jxr_comment">// Iterate over the positrons and electrons to perform vertexing</em>
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>         <em class="jxr_comment">// on the pairs.</em>
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>         findV0s(electrons, positrons);
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>         <strong class="jxr_keyword">if</strong> (makeMollerCols) {
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>             findMollers(electrons);
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>         }
+<a class="jxr_linenumber" name="L473" href="#L473">473</a> 
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>     }
+<a class="jxr_linenumber" name="L475" href="#L475">475</a> 
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L477" href="#L477">477</a> <em class="jxr_javadoccomment">     * Sets the default LCIO collection names if they are not already defined</em>
+<a class="jxr_linenumber" name="L478" href="#L478">478</a> <em class="jxr_javadoccomment">     * previously.</em>
+<a class="jxr_linenumber" name="L479" href="#L479">479</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>     @Override
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> startOfData() {
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>         <strong class="jxr_keyword">super</strong>.startOfData();
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>         <em class="jxr_comment">// If the LCIO collection names have not been defined, assign</em>
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>         <em class="jxr_comment">// them to the default names.</em>
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>         <strong class="jxr_keyword">if</strong> (unconstrainedVcCandidatesColName == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>             unconstrainedVcCandidatesColName = unconstrainedV0CandidatesColName.replaceAll(<span class="jxr_string">"V0"</span>, <span class="jxr_string">"Vc"</span>);
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>         }
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>         <strong class="jxr_keyword">if</strong> (unconstrainedVcVerticesColName == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>             unconstrainedVcVerticesColName = unconstrainedV0VerticesColName.replaceAll(<span class="jxr_string">"V0"</span>, <span class="jxr_string">"Vc"</span>);
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>         }
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>     }
+<a class="jxr_linenumber" name="L492" href="#L492">492</a> 
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L494" href="#L494">494</a> <em class="jxr_javadoccomment">     * Fits a vertex from an electron/positron track pair using the indicated</em>
+<a class="jxr_linenumber" name="L495" href="#L495">495</a> <em class="jxr_javadoccomment">     * constraint.</em>
+<a class="jxr_linenumber" name="L496" href="#L496">496</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L497" href="#L497">497</a> <em class="jxr_javadoccomment">     * @param constraint - The constraint type to use.</em>
+<a class="jxr_linenumber" name="L498" href="#L498">498</a> <em class="jxr_javadoccomment">     * @param electron - The electron track.</em>
+<a class="jxr_linenumber" name="L499" href="#L499">499</a> <em class="jxr_javadoccomment">     * @param positron - The positron track.</em>
+<a class="jxr_linenumber" name="L500" href="#L500">500</a> <em class="jxr_javadoccomment">     * @return Returns the reconstructed vertex as a &lt;code&gt;BilliorVertex</em>
+<a class="jxr_linenumber" name="L501" href="#L501">501</a> <em class="jxr_javadoccomment">     * &lt;/code&gt; object. mg--8/14/17--add the displaced vertex refit for the</em>
+<a class="jxr_linenumber" name="L502" href="#L502">502</a> <em class="jxr_javadoccomment">     * UNCONSTRAINED and BS_CONSTRAINED fits</em>
+<a class="jxr_linenumber" name="L503" href="#L503">503</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>     <strong class="jxr_keyword">private</strong> <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> fitVertex(Constraint constraint, ReconstructedParticle electron, ReconstructedParticle positron) {
+<a class="jxr_linenumber" name="L505" href="#L505">505</a> 
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>         <em class="jxr_comment">// Covert the tracks to BilliorTracks.</em>
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>         <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> electronBTrack = toBilliorTrack(electron.getTracks().get(0));
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>         <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> positronBTrack = toBilliorTrack(positron.getTracks().get(0));
+<a class="jxr_linenumber" name="L509" href="#L509">509</a> 
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>         <em class="jxr_comment">// Create a vertex fitter from the magnetic field.</em>
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>         <em class="jxr_comment">// Note that the vertexing code uses the tracking frame coordinates</em>
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>         <em class="jxr_comment">// HPS X =&gt; TRACK Y</em>
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>         <em class="jxr_comment">// HPS Y =&gt; TRACK Z</em>
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>         <em class="jxr_comment">// HPS Z =&gt; TRACK X</em>
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>         <a name="BilliorVertexer" href="../../../../org/hps/recon/vertexing/BilliorVertexer.html#BilliorVertexer">BilliorVertexer</a> vtxFitter = <strong class="jxr_keyword">new</strong> <a name="BilliorVertexer" href="../../../../org/hps/recon/vertexing/BilliorVertexer.html#BilliorVertexer">BilliorVertexer</a>(bField);
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>         <em class="jxr_comment">// TODO: The beam size should come from the conditions database.</em>
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>         vtxFitter.setBeamSize(beamSize);
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>         vtxFitter.setBeamPosition(beamPositionToUse);
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>         vtxFitter.setStoreCovTrkMomList(_storeCovTrkMomList);
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>         vtxFitter.setDebug(debug);
+<a class="jxr_linenumber" name="L521" href="#L521">521</a> 
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>         <em class="jxr_comment">// Perform the vertexing based on the specified constraint.</em>
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>         <strong class="jxr_keyword">switch</strong> (constraint) {
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>             <strong class="jxr_keyword">case</strong> UNCONSTRAINED:
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>                 vtxFitter.doBeamSpotConstraint(false);
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>             <strong class="jxr_keyword">case</strong> BS_CONSTRAINED:
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>                 vtxFitter.doBeamSpotConstraint(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>             <strong class="jxr_keyword">case</strong> TARGET_CONSTRAINED:
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>                 vtxFitter.doTargetConstraint(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>         }
+<a class="jxr_linenumber" name="L534" href="#L534">534</a> 
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>         <em class="jxr_comment">// Add the electron and positron tracks to a track list for</em>
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>         <em class="jxr_comment">// the vertex fitter.</em>
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>         List&lt;BilliorTrack&gt; billiorTracks = <strong class="jxr_keyword">new</strong> ArrayList&lt;BilliorTrack&gt;();
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>         billiorTracks.add(electronBTrack);
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>         billiorTracks.add(positronBTrack);
+<a class="jxr_linenumber" name="L540" href="#L540">540</a> 
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>         <em class="jxr_comment">// Find a vertex based on the tracks.</em>
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>         <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtx = vtxFitter.fitVertex(billiorTracks);
+<a class="jxr_linenumber" name="L543" href="#L543">543</a> 
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>         <strong class="jxr_keyword">int</strong> minLayEle = 6;
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>         <strong class="jxr_keyword">int</strong> minLayPos = 6;
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>         List&lt;TrackerHit&gt; allTrackHits = electron.getTracks().get(0).getTrackerHits();
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>         <strong class="jxr_keyword">for</strong> (TrackerHit temp : allTrackHits) {
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>             <em class="jxr_comment">// Retrieve the sensor associated with one of the hits. This will</em>
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>             <em class="jxr_comment">// be used to retrieve the layer number</em>
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>             <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
+<a class="jxr_linenumber" name="L551" href="#L551">551</a> 
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>             <em class="jxr_comment">// Retrieve the layer number by using the sensor</em>
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>             <strong class="jxr_keyword">int</strong> layer = (sensor.getLayerNumber() + 1) / 2;
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>             <strong class="jxr_keyword">if</strong> (layer &lt; minLayEle) {
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>                 minLayEle = layer;
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>             }
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>         }
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>         allTrackHits = positron.getTracks().get(0).getTrackerHits();
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>         <strong class="jxr_keyword">for</strong> (TrackerHit temp : allTrackHits) {
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>             <em class="jxr_comment">// Retrieve the sensor associated with one of the hits. This will</em>
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>             <em class="jxr_comment">// be used to retrieve the layer number</em>
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>             <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
+<a class="jxr_linenumber" name="L563" href="#L563">563</a> 
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>             <em class="jxr_comment">// Retrieve the layer number by using the sensor</em>
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>             <strong class="jxr_keyword">int</strong> layer = (sensor.getLayerNumber() + 1) / 2;
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>             <strong class="jxr_keyword">if</strong> (layer &lt; minLayPos) {
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>                 minLayPos = layer;
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>             }
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>         }
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>         vtx.setLayerCode(minLayPos + minLayEle);
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>         vtx.setProbability(DOF[constraint.ordinal()]);
+<a class="jxr_linenumber" name="L572" href="#L572">572</a> 
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>         <em class="jxr_comment">// mg 8/14/17 </em>
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>         <em class="jxr_comment">// if this is an unconstrained or BS constrained vertex, propogate the </em>
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>         <em class="jxr_comment">// tracks to the vertex found in previous fit and do fit again</em>
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>         <em class="jxr_comment">//  ...  this is required because the vertex fit assumes trajectories </em>
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>         <em class="jxr_comment">// change linearly about the reference point (which we initially guess to be </em>
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>         <em class="jxr_comment">// (0,0,0) while for long-lived decays there is significant curvature</em>
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>         <strong class="jxr_keyword">if</strong> (constraint == Constraint.BS_CONSTRAINED || constraint == Constraint.UNCONSTRAINED) {
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>             List&lt;ReconstructedParticle&gt; recoList = <strong class="jxr_keyword">new</strong> ArrayList&lt;ReconstructedParticle&gt;();
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>             recoList.add(electron);
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>             recoList.add(positron);
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>             List&lt;BilliorTrack&gt; shiftedTracks = shiftTracksToVertex(recoList, vtx.getPosition());
+<a class="jxr_linenumber" name="L584" href="#L584">584</a> <em class="jxr_comment">//            if (constraint == Constraint.BS_CONSTRAINED) {</em>
+<a class="jxr_linenumber" name="L585" href="#L585">585</a> <em class="jxr_comment">//                Hep3Vector beamRelToNewRef = new BasicHep3Vector(-vtx.getPosition().z() + beamPosition[0], -vtx.getPosition().x() + beamPosition[1], 0);</em>
+<a class="jxr_linenumber" name="L586" href="#L586">586</a> <em class="jxr_comment">////                vtxFitter.setBeamPosition(beamRelToNewRef.v());</em>
+<a class="jxr_linenumber" name="L587" href="#L587">587</a> <em class="jxr_comment">//                //mg 5/11/2018:  use referencePostion, separate from beam position  </em>
+<a class="jxr_linenumber" name="L588" href="#L588">588</a> <em class="jxr_comment">//                vtxFitter.setReferencePosition(beamRelToNewRef.v());</em>
+<a class="jxr_linenumber" name="L589" href="#L589">589</a> <em class="jxr_comment">//            }</em>
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>             <em class="jxr_comment">//mg 5/11/2018:  use referencePosition, separate from beam position  </em>
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>             Hep3Vector newRefPoint = <strong class="jxr_keyword">new</strong> BasicHep3Vector(vtx.getPosition().z(), vtx.getPosition().x(), 0);
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>             vtxFitter.setReferencePosition(newRefPoint.v());
+<a class="jxr_linenumber" name="L593" href="#L593">593</a> 
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>             <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxNew = vtxFitter.fitVertex(shiftedTracks);
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>             vtxNew.setLayerCode(vtx.getLayerCode());
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>             vtxNew.setProbability(DOF[constraint.ordinal()]);
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>             <strong class="jxr_keyword">return</strong> vtxNew;
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>             <strong class="jxr_keyword">return</strong> vtx;
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>         }
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>     }
+<a class="jxr_linenumber" name="L602" href="#L602">602</a> 
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L604" href="#L604">604</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L605" href="#L605">605</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> makeV0Candidates(ReconstructedParticle electron, ReconstructedParticle positron) {
+<a class="jxr_linenumber" name="L607" href="#L607">607</a> 
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>         <em class="jxr_comment">//boolean eleIsTop = (electron.getTracks().get(0).getTrackerHits().get(0).getPosition()[2] &gt; 0);</em>
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>         <em class="jxr_comment">//boolean posIsTop = (positron.getTracks().get(0).getTrackerHits().get(0).getPosition()[2] &gt; 0);</em>
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>         <em class="jxr_comment">//This eleIsTop/posIsTop logic is valid for all track types [both Helix+GBL and Kalman]</em>
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>         <strong class="jxr_keyword">boolean</strong> eleIsTop = (electron.getTracks().get(0).getTrackStates().get(0).getTanLambda() &gt; 0);
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>         <strong class="jxr_keyword">boolean</strong> posIsTop = (positron.getTracks().get(0).getTrackStates().get(0).getTanLambda() &gt; 0);
+<a class="jxr_linenumber" name="L613" href="#L613">613</a> 
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>         <strong class="jxr_keyword">if</strong> ((eleIsTop == posIsTop) &amp;&amp; (!makeConversionCols)) {
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>         }
+<a class="jxr_linenumber" name="L617" href="#L617">617</a> 
+<a class="jxr_linenumber" name="L618" href="#L618">618</a>         <strong class="jxr_keyword">if</strong> (electron.getClusters() == <strong class="jxr_keyword">null</strong> || positron.getClusters() == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>         }
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>         <strong class="jxr_keyword">if</strong> (requireClustersForV0 &amp;&amp; (electron.getClusters().isEmpty() || positron.getClusters().isEmpty())) {
+<a class="jxr_linenumber" name="L622" href="#L622">622</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>         }
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>         <strong class="jxr_keyword">if</strong> (requireClustersForV0) {
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>             <strong class="jxr_keyword">double</strong> eleClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
+<a class="jxr_linenumber" name="L626" href="#L626">626</a>             <strong class="jxr_keyword">double</strong> posClusTime = ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
+<a class="jxr_linenumber" name="L627" href="#L627">627</a> 
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>             <strong class="jxr_keyword">if</strong> (Math.abs(eleClusTime - posClusTime) &gt; cuts.getMaxVertexClusterDt()) {
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>                 <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>             }
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>         }
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>         <em class="jxr_comment">// Handle UNCONSTRAINED case, to make decisions whether we store the vertexes.</em>
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>         <em class="jxr_comment">// This is done here so that we either store all types, or none, but never a mix.</em>
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>         <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFit = fitVertex(Constraint.UNCONSTRAINED, electron, positron);
+<a class="jxr_linenumber" name="L635" href="#L635">635</a> 
+<a class="jxr_linenumber" name="L636" href="#L636">636</a>         ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, vtxFit);
+<a class="jxr_linenumber" name="L637" href="#L637">637</a> 
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>         <strong class="jxr_keyword">if</strong> (candidate.getMomentum().magnitude() &gt; cuts.getMaxVertexP()) {
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>         }
+<a class="jxr_linenumber" name="L641" href="#L641">641</a> 
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>         <strong class="jxr_keyword">if</strong> (candidate.getStartVertex().getProbability() &lt; cuts.getMinVertexChisqProb()) {
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>         }
+<a class="jxr_linenumber" name="L645" href="#L645">645</a> 
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>         <em class="jxr_comment">// patch the track parameters at the found vertex</em>
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>         <strong class="jxr_keyword">if</strong> (_patchVertexTrackParameters) {
+<a class="jxr_linenumber" name="L648" href="#L648">648</a>             patchVertex(vtxFit);
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>         }
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>         <strong class="jxr_keyword">if</strong> (eleIsTop != posIsTop) {
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>             unconstrainedV0Vertices.add(vtxFit);
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>             unconstrainedV0Candidates.add(candidate);
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>             unconstrainedVcVertices.add(vtxFit);
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>             unconstrainedVcCandidates.add(candidate);
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>         }
+<a class="jxr_linenumber" name="L657" href="#L657">657</a> 
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>         <em class="jxr_comment">// Create candidate particles for the other two constraints.</em>
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>         <strong class="jxr_keyword">for</strong> (Constraint constraint : Constraint.values()) {
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>             <strong class="jxr_keyword">if</strong> (constraint == Constraint.UNCONSTRAINED) {
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>                 <strong class="jxr_keyword">continue</strong>;           <em class="jxr_comment">// Skip the UNCONSTRAINED case, done already</em>
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>             }
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>             <em class="jxr_comment">// Generate a candidate vertex and particle.</em>
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>             vtxFit = fitVertex(constraint, electron, positron);
+<a class="jxr_linenumber" name="L665" href="#L665">665</a> 
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>             candidate = makeReconstructedParticle(electron, positron, vtxFit);
+<a class="jxr_linenumber" name="L667" href="#L667">667</a> 
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>             <em class="jxr_comment">// Add the other candidate vertex and particle to the</em>
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>             <em class="jxr_comment">// appropriate LCIO collection.</em>
+<a class="jxr_linenumber" name="L670" href="#L670">670</a>             <strong class="jxr_keyword">switch</strong> (constraint) {
+<a class="jxr_linenumber" name="L671" href="#L671">671</a> 
+<a class="jxr_linenumber" name="L672" href="#L672">672</a>                 <strong class="jxr_keyword">case</strong> BS_CONSTRAINED:
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>                     <strong class="jxr_keyword">if</strong> (eleIsTop != posIsTop) {
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>                         beamConV0Vertices.add(vtxFit);
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>                         beamConV0Candidates.add(candidate);
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>                     }
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L678" href="#L678">678</a> 
+<a class="jxr_linenumber" name="L679" href="#L679">679</a>                 <strong class="jxr_keyword">case</strong> TARGET_CONSTRAINED:
+<a class="jxr_linenumber" name="L680" href="#L680">680</a>                     <strong class="jxr_keyword">if</strong> (eleIsTop != posIsTop) {
+<a class="jxr_linenumber" name="L681" href="#L681">681</a>                         targetConV0Vertices.add(vtxFit);
+<a class="jxr_linenumber" name="L682" href="#L682">682</a>                         targetConV0Candidates.add(candidate);
+<a class="jxr_linenumber" name="L683" href="#L683">683</a>                     }
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L685" href="#L685">685</a> 
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>             }
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>         }
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>     }
+<a class="jxr_linenumber" name="L689" href="#L689">689</a> 
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L691" href="#L691">691</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L692" href="#L692">692</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> makeMollerCandidates(ReconstructedParticle topElectron, ReconstructedParticle botElectron) {
+<a class="jxr_linenumber" name="L694" href="#L694">694</a> 
+<a class="jxr_linenumber" name="L695" href="#L695">695</a>         <em class="jxr_comment">// Create candidate particles for each constraint.</em>
+<a class="jxr_linenumber" name="L696" href="#L696">696</a>         <strong class="jxr_keyword">for</strong> (Constraint constraint : Constraint.values()) {
+<a class="jxr_linenumber" name="L697" href="#L697">697</a> 
+<a class="jxr_linenumber" name="L698" href="#L698">698</a>             <em class="jxr_comment">// Generate a candidate vertex and particle.</em>
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>             <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFit = fitVertex(constraint, topElectron, botElectron);
+<a class="jxr_linenumber" name="L700" href="#L700">700</a>             ReconstructedParticle candidate = makeReconstructedParticle(topElectron, botElectron, vtxFit);
+<a class="jxr_linenumber" name="L701" href="#L701">701</a>             <strong class="jxr_keyword">if</strong> (candidate.getMomentum().magnitude() &gt; cuts.getMaxVertexP() || candidate.getMomentum().magnitude() &lt; cuts.getMinMollerP()) {
+<a class="jxr_linenumber" name="L702" href="#L702">702</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L703" href="#L703">703</a>             }
+<a class="jxr_linenumber" name="L704" href="#L704">704</a>             <strong class="jxr_keyword">if</strong> (candidate.getStartVertex().getProbability() &lt; cuts.getMinMollerChisqProb()) {
+<a class="jxr_linenumber" name="L705" href="#L705">705</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L706" href="#L706">706</a>             }
+<a class="jxr_linenumber" name="L707" href="#L707">707</a>             <em class="jxr_comment">// Add the candidate vertex and particle to the</em>
+<a class="jxr_linenumber" name="L708" href="#L708">708</a>             <em class="jxr_comment">// appropriate LCIO collection.</em>
+<a class="jxr_linenumber" name="L709" href="#L709">709</a>             <strong class="jxr_keyword">switch</strong> (constraint) {
+<a class="jxr_linenumber" name="L710" href="#L710">710</a> 
+<a class="jxr_linenumber" name="L711" href="#L711">711</a>                 <strong class="jxr_keyword">case</strong> UNCONSTRAINED:
+<a class="jxr_linenumber" name="L712" href="#L712">712</a>                     <em class="jxr_comment">// patch the track parameters at the found vertex</em>
+<a class="jxr_linenumber" name="L713" href="#L713">713</a>                     <strong class="jxr_keyword">if</strong> (_patchVertexTrackParameters) {
+<a class="jxr_linenumber" name="L714" href="#L714">714</a>                         patchVertex(vtxFit);
+<a class="jxr_linenumber" name="L715" href="#L715">715</a>                     }
+<a class="jxr_linenumber" name="L716" href="#L716">716</a>                     unconstrainedMollerVertices.add(vtxFit);
+<a class="jxr_linenumber" name="L717" href="#L717">717</a>                     unconstrainedMollerCandidates.add(candidate);
+<a class="jxr_linenumber" name="L718" href="#L718">718</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L719" href="#L719">719</a> 
+<a class="jxr_linenumber" name="L720" href="#L720">720</a>                 <strong class="jxr_keyword">case</strong> BS_CONSTRAINED:
+<a class="jxr_linenumber" name="L721" href="#L721">721</a>                     beamConMollerVertices.add(vtxFit);
+<a class="jxr_linenumber" name="L722" href="#L722">722</a>                     beamConMollerCandidates.add(candidate);
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L724" href="#L724">724</a> 
+<a class="jxr_linenumber" name="L725" href="#L725">725</a>                 <strong class="jxr_keyword">case</strong> TARGET_CONSTRAINED:
+<a class="jxr_linenumber" name="L726" href="#L726">726</a>                     targetConMollerVertices.add(vtxFit);
+<a class="jxr_linenumber" name="L727" href="#L727">727</a>                     targetConMollerCandidates.add(candidate);
+<a class="jxr_linenumber" name="L728" href="#L728">728</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L729" href="#L729">729</a> 
+<a class="jxr_linenumber" name="L730" href="#L730">730</a>             }
+<a class="jxr_linenumber" name="L731" href="#L731">731</a>         }
+<a class="jxr_linenumber" name="L732" href="#L732">732</a>     }
+<a class="jxr_linenumber" name="L733" href="#L733">733</a> 
+<a class="jxr_linenumber" name="L734" href="#L734">734</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L735" href="#L735">735</a> <em class="jxr_javadoccomment">     * Creates a reconstructed V0 candidate particle from an electron, positron,</em>
+<a class="jxr_linenumber" name="L736" href="#L736">736</a> <em class="jxr_javadoccomment">     * and billior vertex.</em>
+<a class="jxr_linenumber" name="L737" href="#L737">737</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L738" href="#L738">738</a> <em class="jxr_javadoccomment">     * @param electron - The electron.</em>
+<a class="jxr_linenumber" name="L739" href="#L739">739</a> <em class="jxr_javadoccomment">     * @param positron - The positron.</em>
+<a class="jxr_linenumber" name="L740" href="#L740">740</a> <em class="jxr_javadoccomment">     * @param vtxFit - The billior vertex.</em>
+<a class="jxr_linenumber" name="L741" href="#L741">741</a> <em class="jxr_javadoccomment">     * @return Returns a reconstructed particle with properties generated from</em>
+<a class="jxr_linenumber" name="L742" href="#L742">742</a> <em class="jxr_javadoccomment">     * the child particles and vertex given as an argument.</em>
+<a class="jxr_linenumber" name="L743" href="#L743">743</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L744" href="#L744">744</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> ReconstructedParticle makeReconstructedParticle(ReconstructedParticle electron, ReconstructedParticle positron, <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFit) {
+<a class="jxr_linenumber" name="L745" href="#L745">745</a> 
+<a class="jxr_linenumber" name="L746" href="#L746">746</a>         <em class="jxr_comment">// Create a new reconstructed particle to represent the V0</em>
+<a class="jxr_linenumber" name="L747" href="#L747">747</a>         <em class="jxr_comment">// candidate and populate it with the electron and positron.</em>
+<a class="jxr_linenumber" name="L748" href="#L748">748</a>         ReconstructedParticle candidate = <strong class="jxr_keyword">new</strong> BaseReconstructedParticle();
+<a class="jxr_linenumber" name="L749" href="#L749">749</a>         ((BaseReconstructedParticle) candidate).setStartVertex(vtxFit);
+<a class="jxr_linenumber" name="L750" href="#L750">750</a>         candidate.addParticle(electron);
+<a class="jxr_linenumber" name="L751" href="#L751">751</a>         candidate.addParticle(positron);
+<a class="jxr_linenumber" name="L752" href="#L752">752</a> 
+<a class="jxr_linenumber" name="L753" href="#L753">753</a>         <em class="jxr_comment">// Set the type of the V0 particle.  This will only be needed for pass 2.</em>
+<a class="jxr_linenumber" name="L754" href="#L754">754</a>         ((BaseReconstructedParticle) candidate).setType(electron.getType());
+<a class="jxr_linenumber" name="L755" href="#L755">755</a> 
+<a class="jxr_linenumber" name="L756" href="#L756">756</a>         <em class="jxr_comment">// TODO: The calculation of the total fitted momentum should be</em>
+<a class="jxr_linenumber" name="L757" href="#L757">757</a>         <em class="jxr_comment">//       done within BilloirVertex.</em>
+<a class="jxr_linenumber" name="L758" href="#L758">758</a>         <em class="jxr_comment">// Calculate the candidate particle momentum and associate it</em>
+<a class="jxr_linenumber" name="L759" href="#L759">759</a>         <em class="jxr_comment">// with the reconstructed candidate particle.</em>
+<a class="jxr_linenumber" name="L760" href="#L760">760</a>         ((BaseReconstructedParticle) candidate).setMass(vtxFit.getParameters().get(<span class="jxr_string">"invMass"</span>));
+<a class="jxr_linenumber" name="L761" href="#L761">761</a>         Hep3Vector fittedMomentum = <strong class="jxr_keyword">new</strong> BasicHep3Vector(vtxFit.getParameters().get(<span class="jxr_string">"p1X"</span>),
+<a class="jxr_linenumber" name="L762" href="#L762">762</a>                 vtxFit.getParameters().get(<span class="jxr_string">"p1Y"</span>),
+<a class="jxr_linenumber" name="L763" href="#L763">763</a>                 vtxFit.getParameters().get(<span class="jxr_string">"p1Z"</span>));
+<a class="jxr_linenumber" name="L764" href="#L764">764</a>         fittedMomentum = VecOp.add(fittedMomentum, <strong class="jxr_keyword">new</strong> BasicHep3Vector(vtxFit.getParameters().get(<span class="jxr_string">"p2X"</span>),
+<a class="jxr_linenumber" name="L765" href="#L765">765</a>                 vtxFit.getParameters().get(<span class="jxr_string">"p2Y"</span>),
+<a class="jxr_linenumber" name="L766" href="#L766">766</a>                 vtxFit.getParameters().get(<span class="jxr_string">"p2Z"</span>)));
+<a class="jxr_linenumber" name="L767" href="#L767">767</a>         <em class="jxr_comment">//mg 10/24/2017...billiorvertex now returns momentum in JLAB frame</em>
+<a class="jxr_linenumber" name="L768" href="#L768">768</a>         <em class="jxr_comment">//         fittedMomentum = CoordinateTransformations.transformVectorToDetector(fittedMomentum);</em>
+<a class="jxr_linenumber" name="L769" href="#L769">769</a> 
+<a class="jxr_linenumber" name="L770" href="#L770">770</a>         <em class="jxr_comment">// If both the electron and positron have an associated Ecal cluster,</em>
+<a class="jxr_linenumber" name="L771" href="#L771">771</a>         <em class="jxr_comment">// calculate the total energy and assign it to the V0 particle</em>
+<a class="jxr_linenumber" name="L772" href="#L772">772</a>         <strong class="jxr_keyword">double</strong> v0Energy = 0;
+<a class="jxr_linenumber" name="L773" href="#L773">773</a>         <strong class="jxr_keyword">if</strong> (!electron.getClusters().isEmpty() &amp;&amp; !positron.getClusters().isEmpty()) {
+<a class="jxr_linenumber" name="L774" href="#L774">774</a>             v0Energy += electron.getClusters().get(0).getEnergy();
+<a class="jxr_linenumber" name="L775" href="#L775">775</a>             v0Energy += positron.getClusters().get(0).getEnergy();
+<a class="jxr_linenumber" name="L776" href="#L776">776</a>         }
+<a class="jxr_linenumber" name="L777" href="#L777">777</a> 
+<a class="jxr_linenumber" name="L778" href="#L778">778</a>         HepLorentzVector fourVector = <strong class="jxr_keyword">new</strong> BasicHepLorentzVector(v0Energy, fittedMomentum);
+<a class="jxr_linenumber" name="L779" href="#L779">779</a>         <em class="jxr_comment">//((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);</em>
+<a class="jxr_linenumber" name="L780" href="#L780">780</a>         ((BaseReconstructedParticle) candidate).set4Vector(fourVector);
+<a class="jxr_linenumber" name="L781" href="#L781">781</a> 
+<a class="jxr_linenumber" name="L782" href="#L782">782</a>         <em class="jxr_comment">// Set the charge of the particle</em>
+<a class="jxr_linenumber" name="L783" href="#L783">783</a>         <strong class="jxr_keyword">double</strong> particleCharge = electron.getCharge() + positron.getCharge();
+<a class="jxr_linenumber" name="L784" href="#L784">784</a>         ((BaseReconstructedParticle) candidate).setCharge(particleCharge);
+<a class="jxr_linenumber" name="L785" href="#L785">785</a> 
+<a class="jxr_linenumber" name="L786" href="#L786">786</a>         <em class="jxr_comment">// VERBOSE :: Output the fitted momentum data.</em>
+<a class="jxr_linenumber" name="L787" href="#L787">787</a> <em class="jxr_comment">//        printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());</em>
+<a class="jxr_linenumber" name="L788" href="#L788">788</a> <em class="jxr_comment">//        printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());</em>
+<a class="jxr_linenumber" name="L789" href="#L789">789</a>         <em class="jxr_comment">// Add the ReconstructedParticle to the vertex.</em>
+<a class="jxr_linenumber" name="L790" href="#L790">790</a>         vtxFit.setAssociatedParticle(candidate);
+<a class="jxr_linenumber" name="L791" href="#L791">791</a> 
+<a class="jxr_linenumber" name="L792" href="#L792">792</a>         <em class="jxr_comment">// Set the vertex position as the reference point of the V0 particle</em>
+<a class="jxr_linenumber" name="L793" href="#L793">793</a>         ((BaseReconstructedParticle) candidate).setReferencePoint(vtxFit.getPosition());
+<a class="jxr_linenumber" name="L794" href="#L794">794</a> 
+<a class="jxr_linenumber" name="L795" href="#L795">795</a>         <em class="jxr_comment">// Return the V0 candidate.</em>
+<a class="jxr_linenumber" name="L796" href="#L796">796</a>         <strong class="jxr_keyword">return</strong> candidate;
+<a class="jxr_linenumber" name="L797" href="#L797">797</a>     }
+<a class="jxr_linenumber" name="L798" href="#L798">798</a> 
+<a class="jxr_linenumber" name="L799" href="#L799">799</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L800" href="#L800">800</a> <em class="jxr_javadoccomment">     * Converts a &lt;code&gt;Track&lt;/code&gt; object to a &lt;code&gt;BilliorTrack</em>
+<a class="jxr_linenumber" name="L801" href="#L801">801</a> <em class="jxr_javadoccomment">     * &lt;/code&gt; object.</em>
+<a class="jxr_linenumber" name="L802" href="#L802">802</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L803" href="#L803">803</a> <em class="jxr_javadoccomment">     * @param track - The original track.</em>
+<a class="jxr_linenumber" name="L804" href="#L804">804</a> <em class="jxr_javadoccomment">     * @return Returns the original track as a &lt;code&gt;BilliorTrack</em>
+<a class="jxr_linenumber" name="L805" href="#L805">805</a> <em class="jxr_javadoccomment">     * &lt;/code&gt; object.</em>
+<a class="jxr_linenumber" name="L806" href="#L806">806</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L807" href="#L807">807</a>     <strong class="jxr_keyword">private</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> toBilliorTrack(Track track) {
+<a class="jxr_linenumber" name="L808" href="#L808">808</a>         <em class="jxr_comment">// Generate and return the billior track.</em>
+<a class="jxr_linenumber" name="L809" href="#L809">809</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a>(track);
+<a class="jxr_linenumber" name="L810" href="#L810">810</a>     }
+<a class="jxr_linenumber" name="L811" href="#L811">811</a> 
+<a class="jxr_linenumber" name="L812" href="#L812">812</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L813" href="#L813">813</a> <em class="jxr_javadoccomment">     * Converts a &lt;code&gt;TrackState&lt;/code&gt; object to a &lt;code&gt;BilliorTrack</em>
+<a class="jxr_linenumber" name="L814" href="#L814">814</a> <em class="jxr_javadoccomment">     * &lt;/code&gt; object.</em>
+<a class="jxr_linenumber" name="L815" href="#L815">815</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L816" href="#L816">816</a> <em class="jxr_javadoccomment">     * @param track - The original track state</em>
+<a class="jxr_linenumber" name="L817" href="#L817">817</a> <em class="jxr_javadoccomment">     * @return Returns the original track as a &lt;code&gt;BilliorTrack</em>
+<a class="jxr_linenumber" name="L818" href="#L818">818</a> <em class="jxr_javadoccomment">     * &lt;/code&gt; object.</em>
+<a class="jxr_linenumber" name="L819" href="#L819">819</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L820" href="#L820">820</a>     <strong class="jxr_keyword">private</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> toBilliorTrack(TrackState trackstate) {
+<a class="jxr_linenumber" name="L821" href="#L821">821</a>         <em class="jxr_comment">// Generate and return the billior track.</em>
+<a class="jxr_linenumber" name="L822" href="#L822">822</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a>(trackstate, 0, 0); <em class="jxr_comment">// track state doesn't store chi^2 info (stored in the Track object)</em>
+<a class="jxr_linenumber" name="L823" href="#L823">823</a>     }
+<a class="jxr_linenumber" name="L824" href="#L824">824</a> 
+<a class="jxr_linenumber" name="L825" href="#L825">825</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setPatchVertexTrackParameters(<strong class="jxr_keyword">boolean</strong> b) {
+<a class="jxr_linenumber" name="L826" href="#L826">826</a>         _patchVertexTrackParameters = b;
+<a class="jxr_linenumber" name="L827" href="#L827">827</a>     }
+<a class="jxr_linenumber" name="L828" href="#L828">828</a> 
+<a class="jxr_linenumber" name="L829" href="#L829">829</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> patchVertex(<a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> v) {
+<a class="jxr_linenumber" name="L830" href="#L830">830</a>         ReconstructedParticle rp = v.getAssociatedParticle();
+<a class="jxr_linenumber" name="L831" href="#L831">831</a>         List&lt;ReconstructedParticle&gt; parts = rp.getParticles();
+<a class="jxr_linenumber" name="L832" href="#L832">832</a>         ReconstructedParticle rp1 = parts.get(0);
+<a class="jxr_linenumber" name="L833" href="#L833">833</a>         ReconstructedParticle rp2 = parts.get(1);
+<a class="jxr_linenumber" name="L834" href="#L834">834</a>         <em class="jxr_comment">//p1</em>
+<a class="jxr_linenumber" name="L835" href="#L835">835</a>         Track et = rp1.getTracks().get(0);
+<a class="jxr_linenumber" name="L836" href="#L836">836</a>         <strong class="jxr_keyword">double</strong> etrackMom = rp1.getMomentum().magnitude();
+<a class="jxr_linenumber" name="L837" href="#L837">837</a>         HelicalTrackFit ehtf = TrackUtils.getHTF(et);
+<a class="jxr_linenumber" name="L838" href="#L838">838</a>         <em class="jxr_comment">// propagate this to the vertex z position...</em>
+<a class="jxr_linenumber" name="L839" href="#L839">839</a>         <em class="jxr_comment">// Note that HPS y is lcsim z</em>
+<a class="jxr_linenumber" name="L840" href="#L840">840</a>         <strong class="jxr_keyword">double</strong> es = HelixUtils.PathToZPlane(ehtf, v.getPosition().y());
+<a class="jxr_linenumber" name="L841" href="#L841">841</a>         <em class="jxr_comment">//Hep3Vector epointOnTrackAtVtx = HelixUtils.PointOnHelix(ehtf, es);</em>
+<a class="jxr_linenumber" name="L842" href="#L842">842</a>         Hep3Vector edirOfTrackAtVtx = HelixUtils.Direction(ehtf, es);
+<a class="jxr_linenumber" name="L843" href="#L843">843</a>         Hep3Vector emomAtVtx = VecOp.mult(etrackMom, VecOp.unit(edirOfTrackAtVtx));
+<a class="jxr_linenumber" name="L844" href="#L844">844</a>         <em class="jxr_comment">//p2</em>
+<a class="jxr_linenumber" name="L845" href="#L845">845</a>         Track pt = rp2.getTracks().get(0);
+<a class="jxr_linenumber" name="L846" href="#L846">846</a>         <strong class="jxr_keyword">double</strong> ptrackMom = rp2.getMomentum().magnitude();
+<a class="jxr_linenumber" name="L847" href="#L847">847</a>         HelicalTrackFit phtf = TrackUtils.getHTF(pt);
+<a class="jxr_linenumber" name="L848" href="#L848">848</a>         <em class="jxr_comment">// propagate this to the vertex z position...</em>
+<a class="jxr_linenumber" name="L849" href="#L849">849</a>         <em class="jxr_comment">// Note that HPS y is lcsim z</em>
+<a class="jxr_linenumber" name="L850" href="#L850">850</a>         <strong class="jxr_keyword">double</strong> ps = HelixUtils.PathToZPlane(phtf, v.getPosition().y());
+<a class="jxr_linenumber" name="L851" href="#L851">851</a>         <em class="jxr_comment">//Hep3Vector ppointOnTrackAtVtx = HelixUtils.PointOnHelix(phtf, ps);</em>
+<a class="jxr_linenumber" name="L852" href="#L852">852</a>         Hep3Vector pdirOfTrackAtVtx = HelixUtils.Direction(phtf, ps);
+<a class="jxr_linenumber" name="L853" href="#L853">853</a>         Hep3Vector pmomAtVtx = VecOp.mult(ptrackMom, VecOp.unit(pdirOfTrackAtVtx));
+<a class="jxr_linenumber" name="L854" href="#L854">854</a> 
+<a class="jxr_linenumber" name="L855" href="#L855">855</a>         <strong class="jxr_keyword">double</strong> mass = invMass(emomAtVtx, pmomAtVtx);
+<a class="jxr_linenumber" name="L856" href="#L856">856</a>         v.setVertexTrackParameters(emomAtVtx, pmomAtVtx, mass);
+<a class="jxr_linenumber" name="L857" href="#L857">857</a>     }
+<a class="jxr_linenumber" name="L858" href="#L858">858</a> 
+<a class="jxr_linenumber" name="L859" href="#L859">859</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> invMass(Hep3Vector p1, Hep3Vector p2) {
+<a class="jxr_linenumber" name="L860" href="#L860">860</a>         <strong class="jxr_keyword">double</strong> me2 = 0.000511 * 0.000511;
+<a class="jxr_linenumber" name="L861" href="#L861">861</a>         <strong class="jxr_keyword">double</strong> esum = sqrt(p1.magnitudeSquared() + me2) + sqrt(p2.magnitudeSquared() + me2);
+<a class="jxr_linenumber" name="L862" href="#L862">862</a>         <strong class="jxr_keyword">double</strong> pxsum = p1.x() + p2.x();
+<a class="jxr_linenumber" name="L863" href="#L863">863</a>         <strong class="jxr_keyword">double</strong> pysum = p1.y() + p2.y();
+<a class="jxr_linenumber" name="L864" href="#L864">864</a>         <strong class="jxr_keyword">double</strong> pzsum = p1.z() + p2.z();
+<a class="jxr_linenumber" name="L865" href="#L865">865</a> 
+<a class="jxr_linenumber" name="L866" href="#L866">866</a>         <strong class="jxr_keyword">double</strong> psum = Math.sqrt(pxsum * pxsum + pysum * pysum + pzsum * pzsum);
+<a class="jxr_linenumber" name="L867" href="#L867">867</a>         <strong class="jxr_keyword">double</strong> evtmass = esum * esum - psum * psum;
+<a class="jxr_linenumber" name="L868" href="#L868">868</a> 
+<a class="jxr_linenumber" name="L869" href="#L869">869</a>         <strong class="jxr_keyword">if</strong> (evtmass &gt; 0) {
+<a class="jxr_linenumber" name="L870" href="#L870">870</a>             <strong class="jxr_keyword">return</strong> Math.sqrt(evtmass);
+<a class="jxr_linenumber" name="L871" href="#L871">871</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L872" href="#L872">872</a>             <strong class="jxr_keyword">return</strong> -99;
+<a class="jxr_linenumber" name="L873" href="#L873">873</a>         }
+<a class="jxr_linenumber" name="L874" href="#L874">874</a>     }
+<a class="jxr_linenumber" name="L875" href="#L875">875</a> 
+<a class="jxr_linenumber" name="L876" href="#L876">876</a>     <strong class="jxr_keyword">private</strong> List&lt;BilliorTrack&gt; shiftTracksToVertex(List&lt;ReconstructedParticle&gt; particles, Hep3Vector vtxPos) {
+<a class="jxr_linenumber" name="L877" href="#L877">877</a>         <em class="jxr_comment">///     Ok...shift the reference point....        </em>
+<a class="jxr_linenumber" name="L878" href="#L878">878</a>         <strong class="jxr_keyword">double</strong>[] newRef = {vtxPos.z(), vtxPos.x(), 0.0};<em class="jxr_comment">//the  TrackUtils.getParametersAtNewRefPoint method only shifts in xy tracking frame</em>
+<a class="jxr_linenumber" name="L879" href="#L879">879</a>         List&lt;BilliorTrack&gt; newTrks = <strong class="jxr_keyword">new</strong> ArrayList&lt;BilliorTrack&gt;();
+<a class="jxr_linenumber" name="L880" href="#L880">880</a>         <strong class="jxr_keyword">for</strong> (ReconstructedParticle part : particles) {
+<a class="jxr_linenumber" name="L881" href="#L881">881</a>             BaseTrackState oldTS = (BaseTrackState) part.getTracks().get(0).getTrackStates().get(0);
+<a class="jxr_linenumber" name="L882" href="#L882">882</a>             <strong class="jxr_keyword">double</strong>[] newParams = TrackUtils.getParametersAtNewRefPoint(newRef, oldTS);
+<a class="jxr_linenumber" name="L883" href="#L883">883</a>             SymmetricMatrix newCov = TrackUtils.getCovarianceAtNewRefPoint(newRef, oldTS.getReferencePoint(), oldTS.getParameters(), <strong class="jxr_keyword">new</strong> SymmetricMatrix(5, oldTS.getCovMatrix(), <strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L884" href="#L884">884</a>             <em class="jxr_comment">//mg...I don't like this re-casting, but toBilliorTrack only takes Track as input</em>
+<a class="jxr_linenumber" name="L885" href="#L885">885</a>             BaseTrackState newTS = <strong class="jxr_keyword">new</strong> BaseTrackState(newParams, newRef, newCov.asPackedArray(<strong class="jxr_keyword">true</strong>), TrackState.AtIP, bField);
+<a class="jxr_linenumber" name="L886" href="#L886">886</a>             <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> electronBTrackShift = <strong class="jxr_keyword">this</strong>.toBilliorTrack(newTS);
+<a class="jxr_linenumber" name="L887" href="#L887">887</a>             newTrks.add(electronBTrackShift);
+<a class="jxr_linenumber" name="L888" href="#L888">888</a>         }
+<a class="jxr_linenumber" name="L889" href="#L889">889</a>         <strong class="jxr_keyword">return</strong> newTrks;
+<a class="jxr_linenumber" name="L890" href="#L890">890</a>     }
+<a class="jxr_linenumber" name="L891" href="#L891">891</a> 
+<a class="jxr_linenumber" name="L892" href="#L892">892</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

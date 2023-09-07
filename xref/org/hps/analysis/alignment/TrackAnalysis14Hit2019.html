@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>TrackAnalysis14Hit2019 xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/alignment/TrackAnalysis14Hit2019.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.alignment;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.lang.Math.abs;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.hps.record.triggerbank.TriggerModule;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.CalorimeterHit;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.Cluster;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.ReconstructedParticle;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> * @author Norman A. Graf</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="TrackAnalysis14Hit2019" href="../../../../org/hps/analysis/alignment/TrackAnalysis14Hit2019.html#TrackAnalysis14Hit2019">TrackAnalysis14Hit2019</a> <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>      <strong class="jxr_keyword">private</strong> AIDA aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          <strong class="jxr_keyword">if</strong> (event.hasCollection(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"FinalStateParticles_KF"</span>)) {
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>              List&lt;ReconstructedParticle&gt; rps = event.get(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"FinalStateParticles_KF"</span>);
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>              <strong class="jxr_keyword">for</strong> (ReconstructedParticle rp : rps) {
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>                  <strong class="jxr_keyword">int</strong> pdgId = rp.getParticleIDUsed().getPDG();
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>                  <em class="jxr_comment">// only consider charge particles</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>                  <strong class="jxr_keyword">if</strong> (abs(pdgId) == 11) {
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>                      <em class="jxr_comment">// only consider tracks with all sensors hit</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>                      <strong class="jxr_keyword">if</strong> (rp.getTracks().get(0).getTrackerHits().size() == 14) {
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>                          <em class="jxr_comment">//only consider particles with associated cluster</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>                          <strong class="jxr_keyword">if</strong> (!rp.getClusters().isEmpty()) {
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>                              String type = pdgId == 11 ? <span class="jxr_string">" electron"</span> : <span class="jxr_string">" positron"</span>;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>                              Cluster c = rp.getClusters().get(0);
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>                              Track t = rp.getTracks().get(0);
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>                              <strong class="jxr_keyword">double</strong> p = rp.getMomentum().magnitude();
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>                              <strong class="jxr_keyword">double</strong> e = rp.getEnergy();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>                              <strong class="jxr_keyword">if</strong> (e &gt; 0.5) {
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>                                  aida.tree().mkdirs(type + <span class="jxr_string">" Analysis"</span>);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>                                  aida.tree().cd(type + <span class="jxr_string">" Analysis"</span>);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>                                  CalorimeterHit seed = c.getCalorimeterHits().get(0);
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>                                  <strong class="jxr_keyword">int</strong> ix = seed.getIdentifierFieldValue(<span class="jxr_string">"ix"</span>);
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>                                  <strong class="jxr_keyword">int</strong> iy = seed.getIdentifierFieldValue(<span class="jxr_string">"iy"</span>);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>                                  String fid = TriggerModule.inFiducialRegion(c) ? <span class="jxr_string">" fiducial "</span> : <span class="jxr_string">" non fid "</span>;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>                                  String topOrBottom = iy &gt; 0 ? <span class="jxr_string">" top "</span> : <span class="jxr_string">" bottom "</span>;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>                                  aida.histogram2D(<span class="jxr_string">"cluster ix vs iy"</span> + type, 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>                                  aida.histogram1D(<span class="jxr_string">"EoverP ix: "</span> + ix + <span class="jxr_string">" iy: "</span> + iy + type, 100, 0., 2.0).fill(e / p);
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>                                  aida.histogram1D(<span class="jxr_string">"Track momentum"</span> + topOrBottom + type, 200, 0., 7.0).fill(p);
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>                                  aida.histogram2D(<span class="jxr_string">"E vs p"</span> + topOrBottom + type, 100, 0., 7., 100, 0., 7.).fill(e, p);
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>                                  aida.histogram2D(<span class="jxr_string">"E vs p"</span> + topOrBottom + fid + type, 100, 0., 7., 100, 0., 7.).fill(e, p);
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>                                  aida.histogram1D(<span class="jxr_string">"EoverP"</span> + topOrBottom + fid + type, 100, 0., 2.0).fill(e / p);
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>                                  aida.tree().cd(<span class="jxr_string">".."</span>);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                              }
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>                          }
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>                      }
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>                  }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>              }
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          }
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      }
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>HPSEcalTriggerPlotsDriver xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/ecal/HPSEcalTriggerPlotsDriver.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.ecal;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.hps.recon.ecal.EcalUtils.maxVolt;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.hps.recon.ecal.EcalUtils.nBit;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram2D;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.hps.readout.ecal.TriggerDriver;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.ecal.EcalUtils;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.CalorimeterHit;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Cluster;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * Diagnostic plots for HPS ECal.</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="HPSEcalTriggerPlotsDriver" href="../../../../org/hps/analysis/ecal/HPSEcalTriggerPlotsDriver.html#HPSEcalTriggerPlotsDriver">HPSEcalTriggerPlotsDriver</a> <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <em class="jxr_comment">// LCSim collection names.</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      String ecalCollectionName = <span class="jxr_string">"EcalHits"</span>;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      String clusterCollectionName = <span class="jxr_string">"EcalClusters"</span>;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <em class="jxr_comment">// Histogram factory.</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      AIDA aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <em class="jxr_comment">// Energy cuts for hit histograms (in MeV).</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">double</strong> energyCut[] = { 0, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000 };
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <em class="jxr_comment">// Energy cut histograms.</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      IHistogram2D hitXYPlot[] = <strong class="jxr_keyword">new</strong> IHistogram2D[energyCut.length];
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <em class="jxr_comment">// Additional histograms.</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      IHistogram2D crystalDeadTime;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      IHistogram2D clusterHitXYPlot;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      IHistogram2D seedHitXYPlot;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      IHistogram2D triggerClusterHitXYPlot;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      IHistogram2D triggerSeedHitXYPlot;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> tp = 6.95;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> threshold = 10; <em class="jxr_comment">//ADC counts</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setEcalCollectionName(String ecalCollectionName) {
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">this</strong>.ecalCollectionName = ecalCollectionName;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      }
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setClusterCollectionName(String clusterCollectionName) {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          <strong class="jxr_keyword">this</strong>.clusterCollectionName = clusterCollectionName;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      }
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> startOfData() {
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          <em class="jxr_comment">// Initialize a hit histogram for each declared energy.</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          <strong class="jxr_keyword">for</strong>(<strong class="jxr_keyword">int</strong> e = 0; e &lt; energyCut.length; e++) {
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              hitXYPlot[e] = aida.histogram2D(<span class="jxr_string">"Trigger Plots: "</span> + ecalCollectionName +
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>                      <span class="jxr_string">" : Hits above "</span> + energyCut[e] + <span class="jxr_string">" MeV"</span>, 46, -23, 23, 11, -5.5, 5.5);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          }
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          <em class="jxr_comment">// Initialize the remaining plots.</em>
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          crystalDeadTime = aida.histogram2D(<span class="jxr_string">"Trigger Plots: "</span> + ecalCollectionName +
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>                  <span class="jxr_string">" : Crystal dead time"</span>, 46, -23, 23, 11, -5.5, 5.5);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          clusterHitXYPlot = aida.histogram2D(<span class="jxr_string">"Trigger Plots: "</span> + clusterCollectionName +
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>                  <span class="jxr_string">" : Crystals in clusters"</span>, 47, -23.5, 23.5, 11, -5.5, 5.5);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          seedHitXYPlot = aida.histogram2D(<span class="jxr_string">"Trigger Plots: "</span> + clusterCollectionName +
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>                  <span class="jxr_string">" : Seed hits"</span>, 47, -23.5, 23.5, 11, -5.5, 5.5);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          triggerClusterHitXYPlot = aida.histogram2D(<span class="jxr_string">"Trigger Plots: "</span> + clusterCollectionName +
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>                  <span class="jxr_string">" : Crystals in clusters, with trigger"</span>, 47, -23.5, 23.5, 11, -5.5, 5.5);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          triggerSeedHitXYPlot = aida.histogram2D(<span class="jxr_string">"Trigger Plots: "</span> + clusterCollectionName +
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>                  <span class="jxr_string">" : Seed hits, with trigger"</span>, 47, -23.5, 23.5, 11, -5.5, 5.5);
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      }
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          <em class="jxr_comment">// If the current event has the indicated hit collection,</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          <em class="jxr_comment">// use it as the hit list.</em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          List&lt;CalorimeterHit&gt; hits;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          <strong class="jxr_keyword">if</strong>(event.hasCollection(CalorimeterHit.<strong class="jxr_keyword">class</strong>, ecalCollectionName)) {
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>              hits = event.get(CalorimeterHit.<strong class="jxr_keyword">class</strong>, ecalCollectionName);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          }
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          <em class="jxr_comment">// If it does not, then use an empty list to avoid crashing.</em>
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          <strong class="jxr_keyword">else</strong> { hits = <strong class="jxr_keyword">new</strong> ArrayList&lt;CalorimeterHit&gt;(0); }
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>          <em class="jxr_comment">// If the current event has the indicated cluster collection,</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>          <em class="jxr_comment">// use it as the cluster list.</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>          List&lt;Cluster&gt; clusters;
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          <strong class="jxr_keyword">if</strong>(event.hasCollection(Cluster.<strong class="jxr_keyword">class</strong>, clusterCollectionName)) {
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              clusters = event.get(Cluster.<strong class="jxr_keyword">class</strong>, clusterCollectionName);
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>          }
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>          <em class="jxr_comment">// If it does not, then use an empty list to avoid crashing.</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <strong class="jxr_keyword">else</strong> { clusters = <strong class="jxr_keyword">new</strong> ArrayList&lt;Cluster&gt;(0); }
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          <em class="jxr_comment">// Populate hit plots.</em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          <strong class="jxr_keyword">for</strong> (CalorimeterHit hit : hits) {
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              <em class="jxr_comment">// Get the hit crystal position.</em>
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>              <strong class="jxr_keyword">int</strong> ix = hit.getIdentifierFieldValue(<span class="jxr_string">"ix"</span>);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>              <strong class="jxr_keyword">int</strong> iy = hit.getIdentifierFieldValue(<span class="jxr_string">"iy"</span>);
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>              <strong class="jxr_keyword">double</strong> energy = hit.getRawEnergy();
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>              
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>              <em class="jxr_comment">// Loop through the energy plots and fill them if the hit</em>
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>              <em class="jxr_comment">// is over the current energy threshold/</em>
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>             <strong class="jxr_keyword">for</strong>(<strong class="jxr_keyword">int</strong> e = 0; e &lt; energyCut.length; e++) {
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>                 <strong class="jxr_keyword">if</strong>(energy &gt; energyCut[e] * EcalUtils.MeV) {
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>                     hitXYPlot[e].fill(ix - 0.5 * Math.signum(ix), iy);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>                 }
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>             }
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>             
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>             <em class="jxr_comment">// Generate the dead time plot.</em>
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>             <strong class="jxr_keyword">double</strong> deadTime = 0;
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> time = 0; time &lt; 500; time++) {
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>                 <strong class="jxr_keyword">if</strong> (hit.getRawEnergy() * pulseAmplitude(time) &gt; threshold) { deadTime += 1e-6; } <em class="jxr_comment">// units of milliseconds</em>
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>                 <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (time &gt; 2 * tp || deadTime != 0) { <strong class="jxr_keyword">break</strong>; }
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>             }
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>             crystalDeadTime.fill(ix - 0.5 * Math.signum(ix), iy, deadTime);
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         }
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         <em class="jxr_comment">// Check the trigger bit.</em>
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         <strong class="jxr_keyword">boolean</strong> trigger = TriggerDriver.triggerBit();
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         <em class="jxr_comment">// Populate cluster based plots.</em>
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         <strong class="jxr_keyword">for</strong> (Cluster cluster : clusters) {
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>             <em class="jxr_comment">// Get the cluster's seed hit position.</em>
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>             CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>             <strong class="jxr_keyword">int</strong> ix = seed.getIdentifierFieldValue(<span class="jxr_string">"ix"</span>);
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>             <strong class="jxr_keyword">int</strong> iy = seed.getIdentifierFieldValue(<span class="jxr_string">"iy"</span>);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>             
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>             <em class="jxr_comment">// Fill the seed hit plot.</em>
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>             seedHitXYPlot.fill(ix, iy);
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>             
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>             <em class="jxr_comment">// If the trigger bit is set, add the seed to the trigger</em>
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>             <em class="jxr_comment">// plot histogram as well.</em>
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>             <strong class="jxr_keyword">if</strong>(trigger) { triggerSeedHitXYPlot.fill(ix, iy); }
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>             
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>             <em class="jxr_comment">// Populate the component hit histogram.</em>
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>             <strong class="jxr_keyword">for</strong> (CalorimeterHit hit : cluster.getCalorimeterHits()) {
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>                 <em class="jxr_comment">// Get the component hit location.</em>
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>                 ix = hit.getIdentifierFieldValue(<span class="jxr_string">"ix"</span>);
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>                 iy = hit.getIdentifierFieldValue(<span class="jxr_string">"iy"</span>);
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>                 
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>                 <em class="jxr_comment">// Add it to the plot.</em>
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>                 clusterHitXYPlot.fill(ix, iy);
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>                 
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>                 <em class="jxr_comment">// If the trigger bit is set, add the component to</em>
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>                 <em class="jxr_comment">// the trigger cluster histogram too.</em>
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>                 <strong class="jxr_keyword">if</strong>(trigger) { triggerClusterHitXYPlot.fill(ix, iy); }
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>             }
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         }
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>     }
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>     
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> pulseAmplitude(<strong class="jxr_keyword">double</strong> time) {
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>         <strong class="jxr_keyword">if</strong> (time &lt;= 0.0) { <strong class="jxr_keyword">return</strong> 0.0; }
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         <strong class="jxr_keyword">return</strong> EcalUtils.readoutGain * ((time * time / (2 * tp * tp * tp)) * Math.exp(-time / tp)) * ((Math.pow(2, nBit) - 1) / maxVolt);
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>     }
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

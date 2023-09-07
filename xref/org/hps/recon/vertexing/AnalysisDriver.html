@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>AnalysisDriver xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/recon/vertexing/AnalysisDriver.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.vertexing;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.physics.matrix.SymmetricMatrix;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.physics.particle.properties.ParticlePropertyManager;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.physics.particle.properties.ParticlePropertyProvider;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHepLorentzVector;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.HepLorentzVector;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> java.util.Random;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.HelixConverter;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.StraightLineTrack;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseMCParticle;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelicalTrackFit;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelixParamCalculator;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.math.chisq.ChisqProb;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.recon.tracking.seedtracker.SeedStrategy;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="AnalysisDriver" href="../../../../org/hps/recon/vertexing/AnalysisDriver.html#AnalysisDriver">AnalysisDriver</a> <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      <strong class="jxr_keyword">private</strong> AIDA aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <strong class="jxr_keyword">int</strong> nevt = 0;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">private</strong> List&lt;SeedStrategy&gt; _slist = <strong class="jxr_keyword">new</strong> ArrayList&lt;SeedStrategy&gt;();
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">public</strong> <a name="AnalysisDriver" href="../../../../org/hps/recon/vertexing/AnalysisDriver.html#AnalysisDriver">AnalysisDriver</a>() {
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      }
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          <em class="jxr_comment">//  Increment the event counter</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          nevt++;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          <em class="jxr_comment">//  Set the magnetic field</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          <strong class="jxr_keyword">double</strong> bfield = 1.0;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          <strong class="jxr_keyword">double</strong> xref = 50.;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          Random rn = <strong class="jxr_keyword">new</strong> Random();
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> iloop = 0; iloop &lt; 10000; iloop++) {
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              <strong class="jxr_keyword">double</strong> p0 = 0.5 + rn.nextDouble();
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>              <strong class="jxr_keyword">double</strong> py0 = 0.1 * p0 * rn.nextGaussian();
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              <strong class="jxr_keyword">double</strong> pz0 = 0.1 * p0 * rn.nextGaussian();
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              <strong class="jxr_keyword">double</strong> px0 = Math.sqrt(p0 * p0 - py0 * py0 - pz0 * pz0);
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              <strong class="jxr_keyword">double</strong> len = 20. * rn.nextDouble();
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>              <strong class="jxr_keyword">double</strong> vx = len * px0 / p0;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              <strong class="jxr_keyword">double</strong> vy = len * py0 / p0;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              <strong class="jxr_keyword">double</strong> vz = len * pz0 / p0;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              Hep3Vector vertex = <strong class="jxr_keyword">new</strong> BasicHep3Vector(vx, vy, vz);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              <strong class="jxr_keyword">double</strong> py1 = 0.5 * py0 + 0.05 * p0 * (rn.nextDouble() - 0.5);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              <strong class="jxr_keyword">double</strong> pz1 = 0.5 * pz0 + 0.05 * p0 * (rn.nextDouble() - 0.5);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              <strong class="jxr_keyword">double</strong> px1 = 0.5 * px0 + 0.05 * p0 * (rn.nextDouble() - 0.5);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              Hep3Vector p1 = <strong class="jxr_keyword">new</strong> BasicHep3Vector(px1, py1, pz1);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              <strong class="jxr_keyword">double</strong> m = 0.000511;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>              <strong class="jxr_keyword">double</strong> e1 = Math.sqrt(p1.magnitudeSquared() + m * m);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              HepLorentzVector p4v1 = <strong class="jxr_keyword">new</strong> BasicHepLorentzVector(e1, p1);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>              <strong class="jxr_keyword">double</strong> ox1 = xref;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>              <strong class="jxr_keyword">double</strong> oy1 = vy + py1 * (ox1 - vx) / px1;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>              <strong class="jxr_keyword">double</strong> oz1 = vz + pz1 * (ox1 - vx) / px1;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>              Hep3Vector origin1 = <strong class="jxr_keyword">new</strong> BasicHep3Vector(ox1, oy1, oz1);
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>              <strong class="jxr_keyword">double</strong> py2 = py0 - py1;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>              <strong class="jxr_keyword">double</strong> pz2 = pz0 - pz1;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>              <strong class="jxr_keyword">double</strong> px2 = px0 - px1;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>              Hep3Vector p2 = <strong class="jxr_keyword">new</strong> BasicHep3Vector(px2, py2, pz2);
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>              <strong class="jxr_keyword">double</strong> e2 = Math.sqrt(p2.magnitudeSquared() + m * m);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>              HepLorentzVector p4v2 = <strong class="jxr_keyword">new</strong> BasicHepLorentzVector(e2, p2);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>              <strong class="jxr_keyword">double</strong> ox2 = xref;
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>              <strong class="jxr_keyword">double</strong> oy2 = vy + py2 * (ox2 - vx) / px2;
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>              <strong class="jxr_keyword">double</strong> oz2 = vz + pz2 * (ox2 - vx) / px2;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>              Hep3Vector origin2 = <strong class="jxr_keyword">new</strong> BasicHep3Vector(ox2, oy2, oz2);
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>              ParticlePropertyProvider ptp = ParticlePropertyManager.getParticlePropertyProvider();
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>              BaseMCParticle mcp1 = <strong class="jxr_keyword">new</strong> BaseMCParticle(origin1, p4v1, ptp.get(11), BaseMCParticle.FINAL_STATE, 0.);
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              BaseMCParticle mcp2 = <strong class="jxr_keyword">new</strong> BaseMCParticle(origin2, p4v2, ptp.get(-11), BaseMCParticle.FINAL_STATE, 0.);
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>              HelixParamCalculator hp1 = <strong class="jxr_keyword">new</strong> HelixParamCalculator(mcp1, bfield);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              HelixParamCalculator hp2 = <strong class="jxr_keyword">new</strong> HelixParamCalculator(mcp2, bfield);
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>              <strong class="jxr_keyword">double</strong>[] pars1 = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[5];
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>              <strong class="jxr_keyword">double</strong>[] pars2 = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[5];
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>              <strong class="jxr_keyword">double</strong> omega1 = hp1.getMCOmega();
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>              <strong class="jxr_keyword">double</strong> omega2 = hp2.getMCOmega();
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>              <strong class="jxr_keyword">double</strong> domega = 1.e-2 * (omega1 + omega2) / 2.;
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              <strong class="jxr_keyword">double</strong> dDCA = 1.e-2;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>              <strong class="jxr_keyword">double</strong> dphi0 = 1.e-4;
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>              <strong class="jxr_keyword">double</strong> dz0 = 1.e-2;
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>              <strong class="jxr_keyword">double</strong> dslope = 1.e-4;
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>              SymmetricMatrix cov = <strong class="jxr_keyword">new</strong> SymmetricMatrix(5);
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>              cov.setElement(HelicalTrackFit.curvatureIndex, HelicalTrackFit.curvatureIndex, domega * domega);
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>              cov.setElement(HelicalTrackFit.dcaIndex, HelicalTrackFit.dcaIndex, dDCA * dDCA);
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>             cov.setElement(HelicalTrackFit.phi0Index, HelicalTrackFit.phi0Index, dphi0 * dphi0);
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>             cov.setElement(HelicalTrackFit.z0Index, HelicalTrackFit.z0Index, dz0 * dz0);
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>             cov.setElement(HelicalTrackFit.slopeIndex, HelicalTrackFit.slopeIndex, dslope * dslope);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>             pars1[HelicalTrackFit.curvatureIndex] = omega1 + domega * rn.nextGaussian();
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>             pars1[HelicalTrackFit.dcaIndex] = hp1.getDCA() + dDCA * rn.nextGaussian();
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>             pars1[HelicalTrackFit.phi0Index] = hp1.getPhi0() + dphi0 * rn.nextGaussian();
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>             pars1[HelicalTrackFit.z0Index] = hp1.getZ0() + dz0 * rn.nextGaussian();
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>             pars1[HelicalTrackFit.slopeIndex] = hp1.getSlopeSZPlane() + dslope * rn.nextGaussian();
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>             pars2[HelicalTrackFit.curvatureIndex] = omega2 + domega * rn.nextGaussian();
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>             pars2[HelicalTrackFit.dcaIndex] = hp2.getDCA() + dDCA * rn.nextGaussian();
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>             pars2[HelicalTrackFit.phi0Index] = hp2.getPhi0() + dphi0 * rn.nextGaussian();
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>             pars2[HelicalTrackFit.z0Index] = hp2.getZ0() + dz0 * rn.nextGaussian();
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>             pars2[HelicalTrackFit.slopeIndex] = hp2.getSlopeSZPlane() + dslope * rn.nextGaussian();
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> 
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>             <strong class="jxr_keyword">double</strong>[] chisq = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[2];
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>             <strong class="jxr_keyword">int</strong>[] ndof = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[2];
+<a class="jxr_linenumber" name="L116" href="#L116">116</a> 
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>             HelicalTrackFit h1 = <strong class="jxr_keyword">new</strong> HelicalTrackFit(pars1, cov, chisq, ndof, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>             HelicalTrackFit h2 = <strong class="jxr_keyword">new</strong> HelicalTrackFit(pars2, cov, chisq, ndof, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> 
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>             <em class="jxr_comment">//  Create a list of straight line tracks</em>
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>             List&lt;StraightLineTrack&gt; sltlist = <strong class="jxr_keyword">new</strong> ArrayList&lt;StraightLineTrack&gt;();
+<a class="jxr_linenumber" name="L122" href="#L122">122</a> 
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>             <a name="HelixConverter" href="../../../../org/hps/recon/tracking/HelixConverter.html#HelixConverter">HelixConverter</a> converter = <strong class="jxr_keyword">new</strong> <a name="HelixConverter" href="../../../../org/hps/recon/tracking/HelixConverter.html#HelixConverter">HelixConverter</a>(xref);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>             sltlist.add(converter.Convert(h1));
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>             sltlist.add(converter.Convert(h2));
+<a class="jxr_linenumber" name="L126" href="#L126">126</a> 
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>             <a name="VertexFitter" href="../../../../org/hps/recon/vertexing/VertexFitter.html#VertexFitter">VertexFitter</a> vtxfit = <strong class="jxr_keyword">new</strong> <a name="VertexFitter" href="../../../../org/hps/recon/vertexing/VertexFitter.html#VertexFitter">VertexFitter</a>(xref);
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>             <strong class="jxr_keyword">boolean</strong> success = vtxfit.VertexFit(sltlist);
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>             <strong class="jxr_keyword">if</strong> (success) {
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>                 <a name="VertexFit" href="../../../../org/hps/recon/vertexing/VertexFit.html#VertexFit">VertexFit</a> vfit = vtxfit.getFit();
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>                 aida.histogram1D(<span class="jxr_string">"Chi square of vertex fit"</span>, 100, 0., 10.).fill(vfit.chisq());
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>                 Hep3Vector vtx = vfit.vtx();
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>                 SymmetricMatrix vtxcov = vfit.covariance();
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>                 <strong class="jxr_keyword">double</strong> dvx = Math.sqrt(vtxcov.diagonal(0));
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>                 <strong class="jxr_keyword">double</strong> dvy = Math.sqrt(vtxcov.diagonal(1));
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>                 <strong class="jxr_keyword">double</strong> dvz = Math.sqrt(vtxcov.diagonal(2));
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>                 aida.histogram1D(<span class="jxr_string">"Vertex position x"</span>, 100, -5., 25.).fill(vtx.x());
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>                 aida.histogram1D(<span class="jxr_string">"Vertex position y"</span>, 100, -5., 5.).fill(vtx.y());
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>                 aida.histogram1D(<span class="jxr_string">"Vertex position z"</span>, 100, -5., 5.).fill(vtx.z());
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>                 aida.histogram1D(<span class="jxr_string">"Vertex fit x residual"</span>, 100, -3., 3.).fill(vtx.x() - vertex.x());
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>                 aida.histogram1D(<span class="jxr_string">"Vertex fit y residual"</span>, 100, -0.5, 0.5).fill(vtx.y() - vertex.y());
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>                 aida.histogram1D(<span class="jxr_string">"Vertex fit z residual"</span>, 100, -0.5, 0.5).fill(vtx.z() - vertex.z());
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>                 aida.histogram1D(<span class="jxr_string">"Vertex x pull"</span>, 100, -4., 4.).fill((vtx.x() - vertex.x()) / dvx);
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>                 aida.histogram1D(<span class="jxr_string">"Vertex y pull"</span>, 100, -4., 4.).fill((vtx.y() - vertex.y()) / dvy);
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>                 aida.histogram1D(<span class="jxr_string">"Vertex z pull"</span>, 100, -4., 4.).fill((vtx.z() - vertex.z()) / dvz);
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>                 aida.histogram1D(<span class="jxr_string">"Vertex position x uncertainty"</span>, 100, 0., 1.0).fill(dvx);
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>                 aida.histogram1D(<span class="jxr_string">"Vertex position y uncertainty"</span>, 100, 0., 0.1).fill(dvy);
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>                 aida.histogram1D(<span class="jxr_string">"Vertex position z uncertainty"</span>, 100, 0., 0.1).fill(dvz);
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>                 aida.histogram1D(<span class="jxr_string">"Confidence Level"</span>, 50, 0., 1.).fill(ChisqProb.gammp(1, vfit.chisq()));
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>             }
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         }
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>         <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>     }
+<a class="jxr_linenumber" name="L154" href="#L154">154</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

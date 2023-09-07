@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>RungeKutta4 xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/recon/tracking/kalman/RungeKutta4.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.tracking.kalman;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> org.apache.commons.math.util.FastMath;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> * Propagate a charged particle according to the magnetic field map by 4th order Runge Kutta integration.</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> * Note that the coordinate system is the Kalman-Filter-code system, as that is what the field-map routine</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> * called here assumes.</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="RungeKutta4" href="../../../../../org/hps/recon/tracking/kalman/RungeKutta4.html#RungeKutta4">RungeKutta4</a> {
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> h;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> h2;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> alpha;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      <strong class="jxr_keyword">private</strong> org.lcsim.geometry.FieldMap fM;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      <strong class="jxr_keyword">public</strong> <a name="RungeKutta4" href="../../../../../org/hps/recon/tracking/kalman/RungeKutta4.html#RungeKutta4">RungeKutta4</a>(<strong class="jxr_keyword">double</strong> Q, <strong class="jxr_keyword">double</strong> dx, org.lcsim.geometry.FieldMap fM) {
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>          alpha = Q * 2.99792458e-4; <em class="jxr_comment">// Q is the charge in units of the proton charge</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          h = dx; <em class="jxr_comment">// Step size in mm</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          h2 = h / 2.0;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          <strong class="jxr_keyword">this</strong>.fM = fM; <em class="jxr_comment">// Magnetic field map</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      }
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <strong class="jxr_keyword">double</strong>[] integrate(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> r0, <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> p0, <strong class="jxr_keyword">double</strong> s) {
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <em class="jxr_comment">// r0 is the initial point in mm</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          <em class="jxr_comment">// p0 is the initial momentum in GeV/c</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          <em class="jxr_comment">// s is the distance to propagate (approximate to distance dx)</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          <strong class="jxr_keyword">double</strong>[] r = { r0.v[0], r0.v[1], r0.v[2], p0.v[0], p0.v[1], p0.v[2] };
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          <strong class="jxr_keyword">double</strong>[] k1 = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[6];
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          <strong class="jxr_keyword">double</strong>[] k2 = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[6];
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          <strong class="jxr_keyword">double</strong>[] k3 = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[6];
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          <strong class="jxr_keyword">double</strong>[] k4 = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[6];
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          <strong class="jxr_keyword">int</strong> nStep = (<strong class="jxr_keyword">int</strong>) (s / h) + 1;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> step = 0; step &lt; nStep; step++) {
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>              <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> ri = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(r[0], r[1], r[2]);
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>              <strong class="jxr_keyword">double</strong>[] pi = { r[3], r[4], r[5] };
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>              k1 = f(ri, pi);
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>              <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> r1 = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(r[0] + h2 * k1[0], r[1] + h2 * k1[1], r[2] + h2 * k1[2]);
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>              <strong class="jxr_keyword">double</strong>[] p1 = { r[3] + h2 * k1[3], r[4] + h2 * k1[4], r[5] + h2 * k1[5] };
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>              k2 = f(r1, p1);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>              <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> r2 = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(r[0] + h2 * k2[0], r[1] + h2 * k2[1], r[2] + h2 * k2[1]);
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>              <strong class="jxr_keyword">double</strong>[] p2 = { r[3] + h2 * k2[3], r[4] + h2 * k2[4], r[5] + h2 * k2[5] };
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>              k3 = f(r2, p2);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>              <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> r3 = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(r[0] + h * k3[0], r[1] + h * k3[1], r[2] + h * k3[2]);
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>              <strong class="jxr_keyword">double</strong>[] p3 = { r[3] + h * k3[3], r[4] + h * k3[4], r[5] + h * k3[5] };
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>              k4 = f(r3, p3);
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 6; i++) { r[i] = r[i] + h * (k1[i] / 6. + k2[i] / 3. + k3[i] / 3. + k4[i] / 6.); }
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          }
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          <strong class="jxr_keyword">return</strong> r;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      }
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong>[] f(<a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> x, <strong class="jxr_keyword">double</strong>[] p) { <em class="jxr_comment">// Return all the derivatives</em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          <strong class="jxr_keyword">double</strong> [] B = KalmanInterface.getFielD(x, fM);  <em class="jxr_comment">// This field routine assumes the Kalman-Filter coordinate system.</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          <strong class="jxr_keyword">double</strong>[] d = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[6];
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          <strong class="jxr_keyword">double</strong> pmag = FastMath.sqrt(p[0] * p[0] + p[1] * p[1] + p[2] * p[2]);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          <em class="jxr_comment">// System.out.format("P magnitude = %10.7f GeV\n", pmag);</em>
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          d[0] = p[0] / pmag; <em class="jxr_comment">// dx/ds </em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          d[1] = p[1] / pmag;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          d[2] = p[2] / pmag;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          d[3] = alpha * (d[1] * B[2] - d[2] * B[1]); <em class="jxr_comment">// dp/ds</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          d[4] = alpha * (d[2] * B[0] - d[0] * B[2]);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          d[5] = alpha * (d[0] * B[1] - d[1] * B[0]);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <strong class="jxr_keyword">return</strong> d;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      }
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

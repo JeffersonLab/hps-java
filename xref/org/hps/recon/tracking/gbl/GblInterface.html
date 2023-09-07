@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>GblInterface xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/recon/tracking/gbl/GblInterface.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.tracking.gbl; 
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> com.sun.jna.Library; 
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> com.sun.jna.Native; 
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> com.sun.jna.Pointer; 
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> com.sun.jna.ptr.IntByReference;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> com.sun.jna.ptr.DoubleByReference;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> com.sun.jna.ptr.PointerByReference;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> * JNA Wrapper around the GBL C++ dynamic library</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_javadoccomment"> * All of the functions in this interface are bound to un-mangled wrapper functions</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment"> * in the GBL C++ dynamic library. This wraps GBL v3.1+ of the C++ library.</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> * &lt;code&gt;</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> * git clone --depth 1 --branch V03-01-00 <a href="https://gitlab.desy.de/claus.kleinwort/general-broken-lines.git" target="alexandria_uri">https://gitlab.desy.de/claus.kleinwort/general-broken-lines.git</a></em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment"> * cmake -B general-broken-lines/build -S general-broken-lines</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * cmake --build general-broken-lines/build</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> * &lt;/code&gt;</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment"> * Then make sure the full path of the GBL library is either in a system path (e.g. /usr/local/lib),</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment"> * or you tell JNA where the GBL library is with</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_javadoccomment"> * &lt;code&gt;</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_javadoccomment"> * -Djna.library.path=/full/path/to/general-broken-lines/build/lib</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment"> * &lt;/code&gt;</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment"> * The documentation for the GBL C++ library also has a page on how to access it</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * &lt;a href="<a href="https://www.desy.de/~kleinwrt/GBL/doc/cpp/html/jnausage.html" target="alexandria_uri">https://www.desy.de/~kleinwrt/GBL/doc/cpp/html/jnausage.html</a>"&gt;via JNA&lt;/a&gt;.</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a name="GblInterface" href="../../../../../org/hps/recon/tracking/gbl/GblInterface.html#GblInterface">GblInterface</a> <strong class="jxr_keyword">extends</strong> Library {
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      <a name="GblInterface" href="../../../../../org/hps/recon/tracking/gbl/GblInterface.html#GblInterface">GblInterface</a> INSTANCE = (<a name="GblInterface" href="../../../../../org/hps/recon/tracking/gbl/GblInterface.html#GblInterface">GblInterface</a>) Native.loadLibrary(<span class="jxr_string">"GBL"</span>, GblInterface.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      Pointer MilleBinaryCtor(String fileName, <strong class="jxr_keyword">int</strong> filenamesize, <strong class="jxr_keyword">int</strong> doublePrec, <strong class="jxr_keyword">int</strong> keepZeros, <strong class="jxr_keyword">int</strong> aSize);
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <strong class="jxr_keyword">void</strong> MilleBinary_close(Pointer self);
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      Pointer GblPointCtor(<strong class="jxr_keyword">double</strong> [] array); 
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">void</strong> GblPoint_delete(Pointer self);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">int</strong> GblPoint_getNumMeasurements(Pointer self);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">void</strong> GblPoint_addMeasurement2D(Pointer self, <strong class="jxr_keyword">double</strong>[] projArray, <strong class="jxr_keyword">double</strong>[] resArray, <strong class="jxr_keyword">double</strong>[] precArray, 
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>                                     <strong class="jxr_keyword">double</strong> minPrecision);
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">void</strong> GblPoint_addScatterer(Pointer self, <strong class="jxr_keyword">double</strong>[] resArray, <strong class="jxr_keyword">double</strong>[] precArray);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">void</strong> GblPoint_printPoint(Pointer self, <strong class="jxr_keyword">int</strong> i);
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">void</strong> GblPoint_addGlobals(Pointer self, <strong class="jxr_keyword">int</strong>[] labels, <strong class="jxr_keyword">int</strong> nlabels, <strong class="jxr_keyword">double</strong>[] derArray);
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">void</strong> GblPoint_getGlobalLabelsAndDerivatives(Pointer self, IntByReference nlabels, PointerByReference labels, PointerByReference ders);
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      Pointer GblTrajectoryCtorPtrArray(Pointer [] points, <strong class="jxr_keyword">int</strong> npoints, <strong class="jxr_keyword">int</strong> flagCurv, <strong class="jxr_keyword">int</strong> flagU1dir, <strong class="jxr_keyword">int</strong> flagU2dir);
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      Pointer GblTrajectoryCtorPtrArraySeed(Pointer [] points, <strong class="jxr_keyword">int</strong> npoints, <strong class="jxr_keyword">int</strong> aLabel, <strong class="jxr_keyword">double</strong> [] seedArray, <strong class="jxr_keyword">int</strong> flagCurv, <strong class="jxr_keyword">int</strong> flagU1dir, <strong class="jxr_keyword">int</strong> flagU2dir);
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <em class="jxr_comment">//Only supports 2 trajectories for e+/e- vertices or e- / e- </em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <em class="jxr_comment">//Should/Could be extended to more </em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      Pointer GblTrajectoryCtorPtrComposed(Pointer [] points_1, <strong class="jxr_keyword">int</strong> npoints_1, <strong class="jxr_keyword">double</strong> [] trafo_1, 
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>                                           Pointer [] points_2, <strong class="jxr_keyword">int</strong> npoints_2, <strong class="jxr_keyword">double</strong> [] trafo_2);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">void</strong> GblTrajectory_fit(Pointer self, DoubleByReference Chi2, IntByReference Ndf, DoubleByReference lostWeight, <strong class="jxr_keyword">char</strong> [] optionList, <strong class="jxr_keyword">int</strong> aLabel);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">void</strong> GblTrajectory_addPoint(Pointer self, Pointer point);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">int</strong>  GblTrajectory_isValid(Pointer self);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">void</strong> GblTrajectory_delete(Pointer self);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">int</strong>  GblTrajectory_getNumPoints(Pointer self);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">void</strong> GblTrajectory_printTrajectory(Pointer self, <strong class="jxr_keyword">int</strong> level);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">void</strong> GblTrajectory_printData(Pointer self);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">void</strong> GblTrajectory_printPoints(Pointer self, <strong class="jxr_keyword">int</strong> level);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">void</strong> GblTrajectory_getResults(Pointer self, <strong class="jxr_keyword">int</strong> aSignedLabel, <strong class="jxr_keyword">double</strong>[] localPar, <strong class="jxr_keyword">int</strong>[] nLocalPar,
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>                                        <strong class="jxr_keyword">double</strong>[] localCov, <strong class="jxr_keyword">int</strong>[] sizeLocalCov);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">void</strong> GblTrajectory_milleOut(Pointer self, Pointer millebinary);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">void</strong> GblTrajectory_getMeasResults(Pointer self, <strong class="jxr_keyword">int</strong> aLabel, <strong class="jxr_keyword">int</strong>[] numdata, <strong class="jxr_keyword">double</strong>[] aResiduals, <strong class="jxr_keyword">double</strong>[] aMeasErrors, <strong class="jxr_keyword">double</strong>[] aResErrors, <strong class="jxr_keyword">double</strong>[] aDownWeights);
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      Pointer GblHelixPredictionCtor(<strong class="jxr_keyword">double</strong> sArc, <strong class="jxr_keyword">double</strong>[] aPred,
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>                                     <strong class="jxr_keyword">double</strong> [] tDir, <strong class="jxr_keyword">double</strong> [] uDir, <strong class="jxr_keyword">double</strong> [] vDir,
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>                                     <strong class="jxr_keyword">double</strong> [] nDir, <strong class="jxr_keyword">double</strong> [] aPos);
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">void</strong> GblHelixPrediction_delete(Pointer self);
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">double</strong> GblHelixPrediction_getArcLength(Pointer self);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">void</strong> GblHelixPrediction_getMeasPred(Pointer self, <strong class="jxr_keyword">double</strong> [] prediction);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">void</strong> GblHelixPrediction_getPosition(Pointer self, <strong class="jxr_keyword">double</strong>[] position);
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <strong class="jxr_keyword">void</strong> GblHelixPrediction_getDirection(Pointer self,<strong class="jxr_keyword">double</strong>[] direction);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">double</strong> GblHelixPrediction_getCosIncidence(Pointer self);
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <em class="jxr_comment">//array for the curvilinear directions (2x3 matrix)</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">void</strong> GblHelixPrediction_getCurvilinearDirs(Pointer self, <strong class="jxr_keyword">double</strong> [] curvilinear);
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      Pointer GblSimpleHelixCtor(<strong class="jxr_keyword">double</strong> aRinv, <strong class="jxr_keyword">double</strong> aPhi0, <strong class="jxr_keyword">double</strong> aDca, <strong class="jxr_keyword">double</strong> aDzds, <strong class="jxr_keyword">double</strong> aZ0);
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <strong class="jxr_keyword">void</strong> GblSimpleHelix_delete(Pointer self);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      <strong class="jxr_keyword">double</strong> GblSimpleHelix_getPhi(Pointer self, <strong class="jxr_keyword">double</strong> aRadius);
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      <strong class="jxr_keyword">double</strong> GblSimpleHelix_getArcLengthR(Pointer self, <strong class="jxr_keyword">double</strong> aRadius);
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">double</strong> GblSimpleHelix_getArcLengthXY(Pointer self, <strong class="jxr_keyword">double</strong> xPos, <strong class="jxr_keyword">double</strong> yPos);
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">void</strong> GblSimpleHelix_moveToXY(Pointer self, <strong class="jxr_keyword">double</strong> xPos, <strong class="jxr_keyword">double</strong> yPos, <strong class="jxr_keyword">double</strong>[] newPhi0, <strong class="jxr_keyword">double</strong>[] newDca, <strong class="jxr_keyword">double</strong>[] newZ0);
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>      Pointer GblSimpleHelix_getPrediction(Pointer self, <strong class="jxr_keyword">double</strong> [] refPos, <strong class="jxr_keyword">double</strong> [] uDir, <strong class="jxr_keyword">double</strong>[] vDir);
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

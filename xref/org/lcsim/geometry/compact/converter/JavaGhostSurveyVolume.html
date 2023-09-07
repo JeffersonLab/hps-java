@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>JavaGhostSurveyVolume xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/lcsim/geometry/compact/converter/JavaGhostSurveyVolume.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.lcsim.geometry.compact.converter;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> * Interface to the JAVA converter geometry for the geometry definition. In this case no volume is built </em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> * but can be used as reference in building the geometry.</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="JavaGhostSurveyVolume" href="../../../../../org/lcsim/geometry/compact/converter/JavaGhostSurveyVolume.html#JavaGhostSurveyVolume">JavaGhostSurveyVolume</a> <strong class="jxr_keyword">extends</strong> <a name="JavaSurveyVolume" href="../../../../../org/lcsim/geometry/compact/converter/JavaSurveyVolume.html#JavaSurveyVolume">JavaSurveyVolume</a> {
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>       <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment">     * Initialize with base and mother. This is typically for a reference geometry object that is used for referencing coordinate systems but that doesn't have a volume itself.</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_javadoccomment">     * @param surveyVolume - object used to get geometry definitions</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment">     * @param mother - mother object</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <strong class="jxr_keyword">public</strong> <a name="JavaGhostSurveyVolume" href="../../../../../org/lcsim/geometry/compact/converter/JavaGhostSurveyVolume.html#JavaGhostSurveyVolume">JavaGhostSurveyVolume</a>(<a name="SurveyVolume" href="../../../../../org/lcsim/geometry/compact/converter/SurveyVolume.html#SurveyVolume">SurveyVolume</a> surveyVolume, <a name="JavaSurveyVolume" href="../../../../../org/lcsim/geometry/compact/converter/JavaSurveyVolume.html#JavaSurveyVolume">JavaSurveyVolume</a> mother) {
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>          <strong class="jxr_keyword">super</strong>(surveyVolume);
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>          <strong class="jxr_keyword">if</strong> (isDebug())
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>              System.out
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>                      .printf(<span class="jxr_string">"%s: constructing JAVA ghost object %s with mother %s\n"</span>, <strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>                              surveyVolume.getName(), mother == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">"null"</span> : mother.getName());
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          setMother(mother);
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          mother.addDaughter(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          setPositionAndRotation(surveyVolume);
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <strong class="jxr_keyword">if</strong> (isDebug())
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>              System.out.printf(<span class="jxr_string">"%s: DONE constructing JAVA object %s\n"</span>, <strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>                      surveyVolume.getName());
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      }
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

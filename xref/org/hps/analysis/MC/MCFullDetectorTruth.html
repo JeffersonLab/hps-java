@@ -1,0 +1,570 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>MCFullDetectorTruth xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/MC/MCFullDetectorTruth.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.MC;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.VecOp;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> java.util.HashSet;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> java.util.Set;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.math3.util.Pair;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.CoordinateTransformations;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.IDetectorElement;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.HpsSiSensor;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.LCRelation;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.MCParticle;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RelationalTable;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.SimCalorimeterHit;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.SimTrackerHit;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackerHit;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseRelationalTable;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.FieldMap;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.IDDecoder;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.compact.Subdetector;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.swim.Trajectory;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> * This is the driver that takes a TrackTruthMatching object</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> * and computes the full truth information including scattering angles</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="MCFullDetectorTruth" href="../../../../org/hps/analysis/MC/MCFullDetectorTruth.html#MCFullDetectorTruth">MCFullDetectorTruth</a>{
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">private</strong> <a name="TrackTruthMatching" href="../../../../org/hps/analysis/MC/TrackTruthMatching.html#TrackTruthMatching">TrackTruthMatching</a> _pTruth =  <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">private</strong> List&lt;SimTrackerHit&gt; _truthActHits = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,Set&lt;Track&gt;&gt; _sharedTrk = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,Set&lt;Track&gt;&gt;();
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,Hep3Vector&gt; _actHitPos = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,Hep3Vector&gt;();
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,Hep3Vector&gt; _inactHitPos = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,Hep3Vector&gt;();
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,Hep3Vector&gt; _actHitP = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,Hep3Vector&gt;();
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,Hep3Vector&gt; _inactHitP = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,Hep3Vector&gt;();
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,<strong class="jxr_keyword">double</strong>[]&gt; _actHitTheta = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,<strong class="jxr_keyword">double</strong>[]&gt;();
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,<strong class="jxr_keyword">double</strong>[]&gt; _inactHitTheta = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,<strong class="jxr_keyword">double</strong>[]&gt;();
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,<strong class="jxr_keyword">double</strong>[]&gt; _actHitResidual = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,<strong class="jxr_keyword">double</strong>[]&gt;();
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,<strong class="jxr_keyword">double</strong>[]&gt; _inactHitResidual = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,<strong class="jxr_keyword">double</strong>[]&gt;();
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,<strong class="jxr_keyword">int</strong>[]&gt; _ecalHitIndex = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,<strong class="jxr_keyword">int</strong>[]&gt;();
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,Hep3Vector&gt; _ecalHitPos = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,Hep3Vector&gt;();
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer,Double&gt; _ecalHitE = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer,Double&gt;();
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> _ecalNHits = 0;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> _isTriggered = false;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">private</strong> String trackerHitsCollectionName = <span class="jxr_string">"TrackerHits"</span>;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">private</strong> String inactiveTrackerHitsCollectionName = <span class="jxr_string">"TrackerHits_Inactive"</span>;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">private</strong> String ecalHitsCollectionName = <span class="jxr_string">"EcalHits"</span>;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">private</strong> String trackCollectionName = <span class="jxr_string">"GBLTracks"</span>;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">public</strong> <a name="MCFullDetectorTruth" href="../../../../org/hps/analysis/MC/MCFullDetectorTruth.html#MCFullDetectorTruth">MCFullDetectorTruth</a>(EventHeader event, Track trk, FieldMap fieldMap, List&lt;HpsSiSensor&gt; sensors, Subdetector trackerSubdet) {
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          doTruth(event, trk, fieldMap, sensors, trackerSubdet);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      }
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> doTruth(EventHeader event, Track trk, FieldMap bFieldMap, List&lt;HpsSiSensor&gt; sensors, Subdetector trackerSubdet){
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          List&lt;SimTrackerHit&gt; trackerHits = event.get(SimTrackerHit.<strong class="jxr_keyword">class</strong>, trackerHitsCollectionName);
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          List&lt;SimTrackerHit&gt; trackerHits_Inactive = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          List&lt;Track&gt; tracks = event.get(Track.<strong class="jxr_keyword">class</strong>, trackCollectionName);
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          <strong class="jxr_keyword">if</strong>(event.hasCollection(SimTrackerHit.<strong class="jxr_keyword">class</strong> , inactiveTrackerHitsCollectionName)){
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>              trackerHits_Inactive = event.get(SimTrackerHit.<strong class="jxr_keyword">class</strong>, inactiveTrackerHitsCollectionName);
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          }
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          Map&lt;MCParticle, List&lt;SimTrackerHit&gt;&gt; trackerHitMap = BuildTrackerHitMap(trackerHits);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          Map&lt;MCParticle, List&lt;SimTrackerHit&gt;&gt; trackerInHitMap = BuildTrackerHitMap(trackerHits_Inactive);
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          RelationalTable rawtomc = <strong class="jxr_keyword">new</strong> BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          <strong class="jxr_keyword">if</strong> (event.hasCollection(LCRelation.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"SVTTrueHitRelations"</span>)) {
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>              List&lt;LCRelation&gt; trueHitRelations = event.get(LCRelation.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"SVTTrueHitRelations"</span>);
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>              <strong class="jxr_keyword">for</strong> (LCRelation relation : trueHitRelations)
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>                  <strong class="jxr_keyword">if</strong> (relation != <strong class="jxr_keyword">null</strong> &amp;&amp; relation.getFrom() != <strong class="jxr_keyword">null</strong> &amp;&amp; relation.getTo() != <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>                      rawtomc.add(relation.getFrom(), relation.getTo());
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>          }
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          _pTruth = <strong class="jxr_keyword">new</strong> <a name="TrackTruthMatching" href="../../../../org/hps/analysis/MC/TrackTruthMatching.html#TrackTruthMatching">TrackTruthMatching</a>(trk, rawtomc, trackerHits);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>          
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>          MCParticle truthp = _pTruth.getMCParticle();
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>          
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <strong class="jxr_keyword">if</strong>(truthp == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>              <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          List&lt;TrackerHit&gt; trk_hits = trk.getTrackerHits();
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>          <strong class="jxr_keyword">for</strong>(Track track : tracks){
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>              <strong class="jxr_keyword">if</strong>(track.equals(trk))
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>                  <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>              <strong class="jxr_keyword">boolean</strong> sharedHit = false;
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>              List&lt;TrackerHit&gt; hits = track.getTrackerHits();
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>              <strong class="jxr_keyword">int</strong> sharedLay = 9999;
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>              <strong class="jxr_keyword">for</strong>(TrackerHit hit : hits){
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>                 <strong class="jxr_keyword">for</strong>(TrackerHit trk_hit : trk_hits){
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>                     <strong class="jxr_keyword">int</strong> lay = ((RawTrackerHit) trk_hit.getRawHits().get(0)).getLayerNumber();
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>                     <strong class="jxr_keyword">if</strong>(!_sharedTrk.containsKey(lay)){
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>                         _sharedTrk.put(lay,<strong class="jxr_keyword">new</strong> HashSet&lt;Track&gt;());
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>                     }
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>                     <strong class="jxr_keyword">if</strong>(hit.equals(trk_hit)){
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>                         sharedHit = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>                         sharedLay = lay;
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>                     }
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>                 }
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>                 <strong class="jxr_keyword">if</strong>(sharedHit)
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>             }
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>             <strong class="jxr_keyword">if</strong>(sharedHit){
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>                 <strong class="jxr_keyword">if</strong>(_sharedTrk.containsKey(sharedLay)){
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>                     _sharedTrk.get(sharedLay).add(track);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>                 }
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>                 <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>                     _sharedTrk.put(sharedLay,<strong class="jxr_keyword">new</strong> HashSet&lt;Track&gt;());
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>                 }
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>             }
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>         }
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         _truthActHits = trackerHitMap.get(truthp);
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>         List&lt;SimTrackerHit&gt; truthInActHits = trackerInHitMap.get(truthp);
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>         
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>         ComputeSVTVars(truthp, _truthActHits, truthInActHits, bFieldMap, sensors, trackerSubdet);
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         List&lt;SimCalorimeterHit&gt; calHits = event.get(SimCalorimeterHit.<strong class="jxr_keyword">class</strong>, ecalHitsCollectionName);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>         Map&lt;MCParticle, List&lt;SimCalorimeterHit&gt;&gt; calHitMap = BuildCalHitMap(calHits);
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>         List&lt;SimCalorimeterHit&gt; truthEcalHits = calHitMap.get(truthp);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>         <strong class="jxr_keyword">if</strong>(truthEcalHits == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>         
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>         IDDecoder calDecoder = event.getMetaData(calHits).getIDDecoder();
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         ComputeEcalVars(event,truthEcalHits,calDecoder);
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>     }
+<a class="jxr_linenumber" name="L140" href="#L140">140</a> 
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> ComputeSVTVars(MCParticle p, List&lt;SimTrackerHit&gt; hits_act, List&lt;SimTrackerHit&gt; hits_in, FieldMap bFieldMap, List&lt;HpsSiSensor&gt; sensors, Subdetector trackerSubdet){
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>         <em class="jxr_comment">// loop over particle's hits</em>
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>         <strong class="jxr_keyword">boolean</strong> inactiveprev = false;
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>         <strong class="jxr_keyword">int</strong> layerprev = 0;
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         List&lt;Pair&lt;SimTrackerHit,String&gt;&gt; allhits = orderHits(hits_act, hits_in, trackerSubdet, sensors);
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>         
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         Hep3Vector startPosition = allhits.get(0).getFirst().getPositionVec();
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>         <strong class="jxr_keyword">double</strong>[] startP = allhits.get(0).getFirst().getMomentum();
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>         Hep3Vector startMomentum = <strong class="jxr_keyword">new</strong> BasicHep3Vector(startP[0], startP[1], startP[2]);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         <strong class="jxr_keyword">for</strong>(Pair&lt;SimTrackerHit,String&gt; allhit : allhits){
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>             <strong class="jxr_keyword">boolean</strong> inactive = allhit.getSecond().equals(<span class="jxr_string">"inactive"</span>);
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>             SimTrackerHit hit = allhit.getFirst();
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>             IDetectorElement de = trackerSubdet.getDetectorElement().findDetectorElement(hit.getPositionVec());
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>             <strong class="jxr_keyword">int</strong> layer = trackHitLayerNum(de, sensors, inactive);
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>             Hep3Vector endPosition = hit.getPositionVec();
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>             Hep3Vector endMomentum = <strong class="jxr_keyword">new</strong> BasicHep3Vector(hit.getMomentum()[0], hit.getMomentum()[1], hit.getMomentum()[2]);
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>             <strong class="jxr_keyword">if</strong>(layer == layerprev){
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>                 <strong class="jxr_keyword">if</strong>(inactive != inactiveprev)
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>                     inactiveprev = false;
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>             }
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>             
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>             Pair&lt;Hep3Vector,Hep3Vector&gt; extrapPair = extrapolateTrack(endPosition,endMomentum,startPosition,5,bFieldMap,p.getCharge());
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>             <strong class="jxr_keyword">if</strong>(extrapPair == <strong class="jxr_keyword">null</strong>) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>             Hep3Vector extrapPos = extrapPair.getFirst();
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>             Hep3Vector extrapP = extrapPair.getSecond();
+<a class="jxr_linenumber" name="L168" href="#L168">168</a> 
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>             <strong class="jxr_keyword">double</strong> thetaX = MCFullDetectorTruth.deltaThetaX(VecOp.neg(extrapP),startMomentum);
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>             <strong class="jxr_keyword">double</strong> thetaY = MCFullDetectorTruth.deltaThetaY(VecOp.neg(extrapP),startMomentum);
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>             
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>             <strong class="jxr_keyword">double</strong>[] theta = {thetaX,thetaY};
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>             <strong class="jxr_keyword">double</strong>[] residual = {startPosition.x() - extrapPos.x(),startPosition.y() - extrapPos.y()};
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>             
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>             <strong class="jxr_keyword">if</strong>(!inactive)
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>                 _actHitPos.put(layer,endPosition);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>             <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>                 _inactHitPos.put(layer,endPosition);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>             <strong class="jxr_keyword">if</strong>(!inactiveprev){
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>                 _actHitP.put(layerprev,startMomentum);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>                 _actHitTheta.put(layerprev,theta);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>                 _actHitResidual.put(layerprev,residual);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>             }
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>                 _inactHitP.put(layerprev,startMomentum);
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>                 _inactHitTheta.put(layerprev,theta);
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>                 _inactHitResidual.put(layerprev,residual);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>             }
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>             startPosition = endPosition;
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>             startMomentum = endMomentum;
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>             inactiveprev = inactive;
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>             layerprev = layer;
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>         }
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>     }
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>     
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>     <strong class="jxr_keyword">private</strong> List&lt;Pair&lt;SimTrackerHit,String&gt;&gt; orderHits(List&lt;SimTrackerHit&gt; hits_act, List&lt;SimTrackerHit&gt; hits_in, Subdetector trackerSubdet, List&lt;HpsSiSensor&gt; sensors){
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         <strong class="jxr_keyword">if</strong>(hits_act == <strong class="jxr_keyword">null</strong>) 
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>         List&lt;Pair&lt;SimTrackerHit,String&gt;&gt; hitlist = <strong class="jxr_keyword">new</strong> ArrayList&lt;Pair&lt;SimTrackerHit,String&gt;&gt;();
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>         <strong class="jxr_keyword">if</strong>(hits_in == <strong class="jxr_keyword">null</strong>){
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>             <strong class="jxr_keyword">for</strong>(SimTrackerHit hit : hits_act){
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>                 hitlist.add(<strong class="jxr_keyword">new</strong> Pair&lt;SimTrackerHit,String&gt;(hit,<span class="jxr_string">"active"</span>));
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>             }
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             <strong class="jxr_keyword">return</strong> hitlist;
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>         }
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>         
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>         <strong class="jxr_keyword">int</strong> n_inact_used = 0;
+<a class="jxr_linenumber" name="L208" href="#L208">208</a> 
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>         <strong class="jxr_keyword">for</strong> (SimTrackerHit hit : hits_act) {
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>             <strong class="jxr_keyword">boolean</strong> inactive = false;
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>             SimTrackerHit hit_act = hit;
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             <strong class="jxr_keyword">do</strong>{
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>                 inactive = false;
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>                 <strong class="jxr_keyword">int</strong> n_inact = 0;
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>                 <strong class="jxr_keyword">for</strong>(SimTrackerHit hit_in:hits_in){
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>                     n_inact++;
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>                     <strong class="jxr_keyword">if</strong>(n_inact_used &gt;= n_inact) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>                     IDetectorElement de = trackerSubdet.getDetectorElement().findDetectorElement(hit_in.getPositionVec());
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>                     <strong class="jxr_keyword">int</strong> layer_in = trackHitLayerNum(de, sensors, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>                     <strong class="jxr_keyword">if</strong>(layer_in &gt;= hit_act.getLayer()) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>                     hit = hit_in;
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>                     inactive = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>                     n_inact_used = n_inact;
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>                 }
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>                 
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>                 <strong class="jxr_keyword">if</strong>(!inactive){
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>                     hit = hit_act;
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>                     hitlist.add(<strong class="jxr_keyword">new</strong> Pair&lt;SimTrackerHit,String&gt;(hit,<span class="jxr_string">"active"</span>));
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>                 }
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>                 <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>                     hitlist.add(<strong class="jxr_keyword">new</strong> Pair&lt;SimTrackerHit,String&gt;(hit,<span class="jxr_string">"inactive"</span>));
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>                 
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>             } <strong class="jxr_keyword">while</strong>(inactive);
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>         }
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>         <strong class="jxr_keyword">if</strong>(n_inact_used &gt; 0){
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             <strong class="jxr_keyword">int</strong> n_inact = 0;
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>             <strong class="jxr_keyword">for</strong>(SimTrackerHit hit:hits_in){
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>                 n_inact++;
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>                 <strong class="jxr_keyword">if</strong>(n_inact_used &gt;= n_inact) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>                 hitlist.add(<strong class="jxr_keyword">new</strong> Pair&lt;SimTrackerHit,String&gt;(hit,<span class="jxr_string">"inactive"</span>));
+<a class="jxr_linenumber" name="L242" href="#L242">242</a> 
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>             }
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>         }
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>         <strong class="jxr_keyword">return</strong> hitlist;
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>     }
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>     
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> ComputeEcalVars(EventHeader event, List&lt;SimCalorimeterHit&gt; truthEcalHits,IDDecoder calDecoder){
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>         _ecalNHits = truthEcalHits.size();
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>         <strong class="jxr_keyword">int</strong> i = 0;
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>         <strong class="jxr_keyword">for</strong>(SimCalorimeterHit hit : truthEcalHits){
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>             calDecoder.setID(hit.getCellID());
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>             <strong class="jxr_keyword">int</strong>[] index = {calDecoder.getValue(<span class="jxr_string">"ix"</span>),calDecoder.getValue(<span class="jxr_string">"iy"</span>)};
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>             _ecalHitIndex.put(i,index);
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>             _ecalHitPos.put(i,hit.getPositionVec());
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>             _ecalHitE.put(i, hit.getCorrectedEnergy());
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>             i++;
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>         }
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>     }
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>     
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Map&lt;MCParticle, List&lt;SimTrackerHit&gt;&gt; BuildTrackerHitMap(List&lt;SimTrackerHit&gt; trackerHits){
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>         Map&lt;MCParticle, List&lt;SimTrackerHit&gt;&gt; trackerHitMap = <strong class="jxr_keyword">new</strong> HashMap&lt;MCParticle, List&lt;SimTrackerHit&gt;&gt;();
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>         <strong class="jxr_keyword">if</strong>(trackerHits == <strong class="jxr_keyword">null</strong>) { <strong class="jxr_keyword">return</strong> trackerHitMap; }
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>         <strong class="jxr_keyword">for</strong> (SimTrackerHit hit : trackerHits) {
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>             MCParticle p = hit.getMCParticle();
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>             <strong class="jxr_keyword">if</strong> (p == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Tracker hit points to null MCParticle!"</span>);
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>             }
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>             <strong class="jxr_keyword">if</strong> (trackerHitMap.get(p) == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>                 trackerHitMap.put(p, <strong class="jxr_keyword">new</strong> ArrayList&lt;SimTrackerHit&gt;());
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>             }
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>             trackerHitMap.get(p).add(hit);
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         }        
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         <strong class="jxr_keyword">return</strong> trackerHitMap;
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>     }
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Map&lt;MCParticle, List&lt;SimCalorimeterHit&gt;&gt; BuildCalHitMap(List&lt;SimCalorimeterHit&gt; calHits){
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>         <em class="jxr_comment">// map particle to a list of its sim cal hits</em>
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         Map&lt;MCParticle, List&lt;SimCalorimeterHit&gt;&gt; calHitMap = <strong class="jxr_keyword">new</strong> HashMap&lt;MCParticle, List&lt;SimCalorimeterHit&gt;&gt;();
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         <strong class="jxr_keyword">for</strong> (SimCalorimeterHit hit : calHits) {
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>             <strong class="jxr_keyword">int</strong> nmc = hit.getMCParticleCount();
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; nmc; i++) {
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>                 MCParticle p = hit.getMCParticle(i);
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>                 <strong class="jxr_keyword">if</strong> (p == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Cal hit points to null MCParticle!"</span>);
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>                 }
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>                 <strong class="jxr_keyword">if</strong> (calHitMap.get(p) == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>                     calHitMap.put(p, <strong class="jxr_keyword">new</strong> ArrayList&lt;SimCalorimeterHit&gt;());
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>                 }
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                 <strong class="jxr_keyword">if</strong> (!calHitMap.get(p).contains(hit)) {
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>                     calHitMap.get(p).add(hit);
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>                 }
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>             }
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>         }
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>         <strong class="jxr_keyword">return</strong> calHitMap;
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>     }
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>     
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> trackHitLayerNum(IDetectorElement de, List&lt;HpsSiSensor&gt; sensors, <strong class="jxr_keyword">boolean</strong> inactive) {
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>         <strong class="jxr_keyword">if</strong>(!inactive){
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>             <strong class="jxr_keyword">try</strong>{
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>                 <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = ((<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) de);
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>                 <strong class="jxr_keyword">return</strong> sensor.getLayerNumber();
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>             }
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>             <strong class="jxr_keyword">catch</strong>(ClassCastException e){
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>                 System.out.println(<span class="jxr_string">"Sim tracker hit does not correspond to a sensor! "</span> + e.getMessage());
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>                 <strong class="jxr_keyword">return</strong> -1;
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>             }
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         }
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>         <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>             <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>             <strong class="jxr_keyword">for</strong> (<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> s : sensors){
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>                 <strong class="jxr_keyword">try</strong>{
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>                     String name = de.getName() + <span class="jxr_string">"_sensor0"</span>;
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>                     <strong class="jxr_keyword">if</strong>(s.getName().equals(name)){
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>                         sensor = s;
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>                     }
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>                 }
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>                 <strong class="jxr_keyword">catch</strong>(ClassCastException e){
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>                     System.out.println(<span class="jxr_string">"Sim tracker hit does not correspond to a sensor! "</span> + e.getMessage());
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>                     <strong class="jxr_keyword">return</strong> -1;
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>                 }
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>             }
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>             <strong class="jxr_keyword">if</strong>(sensor != <strong class="jxr_keyword">null</strong>){
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>                 <strong class="jxr_keyword">return</strong> sensor.getLayerNumber();
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>             }
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>             <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>                 <strong class="jxr_keyword">return</strong> -1;
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>             }
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>         }
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>     }
+<a class="jxr_linenumber" name="L332" href="#L332">332</a> 
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> deltaThetaX(Hep3Vector p1, Hep3Vector p2){
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <strong class="jxr_keyword">double</strong> theta1 = p1.x()/p1.z();
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         <strong class="jxr_keyword">double</strong> theta2 = p2.x()/p2.z();
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         <strong class="jxr_keyword">return</strong> theta2 - theta1;
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>     }
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>     
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> deltaThetaY(Hep3Vector p1, Hep3Vector p2){
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>         <strong class="jxr_keyword">double</strong> theta1 = p1.y()/p1.z();
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>         <strong class="jxr_keyword">double</strong> theta2 = p2.y()/p2.z();
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>         <strong class="jxr_keyword">return</strong> theta2 - theta1;
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>     }
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>     
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Pair&lt;Hep3Vector,Hep3Vector&gt; extrapolateTrack(Hep3Vector endPosition, Hep3Vector endMomentum, Hep3Vector startPosition, <strong class="jxr_keyword">double</strong> stepSize, FieldMap fieldMap, <strong class="jxr_keyword">double</strong> q) {
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         <strong class="jxr_keyword">if</strong>(endPosition == <strong class="jxr_keyword">null</strong> || endMomentum == <strong class="jxr_keyword">null</strong> || startPosition == <strong class="jxr_keyword">null</strong>) <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>         <em class="jxr_comment">// Start by transforming detector vectors into tracking frame</em>
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>         Hep3Vector currentPosition = CoordinateTransformations.transformVectorToTracking(endPosition);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>         Hep3Vector currentMomentum = VecOp.neg(CoordinateTransformations.transformVectorToTracking(endMomentum));
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>         <strong class="jxr_keyword">double</strong> startPositionZ = startPosition.z();
+<a class="jxr_linenumber" name="L351" href="#L351">351</a> 
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>         <em class="jxr_comment">// Retrieve the y component of the bfield in the middle of detector</em>
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>         <strong class="jxr_keyword">double</strong> bFieldY = fieldMap.getField(<strong class="jxr_keyword">new</strong> BasicHep3Vector(0, 0, 500.0)).y();       
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>     
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>         <em class="jxr_comment">// HACK: LCSim doesn't deal well with negative fields so they are</em>
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>         <em class="jxr_comment">// turned to positive for tracking purposes. As a result,</em>
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>         <em class="jxr_comment">// the charge calculated using the B-field, will be wrong</em>
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>         <em class="jxr_comment">// when the field is negative and needs to be flipped.</em>
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>         <strong class="jxr_keyword">if</strong> (bFieldY &lt; 0)
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>             q = q * (-1);
+<a class="jxr_linenumber" name="L361" href="#L361">361</a> 
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>         <em class="jxr_comment">// Swim the track through the B-field until the end point is reached.</em>
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>         <em class="jxr_comment">// The position of the track will be incremented according to the step</em>
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>         <em class="jxr_comment">// size up to ~90% of the final position. At this point, a finer</em>
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>         <em class="jxr_comment">// track size will be used.</em>
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>         <strong class="jxr_keyword">boolean</strong> stepSizeChange = false;
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>         <strong class="jxr_keyword">while</strong> (currentPosition.x() &gt; startPositionZ) {      
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>             <em class="jxr_comment">// The field map coordinates are in the detector frame so the</em>
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>             <em class="jxr_comment">// extrapolated track position needs to be transformed from the</em>
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>             <em class="jxr_comment">// track frame to detector.</em>
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>             Hep3Vector currentPositionDet = CoordinateTransformations.transformVectorToDetector(currentPosition);
+<a class="jxr_linenumber" name="L372" href="#L372">372</a> 
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>             <em class="jxr_comment">// Get the field at the current position along the track.</em>
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>             bFieldY = fieldMap.getField(currentPositionDet).y();
+<a class="jxr_linenumber" name="L375" href="#L375">375</a> 
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>             <em class="jxr_comment">// Get a trajectory (Helix or Line objects) created with the</em>
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>             <em class="jxr_comment">// track parameters at the current position.</em>
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>             Trajectory trajectory = TrackUtils.getTrajectory(currentMomentum, <strong class="jxr_keyword">new</strong> org.lcsim.spacegeom.SpacePoint(currentPosition), q, bFieldY);
+<a class="jxr_linenumber" name="L379" href="#L379">379</a> 
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>             <em class="jxr_comment">// Using the new trajectory, extrapolated the track by a step and</em>
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>             <em class="jxr_comment">// update the extrapolated position.</em>
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>             <em class="jxr_comment">//if(CoordinateTransformations.transformVectorToTracking(startPosition).x() &gt; currentPosition.x()){</em>
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>             <strong class="jxr_keyword">if</strong>(currentMomentum.x() &gt; 0){
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>                 <em class="jxr_comment">//System.out.println("Track is going Forwards!");</em>
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>                 <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>             }
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>             
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>             <em class="jxr_comment">//If trajectory step crosses starting position, adjust step size to fall on starting position</em>
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>             <strong class="jxr_keyword">if</strong>(trajectory.getPointAtDistance(stepSize).x() &lt; startPositionZ){
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>                 stepSize = VecOp.sub(CoordinateTransformations.transformVectorToTracking(startPosition),currentPosition).magnitude();
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>             }
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>             currentPosition = trajectory.getPointAtDistance(stepSize);
+<a class="jxr_linenumber" name="L394" href="#L394">394</a> 
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>             <em class="jxr_comment">// Calculate the momentum vector at the new position. This will</em>
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>             <em class="jxr_comment">// be used when creating the trajectory that will be used to</em>
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>             <em class="jxr_comment">// extrapolate the track in the next iteration.</em>
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>             currentMomentum = VecOp.mult(currentMomentum.magnitude(), trajectory.getUnitTangentAtLength(stepSize));
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>             
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>             <em class="jxr_comment">//System.out.println("Position " + CoordinateTransformations.transformVectorToDetector(currentPosition) + "   Momentum " + CoordinateTransformations.transformVectorToDetector(currentMomentum) + "   startPositionZ " + startPositionZ);</em>
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>         
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>             <em class="jxr_comment">//System.out.println(currentPosition.x() + "  " + currentPosition.y() + "  " + currentPosition.z() + "  ");</em>
+<a class="jxr_linenumber" name="L403" href="#L403">403</a> 
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>             <em class="jxr_comment">// If the position of the track along X (or z in the detector frame)</em>
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>             <em class="jxr_comment">// is at 90% of the total distance, reduce the step size.</em>
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>             <strong class="jxr_keyword">if</strong> (currentPosition.x() / startPositionZ &gt; .80 &amp;&amp; !stepSizeChange) {
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 stepSize /= 10;
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>                 <em class="jxr_comment">//System.out.println("Changing step size: " + stepSize);</em>
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>                 stepSizeChange = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>             }
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>         }
+<a class="jxr_linenumber" name="L412" href="#L412">412</a> 
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>         <em class="jxr_comment">// Transform vector back to detector frame</em>
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>         Hep3Vector returnPos = CoordinateTransformations.transformVectorToDetector(currentPosition);
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>         Hep3Vector returnP = CoordinateTransformations.transformVectorToDetector(currentMomentum);
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Pair&lt;&gt;(returnPos,returnP);
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>     }
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>     
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>     <em class="jxr_comment">//Return MCParticle matched to track</em>
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>     <strong class="jxr_keyword">public</strong> MCParticle getMCParticle() {
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>         <strong class="jxr_keyword">return</strong> _pTruth.getMCParticle();
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>     }
+<a class="jxr_linenumber" name="L423" href="#L423">423</a> 
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>     <em class="jxr_comment">//Returns number of tracker hits (10 or 12)</em>
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getNHits() {
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>         <strong class="jxr_keyword">return</strong> _pTruth.getNHits();
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>     }
+<a class="jxr_linenumber" name="L428" href="#L428">428</a> 
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>     <em class="jxr_comment">//Returns the number of MCParticle hits on track</em>
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getNGoodHits() {
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>         <strong class="jxr_keyword">return</strong> _pTruth.getNGoodHits();
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>     }
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>     
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>     <em class="jxr_comment">//Returns the number of missing hits</em>
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>     <em class="jxr_comment">//_nhits - number of MCParticle hits on track</em>
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getNBadHits() {
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>         <strong class="jxr_keyword">return</strong> _pTruth.getNBadHits();
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>     }
+<a class="jxr_linenumber" name="L439" href="#L439">439</a> 
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>     <em class="jxr_comment">//Returns purity of track truth match</em>
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>     <em class="jxr_comment">//_ngoodhits / _nhits</em>
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getPurity() {
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>         <strong class="jxr_keyword">return</strong> _pTruth.getPurity();
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>     }
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>     
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>     <em class="jxr_comment">//Returns true if the track is in the top volume</em>
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>     <em class="jxr_comment">//false otherwise</em>
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isTop() {
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>         <strong class="jxr_keyword">return</strong> _pTruth.isTop();
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>     }
+<a class="jxr_linenumber" name="L451" href="#L451">451</a> 
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>     <em class="jxr_comment">//Returns list of all Tracks associated with a tracker hit</em>
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>     <em class="jxr_comment">//on a layer</em>
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>     <strong class="jxr_keyword">public</strong> Set&lt;Track&gt; getHitTrackList(<strong class="jxr_keyword">int</strong> layer) {
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>         <strong class="jxr_keyword">return</strong> _sharedTrk.get(layer);
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>     }
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>     
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>     <em class="jxr_comment">//Returns the number of MCParticles that contribute to the</em>
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>     <em class="jxr_comment">//tracker hit at a layer</em>
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getNumberOfMCParticles(<strong class="jxr_keyword">int</strong> layer) {
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>         <strong class="jxr_keyword">return</strong> _pTruth.getNumberOfMCParticles(layer);
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>     }
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>     
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>     <em class="jxr_comment">//Returns list of all MCParticles associated with a tracker hit</em>
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>     <em class="jxr_comment">//on a layer</em>
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>     <strong class="jxr_keyword">public</strong> Set&lt;MCParticle&gt; getHitMCParticleList(<strong class="jxr_keyword">int</strong> layer) {
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>         <strong class="jxr_keyword">return</strong> _pTruth.getHitMCParticleList(layer);
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>     }
+<a class="jxr_linenumber" name="L469" href="#L469">469</a> 
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>     <em class="jxr_comment">//Returns all active hits associated with MC particle</em>
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>     <strong class="jxr_keyword">public</strong> List&lt;SimTrackerHit&gt; getActiveHitListMCParticle(){
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>         <strong class="jxr_keyword">return</strong> _truthActHits;
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>     }
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>     
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>     <em class="jxr_comment">//Returns a boolean of which hits of MCParticle contribute</em>
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>     <em class="jxr_comment">//to the track</em>
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>     <strong class="jxr_keyword">public</strong> Boolean getHitList(<strong class="jxr_keyword">int</strong> layer) {
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>         <strong class="jxr_keyword">return</strong> _pTruth.getHitList(layer);
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>     }
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>     
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>     <em class="jxr_comment">//Returns a list of SimTrackerHits for the matched MCParticle</em>
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>     <em class="jxr_comment">//that does not contribute to the tracker hits on the tracks</em>
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>     <strong class="jxr_keyword">public</strong> Set&lt;SimTrackerHit&gt; getHitListNotMatched() {
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>         <strong class="jxr_keyword">return</strong> _pTruth.getHitListNotMatched();
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>     }
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>     
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>     <em class="jxr_comment">//Returns truth hit position at layer in active silicon</em>
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>     <strong class="jxr_keyword">public</strong> Hep3Vector getActiveHitPosition(<strong class="jxr_keyword">int</strong> layer){
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>         <strong class="jxr_keyword">return</strong> _actHitPos.get(layer);
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>     }
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>     
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>     <em class="jxr_comment">//Returns truth hit position at layer in inactive silicon</em>
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>     <strong class="jxr_keyword">public</strong> Hep3Vector getInactiveHitPosition(<strong class="jxr_keyword">int</strong> layer){
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>         <strong class="jxr_keyword">return</strong> _inactHitPos.get(layer);
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>     }
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>     
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>     <em class="jxr_comment">//Returns truth hit momentum at layer in active silicon</em>
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>     <strong class="jxr_keyword">public</strong> Hep3Vector getActiveHitMomentum(<strong class="jxr_keyword">int</strong> layer){
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>         <strong class="jxr_keyword">return</strong> _actHitP.get(layer);
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>     }
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>     
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>     <em class="jxr_comment">//Returns truth hit momentum at layer in inactive silicon</em>
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>     <strong class="jxr_keyword">public</strong> Hep3Vector getInactiveHitMomentum(<strong class="jxr_keyword">int</strong> layer){
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>         <strong class="jxr_keyword">return</strong> _inactHitP.get(layer);
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>     }
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>     
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>     <em class="jxr_comment">//Returns "truth" hit scattering angle {x,y} at layer in active silicon</em>
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>     <em class="jxr_comment">//x is horizontal direction, y is vertical direction</em>
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong>[] getActiveHitScatter(<strong class="jxr_keyword">int</strong> layer){
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>         <strong class="jxr_keyword">return</strong> _actHitTheta.get(layer);
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>     }
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>     
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>     <em class="jxr_comment">//Returns "truth" hit scattering angle {x,y} at layer in inactive silicon</em>
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>     <em class="jxr_comment">//x is horizontal direction, y is vertical direction</em>
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong>[] getInactiveHitScatter(<strong class="jxr_keyword">int</strong> layer){
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>         <strong class="jxr_keyword">return</strong> _inactHitTheta.get(layer);
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>     }
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>     
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>     <em class="jxr_comment">//Returns hit residual {x,y} at layer in active silicon</em>
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>     <em class="jxr_comment">//x is horizontal direction, y is vertical direction</em>
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>     <em class="jxr_comment">//This is just a check, it should be basically 0</em>
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong>[] getActiveHitResidual(<strong class="jxr_keyword">int</strong> layer){
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>         <strong class="jxr_keyword">return</strong> _actHitResidual.get(layer);
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>     }
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>     
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>     <em class="jxr_comment">//Returns hit residual {x,y} at layer in inactive silicon</em>
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>     <em class="jxr_comment">//x is horizontal direction, y is vertical direction</em>
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>     <em class="jxr_comment">//This is just a check, it should be basically 0</em>
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong>[] getInactiveHitResidual(<strong class="jxr_keyword">int</strong> layer){
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>         <strong class="jxr_keyword">return</strong> _inactHitResidual.get(layer);
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>     }
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>     
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>     <em class="jxr_comment">//Returns ecal hit index {x,y} for a given hit number</em>
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong>[] getEcalHitIndex(<strong class="jxr_keyword">int</strong> hitnum){
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>         <strong class="jxr_keyword">return</strong> _ecalHitIndex.get(hitnum);
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>     }
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>     
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>     <em class="jxr_comment">//Returns ecal hit position for a given hit number</em>
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>     <strong class="jxr_keyword">public</strong> Hep3Vector getEcalHitPosition(<strong class="jxr_keyword">int</strong> hitnum){
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>         <strong class="jxr_keyword">return</strong> _ecalHitPos.get(hitnum);
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>     }
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>     
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>     <em class="jxr_comment">//Returns ecal hit energy} for a given hit number</em>
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>     <strong class="jxr_keyword">public</strong> Double getEcalHitEnergy(<strong class="jxr_keyword">int</strong> hitnum){
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>         <strong class="jxr_keyword">return</strong> _ecalHitE.get(hitnum);
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>     }
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>     
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>     <em class="jxr_comment">//Returns number of Ecal hits</em>
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getEcalNHits(){
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>         <strong class="jxr_keyword">return</strong> _ecalNHits;
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>     }
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>     
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>   <em class="jxr_comment">//Returns whether this MCParticle contributes to a triggered cluster</em>
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> getIsTriggered(){
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>         <strong class="jxr_keyword">return</strong> _isTriggered;
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>     }
+<a class="jxr_linenumber" name="L557" href="#L557">557</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

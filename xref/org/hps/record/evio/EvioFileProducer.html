@@ -1,0 +1,470 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>EvioFileProducer xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/record/evio/EvioFileProducer.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.record.evio;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.io.BufferedReader;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.io.FileInputStream;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.io.InputStreamReader;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.nio.ByteBuffer;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> java.nio.ByteOrder;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Level;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.cli.CommandLine;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.cli.DefaultParser;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.cli.HelpFormatter;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.cli.Options;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.cli.ParseException;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.et.EtAttachment;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.et.EtConstants;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.et.EtEvent;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.et.EtStation;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.et.EtSystem;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.et.EtSystemOpenConfig;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.et.enums.Mode;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.jevio.EventWriter;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.jevio.EvioEvent;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.jlab.coda.jevio.EvioReader;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> * A command line utility for streaming EVIO files to an ET server.</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> * &lt;p&gt;</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> * The original version was copied from the CODA ET module and modified.</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a name="EvioFileProducer" href="../../../../org/hps/record/evio/EvioFileProducer.html#EvioFileProducer">EvioFileProducer</a> {
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String GRAND_CENTRAL = <span class="jxr_string">"GRAND_CENTRAL"</span>;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">     * Default event count for printing event sequence number.</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> DEFAULT_COUNT = 1000;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment">     * Default delay time in milliseconds between events.</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> DEFAULT_DELAY = 0;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">     * The default ET group.</em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> DEFAULT_ET_GROUP = 1;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <em class="jxr_javadoccomment">     * Default event buffer size (200 KB).</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> DEFAULT_EVENT_SIZE = 200000;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>  
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  <em class="jxr_javadoccomment">     * Default host name.</em>
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String DEFAULT_HOST = <span class="jxr_string">"localhost"</span>;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  <em class="jxr_javadoccomment">     * Default ET system name.</em>
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String DEFAULT_NAME = <span class="jxr_string">"ETBuffer"</span>;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <em class="jxr_javadoccomment">     * Maximum port number of ET server (maximum value of a TCP/IP port).</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> ET_PORT_MAX = 65535;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <em class="jxr_javadoccomment">     * Minimum port number of ET server (lower port numbers not allowed).</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> ET_PORT_MIN = 1024;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  <em class="jxr_javadoccomment">     * Initialize the logger.</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = Logger.getLogger(EvioFileProducer.<strong class="jxr_keyword">class</strong>.getCanonicalName());
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_javadoccomment">     * The command line options.</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Options OPTIONS = <strong class="jxr_keyword">new</strong> Options();
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  <em class="jxr_javadoccomment">     * Define the command line options.</em>
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      <strong class="jxr_keyword">static</strong> {
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          OPTIONS.addOption(<span class="jxr_string">""</span>, <span class="jxr_string">"help"</span>, false, <span class="jxr_string">"print help"</span>);
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          OPTIONS.addOption(<span class="jxr_string">"e"</span>, <span class="jxr_string">"event"</span>, <strong class="jxr_keyword">true</strong>, <span class="jxr_string">"interval for printing event numbers"</span>);
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          OPTIONS.addOption(<span class="jxr_string">"d"</span>, <span class="jxr_string">"delay"</span>, <strong class="jxr_keyword">true</strong>, <span class="jxr_string">"delay in milliseconds between events"</span>);
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          OPTIONS.addOption(<span class="jxr_string">"f"</span>, <span class="jxr_string">"name"</span>, <strong class="jxr_keyword">true</strong>, <span class="jxr_string">"ET system name which should be a buffer file"</span>);
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          OPTIONS.addOption(<span class="jxr_string">"g"</span>, <span class="jxr_string">"group"</span>, <strong class="jxr_keyword">true</strong>, <span class="jxr_string">"group number of the events"</span>);
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         OPTIONS.addOption(<span class="jxr_string">"h"</span>, <span class="jxr_string">"host"</span>, <strong class="jxr_keyword">true</strong>, <span class="jxr_string">"server host name"</span>);
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         OPTIONS.addOption(<span class="jxr_string">"l"</span>, <span class="jxr_string">"list"</span>, <strong class="jxr_keyword">true</strong>, <span class="jxr_string">"text file with list of EVIO files"</span>);
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         OPTIONS.addOption(<span class="jxr_string">"p"</span>, <span class="jxr_string">"port"</span>, <strong class="jxr_keyword">true</strong>, <span class="jxr_string">"server port"</span>);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>         OPTIONS.addOption(<span class="jxr_string">"s"</span>, <span class="jxr_string">"size"</span>, <strong class="jxr_keyword">true</strong>, <span class="jxr_string">"event buffer size in bytes"</span>);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     }
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> 
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> <em class="jxr_javadoccomment">     * The externally accessible main method.</em>
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L109" href="#L109">109</a> <em class="jxr_javadoccomment">     * @param args the command line arguments</em>
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(<strong class="jxr_keyword">final</strong> String[] args) {
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         <a name="EvioFileProducer" href="../../../../org/hps/record/evio/EvioFileProducer.html#EvioFileProducer">EvioFileProducer</a> producer = <strong class="jxr_keyword">new</strong> <a name="EvioFileProducer" href="../../../../org/hps/record/evio/EvioFileProducer.html#EvioFileProducer">EvioFileProducer</a>();
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>             producer.parse(args);
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Error parsing command line"</span>, e);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         }
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>             producer.run();
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e);
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>         }
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>     }
+<a class="jxr_linenumber" name="L124" href="#L124">124</a> 
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L126" href="#L126">126</a> <em class="jxr_javadoccomment">     * Print usage statement and exit.</em>
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> printUsage() {
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         <strong class="jxr_keyword">final</strong> HelpFormatter help = <strong class="jxr_keyword">new</strong> HelpFormatter();
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>         help.printHelp(80, <span class="jxr_string">"EvioFileProducer [options] file.evio.0 file.evio.1 [...]"</span>, <span class="jxr_string">"EVIO File Producer"</span>, OPTIONS,
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>                 <span class="jxr_string">"Provide EVIO files as extra arguments or using the -l option to provide a file containing a list of them."</span>);
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>         System.exit(1);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>     }
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> 
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L136" href="#L136">136</a> <em class="jxr_javadoccomment">     * Event count for printing message.</em>
+<a class="jxr_linenumber" name="L137" href="#L137">137</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> eventPrintInterval = DEFAULT_COUNT;
+<a class="jxr_linenumber" name="L139" href="#L139">139</a> 
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L141" href="#L141">141</a> <em class="jxr_javadoccomment">     * A delay in milliseconds between put operations.</em>
+<a class="jxr_linenumber" name="L142" href="#L142">142</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> delay = DEFAULT_DELAY;
+<a class="jxr_linenumber" name="L144" href="#L144">144</a> 
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L146" href="#L146">146</a> <em class="jxr_javadoccomment">     * The ET system name which maps to a buffer file.</em>
+<a class="jxr_linenumber" name="L147" href="#L147">147</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>     <strong class="jxr_keyword">private</strong> String etName = DEFAULT_NAME;
+<a class="jxr_linenumber" name="L149" href="#L149">149</a> 
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L151" href="#L151">151</a> <em class="jxr_javadoccomment">     * The master list of input EVIO files to stream.</em>
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> List&lt;File&gt; evioFiles = <strong class="jxr_keyword">new</strong> ArrayList&lt;File&gt;();
+<a class="jxr_linenumber" name="L154" href="#L154">154</a> 
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> <em class="jxr_javadoccomment">     * The ET group (default is 1).</em>
+<a class="jxr_linenumber" name="L157" href="#L157">157</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> group = DEFAULT_ET_GROUP;
+<a class="jxr_linenumber" name="L159" href="#L159">159</a> 
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L161" href="#L161">161</a> <em class="jxr_javadoccomment">     * The server host name (default is localhost).</em>
+<a class="jxr_linenumber" name="L162" href="#L162">162</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>     <strong class="jxr_keyword">private</strong> String host = DEFAULT_HOST;
+<a class="jxr_linenumber" name="L164" href="#L164">164</a> 
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L166" href="#L166">166</a> <em class="jxr_javadoccomment">     * The server's network port (default is standard ET server port).</em>
+<a class="jxr_linenumber" name="L167" href="#L167">167</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> port = EtConstants.serverPort;
+<a class="jxr_linenumber" name="L169" href="#L169">169</a> 
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L171" href="#L171">171</a> <em class="jxr_javadoccomment">     * The default ET event size (default is 200 KB).</em>
+<a class="jxr_linenumber" name="L172" href="#L172">172</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> size = DEFAULT_EVENT_SIZE;
+<a class="jxr_linenumber" name="L174" href="#L174">174</a> 
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L176" href="#L176">176</a> <em class="jxr_javadoccomment">     * Class constructor.</em>
+<a class="jxr_linenumber" name="L177" href="#L177">177</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>     <strong class="jxr_keyword">private</strong> <a name="EvioFileProducer" href="../../../../org/hps/record/evio/EvioFileProducer.html#EvioFileProducer">EvioFileProducer</a>() {
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>     }
+<a class="jxr_linenumber" name="L180" href="#L180">180</a> 
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L182" href="#L182">182</a> <em class="jxr_javadoccomment">     * Print the command line job configuration to the log.</em>
+<a class="jxr_linenumber" name="L183" href="#L183">183</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> logConfig() {
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>         <strong class="jxr_keyword">final</strong> StringBuffer sb = <strong class="jxr_keyword">new</strong> StringBuffer();
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         sb.append(<span class="jxr_string">"count: "</span> + <strong class="jxr_keyword">this</strong>.eventPrintInterval + '\n');
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         sb.append(<span class="jxr_string">"delay: "</span> + <strong class="jxr_keyword">this</strong>.delay + '\n');
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         sb.append(<span class="jxr_string">"etName: "</span> + <strong class="jxr_keyword">this</strong>.etName + '\n');
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         sb.append(<span class="jxr_string">"group: "</span> + <strong class="jxr_keyword">this</strong>.group + '\n');
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         sb.append(<span class="jxr_string">"host: "</span> + <strong class="jxr_keyword">this</strong>.host + '\n');
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>         sb.append(<span class="jxr_string">"port: "</span> + <strong class="jxr_keyword">this</strong>.port + '\n');
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         sb.append(<span class="jxr_string">"size: "</span> + <strong class="jxr_keyword">this</strong>.size + '\n');
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>         sb.append(<span class="jxr_string">"EVIO files: "</span> + '\n');
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> File evioFile : <strong class="jxr_keyword">this</strong>.evioFiles) {
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>             sb.append(evioFile.getPath() + '\n');
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>         }
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         LOG.config(sb.toString());
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>     }
+<a class="jxr_linenumber" name="L199" href="#L199">199</a> 
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L201" href="#L201">201</a> <em class="jxr_javadoccomment">     * Run the job by streaming all the EVIO files to the ET server using the command line arguments.</em>
+<a class="jxr_linenumber" name="L202" href="#L202">202</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L203" href="#L203">203</a> <em class="jxr_javadoccomment">     * @param args the command line arguments</em>
+<a class="jxr_linenumber" name="L204" href="#L204">204</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> parse(<strong class="jxr_keyword">final</strong> String[] args) <strong class="jxr_keyword">throws</strong> ParseException {
+<a class="jxr_linenumber" name="L206" href="#L206">206</a> 
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>         <em class="jxr_comment">// Command line parser.</em>
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>         <strong class="jxr_keyword">final</strong> DefaultParser parser = <strong class="jxr_keyword">new</strong> DefaultParser();
+<a class="jxr_linenumber" name="L209" href="#L209">209</a> 
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>         <em class="jxr_comment">// Parse the command line arguments.</em>
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>         <strong class="jxr_keyword">final</strong> CommandLine cl = parser.parse(OPTIONS, args);
+<a class="jxr_linenumber" name="L212" href="#L212">212</a> 
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>         <em class="jxr_comment">// Print usage and exit.</em>
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>         <strong class="jxr_keyword">if</strong> (cl.hasOption(<span class="jxr_string">"help"</span>)) {
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>             printUsage();
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>             System.exit(0);
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         }
+<a class="jxr_linenumber" name="L218" href="#L218">218</a> 
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         <em class="jxr_comment">// Add EVIO files to the job from extra args.</em>
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         List&lt;String&gt; extraArgs = cl.getArgList();
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> String extraArg : extraArgs) {
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>             <strong class="jxr_keyword">final</strong> File evioFile = <strong class="jxr_keyword">new</strong> File(extraArg);
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>             LOG.config(<span class="jxr_string">"Adding EVIO file: "</span> + evioFile.getPath());
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>             <strong class="jxr_keyword">this</strong>.evioFiles.add(evioFile);
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>         }
+<a class="jxr_linenumber" name="L226" href="#L226">226</a> 
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         <em class="jxr_comment">// Set ET name which is the buffer file.</em>
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>         <strong class="jxr_keyword">if</strong> (cl.hasOption(<span class="jxr_string">"f"</span>)) {
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>             <strong class="jxr_keyword">this</strong>.etName = cl.getOptionValue(<span class="jxr_string">"f"</span>);
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>         }
+<a class="jxr_linenumber" name="L231" href="#L231">231</a> 
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         <em class="jxr_comment">// Add EVIO files from a text file list, assuming one file path per line.</em>
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>         <em class="jxr_comment">// Option cannot be used when providing a list of EVIO files on the command line</em>
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>         <em class="jxr_comment">// or an exception will be thrown.</em>
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>         <strong class="jxr_keyword">if</strong> (cl.hasOption(<span class="jxr_string">"l"</span>)) {
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>             <strong class="jxr_keyword">if</strong> (cl.getArgList().size() &gt; 0) {
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"The -l option is not allowed with EVIO files on the command line."</span>);
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>             }
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>             <strong class="jxr_keyword">final</strong> String filePath = cl.getOptionValue(<span class="jxr_string">"l"</span>);
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>             <strong class="jxr_keyword">final</strong> File listFile = <strong class="jxr_keyword">new</strong> File(filePath);
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>             <strong class="jxr_keyword">if</strong> (!listFile.exists()) {
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"The file "</span> + listFile.getPath() + <span class="jxr_string">" does not exist."</span>);
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>             }
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>             BufferedReader br = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>                 br = <strong class="jxr_keyword">new</strong> BufferedReader(<strong class="jxr_keyword">new</strong> InputStreamReader(<strong class="jxr_keyword">new</strong> FileInputStream(listFile)));
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>                 String line;
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>                 <strong class="jxr_keyword">while</strong> ((line = br.readLine()) != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>                     <strong class="jxr_keyword">this</strong>.evioFiles.add(<strong class="jxr_keyword">new</strong> File(line.trim()));
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>                 }
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>             } <strong class="jxr_keyword">catch</strong> (IOException e) {
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Error reading EVIO file list"</span>, e);
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>             } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>                 <strong class="jxr_keyword">if</strong> (br != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>                         br.close();
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>                     } <strong class="jxr_keyword">catch</strong> (IOException e) {
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                         e.printStackTrace();
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>                     }
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>                 }
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>             }
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>         }
+<a class="jxr_linenumber" name="L263" href="#L263">263</a> 
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>         <em class="jxr_comment">// Set host name.</em>
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         <strong class="jxr_keyword">if</strong> (cl.hasOption(<span class="jxr_string">"h"</span>)) {
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>             <strong class="jxr_keyword">this</strong>.host = cl.getOptionValue(<span class="jxr_string">"h"</span>);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>         }
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>         <em class="jxr_comment">// if (this.host == null) {</em>
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>         <em class="jxr_comment">// host = EtConstants.hostAnywhere;</em>
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>         <em class="jxr_comment">// this.host = InetAddress.getLocalHost().getHostName();</em>
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>         <em class="jxr_comment">// }</em>
+<a class="jxr_linenumber" name="L272" href="#L272">272</a> 
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         <em class="jxr_comment">// Set the port number.</em>
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         <strong class="jxr_keyword">if</strong> (cl.hasOption(<span class="jxr_string">"p"</span>)) {
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>             <strong class="jxr_keyword">this</strong>.port = Integer.parseInt(cl.getOptionValue(<span class="jxr_string">"p"</span>));
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.port &lt; ET_PORT_MIN || <strong class="jxr_keyword">this</strong>.port &gt; ET_PORT_MAX) {
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Port number must be between 1024 and 65535."</span>);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>             }
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         }
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         <em class="jxr_comment">// Set the size of the event buffer in bytes.</em>
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>         <strong class="jxr_keyword">if</strong> (cl.hasOption(<span class="jxr_string">"s"</span>)) {
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>             <strong class="jxr_keyword">this</strong>.size = Integer.parseInt(cl.getOptionValue(<span class="jxr_string">"s"</span>));
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.size &lt; 1) {
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Size needs to be a positive int."</span>);
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>             }
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>         }
+<a class="jxr_linenumber" name="L287" href="#L287">287</a> 
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         <em class="jxr_comment">// Set the group number.</em>
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>         <strong class="jxr_keyword">if</strong> (cl.hasOption(<span class="jxr_string">"g"</span>)) {
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>             <strong class="jxr_keyword">this</strong>.group = Integer.parseInt(cl.getOptionValue(<span class="jxr_string">"g"</span>));
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.group &lt; 1 || <strong class="jxr_keyword">this</strong>.group &gt; 10) {
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Group number must be between 0 and 10."</span>);
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>             }
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>         }
+<a class="jxr_linenumber" name="L295" href="#L295">295</a> 
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         <em class="jxr_comment">// Set the delay in milliseconds between putting events.</em>
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         <strong class="jxr_keyword">if</strong> (cl.hasOption(<span class="jxr_string">"d"</span>)) {
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>             <strong class="jxr_keyword">this</strong>.delay = Integer.parseInt(cl.getOptionValue(<span class="jxr_string">"d"</span>));
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.delay &lt; 1) {
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"The delay must be &gt; 0."</span>);
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>             }
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>         }
+<a class="jxr_linenumber" name="L303" href="#L303">303</a> 
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>         <strong class="jxr_keyword">if</strong> (cl.hasOption(<span class="jxr_string">"e"</span>)) {
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>             <strong class="jxr_keyword">this</strong>.eventPrintInterval = Integer.parseInt(cl.getOptionValue(<span class="jxr_string">"e"</span>));
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>             <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.eventPrintInterval &lt; 1) {
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"The count must be &gt; 0."</span>);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>             }
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>         }
+<a class="jxr_linenumber" name="L310" href="#L310">310</a> 
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>         <em class="jxr_comment">// At least one EVIO file must be present from parsing command line arguments.</em>
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.evioFiles.size() == 0) {
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"At least one EVIO file is required."</span>);
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>         }
+<a class="jxr_linenumber" name="L315" href="#L315">315</a> 
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>         <em class="jxr_comment">// Check existence of EVIO files.</em>
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>         LOG.info(<span class="jxr_string">"Checking EVIO files"</span>);
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>         <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.evioFiles.size() == 0) {
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No EVIO files were given by command line options!"</span>);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>         }
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> File evioFile : <strong class="jxr_keyword">this</strong>.evioFiles) {
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>             <strong class="jxr_keyword">if</strong> (!evioFile.exists()) {
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"EVIO file does not exist: "</span> + evioFile.getPath());
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>             }
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>         }
+<a class="jxr_linenumber" name="L326" href="#L326">326</a> 
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>         <em class="jxr_comment">// Print out the configuration for the job to the log.</em>
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>         logConfig();
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>     }
+<a class="jxr_linenumber" name="L330" href="#L330">330</a> 
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> run() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L332" href="#L332">332</a> 
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>         EtSystem sys = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         EvioReader reader = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L335" href="#L335">335</a> 
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L337" href="#L337">337</a> 
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>             <em class="jxr_comment">// Setup ET system from the command line options.</em>
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>             LOG.info(<span class="jxr_string">"Opening ET system on host "</span> + <strong class="jxr_keyword">this</strong>.host + <span class="jxr_string">", port "</span> + <strong class="jxr_keyword">this</strong>.port + <span class="jxr_string">" and file "</span> + <strong class="jxr_keyword">this</strong>.etName);
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>             <strong class="jxr_keyword">final</strong> EtSystemOpenConfig config = <strong class="jxr_keyword">new</strong> EtSystemOpenConfig(<strong class="jxr_keyword">this</strong>.etName, <strong class="jxr_keyword">this</strong>.host, <strong class="jxr_keyword">this</strong>.port);
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>             sys = <strong class="jxr_keyword">new</strong> EtSystem(config, EtConstants.debugInfo);
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>             <em class="jxr_comment">// TODO: Add multiple connection attempts as the initial handshake tends to fail a lot</em>
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>             sys.open();
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>             <strong class="jxr_keyword">final</strong> EtStation gc = sys.stationNameToObject(GRAND_CENTRAL);
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>             <strong class="jxr_keyword">final</strong> EtAttachment att = sys.attach(gc);
+<a class="jxr_linenumber" name="L346" href="#L346">346</a> 
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>             <em class="jxr_comment">// Array of ET events.</em>
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>             EtEvent[] mevs;
+<a class="jxr_linenumber" name="L349" href="#L349">349</a> 
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>             <em class="jxr_comment">// Loop over input EVIO file list.</em>
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> File evioFile : <strong class="jxr_keyword">this</strong>.evioFiles) {
+<a class="jxr_linenumber" name="L352" href="#L352">352</a> 
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>                 <em class="jxr_comment">// Open a new EVIO reader in sequential read mode so events are immediately streamed to server.</em>
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>                 LOG.info(<span class="jxr_string">"Opening next EVIO file "</span> + evioFile.getPath());
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>                 reader = <strong class="jxr_keyword">new</strong> EvioReader(evioFile.getPath(), false, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L356" href="#L356">356</a> 
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>                 <em class="jxr_comment">// Reference to the current EVIO event.</em>
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>                 EvioEvent event;
+<a class="jxr_linenumber" name="L359" href="#L359">359</a> 
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>                 <em class="jxr_comment">// Event sequence number.</em>
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>                 <strong class="jxr_keyword">int</strong> eventCount = 0;
+<a class="jxr_linenumber" name="L362" href="#L362">362</a> 
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>                 <em class="jxr_comment">// Loop until event source is exhausted.</em>
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>                 <strong class="jxr_keyword">while</strong> ((event = reader.nextEvent()) != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L365" href="#L365">365</a> 
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>                         <em class="jxr_comment">// Parse the next EVIO event.</em>
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>                         reader.parseEvent(event);
+<a class="jxr_linenumber" name="L369" href="#L369">369</a> 
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>                         <em class="jxr_comment">// Increment event count.</em>
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>                         ++eventCount;
+<a class="jxr_linenumber" name="L372" href="#L372">372</a> 
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>                         <em class="jxr_comment">// Print event sequence.</em>
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>                         <strong class="jxr_keyword">if</strong> (eventCount % <strong class="jxr_keyword">this</strong>.eventPrintInterval == 0) {
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>                             LOG.info(<span class="jxr_string">"EVIO event: "</span> + eventCount + <span class="jxr_string">", bytes: "</span> + event.getTotalBytes());
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>                         }
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>                     } <strong class="jxr_keyword">catch</strong> (<strong class="jxr_keyword">final</strong> Exception e) { <em class="jxr_comment">/* Catches parse errors reading the EVIO events. */</em>
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>                         e.printStackTrace();
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>                         LOG.severe(<span class="jxr_string">"Error making EVIO event with seq number "</span> + eventCount + <span class="jxr_string">" in file "</span>
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>                                 + evioFile.getPath());
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>                         <em class="jxr_comment">// Attempt to recover from errors by skipping to next event if there are exceptions.</em>
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>                         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>                     }
+<a class="jxr_linenumber" name="L384" href="#L384">384</a> 
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>                     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> eventTag = EvioEventUtilities.getEventTag(event);
+<a class="jxr_linenumber" name="L386" href="#L386">386</a> 
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>                     LOG.finest(<span class="jxr_string">"Creating new ET events..."</span>);
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>                     <em class="jxr_comment">// Create a new array of ET events. This always has one event.</em>
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>                     mevs = sys.newEvents(att, <em class="jxr_comment">// attachment</em>
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>                             Mode.SLEEP, <em class="jxr_comment">// wait mode</em>
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>                             false, <em class="jxr_comment">// create a buffer</em>
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>                             0, <em class="jxr_comment">// delay</em>
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>                             1, <em class="jxr_comment">// number of events</em>
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>                             <strong class="jxr_keyword">this</strong>.size, <em class="jxr_comment">// size of event but overwritten later</em>
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>                             <strong class="jxr_keyword">this</strong>.group); <em class="jxr_comment">// group number; default value is arbitrary</em>
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>                     LOG.finest(<span class="jxr_string">"Done creating ET events!"</span>);
+<a class="jxr_linenumber" name="L397" href="#L397">397</a> 
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>                     <em class="jxr_comment">// Create control data array for event selection.</em>
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>                     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong>[] control = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[EtConstants.stationSelectInts];
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>                     Arrays.fill(control, eventTag);
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>                     mevs[0].setControl(control);
+<a class="jxr_linenumber" name="L402" href="#L402">402</a> 
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>                     <em class="jxr_comment">// Apply delay in milliseconds.</em>
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>                     <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.delay &gt; 0) {
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>                         Thread.sleep(<strong class="jxr_keyword">this</strong>.delay);
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>                     }
+<a class="jxr_linenumber" name="L407" href="#L407">407</a> 
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>                     <em class="jxr_comment">// Write the next EVIO event to the EtEvent's buffer.</em>
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>                         LOG.finest(<span class="jxr_string">"Writing to buffer..."</span>);
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>                         <strong class="jxr_keyword">final</strong> ByteBuffer buf = mevs[0].getDataBuffer();
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>                         buf.order(ByteOrder.nativeOrder());
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>                         <strong class="jxr_keyword">final</strong> EventWriter writer = <strong class="jxr_keyword">new</strong> EventWriter(buf, 100000, 100, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>                         writer.writeEvent(event);
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>                         LOG.finest(<span class="jxr_string">"Done writing to buffer!"</span>);
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>                         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>                             writer.close();
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>                         } <strong class="jxr_keyword">catch</strong> (<strong class="jxr_keyword">final</strong> Exception e) {
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>                             LOG.log(Level.WARNING, <span class="jxr_string">"Error while closing writer."</span>, e);
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>                         }
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>                         mevs[0].setLength(buf.position());
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>                         mevs[0].setByteOrder(ByteOrder.nativeOrder());
+<a class="jxr_linenumber" name="L423" href="#L423">423</a> 
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>                         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> EtEvent mev : mevs) {
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>                             LOG.finest(<span class="jxr_string">"event length = "</span> + mev.getLength() + <span class="jxr_string">", remaining bytes: "</span>
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>                                     + mev.getDataBuffer().remaining());
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>                         }
+<a class="jxr_linenumber" name="L428" href="#L428">428</a> 
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>                         <em class="jxr_comment">// Put events onto the ET ring.</em>
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>                         LOG.finest(<span class="jxr_string">"Putting events onto ET ring..."</span>);
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>                         sys.putEvents(att, mevs);
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>                         LOG.finest(<span class="jxr_string">"Successfully wrote events to ET ring!"</span>);
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>                     } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>                         e.printStackTrace();
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>                     }
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>                 }
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>                 LOG.info(eventCount + <span class="jxr_string">" events were read from "</span> + evioFile.getPath());
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>                 reader.close();
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>             }
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>         } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>             <em class="jxr_comment">// Cleanup the EVIO reader if needed.</em>
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>             <strong class="jxr_keyword">if</strong> (reader != <strong class="jxr_keyword">null</strong> &amp;&amp; !reader.isClosed()) {
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>                     reader.close();
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>                 } <strong class="jxr_keyword">catch</strong> (<strong class="jxr_keyword">final</strong> IOException e) {
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>                     LOG.log(Level.WARNING, e.getMessage(), e);
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>                 }
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>             }
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>             <em class="jxr_comment">// Cleanup the ET system.</em>
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>             <strong class="jxr_keyword">if</strong> (sys != <strong class="jxr_keyword">null</strong> &amp;&amp; sys.alive()) {
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>                 sys.close();
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>             }
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>         }
+<a class="jxr_linenumber" name="L454" href="#L454">454</a> 
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>         LOG.info(<span class="jxr_string">"Done!"</span>);
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>     }
+<a class="jxr_linenumber" name="L457" href="#L457">457</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

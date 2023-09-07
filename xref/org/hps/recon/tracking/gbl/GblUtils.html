@@ -1,0 +1,659 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>GblUtils xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/recon/tracking/gbl/GblUtils.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.tracking.gbl;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.physics.matrix.BasicMatrix;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Matrix;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Matrix;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.VecOp;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.HpsHelicalTrackFit;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.MaterialSupervisor;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.MultipleScattering;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.gbl.matrix.Matrix;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.gbl.matrix.Vector;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.lcsim.constants.Constants;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.IDetectorElement;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelicalTrackFit;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelixUtils;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.recon.tracking.seedtracker.ScatterAngle;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackResidualsData;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment"> * A class with only static utilities related to GBL</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="GblUtils" href="../../../../../org/hps/recon/tracking/gbl/GblUtils.html#GblUtils">GblUtils</a> {
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Logger LOGGER = Logger.getLogger(GblUtils.<strong class="jxr_keyword">class</strong>.getName());
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment">     * Private constructor to avoid instantiation.</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">private</strong> <a name="GblUtils" href="../../../../../org/hps/recon/tracking/gbl/GblUtils.html#GblUtils">GblUtils</a>() {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      }
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment">     * Store local curvilinear track parameters.</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> ClParams {
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <strong class="jxr_keyword">private</strong> BasicMatrix _params = <strong class="jxr_keyword">new</strong> BasicMatrix(1, 5);
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          <strong class="jxr_keyword">public</strong> ClParams(HelicalTrackFit htf, <strong class="jxr_keyword">double</strong> B) {
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              <strong class="jxr_keyword">if</strong> (htf == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                  <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              }
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              Hep3Matrix perToClPrj = getPerToClPrj(htf);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              <strong class="jxr_keyword">double</strong> d0 = -1 * htf.dca(); <em class="jxr_comment">// sign convention for curvilinear frame</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              <strong class="jxr_keyword">double</strong> z0 = htf.z0();
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              Hep3Vector vecPer = <strong class="jxr_keyword">new</strong> BasicHep3Vector(0., d0, z0);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              <em class="jxr_comment">// System.out.printf("%s: vecPer=%s\n",this.getClass().getSimpleName(),vecPer.toString());</em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>              Hep3Vector vecCl = VecOp.mult(perToClPrj, vecPer);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              <em class="jxr_comment">// System.out.printf("%s: vecCl=%s\n",this.getClass().getSimpleName(),vecCl.toString());</em>
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>              <strong class="jxr_keyword">double</strong> xT = vecCl.x();
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>              <strong class="jxr_keyword">double</strong> yT = vecCl.y();
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>              <em class="jxr_comment">// double zT = vecCl.z();</em>
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>              <strong class="jxr_keyword">double</strong> lambda = Math.atan(htf.slope());
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>              <strong class="jxr_keyword">double</strong> q = Math.signum(htf.R());
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>              <strong class="jxr_keyword">double</strong> qOverP = q / htf.p(Math.abs(B));
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>              <strong class="jxr_keyword">double</strong> phi = htf.phi0();
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>              _params.setElement(0, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(), qOverP);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>              _params.setElement(0, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), lambda);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>              _params.setElement(0, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), phi);
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>              _params.setElement(0, FittedGblTrajectory.GBLPARIDX.XT.getValue(), xT);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>              _params.setElement(0, FittedGblTrajectory.GBLPARIDX.YT.getValue(), yT);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          }
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          <strong class="jxr_keyword">public</strong> BasicMatrix getParams() {
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>              <strong class="jxr_keyword">return</strong> _params;
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>          }
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          <strong class="jxr_keyword">double</strong> getQoverP() {
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              <strong class="jxr_keyword">return</strong> _params.e(0, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue());
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>          }
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <strong class="jxr_keyword">double</strong> getLambda() {
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>              <strong class="jxr_keyword">return</strong> _params.e(0, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          }
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>          <strong class="jxr_keyword">double</strong> getPhi() {
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>              <strong class="jxr_keyword">return</strong> _params.e(0, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          }
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          <strong class="jxr_keyword">double</strong> getXt() {
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>              <strong class="jxr_keyword">return</strong> _params.e(0, FittedGblTrajectory.GBLPARIDX.XT.getValue());
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          }
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> 
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         <strong class="jxr_keyword">double</strong> getYt() {
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>             <strong class="jxr_keyword">return</strong> _params.e(0, FittedGblTrajectory.GBLPARIDX.YT.getValue());
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>         }
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>         
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>     }
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>     <em class="jxr_javadoccomment">/** returns the residuals from the trajectory fit</em>
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> <em class="jxr_javadoccomment">     *  fix this by passing only the trajectory!</em>
+<a class="jxr_linenumber" name="L109" href="#L109">109</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a name="TrackResidualsData" href="../../../../../org/hps/recon/tracking/TrackResidualsData.html#TrackResidualsData">TrackResidualsData</a> computeGblResiduals(Track trk, <a name="FittedGblTrajectory" href="../../../../../org/hps/recon/tracking/gbl/FittedGblTrajectory.html#FittedGblTrajectory">FittedGblTrajectory</a> fitGbl_traj) {
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         <a name="GblTrajectory" href="../../../../../org/hps/recon/tracking/gbl/GblTrajectory.html#GblTrajectory">GblTrajectory</a> gbl_fit_trajectory = fitGbl_traj.get_traj();
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         List&lt;Double&gt;  b_residuals = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         List&lt;Float&gt;   b_sigmas    = <strong class="jxr_keyword">new</strong> ArrayList&lt;Float&gt;();
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         List&lt;Integer&gt; r_sensors   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Integer&gt;();
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         <strong class="jxr_keyword">int</strong> numData[] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[1];
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         <em class="jxr_comment">//System.out.printf("Getting the residuals. Points  on trajectory: %d \n",gbl_fit_trajectory.getNpointsOnTraj());</em>
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         <em class="jxr_comment">//The fitted trajectory has a mapping between the MPID and the ilabel. Use that to get the MPID of the residual.</em>
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>         Integer[] sensorsFromMapArray = fitGbl_traj.getSensorMap().keySet().toArray(<strong class="jxr_keyword">new</strong> Integer[0]);
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         <em class="jxr_comment">//System.out.printf("Getting the residuals. Sensors on trajectory: %d \n",sensorsFromMapArray.length);</em>
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>         <em class="jxr_comment">//System.out.println("Check residuals of the original fit");</em>
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>         <em class="jxr_comment">//Looping on all the sensors on track -  to get the biased residuals.</em>
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i_s = 0; i_s &lt; sensorsFromMapArray.length; i_s++) {       
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>             <em class="jxr_comment">//Get the point label</em>
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>             <strong class="jxr_keyword">int</strong> ilabel = sensorsFromMapArray[i_s];
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>             <em class="jxr_comment">//Get the millepede ID</em>
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>             <strong class="jxr_keyword">int</strong> mpid = fitGbl_traj.getSensorMap().get(ilabel);
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>             List&lt;Double&gt; aResiduals   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();   
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>             List&lt;Double&gt; aMeasErrors  = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>             List&lt;Double&gt; aResErrors   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();  
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>             List&lt;Double&gt; aDownWeights = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>             gbl_fit_trajectory.getMeasResults(ilabel,numData,aResiduals,aMeasErrors,aResErrors,aDownWeights); 
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>             <strong class="jxr_keyword">if</strong> (numData[0]&gt;1) { 
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>                 System.out.printf(<span class="jxr_string">"GBLRefitterDriver::WARNING::We have SCT sensors. Residuals dimensions should be &lt;=1\n"</span>);
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>             }
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i=0; i&lt;numData[0];i++) {
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>                 <em class="jxr_comment">//System.out.printf("KalmanToGBLDriver::ilabel numDataIDX MPID aResidual aMeasError aResError\n");</em>
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>                 <em class="jxr_comment">//System.out.printf("KalmanToGBLDriver::measResults %d %d %d %f %f %f \n",ilabel, i, mpid, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));</em>
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>                 
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>                 r_sensors.add(mpid);
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>                 b_residuals.add(aResiduals.get(i));
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>                 b_sigmas.add(aResErrors.get(i).floatValue());
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>             }
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>             <em class="jxr_comment">//Perform an unbiasing fit for each traj</em>
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>             
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>             <em class="jxr_comment">//System.out.println("Run the unbiased residuals!!!\n");</em>
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>             <em class="jxr_comment">//For each sensor create a trajectory </em>
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>             <a name="GblTrajectory" href="../../../../../org/hps/recon/tracking/gbl/GblTrajectory.html#GblTrajectory">GblTrajectory</a> gbl_fit_traj_u = <strong class="jxr_keyword">new</strong> <a name="GblTrajectory" href="../../../../../org/hps/recon/tracking/gbl/GblTrajectory.html#GblTrajectory">GblTrajectory</a>(gbl_fit_trajectory.getSingleTrajPoints());
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>             <strong class="jxr_keyword">double</strong>[] u_dVals = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[2];
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>             <strong class="jxr_keyword">int</strong>[] u_iVals    = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[1];
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>             <strong class="jxr_keyword">int</strong>[] u_numData  = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[1]; 
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>             <em class="jxr_comment">//Fit it once to have exactly the same starting point of gbl_fit_trajectory.</em>
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>             gbl_fit_traj_u.fit(u_dVals,u_iVals,<span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>             List&lt;Double&gt; u_aResiduals   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();   
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>             List&lt;Double&gt; u_aMeasErrors  = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>             List&lt;Double&gt; u_aResErrors   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();  
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>             List&lt;Double&gt; u_aDownWeights = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>             
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>                 <em class="jxr_comment">//Fit removing the measurement</em>
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>                 gbl_fit_traj_u.fit(u_dVals,u_iVals,<span class="jxr_string">""</span>,ilabel);
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>                 gbl_fit_traj_u.getMeasResults(ilabel,numData,u_aResiduals,u_aMeasErrors,u_aResErrors,u_aDownWeights); 
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i=0; i&lt;numData[0];i++) {
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>                     <em class="jxr_comment">//System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");</em>
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>                     <em class="jxr_comment">//System.out.printf("Example1::UmeasResults %d %d %d %f %f %f \n",ilabel, i, mpid, u_aResiduals.get(i),u_aMeasErrors.get(i),u_aResErrors.get(i));</em>
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>                     
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>                     r_sensors.add(mpid);
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>                     b_residuals.add(u_aResiduals.get(i));
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>                     b_sigmas.add(u_aResErrors.get(i).floatValue());
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>                 }
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>             }
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>             <strong class="jxr_keyword">catch</strong> (RuntimeException e){
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>                 <em class="jxr_comment">//  e.printStackTrack();</em>
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>                 r_sensors.add(-999);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>                 b_residuals.add(-9999.);
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>                 b_sigmas.add((<strong class="jxr_keyword">float</strong>)-9999.);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>                 <em class="jxr_comment">//System.out.printf("Unbiasing fit fails! For label::%d\n",ilabel);</em>
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>             }
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>             
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         }<em class="jxr_comment">//loop on sensors on track</em>
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>         
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>         <em class="jxr_comment">//Set top by default</em>
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         <strong class="jxr_keyword">int</strong> trackerVolume = 0;
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         <em class="jxr_comment">//if tanLamda&lt;0 set bottom</em>
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         <em class="jxr_comment">//System.out.printf("Residuals size %d \n", r_sensors.size());</em>
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>         <strong class="jxr_keyword">if</strong> (trk.getTrackStates().get(0).getTanLambda() &lt; 0) trackerVolume = 1;
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         <a name="TrackResidualsData" href="../../../../../org/hps/recon/tracking/TrackResidualsData.html#TrackResidualsData">TrackResidualsData</a> resData  = <strong class="jxr_keyword">new</strong> <a name="TrackResidualsData" href="../../../../../org/hps/recon/tracking/TrackResidualsData.html#TrackResidualsData">TrackResidualsData</a>(trackerVolume,r_sensors,b_residuals,b_sigmas);
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>         
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         <strong class="jxr_keyword">return</strong> resData;
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>     }
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>       
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>     
+<a class="jxr_linenumber" name="L198" href="#L198">198</a> 
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L200" href="#L200">200</a> <em class="jxr_javadoccomment">     * Store perigee track parameters.</em>
+<a class="jxr_linenumber" name="L201" href="#L201">201</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L202" href="#L202">202</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> PerigeeParams {
+<a class="jxr_linenumber" name="L204" href="#L204">204</a> 
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>         <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> BasicMatrix _params;
+<a class="jxr_linenumber" name="L206" href="#L206">206</a> 
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>         <strong class="jxr_keyword">public</strong> PerigeeParams(HelicalTrackFit htf, <strong class="jxr_keyword">double</strong> B) {
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>             _params = GblUtils.getPerParVector(htf, B);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>         }
+<a class="jxr_linenumber" name="L210" href="#L210">210</a> 
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>         <strong class="jxr_keyword">public</strong> PerigeeParams(<strong class="jxr_keyword">double</strong> kappa, <strong class="jxr_keyword">double</strong> theta, <strong class="jxr_keyword">double</strong> phi, <strong class="jxr_keyword">double</strong> d0, <strong class="jxr_keyword">double</strong> z0) {
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             <strong class="jxr_keyword">this</strong>._params = GblUtils.getPerParVector(kappa, theta, phi, d0, z0);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>         }
+<a class="jxr_linenumber" name="L214" href="#L214">214</a> 
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         <strong class="jxr_keyword">public</strong> BasicMatrix getParams() {
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>             <strong class="jxr_keyword">return</strong> _params;
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         }
+<a class="jxr_linenumber" name="L218" href="#L218">218</a> 
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getKappa() {
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>             <strong class="jxr_keyword">return</strong> _params.e(0, 0);
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         }
+<a class="jxr_linenumber" name="L222" href="#L222">222</a> 
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getTheta() {
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>             <strong class="jxr_keyword">return</strong> _params.e(0, 1);
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>         }
+<a class="jxr_linenumber" name="L226" href="#L226">226</a> 
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getPhi() {
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>             <strong class="jxr_keyword">return</strong> _params.e(0, 2);
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>         }
+<a class="jxr_linenumber" name="L230" href="#L230">230</a> 
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getD0() {
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>             <strong class="jxr_keyword">return</strong> _params.e(0, 3);
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>         }
+<a class="jxr_linenumber" name="L234" href="#L234">234</a> 
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>         <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getZ0() {
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>             <strong class="jxr_keyword">return</strong> _params.e(0, 4);
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>         }
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>     }
+<a class="jxr_linenumber" name="L239" href="#L239">239</a> 
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L241" href="#L241">241</a> <em class="jxr_javadoccomment">     * Get corrected perigee parameters.</em>
+<a class="jxr_linenumber" name="L242" href="#L242">242</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L243" href="#L243">243</a> <em class="jxr_javadoccomment">     * @param locPar - GBL local curvilinear corrections</em>
+<a class="jxr_linenumber" name="L244" href="#L244">244</a> <em class="jxr_javadoccomment">     * @param helicalTrackFit - helix</em>
+<a class="jxr_linenumber" name="L245" href="#L245">245</a> <em class="jxr_javadoccomment">     * @param bfield - B-field strength</em>
+<a class="jxr_linenumber" name="L246" href="#L246">246</a> <em class="jxr_javadoccomment">     * @return corrected parameters</em>
+<a class="jxr_linenumber" name="L247" href="#L247">247</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong>[] getCorrectedPerigeeParameters(<a name="Vector" href="../../../../../org/hps/recon/tracking/gbl/matrix/Vector.html#Vector">Vector</a> locPar, HelicalTrackFit helicalTrackFit, <strong class="jxr_keyword">double</strong> bfield) {
+<a class="jxr_linenumber" name="L249" href="#L249">249</a> 
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>         <em class="jxr_comment">// Explicitly assign corrections to local variables</em>
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>         <strong class="jxr_keyword">double</strong> qOverPCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.QOVERP.getValue());
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>         <strong class="jxr_keyword">double</strong> xTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue());
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>         <strong class="jxr_keyword">double</strong> yTPrimeCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue());
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         <strong class="jxr_keyword">double</strong> xTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.XT.getValue());
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>         <strong class="jxr_keyword">double</strong> yTCorr = locPar.get(FittedGblTrajectory.GBLPARIDX.YT.getValue());
+<a class="jxr_linenumber" name="L256" href="#L256">256</a> 
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>         <em class="jxr_comment">// Get helix parameters</em>
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>         <strong class="jxr_keyword">double</strong> qOverP = helicalTrackFit.curvature()
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>                 / (Constants.fieldConversion * Math.abs(bfield) * Math.sqrt(1 + Math.pow(helicalTrackFit.slope(), 2)));
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>         <strong class="jxr_keyword">double</strong> d0 = -1.0 * helicalTrackFit.dca(); <em class="jxr_comment">// correct for different sign convention of d0 in perigee frame</em>
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>         <strong class="jxr_keyword">double</strong> z0 = helicalTrackFit.z0();
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>         <strong class="jxr_keyword">double</strong> phi0 = helicalTrackFit.phi0();
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>         <strong class="jxr_keyword">double</strong> lambda = Math.atan(helicalTrackFit.slope());
+<a class="jxr_linenumber" name="L264" href="#L264">264</a> 
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         <em class="jxr_comment">// calculate new d0 and z0</em>
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         Hep3Matrix perToClPrj = GblUtils.getPerToClPrj(helicalTrackFit);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a> 
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>         Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>         Hep3Vector corrPer = VecOp.mult(clToPerPrj, <strong class="jxr_keyword">new</strong> BasicHep3Vector(xTCorr, yTCorr, 0.0));
+<a class="jxr_linenumber" name="L270" href="#L270">270</a> 
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>         <em class="jxr_comment">// d0</em>
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         <strong class="jxr_keyword">double</strong> d0_corr = corrPer.y();
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         <strong class="jxr_keyword">double</strong> dca_gbl = -1.0 * (d0 + d0_corr);
+<a class="jxr_linenumber" name="L274" href="#L274">274</a> 
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         <em class="jxr_comment">// z0</em>
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>         <strong class="jxr_keyword">double</strong> z0_corr = corrPer.z();
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>         <strong class="jxr_keyword">double</strong> z0_gbl = z0 + z0_corr;
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> 
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         <em class="jxr_comment">// calculate new slope</em>
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         <strong class="jxr_keyword">double</strong> lambda_gbl = lambda + yTPrimeCorr;
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>         <strong class="jxr_keyword">double</strong> slope_gbl = Math.tan(lambda_gbl);
+<a class="jxr_linenumber" name="L282" href="#L282">282</a> 
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>         <em class="jxr_comment">// calculate new curvature</em>
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>         <strong class="jxr_keyword">double</strong> qOverP_gbl = qOverP + qOverPCorr;
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>         <strong class="jxr_keyword">double</strong> C_gbl = Constants.fieldConversion * Math.abs(bfield) * qOverP_gbl / Math.cos(lambda_gbl);
+<a class="jxr_linenumber" name="L286" href="#L286">286</a> 
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         <em class="jxr_comment">// calculate new phi0</em>
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         <strong class="jxr_keyword">double</strong> phi0_gbl = phi0 + xTPrimeCorr - corrPer.x() * C_gbl;
+<a class="jxr_linenumber" name="L289" href="#L289">289</a> 
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>         LOGGER.info(<span class="jxr_string">"qOverP="</span> + qOverP + <span class="jxr_string">" qOverPCorr="</span> + qOverPCorr + <span class="jxr_string">" qOverP_gbl="</span> + qOverP_gbl + <span class="jxr_string">" ==&gt; pGbl="</span> + 1.0
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>                 / qOverP_gbl + <span class="jxr_string">" C_gbl="</span> + C_gbl);
+<a class="jxr_linenumber" name="L292" href="#L292">292</a> 
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>         LOGGER.info(String.format(<span class="jxr_string">"corrected helix: d0=%f, z0=%f, omega=%f, tanlambda=%f, phi0=%f, p=%f"</span>, dca_gbl,
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>                 z0_gbl, C_gbl, slope_gbl, phi0_gbl, Math.abs(1 / qOverP_gbl)));
+<a class="jxr_linenumber" name="L295" href="#L295">295</a> 
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         <strong class="jxr_keyword">double</strong> parameters_gbl[] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[5];
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         parameters_gbl[HelicalTrackFit.dcaIndex] = dca_gbl;
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         parameters_gbl[HelicalTrackFit.phi0Index] = phi0_gbl;
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>         parameters_gbl[HelicalTrackFit.curvatureIndex] = C_gbl;
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>         parameters_gbl[HelicalTrackFit.z0Index] = z0_gbl;
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         parameters_gbl[HelicalTrackFit.slopeIndex] = slope_gbl;
+<a class="jxr_linenumber" name="L302" href="#L302">302</a> 
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         <strong class="jxr_keyword">return</strong> parameters_gbl;
+<a class="jxr_linenumber" name="L304" href="#L304">304</a> 
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>     }
+<a class="jxr_linenumber" name="L306" href="#L306">306</a> 
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> BasicMatrix gblSimpleJacobianLambdaPhi(<strong class="jxr_keyword">double</strong> ds, <strong class="jxr_keyword">double</strong> cosl, <strong class="jxr_keyword">double</strong> bfac) {
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L309" href="#L309">309</a> <em class="jxr_comment">         * Simple jacobian: quadratic in arc length difference. using lambda phi as directions</em>
+<a class="jxr_linenumber" name="L310" href="#L310">310</a> <em class="jxr_comment">         * @param ds: arc length difference</em>
+<a class="jxr_linenumber" name="L311" href="#L311">311</a> <em class="jxr_comment">         * @type ds: float</em>
+<a class="jxr_linenumber" name="L312" href="#L312">312</a> <em class="jxr_comment">         * @param cosl: cos(lambda)</em>
+<a class="jxr_linenumber" name="L313" href="#L313">313</a> <em class="jxr_comment">         * @type cosl: float</em>
+<a class="jxr_linenumber" name="L314" href="#L314">314</a> <em class="jxr_comment">         * @param bfac: Bz*c</em>
+<a class="jxr_linenumber" name="L315" href="#L315">315</a> <em class="jxr_comment">         * @type bfac: float</em>
+<a class="jxr_linenumber" name="L316" href="#L316">316</a> <em class="jxr_comment">         * @return: jacobian to move by 'ds' on trajectory</em>
+<a class="jxr_linenumber" name="L317" href="#L317">317</a> <em class="jxr_comment">         * @rtype: matrix(float) ajac(1,1)= 1.0D0 ajac(2,2)= 1.0D0 ajac(3,1)=-DBLE(bfac*ds) ajac(3,3)= 1.0D0</em>
+<a class="jxr_linenumber" name="L318" href="#L318">318</a> <em class="jxr_comment">         * ajac(4,1)=-DBLE(0.5*bfac*ds*ds*cosl) ajac(4,3)= DBLE(ds*cosl) ajac(4,4)= 1.0D0 ajac(5,2)= DBLE(ds) ajac(5,5)=</em>
+<a class="jxr_linenumber" name="L319" href="#L319">319</a> <em class="jxr_comment">         * 1.0D0 ''' jac = np.eye(5) jac[2, 0] = -bfac * ds jac[3, 0] = -0.5 * bfac * ds * ds * cosl jac[3, 2] = ds *</em>
+<a class="jxr_linenumber" name="L320" href="#L320">320</a> <em class="jxr_comment">         * cosl jac[4, 1] = ds return jac</em>
+<a class="jxr_linenumber" name="L321" href="#L321">321</a> <em class="jxr_comment">         */</em>
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         BasicMatrix mat = unitMatrix(5, 5);
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>         mat.setElement(2, 0, -bfac * ds);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         mat.setElement(3, 0, -0.5 * bfac * ds * ds * cosl);
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>         mat.setElement(3, 2, ds * cosl);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>         mat.setElement(4, 1, ds);
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>         <strong class="jxr_keyword">return</strong> mat;
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>     }
+<a class="jxr_linenumber" name="L329" href="#L329">329</a> 
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> BasicMatrix unitMatrix(<strong class="jxr_keyword">int</strong> rows, <strong class="jxr_keyword">int</strong> cols) {
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>         BasicMatrix mat = <strong class="jxr_keyword">new</strong> BasicMatrix(rows, cols);
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> row = 0; row != mat.getNRows(); row++) {
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> col = 0; col != mat.getNColumns(); col++) {
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>                 <strong class="jxr_keyword">if</strong> (row != col) {
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>                     mat.setElement(row, col, 0);
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>                     mat.setElement(row, col, 1);
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>                 }
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>             }
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>         }
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>         <strong class="jxr_keyword">return</strong> mat;
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>     }
+<a class="jxr_linenumber" name="L343" href="#L343">343</a> 
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> BasicMatrix zeroMatrix(<strong class="jxr_keyword">int</strong> rows, <strong class="jxr_keyword">int</strong> cols) {
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>         BasicMatrix mat = <strong class="jxr_keyword">new</strong> BasicMatrix(rows, cols);
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> row = 0; row != mat.getNRows(); row++) {
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> col = 0; col != mat.getNColumns(); col++) {
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>                 mat.setElement(row, col, 0.);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>             }
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>         }
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>         <strong class="jxr_keyword">return</strong> mat;
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>     }
+<a class="jxr_linenumber" name="L353" href="#L353">353</a> 
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> estimateScatter(IDetectorElement hitElement, HelicalTrackFit htf,
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>             <a name="MultipleScattering" href="../../../../../org/hps/recon/tracking/MultipleScattering.html#MultipleScattering">MultipleScattering</a> scattering, <strong class="jxr_keyword">double</strong> _B) {
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>         <em class="jxr_comment">// can be edge case where helix is outside, but close to sensor, so make a new scatter point assuming the helix</em>
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>         <em class="jxr_comment">// does pass through the sensor</em>
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>         MaterialSupervisor.DetectorPlane hitPlane = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>         <strong class="jxr_keyword">if</strong> (MaterialSupervisor.<strong class="jxr_keyword">class</strong>.isInstance(scattering.getMaterialManager())) {
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>             <a name="MaterialSupervisor" href="../../../../../org/hps/recon/tracking/MaterialSupervisor.html#MaterialSupervisor">MaterialSupervisor</a> matSup = (<a name="MaterialSupervisor" href="../../../../../org/hps/recon/tracking/MaterialSupervisor.html#MaterialSupervisor">MaterialSupervisor</a>) scattering.getMaterialManager();
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>             <strong class="jxr_keyword">for</strong> (MaterialSupervisor.ScatteringDetectorVolume vol : matSup.getMaterialVolumes()) {
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>                 <strong class="jxr_keyword">if</strong> (vol.getDetectorElement() == hitElement) {
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>                     hitPlane = (MaterialSupervisor.DetectorPlane) vol;
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>                     <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>                 }
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>             }
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>             <strong class="jxr_keyword">if</strong> (hitPlane == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"cannot find plane for hit!"</span>);
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>                 <em class="jxr_comment">// find scatterlength</em>
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>                 <strong class="jxr_keyword">double</strong> s_closest = HelixUtils.PathToXPlane(htf, hitPlane.origin().x(), 0., 0).get(0);
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>                 <strong class="jxr_keyword">double</strong> X0 = hitPlane.getMaterialTraversedInRL(HelixUtils.Direction(htf, s_closest));
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>                 ScatterAngle scatterAngle = <strong class="jxr_keyword">new</strong> ScatterAngle(s_closest, scattering.msangle(htf.p(Math.abs(_B)), X0));
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>                 <strong class="jxr_keyword">return</strong> scatterAngle.Angle();
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>             }
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UnsupportedOperationException(
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>                 <span class="jxr_string">"Should not happen. This problem is only solved with the MaterialSupervisor."</span>);
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>         }
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>     }
+<a class="jxr_linenumber" name="L381" href="#L381">381</a> 
+<a class="jxr_linenumber" name="L382" href="#L382">382</a> 
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L384" href="#L384">384</a> <em class="jxr_javadoccomment">     * Form a virtual layer at the target location</em>
+<a class="jxr_linenumber" name="L385" href="#L385">385</a> <em class="jxr_javadoccomment">     * Use the helix analytical extrapolation to beamspot</em>
+<a class="jxr_linenumber" name="L386" href="#L386">386</a> <em class="jxr_javadoccomment">     * These computations are in tracking frame</em>
+<a class="jxr_linenumber" name="L387" href="#L387">387</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>     
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a name="GBLBeamSpotPoint" href="../../../../../org/hps/recon/tracking/gbl/GBLBeamSpotPoint.html#GBLBeamSpotPoint">GBLBeamSpotPoint</a> gblMakeBsPoint(HelicalTrackFit htf, <strong class="jxr_keyword">double</strong> [] bsLocation, <strong class="jxr_keyword">double</strong>[] udir, <strong class="jxr_keyword">double</strong> [] vdir, <strong class="jxr_keyword">double</strong> [] error)  {
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>         <em class="jxr_comment">//Using the GBL package for prediction and change of reference</em>
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>         <em class="jxr_comment">//Need to use -1/R and -d0 as it uses different conventions </em>
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>         <a name="GblSimpleHelix" href="../../../../../org/hps/recon/tracking/gbl/GblSimpleHelix.html#GblSimpleHelix">GblSimpleHelix</a> gblHelix = <strong class="jxr_keyword">new</strong> <a name="GblSimpleHelix" href="../../../../../org/hps/recon/tracking/gbl/GblSimpleHelix.html#GblSimpleHelix">GblSimpleHelix</a>(-1/htf.R(), htf.phi0(), -htf.dca(), htf.slope(), htf.z0());
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>         <a name="GblHelixPrediction" href="../../../../../org/hps/recon/tracking/gbl/GblHelixPrediction.html#GblHelixPrediction">GblHelixPrediction</a> gblHelixPrediction = gblHelix.getPrediction(bsLocation, udir,vdir);
+<a class="jxr_linenumber" name="L395" href="#L395">395</a> 
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>         <strong class="jxr_keyword">double</strong> prediction [] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[2];
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>         gblHelixPrediction.getMeasPred(prediction);
+<a class="jxr_linenumber" name="L398" href="#L398">398</a> 
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>         gblHelix.delete();
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>         gblHelixPrediction.delete();
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>             
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>         <em class="jxr_comment">//Curvilinear frame, UV Plane </em>
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>         <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a> uvDir_gbl = gblHelixPrediction.getCurvilinearDirs();
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>             
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>         <em class="jxr_comment">//Global to measurement transformation</em>
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>             
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>         <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a> mDir = <strong class="jxr_keyword">new</strong> <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a>(2,3);
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>             
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>         mDir.set(0,2,udir[2]);
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>         mDir.set(1,0,vdir[0]);
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>         mDir.set(1,1,vdir[1]);
+<a class="jxr_linenumber" name="L412" href="#L412">412</a> 
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>         <em class="jxr_comment">//measurement to global </em>
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>         <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a> mDirT = mDir.copy().transpose();
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>             
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>         <em class="jxr_comment">//measurement to curvilinear frame.</em>
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>         <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a> proM2l = uvDir_gbl.times(mDirT);
+<a class="jxr_linenumber" name="L418" href="#L418">418</a> 
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>         <em class="jxr_comment">//Curvilinear to measurement. </em>
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>         <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a> proL2m = proM2l.copy().inverse();
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>             
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>         <em class="jxr_comment">//Create the jacobian point to point</em>
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>         <strong class="jxr_keyword">double</strong> sArc2D = gblHelixPrediction.getArcLength();
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>             
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>         Hep3Vector bsLocation_3v = <strong class="jxr_keyword">new</strong> BasicHep3Vector(bsLocation[0],bsLocation[1],bsLocation[2]);
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>         <a name="Vector" href="../../../../../org/hps/recon/tracking/gbl/matrix/Vector.html#Vector">Vector</a> aResidual = <strong class="jxr_keyword">new</strong> <a name="Vector" href="../../../../../org/hps/recon/tracking/gbl/matrix/Vector.html#Vector">Vector</a>(2);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>         <em class="jxr_comment">//Notice the minus sign. The residual is defined as meas - pred</em>
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>         aResidual.set(0,-prediction[0]); <em class="jxr_comment">//Y</em>
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>         aResidual.set(1,-prediction[1]); <em class="jxr_comment">//X</em>
+<a class="jxr_linenumber" name="L430" href="#L430">430</a> 
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>         <a name="Vector" href="../../../../../org/hps/recon/tracking/gbl/matrix/Vector.html#Vector">Vector</a> aPrecision = <strong class="jxr_keyword">new</strong> <a name="Vector" href="../../../../../org/hps/recon/tracking/gbl/matrix/Vector.html#Vector">Vector</a>(2);
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>         aPrecision.set(0,1./(error[0]*error[0])); 
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>         aPrecision.set(1,1./(error[1]*error[1])); 
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>            
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>         <strong class="jxr_keyword">return</strong>  <strong class="jxr_keyword">new</strong> <a name="GBLBeamSpotPoint" href="../../../../../org/hps/recon/tracking/gbl/GBLBeamSpotPoint.html#GBLBeamSpotPoint">GBLBeamSpotPoint</a>(bsLocation_3v, aResidual,
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>                                      aPrecision, proL2m,sArc2D,htf.slope(),htf.phi0() - sArc2D/htf.R());
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>             
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>     }
+<a class="jxr_linenumber" name="L439" href="#L439">439</a> 
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>     <em class="jxr_comment">//This method fails with singular matrices. TODO:: Check why that happens</em>
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L442" href="#L442">442</a> <em class="jxr_javadoccomment">     * Calculate the Jacobian from Curvilinear to Perigee frame.</em>
+<a class="jxr_linenumber" name="L443" href="#L443">443</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L444" href="#L444">444</a> <em class="jxr_javadoccomment">     * @param helicalTrackFit - original helix - unused. Only for backward compatibility.</em>
+<a class="jxr_linenumber" name="L445" href="#L445">445</a> <em class="jxr_javadoccomment">     * @param helicalTrackFitAtIPCorrected - corrected helix at this point</em>
+<a class="jxr_linenumber" name="L446" href="#L446">446</a> <em class="jxr_javadoccomment">     * @param bfield - magnitude of B-field</em>
+<a class="jxr_linenumber" name="L447" href="#L447">447</a> <em class="jxr_javadoccomment">     * @return the Jacobian matrix from Curvilinear to Perigee frame</em>
+<a class="jxr_linenumber" name="L448" href="#L448">448</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>     
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>     <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L451" href="#L451">451</a> <em class="jxr_comment">      public static Matrix getCLToPerigeeJacobian(HelicalTrackFit helicalTrackFit, HpsHelicalTrackFit helicalTrackFitAtIPCorrected, double bfield) {</em>
+<a class="jxr_linenumber" name="L452" href="#L452">452</a> <em class="jxr_comment">        </em>
+<a class="jxr_linenumber" name="L453" href="#L453">453</a> <em class="jxr_comment">        return getCLToPerigeeJacobian(helicalTrackFitAtIPCorrected, bfield);</em>
+<a class="jxr_linenumber" name="L454" href="#L454">454</a> <em class="jxr_comment">    }</em>
+<a class="jxr_linenumber" name="L455" href="#L455">455</a> <em class="jxr_comment">    </em>
+<a class="jxr_linenumber" name="L456" href="#L456">456</a> <em class="jxr_comment">    */</em>
+<a class="jxr_linenumber" name="L457" href="#L457">457</a> 
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>     
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L460" href="#L460">460</a> <em class="jxr_javadoccomment">     * Calculate the Jacobian from Curvilinear to Perigee frame.</em>
+<a class="jxr_linenumber" name="L461" href="#L461">461</a> <em class="jxr_javadoccomment">     * </em>
+<a class="jxr_linenumber" name="L462" href="#L462">462</a> <em class="jxr_javadoccomment">     * @param helicalTrackFitAtIPCorrected - corrected helix at this point</em>
+<a class="jxr_linenumber" name="L463" href="#L463">463</a> <em class="jxr_javadoccomment">     * @param bfield - magnitude of B-field</em>
+<a class="jxr_linenumber" name="L464" href="#L464">464</a> <em class="jxr_javadoccomment">     * @return the Jacobian matrix from Curvilinear to Perigee frame</em>
+<a class="jxr_linenumber" name="L465" href="#L465">465</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a> getCLToPerigeeJacobian(HelicalTrackFit helicalTrackFit, <a name="HpsHelicalTrackFit" href="../../../../../org/hps/recon/tracking/HpsHelicalTrackFit.html#HpsHelicalTrackFit">HpsHelicalTrackFit</a> helicalTrackFitAtIPCorrected, <strong class="jxr_keyword">double</strong> bfield) {
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>         
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>         <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L469" href="#L469">469</a> <em class="jxr_comment">         * This part is taken from: // Strandlie, Wittek, NIMA 566, 2006 Matrix covariance_gbl = new Matrix(5, 5);</em>
+<a class="jxr_linenumber" name="L470" href="#L470">470</a> <em class="jxr_comment">         * //helpers double Bz = -Constants.fieldConversion * Math.abs(bfield); // TODO sign convention and should it be</em>
+<a class="jxr_linenumber" name="L471" href="#L471">471</a> <em class="jxr_comment">         * it scaled from Telsa? double p = Math.abs(1 / qOverP_gbl); double q = Math.signum(qOverP_gbl); double</em>
+<a class="jxr_linenumber" name="L472" href="#L472">472</a> <em class="jxr_comment">         * tanLambda = Math.tan(lambda_gbl); double cosLambda = Math.cos(lambda_gbl); // Hep3Vector B = new</em>
+<a class="jxr_linenumber" name="L473" href="#L473">473</a> <em class="jxr_comment">         * BasicHep3Vector(0, 0, Bz); // TODO sign convention? Hep3Vector H = new BasicHep3Vector(0, 0, 1); Hep3Vector T</em>
+<a class="jxr_linenumber" name="L474" href="#L474">474</a> <em class="jxr_comment">         * = HelixUtils.Direction(helix, 0.); Hep3Vector HcrossT = VecOp.cross(H, T); double alpha =</em>
+<a class="jxr_linenumber" name="L475" href="#L475">475</a> <em class="jxr_comment">         * HcrossT.magnitude(); // this should be Bvec cross TrackDir/|B| double Q = Bz * q / p; Hep3Vector Z = new</em>
+<a class="jxr_linenumber" name="L476" href="#L476">476</a> <em class="jxr_comment">         * BasicHep3Vector(0, 0, 1); Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));</em>
+<a class="jxr_linenumber" name="L477" href="#L477">477</a> <em class="jxr_comment">         * Hep3Vector K = Z; Hep3Vector U = VecOp.mult(-1, J); Hep3Vector V = VecOp.cross(T, U); Hep3Vector I =</em>
+<a class="jxr_linenumber" name="L478" href="#L478">478</a> <em class="jxr_comment">         * VecOp.cross(J, K); Hep3Vector N = VecOp.mult(1 / alpha, VecOp.cross(H, T)); double UdotI = VecOp.dot(U, I);</em>
+<a class="jxr_linenumber" name="L479" href="#L479">479</a> <em class="jxr_comment">         * double NdotV = VecOp.dot(N, V); double NdotU = VecOp.dot(N, U); double TdotI = VecOp.dot(T, I); double VdotI</em>
+<a class="jxr_linenumber" name="L480" href="#L480">480</a> <em class="jxr_comment">         * = VecOp.dot(V, I); double VdotK = VecOp.dot(V, K); covariance_gbl.set(HelicalTrackFit.dcaIndex,</em>
+<a class="jxr_linenumber" name="L481" href="#L481">481</a> <em class="jxr_comment">         * FittedGblTrajectory.GBLPARIDX.XT.getValue(), VdotK / TdotI); covariance_gbl.set(HelicalTrackFit.phi0Index,</em>
+<a class="jxr_linenumber" name="L482" href="#L482">482</a> <em class="jxr_comment">         * FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 1); covariance_gbl.set(HelicalTrackFit.phi0Index,</em>
+<a class="jxr_linenumber" name="L483" href="#L483">483</a> <em class="jxr_comment">         * FittedGblTrajectory.GBLPARIDX.XT.getValue(), -alpha * Q * UdotI * NdotU / (cosLambda * TdotI));</em>
+<a class="jxr_linenumber" name="L484" href="#L484">484</a> <em class="jxr_comment">         * covariance_gbl.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -alpha * Q * VdotI</em>
+<a class="jxr_linenumber" name="L485" href="#L485">485</a> <em class="jxr_comment">         * * NdotU / (cosLambda * TdotI)); covariance_gbl.set(HelicalTrackFit.curvatureIndex,</em>
+<a class="jxr_linenumber" name="L486" href="#L486">486</a> <em class="jxr_comment">         * FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(), -1 * Bz / cosLambda); //</em>
+<a class="jxr_linenumber" name="L487" href="#L487">487</a> <em class="jxr_comment">         * covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 0);</em>
+<a class="jxr_linenumber" name="L488" href="#L488">488</a> <em class="jxr_comment">         * covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), -1 * q *</em>
+<a class="jxr_linenumber" name="L489" href="#L489">489</a> <em class="jxr_comment">         * Bz * tanLambda / (p * cosLambda)); covariance_gbl.set(HelicalTrackFit.curvatureIndex,</em>
+<a class="jxr_linenumber" name="L490" href="#L490">490</a> <em class="jxr_comment">         * FittedGblTrajectory.GBLPARIDX.XT.getValue(), q * Bz * alpha * Q * tanLambda * UdotI * NdotV / (p * cosLambda</em>
+<a class="jxr_linenumber" name="L491" href="#L491">491</a> <em class="jxr_comment">         * * TdotI)); covariance_gbl.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YT.getValue(), q</em>
+<a class="jxr_linenumber" name="L492" href="#L492">492</a> <em class="jxr_comment">         * * Bz * alpha * Q * tanLambda * VdotI * NdotV / (p * cosLambda * TdotI));</em>
+<a class="jxr_linenumber" name="L493" href="#L493">493</a> <em class="jxr_comment">         * covariance_gbl.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -1 / TdotI);</em>
+<a class="jxr_linenumber" name="L494" href="#L494">494</a> <em class="jxr_comment">         * covariance_gbl.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(), -1);</em>
+<a class="jxr_linenumber" name="L495" href="#L495">495</a> <em class="jxr_comment">         * covariance_gbl.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), alpha * Q * UdotI</em>
+<a class="jxr_linenumber" name="L496" href="#L496">496</a> <em class="jxr_comment">         * * NdotV / TdotI); covariance_gbl.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YT.getValue(),</em>
+<a class="jxr_linenumber" name="L497" href="#L497">497</a> <em class="jxr_comment">         * alpha * Q * VdotI * NdotV / TdotI); covariance_gbl.print(15, 13);</em>
+<a class="jxr_linenumber" name="L498" href="#L498">498</a> <em class="jxr_comment">         */</em>
+<a class="jxr_linenumber" name="L499" href="#L499">499</a> 
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>         <em class="jxr_comment">// Use projection matrix</em>
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>         <em class="jxr_comment">// TODO should this not be the corrected helix?</em>
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>         <em class="jxr_comment">// It's a very small effect, but yes since lambda gets corrected and the Projection depends on lambda (only).</em>
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>         <em class="jxr_comment">// PF::08/07/2020</em>
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>         <em class="jxr_comment">// However I noticed several cases where the jacobian is singular. Those cases should be investigated</em>
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>         <em class="jxr_comment">// But for the moment revert to the old computation, although I think it is not fully correct. </em>
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>         
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>         <em class="jxr_comment">//Hep3Matrix perToClPrj = getPerToClPrj(helicalTrackFit);</em>
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>         <strong class="jxr_keyword">double</strong> tanLambda = helicalTrackFitAtIPCorrected.slope();
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>         
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>         
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>         <em class="jxr_comment">//Hep3Matrix perToClPrj   = getPerToClPrj(helicalTrackFitAtIPCorrected);</em>
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>         Hep3Matrix perToClPrj     = getPerToClPrj(helicalTrackFit);
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>         
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>         <em class="jxr_comment">//This has been checked and is equivalent to perToClPrj. In some cases the matrix is indetermined tho. </em>
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>         <em class="jxr_comment">//TODO::Check those cases. For the moment back to the old computation</em>
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>         
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>         <em class="jxr_comment">//Hep3Matrix perToClPrj    = getSimplePerToClPrj(tanLambda);</em>
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>         
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>         <em class="jxr_comment">//System.out.println("PF::DEBUG:: PerTOCl");</em>
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>         <em class="jxr_comment">//System.out.println(((BasicHep3Matrix)perToClPrj).toString());</em>
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>         
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>         <em class="jxr_comment">//System.out.println("PF::DEBUG:: PerTOCl V2");</em>
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>         <em class="jxr_comment">//System.out.println(((BasicHep3Matrix)SperToClPrj).toString());</em>
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>         
+<a class="jxr_linenumber" name="L525" href="#L525">525</a> 
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>         Hep3Matrix clToPerPrj = VecOp.inverse(perToClPrj); <em class="jxr_comment">//Transpose should work</em>
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>         <strong class="jxr_keyword">double</strong> C_gbl = helicalTrackFitAtIPCorrected.curvature();
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>         <em class="jxr_comment">//double lambda_gbl = Math.atan(helicalTrackFitAtIPCorrected.slope());</em>
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>         
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>         <strong class="jxr_keyword">double</strong> cosLambda = 1. / Math.sqrt(1. + (tanLambda * tanLambda));
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>         <strong class="jxr_keyword">double</strong> babs = Math.abs(bfield);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a> 
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>         <em class="jxr_comment">//double qOverP_gbl = helicalTrackFitAtIPCorrected.curvature()</em>
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>         <em class="jxr_comment">//       / (Constants.fieldConversion * babs * Math.sqrt(1 + Math.pow(</em>
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>         <em class="jxr_comment">//              helicalTrackFitAtIPCorrected.slope(), 2)));</em>
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>         
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>         <strong class="jxr_keyword">double</strong> qOverP_gbl = (C_gbl * cosLambda) / (Constants.fieldConversion*babs);
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>         
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>         <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a> jacobian = <strong class="jxr_keyword">new</strong> <a name="Matrix" href="../../../../../org/hps/recon/tracking/gbl/matrix/Matrix.html#Matrix">Matrix</a>(5, 5);
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>         jacobian.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.XT.getValue(), -clToPerPrj.e(1, 0));
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>         jacobian.set(HelicalTrackFit.dcaIndex, FittedGblTrajectory.GBLPARIDX.YT.getValue(), -clToPerPrj.e(1, 1));
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>         jacobian.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.XTPRIME.getValue(), 1.0);
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>         jacobian.set(HelicalTrackFit.phi0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), clToPerPrj.e(0, 1) * C_gbl);
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>         <em class="jxr_comment">//jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(),</em>
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>         <em class="jxr_comment">//        Constants.fieldConversion * Math.abs(bfield) / Math.cos(lambda_gbl));</em>
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>         jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.QOVERP.getValue(),
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>                      Constants.fieldConversion * babs / cosLambda);
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>         
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>         <em class="jxr_comment">//jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(),</em>
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>         <em class="jxr_comment">//      Constants.fieldConversion * Math.abs(bfield) * qOverP_gbl * Math.tan(lambda_gbl) / Math.cos(lambda_gbl));</em>
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>         jacobian.set(HelicalTrackFit.curvatureIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(),
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>                      Constants.fieldConversion * babs * qOverP_gbl * tanLambda / cosLambda);
+<a class="jxr_linenumber" name="L553" href="#L553">553</a> 
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>         jacobian.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.XT.getValue(), clToPerPrj.e(2, 0));
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>         jacobian.set(HelicalTrackFit.z0Index, FittedGblTrajectory.GBLPARIDX.YT.getValue(), clToPerPrj.e(2, 1));
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>         <em class="jxr_comment">//jacobian.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(),</em>
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>         <em class="jxr_comment">//        Math.pow(Math.cos(lambda_gbl), -2.0));</em>
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>         jacobian.set(HelicalTrackFit.slopeIndex, FittedGblTrajectory.GBLPARIDX.YTPRIME.getValue(),1./(cosLambda*cosLambda));
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>                 
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>         <strong class="jxr_keyword">return</strong> jacobian;
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>     }
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>     
+<a class="jxr_linenumber" name="L563" href="#L563">563</a>     <em class="jxr_javadoccomment">/** </em>
+<a class="jxr_linenumber" name="L564" href="#L564">564</a> <em class="jxr_javadoccomment">     * Computes the projection matrix from perigee to curvilinear frame, with reference point(0,0,0) for the perigee frame. </em>
+<a class="jxr_linenumber" name="L565" href="#L565">565</a> <em class="jxr_javadoccomment">     * The projection matrix only depends on tanLambda.</em>
+<a class="jxr_linenumber" name="L566" href="#L566">566</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L567" href="#L567">567</a> <em class="jxr_javadoccomment">     * @param tanLambda</em>
+<a class="jxr_linenumber" name="L568" href="#L568">568</a> <em class="jxr_javadoccomment">     * @return 3x3 projection matrix</em>
+<a class="jxr_linenumber" name="L569" href="#L569">569</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L570" href="#L570">570</a> 
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>     <strong class="jxr_keyword">static</strong> Hep3Matrix getSimplePerToClPrj(<strong class="jxr_keyword">double</strong> tanLambda) {
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>         BasicHep3Matrix trans = <strong class="jxr_keyword">new</strong> BasicHep3Matrix();
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>         <strong class="jxr_keyword">double</strong> cosLambda = 1. / Math.sqrt(1 + tanLambda*tanLambda);
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>         <strong class="jxr_keyword">double</strong> sinLambda = Math.sqrt(1. - cosLambda*cosLambda);
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>         <em class="jxr_comment">//Only filling non zero entries</em>
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>         
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>         trans.setElement(0, 1, -1);
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>         trans.setElement(1, 0, sinLambda);
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>         trans.setElement(1, 2, cosLambda);
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>         trans.setElement(2, 0, -cosLambda);
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>         trans.setElement(2, 2, sinLambda);
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>         <strong class="jxr_keyword">return</strong> trans;
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>     }
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>      
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>     
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L587" href="#L587">587</a> <em class="jxr_javadoccomment">     * Computes the projection matrix from the perigee XY plane variables dca and z0 into the curvilinear xT,yT,zT frame</em>
+<a class="jxr_linenumber" name="L588" href="#L588">588</a> <em class="jxr_javadoccomment">     * (U,V,T) with reference point (0,0,0) for the perigee frame.</em>
+<a class="jxr_linenumber" name="L589" href="#L589">589</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L590" href="#L590">590</a> <em class="jxr_javadoccomment">     * @param htf input helix to find the track direction</em>
+<a class="jxr_linenumber" name="L591" href="#L591">591</a> <em class="jxr_javadoccomment">     * @return 3x3 projection matrix</em>
+<a class="jxr_linenumber" name="L592" href="#L592">592</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>     <strong class="jxr_keyword">static</strong> Hep3Matrix getPerToClPrj(HelicalTrackFit htf) {
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>         Hep3Vector Z = <strong class="jxr_keyword">new</strong> BasicHep3Vector(0, 0, 1);
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>         Hep3Vector T = HelixUtils.Direction(htf, 0.);
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>         Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(), VecOp.cross(T, Z));
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>         Hep3Vector K = Z;
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>         Hep3Vector U = VecOp.mult(-1, J);
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>         Hep3Vector V = VecOp.cross(T, U);
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>         Hep3Vector I = VecOp.cross(J, K);
+<a class="jxr_linenumber" name="L601" href="#L601">601</a> 
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>         BasicHep3Matrix trans = <strong class="jxr_keyword">new</strong> BasicHep3Matrix();
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>         trans.setElement(0, 0, VecOp.dot(I, U));
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>         trans.setElement(0, 1, VecOp.dot(J, U));
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>         trans.setElement(0, 2, VecOp.dot(K, U));
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>         trans.setElement(1, 0, VecOp.dot(I, V));
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>         trans.setElement(1, 1, VecOp.dot(J, V));
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>         trans.setElement(1, 2, VecOp.dot(K, V));
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>         trans.setElement(2, 0, VecOp.dot(I, T));
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>         trans.setElement(2, 1, VecOp.dot(J, T));
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>         trans.setElement(2, 2, VecOp.dot(K, T));
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>         <strong class="jxr_keyword">return</strong> trans;
+<a class="jxr_linenumber" name="L613" href="#L613">613</a> 
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>         <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L615" href="#L615">615</a> <em class="jxr_comment">         * Hep3Vector B = new BasicHep3Vector(0, 0, 1); // TODO sign convention? Hep3Vector H = VecOp.mult(1 / bfield,</em>
+<a class="jxr_linenumber" name="L616" href="#L616">616</a> <em class="jxr_comment">         * B); Hep3Vector T = HelixUtils.Direction(helix, 0.); Hep3Vector HcrossT = VecOp.cross(H, T); double alpha =</em>
+<a class="jxr_linenumber" name="L617" href="#L617">617</a> <em class="jxr_comment">         * HcrossT.magnitude(); // this should be Bvec cross TrackDir/|B| double Q = Math.abs(bfield) * q / p;</em>
+<a class="jxr_linenumber" name="L618" href="#L618">618</a> <em class="jxr_comment">         * Hep3Vector Z = new BasicHep3Vector(0, 0, 1); Hep3Vector J = VecOp.mult(1. / VecOp.cross(T, Z).magnitude(),</em>
+<a class="jxr_linenumber" name="L619" href="#L619">619</a> <em class="jxr_comment">         * VecOp.cross(T, Z)); Hep3Vector K = Z; Hep3Vector U = VecOp.mult(-1, J); Hep3Vector V = VecOp.cross(T, U);</em>
+<a class="jxr_linenumber" name="L620" href="#L620">620</a> <em class="jxr_comment">         * Hep3Vector I = VecOp.cross(J, K); Hep3Vector N = VecOp.mult(1 / alpha, VecOp.cross(H, T));</em>
+<a class="jxr_linenumber" name="L621" href="#L621">621</a> <em class="jxr_comment">         * //-cross(T,H)/alpha = -cross(T,Z) = -J double UdotI = VecOp.dot(U, I); // 0,0 double NdotV = VecOp.dot(N, V);</em>
+<a class="jxr_linenumber" name="L622" href="#L622">622</a> <em class="jxr_comment">         * // 1,1? double NdotU = VecOp.dot(N, U); // 0,1? double TdotI = VecOp.dot(T, I); // 2,0 double VdotI =</em>
+<a class="jxr_linenumber" name="L623" href="#L623">623</a> <em class="jxr_comment">         * VecOp.dot(V, I); // 1,0 double VdotK = VecOp.dot(V, K); // 1,2</em>
+<a class="jxr_linenumber" name="L624" href="#L624">624</a> <em class="jxr_comment">         */</em>
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>     }
+<a class="jxr_linenumber" name="L626" href="#L626">626</a> 
+<a class="jxr_linenumber" name="L627" href="#L627">627</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> BasicMatrix getPerParVector(<strong class="jxr_keyword">double</strong> kappa, <strong class="jxr_keyword">double</strong> theta, <strong class="jxr_keyword">double</strong> phi, <strong class="jxr_keyword">double</strong> d0, <strong class="jxr_keyword">double</strong> z0) {
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>         BasicMatrix perPar = <strong class="jxr_keyword">new</strong> BasicMatrix(1, 5);
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>         perPar.setElement(0, 0, kappa);
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>         perPar.setElement(0, 1, theta);
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>         perPar.setElement(0, 2, phi);
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>         perPar.setElement(0, 3, d0);
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>         perPar.setElement(0, 4, z0);
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>         <strong class="jxr_keyword">return</strong> perPar;
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>     }
+<a class="jxr_linenumber" name="L636" href="#L636">636</a> 
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> BasicMatrix getPerParVector(HelicalTrackFit htf, <strong class="jxr_keyword">double</strong> B) {
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>         <strong class="jxr_keyword">if</strong> (htf != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>             <strong class="jxr_keyword">double</strong> kappa = -1.0 * Math.signum(B) / htf.R();
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>             <strong class="jxr_keyword">double</strong> theta = Math.PI / 2.0 - Math.atan(htf.slope());
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>             <strong class="jxr_keyword">return</strong> getPerParVector(kappa, theta, htf.phi0(), htf.dca(), htf.z0());
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>         }
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> BasicMatrix(1, 5);
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>     }
+<a class="jxr_linenumber" name="L645" href="#L645">645</a> 
+<a class="jxr_linenumber" name="L646" href="#L646">646</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

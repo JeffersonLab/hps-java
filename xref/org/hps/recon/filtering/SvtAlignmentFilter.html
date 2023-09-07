@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>SvtAlignmentFilter xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/recon/filtering/SvtAlignmentFilter.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.filtering;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.Cluster;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.lcsim.lcio.LCIOConstants;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> * Filter events to be used for SVT alignment.</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="SvtAlignmentFilter" href="../../../../org/hps/recon/filtering/SvtAlignmentFilter.html#SvtAlignmentFilter">SvtAlignmentFilter</a> <strong class="jxr_keyword">extends</strong> <a name="EventReconFilter" href="../../../../org/hps/recon/filtering/EventReconFilter.html#EventReconFilter">EventReconFilter</a> {
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_comment">//    private static Logger logger = LogUtil.create(SvtAlignmentFilter.class.getSimpleName(), new BasicLogFormatter(), Level.INFO);</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_comment">//    private int minRawHits = 12;</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_comment">//    private int minStripClustersPerSensor = 1;</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_comment">//    private int maxStripClustersPerSensor = 9999999;</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_comment">//    private int minStripClustersInHalf = 12;</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_comment">//    private int maxStripClustersInHalf = 9999999;</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_comment">//    private int minEcalClustersInHalf = -1;</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <em class="jxr_comment">//    private int maxEcalClustersInHalf = 99999999;</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <em class="jxr_comment">//    private Double minStripIsolation = 0.2;</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      @Override
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          <strong class="jxr_keyword">int</strong> runNumber = event.getRunNumber();
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          incrementEventProcessed();
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>          <strong class="jxr_keyword">if</strong>(!event.hasCollection(Track.<strong class="jxr_keyword">class</strong>,<span class="jxr_string">"MatchedTracks"</span>)) skipEvent();
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          <strong class="jxr_keyword">if</strong>(!event.hasCollection(Cluster.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"EcalClusters"</span>)) skipEvent();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          List&lt;Track&gt; tracks = event.get(Track.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"MatchedTracks"</span>);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          List&lt;Cluster&gt; clusters = event.get(Cluster.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"EcalClusters"</span>);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          <em class="jxr_comment">// require track match</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          List&lt;Track&gt; selectedTracks = <strong class="jxr_keyword">new</strong> ArrayList&lt;Track&gt;();
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <strong class="jxr_keyword">for</strong>(Track track : tracks) {
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>              Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(tracks.get(0),runNumber);
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              Cluster cand_clust = findClosestCluster(posAtEcal, clusters);
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              <strong class="jxr_keyword">if</strong>(cand_clust!=<strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>                  <strong class="jxr_keyword">if</strong>(Math.abs( posAtEcal.x() - cand_clust.getPosition()[0])&lt;30.0 &amp;&amp; 
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>                          Math.abs( posAtEcal.y() - cand_clust.getPosition()[1])&lt;30.0) 
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>                  {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>                      selectedTracks.add(track);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                  }
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              }
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          }
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          <em class="jxr_comment">// skip event if there are no selected tracks at this point</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          <strong class="jxr_keyword">if</strong>(selectedTracks.size()==0) skipEvent();
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          <em class="jxr_comment">// remove old track collection</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          event.remove(<span class="jxr_string">"MatchedTracks"</span>);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <em class="jxr_comment">// Put the tracks back into the event</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          <strong class="jxr_keyword">int</strong> flag = 1 &lt;&lt; LCIOConstants.TRBIT_HITS;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          event.put(<span class="jxr_string">"MatchedTracks"</span>, selectedTracks, Track.<strong class="jxr_keyword">class</strong>, flag);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  <em class="jxr_comment">                </em>
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  <em class="jxr_comment">        if (event.hasCollection(Cluster.class, "EcalClusters")) {</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  <em class="jxr_comment">            List&lt;Cluster&gt; clusters = event.get(Cluster.class, "EcalClusters");</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  <em class="jxr_comment">            int top = 0;</em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <em class="jxr_comment">            int bottom = 0;</em>
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <em class="jxr_comment">            for (Cluster cluster : clusters) {</em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <em class="jxr_comment">                if (cluster.getPosition()[1] &gt; 0) top++;</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  <em class="jxr_comment">                else bottom++;</em>
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>  <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  <em class="jxr_comment">            boolean passTop = true;</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  <em class="jxr_comment">            if(top &lt; minEcalClustersInHalf || top &gt; maxEcalClustersInHalf) {</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  <em class="jxr_comment">                passTop = false;</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  <em class="jxr_comment">            boolean passBottom = true;</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <em class="jxr_comment">            if(bottom &lt; minEcalClustersInHalf || bottom &gt; maxEcalClustersInHalf) {</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_comment">                passBottom = false;</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  <em class="jxr_comment">            logger.info(Integer.toString(bottom) + "(" + Integer.toString(top) + ")" + " ecal clusters in bottom (top)");</em>
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  <em class="jxr_comment">            if( !passTop ) skipEvent();</em>
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>  <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  <em class="jxr_comment">            if( !passBottom ) {</em>
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  <em class="jxr_comment">                skipEvent();</em>
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>  <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  <em class="jxr_comment">        } else {</em>
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> <em class="jxr_comment">                logger.info("no ECal clusters in event");</em>
+<a class="jxr_linenumber" name="L101" href="#L101">101</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> <em class="jxr_comment">            skipEvent();</em>
+<a class="jxr_linenumber" name="L103" href="#L103">103</a> <em class="jxr_comment">        }</em>
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> <em class="jxr_comment">        </em>
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> <em class="jxr_comment">        logger.info("Passed ecal cluster selection");</em>
+<a class="jxr_linenumber" name="L106" href="#L106">106</a> <em class="jxr_comment">        </em>
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> <em class="jxr_comment">        if(event.hasCollection(RawTrackerHit.class, "SVTRawTrackerHits")) {</em>
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L109" href="#L109">109</a> <em class="jxr_comment">            List&lt;RawTrackerHit&gt; rawHits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");</em>
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> <em class="jxr_comment">                </em>
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> <em class="jxr_comment">            logger.info("Event has " + Integer.toString(rawHits.size()) + " SVTRawTrackerHits");</em>
+<a class="jxr_linenumber" name="L112" href="#L112">112</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> <em class="jxr_comment">            if( rawHits.size() &lt; minRawHits) {</em>
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> <em class="jxr_comment">                skipEvent();</em>
+<a class="jxr_linenumber" name="L115" href="#L115">115</a> <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L116" href="#L116">116</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L117" href="#L117">117</a> <em class="jxr_comment">        } else {</em>
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> <em class="jxr_comment">            logger.info("no SVTRawTrackerHits in event");</em>
+<a class="jxr_linenumber" name="L120" href="#L120">120</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L121" href="#L121">121</a> <em class="jxr_comment">            skipEvent();</em>
+<a class="jxr_linenumber" name="L122" href="#L122">122</a> <em class="jxr_comment">        }</em>
+<a class="jxr_linenumber" name="L123" href="#L123">123</a> 
+<a class="jxr_linenumber" name="L124" href="#L124">124</a> <em class="jxr_comment">        logger.info("Passed raw tracker hit selection");</em>
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> <em class="jxr_comment">        </em>
+<a class="jxr_linenumber" name="L126" href="#L126">126</a> <em class="jxr_comment">        </em>
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> <em class="jxr_comment">        </em>
+<a class="jxr_linenumber" name="L128" href="#L128">128</a> <em class="jxr_comment">        </em>
+<a class="jxr_linenumber" name="L129" href="#L129">129</a> <em class="jxr_comment">        </em>
+<a class="jxr_linenumber" name="L130" href="#L130">130</a> <em class="jxr_comment">        if(event.hasCollection(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D")) {</em>
+<a class="jxr_linenumber" name="L131" href="#L131">131</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L132" href="#L132">132</a> <em class="jxr_comment">            List&lt;SiTrackerHitStrip1D&gt; stripClusters = event.get(SiTrackerHitStrip1D.class, "StripClusterer_SiTrackerHitStrip1D");</em>
+<a class="jxr_linenumber" name="L133" href="#L133">133</a> <em class="jxr_comment">  </em>
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> <em class="jxr_comment">            logger.fine("Event has " + Integer.toString(stripClusters.size()) + " StripClusterer_SiTrackerHitStrip1D");</em>
+<a class="jxr_linenumber" name="L135" href="#L135">135</a> 
+<a class="jxr_linenumber" name="L136" href="#L136">136</a> <em class="jxr_comment">            Map&lt;HpsSiSensor, Integer&gt; nClustersPerSensor = new HashMap&lt;HpsSiSensor , Integer&gt;();</em>
+<a class="jxr_linenumber" name="L137" href="#L137">137</a> <em class="jxr_comment">            Map&lt;HpsSiSensor, Double&gt; stripHitsIso = new HashMap&lt;HpsSiSensor , Double&gt;();</em>
+<a class="jxr_linenumber" name="L138" href="#L138">138</a> <em class="jxr_comment">            int top = 0;</em>
+<a class="jxr_linenumber" name="L139" href="#L139">139</a> <em class="jxr_comment">            int bottom = 0;</em>
+<a class="jxr_linenumber" name="L140" href="#L140">140</a> <em class="jxr_comment">            for(SiTrackerHitStrip1D stripCluster : stripClusters) {</em>
+<a class="jxr_linenumber" name="L141" href="#L141">141</a> <em class="jxr_comment">                HpsSiSensor sensor = (HpsSiSensor) stripCluster.getSensor();</em>
+<a class="jxr_linenumber" name="L142" href="#L142">142</a> <em class="jxr_comment">                if(!nClustersPerSensor.containsKey(sensor)) {</em>
+<a class="jxr_linenumber" name="L143" href="#L143">143</a> <em class="jxr_comment">                    nClustersPerSensor.put(sensor, 1);</em>
+<a class="jxr_linenumber" name="L144" href="#L144">144</a> <em class="jxr_comment">                } </em>
+<a class="jxr_linenumber" name="L145" href="#L145">145</a> <em class="jxr_comment">                nClustersPerSensor.put(sensor, nClustersPerSensor.get(sensor)+1);</em>
+<a class="jxr_linenumber" name="L146" href="#L146">146</a> <em class="jxr_comment">                logger.fine("strip on " + sensor.getName() + " with " + Integer.toString(stripCluster.getRawHits().size()) + " raw hits");</em>
+<a class="jxr_linenumber" name="L147" href="#L147">147</a> <em class="jxr_comment">                if(sensor.isTopLayer()) top++;</em>
+<a class="jxr_linenumber" name="L148" href="#L148">148</a> <em class="jxr_comment">                else bottom++;</em>
+<a class="jxr_linenumber" name="L149" href="#L149">149</a> <em class="jxr_comment">                </em>
+<a class="jxr_linenumber" name="L150" href="#L150">150</a> <em class="jxr_comment">                </em>
+<a class="jxr_linenumber" name="L151" href="#L151">151</a> <em class="jxr_comment">                SiTrackerHitStrip1D local = stripCluster.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);</em>
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> <em class="jxr_comment">                </em>
+<a class="jxr_linenumber" name="L153" href="#L153">153</a> <em class="jxr_comment">                double stripIsoMin = 9999.9;</em>
+<a class="jxr_linenumber" name="L154" href="#L154">154</a> <em class="jxr_comment">                for (SiTrackerHitStrip1D stripHitOther : stripClusters) {</em>
+<a class="jxr_linenumber" name="L155" href="#L155">155</a> <em class="jxr_comment">                    if(stripHitOther.equals(stripCluster)) {</em>
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> <em class="jxr_comment">                        continue;</em>
+<a class="jxr_linenumber" name="L157" href="#L157">157</a> <em class="jxr_comment">                    }</em>
+<a class="jxr_linenumber" name="L158" href="#L158">158</a> <em class="jxr_comment">                    </em>
+<a class="jxr_linenumber" name="L159" href="#L159">159</a> <em class="jxr_comment">                    HpsSiSensor sensorOther = (HpsSiSensor) stripHitOther.getRawHits().get(0).getDetectorElement();</em>
+<a class="jxr_linenumber" name="L160" href="#L160">160</a> <em class="jxr_comment">                    //System.out.println(sensor.getName() + " c.f. " + sensorOther.getName());</em>
+<a class="jxr_linenumber" name="L161" href="#L161">161</a> <em class="jxr_comment">                    if(sensorOther.equals(sensor)) {</em>
+<a class="jxr_linenumber" name="L162" href="#L162">162</a> <em class="jxr_comment">                        SiTrackerHitStrip1D localOther = stripHitOther.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);</em>
+<a class="jxr_linenumber" name="L163" href="#L163">163</a> <em class="jxr_comment">                        double d = Math.abs(local.getPosition()[0] - localOther.getPosition()[0]);</em>
+<a class="jxr_linenumber" name="L164" href="#L164">164</a> <em class="jxr_comment">                        //System.out.println(sensor.getName() + " d " + Double.toString(d));</em>
+<a class="jxr_linenumber" name="L165" href="#L165">165</a> <em class="jxr_comment">                        if (d &lt; stripIsoMin &amp;&amp; d &gt; 0) {</em>
+<a class="jxr_linenumber" name="L166" href="#L166">166</a> <em class="jxr_comment">                            stripIsoMin = d;</em>
+<a class="jxr_linenumber" name="L167" href="#L167">167</a> <em class="jxr_comment">                        }</em>
+<a class="jxr_linenumber" name="L168" href="#L168">168</a> <em class="jxr_comment">                    }</em>
+<a class="jxr_linenumber" name="L169" href="#L169">169</a> <em class="jxr_comment">                }</em>
+<a class="jxr_linenumber" name="L170" href="#L170">170</a> <em class="jxr_comment">                stripHitsIso.put(sensor, stripIsoMin);</em>
+<a class="jxr_linenumber" name="L171" href="#L171">171</a> <em class="jxr_comment">                </em>
+<a class="jxr_linenumber" name="L172" href="#L172">172</a> <em class="jxr_comment">                </em>
+<a class="jxr_linenumber" name="L173" href="#L173">173</a> <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L174" href="#L174">174</a> <em class="jxr_comment">            boolean passTop = true;</em>
+<a class="jxr_linenumber" name="L175" href="#L175">175</a> <em class="jxr_comment">            if(top &lt; minStripClustersInHalf || top &gt; maxStripClustersInHalf) {</em>
+<a class="jxr_linenumber" name="L176" href="#L176">176</a> <em class="jxr_comment">                passTop = false;</em>
+<a class="jxr_linenumber" name="L177" href="#L177">177</a> <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L178" href="#L178">178</a> <em class="jxr_comment">            boolean passBottom = true;</em>
+<a class="jxr_linenumber" name="L179" href="#L179">179</a> <em class="jxr_comment">            if(bottom &lt; minStripClustersInHalf || bottom &gt; maxStripClustersInHalf) {</em>
+<a class="jxr_linenumber" name="L180" href="#L180">180</a> <em class="jxr_comment">                passBottom = false;</em>
+<a class="jxr_linenumber" name="L181" href="#L181">181</a> <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L182" href="#L182">182</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L183" href="#L183">183</a> <em class="jxr_comment">            logger.info(Integer.toString(bottom) + "(" + Integer.toString(top) + ")" + " strip clusters in bottom (top)");</em>
+<a class="jxr_linenumber" name="L184" href="#L184">184</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L185" href="#L185">185</a> <em class="jxr_comment">            if( !passTop &amp;&amp; !passBottom ) {</em>
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> <em class="jxr_comment">                skipEvent();</em>
+<a class="jxr_linenumber" name="L187" href="#L187">187</a> <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L188" href="#L188">188</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L189" href="#L189">189</a> <em class="jxr_comment">            for(Map.Entry&lt;HpsSiSensor, Integer&gt; entry : nClustersPerSensor.entrySet()) {</em>
+<a class="jxr_linenumber" name="L190" href="#L190">190</a> <em class="jxr_comment">                int n = entry.getValue();</em>
+<a class="jxr_linenumber" name="L191" href="#L191">191</a> <em class="jxr_comment">                if(n &lt; minStripClustersPerSensor || n &gt; maxStripClustersPerSensor) {</em>
+<a class="jxr_linenumber" name="L192" href="#L192">192</a> <em class="jxr_comment">                    skipEvent();</em>
+<a class="jxr_linenumber" name="L193" href="#L193">193</a> <em class="jxr_comment">                }</em>
+<a class="jxr_linenumber" name="L194" href="#L194">194</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L195" href="#L195">195</a> <em class="jxr_comment">                if(stripHitsIso.get(entry.getKey()) &lt; minStripIsolation ) {</em>
+<a class="jxr_linenumber" name="L196" href="#L196">196</a> <em class="jxr_comment">                    skipEvent();</em>
+<a class="jxr_linenumber" name="L197" href="#L197">197</a> <em class="jxr_comment">                }</em>
+<a class="jxr_linenumber" name="L198" href="#L198">198</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L199" href="#L199">199</a> <em class="jxr_comment">            }</em>
+<a class="jxr_linenumber" name="L200" href="#L200">200</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L201" href="#L201">201</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L202" href="#L202">202</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L203" href="#L203">203</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L204" href="#L204">204</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L205" href="#L205">205</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L206" href="#L206">206</a> <em class="jxr_comment">            </em>
+<a class="jxr_linenumber" name="L207" href="#L207">207</a> <em class="jxr_comment">        } else {</em>
+<a class="jxr_linenumber" name="L208" href="#L208">208</a> 
+<a class="jxr_linenumber" name="L209" href="#L209">209</a> <em class="jxr_comment">            logger.info("no StripClusterer_SiTrackerHitStrip1D in event");</em>
+<a class="jxr_linenumber" name="L210" href="#L210">210</a> 
+<a class="jxr_linenumber" name="L211" href="#L211">211</a> <em class="jxr_comment">            skipEvent();</em>
+<a class="jxr_linenumber" name="L212" href="#L212">212</a> <em class="jxr_comment">        }</em>
+<a class="jxr_linenumber" name="L213" href="#L213">213</a> <em class="jxr_comment">        </em>
+<a class="jxr_linenumber" name="L214" href="#L214">214</a> <em class="jxr_comment">        logger.info("Passed cluster hit selection");</em>
+<a class="jxr_linenumber" name="L215" href="#L215">215</a> <em class="jxr_comment">        */</em>
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>         incrementEventPassed();
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>     }
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>     
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>     
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>     <strong class="jxr_keyword">private</strong> Cluster findClosestCluster(Hep3Vector posonhelix, List&lt;Cluster&gt; clusters) {
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>         Cluster closest = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">double</strong> minDist = 9999;
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>         <strong class="jxr_keyword">for</strong> (Cluster cluster : clusters) {
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>             <strong class="jxr_keyword">double</strong>[] clPos = cluster.getPosition();
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">double</strong> clEne = cluster.getEnergy();
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>             <strong class="jxr_keyword">double</strong> dist = Math.sqrt(Math.pow(clPos[0] - posonhelix.x(), 2) + Math.pow(clPos[1] - posonhelix.y(), 2)); <em class="jxr_comment">//coordinates!!!</em>
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>             <strong class="jxr_keyword">if</strong> (dist &lt; minDist &amp;&amp; clEne &gt; 0.4) {
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>                 closest = cluster;
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>                 minDist = dist;
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>             }
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>         }
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>         <strong class="jxr_keyword">return</strong> closest;
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>     }
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>        
+<a class="jxr_linenumber" name="L236" href="#L236">236</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

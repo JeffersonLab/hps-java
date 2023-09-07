@@ -1,0 +1,401 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>FinalStateMonitoring xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/dataquality/FinalStateMonitoring.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.dataquality;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.aida.IAnalysisFactory;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.aida.IFitFactory;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.aida.IFitResult;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> hep.aida.IFitter;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram1D;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram2D;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> hep.aida.IPlotter;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> hep.aida.IPlotterStyle;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> java.util.Map.Entry;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Level;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.ecal.cluster.ClusterUtilities;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Cluster;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.ReconstructedParticle;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RelationalTable;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment"> * DQM driver reconstructed particles (i.e. electrons, positrons, photons) plots</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment"> * things like number of electrons (or positrons)/event, photons/event, e+/e-</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment"> * momentum, and track-cluster matching stuff</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> * output is crap; no charge&lt;0 tracks &amp; the track momentum isn't filled; likely</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> * a problem with ReconParticle</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> * May 20, 2014: this was fixed by a) Omar's changes to ReconParticle and b)</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment"> * making sure I run ECal clustering before this</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="FinalStateMonitoring" href="../../../../org/hps/analysis/dataquality/FinalStateMonitoring.html#FinalStateMonitoring">FinalStateMonitoring</a> <strong class="jxr_keyword">extends</strong> <a name="DataQualityMonitor" href="../../../../org/hps/analysis/dataquality/DataQualityMonitor.html#DataQualityMonitor">DataQualityMonitor</a> {
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Logger LOGGER = Logger.getLogger(FinalStateMonitoring.<strong class="jxr_keyword">class</strong>.getPackage().getName());
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      String finalStateParticlesColName = <span class="jxr_string">"FinalStateParticles"</span>;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      String[] fpQuantNames = {<span class="jxr_string">"nEle_per_Event"</span>, <span class="jxr_string">"nPos_per_Event"</span>, <span class="jxr_string">"nPhoton_per_Event"</span>, <span class="jxr_string">"nUnAssociatedTracks_per_Event"</span>,
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          <span class="jxr_string">"avg_delX_at_ECal"</span>, <span class="jxr_string">"avg_delY_at_ECal"</span>, <span class="jxr_string">"avg_E_Over_P"</span>, <span class="jxr_string">"avg_mom_beam_elec"</span>, <span class="jxr_string">"sig_mom_beam_elec"</span>};
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <em class="jxr_comment">// some counters</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">int</strong> nRecoEvents = 0;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      <strong class="jxr_keyword">int</strong> nTotEle = 0;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <strong class="jxr_keyword">int</strong> nTotPos = 0;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">int</strong> nTotPhotons = 0;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">int</strong> nTotUnAss = 0;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">int</strong> nTotAss = 0;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <em class="jxr_comment">// some summers</em>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">double</strong> sumdelX = 0.0;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">double</strong> sumdelY = 0.0;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">double</strong> sumEoverP = 0.0;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String plotDir = <span class="jxr_string">"FinalStateParticles/"</span>;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <em class="jxr_comment">// double beamEnergy = 1.05; //GeV</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      IHistogram1D elePx;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      IHistogram1D elePy;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      IHistogram1D elePz;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      IHistogram1D elePzBeam;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      IHistogram1D elePzBeamTop;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      IHistogram1D elePzBeamBottom;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      IHistogram1D elePTop;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      IHistogram1D elePBottom;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      IHistogram1D posPx;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      IHistogram1D posPy;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      IHistogram1D posPz;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      IHistogram1D posPTop;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      IHistogram1D posPBottom;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <em class="jxr_comment">/* photon quanties (...right now, just unassociated clusters) */</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      IHistogram1D nPhotonsHisto;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      IHistogram1D enePhoton;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      IHistogram1D xPhoton;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      IHistogram1D yPhoton;
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      <em class="jxr_comment">/* tracks with associated clusters */</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      IHistogram1D eneOverp;
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      IHistogram1D deltaXAtCal;
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      IHistogram1D deltaYAtCal;
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      <em class="jxr_comment">// IHistogram2D trackXvsECalX;</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <em class="jxr_comment">// IHistogram2D trackYvsECalY;</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      IHistogram2D trackPvsECalE;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>      IHistogram2D trackTvsECalT;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      IHistogram1D timeMatchDeltaT;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <em class="jxr_comment">/* number of unassocaited tracks/event */</em>
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      IHistogram1D nUnAssTracksHisto;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setFinalStateParticlesColName(String fsp) {
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          <strong class="jxr_keyword">this</strong>.finalStateParticlesColName = fsp;
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>      }
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      @Override
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector) {
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         <strong class="jxr_keyword">super</strong>.detectorChanged(detector);
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         <strong class="jxr_keyword">double</strong> maxFactor = 1.5;
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>         <strong class="jxr_keyword">double</strong> feeMomentumCut = 0.75; <em class="jxr_comment">// this number, multiplied by the beam energy, is the actual cut</em>
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>         beamEnergy = 4.5;
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         System.out.println(<span class="jxr_string">"Using beamEnergy = "</span> + beamEnergy);
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         LOGGER.info(<span class="jxr_string">"Setting up the plotter"</span>);
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         aida.tree().cd(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         String trkType = <span class="jxr_string">"SeedTrack/"</span>;
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <strong class="jxr_keyword">if</strong> (isGBL)
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>             trkType = <span class="jxr_string">"GBLTrack/"</span>;
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> 
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         <em class="jxr_comment">/* Final State Particle Quantities */</em>
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>  <em class="jxr_comment">/* plot electron &amp; positron momentum separately */</em>
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         elePx = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Electron Px (GeV)"</span>, 100, -0.1 * beamEnergy,
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>                 0.200 * beamEnergy);
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         elePy = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Electron Py (GeV)"</span>, 100, -0.1 * beamEnergy,
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>                 0.1 * beamEnergy);
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         elePz = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Electron Pz (GeV)"</span>, 100, 0, beamEnergy
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>                 * maxFactor);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         elePzBeam = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Beam Electrons Total P (GeV)"</span>, 100,
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>                 feeMomentumCut * beamEnergy, beamEnergy * maxFactor);
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>         elePzBeamTop = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Beam Electrons Total P (GeV):  Top"</span>,
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>                 100, feeMomentumCut * beamEnergy, beamEnergy * maxFactor);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         elePzBeamBottom = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span>
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>                 + <span class="jxr_string">"Beam Electrons Total P (GeV):  Bottom"</span>, 100, feeMomentumCut * beamEnergy, beamEnergy * maxFactor);
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>         elePTop = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Electron Total P (GeV):  Top"</span>, 100, 0,
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>                 beamEnergy * maxFactor);
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         elePBottom = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Electron Total P (GeV):  Bottom"</span>, 100,
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>                 0, beamEnergy * maxFactor);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a> 
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         posPx = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Positron Px (GeV)"</span>, 50, -0.1 * beamEnergy,
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>                 0.200 * beamEnergy);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>         posPy = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Positron Py (GeV)"</span>, 50, -0.1 * beamEnergy,
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>                 0.1 * beamEnergy);
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>         posPz = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Positron Pz (GeV)"</span>, 50, 0, beamEnergy
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>                 * maxFactor);
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         posPTop = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Positron Total P (GeV):  Top"</span>, 100, 0,
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>                 beamEnergy * maxFactor);
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>         posPBottom = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Positron Total P (GeV):  Bottom"</span>, 100,
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>                 0, beamEnergy * maxFactor);
+<a class="jxr_linenumber" name="L141" href="#L141">141</a> 
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>         <em class="jxr_comment">/* photon quanties (...right now, just unassociated clusters) */</em>
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>         nPhotonsHisto = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Number of photons per event"</span>, 15, 0,
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>                 15);
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         enePhoton = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Photon Energy (GeV)"</span>, 50, 0,
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>                 2.4 * beamEnergy);
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         xPhoton = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Photon X position (mm)"</span>, 50, -200, 200);
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>         yPhoton = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Photon Y position (mm)"</span>, 50, -100, 100);
+<a class="jxr_linenumber" name="L149" href="#L149">149</a> 
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         <em class="jxr_comment">/* tracks with associated clusters */</em>
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         eneOverp = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"Cluster Energy Over TrackMomentum"</span>, 50, 0,
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>                 2.0);
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         deltaXAtCal = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"delta X @ ECal (mm)"</span>, 50, -50, 50.0);
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>         deltaYAtCal = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"delta Y @ ECal (mm)"</span>, 50, -50, 50.0);
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>         <em class="jxr_comment">// trackXvsECalX = aida.histogram2D(plotDir +trkType+ triggerType + "/" + "track X vs ECal X", 50, -300, 300.0,</em>
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>         <em class="jxr_comment">// 50, -300, 300.0);</em>
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>         <em class="jxr_comment">// trackYvsECalY = aida.histogram2D(plotDir +trkType+ triggerType + "/" + "track Y vs ECal Y", 50, -100, 100.0,</em>
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>         <em class="jxr_comment">// 50, -100, 100.0);</em>
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>         trackPvsECalE = aida.histogram2D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"track mom vs ECal E"</span>, 50, 0.1,
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>                 beamEnergy * maxFactor, 50, 0.1, beamEnergy * maxFactor);
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         trackTvsECalT = aida.histogram2D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"track T vs ECal T"</span>, 200, 0.0, 200.0,
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>                 100, -25.0, 25.0);
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>         timeMatchDeltaT = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span> + <span class="jxr_string">"ECal T minus track T"</span>, 200, -25,
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>                 175);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>         <em class="jxr_comment">/* number of unassocaited tracks/event */</em>
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>         nUnAssTracksHisto = aida.histogram1D(plotDir + trkType + triggerType + <span class="jxr_string">"/"</span>
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>                 + <span class="jxr_string">"Number of unassociated tracks per event"</span>, 5, 0, 5);
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>     }
+<a class="jxr_linenumber" name="L169" href="#L169">169</a> 
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     @Override
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>         <em class="jxr_comment">/* make sure everything is there */</em>
+<a class="jxr_linenumber" name="L173" href="#L173">173</a> 
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>         <strong class="jxr_keyword">if</strong> (!event.hasCollection(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, finalStateParticlesColName)) {
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>             <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>                 LOGGER.info(finalStateParticlesColName + <span class="jxr_string">" collection not found???"</span>);
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         }
+<a class="jxr_linenumber" name="L179" href="#L179">179</a> 
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a> 
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         <em class="jxr_comment">// check to see if this event is from the correct trigger (or "all");</em>
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         <strong class="jxr_keyword">if</strong> (!matchTrigger(event))
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> 
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>         nRecoEvents++;
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>         <strong class="jxr_keyword">int</strong> nPhotons = 0;  <em class="jxr_comment">// number of photons</em>
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         <strong class="jxr_keyword">int</strong> nUnAssTracks = 0; <em class="jxr_comment">// number of tracks w/o clusters</em>
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         List&lt;ReconstructedParticle&gt; finalStateParticles = event.get(ReconstructedParticle.<strong class="jxr_keyword">class</strong>,
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>                 finalStateParticlesColName);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>             LOGGER.info(<span class="jxr_string">"This events has "</span> + finalStateParticles.size() + <span class="jxr_string">" final state particles"</span>);
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         <strong class="jxr_keyword">for</strong> (ReconstructedParticle fsPart : finalStateParticles) {
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>             <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>                 LOGGER.info(<span class="jxr_string">"PDGID = "</span> + fsPart.getParticleIDUsed() + <span class="jxr_string">"; charge = "</span> + fsPart.getCharge() + <span class="jxr_string">"; pz = "</span>
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>                         + fsPart.getMomentum().x());
+<a class="jxr_linenumber" name="L198" href="#L198">198</a> <em class="jxr_comment">//            if (isGBL != TrackType.isGBL(fsPart.getType()))</em>
+<a class="jxr_linenumber" name="L199" href="#L199">199</a> <em class="jxr_comment">//                continue;</em>
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>             <em class="jxr_comment">// Extrapolate the track to the Ecal cluster position</em>
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>             <strong class="jxr_keyword">boolean</strong> isPhoton = false;
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>             <strong class="jxr_keyword">boolean</strong> hasCluster = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>             Track fsTrack = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             Cluster fsCluster = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>             <em class="jxr_comment">// TODO: mg-May 14, 2014 use PID to do this instead...not sure if that's implemented yet</em>
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>             <strong class="jxr_keyword">if</strong> (fsPart.getTracks().size() == 1)<em class="jxr_comment">// should always be 1 or zero for final state particles</em>
+<a class="jxr_linenumber" name="L207" href="#L207">207</a> 
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>                 fsTrack = fsPart.getTracks().get(0);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>             <em class="jxr_comment">// get the cluster</em>
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>             <strong class="jxr_keyword">if</strong> (fsPart.getClusters().size() == 1)
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>                 fsCluster = fsPart.getClusters().get(0);
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>                 hasCluster = false;
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>             <strong class="jxr_keyword">if</strong> (fsPart.getCharge() == 0)
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>                 isPhoton = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L216" href="#L216">216</a> 
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>             <em class="jxr_comment">// deal with electrons &amp; positrons first</em>
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>             <strong class="jxr_keyword">if</strong> (!isPhoton) {
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>                 <strong class="jxr_keyword">double</strong> charge = fsPart.getCharge();
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>                 Hep3Vector mom = fsPart.getMomentum();
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>                 <strong class="jxr_keyword">if</strong> (charge &lt; 0) {
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>                     nTotEle++;
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>                     elePx.fill(mom.x());
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>                     elePy.fill(mom.y());
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>                     elePz.fill(mom.z());
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>                     elePzBeam.fill(mom.magnitude());
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>                     <strong class="jxr_keyword">if</strong> (mom.y() &gt; 0) {
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>                         elePzBeamTop.fill(mom.magnitude());
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>                         elePTop.fill(mom.magnitude());
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>                     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>                         elePzBeamBottom.fill(mom.magnitude());
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>                         elePBottom.fill(mom.magnitude());
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>                     }
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>                 } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>                     nTotPos++;
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>                     posPx.fill(mom.x());
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>                     posPy.fill(mom.y());
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>                     posPz.fill(mom.z());
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>                     <strong class="jxr_keyword">if</strong> (mom.y() &gt; 0)
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>                         posPTop.fill(mom.magnitude());
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>                     <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>                         posPBottom.fill(mom.magnitude());
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>                 }
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>             }
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>             <em class="jxr_comment">// now, the photons</em>
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>             <strong class="jxr_keyword">if</strong> (isPhoton) {
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>                 <strong class="jxr_keyword">if</strong> (fsCluster == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"isPhoton==true but no cluster found: should never happen"</span>);
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>                 <strong class="jxr_keyword">double</strong> ene = fsPart.getEnergy();
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>                 <em class="jxr_comment">// TODO: mg-May 14, 2014....I would like to do this!!!!</em>
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>                 <em class="jxr_comment">// double xpos = fsCluster.getPositionAtShowerMax(false)[0];// false--&gt;assume a photon instead of</em>
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>                 <em class="jxr_comment">// electron from calculating shower depth</em>
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>                 <em class="jxr_comment">// double ypos = fsCluster.getPositionAtShowerMax(false)[1];</em>
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>                 <em class="jxr_comment">// but I can't because ReconParticles don't know about HPSEcalClusters, and casting it as one doesn't</em>
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                 <em class="jxr_comment">// seem to work</em>
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>                 Hep3Vector clusterPosition = <strong class="jxr_keyword">new</strong> BasicHep3Vector(fsCluster.getPosition());
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>                 <strong class="jxr_keyword">double</strong> xpos = clusterPosition.x();
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                 <strong class="jxr_keyword">double</strong> ypos = clusterPosition.y();
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>                 nPhotons++;
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>                 nTotPhotons++;
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>                 enePhoton.fill(ene);
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                 xPhoton.fill(xpos);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>                 yPhoton.fill(ypos);
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>             }
+<a class="jxr_linenumber" name="L265" href="#L265">265</a> 
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>             <strong class="jxr_keyword">if</strong> (hasCluster &amp;&amp; !isPhoton) {
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>                 <strong class="jxr_keyword">if</strong> (fsCluster == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>                     <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"hasCluster==true but no cluster found: should never happen"</span>);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>                 nTotAss++;
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>                 Hep3Vector mom = fsPart.getMomentum();
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>                 <strong class="jxr_keyword">double</strong> ene = fsPart.getEnergy();
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>                 <strong class="jxr_keyword">double</strong> eOverP = ene / mom.magnitude();
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>                 Hep3Vector clusterPosition = <strong class="jxr_keyword">new</strong> BasicHep3Vector(fsCluster.getPosition());<em class="jxr_comment">// this gets position at</em>
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>                 <em class="jxr_comment">// shower max assuming it's an</em>
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>                 <em class="jxr_comment">// electron/positron</em>
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>                 Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(fsTrack, clusterPosition.z());
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>                 <strong class="jxr_keyword">double</strong> dx = trackPosAtEcal.x() - clusterPosition.x();<em class="jxr_comment">// remember track vs detector coords</em>
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>                 <strong class="jxr_keyword">double</strong> dy = trackPosAtEcal.y() - clusterPosition.y();<em class="jxr_comment">// remember track vs detector coords</em>
+<a class="jxr_linenumber" name="L279" href="#L279">279</a> 
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>                 sumdelX += dx;
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>                 sumdelY += dy;
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>                 sumEoverP += eOverP;
+<a class="jxr_linenumber" name="L283" href="#L283">283</a> 
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>                 eneOverp.fill(eOverP);
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>                 deltaXAtCal.fill(dx);
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>                 deltaYAtCal.fill(dy);
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>                 <em class="jxr_comment">/* here are some plots for debugging track-cluster matching */</em>
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>                 <em class="jxr_comment">// trackXvsECalX.fill(trackPosAtEcal.x(), clusterPosition.x());</em>
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>                 <em class="jxr_comment">// trackYvsECalY.fill(trackPosAtEcal.y(), clusterPosition.y());</em>
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                 trackPvsECalE.fill(fsPart.getMomentum().magnitude(), fsPart.getEnergy());
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>                 trackTvsECalT.fill(ClusterUtilities.getSeedHitTime(fsCluster),
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>                         TrackUtils.getTrackTime(fsTrack, hitToStrips, hitToRotated));
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>                 timeMatchDeltaT.fill(ClusterUtilities.getSeedHitTime(fsCluster)
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>                         - TrackUtils.getTrackTime(fsTrack, hitToStrips, hitToRotated));
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>                 <em class="jxr_comment">// if(dy&lt;-20)</em>
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>                 <em class="jxr_comment">// LOGGER.info("Big deltaY...")</em>
+<a class="jxr_linenumber" name="L297" href="#L297">297</a> 
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>             }
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>             <strong class="jxr_keyword">if</strong> (!hasCluster) {<em class="jxr_comment">// if there is no cluster, can't be a track or else it wouldn't be in list</em>
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>                 nUnAssTracks++; <em class="jxr_comment">// count per event</em>
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>                 nTotUnAss++; <em class="jxr_comment">// and keep a running total for averaging</em>
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>             }
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         }
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>         nUnAssTracksHisto.fill(nUnAssTracks);
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         nPhotonsHisto.fill(nPhotons);
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>     }
+<a class="jxr_linenumber" name="L307" href="#L307">307</a> 
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>     @Override
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> printDQMData() {
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>         LOGGER.info(<span class="jxr_string">"FinalStateMonitoring::printDQMData"</span>);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>         <strong class="jxr_keyword">for</strong> (Entry&lt;String, Double&gt; entry : monitoredQuantityMap.entrySet())
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>             LOGGER.info(entry.getKey() + <span class="jxr_string">" = "</span> + entry.getValue());
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>         LOGGER.info(<span class="jxr_string">"*******************************"</span>);
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>     }
+<a class="jxr_linenumber" name="L315" href="#L315">315</a> 
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L317" href="#L317">317</a> <em class="jxr_javadoccomment">     * Calculate the averages here and fill the map</em>
+<a class="jxr_linenumber" name="L318" href="#L318">318</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>     @Override
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> calculateEndOfRunQuantities() {
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         IAnalysisFactory analysisFactory = IAnalysisFactory.create();
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         IFitFactory fitFactory = analysisFactory.createFitFactory();
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>         IFitter fitter = fitFactory.createFitter(<span class="jxr_string">"chi2"</span>);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         IFitResult result = fitBeamEnergyPeak(elePzBeam, fitter, <span class="jxr_string">"range=\&quot;(-10.0,10.0)\&quot;"</span>);
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>         <strong class="jxr_keyword">if</strong> (result != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>             <strong class="jxr_keyword">double</strong>[] pars = result.fittedParameters();
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 5; i++)
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>                 LOGGER.info(<span class="jxr_string">"Beam Energy Peak:  "</span> + result.fittedParameterNames()[i] + <span class="jxr_string">" = "</span> + pars[i]);
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>             monitoredQuantityMap.put(finalStateParticlesColName + <span class="jxr_string">" "</span> + triggerType + <span class="jxr_string">" "</span> + fpQuantNames[7],
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>                     (<strong class="jxr_keyword">double</strong>) pars[1]);
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>             monitoredQuantityMap.put(finalStateParticlesColName + <span class="jxr_string">" "</span> + triggerType + <span class="jxr_string">" "</span> + fpQuantNames[8],
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>                     (<strong class="jxr_keyword">double</strong>) pars[2]);
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>         }
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         monitoredQuantityMap.put(finalStateParticlesColName + <span class="jxr_string">" "</span> + triggerType + <span class="jxr_string">" "</span> + fpQuantNames[0],
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>                 (<strong class="jxr_keyword">double</strong>) nTotEle / nRecoEvents);
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         monitoredQuantityMap.put(finalStateParticlesColName + <span class="jxr_string">" "</span> + triggerType + <span class="jxr_string">" "</span> + fpQuantNames[1],
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>                 (<strong class="jxr_keyword">double</strong>) nTotPos / nRecoEvents);
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>         monitoredQuantityMap.put(finalStateParticlesColName + <span class="jxr_string">" "</span> + triggerType + <span class="jxr_string">" "</span> + fpQuantNames[2],
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>                 (<strong class="jxr_keyword">double</strong>) nTotPhotons / nRecoEvents);
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>         monitoredQuantityMap.put(finalStateParticlesColName + <span class="jxr_string">" "</span> + triggerType + <span class="jxr_string">" "</span> + fpQuantNames[3],
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>                 (<strong class="jxr_keyword">double</strong>) nTotUnAss / nRecoEvents);
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>         monitoredQuantityMap.put(finalStateParticlesColName + <span class="jxr_string">" "</span> + triggerType + <span class="jxr_string">" "</span> + fpQuantNames[4],
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>                 (<strong class="jxr_keyword">double</strong>) sumdelX / nTotAss);
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>         monitoredQuantityMap.put(finalStateParticlesColName + <span class="jxr_string">" "</span> + triggerType + <span class="jxr_string">" "</span> + fpQuantNames[5],
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>                 (<strong class="jxr_keyword">double</strong>) sumdelY / nTotAss);
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         monitoredQuantityMap.put(finalStateParticlesColName + <span class="jxr_string">" "</span> + triggerType + <span class="jxr_string">" "</span> + fpQuantNames[6],
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>                 (<strong class="jxr_keyword">double</strong>) sumEoverP / nTotAss);
+<a class="jxr_linenumber" name="L348" href="#L348">348</a> 
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>         IPlotter plotter = analysisFactory.createPlotterFactory().create(<span class="jxr_string">"Beam Energy Electrons"</span>);
+<a class="jxr_linenumber" name="L350" href="#L350">350</a> 
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>         IPlotterStyle pstyle = plotter.style();
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>         pstyle.legendBoxStyle().setVisible(false);
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>         pstyle.dataStyle().fillStyle().setColor(<span class="jxr_string">"green"</span>);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>         pstyle.dataStyle().lineStyle().setColor(<span class="jxr_string">"black"</span>);
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>         plotter.region(0).plot(elePzBeam);
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>         <em class="jxr_comment">// plotter.region(0).plot(result.fittedFunction());</em>
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>         <strong class="jxr_keyword">if</strong> (outputPlots)
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>                 plotter.writeToFile(outputPlotDir + <span class="jxr_string">"beamEnergyElectrons.png"</span>);
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>             } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>                 Logger.getLogger(FinalStateMonitoring.<strong class="jxr_keyword">class</strong>.getName()).log(Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>             }
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>     }
+<a class="jxr_linenumber" name="L364" href="#L364">364</a> 
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>     @Override
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> printDQMStrings() {
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 9; i++)<em class="jxr_comment">// TODO: do this in a smarter way...loop over the map</em>
+<a class="jxr_linenumber" name="L368" href="#L368">368</a> 
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>             LOGGER.info(<span class="jxr_string">"ALTER TABLE dqm ADD "</span> + fpQuantNames[i] + <span class="jxr_string">" double;"</span>);
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>     }
+<a class="jxr_linenumber" name="L371" href="#L371">371</a> 
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>     IFitResult fitBeamEnergyPeak(IHistogram1D h1d, IFitter fitter, String range) {
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>         <em class="jxr_comment">// return fitter.fit(h1d, "g", range);</em>
+<a class="jxr_linenumber" name="L374" href="#L374">374</a> 
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>         <em class="jxr_comment">// return fitter.fit(h1d, "g+p1", init, range);</em>
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         <strong class="jxr_keyword">double</strong>[] init = {20.0, 2.2, 0.12, 10, 0.0};
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>         <em class="jxr_comment">// double[] init = {20.0, 2.2, 0.1};</em>
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>         IFitResult ifr = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>             ifr = fitter.fit(h1d, <span class="jxr_string">"g+p1"</span>, init);
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>         } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>             LOGGER.info(<strong class="jxr_keyword">this</strong>.getClass().getSimpleName() + <span class="jxr_string">":  caught exception in fitGaussian"</span>);
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>         }
+<a class="jxr_linenumber" name="L384" href="#L384">384</a> 
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>         <strong class="jxr_keyword">return</strong> ifr;
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>     }
+<a class="jxr_linenumber" name="L387" href="#L387">387</a> 
+<a class="jxr_linenumber" name="L388" href="#L388">388</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

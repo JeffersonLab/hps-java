@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>CombinedMinimumBuilder xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../apidocs/org/hps/minuit/CombinedMinimumBuilder.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.minuit;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">class</strong> <a name="CombinedMinimumBuilder" href="../../../org/hps/minuit/CombinedMinimumBuilder.html#CombinedMinimumBuilder">CombinedMinimumBuilder</a> <strong class="jxr_keyword">implements</strong> <a name="MinimumBuilder" href="../../../org/hps/minuit/MinimumBuilder.html#MinimumBuilder">MinimumBuilder</a> {
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>      @Override
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>      <strong class="jxr_keyword">public</strong> <a name="FunctionMinimum" href="../../../org/hps/minuit/FunctionMinimum.html#FunctionMinimum">FunctionMinimum</a> minimum(<a name="MnFcn" href="../../../org/hps/minuit/MnFcn.html#MnFcn">MnFcn</a> fcn, <a name="GradientCalculator" href="../../../org/hps/minuit/GradientCalculator.html#GradientCalculator">GradientCalculator</a> gc, <a name="MinimumSeed" href="../../../org/hps/minuit/MinimumSeed.html#MinimumSeed">MinimumSeed</a> seed, <a name="MnStrategy" href="../../../org/hps/minuit/MnStrategy.html#MnStrategy">MnStrategy</a> strategy, <strong class="jxr_keyword">int</strong> maxfcn, <strong class="jxr_keyword">double</strong> toler) {
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>          <a name="FunctionMinimum" href="../../../org/hps/minuit/FunctionMinimum.html#FunctionMinimum">FunctionMinimum</a> min = theVMMinimizer.minimize(fcn, gc, seed, strategy, maxfcn, toler);
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>          <strong class="jxr_keyword">if</strong> (!min.isValid()) {
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>              logger.info(<span class="jxr_string">"CombinedMinimumBuilder: migrad method fails, will try with simplex method first."</span>);
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>              <a name="MnStrategy" href="../../../org/hps/minuit/MnStrategy.html#MnStrategy">MnStrategy</a> str = <strong class="jxr_keyword">new</strong> <a name="MnStrategy" href="../../../org/hps/minuit/MnStrategy.html#MnStrategy">MnStrategy</a>(2);
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>              <a name="FunctionMinimum" href="../../../org/hps/minuit/FunctionMinimum.html#FunctionMinimum">FunctionMinimum</a> min1 = theSimplexMinimizer.minimize(fcn, gc, seed, str, maxfcn, toler);
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>              <strong class="jxr_keyword">if</strong> (!min1.isValid()) {
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>                  logger.info(<span class="jxr_string">"CombinedMinimumBuilder: both migrad and simplex method fail."</span>);
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>                  <strong class="jxr_keyword">return</strong> min1;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>              }
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>              <a name="MinimumSeed" href="../../../org/hps/minuit/MinimumSeed.html#MinimumSeed">MinimumSeed</a> seed1 = theVMMinimizer.seedGenerator().generate(fcn, gc, min1.userState(), str);
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>              <a name="FunctionMinimum" href="../../../org/hps/minuit/FunctionMinimum.html#FunctionMinimum">FunctionMinimum</a> min2 = theVMMinimizer.minimize(fcn, gc, seed1, str, maxfcn, toler);
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>              <strong class="jxr_keyword">if</strong> (!min2.isValid()) {
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>                  logger.info(<span class="jxr_string">"CombinedMinimumBuilder: both migrad and method fails also at 2nd attempt."</span>);
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>                  logger.info(<span class="jxr_string">"CombinedMinimumBuilder: return simplex minimum."</span>);
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>                  <strong class="jxr_keyword">return</strong> min1;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>              }
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>              <strong class="jxr_keyword">return</strong> min2;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          }
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          <strong class="jxr_keyword">return</strong> min;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      }
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="VariableMetricMinimizer" href="../../../org/hps/minuit/VariableMetricMinimizer.html#VariableMetricMinimizer">VariableMetricMinimizer</a> theVMMinimizer = <strong class="jxr_keyword">new</strong> <a name="VariableMetricMinimizer" href="../../../org/hps/minuit/VariableMetricMinimizer.html#VariableMetricMinimizer">VariableMetricMinimizer</a>();
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="SimplexMinimizer" href="../../../org/hps/minuit/SimplexMinimizer.html#SimplexMinimizer">SimplexMinimizer</a> theSimplexMinimizer = <strong class="jxr_keyword">new</strong> <a name="SimplexMinimizer" href="../../../org/hps/minuit/SimplexMinimizer.html#SimplexMinimizer">SimplexMinimizer</a>();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger logger = Logger.getLogger(CombinedMinimumBuilder.<strong class="jxr_keyword">class</strong>.getName());
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

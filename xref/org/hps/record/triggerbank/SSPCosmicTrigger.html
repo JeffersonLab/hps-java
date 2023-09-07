@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>SSPCosmicTrigger xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/record/triggerbank/SSPCosmicTrigger.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.record.triggerbank;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> * Class &lt;code&gt;SSPCosmicTrigger&lt;/code&gt; represents an SSP trigger for</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> * the either the top or bottom cosmic trigger.</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="SSPCosmicTrigger" href="../../../../org/hps/record/triggerbank/SSPCosmicTrigger.html#SSPCosmicTrigger">SSPCosmicTrigger</a> <strong class="jxr_keyword">extends</strong> <a name="SSPTrigger" href="../../../../org/hps/record/triggerbank/SSPTrigger.html#SSPTrigger">SSPTrigger</a> {
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>       <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment">     * Instantiates a new &lt;code&gt;SSPCosmicTrigger&lt;/code&gt;.</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment">     * @param isTop - Indicates whether this trigger was caused by the</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment">     * top crate in the SSP or not.</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment">     * @param time - The time at which the trigger occurred.</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <strong class="jxr_keyword">public</strong> <a name="SSPCosmicTrigger" href="../../../../org/hps/record/triggerbank/SSPCosmicTrigger.html#SSPCosmicTrigger">SSPCosmicTrigger</a>(<strong class="jxr_keyword">boolean</strong> isTop, <strong class="jxr_keyword">int</strong> time) {
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>          <em class="jxr_comment">// Instantiate the superclass object.</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>          <strong class="jxr_keyword">super</strong>(isTop ? SSPData.TRIG_TYPE_COSMIC_TOP : SSPData.TRIG_TYPE_COSMIC_BOT, time, 0);
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      }
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment">     * Indicates whether the trigger was reported by the bottom SSP</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment">     * crate or not.</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment">     * @return Returns &lt;code&gt;true&lt;/code&gt; if the trigger was reported</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment">     * by the bottom crate and &lt;code&gt;false&lt;/code&gt; if it was reported</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment">     * by the top crate.</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isBottom() { <strong class="jxr_keyword">return</strong> type == SSPData.TRIG_TYPE_COSMIC_BOT; }
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">     * Indicates whether the trigger was reported by the top SSP</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">     * crate or not.</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <em class="jxr_javadoccomment">     * @return Returns &lt;code&gt;true&lt;/code&gt; if the trigger was reported</em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">     * by the top crate and &lt;code&gt;false&lt;/code&gt; if it was reported by</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment">     * the bottom crate.</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isTop() { <strong class="jxr_keyword">return</strong> type == SSPData.TRIG_TYPE_COSMIC_TOP; }
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

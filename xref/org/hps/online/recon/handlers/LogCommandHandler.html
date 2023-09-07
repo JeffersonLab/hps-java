@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>LogCommandHandler xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/online/recon/handlers/LogCommandHandler.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.online.recon.handlers;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.apache.commons.io.input.Tailer;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.hps.online.recon.CommandHandler;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.hps.online.recon.CommandResult;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.hps.online.recon.CommandResult.LogStreamResult;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.hps.online.recon.Server;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.hps.online.recon.SimpleLogListener;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.json.JSONObject;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> * Handle the &lt;i&gt;log&lt;/i&gt; command for tailing a station's log file</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">class</strong> <a name="LogCommandHandler" href="../../../../../org/hps/online/recon/handlers/LogCommandHandler.html#LogCommandHandler">LogCommandHandler</a> <strong class="jxr_keyword">extends</strong> <a name="CommandHandler" href="../../../../../org/hps/online/recon/CommandHandler.html#CommandHandler">CommandHandler</a> {
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>      <a name="LogCommandHandler" href="../../../../../org/hps/online/recon/handlers/LogCommandHandler.html#LogCommandHandler">LogCommandHandler</a>(<a name="Server" href="../../../../../org/hps/online/recon/Server.html#Server">Server</a> server) {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          <strong class="jxr_keyword">super</strong>(server);
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      }
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">public</strong> <a name="CommandResult" href="../../../../../org/hps/online/recon/CommandResult.html#CommandResult">CommandResult</a> execute(JSONObject jo) {
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          <a name="CommandResult" href="../../../../../org/hps/online/recon/CommandResult.html#CommandResult">CommandResult</a> res = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          List&lt;Integer&gt; ids = getStationIDs(jo);
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          <strong class="jxr_keyword">if</strong> (ids.size() == 1) {
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>              <strong class="jxr_keyword">int</strong> id = ids.get(0);
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>              Long delayMillis = 1000L;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>              <strong class="jxr_keyword">if</strong> (jo.has(<span class="jxr_string">"delayMillis"</span>)) {
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>                  delayMillis = jo.getLong(<span class="jxr_string">"delayMillis"</span>);
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>              }
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>              <a name="SimpleLogListener" href="../../../../../org/hps/online/recon/SimpleLogListener.html#SimpleLogListener">SimpleLogListener</a> listener = <strong class="jxr_keyword">new</strong> <a name="SimpleLogListener" href="../../../../../org/hps/online/recon/SimpleLogListener.html#SimpleLogListener">SimpleLogListener</a>();
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>              Tailer tailer = mgr.getLogTailer(id, listener, delayMillis);
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>              File logFile = mgr.find(id).getLogFile();
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>              res = <strong class="jxr_keyword">new</strong> LogStreamResult(tailer, listener, logFile);
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (ids.size() &gt; 1) {
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>              res = <strong class="jxr_keyword">new</strong> CommandResult.Error(<span class="jxr_string">"Multiple station IDs not supported for log command."</span>);
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (ids.size() == 0) {
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>              res = <strong class="jxr_keyword">new</strong> CommandResult.Error(<span class="jxr_string">"No station IDs were given in parameters."</span>);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          }
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          <strong class="jxr_keyword">return</strong> res;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      }
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      @Override
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">public</strong> String getCommandName() {
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">return</strong> <span class="jxr_string">"log"</span>;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      }
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

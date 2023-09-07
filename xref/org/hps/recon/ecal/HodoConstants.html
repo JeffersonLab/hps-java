@@ -1,0 +1,35 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>HodoConstants xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/recon/ecal/HodoConstants.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.ecal;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="HodoConstants" href="../../../../org/hps/recon/ecal/HodoConstants.html#HodoConstants">HodoConstants</a> {
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>       
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> TET_AllCh = 12;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>       
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> NSA = 11;  <em class="jxr_comment">// # of samples after the threshold crossings</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> NSB = 4;   <em class="jxr_comment">// # of samples before the threshold crossing</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> NSPerSample = 4;  <em class="jxr_comment">// ns per ADC sample</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> NMax_peak = 4;    <em class="jxr_comment">// Maximum number of peaks in the readout window</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> cl_hit_dtMax = 18; <em class="jxr_comment">// in [ns]. The time difference between hits in the tile should be below this number</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nGoForNextPeak = 4;   <em class="jxr_comment">// When threshold crossing is found, it will search for the next threshold crossing after X sample</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <em class="jxr_comment">// ========== When adding hit energies of two holes from the same tile we calculate it as</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      <em class="jxr_comment">// ========== E_cl = cl_Esum_scale*(E_a + E_b)/2;</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <em class="jxr_comment">// ========== From cosmic tests in EEL, it was found that if we use cl_Esum_scale = 1.25, then</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      <em class="jxr_comment">// ========== These distributions line up with single hole tile distributions, and they peak at 1000.</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> cl_Esum_scale = 1.25; <em class="jxr_comment">// </em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>      
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>      
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

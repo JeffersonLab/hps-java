@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>SvtAlignmentTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../testapidocs/org/hps/detector/SvtAlignmentTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.detector;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> junit.framework.TestCase;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.hps.conditions.database.DatabaseConditionsManager;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.hps.conditions.svt.SvtAlignmentConstant;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.hps.conditions.svt.SvtAlignmentConstant.SvtAlignmentConstantCollection;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> * Test loading SVT alignment constants into the Java detector model.</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="SvtAlignmentTest" href="../../../org/hps/detector/SvtAlignmentTest.html#SvtAlignmentTest">SvtAlignmentTest</a> <strong class="jxr_keyword">extends</strong> TestCase {
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String DETECTOR_NAME = <span class="jxr_string">"HPS-EngRun2015-Nominal-v1"</span>;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong>[] RUNS = {
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>          <em class="jxr_comment">/* 4mm */</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>          4847,
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          <em class="jxr_comment">/* 3mm */</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          5037,
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          <em class="jxr_comment">/* 2mm */</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          5066,
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          <em class="jxr_comment">/* 1.5mm */</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          5259,
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <em class="jxr_comment">/* 0.5mm a.k.a. nominal */</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          5632
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          };
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> ANGLES[][] = {
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          <em class="jxr_comment">/* 4mm */</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          {0.021401105301460045, -0.020891926880057254},
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          <em class="jxr_comment">/* 3mm */</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          {0.00746162548005678, -0.007499693772411655},
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          <em class="jxr_comment">/* 2mm */</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>          {0.00439094334909705, -0.004185830909531962},
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          <em class="jxr_comment">/* 1.5mm */</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          {0.003068520524453775, -0.0033041356336028917},
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          <em class="jxr_comment">/* 0.5mm a.k.a. nominal */</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          {0, 0}
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      };
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testSvtAlignment() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          <strong class="jxr_keyword">final</strong> DatabaseConditionsManager manager = DatabaseConditionsManager.getInstance();
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          <strong class="jxr_keyword">int</strong> runIndex = 0;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> run : RUNS) {
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>              
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              System.out.println();            
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              System.out.println(<span class="jxr_string">"loading run "</span> + run + <span class="jxr_string">" SVT alignments for detector "</span> + DETECTOR_NAME + <span class="jxr_string">" ..."</span>);
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>              
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              manager.setDetector(DETECTOR_NAME, run);
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              SvtAlignmentConstantCollection collection = 
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                      manager.getCachedConditions(SvtAlignmentConstantCollection.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"svt_alignments"</span>).getCachedData();
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              System.out.println(<span class="jxr_string">"got collection "</span> + collection.getCollectionId() + <span class="jxr_string">" of size "</span> + collection.size());
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              SvtAlignmentConstant top = collection.find(13100);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>              SvtAlignmentConstant bottom = collection.find(23100);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              System.out.println(<span class="jxr_string">"param "</span> + top.getParameter() + <span class="jxr_string">" = "</span> + top.getValue());
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              System.out.println(<span class="jxr_string">"param "</span> + bottom.getParameter() + <span class="jxr_string">" = "</span> + bottom.getValue());
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              assertEquals(<span class="jxr_string">"Top angle wrong."</span>, ANGLES[runIndex][0], top.getValue());
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>              assertEquals(<span class="jxr_string">"Bottom angle wrong."</span>, ANGLES[runIndex][1], bottom.getValue());
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              ++runIndex;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      }
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>TwoTrackFringeVertexer xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/recon/vertexing/TwoTrackFringeVertexer.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.vertexing;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.BeamlineConstants;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.HpsHelicalTrackFit;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.HelixConverter;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelicalTrackFit;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelixUtils;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.FieldMap;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.lcsim.recon.tracking.seedtracker.SeedTrack;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> * Class that vertexes two tracks taking into account fringe field</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="TwoTrackFringeVertexer" href="../../../../org/hps/recon/vertexing/TwoTrackFringeVertexer.html#TwoTrackFringeVertexer">TwoTrackFringeVertexer</a> <strong class="jxr_keyword">extends</strong> <a name="TwoTrackVertexer" href="../../../../org/hps/recon/vertexing/TwoTrackVertexer.html#TwoTrackVertexer">TwoTrackVertexer</a> {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>      <strong class="jxr_keyword">protected</strong> <a name="HelixConverter" href="../../../../org/hps/recon/tracking/HelixConverter.html#HelixConverter">HelixConverter</a> converter = <strong class="jxr_keyword">new</strong> <a name="HelixConverter" href="../../../../org/hps/recon/tracking/HelixConverter.html#HelixConverter">HelixConverter</a>(0.);
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setTracks(Track track1, Track track2, FieldMap fieldMap) {
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          SeedTrack s1 = (SeedTrack) track1;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          HelicalTrackFit htf1 = s1.getSeedCandidate().getHelix();
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <a name="HpsHelicalTrackFit" href="../../../../org/hps/recon/tracking/HpsHelicalTrackFit.html#HpsHelicalTrackFit">HpsHelicalTrackFit</a> hpstrk1 = <strong class="jxr_keyword">new</strong> <a name="HpsHelicalTrackFit" href="../../../../org/hps/recon/tracking/HpsHelicalTrackFit.html#HpsHelicalTrackFit">HpsHelicalTrackFit</a>(htf1);
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          SeedTrack s2 = (SeedTrack) track2;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          HelicalTrackFit htf2 = s2.getSeedCandidate().getHelix();
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          <a name="HpsHelicalTrackFit" href="../../../../org/hps/recon/tracking/HpsHelicalTrackFit.html#HpsHelicalTrackFit">HpsHelicalTrackFit</a> hpstrk2 = <strong class="jxr_keyword">new</strong> <a name="HpsHelicalTrackFit" href="../../../../org/hps/recon/tracking/HpsHelicalTrackFit.html#HpsHelicalTrackFit">HpsHelicalTrackFit</a>(htf2);
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          <strong class="jxr_keyword">boolean</strong> debug = false;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          Hep3Vector posAtConv1 = <strong class="jxr_keyword">new</strong> BasicHep3Vector( TrackUtils.extrapolateTrackUsingFieldMap(track1, 100.0, BeamlineConstants.HARP_POSITION_TESTRUN, 5.0, fieldMap).getReferencePoint());
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          Hep3Vector posAtConv2 = <strong class="jxr_keyword">new</strong> BasicHep3Vector( TrackUtils.extrapolateTrackUsingFieldMap(track2, 100.0, BeamlineConstants.HARP_POSITION_TESTRUN, 5.0, fieldMap).getReferencePoint());
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          <em class="jxr_comment">//FIXME the straight line objects are not working</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>          
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          <em class="jxr_comment">//StraightLineTrack slt1_conv = converter.Convert((Helix)hpstrk1.getTrajectory());</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          <em class="jxr_comment">//StraightLineTrack slt2_conv = converter.Convert((Helix)hpstrk2.getTrajectory());</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          <em class="jxr_comment">//A1 = new BasicHep3Vector(slt1_conv.x0(),slt1_conv.y0(),slt1_conv.z0());</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          <em class="jxr_comment">//B1 = new BasicHep3Vector(slt2_conv.x0(),slt2_conv.y0(),slt2_conv.z0());</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          <em class="jxr_comment">//double YZAtConv1[] = slt1_conv.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN);</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          <em class="jxr_comment">//double YZAtConv2[] = slt2_conv.getYZAtX(BeamlineConstants.HARP_POSITION_TESTRUN);</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <em class="jxr_comment">//A2 = new BasicHep3Vector(BeamlineConstants.HARP_POSITION_TESTRUN,YZAtConv1[0],YZAtConv1[1]);</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <em class="jxr_comment">//B2 = new BasicHep3Vector(BeamlineConstants.HARP_POSITION_TESTRUN,YZAtConv2[0],YZAtConv2[1]);</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          <strong class="jxr_keyword">if</strong>(debug) {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              System.out.printf(<span class="jxr_string">"%s: original track1 direction at x=0 %s  \n"</span>,<strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),HelixUtils.Direction(hpstrk1,0.).toString());
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              System.out.printf(<span class="jxr_string">"%s: original track2 direction at x=0 %s  \n"</span>,<strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),HelixUtils.Direction(hpstrk2,0.).toString());
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              <em class="jxr_comment">//System.out.printf("%s: track1 direction at conv %s  \n",this.getClass().getSimpleName(),hpstrk1.getTrajectory().getUnitTangentAtLength(0.).toString());</em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>              <em class="jxr_comment">//System.out.printf("%s: track2 direction at conv %s  \n",this.getClass().getSimpleName(),hpstrk2.getTrajectory().getUnitTangentAtLength(0.).toString());</em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>             
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              System.out.printf(<span class="jxr_string">"%s: pos at converter track1 %s  \n"</span>,<strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),posAtConv1.toString());
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>              System.out.printf(<span class="jxr_string">"%s: pos at converter track2 %s  \n"</span>,<strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),posAtConv2.toString());
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              <em class="jxr_comment">//System.out.printf("%s: dir at converter track1 %s (at 0: %s) \n",this.getClass().getSimpleName(),dirConv1.toString(),dirZero1.toString());</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              <em class="jxr_comment">//System.out.printf("%s: dir at converter track2 %s (at 0: %s) \n",this.getClass().getSimpleName(),dirConv2.toString(),dirZero2.toString());</em>
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              System.out.printf(<span class="jxr_string">"%s: A1 %s  \n"</span>,<strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),A1.toString());
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              System.out.printf(<span class="jxr_string">"%s: A2 %s  \n"</span>,<strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),A2.toString());
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              System.out.printf(<span class="jxr_string">"%s: B1 %s  \n"</span>,<strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),B1.toString());
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>              System.out.printf(<span class="jxr_string">"%s: B2 %s  \n"</span>,<strong class="jxr_keyword">this</strong>.getClass().getSimpleName(),B2.toString());
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      }
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

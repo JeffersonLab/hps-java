@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>BasicHitMonitoringDriver xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/monitoring/subsys/svt/BasicHitMonitoringDriver.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.monitoring.subsys.svt;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.Timer;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.TimerTask;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.hps.monitoring.subsys.StatusCode;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.hps.monitoring.subsys.Subsystem;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.hps.monitoring.subsys.SystemStatus;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.hps.monitoring.subsys.SystemStatusImpl;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> * This is a basic example of monitoring hits using an updateable &lt;code&gt;SystemStatus&lt;/code&gt;. It</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> * checks from a &lt;code&gt;TimerTask&lt;/code&gt; once per second whether &lt;code&gt;RawTrackerHit&lt;/code&gt; objects</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> * are being received by the {@link #process(EventHeader)} method.</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="BasicHitMonitoringDriver" href="../../../../../org/hps/monitoring/subsys/svt/BasicHitMonitoringDriver.html#BasicHitMonitoringDriver">BasicHitMonitoringDriver</a> <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      <a name="SystemStatus" href="../../../../../org/hps/monitoring/subsys/SystemStatus.html#SystemStatus">SystemStatus</a> status;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <strong class="jxr_keyword">long</strong> hitsReceivedMillis;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">long</strong> warningIntervalMillis = 1000;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      Timer timer;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String hitsCollectionName = <span class="jxr_string">"SVTRawTrackerHits"</span>;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <strong class="jxr_keyword">public</strong> <a name="BasicHitMonitoringDriver" href="../../../../../org/hps/monitoring/subsys/svt/BasicHitMonitoringDriver.html#BasicHitMonitoringDriver">BasicHitMonitoringDriver</a>() {
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          status = <strong class="jxr_keyword">new</strong> <a name="SystemStatusImpl" href="../../../../../org/hps/monitoring/subsys/SystemStatusImpl.html#SystemStatusImpl">SystemStatusImpl</a>(Subsystem.SVT, <span class="jxr_string">"Checks that SVT hits are received."</span>, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          status.setStatus(StatusCode.UNKNOWN, <span class="jxr_string">"Status is unknown."</span>);
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      }
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setWarningIntervalMillis(<strong class="jxr_keyword">long</strong> warningIntervalMillis) {
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          <strong class="jxr_keyword">this</strong>.warningIntervalMillis = warningIntervalMillis;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      }
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> startOfData() {
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          <strong class="jxr_keyword">if</strong> (hitsCollectionName == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"The hitsCollectionName was never set."</span>);
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          status.setStatus(StatusCode.OKAY, <span class="jxr_string">"SVT hit monitor started."</span>);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          timer = <strong class="jxr_keyword">new</strong> Timer(<span class="jxr_string">"SVT Hit Monitor"</span>);
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          TimerTask task = <strong class="jxr_keyword">new</strong> TimerTask() {
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>              <strong class="jxr_keyword">long</strong> startedMillis = 0;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>              <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>                  <strong class="jxr_keyword">if</strong> (startedMillis == 0)
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>                      startedMillis = System.currentTimeMillis();
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>                  <strong class="jxr_keyword">long</strong> elapsedMillis = 0;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>                  <strong class="jxr_keyword">if</strong> (hitsReceivedMillis == 0)
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>                      elapsedMillis = System.currentTimeMillis() - startedMillis;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>                  <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>                      elapsedMillis = System.currentTimeMillis() - hitsReceivedMillis;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>                  <strong class="jxr_keyword">if</strong> (elapsedMillis &gt; warningIntervalMillis)
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>                      status.setStatus(StatusCode.WARNING, <span class="jxr_string">"No SVT hits received for "</span> + elapsedMillis + <span class="jxr_string">" millis."</span>);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>                  <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>                      status.setStatus(StatusCode.OKAY, <span class="jxr_string">"SVT hits received."</span>);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          };
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          <em class="jxr_comment">// Task will run once per second.</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          timer.schedule(task, 0, 1000);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      }
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <strong class="jxr_keyword">if</strong> (event.hasCollection(RawTrackerHit.<strong class="jxr_keyword">class</strong>, hitsCollectionName))
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              <strong class="jxr_keyword">if</strong> (event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, hitsCollectionName).size() &gt; 0)
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>                  hitsReceivedMillis = System.currentTimeMillis();
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      }
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> endOfData() {
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          timer.cancel();
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          timer.purge();
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          status.setStatus(StatusCode.OFFLINE, <span class="jxr_string">"SVT hit monitor went offline."</span>);
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          status.setActive(false);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      }
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

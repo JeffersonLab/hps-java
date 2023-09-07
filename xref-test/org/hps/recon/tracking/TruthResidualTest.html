@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>TruthResidualTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../testapidocs/org/hps/recon/tracking/TruthResidualTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.tracking;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram1D;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> java.util.logging.Level;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.gbl.TruthResiduals;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.MCParticle;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.SimTrackerHit;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment"> * Test class to check truth particle and propagated position.</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="TruthResidualTest" href="../../../../org/hps/recon/tracking/TruthResidualTest.html#TruthResidualTest">TruthResidualTest</a> <strong class="jxr_keyword">extends</strong> <a name="ReconTestSkeleton" href="../../../../org/hps/recon/tracking/ReconTestSkeleton.html#ReconTestSkeleton">ReconTestSkeleton</a> {
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">static</strong> {
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          System.setProperty(<span class="jxr_string">"hep.aida.IAnalysisFactory"</span>, <span class="jxr_string">"hep.aida.ref.BatchAnalysisFactory"</span>);
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      }
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String inputFileName = <span class="jxr_string">"ap_prompt_raw.slcio"</span>;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">private</strong> AIDA aida;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> maxResMean = 0.05; <em class="jxr_comment">//in mm </em>
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> maxResRMS = 0.05; <em class="jxr_comment">//in mm </em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testRecon() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          testInputFileName = inputFileName;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          String aidaOutputName = <span class="jxr_string">"target/test-output/TestResiduals_"</span> + inputFileName.replaceAll(<span class="jxr_string">"slcio"</span>, <span class="jxr_string">"aida"</span>);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          nEvents = 500;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          testTrackingDriver = <strong class="jxr_keyword">new</strong> TestResiduals();
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          ((TestResiduals) testTrackingDriver).setOutputPlots(aidaOutputName);
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          ((TestResiduals) testTrackingDriver).aida = aida;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          <strong class="jxr_keyword">super</strong>.testRecon();
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          IHistogram1D hx1 = aida.histogram1D(<span class="jxr_string">"dres_truthsimhit_layer1_x"</span>);
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          <strong class="jxr_keyword">if</strong> (hx1 != <strong class="jxr_keyword">null</strong> &amp;&amp; hx1.entries() &gt; 10) {
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              System.out.printf(<span class="jxr_string">"Layer 1 x truth hit residual has mean %f , RMS %f \n"</span>, hx1.mean(), hx1.rms());
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>              assertTrue(<span class="jxr_string">"Mean of layer 1 x truth hit residual is not zero "</span> + hx1.mean(), Math.abs(hx1.mean()) &lt; maxResMean);
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              assertTrue(<span class="jxr_string">"RMS of layer 1 x truth hit residual is not zero"</span> + hx1.rms(), Math.abs(hx1.rms()) &lt; maxResRMS);
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          }
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          IHistogram1D hy1 = aida.histogram1D(<span class="jxr_string">"dres_truthsimhit_layer1_y"</span>);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          <strong class="jxr_keyword">if</strong> (hy1 != <strong class="jxr_keyword">null</strong> &amp;&amp; hy1.entries() &gt; 10) {
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              System.out.printf(<span class="jxr_string">"Layer 1 y truth hit residual has mean %f , RMS %f \n"</span>, hy1.mean(), hy1.rms());
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              assertTrue(<span class="jxr_string">"Mean of layer 1 y truth hit residual is not zero "</span> + hy1.mean(), Math.abs(hy1.mean()) &lt; maxResMean);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>              assertTrue(<span class="jxr_string">"RMS of layer 1 y truth hit residual is not zero"</span> + hy1.rms(), Math.abs(hy1.rms()) &lt; maxResRMS);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          }
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      }
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>  
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> TestResiduals <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          <strong class="jxr_keyword">private</strong> TruthResiduals truthRes;
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          <strong class="jxr_keyword">public</strong> AIDA aida = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <strong class="jxr_keyword">private</strong> String outputPlots = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setOutputPlots(String name) {
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>              outputPlots = name;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          }
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          @Override
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector) {
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>              <strong class="jxr_keyword">if</strong> (aida == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>                  aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>              Hep3Vector bfield = detector.getFieldMap().getField(<strong class="jxr_keyword">new</strong> BasicHep3Vector(0., 0., 1.));
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>              truthRes = <strong class="jxr_keyword">new</strong> TruthResiduals(bfield);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>              truthRes.setHideFrame(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          }
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          @Override
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>              <strong class="jxr_keyword">super</strong>.process(event);
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              List&lt;MCParticle&gt; mcParticles = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>              <strong class="jxr_keyword">if</strong> (event.hasCollection(MCParticle.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"MCParticle"</span>)) {
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>                  mcParticles = event.get(MCParticle.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"MCParticle"</span>);
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>              }
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>              List&lt;SimTrackerHit&gt; simTrackerHits = event.get(SimTrackerHit.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"TrackerHits"</span>);
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              <strong class="jxr_keyword">if</strong> (simTrackerHits != <strong class="jxr_keyword">null</strong> &amp;&amp; mcParticles != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>                  truthRes.processSim(mcParticles, simTrackerHits);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>              }
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          }
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> endOfData() {
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>             <strong class="jxr_keyword">if</strong> (outputPlots != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>                 <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>                     aida.saveAs(outputPlots);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>                 } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>                     Logger.getLogger(TestResiduals.<strong class="jxr_keyword">class</strong>.getName()).log(Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>                 }
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>             }
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         }
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> 
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     }
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

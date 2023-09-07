@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>TrackReconWithPlotsTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../testapidocs/org/hps/recon/tracking/TrackReconWithPlotsTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.tracking;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram1D;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> * Test class for raw-&gt;reco LCIO + producing histograms.</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="TrackReconWithPlotsTest" href="../../../../org/hps/recon/tracking/TrackReconWithPlotsTest.html#TrackReconWithPlotsTest">TrackReconWithPlotsTest</a> <strong class="jxr_keyword">extends</strong> <a name="ReconTestSkeleton" href="../../../../org/hps/recon/tracking/ReconTestSkeleton.html#ReconTestSkeleton">ReconTestSkeleton</a> {
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String inputFileName = <span class="jxr_string">"ap_prompt_raw.slcio"</span>;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">private</strong> AIDA aida;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      @Override
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testRecon() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>          testInputFileName = inputFileName;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          String aidaOutputName = <span class="jxr_string">"target/test-output/TestPlots_"</span> + inputFileName.replaceAll(<span class="jxr_string">"slcio"</span>, <span class="jxr_string">"aida"</span>);
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          nEvents = -1;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          testTrackingDriver = <strong class="jxr_keyword">new</strong> TrackingReconstructionPlots();
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          ((TrackingReconstructionPlots) testTrackingDriver).setOutputPlots(aidaOutputName);
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          ((TrackingReconstructionPlots) testTrackingDriver).aida = aida;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <strong class="jxr_keyword">super</strong>.testRecon();
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          IHistogram1D ntracks = aida.histogram1D(<span class="jxr_string">"Tracks per Event"</span>);
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          assertTrue(<span class="jxr_string">"No events in plots"</span>, ntracks.entries() &gt; 0);
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          assertTrue(<span class="jxr_string">"No tracks in plots"</span>, ntracks.mean() &gt; 0);
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      }
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>FlagArgument xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/util/FlagArgument.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.util;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> * &lt;code&gt;FlagArgument&lt;/code&gt; is a simple implementation of {@link</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> * org.hps.analysis.util.Argument Argument} that does not accept a</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> * value. Instead, it simply tracks whether or not an instance of the</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> * argument has been seen or not.</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> * @see org.hps.analysis.util.Argument</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="FlagArgument" href="../../../../org/hps/analysis/util/FlagArgument.html#FlagArgument">FlagArgument</a> <strong class="jxr_keyword">extends</strong> <a name="Argument" href="../../../../org/hps/analysis/util/Argument.html#Argument">Argument</a> {
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> defined = false;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment">     * Instantiates a new instance of a flag argument.</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment">     * @param shortOption - Defines the short option text used to</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment">     * declare this argument on the command line.</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment">     * @param fullOption - Defines the full option text used to</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_javadoccomment">     * declare this argument on the command line.</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment">     * @param description - Defines the description text used for</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment">     * displaying usage information.</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment">     * @param required - Specifies whether or not the argument is</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_javadoccomment">     * required for the associated command to run.</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">public</strong> <a name="FlagArgument" href="../../../../org/hps/analysis/util/FlagArgument.html#FlagArgument">FlagArgument</a>(String shortOption, String fullOption, String description, <strong class="jxr_keyword">boolean</strong> required) {
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          <strong class="jxr_keyword">super</strong>(shortOption, fullOption, description, required);
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      }
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      @Override
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">boolean</strong> acceptsValues() {
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      }
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      @Override
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">boolean</strong> allowsMultipleInstances() {
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      }
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      @Override
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">boolean</strong> isDefined() {
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          <strong class="jxr_keyword">return</strong> defined;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      }
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment">     * Sets whether or not an instance of this argument was seen.</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment">     * @param state - &lt;code&gt;true&lt;/code&gt; indicates that an instance of</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment">     * this argument was seen and &lt;code&gt;false&lt;/code&gt; that it was not.</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">void</strong> setDefined(<strong class="jxr_keyword">boolean</strong> state) {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          defined = state;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      }
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

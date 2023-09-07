@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>TwoParticleVertexer xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/recon/vertexing/TwoParticleVertexer.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.vertexing;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.CoordinateTransformations;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.MCParticle;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> * Class that computes the vertex of two MC particles using the line vertexer class.</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="TwoParticleVertexer" href="../../../../org/hps/recon/vertexing/TwoParticleVertexer.html#TwoParticleVertexer">TwoParticleVertexer</a> <strong class="jxr_keyword">extends</strong> <a name="TwoLineVertexer" href="../../../../org/hps/recon/vertexing/TwoLineVertexer.html#TwoLineVertexer">TwoLineVertexer</a> {
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <strong class="jxr_keyword">public</strong> <a name="TwoParticleVertexer" href="../../../../org/hps/recon/vertexing/TwoParticleVertexer.html#TwoParticleVertexer">TwoParticleVertexer</a>() {
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      }
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setParticle(MCParticle track1,MCParticle track2) {
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>          
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>          <em class="jxr_comment">//Calculate using detector coord.</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          Hep3Vector PA1 = track1.getOrigin();
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          Hep3Vector PB1 = track2.getOrigin();
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          Hep3Vector p1 = track1.getMomentum();
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          Hep3Vector p2 = track2.getMomentum();
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          <em class="jxr_comment">//propagate to different position</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <strong class="jxr_keyword">double</strong> dz = 20.0;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          Hep3Vector PA2 = <strong class="jxr_keyword">this</strong>.propAlongLine(PA1, p1, dz);
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          Hep3Vector PB2 = <strong class="jxr_keyword">this</strong>.propAlongLine(PB1, p2, dz);
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          <strong class="jxr_keyword">if</strong>(_debug) {
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>              System.out.printf(<span class="jxr_string">"A1 %s p1 %s B1 %s p2 %s\n"</span>, PA1.toString(), p1.toString(), PB1.toString(), p2.toString());
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>              System.out.printf(<span class="jxr_string">"A2 %s B2 %s\n"</span>, PA2.toString(), PB2.toString());
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          }
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          <em class="jxr_comment">//set the member variables</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>          A1 = CoordinateTransformations.transformVectorToTracking(PA1);
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          A2 = CoordinateTransformations.transformVectorToTracking(PA2);
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          B1 = CoordinateTransformations.transformVectorToTracking(PB1);
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          B2 = CoordinateTransformations.transformVectorToTracking(PB2);
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      }
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      Hep3Vector propAlongLine(Hep3Vector org, Hep3Vector p, <strong class="jxr_keyword">double</strong> dz) {
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          <strong class="jxr_keyword">double</strong> tanPxPz = p.x() / p.z();
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          <strong class="jxr_keyword">double</strong> tanPyPz = p.y() / p.z();
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          <strong class="jxr_keyword">double</strong> dx = dz * tanPxPz;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          <strong class="jxr_keyword">double</strong> dy = dz * tanPyPz;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> BasicHep3Vector(org.x() + dx, org.y() + dy, org.z() + dz);
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      }
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

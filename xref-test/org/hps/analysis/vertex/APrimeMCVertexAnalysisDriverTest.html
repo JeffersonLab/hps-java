@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>APrimeMCVertexAnalysisDriverTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../testapidocs/org/hps/analysis/vertex/APrimeMCVertexAnalysisDriverTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.vertex;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.hps.util.test.TestUtil;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.lcsim.util.loop.LCSimLoop;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> junit.framework.TestCase;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="APrimeMCVertexAnalysisDriverTest" href="../../../../org/hps/analysis/vertex/APrimeMCVertexAnalysisDriverTest.html#APrimeMCVertexAnalysisDriverTest">APrimeMCVertexAnalysisDriverTest</a> <strong class="jxr_keyword">extends</strong> TestCase {
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String testFileName = <span class="jxr_string">"apsignalv2_displaced_100mm_epsilon-6_HPS-EngRun2015-Nominal-v5-0-fieldmap_3.11-SNAPSHOT_pairs1_V0Skim.slcio"</span>;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> nEvents = -1;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testIt() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>          File lcioInputFile = TestUtil.downloadTestFile(testFileName);
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>          LCSimLoop loop = <strong class="jxr_keyword">new</strong> LCSimLoop();
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_comment">//        List&lt;File&gt; files = new ArrayList&lt;File&gt;();</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <em class="jxr_comment">//        for(int i=1; i&lt;10; ++i)</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_comment">//        {</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_comment">//            files.add(new File("C:/hps_data/engrun2015/postTriSummitFixes/mc/recon/ap/1pt05/50/apsignalv2_displaced_1mm_epsilon-4_HPS-EngRun2015-Nominal-v5-0-fieldmap_3.10-20160813_pairs1_"+i+".slcio"));</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_comment">//        }</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <em class="jxr_comment">//        LCIOEventSource source = new LCIOEventSource(new FileList(files, "aprime 50MeV"));</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <em class="jxr_comment">//        loop.setLCIORecordSource(source);</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          loop.setLCIORecordSource(lcioInputFile);
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          APrimeMCVertexAnalysisDriver va = <strong class="jxr_keyword">new</strong> APrimeMCVertexAnalysisDriver();
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          loop.add(va);
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          loop.loop(nEvents);
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          loop.dispose();
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      }
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

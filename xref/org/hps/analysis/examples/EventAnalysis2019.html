@@ -1,0 +1,352 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>EventAnalysis2019 xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/examples/EventAnalysis2019.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.examples;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.aida.IAnalysisFactory;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.aida.IDataPointSet;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.aida.IDataPointSetFactory;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> hep.aida.IProfile1D;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Matrix;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.VecOp;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.lang.Math.abs;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.lang.Math.atan2;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.ecal.cluster.ClusterUtilities;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackType;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.hps.record.triggerbank.TriggerModule;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.DetectorElementStore;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.IDetectorElement;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IExpandedIdentifier;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IIdentifier;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IIdentifierDictionary;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.HpsSiSensor;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.SiSensor;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.CalorimeterHit;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Cluster;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.ReconstructedParticle;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackerHit;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Vertex;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="EventAnalysis2019" href="../../../../org/hps/analysis/examples/EventAnalysis2019.html#EventAnalysis2019">EventAnalysis2019</a> <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">private</strong> AIDA aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      IProfile1D zProfileBottomMatched;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      IProfile1D zProfileBottomGBL;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> BasicHep3Matrix beamAxisRotation = <strong class="jxr_keyword">new</strong> BasicHep3Matrix();
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <em class="jxr_comment">//TODO add in OtherElectrons for high-momentum tracks...</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      String[] finalStateParticleCollectionNames = {<span class="jxr_string">"FinalStateParticles"</span>, <span class="jxr_string">"FinalStateParticles_KF"</span>};
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      String clusterCollection = <span class="jxr_string">"EcalClusters"</span>;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">double</strong> minSeedEnergy = 2.7;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">boolean</strong> correctECalSF = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">double</strong> ecalFeeSF = 0.91;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector) {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          zProfileBottomMatched = aida.profile1D(<span class="jxr_string">"Bottom Matched Track thetaY vs z0 profile"</span>, 25, 0.032, 0.052);
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>          zProfileBottomGBL = aida.profile1D(<span class="jxr_string">"Bottom GBLTrack thetaY vs z0 profile"</span>, 25, 0.032, 0.052);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      }
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          <strong class="jxr_keyword">if</strong> (event.hasCollection(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"FinalStateParticles"</span>)) {
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>              <em class="jxr_comment">//skip "monster" events</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>              List&lt;RawTrackerHit&gt; rawTrackerHits = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"SVTRawTrackerHits"</span>);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              <strong class="jxr_keyword">int</strong> nRawTrackerHits = rawTrackerHits.size();
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              aida.histogram1D(<span class="jxr_string">"SVT number of RawTrackerHits"</span>, 100, 0., 1000.).fill(nRawTrackerHits);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              <strong class="jxr_keyword">if</strong> (nRawTrackerHits &gt; 250) {
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>                  <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>              }
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              setupSensors(event);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>              analyzeRP(event);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>              analyzeV0(event);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          }
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          <strong class="jxr_keyword">if</strong> (event.hasCollection(Cluster.<strong class="jxr_keyword">class</strong>, clusterCollection)) {
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>              analyzeClusters(event);
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          }
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      }
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> analyzeRP(EventHeader event) {
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          <strong class="jxr_keyword">for</strong> (String s : finalStateParticleCollectionNames) {
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>              <strong class="jxr_keyword">if</strong> (event.hasCollection(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, s)) {
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>                  String dir = s + <span class="jxr_string">" ReconstructedParticle Analysis"</span>;
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>                  aida.tree().mkdirs(dir);
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>                  aida.tree().cd(dir);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>                  List&lt;ReconstructedParticle&gt; rpList = event.get(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, s);
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>                  <strong class="jxr_keyword">for</strong> (ReconstructedParticle rp : rpList) {
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>                      <strong class="jxr_keyword">int</strong> pdgId = rp.getParticleIDUsed().getPDG();
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>                      <strong class="jxr_keyword">if</strong> (pdgId == 11) {
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>                          String trackType = <span class="jxr_string">"SeedTrack "</span>;
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>                          <strong class="jxr_keyword">if</strong> (TrackType.isGBL(rp.getType())) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>                              trackType = <span class="jxr_string">"GBL "</span>;
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>                          }
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>                          <strong class="jxr_keyword">if</strong> (rp.getType() == 1) {
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>                              trackType = <span class="jxr_string">"Kalman "</span>;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>                          }
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  <em class="jxr_comment">//            if (!TrackType.isGBL(rp.getType())) {</em>
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  <em class="jxr_comment">//                continue;</em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  <em class="jxr_comment">//            }</em>
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>                          Track t = rp.getTracks().get(0);
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>                          <strong class="jxr_keyword">int</strong> trackFinderType = t.getType();
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>                          <strong class="jxr_keyword">int</strong> nHits = t.getTrackerHits().size();
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>                          String id = pdgId == 11 ? <span class="jxr_string">"electron"</span> : <span class="jxr_string">"positron"</span>;
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>                          Hep3Vector pmom = rp.getMomentum();
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>                          <strong class="jxr_keyword">double</strong> thetaY = atan2(pmom.y(), pmom.z());<em class="jxr_comment">//asin(pmom.y() / pmom.magnitude());</em>
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>                          <strong class="jxr_keyword">double</strong> z0 = t.getTrackStates().get(0).getZ0();
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>                         String torb = isTopTrack(t) ? <span class="jxr_string">" top "</span> : <span class="jxr_string">" bottom "</span>;
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>                         aida.histogram1D(trackType + torb + id + <span class="jxr_string">" track momentum"</span>, 100, 0., 10.).fill(rp.getMomentum().magnitude());
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> 
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>                         aida.cloud1D(trackType + torb + id + <span class="jxr_string">" |thetaY|"</span>).fill(abs(thetaY));
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>                         aida.histogram1D(trackType + torb + id + <span class="jxr_string">" z0"</span>, 100, -2., 2.).fill(z0);
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>                         aida.cloud2D(trackType + torb + id + <span class="jxr_string">" |thetaY| vs z0"</span>).fill(abs(thetaY), z0);
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>                         aida.profile1D(trackType + torb + id + <span class="jxr_string">" |thetaY| vs z0 profile"</span>, 10, 0.01, 0.1).fill(abs(thetaY), z0);
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>                         <strong class="jxr_keyword">if</strong> (trackType.equals(<span class="jxr_string">"MatchedTrack "</span>) &amp;&amp; torb.equals(<span class="jxr_string">" bottom "</span>) &amp;&amp; id.equals(<span class="jxr_string">"electron"</span>)) {
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>                             zProfileBottomMatched.fill(abs(thetaY), z0);
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>                         }
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>                         <strong class="jxr_keyword">if</strong> (trackType.equals(<span class="jxr_string">"GBL "</span>) &amp;&amp; torb.equals(<span class="jxr_string">" bottom "</span>) &amp;&amp; id.equals(<span class="jxr_string">"electron"</span>)) {
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>                             zProfileBottomGBL.fill(abs(thetaY), z0);
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>                         }
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> 
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>                         List&lt;Cluster&gt; clusters = rp.getClusters();
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>                         <strong class="jxr_keyword">if</strong> (!clusters.isEmpty()) {
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>                             Cluster c = clusters.get(0);
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>                             analyzeCluster(c, id);
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>                             <strong class="jxr_keyword">double</strong>[] cPos = c.getPosition();
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>                             aida.histogram2D(id + <span class="jxr_string">" cluster x vs y"</span>, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cPos[0], cPos[1]);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>                             aida.histogram1D(trackType + torb + id + <span class="jxr_string">" cluster energy"</span>, 100, 0., 10.).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>                             aida.histogram1D(trackType + torb + id + <span class="jxr_string">" cluster energy over track momentum EoverP"</span>, 100, 0., 2.).fill(c.getEnergy() / rp.getMomentum().magnitude());
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>                             aida.histogram1D(trackType + torb + id + <span class="jxr_string">" track momentum with cluster"</span>, 100, 0., 10.).fill(rp.getMomentum().magnitude());
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>                             aida.histogram1D(trackType + torb + id + <span class="jxr_string">" track momentum with cluster "</span> + nHits + <span class="jxr_string">" hits"</span>, 100, 0., 10.).fill(rp.getMomentum().magnitude());
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>                             aida.histogram1D(trackType + <span class="jxr_string">" "</span> + trackFinderType + torb + id + <span class="jxr_string">" track momentum with cluster "</span> + nHits + <span class="jxr_string">" hits"</span>, 100, 0., 10.).fill(rp.getMomentum().magnitude());
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>                         }
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>                     }
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>                     <strong class="jxr_keyword">if</strong> (pdgId == 22) {
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>                         String id = <span class="jxr_string">"photon"</span>;
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>                         Cluster c = rp.getClusters().get(0);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>                         analyzeCluster(c, id);
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>                         <strong class="jxr_keyword">double</strong>[] cPos = c.getPosition();
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>                         aida.histogram2D(id + <span class="jxr_string">" cluster x vs y"</span>, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(cPos[0], cPos[1]);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>                         aida.histogram1D(id + <span class="jxr_string">" momentum"</span>, 100, 0., 10.).fill(rp.getMomentum().magnitude());
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>                     }
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>                 }
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>                 aida.tree().cd(<span class="jxr_string">".."</span>);
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>             }
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         }
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>     }
+<a class="jxr_linenumber" name="L140" href="#L140">140</a> 
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>     @Override
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> endOfData() {
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>         IAnalysisFactory af = IAnalysisFactory.create();
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>         IDataPointSetFactory dpsf = af.createDataPointSetFactory(aida.tree());
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         IDataPointSet dps2DFromProf = dpsf.create(<span class="jxr_string">"dps2DFromProf"</span>, zProfileBottomMatched);
+<a class="jxr_linenumber" name="L146" href="#L146">146</a> 
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>     }
+<a class="jxr_linenumber" name="L148" href="#L148">148</a> 
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> analyzeV0(EventHeader event) {
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>         String[] v0Dirs = {<span class="jxr_string">"UnconstrainedV0Candidates"</span>, <span class="jxr_string">"UnconstrainedV0Candidates_KF"</span>};
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>         <strong class="jxr_keyword">for</strong> (String dir : v0Dirs) {
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>             <strong class="jxr_keyword">if</strong> (event.hasCollection(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, dir)) {
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>                 aida.tree().mkdirs(dir);
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>                 aida.tree().cd(dir);
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>                 List&lt;ReconstructedParticle&gt; v0List = event.get(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, dir);
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>                 <strong class="jxr_keyword">for</strong> (ReconstructedParticle v0 : v0List) {
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>                     String trackType = <span class="jxr_string">"SeedTrack "</span>;
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>                     <strong class="jxr_keyword">int</strong> minNhits = 5;
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>                     <strong class="jxr_keyword">if</strong> (TrackType.isGBL(v0.getType())) {
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>                         trackType = <span class="jxr_string">"GBL "</span>;
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>                     }
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>                     <strong class="jxr_keyword">if</strong> (v0.getType() == 1) {
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>                         trackType = <span class="jxr_string">"Kalman "</span>;
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>                         minNhits = 10;
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>                     }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>                     Vertex uncVert = v0.getStartVertex();
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>                     Hep3Vector pVtxRot = VecOp.mult(beamAxisRotation, v0.getMomentum());
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>                     Hep3Vector vtxPosRot = VecOp.mult(beamAxisRotation, uncVert.getPosition());
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>                     <strong class="jxr_keyword">double</strong> theta = Math.acos(pVtxRot.z() / pVtxRot.magnitude());
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>                     <strong class="jxr_keyword">double</strong> phi = Math.atan2(pVtxRot.y(), pVtxRot.x());
+<a class="jxr_linenumber" name="L171" href="#L171">171</a> 
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>                     <em class="jxr_comment">// this always has 2 tracks.</em>
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>                     List&lt;ReconstructedParticle&gt; trks = v0.getParticles();
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>                     ReconstructedParticle ele = trks.get(0);
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>                     ReconstructedParticle pos = trks.get(1);
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>                     <strong class="jxr_keyword">int</strong> eNhits = ele.getTracks().get(0).getTrackerHits().size();
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>                     <strong class="jxr_keyword">int</strong> pNhits = pos.getTracks().get(0).getTrackerHits().size();
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>                     <strong class="jxr_keyword">double</strong> eMom = ele.getMomentum().magnitude();
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>                     <strong class="jxr_keyword">double</strong> pMom = pos.getMomentum().magnitude();
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>                     aida.histogram1D(<span class="jxr_string">"electron track nHits"</span>, 20, 0., 20.).fill(eNhits);
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>                     aida.histogram1D(<span class="jxr_string">"positron track nHits"</span>, 20, 0., 20.).fill(pNhits);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>                     aida.histogram1D(<span class="jxr_string">"electron momentum"</span>, 100, 0., 6.0).fill(eMom);
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>                     aida.histogram1D(<span class="jxr_string">"positron momentum"</span>, 100, 0., 6.0).fill(pMom);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a> 
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>                     <strong class="jxr_keyword">if</strong> (eNhits &gt;= minNhits &amp;&amp; pNhits &gt;= minNhits) {
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>                         aida.histogram1D(<span class="jxr_string">"v0 x"</span>, 50, -5., 5.).fill(vtxPosRot.x());
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>                         aida.histogram1D(<span class="jxr_string">"v0 y"</span>, 50, -2., 2.).fill(vtxPosRot.y());
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>                         aida.histogram1D(<span class="jxr_string">"v0 z"</span>, 50, -25., 0.).fill(vtxPosRot.z());
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>                         aida.histogram1D(<span class="jxr_string">"v0 x ele "</span> + eNhits + <span class="jxr_string">" pos "</span> + pNhits + <span class="jxr_string">" hits on track"</span>, 50, -5., 5.).fill(vtxPosRot.x());
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>                         aida.histogram1D(<span class="jxr_string">"v0 y ele "</span> + eNhits + <span class="jxr_string">" pos "</span> + pNhits + <span class="jxr_string">" hits on track"</span>, 50, -2., 2.).fill(vtxPosRot.y());
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>                         aida.histogram1D(<span class="jxr_string">"v0 z ele "</span> + eNhits + <span class="jxr_string">" pos "</span> + pNhits + <span class="jxr_string">" hits on track"</span>, 50, -25., 0.).fill(vtxPosRot.z());
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>                         aida.histogram1D(<span class="jxr_string">"v0 energy"</span>, 100, 0., 10.).fill(v0.getEnergy());
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>                         aida.histogram1D(<span class="jxr_string">"v0 mass"</span>, 50, 0., 0.5).fill(v0.getMass());
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>                         aida.histogram2D(<span class="jxr_string">"v0 mass vs Z vertex"</span>, 50, 0., 0.5, 100, -20., 20.).fill(v0.getMass(), vtxPosRot.z());
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>                         aida.histogram2D(<span class="jxr_string">"v0 mass vs Z vertex ele "</span> + eNhits + <span class="jxr_string">" pos "</span> + pNhits + <span class="jxr_string">" hits on track"</span>, 50, 0., 0.5, 100, -20., 20.).fill(v0.getMass(), vtxPosRot.z());
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>                         aida.profile1D(<span class="jxr_string">"v0 mass vs Z vertex profile"</span>, 50, 0.05, 0.25).fill(v0.getMass(), vtxPosRot.z());
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>                         <strong class="jxr_keyword">if</strong> (ele.getClusters().isEmpty()) {
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>                             aida.histogram1D(<span class="jxr_string">"psum no electron ECal Cluster"</span>, 100, 0., 6.0).fill(eMom + pMom);
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>                             aida.histogram1D(<span class="jxr_string">"psum no electron ECal Cluster ele "</span> + eNhits + <span class="jxr_string">" pos "</span> + pNhits + <span class="jxr_string">" hits on track"</span>, 100, 0., 6.0).fill(eMom + pMom);
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>                         }
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>                         aida.histogram1D(<span class="jxr_string">"psum"</span>, 100, 0., 6.0).fill(eMom + pMom);
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>                         aida.histogram1D(<span class="jxr_string">"psum ele "</span> + eNhits + <span class="jxr_string">" pos "</span> + pNhits + <span class="jxr_string">" hits on track"</span>, 100, 0., 6.0).fill(eMom + pMom);
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>                         aida.histogram2D(<span class="jxr_string">"electron vs positron momentum"</span>, 100, 0., 6.0, 100, 0., 6.).fill(eMom, pMom);
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>                         <strong class="jxr_keyword">if</strong> (ele.getClusters().size() &gt; 0 &amp;&amp; pos.getClusters().size() &gt; 0) {
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>                             aida.histogram1D(<span class="jxr_string">"psum both ECal Clusters"</span>, 100, 0., 6.0).fill(eMom + pMom);
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>                             aida.histogram1D(<span class="jxr_string">"esum both ECal Clusters"</span>, 100, 0., 6.0).fill(ele.getClusters().get(0).getEnergy() + pos.getClusters().get(0).getEnergy());
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>                         }
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>                     }
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>                 }
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>                 aida.tree().cd(<span class="jxr_string">".."</span>);
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>             }
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>         }
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>     }
+<a class="jxr_linenumber" name="L214" href="#L214">214</a> 
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> analyzeClusters(EventHeader event) {
+<a class="jxr_linenumber" name="L216" href="#L216">216</a> 
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         List&lt;Cluster&gt; eventClusters = event.get(Cluster.<strong class="jxr_keyword">class</strong>, clusterCollection);
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>         aida.tree().mkdirs(clusterCollection + <span class="jxr_string">" Analysis"</span>);
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         aida.tree().cd(clusterCollection + <span class="jxr_string">" Analysis"</span>);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         <strong class="jxr_keyword">int</strong> nClusters = eventClusters.size();
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         aida.histogram1D(<span class="jxr_string">"Number of Clusters in Event"</span>, 10, 0., 10.).fill(nClusters);
+<a class="jxr_linenumber" name="L222" href="#L222">222</a> 
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>         <strong class="jxr_keyword">for</strong> (Cluster c : eventClusters) {
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>             <strong class="jxr_keyword">boolean</strong> isFiducial = TriggerModule.inFiducialRegion(c);
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>             String fiducial = isFiducial ? <span class="jxr_string">" fiducial "</span> : <span class="jxr_string">" "</span>;
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">double</strong>[] cPos = c.getPosition();
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>             String topOrBottom = cPos[1] &gt; 0 ? <span class="jxr_string">" top "</span> : <span class="jxr_string">" bottom "</span>;
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>             CalorimeterHit seed = c.getCalorimeterHits().get(0);
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>             <strong class="jxr_keyword">int</strong> ix = seed.getIdentifierFieldValue(<span class="jxr_string">"ix"</span>);
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             <strong class="jxr_keyword">int</strong> iy = seed.getIdentifierFieldValue(<span class="jxr_string">"iy"</span>);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>             aida.histogram2D(<span class="jxr_string">"cluster ix vs iy"</span>, 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>             <em class="jxr_comment">//           aida.histogram1D(ix + " " + iy + " cluster energy", 100, 0., 5.0).fill(c.getEnergy());</em>
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>             aida.histogram1D(topOrBottom + <span class="jxr_string">" cluster energy"</span>, 100, 0., 5.0).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>             aida.histogram1D(fiducial + topOrBottom + <span class="jxr_string">" cluster energy"</span>, 100, 0., 5.0).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>             aida.histogram1D(fiducial + topOrBottom + <span class="jxr_string">" cluster energy "</span> + nClusters + <span class="jxr_string">" event clusters"</span>, 100, 0., 5.0).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L236" href="#L236">236</a> 
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             aida.histogram1D(<span class="jxr_string">"event cluster nHits"</span>, 20, 0., 20.).fill(c.getCalorimeterHits().size());
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>             aida.histogram1D(<span class="jxr_string">"event cluster energy"</span>, 100, 0., 5.5).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>             aida.histogram1D(fiducial + <span class="jxr_string">"event cluster energy"</span>, 100, 0., 5.5).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L240" href="#L240">240</a> 
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>             aida.histogram2D(<span class="jxr_string">"event cluster x vs y"</span>, 320, -270.0, 370.0, 90, -90.0, 90.0).fill(c.getPosition()[0], c.getPosition()[1]);
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>             <strong class="jxr_keyword">if</strong> (isFiducial) {
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>                 aida.histogram2D(<span class="jxr_string">"fiducial cluster seed energy vs cluster energy"</span>, 100, 3., 5., 100, 0.5, 3.5).fill(c.getEnergy(), seed.getCorrectedEnergy());
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>             }
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>             <strong class="jxr_keyword">if</strong> (seed.getCorrectedEnergy() &gt; minSeedEnergy) {
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>                 aida.histogram1D(topOrBottom + <span class="jxr_string">" cluster energy, seed &gt; "</span> + minSeedEnergy, 100, 0., 6.0).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>                 aida.histogram1D(topOrBottom + <span class="jxr_string">" cluster energy, seed &gt; "</span> + minSeedEnergy + <span class="jxr_string">" "</span> + nClusters + <span class="jxr_string">" event clusters"</span>, 100, 0., 6.0).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>                 aida.histogram1D(fiducial + topOrBottom + <span class="jxr_string">" cluster energy, seed &gt; "</span> + minSeedEnergy, 100, 0., 6.0).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>                 aida.histogram1D(fiducial + topOrBottom + <span class="jxr_string">" cluster energy, seed &gt; "</span> + minSeedEnergy + <span class="jxr_string">" "</span> + nClusters + <span class="jxr_string">" event clusters"</span>, 100, 0., 6.0).fill(c.getEnergy());
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>             }
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>             List&lt;CalorimeterHit&gt; clusterHits = c.getCalorimeterHits();
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>             CalorimeterHit seedHit = ClusterUtilities.findSeedHit(c);
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>             aida.histogram1D(<span class="jxr_string">"cluster seed time"</span>, 100, 0., 200.).fill(seedHit.getTime());
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>             <strong class="jxr_keyword">if</strong> (seed != seedHit) {
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                 System.out.println(<span class="jxr_string">"Panic!"</span>);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>             }
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>             <strong class="jxr_keyword">for</strong> (CalorimeterHit hit : clusterHits) {
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                 aida.histogram1D(<span class="jxr_string">"cluster hit corrected energy"</span>, 200, 0., 5.).fill(hit.getCorrectedEnergy());
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>                 aida.histogram1D(<span class="jxr_string">"cluster hit corrected energy low end"</span>, 200, 0., 0.1).fill(hit.getCorrectedEnergy());
+<a class="jxr_linenumber" name="L260" href="#L260">260</a> <em class="jxr_comment">//                aida.histogram1D("cluster hit raw energy", 200, 0., 5.).fill(hit.getRawEnergy());  //!? always zero?</em>
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>                 <strong class="jxr_keyword">if</strong> (seedHit != hit) {
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                     aida.histogram1D(<span class="jxr_string">"cluster seed hit time - hit time"</span>, 100, -20., 20.).fill(seedHit.getTime() - hit.getTime());
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>                 }
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>             }
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         }
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         aida.tree().cd(<span class="jxr_string">".."</span>);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>     }
+<a class="jxr_linenumber" name="L268" href="#L268">268</a> 
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>     <strong class="jxr_keyword">void</strong> analyzeCluster(Cluster cluster, String type) {
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>         <strong class="jxr_keyword">double</strong>[] cPos = cluster.getPosition();
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>         String topOrBottom = cPos[1] &gt; 0 ? <span class="jxr_string">" top "</span> : <span class="jxr_string">" bottom "</span>;
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         aida.tree().mkdirs(<span class="jxr_string">"clusterAnalysis"</span>);
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         aida.tree().cd(<span class="jxr_string">"clusterAnalysis"</span>);
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         CalorimeterHit seed = cluster.getCalorimeterHits().get(0);
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         <strong class="jxr_keyword">int</strong> ix = seed.getIdentifierFieldValue(<span class="jxr_string">"ix"</span>);
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>         <strong class="jxr_keyword">int</strong> iy = seed.getIdentifierFieldValue(<span class="jxr_string">"iy"</span>);
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>         aida.histogram2D(<span class="jxr_string">"cluster ix vs iy"</span>, 47, -23.5, 23.5, 11, -5.5, 5.5).fill(ix, iy);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> <em class="jxr_comment">//        aida.histogram1D(ix + " " + iy + " " + type + " cluster energy", 100, 0., 5.0).fill(cluster.getEnergy());</em>
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         aida.histogram1D(topOrBottom + <span class="jxr_string">" cluster energy"</span>, 100, 0., 5.0).fill(cluster.getEnergy());
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>         aida.tree().cd(<span class="jxr_string">".."</span>);
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>     }
+<a class="jxr_linenumber" name="L282" href="#L282">282</a> 
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> isTopTrack(Track t) {
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>         List&lt;TrackerHit&gt; hits = t.getTrackerHits();
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>         <strong class="jxr_keyword">int</strong> n[] = {0, 0};
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>         <strong class="jxr_keyword">int</strong> nHits = hits.size();
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         <strong class="jxr_keyword">for</strong> (TrackerHit h : hits) {
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>             <a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = ((<a name="HpsSiSensor" href="../../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) h.getRawHits().get(0)).getDetectorElement());
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>             <strong class="jxr_keyword">if</strong> (sensor.isTopLayer()) {
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                 n[0] += 1;
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>                 n[1] += 1;
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>             }
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>         }
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>         <strong class="jxr_keyword">if</strong> (n[0] == nHits &amp;&amp; n[1] == 0) {
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         }
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         <strong class="jxr_keyword">if</strong> (n[1] == nHits &amp;&amp; n[0] == 0) {
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>             <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>         }
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"mixed top and bottom hits on same track"</span>);
+<a class="jxr_linenumber" name="L302" href="#L302">302</a> 
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>     }
+<a class="jxr_linenumber" name="L304" href="#L304">304</a> 
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setupSensors(EventHeader event) {
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>         List&lt;RawTrackerHit&gt; rawTrackerHits = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"SVTRawTrackerHits"</span>);
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         <em class="jxr_comment">// Get the ID dictionary and field information.</em>
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>         IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>         <strong class="jxr_keyword">int</strong> fieldIdx = dict.getFieldIndex(<span class="jxr_string">"side"</span>);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>         <strong class="jxr_keyword">int</strong> sideIdx = dict.getFieldIndex(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>         <strong class="jxr_keyword">for</strong> (RawTrackerHit hit : rawTrackerHits) {
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>             <em class="jxr_comment">// The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.</em>
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>             expId.setValue(fieldIdx, 0);
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>             expId.setValue(sideIdx, 0);
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>             IIdentifier strippedId = dict.pack(expId);
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>             <em class="jxr_comment">// Find the sensor DetectorElement.</em>
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>             List&lt;IDetectorElement&gt; des = DetectorElementStore.getInstance().find(strippedId);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>             <strong class="jxr_keyword">if</strong> (des == <strong class="jxr_keyword">null</strong> || des.size() == 0) {
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Failed to find any DetectorElements with stripped ID &lt;0x"</span> + Long.toHexString(strippedId.getValue()) + <span class="jxr_string">"&gt;."</span>);
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>             } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (des.size() == 1) {
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>                 hit.setDetectorElement((SiSensor) des.get(0));
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>             } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>                 <em class="jxr_comment">// Use first sensor found, which should work unless there are sensors with duplicate IDs.</em>
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>                 <strong class="jxr_keyword">for</strong> (IDetectorElement de : des) {
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>                     <strong class="jxr_keyword">if</strong> (de instanceof SiSensor) {
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>                         hit.setDetectorElement((SiSensor) de);
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>                     }
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>                 }
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>             }
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>             <em class="jxr_comment">// No sensor was found.</em>
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>             <strong class="jxr_keyword">if</strong> (hit.getDetectorElement() == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No sensor was found for hit with stripped ID &lt;0x"</span> + Long.toHexString(strippedId.getValue()) + <span class="jxr_string">"&gt;."</span>);
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>             }
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>         }
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>     }
+<a class="jxr_linenumber" name="L339" href="#L339">339</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

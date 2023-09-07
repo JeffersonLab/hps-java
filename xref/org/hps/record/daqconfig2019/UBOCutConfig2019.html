@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>UBOCutConfig2019 xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/record/daqconfig2019/UBOCutConfig2019.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.record.daqconfig2019;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> * Class &lt;code&gt;UBOCutConfig2019&lt;/code&gt; is an implementation of the abstract</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> * &lt;code&gt;AbstractCutConfig2019&lt;/code&gt; for cuts that have only an upper bound.</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> * It provides the means to access this value and, for package classes,</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> * set it.</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> * </em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> * Code is developed referring to org.hps.record.daqconfig.UBOCutConfig by Kyle McCarty</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="UBOCutConfig2019" href="../../../../org/hps/record/daqconfig2019/UBOCutConfig2019.html#UBOCutConfig2019">UBOCutConfig2019</a> <strong class="jxr_keyword">extends</strong> AbstractConfig2019&lt;Double&gt; {
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> UPPER_BOUND = 0;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment">     * Instantiates a new &lt;code&gt;UBOCutConfig&lt;/code&gt; object.</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      <strong class="jxr_keyword">public</strong> <a name="UBOCutConfig2019" href="../../../../org/hps/record/daqconfig2019/UBOCutConfig2019.html#UBOCutConfig2019">UBOCutConfig2019</a>() { <strong class="jxr_keyword">super</strong>(1); }
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_javadoccomment">     * Gets the upper bound of the cut.</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <em class="jxr_javadoccomment">     * @return Returns the upper bound as a &lt;code&gt;double&lt;/code&gt;.</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getUpperBound() {
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          <strong class="jxr_keyword">return</strong> getValue(UPPER_BOUND);
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      }
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <em class="jxr_javadoccomment">     * Sets the upper bound of the cut to the specified value.</em>
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <em class="jxr_javadoccomment">     * @param value - The new upper bound for the cut.</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">void</strong> setUpperBound(<strong class="jxr_keyword">double</strong> value) {
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          setValue(UPPER_BOUND, value);
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      }
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

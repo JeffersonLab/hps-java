@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>ScanBuilder xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../apidocs/org/hps/minuit/ScanBuilder.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.minuit;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> * Performs a minimization using the simplex method of Nelder and Mead (ref.</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> * Comp. J. 7, 308 (1965)).</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">class</strong> <a name="ScanBuilder" href="../../../org/hps/minuit/ScanBuilder.html#ScanBuilder">ScanBuilder</a> <strong class="jxr_keyword">implements</strong> <a name="MinimumBuilder" href="../../../org/hps/minuit/MinimumBuilder.html#MinimumBuilder">MinimumBuilder</a> {
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">public</strong> <a name="FunctionMinimum" href="../../../org/hps/minuit/FunctionMinimum.html#FunctionMinimum">FunctionMinimum</a> minimum(<a name="MnFcn" href="../../../org/hps/minuit/MnFcn.html#MnFcn">MnFcn</a> mfcn, <a name="GradientCalculator" href="../../../org/hps/minuit/GradientCalculator.html#GradientCalculator">GradientCalculator</a> gc, <a name="MinimumSeed" href="../../../org/hps/minuit/MinimumSeed.html#MinimumSeed">MinimumSeed</a> seed, <a name="MnStrategy" href="../../../org/hps/minuit/MnStrategy.html#MnStrategy">MnStrategy</a> stra, <strong class="jxr_keyword">int</strong> maxfcn, <strong class="jxr_keyword">double</strong> toler) {
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>          <a name="MnAlgebraicVector" href="../../../org/hps/minuit/MnAlgebraicVector.html#MnAlgebraicVector">MnAlgebraicVector</a> x = seed.parameters().vec().clone();
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>          <a name="MnUserParameterState" href="../../../org/hps/minuit/MnUserParameterState.html#MnUserParameterState">MnUserParameterState</a> upst = <strong class="jxr_keyword">new</strong> <a name="MnUserParameterState" href="../../../org/hps/minuit/MnUserParameterState.html#MnUserParameterState">MnUserParameterState</a>(seed.state(), mfcn.errorDef(), seed.trafo());
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>          <a name="MnParameterScan" href="../../../org/hps/minuit/MnParameterScan.html#MnParameterScan">MnParameterScan</a> scan = <strong class="jxr_keyword">new</strong> <a name="MnParameterScan" href="../../../org/hps/minuit/MnParameterScan.html#MnParameterScan">MnParameterScan</a>(mfcn.fcn(), upst.parameters(), seed.fval());
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>          <strong class="jxr_keyword">double</strong> amin = scan.fval();
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>          <strong class="jxr_keyword">int</strong> n = seed.trafo().variableParameters();
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          <a name="MnAlgebraicVector" href="../../../org/hps/minuit/MnAlgebraicVector.html#MnAlgebraicVector">MnAlgebraicVector</a> dirin = <strong class="jxr_keyword">new</strong> <a name="MnAlgebraicVector" href="../../../org/hps/minuit/MnAlgebraicVector.html#MnAlgebraicVector">MnAlgebraicVector</a>(n);
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; n; i++) {
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>              <strong class="jxr_keyword">int</strong> ext = seed.trafo().extOfInt(i);
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>              scan.scan(ext);
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>              <strong class="jxr_keyword">if</strong> (scan.fval() &lt; amin) {
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>                  amin = scan.fval();
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>                  x.set(i, seed.trafo().ext2<strong class="jxr_keyword">int</strong>(ext, scan.parameters().value(ext)));
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>              }
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>              dirin.set(i, Math.sqrt(2. * mfcn.errorDef() * seed.error().invHessian().get(i, i)));
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          }
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          <a name="MinimumParameters" href="../../../org/hps/minuit/MinimumParameters.html#MinimumParameters">MinimumParameters</a> mp = <strong class="jxr_keyword">new</strong> <a name="MinimumParameters" href="../../../org/hps/minuit/MinimumParameters.html#MinimumParameters">MinimumParameters</a>(x, dirin, amin);
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          <a name="MinimumState" href="../../../org/hps/minuit/MinimumState.html#MinimumState">MinimumState</a> st = <strong class="jxr_keyword">new</strong> <a name="MinimumState" href="../../../org/hps/minuit/MinimumState.html#MinimumState">MinimumState</a>(mp, 0., mfcn.numOfCalls());
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          List&lt;MinimumState&gt; states = <strong class="jxr_keyword">new</strong> ArrayList&lt;MinimumState&gt;(1);
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          states.add(st);
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="FunctionMinimum" href="../../../org/hps/minuit/FunctionMinimum.html#FunctionMinimum">FunctionMinimum</a>(seed, states, mfcn.errorDef());
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      }
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

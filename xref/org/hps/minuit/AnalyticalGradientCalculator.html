@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>AnalyticalGradientCalculator xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../apidocs/org/hps/minuit/AnalyticalGradientCalculator.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.minuit;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <em class="jxr_javadoccomment"> * duns $</em>
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">class</strong> <a name="AnalyticalGradientCalculator" href="../../../org/hps/minuit/AnalyticalGradientCalculator.html#AnalyticalGradientCalculator">AnalyticalGradientCalculator</a> <strong class="jxr_keyword">implements</strong> <a name="GradientCalculator" href="../../../org/hps/minuit/GradientCalculator.html#GradientCalculator">GradientCalculator</a> {
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>       <a name="AnalyticalGradientCalculator" href="../../../org/hps/minuit/AnalyticalGradientCalculator.html#AnalyticalGradientCalculator">AnalyticalGradientCalculator</a>(<a name="FCNGradientBase" href="../../../org/hps/minuit/FCNGradientBase.html#FCNGradientBase">FCNGradientBase</a> fcn, <a name="MnUserTransformation" href="../../../org/hps/minuit/MnUserTransformation.html#MnUserTransformation">MnUserTransformation</a> state, <strong class="jxr_keyword">boolean</strong> checkGradient) {
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>          theGradCalc = fcn;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>          theTransformation = state;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>          theCheckGradient = checkGradient;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      }
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      <strong class="jxr_keyword">public</strong> <a name="FunctionGradient" href="../../../org/hps/minuit/FunctionGradient.html#FunctionGradient">FunctionGradient</a> gradient(<a name="MinimumParameters" href="../../../org/hps/minuit/MinimumParameters.html#MinimumParameters">MinimumParameters</a> par) {
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>          <strong class="jxr_keyword">double</strong>[] grad = theGradCalc.gradient(theTransformation.transform(par.vec()).data());
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>          <strong class="jxr_keyword">if</strong> (grad.length != theTransformation.parameters().size()) {
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"Invalid parameter size"</span>);
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          }
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          <a name="MnAlgebraicVector" href="../../../org/hps/minuit/MnAlgebraicVector.html#MnAlgebraicVector">MnAlgebraicVector</a> v = <strong class="jxr_keyword">new</strong> <a name="MnAlgebraicVector" href="../../../org/hps/minuit/MnAlgebraicVector.html#MnAlgebraicVector">MnAlgebraicVector</a>(par.vec().size());
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; par.vec().size(); i++) {
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>              <strong class="jxr_keyword">int</strong> ext = theTransformation.extOfInt(i);
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>              <strong class="jxr_keyword">if</strong> (theTransformation.parameter(ext).hasLimits()) {
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>                  <strong class="jxr_keyword">double</strong> dd = theTransformation.dInt2Ext(i, par.vec().get(i));
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>                  v.set(i, dd * grad[ext]);
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>              } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>                  v.set(i, grad[ext]);
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>              }
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          }
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="FunctionGradient" href="../../../org/hps/minuit/FunctionGradient.html#FunctionGradient">FunctionGradient</a>(v);
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      }
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">public</strong> <a name="FunctionGradient" href="../../../org/hps/minuit/FunctionGradient.html#FunctionGradient">FunctionGradient</a> gradient(<a name="MinimumParameters" href="../../../org/hps/minuit/MinimumParameters.html#MinimumParameters">MinimumParameters</a> par, <a name="FunctionGradient" href="../../../org/hps/minuit/FunctionGradient.html#FunctionGradient">FunctionGradient</a> grad) {
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          <strong class="jxr_keyword">return</strong> gradient(par);
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      }
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">boolean</strong> checkGradient() {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          <strong class="jxr_keyword">return</strong> theCheckGradient;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      }
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">private</strong> <a name="FCNGradientBase" href="../../../org/hps/minuit/FCNGradientBase.html#FCNGradientBase">FCNGradientBase</a> theGradCalc;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> <a name="MnUserTransformation" href="../../../org/hps/minuit/MnUserTransformation.html#MnUserTransformation">MnUserTransformation</a> theTransformation;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> theCheckGradient;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

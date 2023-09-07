@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>LinearHelixFit xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/recon/tracking/kalman/LinearHelixFit.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.tracking.kalman;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> org.ejml.data.DMatrixRMaj;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> org.ejml.dense.row.CommonOps_DDRM;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> * Simultaneous fit of axial and stereo measurements to a line in the non-bending plane</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> * and a parabola in the bending plane</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> * Deprecated. The LinearHelixFit code was integrated into SeedTrack as a method of that class, for better efficiency.</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">class</strong> <a name="LinearHelixFit" href="../../../../../org/hps/recon/tracking/kalman/LinearHelixFit.html#LinearHelixFit">LinearHelixFit</a> { <em class="jxr_comment">// </em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">private</strong> DMatrixRMaj  C; <em class="jxr_comment">// Covariance matrix of solution</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <strong class="jxr_keyword">private</strong> DMatrixRMaj  a; <em class="jxr_comment">// Solution vector (line coefficients followed by parabola coefficients</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> chi2;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong>[] vpred;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      <a name="LinearHelixFit" href="../../../../../org/hps/recon/tracking/kalman/LinearHelixFit.html#LinearHelixFit">LinearHelixFit</a>(<strong class="jxr_keyword">int</strong> N, <strong class="jxr_keyword">double</strong>[] y, <strong class="jxr_keyword">double</strong>[] v, <strong class="jxr_keyword">double</strong>[] s, <strong class="jxr_keyword">double</strong>[][] delta, <strong class="jxr_keyword">double</strong>[][] R2, <strong class="jxr_keyword">boolean</strong> verbose) {
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          <em class="jxr_comment">// N = number of measurement points (detector layers) to fit. This must be no less than 5, with at least 2 axial and 2 stereo</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          <em class="jxr_comment">// y = nominal location of each measurement plane along the beam axis</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          <em class="jxr_comment">// v = measurement value in the detector coordinate system, perpendicular to the strips</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          <em class="jxr_comment">// s = one sigma error estimate on each measurement</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          <em class="jxr_comment">// delta = offset of the detector coordinate system from the global system (minus the nominal y value along the beam axis)</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          <em class="jxr_comment">// R2 = 2nd row of the general rotation from the global system to the local detector system</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <em class="jxr_comment">// verbose: set true to get lots of debug printout</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          <strong class="jxr_keyword">double</strong> [][] A = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[5][5];
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          <strong class="jxr_keyword">double</strong> [] B = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[5];
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; N; i++) {
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>              <strong class="jxr_keyword">double</strong> R10 = R2[i][0];
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>              <strong class="jxr_keyword">double</strong> R11 = R2[i][1];
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>              <strong class="jxr_keyword">double</strong> R12 = R2[i][2];
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>              <strong class="jxr_keyword">double</strong> w = 1.0 / (s[i] * s[i]);
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>              A[0][0] += w * R12 * R12;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>              A[0][1] += w * y[i] * R12 * R12;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>              A[0][2] += w * R12 * R10;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>              A[0][3] += w * y[i] * R12 * R10;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>              A[0][4] += w * y[i] * y[i] * R12 * R10;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>              A[1][1] += w * y[i] * y[i] * R12 * R12;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>              A[1][4] += w * y[i] * y[i] * y[i] * R12 * R10;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>              A[2][2] += w * R10 * R10;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>              A[2][3] += w * y[i] * R10 * R10;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>              A[2][4] += w * y[i] * y[i] * R10 * R10;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>              A[3][4] += w * y[i] * y[i] * y[i] * R10 * R10;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>              A[4][4] += w * y[i] * y[i] * y[i] * y[i] * R10 * R10;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>              <strong class="jxr_keyword">double</strong> vcorr = (v[i] + R10 * delta[i][0] + R12 * delta[i][2] + R11 * (delta[i][1] - y[i]));
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              B[0] += vcorr * R12 * w;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>              B[1] += vcorr * y[i] * R12 * w;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              B[2] += vcorr * R10 * w;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              B[3] += vcorr * y[i] * R10 * w;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>              B[4] += vcorr * y[i] * y[i] * R10 * w;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          }
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          A[1][0] = A[0][1];
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          A[1][2] = A[0][3];
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          A[1][3] = A[0][4];
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          A[2][0] = A[0][2];
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          A[2][1] = A[1][2];
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          A[3][0] = A[0][3];
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          A[3][1] = A[1][3];
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          A[3][2] = A[2][3];
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          A[3][3] = A[2][4];
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          A[4][0] = A[0][4];
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          A[4][1] = A[1][4];
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          A[4][2] = A[2][4];
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          A[4][3] = A[3][4];
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          C = <strong class="jxr_keyword">new</strong> DMatrixRMaj(A);
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          DMatrixRMaj V = <strong class="jxr_keyword">new</strong> DMatrixRMaj(B);
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          <strong class="jxr_keyword">if</strong> (verbose) C.print();
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          <em class="jxr_comment">// Do the calculation</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          CommonOps_DDRM.invert(C);
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          a = <strong class="jxr_keyword">new</strong> DMatrixRMaj(5);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          CommonOps_DDRM.mult(C,V,a);
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          <em class="jxr_comment">// Add up the chi-squared</em>
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          vpred = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[N];
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          chi2 = 0.;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; N; i++) {
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>              <strong class="jxr_keyword">double</strong> R10 = R2[i][0];
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>              <strong class="jxr_keyword">double</strong> R11 = R2[i][1];
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>              <strong class="jxr_keyword">double</strong> R12 = R2[i][2];
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>              vpred[i] = R10 * (evaluateParabola(y[i]) - delta[i][0]) + R12 * (evaluateLine(y[i]) - delta[i][2]) + R11 * (y[i] - delta[i][1]);
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              <em class="jxr_comment">//   R10 -0.000146  ePyi -4.094654  deltai0 -22.794523  R12 -0.999999 eLyi 22.174849  deltai2 32.839151  R11 -0.001407  yi 912.877681  deltai1 912.892707</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>              <em class="jxr_comment">//System.out.printf("  R10 %f  ePyi %f  deltai0 %f  R12 %f eLyi %f  deltai2 %f  R11 %f  yi %f  deltai1 %f \n", R10, evaluateParabola(y[i]), delta[i][0], R12, evaluateLine(y[i]), delta[i][2], R11, y[i], delta[i][1]);</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>              <strong class="jxr_keyword">double</strong> err = (v[i] - vpred[i]) / s[i];
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>              chi2 += err * err;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          }
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      }
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">void</strong> print(<strong class="jxr_keyword">int</strong> N, <strong class="jxr_keyword">double</strong>[] x, <strong class="jxr_keyword">double</strong>[] y, <strong class="jxr_keyword">double</strong>[] z, <strong class="jxr_keyword">double</strong>[] v, <strong class="jxr_keyword">double</strong>[] s) {
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          System.out.format(<span class="jxr_string">"LinearHelixFit2: parabola a=%10.7f   b=%10.7f   c=%10.7f\n"</span>, a.get(2,0), a.get(3,0), a.get(4,0));
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          System.out.format(<span class="jxr_string">"LinearHelixFit2:     line a=%10.7f   b=%10.7f\n"</span>, a.get(0,0), a.get(1,0));
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          System.out.println(<span class="jxr_string">"LinearHelixFit2 covariance:"</span>);
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          C.print();
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          System.out.format(
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>                  <span class="jxr_string">"LinearHelixFit2: i  xMC   xpred       y           zMC       zpred        v    v predicted   residual   sigmas       chi^2=%8.3f\n"</span>,
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>                 chi2);
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; N; i++) {
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>             <strong class="jxr_keyword">double</strong> xpred = evaluateParabola(y[i]);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>             <strong class="jxr_keyword">double</strong> zpred = evaluateLine(y[i]);
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>             System.out.format(<span class="jxr_string">"        %d   %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f %10.7f\n"</span>, i, x[i], xpred, y[i], z[i],
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>                     zpred, v[i], vpred[i], v[i] - vpred[i], (v[i] - vpred[i]) / s[i]);
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         }
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>     }
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> 
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     DMatrixRMaj covariance() {
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>         <strong class="jxr_keyword">return</strong> C;
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     }
+<a class="jxr_linenumber" name="L112" href="#L112">112</a> 
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>     <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> solution() {
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a> aV = <strong class="jxr_keyword">new</strong> <a name="Vec" href="../../../../../org/hps/recon/tracking/kalman/Vec.html#Vec">Vec</a>(a.unsafe_get(0,0),a.unsafe_get(1,0),a.unsafe_get(2,0),a.unsafe_get(3,0),a.unsafe_get(4,0));
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         <strong class="jxr_keyword">return</strong> aV;
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     }
+<a class="jxr_linenumber" name="L117" href="#L117">117</a> 
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>     <strong class="jxr_keyword">double</strong> evaluateLine(<strong class="jxr_keyword">double</strong> y) {
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         <strong class="jxr_keyword">return</strong> a.unsafe_get(0,0) + a.unsafe_get(1,0) * y;
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>     }
+<a class="jxr_linenumber" name="L121" href="#L121">121</a> 
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>     <strong class="jxr_keyword">double</strong> evaluateParabola(<strong class="jxr_keyword">double</strong> y) {
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         <strong class="jxr_keyword">return</strong> a.unsafe_get(2,0) + (a.unsafe_get(3,0) + a.unsafe_get(4,0) * y) * y;
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     }
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> 
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <strong class="jxr_keyword">double</strong> chiSquared() {
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>         <strong class="jxr_keyword">return</strong> chi2;
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>     }
+<a class="jxr_linenumber" name="L129" href="#L129">129</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

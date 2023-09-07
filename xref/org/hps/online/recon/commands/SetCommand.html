@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>SetCommand xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/online/recon/commands/SetCommand.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.online.recon.commands;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.Arrays;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.apache.commons.cli.ParseException;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.hps.online.recon.Command;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> * Set a configuration property</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a name="SetCommand" href="../../../../../org/hps/online/recon/commands/SetCommand.html#SetCommand">SetCommand</a> <strong class="jxr_keyword">extends</strong> <a name="Command" href="../../../../../org/hps/online/recon/Command.html#Command">Command</a> {
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <strong class="jxr_keyword">public</strong> <a name="SetCommand" href="../../../../../org/hps/online/recon/commands/SetCommand.html#SetCommand">SetCommand</a>() {
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>          <strong class="jxr_keyword">super</strong>(<span class="jxr_string">"set"</span>, <span class="jxr_string">"Set a configuration property"</span>, <span class="jxr_string">"[name] [value]"</span>, <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      }
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> process() {
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          List&lt;String&gt; argList = Arrays.asList(<strong class="jxr_keyword">this</strong>.rawArgs);
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          <strong class="jxr_keyword">if</strong> (argList.size() &lt; 2) {
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>              <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Name and value of property are both required!"</span>);
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          }
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          String name = argList.get(0);
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          String value = String.join(<span class="jxr_string">" "</span>, argList.subList(1, argList.size()));
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <em class="jxr_comment">//System.out.println("value="+value);</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          setParameter(<span class="jxr_string">"name"</span>, name);
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          setParameter(<span class="jxr_string">"value"</span>, value);
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>      }
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> parse(String[] args) <strong class="jxr_keyword">throws</strong> ParseException {
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          <strong class="jxr_keyword">this</strong>.rawArgs = args;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          <em class="jxr_comment">// Don't parse options so we can easily allow characters values that would confuse the CL parser like dashes.</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      }
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

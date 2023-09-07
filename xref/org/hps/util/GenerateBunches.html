@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>GenerateBunches xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../apidocs/org/hps/util/GenerateBunches.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.util;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.io.stdhep.StdhepEvent;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.io.stdhep.StdhepWriter;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.physics.particle.properties.ParticleType;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> hep.physics.particle.properties.ParticlePropertyManager;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> java.util.Random;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <em class="jxr_javadoccomment"> * Simple java program to generate single particles of fixed momentum uniformly</em>
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <em class="jxr_javadoccomment"> * distributed in pseudorapidity.</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="GenerateBunches" href="../../../org/hps/util/GenerateBunches.html#GenerateBunches">GenerateBunches</a> {
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <em class="jxr_comment">//  Edit the following declarations to set desired paramters</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      <strong class="jxr_keyword">static</strong> String dir = <span class="jxr_string">"/a/surrey10/vol/vol0/g.hps/mgraham/DarkPhoton/SingleParticleSamples/5.5GeV-100u/"</span>;        <em class="jxr_comment">// Output directory</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_comment">// static String dir = "/a/surrey10/vol/vol0/g.hps/mgraham/DarkPhoton/SingleParticleSamples/";</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>      <strong class="jxr_keyword">static</strong> String file = <span class="jxr_string">"electron_5.5GeV_7.5ns_100na_400bunches_"</span>;  <em class="jxr_comment">// File name</em>
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <em class="jxr_comment">//    static String file = "electron_6GeV_25ns_10bunches_";  // File name</em>
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> nevt = 400;            <em class="jxr_comment">// Number of events/file to generate</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> nfiles = 400;             <em class="jxr_comment">//number of files to generate</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> start=400;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> current = 100;  <em class="jxr_comment">//nanoamps</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> bunchtime=7.5;  <em class="jxr_comment">//nanoseconds</em>
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> convert=6.25;   <em class="jxr_comment">//electrons/ns in a nanoamp</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">static</strong> String ext = <span class="jxr_string">"stdhep"</span>;      <em class="jxr_comment">// File extension</em>
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_comment">//    static int nele = 15000;            // Number of elecrons in a bunch (25ns)</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> nele = (<strong class="jxr_keyword">int</strong>) Math.round(current*bunchtime*convert);            <em class="jxr_comment">// Number of elecrons in a bunch (7.5ns)</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> pdgid = 11;             <em class="jxr_comment">// PDG code for particle to generate (11=electrons, 13 = muons, 211 = pions)</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> flipsign = false;    <em class="jxr_comment">// Set to false if you only want a specific charge</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> pmin = 5.5;         <em class="jxr_comment">// Minimum particle momentum at 90 degrees (GeV)</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> pmax = 5.5;         <em class="jxr_comment">// Maximum particle momentum at 90 degrees (GeV)</em>
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> pfixed = <strong class="jxr_keyword">true</strong>;      <em class="jxr_comment">// Set to false for fixed pt</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> sigx = 0.1;        <em class="jxr_comment">// Luminous region size in x (mm)</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> sigy = 0.1;        <em class="jxr_comment">// Luminous region size in y (mm)</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> sigz = 0.001;         <em class="jxr_comment">// Luminous region size in z (mm)</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> sigpx = 0.001;        <em class="jxr_comment">// momentum spread</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> sigpy = 0.001;        <em class="jxr_comment">// </em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> sigpz = 0.001;         <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> xoff = -1.0;         <em class="jxr_comment">// offset of the beam in the xdir (so that it goes through the target)</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          <em class="jxr_comment">//  Instantiate the random number generators</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>          Random generator = <strong class="jxr_keyword">new</strong> Random();
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          generator.setSeed(start);
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          <em class="jxr_comment">//  Decode the pdgid</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          ParticleType pid = ParticlePropertyManager.getParticlePropertyProvider().get(pdgid);
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          String pname = pid.getName();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> n = start; n &lt; start+nfiles; n++) {
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              <em class="jxr_comment">//  Open the output file</em>
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              String fname = dir + file + n + <span class="jxr_string">"."</span> + ext;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              StdhepWriter sw = <strong class="jxr_keyword">new</strong> StdhepWriter(fname, <span class="jxr_string">"Bunch"</span>,
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>                      <span class="jxr_string">"Bunch"</span>, nevt);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              sw.setCompatibilityMode(false);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>  
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>              <em class="jxr_comment">//  Loop over the events</em>
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>              <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> icross = 0; icross &lt; nevt; icross++) {
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>                  <em class="jxr_comment">//  Generate the momentum at 90 degrees</em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>  
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>  
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>                  <em class="jxr_comment">//  Fill the event record variables</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>                  <em class="jxr_comment">//  Set the event number</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>                  <strong class="jxr_keyword">int</strong> nevhep = icross;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>                  <em class="jxr_comment">//  Set the number of particles in the event</em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>                  <strong class="jxr_keyword">int</strong> nhep = nele;
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>                  <strong class="jxr_keyword">int</strong> isthep[] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[nhep];
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>                  <strong class="jxr_keyword">int</strong> idhep[] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[nhep];
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>                  <strong class="jxr_keyword">int</strong> jmohep[] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[2 * nhep];
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>                  <strong class="jxr_keyword">int</strong> jdahep[] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[2 * nhep];
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>                  <strong class="jxr_keyword">double</strong> phep[] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[5 * nhep];
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>                  <strong class="jxr_keyword">double</strong> vhep[] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[4 * nhep];
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>                  <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> jj = 0; jj &lt; nhep; jj++) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>                      <strong class="jxr_keyword">double</strong> ptot = pmin + (pmax - pmin) * generator.nextDouble();
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>                      <strong class="jxr_keyword">double</strong> px = sigpx * generator.nextGaussian();
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>                      <strong class="jxr_keyword">double</strong> py = sigpy * generator.nextGaussian();
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>                      <em class="jxr_comment">//  Generate the pseudorapidity and calculate the polar angle</em>
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>                      <em class="jxr_comment">//  Figure out the transverse momentum and mass</em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>                      <strong class="jxr_keyword">double</strong> pt = Math.sqrt(px * px + py * py);
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>                      <strong class="jxr_keyword">double</strong> theta = Math.asin(pt / ptot);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>                      <strong class="jxr_keyword">double</strong> m = pid.getMass();
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>                      <em class="jxr_comment">//  Generate the aximutha angle</em>
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>                      <strong class="jxr_keyword">double</strong> phi = 2. * Math.PI * generator.nextDouble();
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>                     <em class="jxr_comment">//  Generate the IP</em>
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>                     <strong class="jxr_keyword">double</strong> x0 = sigx * generator.nextGaussian();
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>                     <strong class="jxr_keyword">double</strong> y0 = sigy * generator.nextGaussian();
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>                     <strong class="jxr_keyword">double</strong> z0 = sigz * generator.nextGaussian();
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>                     <strong class="jxr_keyword">double</strong> t0 = 0.;
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>                     <em class="jxr_comment">//  Set the status code of the particle</em>
+<a class="jxr_linenumber" name="L106" href="#L106">106</a> 
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>                     isthep[jj] = 1;
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> 
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>                     <em class="jxr_comment">//  Set the particle ID of the particle</em>
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>                     idhep[jj] = pdgid;
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>                     <strong class="jxr_keyword">if</strong> (flipsign &amp;&amp; generator.nextDouble() &gt; 0.5)
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>                         idhep[jj] = -pdgid;
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> 
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>                     <em class="jxr_comment">//  Set the mother and daughter pointers</em>
+<a class="jxr_linenumber" name="L116" href="#L116">116</a> 
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>                     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 2; i++) {
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>                         jmohep[2 * jj + i] = 0;
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>                         jdahep[2 * jj + i] = 0;
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>                     }
+<a class="jxr_linenumber" name="L121" href="#L121">121</a> 
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>                     <em class="jxr_comment">//  Set the momentum/energy/mass</em>
+<a class="jxr_linenumber" name="L123" href="#L123">123</a> 
+<a class="jxr_linenumber" name="L124" href="#L124">124</a> <em class="jxr_comment">//            phep[0] = pt * Math.cos(phi);</em>
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> <em class="jxr_comment">//            phep[1] = pt * Math.sin(phi);</em>
+<a class="jxr_linenumber" name="L126" href="#L126">126</a> <em class="jxr_comment">//            phep[2] = pt / Math.tan(theta);</em>
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> <em class="jxr_comment">// swap x and z</em>
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>                     phep[5 * jj + 2] = pt * Math.cos(phi);
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>                     phep[5 * jj + 1] = pt * Math.sin(phi);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>                     phep[5 * jj + 0] = pt / Math.tan(theta);
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>                     <strong class="jxr_keyword">double</strong> p2 = pt * pt + phep[2] * phep[2];
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>                     phep[5 * jj + 3] = Math.sqrt(p2 + m * m);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>                     phep[5 * jj + 4] = m;
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> 
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>                     <em class="jxr_comment">//  Set the particle origin</em>
+<a class="jxr_linenumber" name="L136" href="#L136">136</a> 
+<a class="jxr_linenumber" name="L137" href="#L137">137</a> <em class="jxr_comment">//            vhep[0] = x0;</em>
+<a class="jxr_linenumber" name="L138" href="#L138">138</a> <em class="jxr_comment">//            vhep[1] = y0;</em>
+<a class="jxr_linenumber" name="L139" href="#L139">139</a> <em class="jxr_comment">//           vhep[2] = z0;</em>
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>                     vhep[4 * jj + 2] = x0;
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>                     vhep[4 * jj + 1] = y0;
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>                     vhep[4 * jj + 0] = z0 + xoff;
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>                     vhep[4 * jj + 3] = t0;
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>                 }
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>                 <em class="jxr_comment">//  Create an event record</em>
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>                 StdhepEvent ev = <strong class="jxr_keyword">new</strong> StdhepEvent(nevhep, nhep, isthep, idhep, jmohep, jdahep, phep, vhep);
+<a class="jxr_linenumber" name="L147" href="#L147">147</a> 
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>                 <em class="jxr_comment">//  Write out the event record</em>
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>                 sw.writeRecord(ev);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>             }
+<a class="jxr_linenumber" name="L151" href="#L151">151</a> 
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>             <em class="jxr_comment">//  Done with generating particles - close the file</em>
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>             sw.close();
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>         }
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>     }
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

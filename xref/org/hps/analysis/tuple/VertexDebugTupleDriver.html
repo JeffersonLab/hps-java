@@ -1,0 +1,1207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>VertexDebugTupleDriver xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/tuple/VertexDebugTupleDriver.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.tuple;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.physics.matrix.Matrix;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> org.hps.analysis.vertex.*;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.physics.matrix.SymmetricMatrix;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.VecOp;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> java.io.FileNotFoundException;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> java.io.PrintWriter;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> java.lang.Math.sqrt;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> java.util.Arrays;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Level;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> java.util.logging.Logger;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.hps.record.triggerbank.AbstractIntData;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.hps.record.triggerbank.TIData;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.GenericObject;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.ReconstructedParticle;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackState;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackerHitUtils;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.utils.LegacyTrackClusterMatcher;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.vertexing.BilliorTrack;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.vertexing.BilliorVertex;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.vertexing.BilliorVertexer;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.converter.compact.subdetector.SvtStereoLayer;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.HpsSiSensor;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.LCIOParameters.ParameterName;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.MCParticle;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackerHit;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseTrackState;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelicalTrackFit;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelixUtils;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.FieldMap;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="VertexDebugTupleDriver" href="../../../../org/hps/analysis/tuple/VertexDebugTupleDriver.html#VertexDebugTupleDriver">VertexDebugTupleDriver</a> <strong class="jxr_keyword">extends</strong> <a name="MCTupleMaker" href="../../../../org/hps/analysis/tuple/MCTupleMaker.html#MCTupleMaker">MCTupleMaker</a> {
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Logger LOGGER = Logger.getLogger(VertexDebugger.<strong class="jxr_keyword">class</strong>.getPackage().getName());
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      String finalStateParticlesColName = <span class="jxr_string">"FinalStateParticles"</span>;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      String mcParticlesColName = <span class="jxr_string">"MCParticle"</span>;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      String readoutHitCollectionName = <span class="jxr_string">"EcalReadoutHits"</span>;<em class="jxr_comment">//these are in ADC counts</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      String calibratedHitCollectionName = <span class="jxr_string">"EcalCalHits"</span>;<em class="jxr_comment">//these are in energy</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      String clusterCollectionName = <span class="jxr_string">"EcalClustersCorr"</span>;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">private</strong> String helicalTrackHitCollectionName = <span class="jxr_string">"HelicalTrackHits"</span>;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">private</strong> String rotatedTrackHitCollectionName = <span class="jxr_string">"RotatedHelicalTrackHits"</span>;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> String unconstrainedV0CandidatesColName = <span class="jxr_string">"UnconstrainedV0Candidates"</span>;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">private</strong> String beamConV0CandidatesColName = <span class="jxr_string">"BeamspotConstrainedV0Candidates"</span>;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">private</strong> String targetV0ConCandidatesColName = <span class="jxr_string">"TargetConstrainedV0Candidates"</span>;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      String[] fpQuantNames = {<span class="jxr_string">"nEle_per_Event"</span>, <span class="jxr_string">"nPos_per_Event"</span>, <span class="jxr_string">"nPhoton_per_Event"</span>, <span class="jxr_string">"nUnAssociatedTracks_per_Event"</span>, <span class="jxr_string">"avg_delX_at_ECal"</span>, <span class="jxr_string">"avg_delY_at_ECal"</span>, <span class="jxr_string">"avg_E_Over_P"</span>, <span class="jxr_string">"avg_mom_beam_elec"</span>, <span class="jxr_string">"sig_mom_beam_elec"</span>};
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">private</strong> <a name="LegacyTrackClusterMatcher" href="../../../../org/hps/recon/utils/LegacyTrackClusterMatcher.html#LegacyTrackClusterMatcher">LegacyTrackClusterMatcher</a> matcher = <strong class="jxr_keyword">new</strong> <a name="LegacyTrackClusterMatcher" href="../../../../org/hps/recon/utils/LegacyTrackClusterMatcher.html#LegacyTrackClusterMatcher">LegacyTrackClusterMatcher</a>();
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <em class="jxr_comment">//private Map&lt;SiSensor, Map&lt;Integer, Hep3Vector&gt;&gt; stripPositions = new HashMap&lt;SiSensor, Map&lt;Integer, Hep3Vector&gt;&gt;(); </em>
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">private</strong> List&lt;HpsSiSensor&gt; sensors = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer, List&lt;SvtStereoLayer&gt;&gt; topStereoLayers = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer, List&lt;SvtStereoLayer&gt;&gt;();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer, List&lt;SvtStereoLayer&gt;&gt; bottomStereoLayers = <strong class="jxr_keyword">new</strong> HashMap&lt;Integer, List&lt;SvtStereoLayer&gt;&gt;();
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <em class="jxr_comment">// Constants</em>
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> SENSOR_LENGTH = 98.33; <em class="jxr_comment">// mm</em>
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> SENSOR_WIDTH = 38.3399; <em class="jxr_comment">// mm</em>
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String SUBDETECTOR_NAME = <span class="jxr_string">"Tracker"</span>;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">boolean</strong> doSkim = false;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      <a name="TrackerHitUtils" href="../../../../org/hps/recon/tracking/TrackerHitUtils.html#TrackerHitUtils">TrackerHitUtils</a> trackerHitUtils = <strong class="jxr_keyword">new</strong> <a name="TrackerHitUtils" href="../../../../org/hps/recon/tracking/TrackerHitUtils.html#TrackerHitUtils">TrackerHitUtils</a>();
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <em class="jxr_comment">//some counters</em>
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">int</strong> nRecoEvents = 0;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">int</strong> nTotEle = 0;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">int</strong> nTotPos = 0;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">int</strong> nTotPhotons = 0;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">int</strong> nTotUnAss = 0;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">int</strong> nTotAss = 0;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <em class="jxr_comment">//some summers</em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <strong class="jxr_keyword">double</strong> sumdelX = 0.0;
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">double</strong> sumdelY = 0.0;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">double</strong> sumEoverP = 0.0;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      <em class="jxr_comment">// double beamEnergy = 1.05; //GeV</em>
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <strong class="jxr_keyword">double</strong> clTimeMin = 30;<em class="jxr_comment">//ns</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">double</strong> clTimeMax = 50;<em class="jxr_comment">//ns</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      <strong class="jxr_keyword">double</strong> deltaTimeMax = 4;<em class="jxr_comment">//ns</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">double</strong> coplanMean = 180;<em class="jxr_comment">//degrees</em>
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <strong class="jxr_keyword">double</strong> coplanWidth = 10;<em class="jxr_comment">//degrees</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      <strong class="jxr_keyword">double</strong> esumMin = 0.4;
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      <strong class="jxr_keyword">double</strong> esumMax = 1.2;
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">double</strong> phot_nom_x = 42.52;<em class="jxr_comment">//nominal photon position (px=0)</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">boolean</strong> requirePositron = false;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>      <strong class="jxr_keyword">double</strong> maxPairs = 5;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      <strong class="jxr_keyword">boolean</strong> requireSuperFiducial = false;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">int</strong> nbins = 50;
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">double</strong> B_FIELD = 0.23;<em class="jxr_comment">//Tesla</em>
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>  
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">double</strong>[] beamSize = {0.001, 0.125, 0.030}; <em class="jxr_comment">// estimate from harp scans during   production running</em>
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      <em class="jxr_comment">// Beam position variables.</em>
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>      <em class="jxr_comment">// The beamPosition &amp; beamSize arrays are in the tracking frame</em>
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>      <em class="jxr_comment">/* TODO get the beam position from the conditions db */</em>
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">double</strong>[] beamPosition = {-3.9, 0.0, 0.0}; <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> 
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>     <strong class="jxr_keyword">double</strong> minPhi = -0.25;
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     <strong class="jxr_keyword">double</strong> maxPhi = 0.25;
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     <strong class="jxr_keyword">boolean</strong> isFirst = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> 
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>     @Override
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     <strong class="jxr_keyword">boolean</strong> passesCuts() {
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>     }
+<a class="jxr_linenumber" name="L109" href="#L109">109</a> 
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     <strong class="jxr_keyword">private</strong> enum Constraint {
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> 
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> <em class="jxr_javadoccomment">         * Represents a fit with no constraints.</em>
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> <em class="jxr_javadoccomment">         */</em>
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         UNCONSTRAINED,
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L117" href="#L117">117</a> <em class="jxr_javadoccomment">         * Represents a fit with beam spot constraints.</em>
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> <em class="jxr_javadoccomment">         */</em>
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         BS_CONSTRAINED,
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L121" href="#L121">121</a> <em class="jxr_javadoccomment">         * Represents a fit with target constraints.</em>
+<a class="jxr_linenumber" name="L122" href="#L122">122</a> <em class="jxr_javadoccomment">         */</em>
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         TARGET_CONSTRAINED
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     }
+<a class="jxr_linenumber" name="L125" href="#L125">125</a> 
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     String detName;
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L129" href="#L129">129</a> <em class="jxr_javadoccomment">     * The B field map</em>
+<a class="jxr_linenumber" name="L130" href="#L130">130</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>     FieldMap bFieldMap = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L133" href="#L133">133</a> <em class="jxr_javadoccomment">     * Position of the Ecal face</em>
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> ecalPosition = 0; <em class="jxr_comment">// mm</em>
+<a class="jxr_linenumber" name="L136" href="#L136">136</a> 
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L138" href="#L138">138</a> <em class="jxr_javadoccomment">     * Z position to start extrapolation from</em>
+<a class="jxr_linenumber" name="L139" href="#L139">139</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>     <strong class="jxr_keyword">double</strong> extStartPos = 700; <em class="jxr_comment">// mm</em>
+<a class="jxr_linenumber" name="L141" href="#L141">141</a> 
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L143" href="#L143">143</a> <em class="jxr_javadoccomment">     * The extrapolation step size</em>
+<a class="jxr_linenumber" name="L144" href="#L144">144</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>     <strong class="jxr_keyword">double</strong> stepSize = 5.0; <em class="jxr_comment">// mm</em>
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L147" href="#L147">147</a> <em class="jxr_javadoccomment">     * Name of the constant denoting the position of the Ecal face in the</em>
+<a class="jxr_linenumber" name="L148" href="#L148">148</a> <em class="jxr_javadoccomment">     * compact description.</em>
+<a class="jxr_linenumber" name="L149" href="#L149">149</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String ECAL_POSITION_CONSTANT_NAME = <span class="jxr_string">"ecal_dface"</span>;
+<a class="jxr_linenumber" name="L151" href="#L151">151</a> 
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>     @Override
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> setupVariables() {
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>         tupleVariables.clear();
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>         String[] mcVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"apMass/D"</span>, <span class="jxr_string">"vtxXMC/D"</span>, <span class="jxr_string">"vtxYMC/D"</span>, <span class="jxr_string">"vtxZMC/D"</span>,
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>             <span class="jxr_string">"pEleXMC/D"</span>, <span class="jxr_string">"pEleYMC/D"</span>, <span class="jxr_string">"pEleZMC/D"</span>,
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>             <span class="jxr_string">"pPosXMC/D"</span>, <span class="jxr_string">"pPosYMC/D"</span>, <span class="jxr_string">"pPosZMC/D"</span>,
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>             <span class="jxr_string">"pApXMC/D"</span>, <span class="jxr_string">"pApYMC/D"</span>, <span class="jxr_string">"pApZMC/D"</span>,
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>             <span class="jxr_string">"apTarX/D"</span>, <span class="jxr_string">"apTarY/D"</span>, <span class="jxr_string">"apOrigX/D"</span>, <span class="jxr_string">"apOrigY/D"</span>, <span class="jxr_string">"apOrigZ/D"</span>};
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>         tupleVariables.addAll(Arrays.asList(mcVars));
+<a class="jxr_linenumber" name="L161" href="#L161">161</a> 
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>         String[] fitUncVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"mFitUnc/D"</span>, <span class="jxr_string">"vtxXFitUnc/D"</span>, <span class="jxr_string">"vtxYFitUnc/D"</span>, <span class="jxr_string">"vtxZFitUnc/D"</span>,
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>             <span class="jxr_string">"pEleXFitUnc/D"</span>, <span class="jxr_string">"pEleYFitUnc/D"</span>, <span class="jxr_string">"pEleZFitUnc/D"</span>,
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>             <span class="jxr_string">"pPosXFitUnc/D"</span>, <span class="jxr_string">"pPosYFitUnc/D"</span>, <span class="jxr_string">"pPosZFitUnc/D"</span>, <span class="jxr_string">"chisqFitUnc/D"</span>, <span class="jxr_string">"probFitUnc/D"</span>,
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>             <span class="jxr_string">"mErrFitUnc/D"</span>, <span class="jxr_string">"vtxXErrFitUnc/D"</span>, <span class="jxr_string">"vtxYErrFitUnc/D"</span>, <span class="jxr_string">"vtxZErrFitUnc/D"</span>,
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>             <span class="jxr_string">"pEleXErrFitUnc/D"</span>, <span class="jxr_string">"pEleYErrFitUnc/D"</span>, <span class="jxr_string">"pEleZErrFitUnc/D"</span>,
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>             <span class="jxr_string">"pPosXErrFitUnc/D"</span>, <span class="jxr_string">"pPosYErrFitUnc/D"</span>, <span class="jxr_string">"pPosZErrFitUnc/D"</span>};
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>         tupleVariables.addAll(Arrays.asList(fitUncVars));
+<a class="jxr_linenumber" name="L169" href="#L169">169</a> 
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>         String[] refitUncVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"mRefitUnc/D"</span>, <span class="jxr_string">"vtxXRefitUnc/D"</span>, <span class="jxr_string">"vtxYRefitUnc/D"</span>, <span class="jxr_string">"vtxZRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>             <span class="jxr_string">"pEleXRefitUnc/D"</span>, <span class="jxr_string">"pEleYRefitUnc/D"</span>, <span class="jxr_string">"pEleZRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>             <span class="jxr_string">"pPosXRefitUnc/D"</span>, <span class="jxr_string">"pPosYRefitUnc/D"</span>, <span class="jxr_string">"pPosZRefitUnc/D"</span>, <span class="jxr_string">"chisqRefitUnc/D"</span>, <span class="jxr_string">"probRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>             <span class="jxr_string">"mErrRefitUnc/D"</span>, <span class="jxr_string">"vtxXErrRefitUnc/D"</span>, <span class="jxr_string">"vtxYErrRefitUnc/D"</span>, <span class="jxr_string">"vtxZErrRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>             <span class="jxr_string">"pEleXErrRefitUnc/D"</span>, <span class="jxr_string">"pEleYErrRefitUnc/D"</span>, <span class="jxr_string">"pEleZErrRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>             <span class="jxr_string">"pPosXErrRefitUnc/D"</span>, <span class="jxr_string">"pPosYErrRefitUnc/D"</span>, <span class="jxr_string">"pPosZErrRefitUnc/D"</span>};
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>         tupleVariables.addAll(Arrays.asList(refitUncVars));
+<a class="jxr_linenumber" name="L177" href="#L177">177</a> 
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         String[] fitParsUncVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"thetaFitEleRefitUnc/D"</span>, <span class="jxr_string">"phivFitEleRefitUnc/D"</span>, <span class="jxr_string">"rhoFitEleRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>             <span class="jxr_string">"thetaFitErrEleRefitUnc/D"</span>, <span class="jxr_string">"phivFitErrEleRefitUnc/D"</span>, <span class="jxr_string">"rhoFitErrEleRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>             <span class="jxr_string">"thetaFitPosRefitUnc/D"</span>, <span class="jxr_string">"phivFitPosRefitUnc/D"</span>, <span class="jxr_string">"rhoFitPosRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>             <span class="jxr_string">"thetaFitErrPosRefitUnc/D"</span>, <span class="jxr_string">"phivFitErrPosRefitUnc/D"</span>, <span class="jxr_string">"rhoFitErrPosRefitUnc/D"</span>};
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>         tupleVariables.addAll(Arrays.asList(fitParsUncVars));
+<a class="jxr_linenumber" name="L183" href="#L183">183</a> 
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>         String[] refitUncFromV0Vars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"mRefitUncFromV0/D"</span>, <span class="jxr_string">"vtxXRefitUncFromV0/D"</span>, <span class="jxr_string">"vtxYRefitUncFromV0/D"</span>, <span class="jxr_string">"vtxZRefitUncFromV0/D"</span>,
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>             <span class="jxr_string">"pEleXRefitUncFromV0/D"</span>, <span class="jxr_string">"pEleYRefitUncFromV0/D"</span>, <span class="jxr_string">"pEleZRefitUncFromV0/D"</span>,
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>             <span class="jxr_string">"pPosXRefitUncFromV0/D"</span>, <span class="jxr_string">"pPosYRefitUncFromV0/D"</span>, <span class="jxr_string">"pPosZRefitUncFromV0/D"</span>, <span class="jxr_string">"chisqRefitUncFromV0/D"</span>, <span class="jxr_string">"probRefitUncFromV0/D"</span>,
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>             <span class="jxr_string">"mErrRefitUncFromV0/D"</span>, <span class="jxr_string">"vtxXErrRefitUncFromV0/D"</span>, <span class="jxr_string">"vtxYErrRefitUncFromV0/D"</span>, <span class="jxr_string">"vtxZErrRefitUncFromV0/D"</span>,
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>             <span class="jxr_string">"pEleXErrRefitUncFromV0/D"</span>, <span class="jxr_string">"pEleYErrRefitUncFromV0/D"</span>, <span class="jxr_string">"pEleZErrRefitUncFromV0/D"</span>,
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>             <span class="jxr_string">"pPosXErrRefitUncFromV0/D"</span>, <span class="jxr_string">"pPosYErrRefitUncFromV0/D"</span>, <span class="jxr_string">"pPosZErrRefitUncFromV0/D"</span>};
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>         tupleVariables.addAll(Arrays.asList(refitUncFromV0Vars));
+<a class="jxr_linenumber" name="L191" href="#L191">191</a> 
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         String[] fitBSCVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"mFitBSC/D"</span>, <span class="jxr_string">"vtxXFitBSC/D"</span>, <span class="jxr_string">"vtxYFitBSC/D"</span>, <span class="jxr_string">"vtxZFitBSC/D"</span>,
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>             <span class="jxr_string">"pEleXFitBSC/D"</span>, <span class="jxr_string">"pEleYFitBSC/D"</span>, <span class="jxr_string">"pEleZFitBSC/D"</span>,
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>             <span class="jxr_string">"pPosXFitBSC/D"</span>, <span class="jxr_string">"pPosYFitBSC/D"</span>, <span class="jxr_string">"pPosZFitBSC/D"</span>, <span class="jxr_string">"chisqFitBSC/D"</span>, <span class="jxr_string">"probFitBSC/D"</span>,
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>             <span class="jxr_string">"mErrFitBSC/D"</span>, <span class="jxr_string">"vtxXErrFitBSC/D"</span>, <span class="jxr_string">"vtxYErrFitBSC/D"</span>, <span class="jxr_string">"vtxZErrFitBSC/D"</span>,
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>             <span class="jxr_string">"pEleXErrFitBSC/D"</span>, <span class="jxr_string">"pEleYErrFitBSC/D"</span>, <span class="jxr_string">"pEleZErrFitBSC/D"</span>,
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>             <span class="jxr_string">"pPosXErrFitBSC/D"</span>, <span class="jxr_string">"pPosYErrFitBSC/D"</span>, <span class="jxr_string">"pPosZErrFitBSC/D"</span>};
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         tupleVariables.addAll(Arrays.asList(fitBSCVars));
+<a class="jxr_linenumber" name="L199" href="#L199">199</a> 
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>         String[] refitBSCVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"mRefitBSC/D"</span>, <span class="jxr_string">"vtxXRefitBSC/D"</span>, <span class="jxr_string">"vtxYRefitBSC/D"</span>, <span class="jxr_string">"vtxZRefitBSC/D"</span>,
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>             <span class="jxr_string">"pEleXRefitBSC/D"</span>, <span class="jxr_string">"pEleYRefitBSC/D"</span>, <span class="jxr_string">"pEleZRefitBSC/D"</span>,
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>             <span class="jxr_string">"pPosXRefitBSC/D"</span>, <span class="jxr_string">"pPosYRefitBSC/D"</span>, <span class="jxr_string">"pPosZRefitBSC/D"</span>, <span class="jxr_string">"chisqRefitBSC/D"</span>, <span class="jxr_string">"probRefitBSC/D"</span>,
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>             <span class="jxr_string">"mErrRefitBSC/D"</span>, <span class="jxr_string">"vtxXErrRefitBSC/D"</span>, <span class="jxr_string">"vtxYErrRefitBSC/D"</span>, <span class="jxr_string">"vtxZErrRefitBSC/D"</span>,
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             <span class="jxr_string">"pEleXErrRefitBSC/D"</span>, <span class="jxr_string">"pEleYErrRefitBSC/D"</span>, <span class="jxr_string">"pEleZErrRefitBSC/D"</span>,
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>             <span class="jxr_string">"pPosXErrRefitBSC/D"</span>, <span class="jxr_string">"pPosYErrRefitBSC/D"</span>, <span class="jxr_string">"pPosZErrRefitBSC/D"</span>};
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>         tupleVariables.addAll(Arrays.asList(refitBSCVars));
+<a class="jxr_linenumber" name="L207" href="#L207">207</a> 
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>         String[] refitBSCFromV0Vars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"mRefitBSCFromV0/D"</span>, <span class="jxr_string">"vtxXRefitBSCFromV0/D"</span>, <span class="jxr_string">"vtxYRefitBSCFromV0/D"</span>, <span class="jxr_string">"vtxZRefitBSCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>             <span class="jxr_string">"pEleXRefitBSCFromV0/D"</span>, <span class="jxr_string">"pEleYRefitBSCFromV0/D"</span>, <span class="jxr_string">"pEleZRefitBSCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>             <span class="jxr_string">"pPosXRefitBSCFromV0/D"</span>, <span class="jxr_string">"pPosYRefitBSCFromV0/D"</span>, <span class="jxr_string">"pPosZRefitBSCFromV0/D"</span>, <span class="jxr_string">"chisqRefitBSCFromV0/D"</span>, <span class="jxr_string">"probRefitBSCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>             <span class="jxr_string">"mErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"vtxXErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"vtxYErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"vtxZErrRefitBSCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             <span class="jxr_string">"pEleXErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"pEleYErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"pEleZErrRefitBSCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>             <span class="jxr_string">"pPosXErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"pPosYErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"pPosZErrRefitBSCFromV0/D"</span>};
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>         tupleVariables.addAll(Arrays.asList(refitBSCFromV0Vars));
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>         String[] refitTCFromV0Vars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"mRefitTCFromV0/D"</span>, <span class="jxr_string">"vtxXRefitTCFromV0/D"</span>, <span class="jxr_string">"vtxYRefitTCFromV0/D"</span>, <span class="jxr_string">"vtxZRefitTCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>             <span class="jxr_string">"pEleXRefitTCFromV0/D"</span>, <span class="jxr_string">"pEleYRefitTCFromV0/D"</span>, <span class="jxr_string">"pEleZRefitTCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>             <span class="jxr_string">"pPosXRefitTCFromV0/D"</span>, <span class="jxr_string">"pPosYRefitTCFromV0/D"</span>, <span class="jxr_string">"pPosZRefitTCFromV0/D"</span>, <span class="jxr_string">"chisqRefitTCFromV0/D"</span>, <span class="jxr_string">"probRefitTCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>             <span class="jxr_string">"mErrRefitTCFromV0/D"</span>, <span class="jxr_string">"vtxXErrRefitTCFromV0/D"</span>, <span class="jxr_string">"vtxYErrRefitTCFromV0/D"</span>, <span class="jxr_string">"vtxZErrRefitTCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>             <span class="jxr_string">"pEleXErrRefitTCFromV0/D"</span>, <span class="jxr_string">"pEleYErrRefitTCFromV0/D"</span>, <span class="jxr_string">"pEleZErrRefitTCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>             <span class="jxr_string">"pPosXErrRefitTCFromV0/D"</span>, <span class="jxr_string">"pPosYErrRefitTCFromV0/D"</span>, <span class="jxr_string">"pPosZErrRefitTCFromV0/D"</span>};
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>         tupleVariables.addAll(Arrays.asList(refitTCFromV0Vars));
+<a class="jxr_linenumber" name="L223" href="#L223">223</a> 
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>         String[] trackPars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"eleOmegaErr/D"</span>, <span class="jxr_string">"eleD0Err/D"</span>, <span class="jxr_string">"elePhi0Err/D"</span>, <span class="jxr_string">"eleSlopeErr/D"</span>, <span class="jxr_string">"eleZ0Err/D"</span>,
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>             <span class="jxr_string">"posOmegaErr/D"</span>, <span class="jxr_string">"posD0Err/D"</span>, <span class="jxr_string">"posPhi0Err/D"</span>, <span class="jxr_string">"posSlopeErr/D"</span>, <span class="jxr_string">"posZ0Err/D"</span>,
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             <span class="jxr_string">"eleOmega/D"</span>, <span class="jxr_string">"eleD0/D"</span>, <span class="jxr_string">"elePhi0/D"</span>, <span class="jxr_string">"eleSlope/D"</span>, <span class="jxr_string">"eleZ0/D"</span>,
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>             <span class="jxr_string">"posOmega/D"</span>, <span class="jxr_string">"posD0/D"</span>, <span class="jxr_string">"posPhi0/D"</span>, <span class="jxr_string">"posSlope/D"</span>, <span class="jxr_string">"posZ0/D"</span>,
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>             <span class="jxr_string">"eleMCOmega/D"</span>, <span class="jxr_string">"eleMCD0/D"</span>, <span class="jxr_string">"eleMCPhi0/D"</span>, <span class="jxr_string">"eleMCSlope/D"</span>, <span class="jxr_string">"eleMCZ0/D"</span>,
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>             <span class="jxr_string">"posMCOmega/D"</span>, <span class="jxr_string">"posMCD0/D"</span>, <span class="jxr_string">"posMCPhi0/D"</span>, <span class="jxr_string">"posMCSlope/D"</span>, <span class="jxr_string">"posMCZ0/D"</span>,
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             <span class="jxr_string">"eleMCNewCalcOmega/D"</span>, <span class="jxr_string">"eleMCNewCalcD0/D"</span>, <span class="jxr_string">"eleMCNewCalcPhi0/D"</span>, <span class="jxr_string">"eleMCNewCalcSlope/D"</span>, <span class="jxr_string">"eleMCNewCalcZ0/D"</span>,
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>             <span class="jxr_string">"posMCNewCalcOmega/D"</span>, <span class="jxr_string">"posMCNewCalcD0/D"</span>, <span class="jxr_string">"posMCNewCalcPhi0/D"</span>, <span class="jxr_string">"posMCNewCalcSlope/D"</span>, <span class="jxr_string">"posMCNewCalcZ0/D"</span>,
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>             <span class="jxr_string">"eleTrkChisq/D"</span>, <span class="jxr_string">"posTrkChisq/D"</span>, <span class="jxr_string">"elePxFromTrack/D"</span>, <span class="jxr_string">"elePyFromTrack/D"</span>, <span class="jxr_string">"elePzFromTrack/D"</span>,
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>             <span class="jxr_string">"posPxFromTrack/D"</span>, <span class="jxr_string">"posPyFromTrack/D"</span>, <span class="jxr_string">"posPzFromTrack/D"</span>
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>         };
+<a class="jxr_linenumber" name="L235" href="#L235">235</a> 
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>         String[] v0FitUncVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"v0MomXFitUnc/D"</span>, <span class="jxr_string">"v0MomYFitUnc/D"</span>, <span class="jxr_string">"v0MomZFitUnc/D"</span>,
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>             <span class="jxr_string">"v0MomXErrFitUnc/D"</span>, <span class="jxr_string">"v0MomYErrFitUnc/D"</span>, <span class="jxr_string">"v0MomZErrFitUnc/D"</span>,
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>             <span class="jxr_string">"v0XYTarXFitUnc/D"</span>, <span class="jxr_string">"v0XYTarYFitUnc/D"</span>, <span class="jxr_string">"v0XYTarXErrFitUnc/D"</span>, <span class="jxr_string">"v0XYTarYErrFitUnc/D"</span>};
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>         tupleVariables.addAll(Arrays.asList(v0FitUncVars));
+<a class="jxr_linenumber" name="L240" href="#L240">240</a> 
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>         String[] v0RefitUncVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"v0MomXRefitUnc/D"</span>, <span class="jxr_string">"v0MomYRefitUnc/D"</span>, <span class="jxr_string">"v0MomZRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>             <span class="jxr_string">"v0MomXErrRefitUnc/D"</span>, <span class="jxr_string">"v0MomYErrRefitUnc/D"</span>, <span class="jxr_string">"v0MomZErrRefitUnc/D"</span>,
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>             <span class="jxr_string">"v0XYTarXRefitUnc/D"</span>, <span class="jxr_string">"v0XYTarYRefitUnc/D"</span>, <span class="jxr_string">"v0XYTarXErrRefitUnc/D"</span>, <span class="jxr_string">"v0XYTarYErrRefitUnc/D"</span>};
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>         tupleVariables.addAll(Arrays.asList(v0RefitUncVars));
+<a class="jxr_linenumber" name="L245" href="#L245">245</a> 
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>         String[] v0FitBSCVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"v0MomXFitBSC/D"</span>, <span class="jxr_string">"v0MomYFitBSC/D"</span>, <span class="jxr_string">"v0MomZFitBSC/D"</span>,
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>             <span class="jxr_string">"v0MomXErrFitBSC/D"</span>, <span class="jxr_string">"v0MomYErrFitBSC/D"</span>, <span class="jxr_string">"v0MomZErrFitBSC/D"</span>,
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>             <span class="jxr_string">"v0XYTarXFitBSC/D"</span>, <span class="jxr_string">"v0XYTarYFitBSC/D"</span>, <span class="jxr_string">"v0XYTarXErrFitBSC/D"</span>, <span class="jxr_string">"v0XYTarYErrFitBSC/D"</span>};
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>         tupleVariables.addAll(Arrays.asList(v0FitBSCVars));
+<a class="jxr_linenumber" name="L250" href="#L250">250</a> 
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>         String[] v0RefitBSCVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"v0MomXRefitBSC/D"</span>, <span class="jxr_string">"v0MomYRefitBSC/D"</span>, <span class="jxr_string">"v0MomZRefitBSC/D"</span>,
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>             <span class="jxr_string">"v0MomXErrRefitBSC/D"</span>, <span class="jxr_string">"v0MomYErrRefitBSC/D"</span>, <span class="jxr_string">"v0MomZErrRefitBSC/D"</span>,
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>             <span class="jxr_string">"v0XYTarXRefitBSC/D"</span>, <span class="jxr_string">"v0XYTarYRefitBSC/D"</span>, <span class="jxr_string">"v0XYTarXErrRefitBSC/D"</span>, <span class="jxr_string">"v0XYTarYErrRefitBSC/D"</span>};
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         tupleVariables.addAll(Arrays.asList(v0RefitBSCVars));
+<a class="jxr_linenumber" name="L255" href="#L255">255</a> 
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>         String[] v0RefitBSCFromV0Vars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"v0MomXRefitBSCFromV0/D"</span>, <span class="jxr_string">"v0MomYRefitBSCFromV0/D"</span>, <span class="jxr_string">"v0MomZRefitBSCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>             <span class="jxr_string">"v0MomXErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"v0MomYErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"v0MomZErrRefitBSCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>             <span class="jxr_string">"v0XYTarXRefitBSCFromV0/D"</span>, <span class="jxr_string">"v0XYTarYRefitBSCFromV0/D"</span>, <span class="jxr_string">"v0XYTarXErrRefitBSCFromV0/D"</span>, <span class="jxr_string">"v0XYTarYErrRefitBSCFromV0/D"</span>};
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>         tupleVariables.addAll(Arrays.asList(v0RefitBSCFromV0Vars));
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>         
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>         String[] v0RefitTCFromV0Vars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"v0MomXRefitTCFromV0/D"</span>, <span class="jxr_string">"v0MomYRefitTCFromV0/D"</span>, <span class="jxr_string">"v0MomZRefitTCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>             <span class="jxr_string">"v0MomXErrRefitTCFromV0/D"</span>, <span class="jxr_string">"v0MomYErrRefitTCFromV0/D"</span>, <span class="jxr_string">"v0MomZErrRefitTCFromV0/D"</span>,
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>             <span class="jxr_string">"v0XYTarXRefitTCFromV0/D"</span>, <span class="jxr_string">"v0XYTarYRefitTCFromV0/D"</span>, <span class="jxr_string">"v0XYTarXErrRefitTCFromV0/D"</span>, <span class="jxr_string">"v0XYTarYErrRefitTCFromV0/D"</span>};
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>         tupleVariables.addAll(Arrays.asList(v0RefitTCFromV0Vars));
+<a class="jxr_linenumber" name="L265" href="#L265">265</a> 
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         String[] v0RefitUncFromV0Vars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"v0MomXRefitUncFromV0/D"</span>, <span class="jxr_string">"v0MomYRefitUncFromV0/D"</span>, <span class="jxr_string">"v0MomZRefitUncFromV0/D"</span>,
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>             <span class="jxr_string">"v0MomXErrRefitUncFromV0/D"</span>, <span class="jxr_string">"v0MomYErrRefitUncFromV0/D"</span>, <span class="jxr_string">"v0MomZErrRefitUncFromV0/D"</span>,
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>             <span class="jxr_string">"v0XYTarXRefitUncFromV0/D"</span>, <span class="jxr_string">"v0XYTarYRefitUncFromV0/D"</span>, <span class="jxr_string">"v0XYTarXErrRefitUncFromV0/D"</span>, <span class="jxr_string">"v0XYTarYErrRefitUncFromV0/D"</span>};
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>         tupleVariables.addAll(Arrays.asList(v0RefitUncFromV0Vars));
+<a class="jxr_linenumber" name="L270" href="#L270">270</a> 
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>         tupleVariables.addAll(Arrays.asList(trackPars));
+<a class="jxr_linenumber" name="L272" href="#L272">272</a> 
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         addEventVariables();
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>         addVertexVariables();
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         addParticleVariables(<span class="jxr_string">"ele"</span>);
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>         addParticleVariables(<span class="jxr_string">"pos"</span>);
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>         String[] newVars = <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"minPositiveIso/D"</span>, <span class="jxr_string">"minNegativeIso/D"</span>, <span class="jxr_string">"minIso/D"</span>};
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>         tupleVariables.addAll(Arrays.asList(newVars));
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>         addMCTridentVariables();
+<a class="jxr_linenumber" name="L280" href="#L280">280</a> 
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>     }
+<a class="jxr_linenumber" name="L282" href="#L282">282</a> 
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector) {
+<a class="jxr_linenumber" name="L284" href="#L284">284</a> 
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>         <strong class="jxr_keyword">super</strong>.detectorChanged(detector);
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>         detName = detector.getName();
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         <strong class="jxr_keyword">double</strong> maxFactor = 1.5;
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         <strong class="jxr_keyword">double</strong> feeMomentumCut = 0.75; <em class="jxr_comment">//this number, multiplied by the beam energy, is the actual cut</em>
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>         B_FIELD = detector.getFieldMap().getField(<strong class="jxr_keyword">new</strong> BasicHep3Vector(0, 0, 500)).y();
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>         <em class="jxr_comment">// Get the field map from the detector object</em>
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>         bFieldMap = detector.getFieldMap();
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>         <em class="jxr_comment">// Get the position of the Ecal from the compact description</em>
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>         ecalPosition = detector.getConstants().get(ECAL_POSITION_CONSTANT_NAME).getValue();
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>         <em class="jxr_comment">// Get the position of the Ecal from the compact description</em>
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>         ecalPosition = detector.getConstants().get(ECAL_POSITION_CONSTANT_NAME).getValue();
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>         LOGGER.setLevel(Level.ALL);
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         LOGGER.info(<span class="jxr_string">"B_FIELD="</span> + B_FIELD);
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         LOGGER.info(<span class="jxr_string">"Setting up the plotter"</span>);
+<a class="jxr_linenumber" name="L299" href="#L299">299</a> 
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>     }
+<a class="jxr_linenumber" name="L301" href="#L301">301</a> 
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>     @Override
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L304" href="#L304">304</a> 
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>         <a name="TIData" href="../../../../org/hps/record/triggerbank/TIData.html#TIData">TIData</a> triggerData = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(GenericObject.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"TriggerBank"</span>))
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>             <strong class="jxr_keyword">for</strong> (GenericObject data : event.get(GenericObject.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"TriggerBank"</span>))
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>                 <strong class="jxr_keyword">if</strong> (AbstractIntData.getTag(data) == TIData.BANK_TAG)
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>                     triggerData = <strong class="jxr_keyword">new</strong> <a name="TIData" href="../../../../org/hps/record/triggerbank/TIData.html#TIData">TIData</a>(data);
+<a class="jxr_linenumber" name="L310" href="#L310">310</a> 
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>         <strong class="jxr_keyword">if</strong> (!event.hasCollection(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, finalStateParticlesColName)) {
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>             <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>                 LOGGER.info(finalStateParticlesColName + <span class="jxr_string">" collection not found???"</span>);
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>         }
+<a class="jxr_linenumber" name="L316" href="#L316">316</a> 
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>         <strong class="jxr_keyword">if</strong> (!event.hasCollection(MCParticle.<strong class="jxr_keyword">class</strong>, mcParticlesColName))
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>             <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>                 LOGGER.info(mcParticlesColName + <span class="jxr_string">" collection not found???"</span>); <em class="jxr_comment">//            return;</em>
+<a class="jxr_linenumber" name="L320" href="#L320">320</a> 
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         <em class="jxr_comment">//check to see if this event is from the correct trigger (or "all");</em>
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         <strong class="jxr_keyword">if</strong> (triggerData != <strong class="jxr_keyword">null</strong> &amp;&amp; !matchTriggerType(triggerData))
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L324" href="#L324">324</a> 
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>         nRecoEvents++;
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>         <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>             LOGGER.info(<span class="jxr_string">"##########  Start of VertexDebugger   ##############"</span>);
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>         List&lt;ReconstructedParticle&gt; finalStateParticles = event.get(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, finalStateParticlesColName);
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>         <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>             LOGGER.info(<span class="jxr_string">"This events has "</span> + finalStateParticles.size() + <span class="jxr_string">" final state particles"</span>);
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>         List&lt;ReconstructedParticle&gt; unconstrainedV0List = event.get(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, unconstrainedV0CandidatesColName);
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>             LOGGER.info(<span class="jxr_string">"This events has "</span> + unconstrainedV0List.size() + <span class="jxr_string">" unconstrained V0s"</span>);
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         List&lt;ReconstructedParticle&gt; BSCV0List = event.get(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, beamConV0CandidatesColName);
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>             LOGGER.info(<span class="jxr_string">"This events has "</span> + BSCV0List.size() + <span class="jxr_string">" BSC V0s"</span>);
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>         List&lt;ReconstructedParticle&gt; TCV0List = event.get(ReconstructedParticle.<strong class="jxr_keyword">class</strong>, targetV0ConCandidatesColName);
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>         <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>             LOGGER.info(<span class="jxr_string">"This events has "</span> + TCV0List.size() + <span class="jxr_string">" Target Constrained V0s"</span>);
+<a class="jxr_linenumber" name="L340" href="#L340">340</a> 
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>         <em class="jxr_comment">//find electron and positron MCParticles</em>
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>         Hep3Vector vertexPositionMC = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>         <strong class="jxr_keyword">double</strong> apMassMC = -9999;
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>         MCParticle ap = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>         MCParticle eleMC = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         MCParticle posMC = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L347" href="#L347">347</a> 
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>         <strong class="jxr_keyword">boolean</strong> isMC = event.hasCollection(MCParticle.<strong class="jxr_keyword">class</strong>, mcParticlesColName);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a> 
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>         <strong class="jxr_keyword">if</strong> (isMC) {
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>             List&lt;MCParticle&gt; MCParticleList = event.get(MCParticle.<strong class="jxr_keyword">class</strong>, mcParticlesColName);
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>             <strong class="jxr_keyword">for</strong> (MCParticle mcp : MCParticleList)
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>                 <strong class="jxr_keyword">if</strong> (mcp.getPDGID() == 622 &amp;&amp; mcp.getDaughters().size() == 2) {
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>                     ap = mcp;
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>                     vertexPositionMC = mcp.getEndPoint();
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>                     apMassMC = mcp.getMass();
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>                     List&lt;MCParticle&gt; daugList = mcp.getDaughters();
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>                     <strong class="jxr_keyword">for</strong> (MCParticle daug : daugList)
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>                         <strong class="jxr_keyword">if</strong> (daug.getPDGID() == 11)
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>                             eleMC = daug;
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>                         <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (daug.getPDGID() == -11)
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>                             posMC = daug;
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>                 }
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>             <strong class="jxr_keyword">if</strong> (eleMC == <strong class="jxr_keyword">null</strong> || posMC == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>                 <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>                     LOGGER.info(<span class="jxr_string">"Couldn't find the MC e+e- from A'????? "</span>);
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>             <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>                 LOGGER.info(<span class="jxr_string">"Found A' MC with vertex at :"</span> + vertexPositionMC.x() + <span class="jxr_string">"; "</span> + vertexPositionMC.y() + <span class="jxr_string">"; "</span> + vertexPositionMC.z());
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>                 LOGGER.info(<span class="jxr_string">"Found A' MC with mass = "</span> + apMassMC);
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>                 LOGGER.info(<span class="jxr_string">"Found A' MC electron momentum = "</span> + eleMC.getMomentum().x() + <span class="jxr_string">"; "</span> + eleMC.getMomentum().y() + <span class="jxr_string">"; "</span> + eleMC.getMomentum().z());
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>                 LOGGER.info(<span class="jxr_string">"Found A' MC positron momentum = "</span> + posMC.getMomentum().x() + <span class="jxr_string">"; "</span> + posMC.getMomentum().y() + <span class="jxr_string">"; "</span> + posMC.getMomentum().z());
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>             }
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>             Hep3Vector pEleMC = eleMC.getMomentum();
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>             Hep3Vector pPosMC = posMC.getMomentum();
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>             Hep3Vector pApMC = ap.getMomentum();
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>             Hep3Vector apStart = ap.getOrigin();
+<a class="jxr_linenumber" name="L377" href="#L377">377</a> 
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>             <strong class="jxr_keyword">double</strong>[] apTarXY = getTargetXY(pApMC, vertexPositionMC);
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>             tupleMap.put(<span class="jxr_string">"apMass/D"</span>, apMassMC);
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>             tupleMap.put(<span class="jxr_string">"vtxXMC/D"</span>, vertexPositionMC.x());
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>             tupleMap.put(<span class="jxr_string">"vtxYMC/D"</span>, vertexPositionMC.y());
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>             tupleMap.put(<span class="jxr_string">"vtxZMC/D"</span>, vertexPositionMC.z());
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>             tupleMap.put(<span class="jxr_string">"pEleXMC/D"</span>, pEleMC.x());
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>             tupleMap.put(<span class="jxr_string">"pEleYMC/D"</span>, pEleMC.y());
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>             tupleMap.put(<span class="jxr_string">"pEleZMC/D"</span>, pEleMC.z());
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>             tupleMap.put(<span class="jxr_string">"pPosXMC/D"</span>, pPosMC.x());
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>             tupleMap.put(<span class="jxr_string">"pPosYMC/D"</span>, pPosMC.y());
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>             tupleMap.put(<span class="jxr_string">"pPosZMC/D"</span>, pPosMC.z());
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>             tupleMap.put(<span class="jxr_string">"pApXMC/D"</span>, pApMC.x());
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>             tupleMap.put(<span class="jxr_string">"pApYMC/D"</span>, pApMC.y());
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>             tupleMap.put(<span class="jxr_string">"pApZMC/D"</span>, pApMC.z());
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             tupleMap.put(<span class="jxr_string">"apTarX/D"</span>, apTarXY[0]);
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>             tupleMap.put(<span class="jxr_string">"apTarY/D"</span>, apTarXY[1]);
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>             tupleMap.put(<span class="jxr_string">"apOrigX/D"</span>, apStart.x());  <em class="jxr_comment">//these AP origin variables should be at Z~0 (the target) and XY with the width of beamspot</em>
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>             tupleMap.put(<span class="jxr_string">"apOrigY/D"</span>, apStart.y());
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>             tupleMap.put(<span class="jxr_string">"apOrigZ/D"</span>, apStart.z());
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>             fillMCTridentVariables(event);
+<a class="jxr_linenumber" name="L398" href="#L398">398</a> 
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>         }
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>         ReconstructedParticle electron = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>         ReconstructedParticle positron = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>         System.out.println(<span class="jxr_string">"Getting recon electron/positron"</span>);
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>         <strong class="jxr_keyword">double</strong> bestMom = 99999;
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>         <strong class="jxr_keyword">if</strong> (isMC) {
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>             <strong class="jxr_keyword">for</strong> (ReconstructedParticle fsp : finalStateParticles)
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>                 <strong class="jxr_keyword">if</strong> (fsp.getCharge() &gt; 0) {<em class="jxr_comment">//found a positron</em>
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>                     <strong class="jxr_keyword">if</strong> (fsp.getMomentum().y() * posMC.getPY() &gt; 0) <em class="jxr_comment">//dumb matching..make sure in same half</em>
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>                         positron = fsp;
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>                 } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (fsp.getCharge() &lt; 0)
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>                     <strong class="jxr_keyword">if</strong> (fsp.getMomentum().y() * eleMC.getPY() &gt; 0 &amp;&amp; Math.abs(eleMC.getMomentum().magnitude() - fsp.getMomentum().magnitude()) &lt; bestMom) <em class="jxr_comment">//dumb matching..make sure in same half</em>
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>                         electron = fsp;
+<a class="jxr_linenumber" name="L412" href="#L412">412</a> 
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>             <em class="jxr_comment">//require 1 and only 1 V0</em>
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>             <strong class="jxr_keyword">if</strong> (unconstrainedV0List.size() != 1) {
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>                 System.out.println(<span class="jxr_string">"UnconstrainedV0List !=0 is equal to "</span> + unconstrainedV0List.size());
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>                 <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>             }
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>             ReconstructedParticle vtxUnc = unconstrainedV0List.get(0);
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>             List&lt;ReconstructedParticle&gt; daughters = vtxUnc.getParticles();
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>             <strong class="jxr_keyword">for</strong> (ReconstructedParticle part : daughters) {
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>                 <strong class="jxr_keyword">if</strong> (part.getCharge() &gt; 0)
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>                     positron = part;
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>                 <strong class="jxr_keyword">if</strong> (part.getCharge() &lt; 0)
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>                     electron = part;
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>             }
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>         }
+<a class="jxr_linenumber" name="L428" href="#L428">428</a> 
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>         <strong class="jxr_keyword">if</strong> (electron == <strong class="jxr_keyword">null</strong> || positron == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>             <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>                 LOGGER.info(<span class="jxr_string">"Couldn't find reconed e+ or e- ?????  Quitting!"</span>);
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>         }
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>         <em class="jxr_comment">//ok..made it this far...now lets do the vertexing.  </em>
+<a class="jxr_linenumber" name="L435" href="#L435">435</a> 
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>         <strong class="jxr_keyword">if</strong> (debug) {
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>             LOGGER.info(<span class="jxr_string">"electron momentum = "</span> + electron.getMomentum().x() + <span class="jxr_string">"; "</span> + electron.getMomentum().y() + <span class="jxr_string">"; "</span> + electron.getMomentum().z());
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>             LOGGER.info(<span class="jxr_string">"positron momentum = "</span> + positron.getMomentum().x() + <span class="jxr_string">"; "</span> + positron.getMomentum().y() + <span class="jxr_string">"; "</span> + positron.getMomentum().z());
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>         }
+<a class="jxr_linenumber" name="L440" href="#L440">440</a> 
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>         tupleMap.clear();
+<a class="jxr_linenumber" name="L442" href="#L442">442</a> 
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>         fillEventVariables(event, triggerData);
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>         fillParticleVariables(event, electron, <span class="jxr_string">"ele"</span>);
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>         fillParticleVariables(event, positron, <span class="jxr_string">"pos"</span>);
+<a class="jxr_linenumber" name="L446" href="#L446">446</a> 
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>         Track eleTrack = electron.getTracks().get(0);
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>         Track posTrack = positron.getTracks().get(0);
+<a class="jxr_linenumber" name="L449" href="#L449">449</a> 
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>         TrackState eleTSTweaked = fillParticleVariables(event, electron, <span class="jxr_string">"ele"</span>);
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>         TrackState posTSTweaked = fillParticleVariables(event, positron, <span class="jxr_string">"pos"</span>);
+<a class="jxr_linenumber" name="L452" href="#L452">452</a> 
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>         List&lt;BilliorTrack&gt; billiorTracks = <strong class="jxr_keyword">new</strong> ArrayList&lt;BilliorTrack&gt;();
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>         billiorTracks.add(<strong class="jxr_keyword">new</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a>(eleTSTweaked, eleTrack.getChi2(), eleTrack.getNDF()));
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>         billiorTracks.add(<strong class="jxr_keyword">new</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a>(posTSTweaked, posTrack.getChi2(), posTrack.getNDF()));
+<a class="jxr_linenumber" name="L456" href="#L456">456</a> 
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>         <strong class="jxr_keyword">double</strong> minPositiveIso = Math.min(tupleMap.get(<span class="jxr_string">"eleMinPositiveIso/D"</span>), tupleMap.get(<span class="jxr_string">"posMinPositiveIso/D"</span>));
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>         <strong class="jxr_keyword">double</strong> minNegativeIso = Math.min(Math.abs(tupleMap.get(<span class="jxr_string">"eleMinNegativeIso/D"</span>)), Math.abs(tupleMap.get(<span class="jxr_string">"posMinNegativeIso/D"</span>)));
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>         <strong class="jxr_keyword">double</strong> minIso = Math.min(minPositiveIso, minNegativeIso);
+<a class="jxr_linenumber" name="L460" href="#L460">460</a> 
+<a class="jxr_linenumber" name="L461" href="#L461">461</a> <em class="jxr_comment">//        fillVertexVariables(event, billiorTracks, electron, positron);</em>
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>         tupleMap.put(<span class="jxr_string">"minPositiveIso/D"</span>, minPositiveIso);
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>         tupleMap.put(<span class="jxr_string">"minNegativeIso/D"</span>, minNegativeIso);
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>         tupleMap.put(<span class="jxr_string">"minIso/D"</span>, minIso);
+<a class="jxr_linenumber" name="L465" href="#L465">465</a> 
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>         <em class="jxr_comment">// Debug the uncertainties on the track</em>
+<a class="jxr_linenumber" name="L467" href="#L467">467</a> <em class="jxr_comment">//        double[] cov=electron.getTracks().get(0).getTrackStates().get(0).getCovMatrix();</em>
+<a class="jxr_linenumber" name="L468" href="#L468">468</a> <em class="jxr_comment">//        SymmetricMatrix foo= new SymmetricMatrix(5,cov,false);</em>
+<a class="jxr_linenumber" name="L469" href="#L469">469</a> <em class="jxr_comment">//     </em>
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>         <em class="jxr_comment">// Covert the tracks to BilliorTracks.</em>
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>         <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> electronBTrack = toBilliorTrack(electron.getTracks().get(0));
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>         <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> positronBTrack = toBilliorTrack(positron.getTracks().get(0));
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>         <em class="jxr_comment">// Generate a candidate vertex and particle.</em>
+<a class="jxr_linenumber" name="L474" href="#L474">474</a> <em class="jxr_comment">//        if (debug)</em>
+<a class="jxr_linenumber" name="L475" href="#L475">475</a> <em class="jxr_comment">//            LOGGER.info("Unconstrained R=(0,0,0)  ##############");</em>
+<a class="jxr_linenumber" name="L476" href="#L476">476</a> 
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>         <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFit = fitVertex(VertexDebugTupleDriver.Constraint.UNCONSTRAINED, electronBTrack, positronBTrack);
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>         Hep3Vector vtxPos = vtxFit.getPosition();
+<a class="jxr_linenumber" name="L479" href="#L479">479</a> 
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>         <em class="jxr_comment">// Parameter ordering.</em>
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>         <strong class="jxr_keyword">int</strong> D0 = ParameterName.d0.ordinal();
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>         <strong class="jxr_keyword">int</strong> PHI = ParameterName.phi0.ordinal();
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>         <strong class="jxr_keyword">int</strong> OMEGA = ParameterName.omega.ordinal();
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>         <strong class="jxr_keyword">int</strong> TANLAMBDA = ParameterName.tanLambda.ordinal();
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>         <strong class="jxr_keyword">int</strong> Z0 = ParameterName.z0.ordinal();
+<a class="jxr_linenumber" name="L486" href="#L486">486</a> 
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>         <strong class="jxr_keyword">double</strong>[] ecov = electron.getTracks().get(0).getTrackStates().get(0).getCovMatrix();
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>         SymmetricMatrix emat = <strong class="jxr_keyword">new</strong> SymmetricMatrix(5, ecov, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>         <strong class="jxr_keyword">double</strong>[] pcov = positron.getTracks().get(0).getTrackStates().get(0).getCovMatrix();
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>         SymmetricMatrix pmat = <strong class="jxr_keyword">new</strong> SymmetricMatrix(5, pcov, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L491" href="#L491">491</a> 
+<a class="jxr_linenumber" name="L492" href="#L492">492</a> <em class="jxr_comment">//        System.out.println("ecov(0) = " + ecov[0]</em>
+<a class="jxr_linenumber" name="L493" href="#L493">493</a> <em class="jxr_comment">//                + "; ecov(1) = " + ecov[1]</em>
+<a class="jxr_linenumber" name="L494" href="#L494">494</a> <em class="jxr_comment">//                + "; ecov(2) = " + ecov[2]</em>
+<a class="jxr_linenumber" name="L495" href="#L495">495</a> <em class="jxr_comment">//                + "; ecov(3) = " + ecov[3]</em>
+<a class="jxr_linenumber" name="L496" href="#L496">496</a> <em class="jxr_comment">//                + "; ecov(4) = " + ecov[4]</em>
+<a class="jxr_linenumber" name="L497" href="#L497">497</a> <em class="jxr_comment">//                + "; ecov(5) = " + ecov[5]</em>
+<a class="jxr_linenumber" name="L498" href="#L498">498</a> <em class="jxr_comment">//                + "; ecov(6) = " + ecov[6]</em>
+<a class="jxr_linenumber" name="L499" href="#L499">499</a> <em class="jxr_comment">//                + "; ecov(7) = " + ecov[7]</em>
+<a class="jxr_linenumber" name="L500" href="#L500">500</a> <em class="jxr_comment">//                + "; ecov(8) = " + ecov[8]</em>
+<a class="jxr_linenumber" name="L501" href="#L501">501</a> <em class="jxr_comment">//                + "; ecov(9) = " + ecov[9]</em>
+<a class="jxr_linenumber" name="L502" href="#L502">502</a> <em class="jxr_comment">//                + "; ecov(10) = " + ecov[10]</em>
+<a class="jxr_linenumber" name="L503" href="#L503">503</a> <em class="jxr_comment">//                + "; ecov(11) = " + ecov[11]</em>
+<a class="jxr_linenumber" name="L504" href="#L504">504</a> <em class="jxr_comment">//                + "; ecov(12) = " + ecov[12]</em>
+<a class="jxr_linenumber" name="L505" href="#L505">505</a> <em class="jxr_comment">//                + "; ecov(13) = " + ecov[13]</em>
+<a class="jxr_linenumber" name="L506" href="#L506">506</a> <em class="jxr_comment">//                + "; ecov(14) = " + ecov[14]</em>
+<a class="jxr_linenumber" name="L507" href="#L507">507</a> <em class="jxr_comment">//        );</em>
+<a class="jxr_linenumber" name="L508" href="#L508">508</a> <em class="jxr_comment">//        System.out.println("Matrix : \n" + emat.toString());</em>
+<a class="jxr_linenumber" name="L509" href="#L509">509</a> <em class="jxr_comment">//        System.out.println("Matrix : \n" + emattrue.toString());</em>
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>         <em class="jxr_comment">//        HelicalTrackFit mcHTF=TrackUtils.getHTF(posMC, B_FIELD);   </em>
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>         <em class="jxr_comment">//switch the sign of the B_FIELD like the tracking code needs</em>
+<a class="jxr_linenumber" name="L512" href="#L512">512</a> <em class="jxr_comment">//        HelixParamCalculator parCalc = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), (int) posMC.getCharge(), -B_FIELD);</em>
+<a class="jxr_linenumber" name="L513" href="#L513">513</a> <em class="jxr_comment">//        if (isFirst == true &amp;&amp; posMC.getOrigin().z() &lt; 3) {</em>
+<a class="jxr_linenumber" name="L514" href="#L514">514</a> <em class="jxr_comment">//            LOGGER.info("Getting Parameters &amp; Trajectories for this MC particle");</em>
+<a class="jxr_linenumber" name="L515" href="#L515">515</a> <em class="jxr_comment">//            try {</em>
+<a class="jxr_linenumber" name="L516" href="#L516">516</a> <em class="jxr_comment">//                double[] newparCalc = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), (int) posMC.getCharge(), B_FIELD, isFirst);</em>
+<a class="jxr_linenumber" name="L517" href="#L517">517</a> <em class="jxr_comment">//                writePoint(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), "mcp-origin.txt");</em>
+<a class="jxr_linenumber" name="L518" href="#L518">518</a> <em class="jxr_comment">//                writePoint(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), "mcp-momentum.txt");</em>
+<a class="jxr_linenumber" name="L519" href="#L519">519</a> <em class="jxr_comment">//            } catch (FileNotFoundException ex) {</em>
+<a class="jxr_linenumber" name="L520" href="#L520">520</a> <em class="jxr_comment">//                Logger.getLogger(VertexDebugTupleDriver.class.getName()).log(Level.SEVERE, null, ex);</em>
+<a class="jxr_linenumber" name="L521" href="#L521">521</a> <em class="jxr_comment">//            }</em>
+<a class="jxr_linenumber" name="L522" href="#L522">522</a> <em class="jxr_comment">//            try {</em>
+<a class="jxr_linenumber" name="L523" href="#L523">523</a> <em class="jxr_comment">//                TrackUtils.writeTrajectory(getMomentum(positron.getTracks().get(0).getTrackStates().get(0).getOmega(), positron.getTracks().get(0).getTrackStates().get(0).getPhi(), positron.getTracks().get(0).getTrackStates().get(0).getTanLambda(), B_FIELD),</em>
+<a class="jxr_linenumber" name="L524" href="#L524">524</a> <em class="jxr_comment">//                        getPoint(positron.getTracks().get(0).getTrackStates().get(0).getD0(), positron.getTracks().get(0).getTrackStates().get(0).getPhi(), positron.getTracks().get(0).getTrackStates().get(0).getZ0()),</em>
+<a class="jxr_linenumber" name="L525" href="#L525">525</a> <em class="jxr_comment">//                        (int) positron.getCharge(), B_FIELD, "recon-point-and-mom.txt");</em>
+<a class="jxr_linenumber" name="L526" href="#L526">526</a> <em class="jxr_comment">//                System.out.println("Recon HTF:  d0 = " + positron.getTracks().get(0).getTrackStates().get(0).getD0()</em>
+<a class="jxr_linenumber" name="L527" href="#L527">527</a> <em class="jxr_comment">//                        + "; phi0 = " + positron.getTracks().get(0).getTrackStates().get(0).getPhi()</em>
+<a class="jxr_linenumber" name="L528" href="#L528">528</a> <em class="jxr_comment">//                        + "; curvature = " + positron.getTracks().get(0).getTrackStates().get(0).getOmega()</em>
+<a class="jxr_linenumber" name="L529" href="#L529">529</a> <em class="jxr_comment">//                        + "; z0 = " + positron.getTracks().get(0).getTrackStates().get(0).getZ0()</em>
+<a class="jxr_linenumber" name="L530" href="#L530">530</a> <em class="jxr_comment">//                        + "; slope = " + positron.getTracks().get(0).getTrackStates().get(0).getTanLambda()</em>
+<a class="jxr_linenumber" name="L531" href="#L531">531</a> <em class="jxr_comment">//                );</em>
+<a class="jxr_linenumber" name="L532" href="#L532">532</a> <em class="jxr_comment">//                writeTrackerHits(positron.getTracks().get(0).getTrackerHits(), "recon-tracker-hits.txt");</em>
+<a class="jxr_linenumber" name="L533" href="#L533">533</a> <em class="jxr_comment">//            } catch (FileNotFoundException ex) {</em>
+<a class="jxr_linenumber" name="L534" href="#L534">534</a> <em class="jxr_comment">//                Logger.getLogger(VertexDebugTupleDriver.class.getName()).log(Level.SEVERE, null, ex);</em>
+<a class="jxr_linenumber" name="L535" href="#L535">535</a> <em class="jxr_comment">//            }</em>
+<a class="jxr_linenumber" name="L536" href="#L536">536</a> <em class="jxr_comment">//            isFirst = false;</em>
+<a class="jxr_linenumber" name="L537" href="#L537">537</a> <em class="jxr_comment">//        }</em>
+<a class="jxr_linenumber" name="L538" href="#L538">538</a> <em class="jxr_comment">//        System.out.println("MC Origin:  ox = " + CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()).x()</em>
+<a class="jxr_linenumber" name="L539" href="#L539">539</a> <em class="jxr_comment">//                + "; oy = " + CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()).y()</em>
+<a class="jxr_linenumber" name="L540" href="#L540">540</a> <em class="jxr_comment">//                + "; oz = " + CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()).z()</em>
+<a class="jxr_linenumber" name="L541" href="#L541">541</a> <em class="jxr_comment">//        );</em>
+<a class="jxr_linenumber" name="L542" href="#L542">542</a> <em class="jxr_comment">//        System.out.println("MC Momentum:  px = " + CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()).x()</em>
+<a class="jxr_linenumber" name="L543" href="#L543">543</a> <em class="jxr_comment">//                + "; py = " + CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()).y()</em>
+<a class="jxr_linenumber" name="L544" href="#L544">544</a> <em class="jxr_comment">//                + "; pz = " + CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()).z()</em>
+<a class="jxr_linenumber" name="L545" href="#L545">545</a> <em class="jxr_comment">//        );</em>
+<a class="jxr_linenumber" name="L546" href="#L546">546</a> <em class="jxr_comment">//        System.out.println("MC HTF:  d0 = " + parCalc.getDCA()</em>
+<a class="jxr_linenumber" name="L547" href="#L547">547</a> <em class="jxr_comment">//                + "; phi0 = " + parCalc.getPhi0()</em>
+<a class="jxr_linenumber" name="L548" href="#L548">548</a> <em class="jxr_comment">//                + "; curvature = " + 1 / parCalc.getRadius()</em>
+<a class="jxr_linenumber" name="L549" href="#L549">549</a> <em class="jxr_comment">//                + "; z0 = " + parCalc.getZ0()</em>
+<a class="jxr_linenumber" name="L550" href="#L550">550</a> <em class="jxr_comment">//                + "; slope = " + parCalc.getSlopeSZPlane()</em>
+<a class="jxr_linenumber" name="L551" href="#L551">551</a> <em class="jxr_comment">//        );</em>
+<a class="jxr_linenumber" name="L552" href="#L552">552</a> <em class="jxr_comment">//        System.out.println("Recon HTF:  d0 = " + electron.getTracks().get(0).getTrackStates().get(0).getD0()</em>
+<a class="jxr_linenumber" name="L553" href="#L553">553</a> <em class="jxr_comment">//                + "; phi0 = " + electron.getTracks().get(0).getTrackStates().get(0).getPhi()</em>
+<a class="jxr_linenumber" name="L554" href="#L554">554</a> <em class="jxr_comment">//                + "; curvature = " + electron.getTracks().get(0).getTrackStates().get(0).getOmega()</em>
+<a class="jxr_linenumber" name="L555" href="#L555">555</a> <em class="jxr_comment">//                + "; z0 = " + electron.getTracks().get(0).getTrackStates().get(0).getZ0()</em>
+<a class="jxr_linenumber" name="L556" href="#L556">556</a> <em class="jxr_comment">//                + "; slope = " + electron.getTracks().get(0).getTrackStates().get(0).getTanLambda()</em>
+<a class="jxr_linenumber" name="L557" href="#L557">557</a> <em class="jxr_comment">//        );</em>
+<a class="jxr_linenumber" name="L558" href="#L558">558</a> <em class="jxr_comment">//        HelixParamCalculator parCalcP = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), (int) posMC.getCharge(), -B_FIELD);</em>
+<a class="jxr_linenumber" name="L559" href="#L559">559</a> <em class="jxr_comment">//        HelixParamCalculator parCalcM = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), (int) eleMC.getCharge(), -B_FIELD);</em>
+<a class="jxr_linenumber" name="L560" href="#L560">560</a> <em class="jxr_comment">////        HelixParamCalculator parCalcP = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), (int) posMC.getCharge(), B_FIELD);</em>
+<a class="jxr_linenumber" name="L561" href="#L561">561</a> <em class="jxr_comment">////        HelixParamCalculator parCalcM = new HelixParamCalculator(CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), (int) eleMC.getCharge(), B_FIELD);</em>
+<a class="jxr_linenumber" name="L562" href="#L562">562</a> <em class="jxr_comment">//        double[] newparP = null;</em>
+<a class="jxr_linenumber" name="L563" href="#L563">563</a> <em class="jxr_comment">//        double[] newparE = null;</em>
+<a class="jxr_linenumber" name="L564" href="#L564">564</a> <em class="jxr_comment">//        try {</em>
+<a class="jxr_linenumber" name="L565" href="#L565">565</a> <em class="jxr_comment">//            newparP = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(posMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(posMC.getMomentum()), (int) posMC.getCharge(), B_FIELD, isFirst);</em>
+<a class="jxr_linenumber" name="L566" href="#L566">566</a> <em class="jxr_comment">//            newparE = TrackUtils.getParametersFromPointAndMomentum(CoordinateTransformations.transformVectorToTracking(eleMC.getOrigin()), CoordinateTransformations.transformVectorToTracking(eleMC.getMomentum()), (int) eleMC.getCharge(), B_FIELD, isFirst);</em>
+<a class="jxr_linenumber" name="L567" href="#L567">567</a> <em class="jxr_comment">//        } catch (FileNotFoundException ex) {</em>
+<a class="jxr_linenumber" name="L568" href="#L568">568</a> <em class="jxr_comment">//            Logger.getLogger(VertexDebugTupleDriver.class.getName()).log(Level.SEVERE, null, ex);</em>
+<a class="jxr_linenumber" name="L569" href="#L569">569</a> <em class="jxr_comment">//        }</em>
+<a class="jxr_linenumber" name="L570" href="#L570">570</a> <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L571" href="#L571">571</a> <em class="jxr_comment">//        System.out.println("MC HTF:  d0 = " + parCalcP.getDCA()</em>
+<a class="jxr_linenumber" name="L572" href="#L572">572</a> <em class="jxr_comment">//                + "; phi0 = " + parCalcP.getPhi0()</em>
+<a class="jxr_linenumber" name="L573" href="#L573">573</a> <em class="jxr_comment">//                + "; curvature = " + 1 / parCalcP.getRadius()</em>
+<a class="jxr_linenumber" name="L574" href="#L574">574</a> <em class="jxr_comment">//                + "; z0 = " + parCalcP.getZ0()</em>
+<a class="jxr_linenumber" name="L575" href="#L575">575</a> <em class="jxr_comment">//                + "; slope = " + parCalcP.getSlopeSZPlane()</em>
+<a class="jxr_linenumber" name="L576" href="#L576">576</a> <em class="jxr_comment">//        );</em>
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>         <strong class="jxr_keyword">double</strong> elePzFromTrack = electron.getTracks().get(0).getTrackStates().get(0).getMomentum()[0];
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>         <strong class="jxr_keyword">double</strong> elePxFromTrack = electron.getTracks().get(0).getTrackStates().get(0).getMomentum()[1];
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>         <strong class="jxr_keyword">double</strong> elePyFromTrack = electron.getTracks().get(0).getTrackStates().get(0).getMomentum()[2];
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>         <strong class="jxr_keyword">double</strong> posPzFromTrack = positron.getTracks().get(0).getTrackStates().get(0).getMomentum()[0];
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>         <strong class="jxr_keyword">double</strong> posPxFromTrack = positron.getTracks().get(0).getTrackStates().get(0).getMomentum()[1];
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>         <strong class="jxr_keyword">double</strong> posPyFromTrack = positron.getTracks().get(0).getTrackStates().get(0).getMomentum()[2];
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>         tupleMap.put(<span class="jxr_string">"eleTrkChisq/D"</span>, electronBTrack.chisqtot());
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>         tupleMap.put(<span class="jxr_string">"eleOmegaErr/D"</span>, Math.sqrt(emat.e(OMEGA, OMEGA)));<em class="jxr_comment">//omega</em>
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>         tupleMap.put(<span class="jxr_string">"eleD0Err/D"</span>, Math.sqrt(emat.e(D0, D0)));<em class="jxr_comment">//doca</em>
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>         tupleMap.put(<span class="jxr_string">"elePhi0Err/D"</span>, Math.sqrt(emat.e(PHI, PHI)));
+<a class="jxr_linenumber" name="L587" href="#L587">587</a>         tupleMap.put(<span class="jxr_string">"eleSlopeErr/D"</span>, Math.sqrt(emat.e(TANLAMBDA, TANLAMBDA)));
+<a class="jxr_linenumber" name="L588" href="#L588">588</a>         tupleMap.put(<span class="jxr_string">"eleZ0Err/D"</span>, Math.sqrt(emat.e(Z0, Z0)));
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>         tupleMap.put(<span class="jxr_string">"posTrkChisq/D"</span>, positronBTrack.chisqtot());
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>         tupleMap.put(<span class="jxr_string">"posOmegaErr/D"</span>, Math.sqrt(pmat.e(OMEGA, OMEGA)));<em class="jxr_comment">//omega</em>
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>         tupleMap.put(<span class="jxr_string">"posD0Err/D"</span>, Math.sqrt(pmat.e(D0, D0)));<em class="jxr_comment">//doca</em>
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>         tupleMap.put(<span class="jxr_string">"posPhi0Err/D"</span>, Math.sqrt(pmat.e(PHI, PHI)));
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>         tupleMap.put(<span class="jxr_string">"posSlopeErr/D"</span>, Math.sqrt(pmat.e(TANLAMBDA, TANLAMBDA)));
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>         tupleMap.put(<span class="jxr_string">"posZ0Err/D"</span>, Math.sqrt(pmat.e(Z0, Z0)));
+<a class="jxr_linenumber" name="L595" href="#L595">595</a> 
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>         tupleMap.put(<span class="jxr_string">"eleOmega/D"</span>, electron.getTracks().get(0).getTrackStates().get(0).getOmega());<em class="jxr_comment">//omega</em>
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>         tupleMap.put(<span class="jxr_string">"eleD0/D"</span>, electron.getTracks().get(0).getTrackStates().get(0).getD0());<em class="jxr_comment">//doca</em>
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>         tupleMap.put(<span class="jxr_string">"elePhi0/D"</span>, electron.getTracks().get(0).getTrackStates().get(0).getPhi());
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>         tupleMap.put(<span class="jxr_string">"eleSlope/D"</span>, electron.getTracks().get(0).getTrackStates().get(0).getTanLambda());
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>         tupleMap.put(<span class="jxr_string">"eleZ0/D"</span>, electron.getTracks().get(0).getTrackStates().get(0).getZ0());
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>         tupleMap.put(<span class="jxr_string">"posOmega/D"</span>, positron.getTracks().get(0).getTrackStates().get(0).getOmega());<em class="jxr_comment">//omega</em>
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>         tupleMap.put(<span class="jxr_string">"posD0/D"</span>, positron.getTracks().get(0).getTrackStates().get(0).getD0());<em class="jxr_comment">//doca</em>
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>         tupleMap.put(<span class="jxr_string">"posPhi0/D"</span>, positron.getTracks().get(0).getTrackStates().get(0).getPhi());
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>         tupleMap.put(<span class="jxr_string">"posSlope/D"</span>, positron.getTracks().get(0).getTrackStates().get(0).getTanLambda());
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>         tupleMap.put(<span class="jxr_string">"posZ0/D"</span>, positron.getTracks().get(0).getTrackStates().get(0).getZ0());
+<a class="jxr_linenumber" name="L606" href="#L606">606</a> 
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>         tupleMap.put(<span class="jxr_string">"elePxFromTrack/D"</span>, elePxFromTrack);
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>         tupleMap.put(<span class="jxr_string">"elePyFromTrack/D"</span>, elePyFromTrack);
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>         tupleMap.put(<span class="jxr_string">"elePzFromTrack/D"</span>, elePzFromTrack);
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>         tupleMap.put(<span class="jxr_string">"posPxFromTrack/D"</span>, posPxFromTrack);
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>         tupleMap.put(<span class="jxr_string">"posPyFromTrack/D"</span>, posPyFromTrack);
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>         tupleMap.put(<span class="jxr_string">"posPzFromTrack/D"</span>, posPzFromTrack);
+<a class="jxr_linenumber" name="L613" href="#L613">613</a> 
+<a class="jxr_linenumber" name="L614" href="#L614">614</a> <em class="jxr_comment">//        tupleMap.put("eleMCSlope/D", parCalcM.getSlopeSZPlane());//emct.slope());</em>
+<a class="jxr_linenumber" name="L615" href="#L615">615</a> <em class="jxr_comment">//        tupleMap.put("eleMCD0/D", parCalcM.getDCA());//emct.dca());</em>
+<a class="jxr_linenumber" name="L616" href="#L616">616</a> <em class="jxr_comment">//        tupleMap.put("eleMCPhi0/D", parCalcM.getPhi0());//emct.phi0());</em>
+<a class="jxr_linenumber" name="L617" href="#L617">617</a> <em class="jxr_comment">//        tupleMap.put("eleMCOmega/D", parCalcM.getMCOmega());//emct.curvature());</em>
+<a class="jxr_linenumber" name="L618" href="#L618">618</a> <em class="jxr_comment">//        tupleMap.put("eleMCZ0/D", parCalcM.getZ0());//emct.z0());</em>
+<a class="jxr_linenumber" name="L619" href="#L619">619</a> <em class="jxr_comment">//        tupleMap.put("posMCSlope/D", parCalcP.getSlopeSZPlane());//pmct.slope());</em>
+<a class="jxr_linenumber" name="L620" href="#L620">620</a> <em class="jxr_comment">//        tupleMap.put("posMCD0/D", parCalcP.getDCA());//pmct.dca());</em>
+<a class="jxr_linenumber" name="L621" href="#L621">621</a> <em class="jxr_comment">//        tupleMap.put("posMCPhi0/D", parCalcP.getPhi0());//pmct.phi0());</em>
+<a class="jxr_linenumber" name="L622" href="#L622">622</a> <em class="jxr_comment">//        tupleMap.put("posMCOmega/D", parCalcP.getMCOmega());//pmct.curvature());</em>
+<a class="jxr_linenumber" name="L623" href="#L623">623</a> <em class="jxr_comment">//        tupleMap.put("posMCZ0/D", parCalcP.getZ0());//pmct.z0());</em>
+<a class="jxr_linenumber" name="L624" href="#L624">624</a> <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L625" href="#L625">625</a> <em class="jxr_comment">//        tupleMap.put("eleMCNewCalcSlope/D", newparE[TANLAMBDA]);//emct.slope());</em>
+<a class="jxr_linenumber" name="L626" href="#L626">626</a> <em class="jxr_comment">//        tupleMap.put("eleMCNewCalcD0/D", newparE[D0]);//emct.dca());</em>
+<a class="jxr_linenumber" name="L627" href="#L627">627</a> <em class="jxr_comment">//        tupleMap.put("eleMCNewCalcPhi0/D", newparE[PHI]);//emct.phi0());</em>
+<a class="jxr_linenumber" name="L628" href="#L628">628</a> <em class="jxr_comment">//        tupleMap.put("eleMCNewCalcOmega/D", newparE[OMEGA]);//emct.curvature());</em>
+<a class="jxr_linenumber" name="L629" href="#L629">629</a> <em class="jxr_comment">//        tupleMap.put("eleMCNewCalcZ0/D", newparE[Z0]);//emct.z0());</em>
+<a class="jxr_linenumber" name="L630" href="#L630">630</a> <em class="jxr_comment">//        tupleMap.put("posMCNewCalcSlope/D", newparP[TANLAMBDA]);//pmct.slope());</em>
+<a class="jxr_linenumber" name="L631" href="#L631">631</a> <em class="jxr_comment">//        tupleMap.put("posMCNewCalcD0/D", newparP[D0]);//pmct.dca());</em>
+<a class="jxr_linenumber" name="L632" href="#L632">632</a> <em class="jxr_comment">//        tupleMap.put("posMCNewCalcPhi0/D", newparP[PHI]);//pmct.phi0());</em>
+<a class="jxr_linenumber" name="L633" href="#L633">633</a> <em class="jxr_comment">//        tupleMap.put("posMCNewCalcOmega/D", newparP[OMEGA]);//pmct.curvature());</em>
+<a class="jxr_linenumber" name="L634" href="#L634">634</a> <em class="jxr_comment">//        tupleMap.put("posMCNewCalcZ0/D", newparP[Z0]);//pmct.z0());</em>
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>         Hep3Vector pEleFit = vtxFit.getFittedMomentum(0);
+<a class="jxr_linenumber" name="L636" href="#L636">636</a>         Hep3Vector pPosFit = vtxFit.getFittedMomentum(1);
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>         <strong class="jxr_keyword">double</strong> mUncFit = vtxFit.getInvMass();
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>         <strong class="jxr_keyword">double</strong> chisqFit = vtxFit.getChi2();
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>         Hep3Vector v0MomUnc = vtxFit.getV0Momentum();
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>         Hep3Vector v0MomErrorUnc = vtxFit.getV0MomentumError();
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>         <strong class="jxr_keyword">double</strong>[] v0AtTargetUnc = vtxFit.getV0TargetXY();
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>         <strong class="jxr_keyword">double</strong>[] v0AtTargetErrorUnc = vtxFit.getV0TargetXYError();
+<a class="jxr_linenumber" name="L643" href="#L643">643</a> 
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>         System.out.println(<span class="jxr_string">"VertexDebugTuple::Unconstrained v0 projection X = "</span> + v0AtTargetUnc[0] + <span class="jxr_string">"; Y = "</span> + v0AtTargetUnc[1]);
+<a class="jxr_linenumber" name="L645" href="#L645">645</a>      <em class="jxr_comment">//   if (debug)</em>
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>      <em class="jxr_comment">//       LOGGER.info("Unconstrained R=0  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPos.z()));</em>
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>         tupleMap.put(<span class="jxr_string">"mFitUnc/D"</span>, mUncFit);
+<a class="jxr_linenumber" name="L648" href="#L648">648</a>         tupleMap.put(<span class="jxr_string">"vtxXFitUnc/D"</span>, vtxPos.x());
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>         tupleMap.put(<span class="jxr_string">"vtxYFitUnc/D"</span>, vtxPos.y());
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>         tupleMap.put(<span class="jxr_string">"vtxZFitUnc/D"</span>, vtxPos.z());
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>         tupleMap.put(<span class="jxr_string">"pEleXFitUnc/D"</span>, pEleFit.x());
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>         tupleMap.put(<span class="jxr_string">"pEleYFitUnc/D"</span>, pEleFit.y());
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>         tupleMap.put(<span class="jxr_string">"pEleZFitUnc/D"</span>, pEleFit.z());
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>         tupleMap.put(<span class="jxr_string">"pPosXFitUnc/D"</span>, pPosFit.x());
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>         tupleMap.put(<span class="jxr_string">"pPosYFitUnc/D"</span>, pPosFit.y());
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>         tupleMap.put(<span class="jxr_string">"pPosZFitUnc/D"</span>, pPosFit.z());
+<a class="jxr_linenumber" name="L657" href="#L657">657</a>         tupleMap.put(<span class="jxr_string">"chisqFitUnc/D"</span>, chisqFit);
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>         tupleMap.put(<span class="jxr_string">"probFitUnc/D"</span>, vtxFit.getProbability());
+<a class="jxr_linenumber" name="L659" href="#L659">659</a> 
+<a class="jxr_linenumber" name="L660" href="#L660">660</a>         tupleMap.put(<span class="jxr_string">"mErrFitUnc/D"</span>, vtxFit.getInvMassError());
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>         tupleMap.put(<span class="jxr_string">"vtxXErrFitUnc/D"</span>, vtxFit.getPositionError().x());
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>         tupleMap.put(<span class="jxr_string">"vtxYErrFitUnc/D"</span>, vtxFit.getPositionError().y());
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>         tupleMap.put(<span class="jxr_string">"vtxZErrFitUnc/D"</span>, vtxFit.getPositionError().z());
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>         tupleMap.put(<span class="jxr_string">"pEleXErrFitUnc/D"</span>, vtxFit.getFittedMomentumError(0).x());
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>         tupleMap.put(<span class="jxr_string">"pEleYErrFitUnc/D"</span>, vtxFit.getFittedMomentumError(0).y());
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>         tupleMap.put(<span class="jxr_string">"pEleZErrFitUnc/D"</span>, vtxFit.getFittedMomentumError(0).z());
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>         tupleMap.put(<span class="jxr_string">"pPosXErrFitUnc/D"</span>, vtxFit.getFittedMomentumError(1).x());
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>         tupleMap.put(<span class="jxr_string">"pPosYErrFitUnc/D"</span>, vtxFit.getFittedMomentumError(1).y());
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>         tupleMap.put(<span class="jxr_string">"pPosZErrFitUnc/D"</span>, vtxFit.getFittedMomentumError(1).z());
+<a class="jxr_linenumber" name="L670" href="#L670">670</a> 
+<a class="jxr_linenumber" name="L671" href="#L671">671</a>         tupleMap.put(<span class="jxr_string">"v0MomXErrFitUnc/D"</span>, v0MomErrorUnc.x());
+<a class="jxr_linenumber" name="L672" href="#L672">672</a>         tupleMap.put(<span class="jxr_string">"v0MomYErrFitUnc/D"</span>, v0MomErrorUnc.y());
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>         tupleMap.put(<span class="jxr_string">"v0MomZErrFitUnc/D"</span>, v0MomErrorUnc.z());
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>         tupleMap.put(<span class="jxr_string">"v0XYTarXErrFitUnc/D"</span>, v0AtTargetErrorUnc[0]);
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>         tupleMap.put(<span class="jxr_string">"v0XYTarYErrFitUnc/D"</span>, v0AtTargetErrorUnc[1]);
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>         tupleMap.put(<span class="jxr_string">"v0MomXFitUnc/D"</span>, v0MomUnc.x());
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>         tupleMap.put(<span class="jxr_string">"v0MomYFitUnc/D"</span>, v0MomUnc.y());
+<a class="jxr_linenumber" name="L678" href="#L678">678</a>         tupleMap.put(<span class="jxr_string">"v0MomZFitUnc/D"</span>, v0MomUnc.z());
+<a class="jxr_linenumber" name="L679" href="#L679">679</a>         tupleMap.put(<span class="jxr_string">"v0XYTarXFitUnc/D"</span>, v0AtTargetUnc[0]);
+<a class="jxr_linenumber" name="L680" href="#L680">680</a>         tupleMap.put(<span class="jxr_string">"v0XYTarYFitUnc/D"</span>, v0AtTargetUnc[1]);
+<a class="jxr_linenumber" name="L681" href="#L681">681</a> 
+<a class="jxr_linenumber" name="L682" href="#L682">682</a>         <em class="jxr_comment">//    Ok...same thing with beam-spot constrained</em>
+<a class="jxr_linenumber" name="L683" href="#L683">683</a> <em class="jxr_comment">//        BilliorVertex vtxFitBSC = fitVertex(VertexDebugTupleDriver.Constraint.BS_CONSTRAINED, electronBTrack, positronBTrack, new BasicHep3Vector(beamPosition));</em>
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>         <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFitBSC = fitVertex(VertexDebugTupleDriver.Constraint.BS_CONSTRAINED, electronBTrack, positronBTrack);
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>         Hep3Vector vtxPosBSC = vtxFitBSC.getPosition();
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>         Hep3Vector pEleFitBSC = vtxFitBSC.getFittedMomentum(0);
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>         Hep3Vector pPosFitBSC = vtxFitBSC.getFittedMomentum(1);
+<a class="jxr_linenumber" name="L688" href="#L688">688</a> <em class="jxr_comment">//        LOGGER.info("Constrained R=0  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPosBSC.z()));</em>
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>         <strong class="jxr_keyword">double</strong> mFitBSC = vtxFitBSC.getInvMass();
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>         <strong class="jxr_keyword">double</strong> chisqBSC = vtxFitBSC.getChi2();
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>         Hep3Vector v0MomBSC = vtxFitBSC.getV0Momentum();
+<a class="jxr_linenumber" name="L692" href="#L692">692</a>         Hep3Vector v0MomErrorBSC = vtxFitBSC.getV0MomentumError();
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>         <strong class="jxr_keyword">double</strong>[] v0AtTargetBSC = vtxFitBSC.getV0TargetXY();
+<a class="jxr_linenumber" name="L694" href="#L694">694</a>         <strong class="jxr_keyword">double</strong>[] v0AtTargetErrorBSC = vtxFitBSC.getV0TargetXYError();
+<a class="jxr_linenumber" name="L695" href="#L695">695</a> 
+<a class="jxr_linenumber" name="L696" href="#L696">696</a>         tupleMap.put(<span class="jxr_string">"mFitBSC/D"</span>, mFitBSC);
+<a class="jxr_linenumber" name="L697" href="#L697">697</a>         tupleMap.put(<span class="jxr_string">"vtxXFitBSC/D"</span>, vtxPosBSC.x());
+<a class="jxr_linenumber" name="L698" href="#L698">698</a>         tupleMap.put(<span class="jxr_string">"vtxYFitBSC/D"</span>, vtxPosBSC.y());
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>         tupleMap.put(<span class="jxr_string">"vtxZFitBSC/D"</span>, vtxPosBSC.z());
+<a class="jxr_linenumber" name="L700" href="#L700">700</a>         tupleMap.put(<span class="jxr_string">"pEleXFitBSC/D"</span>, pEleFitBSC.x());
+<a class="jxr_linenumber" name="L701" href="#L701">701</a>         tupleMap.put(<span class="jxr_string">"pEleYFitBSC/D"</span>, pEleFitBSC.y());
+<a class="jxr_linenumber" name="L702" href="#L702">702</a>         tupleMap.put(<span class="jxr_string">"pEleZFitBSC/D"</span>, pEleFitBSC.z());
+<a class="jxr_linenumber" name="L703" href="#L703">703</a>         tupleMap.put(<span class="jxr_string">"pPosXFitBSC/D"</span>, pPosFitBSC.x());
+<a class="jxr_linenumber" name="L704" href="#L704">704</a>         tupleMap.put(<span class="jxr_string">"pPosYFitBSC/D"</span>, pPosFitBSC.y());
+<a class="jxr_linenumber" name="L705" href="#L705">705</a>         tupleMap.put(<span class="jxr_string">"pPosZFitBSC/D"</span>, pPosFitBSC.z());
+<a class="jxr_linenumber" name="L706" href="#L706">706</a>         tupleMap.put(<span class="jxr_string">"chisqFitBSC/D"</span>, chisqBSC);
+<a class="jxr_linenumber" name="L707" href="#L707">707</a>         tupleMap.put(<span class="jxr_string">"probFitBSC/D"</span>, vtxFitBSC.getProbability());
+<a class="jxr_linenumber" name="L708" href="#L708">708</a> 
+<a class="jxr_linenumber" name="L709" href="#L709">709</a>         tupleMap.put(<span class="jxr_string">"mErrFitBSC/D"</span>, vtxFitBSC.getInvMassError());
+<a class="jxr_linenumber" name="L710" href="#L710">710</a>         tupleMap.put(<span class="jxr_string">"vtxXErrFitBSC/D"</span>, vtxFitBSC.getPositionError().x());
+<a class="jxr_linenumber" name="L711" href="#L711">711</a>         tupleMap.put(<span class="jxr_string">"vtxYErrFitBSC/D"</span>, vtxFitBSC.getPositionError().y());
+<a class="jxr_linenumber" name="L712" href="#L712">712</a>         tupleMap.put(<span class="jxr_string">"vtxZErrFitBSC/D"</span>, vtxFitBSC.getPositionError().z());
+<a class="jxr_linenumber" name="L713" href="#L713">713</a>         tupleMap.put(<span class="jxr_string">"pEleXErrFitBSC/D"</span>, vtxFitBSC.getFittedMomentumError(0).x());
+<a class="jxr_linenumber" name="L714" href="#L714">714</a>         tupleMap.put(<span class="jxr_string">"pEleYErrFitBSC/D"</span>, vtxFitBSC.getFittedMomentumError(0).y());
+<a class="jxr_linenumber" name="L715" href="#L715">715</a>         tupleMap.put(<span class="jxr_string">"pEleZErrFitBSC/D"</span>, vtxFitBSC.getFittedMomentumError(0).z());
+<a class="jxr_linenumber" name="L716" href="#L716">716</a>         tupleMap.put(<span class="jxr_string">"pPosXErrFitBSC/D"</span>, vtxFitBSC.getFittedMomentumError(1).x());
+<a class="jxr_linenumber" name="L717" href="#L717">717</a>         tupleMap.put(<span class="jxr_string">"pPosYErrFitBSC/D"</span>, vtxFitBSC.getFittedMomentumError(1).y());
+<a class="jxr_linenumber" name="L718" href="#L718">718</a>         tupleMap.put(<span class="jxr_string">"pPosZErrFitBSC/D"</span>, vtxFitBSC.getFittedMomentumError(1).z());
+<a class="jxr_linenumber" name="L719" href="#L719">719</a> 
+<a class="jxr_linenumber" name="L720" href="#L720">720</a>         tupleMap.put(<span class="jxr_string">"v0MomXErrFitBSC/D"</span>, v0MomErrorBSC.x());
+<a class="jxr_linenumber" name="L721" href="#L721">721</a>         tupleMap.put(<span class="jxr_string">"v0MomYErrFitBSC/D"</span>, v0MomErrorBSC.y());
+<a class="jxr_linenumber" name="L722" href="#L722">722</a>         tupleMap.put(<span class="jxr_string">"v0MomZErrFitBSC/D"</span>, v0MomErrorBSC.z());
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>         tupleMap.put(<span class="jxr_string">"v0XYTarXErrFitBSC/D"</span>, v0AtTargetErrorBSC[0]);
+<a class="jxr_linenumber" name="L724" href="#L724">724</a>         tupleMap.put(<span class="jxr_string">"v0XYTarYErrFitBSC/D"</span>, v0AtTargetErrorBSC[1]);
+<a class="jxr_linenumber" name="L725" href="#L725">725</a>         tupleMap.put(<span class="jxr_string">"v0MomXFitBSC/D"</span>, v0MomBSC.x());
+<a class="jxr_linenumber" name="L726" href="#L726">726</a>         tupleMap.put(<span class="jxr_string">"v0MomYFitBSC/D"</span>, v0MomBSC.y());
+<a class="jxr_linenumber" name="L727" href="#L727">727</a>         tupleMap.put(<span class="jxr_string">"v0MomZFitBSC/D"</span>, v0MomBSC.z());
+<a class="jxr_linenumber" name="L728" href="#L728">728</a>         tupleMap.put(<span class="jxr_string">"v0XYTarXFitBSC/D"</span>, v0AtTargetBSC[0]);
+<a class="jxr_linenumber" name="L729" href="#L729">729</a>         tupleMap.put(<span class="jxr_string">"v0XYTarYFitBSC/D"</span>, v0AtTargetBSC[1]);
+<a class="jxr_linenumber" name="L730" href="#L730">730</a> 
+<a class="jxr_linenumber" name="L731" href="#L731">731</a> <em class="jxr_comment">///     Ok...shift the reference point....        </em>
+<a class="jxr_linenumber" name="L732" href="#L732">732</a>         <strong class="jxr_keyword">double</strong>[] newRef = {vtxPos.z(), vtxPos.x(), 0.0};<em class="jxr_comment">//the  TrackUtils.getParametersAtNewRefPoint method only shifts in xy...?</em>
+<a class="jxr_linenumber" name="L733" href="#L733">733</a>         BaseTrackState eleOldTS = (BaseTrackState) electron.getTracks().get(0).getTrackStates().get(0);
+<a class="jxr_linenumber" name="L734" href="#L734">734</a>         BaseTrackState posOldTS = (BaseTrackState) positron.getTracks().get(0).getTrackStates().get(0);
+<a class="jxr_linenumber" name="L735" href="#L735">735</a>         <strong class="jxr_keyword">double</strong>[] eleShiftPars = TrackUtils.getParametersAtNewRefPoint(newRef, eleOldTS);
+<a class="jxr_linenumber" name="L736" href="#L736">736</a>         <strong class="jxr_keyword">double</strong>[] posShiftPars = TrackUtils.getParametersAtNewRefPoint(newRef, posOldTS);
+<a class="jxr_linenumber" name="L737" href="#L737">737</a>         SymmetricMatrix eleShiftCov = TrackUtils.getCovarianceAtNewRefPoint(newRef, eleOldTS.getReferencePoint(), eleOldTS.getParameters(), <strong class="jxr_keyword">new</strong> SymmetricMatrix(5, eleOldTS.getCovMatrix(), <strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L738" href="#L738">738</a>         SymmetricMatrix posShiftCov = TrackUtils.getCovarianceAtNewRefPoint(newRef, posOldTS.getReferencePoint(), posOldTS.getParameters(), <strong class="jxr_keyword">new</strong> SymmetricMatrix(5, posOldTS.getCovMatrix(), <strong class="jxr_keyword">true</strong>));
+<a class="jxr_linenumber" name="L739" href="#L739">739</a>         BaseTrackState eleShiftTS = <strong class="jxr_keyword">new</strong> BaseTrackState(eleShiftPars, newRef, eleShiftCov.asPackedArray(<strong class="jxr_keyword">true</strong>), TrackState.AtIP, B_FIELD);
+<a class="jxr_linenumber" name="L740" href="#L740">740</a>         BaseTrackState posShiftTS = <strong class="jxr_keyword">new</strong> BaseTrackState(posShiftPars, newRef, posShiftCov.asPackedArray(<strong class="jxr_keyword">true</strong>), TrackState.AtIP, B_FIELD);
+<a class="jxr_linenumber" name="L741" href="#L741">741</a> <em class="jxr_comment">//            BaseTrackState eleShiftTS = new BaseTrackState(eleShiftPars, newRef, eleOldTS.getCovMatrix(), TrackState.AtIP, B_FIELD);</em>
+<a class="jxr_linenumber" name="L742" href="#L742">742</a> <em class="jxr_comment">//            BaseTrackState posShiftTS = new BaseTrackState(posShiftPars, newRef, posOldTS.getCovMatrix(), TrackState.AtIP, B_FIELD);</em>
+<a class="jxr_linenumber" name="L743" href="#L743">743</a>         <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> electronBTrackShift = toBilliorTrack(eleShiftTS);
+<a class="jxr_linenumber" name="L744" href="#L744">744</a>         <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> positronBTrackShift = toBilliorTrack(posShiftTS);
+<a class="jxr_linenumber" name="L745" href="#L745">745</a> 
+<a class="jxr_linenumber" name="L746" href="#L746">746</a>         <em class="jxr_comment">//           get the new fitter</em>
+<a class="jxr_linenumber" name="L747" href="#L747">747</a>         <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L748" href="#L748">748</a>             LOGGER.info(<span class="jxr_string">"Unconstrained R=("</span> + newRef[0] + <span class="jxr_string">","</span> + newRef[1] + <span class="jxr_string">","</span> + newRef[2] + <span class="jxr_string">") ##############"</span>);
+<a class="jxr_linenumber" name="L749" href="#L749">749</a> <em class="jxr_comment">//        BilliorVertex vtxFitShift = fitVertex(VertexDebugTupleDriver.Constraint.UNCONSTRAINED, electronBTrackShift, positronBTrackShift);</em>
+<a class="jxr_linenumber" name="L750" href="#L750">750</a>         Hep3Vector beamRelToNewRef = <strong class="jxr_keyword">new</strong> BasicHep3Vector(newRef[0], newRef[1], newRef[2]);
+<a class="jxr_linenumber" name="L751" href="#L751">751</a>         <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFitShift = fitVertex(VertexDebugTupleDriver.Constraint.UNCONSTRAINED, electronBTrackShift, positronBTrackShift, beamRelToNewRef);
+<a class="jxr_linenumber" name="L752" href="#L752">752</a>         Hep3Vector vtxPosRefitUnc = vtxFitShift.getPosition();
+<a class="jxr_linenumber" name="L753" href="#L753">753</a>         Hep3Vector pEleRefitUnc = vtxFitShift.getFittedMomentum(0);
+<a class="jxr_linenumber" name="L754" href="#L754">754</a>         Hep3Vector pPosRefitUnc = vtxFitShift.getFittedMomentum(1);
+<a class="jxr_linenumber" name="L755" href="#L755">755</a>         <strong class="jxr_keyword">double</strong>[] eleTrkParsRefitUnc = vtxFitShift.getFittedTrackParameters(0);
+<a class="jxr_linenumber" name="L756" href="#L756">756</a>         Matrix eleTrkCovRefitUnc = vtxFitShift.getFittedTrackCovariance(0);
+<a class="jxr_linenumber" name="L757" href="#L757">757</a>         <strong class="jxr_keyword">double</strong>[] posTrkParsRefitUnc = vtxFitShift.getFittedTrackParameters(1);
+<a class="jxr_linenumber" name="L758" href="#L758">758</a>         Matrix posTrkCovRefitUnc = vtxFitShift.getFittedTrackCovariance(1);
+<a class="jxr_linenumber" name="L759" href="#L759">759</a>         <strong class="jxr_keyword">double</strong> mUncRefitUnc = vtxFitShift.getInvMass();
+<a class="jxr_linenumber" name="L760" href="#L760">760</a>         <strong class="jxr_keyword">double</strong> chisqRefitUnc = vtxFitShift.getChi2();
+<a class="jxr_linenumber" name="L761" href="#L761">761</a>         Hep3Vector v0MomRefitUnc = vtxFitShift.getV0Momentum();
+<a class="jxr_linenumber" name="L762" href="#L762">762</a>         Hep3Vector v0MomErrorRefitUnc = vtxFitShift.getV0MomentumError();
+<a class="jxr_linenumber" name="L763" href="#L763">763</a>         <strong class="jxr_keyword">double</strong>[] v0AtTargetRefitUnc = vtxFitShift.getV0TargetXY();
+<a class="jxr_linenumber" name="L764" href="#L764">764</a>         <strong class="jxr_keyword">double</strong>[] v0AtTargetErrorRefitUnc = vtxFitShift.getV0TargetXYError();
+<a class="jxr_linenumber" name="L765" href="#L765">765</a> 
+<a class="jxr_linenumber" name="L766" href="#L766">766</a> <em class="jxr_comment">//        if (debug)</em>
+<a class="jxr_linenumber" name="L767" href="#L767">767</a> <em class="jxr_comment">//            LOGGER.info("Unconstrained R=shift  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPosRefitUnc.z()));</em>
+<a class="jxr_linenumber" name="L768" href="#L768">768</a> 
+<a class="jxr_linenumber" name="L769" href="#L769">769</a> <em class="jxr_comment">//        if (Math.abs(vtxPosRefitUnc.z()) &gt; 0.5) {</em>
+<a class="jxr_linenumber" name="L770" href="#L770">770</a> <em class="jxr_comment">//            LOGGER.info("Big Shift!!! ");</em>
+<a class="jxr_linenumber" name="L771" href="#L771">771</a> <em class="jxr_comment">//            LOGGER.info("Electron P = " + pEleFit.x() + ", " + pEleFit.y() + ", " + pEleFit.z());</em>
+<a class="jxr_linenumber" name="L772" href="#L772">772</a> <em class="jxr_comment">//            LOGGER.info("Positron P = " + pPosFit.x() + ", " + pPosFit.y() + ", " + pPosFit.z());</em>
+<a class="jxr_linenumber" name="L773" href="#L773">773</a> <em class="jxr_comment">//            LOGGER.info("For -ive pY() component: ");</em>
+<a class="jxr_linenumber" name="L774" href="#L774">774</a> <em class="jxr_comment">//            SymmetricMatrix badCovOld = new SymmetricMatrix(5, eleOldTS.getCovMatrix(), true);</em>
+<a class="jxr_linenumber" name="L775" href="#L775">775</a> <em class="jxr_comment">//            SymmetricMatrix badCovNew = eleShiftCov;</em>
+<a class="jxr_linenumber" name="L776" href="#L776">776</a> <em class="jxr_comment">//            if (pPosFit.y() &lt; 0) {</em>
+<a class="jxr_linenumber" name="L777" href="#L777">777</a> <em class="jxr_comment">//                badCovOld = new SymmetricMatrix(5, posOldTS.getCovMatrix(), true);</em>
+<a class="jxr_linenumber" name="L778" href="#L778">778</a> <em class="jxr_comment">//                badCovNew = posShiftCov;</em>
+<a class="jxr_linenumber" name="L779" href="#L779">779</a> <em class="jxr_comment">//            }</em>
+<a class="jxr_linenumber" name="L780" href="#L780">780</a> <em class="jxr_comment">//            LOGGER.info(badCovOld.toString());</em>
+<a class="jxr_linenumber" name="L781" href="#L781">781</a> <em class="jxr_comment">//            LOGGER.info(badCovNew.toString());</em>
+<a class="jxr_linenumber" name="L782" href="#L782">782</a> <em class="jxr_comment">//        }</em>
+<a class="jxr_linenumber" name="L783" href="#L783">783</a>         tupleMap.put(<span class="jxr_string">"mRefitUnc/D"</span>, mUncRefitUnc);
+<a class="jxr_linenumber" name="L784" href="#L784">784</a>         tupleMap.put(<span class="jxr_string">"vtxXRefitUnc/D"</span>, vtxPosRefitUnc.x());
+<a class="jxr_linenumber" name="L785" href="#L785">785</a>         tupleMap.put(<span class="jxr_string">"vtxYRefitUnc/D"</span>, vtxPosRefitUnc.y());
+<a class="jxr_linenumber" name="L786" href="#L786">786</a>         tupleMap.put(<span class="jxr_string">"vtxZRefitUnc/D"</span>, vtxPosRefitUnc.z());
+<a class="jxr_linenumber" name="L787" href="#L787">787</a>         tupleMap.put(<span class="jxr_string">"pEleXRefitUnc/D"</span>, pEleRefitUnc.x());
+<a class="jxr_linenumber" name="L788" href="#L788">788</a>         tupleMap.put(<span class="jxr_string">"pEleYRefitUnc/D"</span>, pEleRefitUnc.y());
+<a class="jxr_linenumber" name="L789" href="#L789">789</a>         tupleMap.put(<span class="jxr_string">"pEleZRefitUnc/D"</span>, pEleRefitUnc.z());
+<a class="jxr_linenumber" name="L790" href="#L790">790</a>         tupleMap.put(<span class="jxr_string">"pPosXRefitUnc/D"</span>, pPosRefitUnc.x());
+<a class="jxr_linenumber" name="L791" href="#L791">791</a>         tupleMap.put(<span class="jxr_string">"pPosYRefitUnc/D"</span>, pPosRefitUnc.y());
+<a class="jxr_linenumber" name="L792" href="#L792">792</a>         tupleMap.put(<span class="jxr_string">"pPosZRefitUnc/D"</span>, pPosRefitUnc.z());
+<a class="jxr_linenumber" name="L793" href="#L793">793</a>         tupleMap.put(<span class="jxr_string">"chisqRefitUnc/D"</span>, chisqRefitUnc);
+<a class="jxr_linenumber" name="L794" href="#L794">794</a>         tupleMap.put(<span class="jxr_string">"probReitUnc/D"</span>, vtxFitShift.getProbability());
+<a class="jxr_linenumber" name="L795" href="#L795">795</a> 
+<a class="jxr_linenumber" name="L796" href="#L796">796</a>         tupleMap.put(<span class="jxr_string">"mErrRefitUnc/D"</span>, vtxFitShift.getInvMassError());
+<a class="jxr_linenumber" name="L797" href="#L797">797</a>         tupleMap.put(<span class="jxr_string">"vtxXErrRefitUnc/D"</span>, vtxFitShift.getPositionError().x());
+<a class="jxr_linenumber" name="L798" href="#L798">798</a>         tupleMap.put(<span class="jxr_string">"vtxYErrRefitUnc/D"</span>, vtxFitShift.getPositionError().y());
+<a class="jxr_linenumber" name="L799" href="#L799">799</a>         tupleMap.put(<span class="jxr_string">"vtxZErrRefitUnc/D"</span>, vtxFitShift.getPositionError().z());
+<a class="jxr_linenumber" name="L800" href="#L800">800</a>         tupleMap.put(<span class="jxr_string">"pEleXErrRefitUnc/D"</span>, vtxFitShift.getFittedMomentumError(0).x());
+<a class="jxr_linenumber" name="L801" href="#L801">801</a>         tupleMap.put(<span class="jxr_string">"pEleYErrRefitUnc/D"</span>, vtxFitShift.getFittedMomentumError(0).y());
+<a class="jxr_linenumber" name="L802" href="#L802">802</a>         tupleMap.put(<span class="jxr_string">"pEleZErrRefitUnc/D"</span>, vtxFitShift.getFittedMomentumError(0).z());
+<a class="jxr_linenumber" name="L803" href="#L803">803</a>         tupleMap.put(<span class="jxr_string">"pPosXErrRefitUnc/D"</span>, vtxFitShift.getFittedMomentumError(1).x());
+<a class="jxr_linenumber" name="L804" href="#L804">804</a>         tupleMap.put(<span class="jxr_string">"pPosYErrRefitUnc/D"</span>, vtxFitShift.getFittedMomentumError(1).y());
+<a class="jxr_linenumber" name="L805" href="#L805">805</a>         tupleMap.put(<span class="jxr_string">"pPosZErrRefitUnc/D"</span>, vtxFitShift.getFittedMomentumError(1).z());
+<a class="jxr_linenumber" name="L806" href="#L806">806</a> 
+<a class="jxr_linenumber" name="L807" href="#L807">807</a>         tupleMap.put(<span class="jxr_string">"v0MomXErrRefitUnc/D"</span>, v0MomErrorRefitUnc.x());
+<a class="jxr_linenumber" name="L808" href="#L808">808</a>         tupleMap.put(<span class="jxr_string">"v0MomYErrRefitUnc/D"</span>, v0MomErrorRefitUnc.y());
+<a class="jxr_linenumber" name="L809" href="#L809">809</a>         tupleMap.put(<span class="jxr_string">"v0MomZErrRefitUnc/D"</span>, v0MomErrorRefitUnc.z());
+<a class="jxr_linenumber" name="L810" href="#L810">810</a>         tupleMap.put(<span class="jxr_string">"v0XYTarXErrRefitUnc/D"</span>, v0AtTargetErrorRefitUnc[0]);
+<a class="jxr_linenumber" name="L811" href="#L811">811</a>         tupleMap.put(<span class="jxr_string">"v0XYTarYErrRefitUnc/D"</span>, v0AtTargetErrorRefitUnc[1]);
+<a class="jxr_linenumber" name="L812" href="#L812">812</a>         tupleMap.put(<span class="jxr_string">"v0MomXRefitUnc/D"</span>, v0MomRefitUnc.x());
+<a class="jxr_linenumber" name="L813" href="#L813">813</a>         tupleMap.put(<span class="jxr_string">"v0MomYRefitUnc/D"</span>, v0MomRefitUnc.y());
+<a class="jxr_linenumber" name="L814" href="#L814">814</a>         tupleMap.put(<span class="jxr_string">"v0MomZRefitUnc/D"</span>, v0MomRefitUnc.z());
+<a class="jxr_linenumber" name="L815" href="#L815">815</a>         tupleMap.put(<span class="jxr_string">"v0XYTarXRefitUnc/D"</span>, v0AtTargetRefitUnc[0]);
+<a class="jxr_linenumber" name="L816" href="#L816">816</a>         tupleMap.put(<span class="jxr_string">"v0XYTarYRefitUnc/D"</span>, v0AtTargetRefitUnc[1]);
+<a class="jxr_linenumber" name="L817" href="#L817">817</a> 
+<a class="jxr_linenumber" name="L818" href="#L818">818</a>         tupleMap.put(<span class="jxr_string">"thetaFitEleRefitUnc/D"</span>, eleTrkParsRefitUnc[0]);
+<a class="jxr_linenumber" name="L819" href="#L819">819</a>         tupleMap.put(<span class="jxr_string">"phivFitEleRefitUnc/D"</span>, eleTrkParsRefitUnc[1]);
+<a class="jxr_linenumber" name="L820" href="#L820">820</a>         tupleMap.put(<span class="jxr_string">"rhoFitEleRefitUnc/D"</span>, eleTrkParsRefitUnc[2]);
+<a class="jxr_linenumber" name="L821" href="#L821">821</a>         tupleMap.put(<span class="jxr_string">"thetaFitErrEleRefitUnc/D"</span>, eleTrkCovRefitUnc.e(0, 0));
+<a class="jxr_linenumber" name="L822" href="#L822">822</a>         tupleMap.put(<span class="jxr_string">"phivFitErrEleRefitUnc/D"</span>, eleTrkCovRefitUnc.e(1, 1));
+<a class="jxr_linenumber" name="L823" href="#L823">823</a>         tupleMap.put(<span class="jxr_string">"rhoFitErrEleRefitUnc/D"</span>, eleTrkCovRefitUnc.e(2, 2));
+<a class="jxr_linenumber" name="L824" href="#L824">824</a> 
+<a class="jxr_linenumber" name="L825" href="#L825">825</a>         tupleMap.put(<span class="jxr_string">"thetaFitPosRefitUnc/D"</span>, posTrkParsRefitUnc[0]);
+<a class="jxr_linenumber" name="L826" href="#L826">826</a>         tupleMap.put(<span class="jxr_string">"phivFitPosRefitUnc/D"</span>, posTrkParsRefitUnc[1]);
+<a class="jxr_linenumber" name="L827" href="#L827">827</a>         tupleMap.put(<span class="jxr_string">"rhoFitPosRefitUnc/D"</span>, posTrkParsRefitUnc[2]);
+<a class="jxr_linenumber" name="L828" href="#L828">828</a>         tupleMap.put(<span class="jxr_string">"thetaFitErrPosRefitUnc/D"</span>, posTrkCovRefitUnc.e(0, 0));
+<a class="jxr_linenumber" name="L829" href="#L829">829</a>         tupleMap.put(<span class="jxr_string">"phivFitErrPosRefitUnc/D"</span>, posTrkCovRefitUnc.e(1, 1));
+<a class="jxr_linenumber" name="L830" href="#L830">830</a>         tupleMap.put(<span class="jxr_string">"rhoFitErrPosRefitUnc/D"</span>, posTrkCovRefitUnc.e(2, 2));
+<a class="jxr_linenumber" name="L831" href="#L831">831</a> 
+<a class="jxr_linenumber" name="L832" href="#L832">832</a>         <strong class="jxr_keyword">if</strong> (unconstrainedV0List.size() == 1) {
+<a class="jxr_linenumber" name="L833" href="#L833">833</a>             <strong class="jxr_keyword">if</strong> (mUncRefitUnc != unconstrainedV0List.get(0).getMass())
+<a class="jxr_linenumber" name="L834" href="#L834">834</a>                 LOGGER.info(<span class="jxr_string">"unconstrained mass mis-match!!!   "</span> + mUncRefitUnc);
+<a class="jxr_linenumber" name="L835" href="#L835">835</a>             <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L836" href="#L836">836</a>                 LOGGER.info(<span class="jxr_string">"unconstrained mass good match!!!   "</span> + mUncRefitUnc);
+<a class="jxr_linenumber" name="L837" href="#L837">837</a>             <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFitShiftFromV0 = (<a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a>) unconstrainedV0List.get(0).getStartVertex();
+<a class="jxr_linenumber" name="L838" href="#L838">838</a> 
+<a class="jxr_linenumber" name="L839" href="#L839">839</a>             Hep3Vector vtxPosRefitUncFromV0 = vtxFitShiftFromV0.getPosition();
+<a class="jxr_linenumber" name="L840" href="#L840">840</a>             Hep3Vector pEleRefitUncFromV0 = vtxFitShiftFromV0.getFittedMomentum(0);
+<a class="jxr_linenumber" name="L841" href="#L841">841</a>             Hep3Vector pPosRefitUncFromV0 = vtxFitShiftFromV0.getFittedMomentum(1);
+<a class="jxr_linenumber" name="L842" href="#L842">842</a>             <strong class="jxr_keyword">double</strong> mUncRefitUncFromV0 = vtxFitShiftFromV0.getInvMass();
+<a class="jxr_linenumber" name="L843" href="#L843">843</a>             <strong class="jxr_keyword">double</strong> chisqRefitUncFromV0 = vtxFitShiftFromV0.getChi2();
+<a class="jxr_linenumber" name="L844" href="#L844">844</a>             Hep3Vector v0Mom = vtxFitShiftFromV0.getV0Momentum();
+<a class="jxr_linenumber" name="L845" href="#L845">845</a>             Hep3Vector v0MomError = vtxFitShiftFromV0.getV0MomentumError();
+<a class="jxr_linenumber" name="L846" href="#L846">846</a>             <strong class="jxr_keyword">double</strong>[] v0AtTarget = vtxFitShiftFromV0.getV0TargetXY();
+<a class="jxr_linenumber" name="L847" href="#L847">847</a>             <strong class="jxr_keyword">double</strong>[] v0AtTargetError = vtxFitShiftFromV0.getV0TargetXYError();
+<a class="jxr_linenumber" name="L848" href="#L848">848</a>             tupleMap.put(<span class="jxr_string">"mRefitUncFromV0/D"</span>, mUncRefitUncFromV0);
+<a class="jxr_linenumber" name="L849" href="#L849">849</a>             tupleMap.put(<span class="jxr_string">"vtxXRefitUncFromV0/D"</span>, vtxPosRefitUncFromV0.x());
+<a class="jxr_linenumber" name="L850" href="#L850">850</a>             tupleMap.put(<span class="jxr_string">"vtxYRefitUncFromV0/D"</span>, vtxPosRefitUncFromV0.y());
+<a class="jxr_linenumber" name="L851" href="#L851">851</a>             tupleMap.put(<span class="jxr_string">"vtxZRefitUncFromV0/D"</span>, vtxPosRefitUncFromV0.z());
+<a class="jxr_linenumber" name="L852" href="#L852">852</a>             tupleMap.put(<span class="jxr_string">"pEleXRefitUncFromV0/D"</span>, pEleRefitUncFromV0.x());
+<a class="jxr_linenumber" name="L853" href="#L853">853</a>             tupleMap.put(<span class="jxr_string">"pEleYRefitUncFromV0/D"</span>, pEleRefitUncFromV0.y());
+<a class="jxr_linenumber" name="L854" href="#L854">854</a>             tupleMap.put(<span class="jxr_string">"pEleZRefitUncFromV0/D"</span>, pEleRefitUncFromV0.z());
+<a class="jxr_linenumber" name="L855" href="#L855">855</a>             tupleMap.put(<span class="jxr_string">"pPosXRefitUncFromV0/D"</span>, pPosRefitUncFromV0.x());
+<a class="jxr_linenumber" name="L856" href="#L856">856</a>             tupleMap.put(<span class="jxr_string">"pPosYRefitUncFromV0/D"</span>, pPosRefitUncFromV0.y());
+<a class="jxr_linenumber" name="L857" href="#L857">857</a>             tupleMap.put(<span class="jxr_string">"pPosZRefitUncFromV0/D"</span>, pPosRefitUncFromV0.z());
+<a class="jxr_linenumber" name="L858" href="#L858">858</a>             tupleMap.put(<span class="jxr_string">"chisqRefitUncFromV0/D"</span>, chisqRefitUncFromV0);
+<a class="jxr_linenumber" name="L859" href="#L859">859</a>             tupleMap.put(<span class="jxr_string">"probRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getProbability());
+<a class="jxr_linenumber" name="L860" href="#L860">860</a> 
+<a class="jxr_linenumber" name="L861" href="#L861">861</a>             tupleMap.put(<span class="jxr_string">"mErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getInvMassError());
+<a class="jxr_linenumber" name="L862" href="#L862">862</a>             tupleMap.put(<span class="jxr_string">"vtxXErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getPositionError().x());
+<a class="jxr_linenumber" name="L863" href="#L863">863</a>             tupleMap.put(<span class="jxr_string">"vtxYErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getPositionError().y());
+<a class="jxr_linenumber" name="L864" href="#L864">864</a>             tupleMap.put(<span class="jxr_string">"vtxZErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getPositionError().z());
+<a class="jxr_linenumber" name="L865" href="#L865">865</a>             tupleMap.put(<span class="jxr_string">"pEleXErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getFittedMomentumError(0).x());
+<a class="jxr_linenumber" name="L866" href="#L866">866</a>             tupleMap.put(<span class="jxr_string">"pEleYErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getFittedMomentumError(0).y());
+<a class="jxr_linenumber" name="L867" href="#L867">867</a>             tupleMap.put(<span class="jxr_string">"pEleZErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getFittedMomentumError(0).z());
+<a class="jxr_linenumber" name="L868" href="#L868">868</a>             tupleMap.put(<span class="jxr_string">"pPosXErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getFittedMomentumError(1).x());
+<a class="jxr_linenumber" name="L869" href="#L869">869</a>             tupleMap.put(<span class="jxr_string">"pPosYErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getFittedMomentumError(1).y());
+<a class="jxr_linenumber" name="L870" href="#L870">870</a>             tupleMap.put(<span class="jxr_string">"pPosZErrRefitUncFromV0/D"</span>, vtxFitShiftFromV0.getFittedMomentumError(1).z());
+<a class="jxr_linenumber" name="L871" href="#L871">871</a>             tupleMap.put(<span class="jxr_string">"v0MomXErrRefitUncFromV0/D"</span>, v0MomError.x());
+<a class="jxr_linenumber" name="L872" href="#L872">872</a>             tupleMap.put(<span class="jxr_string">"v0MomYErrRefitUncFromV0/D"</span>, v0MomError.y());
+<a class="jxr_linenumber" name="L873" href="#L873">873</a>             tupleMap.put(<span class="jxr_string">"v0MomZErrRefitUncFromV0/D"</span>, v0MomError.z());
+<a class="jxr_linenumber" name="L874" href="#L874">874</a>             tupleMap.put(<span class="jxr_string">"v0XYTarXErrRefitUncFromV0/D"</span>, v0AtTargetError[0]);
+<a class="jxr_linenumber" name="L875" href="#L875">875</a>             tupleMap.put(<span class="jxr_string">"v0XYTarYErrRefitUncFromV0/D"</span>, v0AtTargetError[1]);
+<a class="jxr_linenumber" name="L876" href="#L876">876</a>             tupleMap.put(<span class="jxr_string">"v0MomXRefitUncFromV0/D"</span>, v0Mom.x());
+<a class="jxr_linenumber" name="L877" href="#L877">877</a>             tupleMap.put(<span class="jxr_string">"v0MomYRefitUncFromV0/D"</span>, v0Mom.y());
+<a class="jxr_linenumber" name="L878" href="#L878">878</a>             tupleMap.put(<span class="jxr_string">"v0MomZRefitUncFromV0/D"</span>, v0Mom.z());
+<a class="jxr_linenumber" name="L879" href="#L879">879</a>             tupleMap.put(<span class="jxr_string">"v0XYTarXRefitUncFromV0/D"</span>, v0AtTarget[0]);
+<a class="jxr_linenumber" name="L880" href="#L880">880</a>             tupleMap.put(<span class="jxr_string">"v0XYTarYRefitUncFromV0/D"</span>, v0AtTarget[1]);
+<a class="jxr_linenumber" name="L881" href="#L881">881</a>         }
+<a class="jxr_linenumber" name="L882" href="#L882">882</a> 
+<a class="jxr_linenumber" name="L883" href="#L883">883</a> <em class="jxr_comment">//        Hep3Vector beamRelToVtx = new BasicHep3Vector(-vtxPos.z() + beamPosition[0], -vtxPos.x() + beamPosition[1], -vtxPos.y() + beamPosition[2]);</em>
+<a class="jxr_linenumber" name="L884" href="#L884">884</a> <em class="jxr_comment">//        beamRelToNewRef = new BasicHep3Vector(vtxPos.z(), vtxPos.x(), 0);  //mg 2/28/19 ... I don't think I want to redine this...may be the same anyway;  verified, this does nothing (probably the same)</em>
+<a class="jxr_linenumber" name="L885" href="#L885">885</a>         <strong class="jxr_keyword">if</strong> (debug)
+<a class="jxr_linenumber" name="L886" href="#L886">886</a>             LOGGER.info(<span class="jxr_string">"Constrained R=("</span> + newRef[0] + <span class="jxr_string">","</span> + newRef[1] + <span class="jxr_string">","</span> + newRef[2] + <span class="jxr_string">") ##############"</span>);
+<a class="jxr_linenumber" name="L887" href="#L887">887</a>         <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFitBSCShift = fitVertex(VertexDebugTupleDriver.Constraint.BS_CONSTRAINED, electronBTrackShift, positronBTrackShift, beamRelToNewRef);
+<a class="jxr_linenumber" name="L888" href="#L888">888</a>         Hep3Vector vtxPosRefitBSC = vtxFitBSCShift.getPosition();
+<a class="jxr_linenumber" name="L889" href="#L889">889</a>         Hep3Vector pEleRefitBSC = vtxFitBSCShift.getFittedMomentum(0);
+<a class="jxr_linenumber" name="L890" href="#L890">890</a>         Hep3Vector pPosRefitBSC = vtxFitBSCShift.getFittedMomentum(1);
+<a class="jxr_linenumber" name="L891" href="#L891">891</a> 
+<a class="jxr_linenumber" name="L892" href="#L892">892</a> <em class="jxr_comment">//        if (debug)</em>
+<a class="jxr_linenumber" name="L893" href="#L893">893</a> <em class="jxr_comment">//            LOGGER.info("Constrained R=shift  vertexMC z=" + vertexPositionMC.z() + " re-fit vtxPos z = " + (vtxPosRefitBSC.z()));</em>
+<a class="jxr_linenumber" name="L894" href="#L894">894</a> 
+<a class="jxr_linenumber" name="L895" href="#L895">895</a>         <strong class="jxr_keyword">double</strong> mBSCShift = vtxFitBSCShift.getInvMass();
+<a class="jxr_linenumber" name="L896" href="#L896">896</a>         <strong class="jxr_keyword">double</strong> chisqBSCShift = vtxFitBSCShift.getChi2();
+<a class="jxr_linenumber" name="L897" href="#L897">897</a> 
+<a class="jxr_linenumber" name="L898" href="#L898">898</a>         Hep3Vector v0MomRefitBSC = vtxFitBSCShift.getV0Momentum();
+<a class="jxr_linenumber" name="L899" href="#L899">899</a>         Hep3Vector v0MomErrorRefitBSC = vtxFitBSCShift.getV0MomentumError();
+<a class="jxr_linenumber" name="L900" href="#L900">900</a>         <strong class="jxr_keyword">double</strong>[] v0AtTargetRefitBSC = vtxFitBSCShift.getV0TargetXY();
+<a class="jxr_linenumber" name="L901" href="#L901">901</a>         <strong class="jxr_keyword">double</strong>[] v0AtTargetErrorRefitBSC = vtxFitBSCShift.getV0TargetXYError();
+<a class="jxr_linenumber" name="L902" href="#L902">902</a> 
+<a class="jxr_linenumber" name="L903" href="#L903">903</a>         <strong class="jxr_keyword">if</strong> (BSCV0List.size() == 1) {
+<a class="jxr_linenumber" name="L904" href="#L904">904</a>             <strong class="jxr_keyword">if</strong> (mBSCShift != BSCV0List.get(0).getMass())
+<a class="jxr_linenumber" name="L905" href="#L905">905</a>                 LOGGER.info(<span class="jxr_string">"BSC mass mis-match!!!   "</span> + mBSCShift + <span class="jxr_string">";   "</span> + BSCV0List.get(0).getMass());
+<a class="jxr_linenumber" name="L906" href="#L906">906</a>             <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L907" href="#L907">907</a>                 LOGGER.info(<span class="jxr_string">"BSC mass good match!!!   "</span> + mBSCShift);
+<a class="jxr_linenumber" name="L908" href="#L908">908</a> 
+<a class="jxr_linenumber" name="L909" href="#L909">909</a>             <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFitBSCShiftFromV0 = (<a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a>) BSCV0List.get(0).getStartVertex();
+<a class="jxr_linenumber" name="L910" href="#L910">910</a>             Hep3Vector vtxPosRefitBSCFromV0 = vtxFitBSCShiftFromV0.getPosition();
+<a class="jxr_linenumber" name="L911" href="#L911">911</a>             Hep3Vector pEleRefitBSCFromV0 = vtxFitBSCShiftFromV0.getFittedMomentum(0);
+<a class="jxr_linenumber" name="L912" href="#L912">912</a>             Hep3Vector pPosRefitBSCFromV0 = vtxFitBSCShiftFromV0.getFittedMomentum(1);
+<a class="jxr_linenumber" name="L913" href="#L913">913</a>             <strong class="jxr_keyword">double</strong> mUncRefitBSCFromV0 = vtxFitBSCShiftFromV0.getInvMass();
+<a class="jxr_linenumber" name="L914" href="#L914">914</a>             <strong class="jxr_keyword">double</strong> chisqRefitBSCFromV0 = vtxFitBSCShiftFromV0.getChi2();
+<a class="jxr_linenumber" name="L915" href="#L915">915</a>             Hep3Vector v0MomBSCFromV0 = vtxFitBSCShiftFromV0.getV0Momentum();
+<a class="jxr_linenumber" name="L916" href="#L916">916</a>             Hep3Vector v0MomErrorBSCFromV0 = vtxFitBSCShiftFromV0.getV0MomentumError();
+<a class="jxr_linenumber" name="L917" href="#L917">917</a>             <strong class="jxr_keyword">double</strong>[] v0AtTargetBSCFromV0 = vtxFitBSCShiftFromV0.getV0TargetXY();
+<a class="jxr_linenumber" name="L918" href="#L918">918</a>             <strong class="jxr_keyword">double</strong>[] v0AtTargetErrorBSCFromV0 = vtxFitBSCShiftFromV0.getV0TargetXYError();
+<a class="jxr_linenumber" name="L919" href="#L919">919</a> 
+<a class="jxr_linenumber" name="L920" href="#L920">920</a>             tupleMap.put(<span class="jxr_string">"mRefitBSCFromV0/D"</span>, mUncRefitBSCFromV0);
+<a class="jxr_linenumber" name="L921" href="#L921">921</a>             tupleMap.put(<span class="jxr_string">"vtxXRefitBSCFromV0/D"</span>, vtxPosRefitBSCFromV0.x());
+<a class="jxr_linenumber" name="L922" href="#L922">922</a>             tupleMap.put(<span class="jxr_string">"vtxYRefitBSCFromV0/D"</span>, vtxPosRefitBSCFromV0.y());
+<a class="jxr_linenumber" name="L923" href="#L923">923</a>             tupleMap.put(<span class="jxr_string">"vtxZRefitBSCFromV0/D"</span>, vtxPosRefitBSCFromV0.z());
+<a class="jxr_linenumber" name="L924" href="#L924">924</a>             tupleMap.put(<span class="jxr_string">"pEleXRefitBSCFromV0/D"</span>, pEleRefitBSCFromV0.x());
+<a class="jxr_linenumber" name="L925" href="#L925">925</a>             tupleMap.put(<span class="jxr_string">"pEleYRefitBSCFromV0/D"</span>, pEleRefitBSCFromV0.y());
+<a class="jxr_linenumber" name="L926" href="#L926">926</a>             tupleMap.put(<span class="jxr_string">"pEleZRefitBSCFromV0/D"</span>, pEleRefitBSCFromV0.z());
+<a class="jxr_linenumber" name="L927" href="#L927">927</a>             tupleMap.put(<span class="jxr_string">"pPosXRefitBSCFromV0/D"</span>, pPosRefitBSCFromV0.x());
+<a class="jxr_linenumber" name="L928" href="#L928">928</a>             tupleMap.put(<span class="jxr_string">"pPosYRefitBSCFromV0/D"</span>, pPosRefitBSCFromV0.y());
+<a class="jxr_linenumber" name="L929" href="#L929">929</a>             tupleMap.put(<span class="jxr_string">"pPosZRefitBSCFromV0/D"</span>, pPosRefitBSCFromV0.z());
+<a class="jxr_linenumber" name="L930" href="#L930">930</a>             tupleMap.put(<span class="jxr_string">"chisqRefitBSCFromV0/D"</span>, chisqRefitBSCFromV0);
+<a class="jxr_linenumber" name="L931" href="#L931">931</a>             tupleMap.put(<span class="jxr_string">"probRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getProbability());
+<a class="jxr_linenumber" name="L932" href="#L932">932</a> 
+<a class="jxr_linenumber" name="L933" href="#L933">933</a>             tupleMap.put(<span class="jxr_string">"v0MomXErrRefitBSCFromV0/D"</span>, v0MomErrorBSCFromV0.x());
+<a class="jxr_linenumber" name="L934" href="#L934">934</a>             tupleMap.put(<span class="jxr_string">"v0MomYErrRefitBSCFromV0/D"</span>, v0MomErrorBSCFromV0.y());
+<a class="jxr_linenumber" name="L935" href="#L935">935</a>             tupleMap.put(<span class="jxr_string">"v0MomZErrRefitBSCFromV0/D"</span>, v0MomErrorBSCFromV0.z());
+<a class="jxr_linenumber" name="L936" href="#L936">936</a>             tupleMap.put(<span class="jxr_string">"v0XYTarXErrRefitBSCFromV0/D"</span>, v0AtTargetErrorBSCFromV0[0]);
+<a class="jxr_linenumber" name="L937" href="#L937">937</a>             tupleMap.put(<span class="jxr_string">"v0XYTarYErrRefitBSCFromV0/D"</span>, v0AtTargetErrorBSCFromV0[1]);
+<a class="jxr_linenumber" name="L938" href="#L938">938</a>             tupleMap.put(<span class="jxr_string">"v0MomXRefitBSCFromV0/D"</span>, v0MomBSCFromV0.x());
+<a class="jxr_linenumber" name="L939" href="#L939">939</a>             tupleMap.put(<span class="jxr_string">"v0MomYRefitBSCFromV0/D"</span>, v0MomBSCFromV0.y());
+<a class="jxr_linenumber" name="L940" href="#L940">940</a>             tupleMap.put(<span class="jxr_string">"v0MomZRefitBSCFromV0/D"</span>, v0MomBSCFromV0.z());
+<a class="jxr_linenumber" name="L941" href="#L941">941</a>             tupleMap.put(<span class="jxr_string">"v0XYTarXRefitBSCFromV0/D"</span>, v0AtTargetBSCFromV0[0]);
+<a class="jxr_linenumber" name="L942" href="#L942">942</a>             tupleMap.put(<span class="jxr_string">"v0XYTarYRefitBSCFromV0/D"</span>, v0AtTargetBSCFromV0[1]);
+<a class="jxr_linenumber" name="L943" href="#L943">943</a> 
+<a class="jxr_linenumber" name="L944" href="#L944">944</a>             tupleMap.put(<span class="jxr_string">"mErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getInvMassError());
+<a class="jxr_linenumber" name="L945" href="#L945">945</a>             tupleMap.put(<span class="jxr_string">"vtxXErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getPositionError().x());
+<a class="jxr_linenumber" name="L946" href="#L946">946</a>             tupleMap.put(<span class="jxr_string">"vtxYErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getPositionError().y());
+<a class="jxr_linenumber" name="L947" href="#L947">947</a>             tupleMap.put(<span class="jxr_string">"vtxZErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getPositionError().z());
+<a class="jxr_linenumber" name="L948" href="#L948">948</a>             tupleMap.put(<span class="jxr_string">"pEleXErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getFittedMomentumError(0).x());
+<a class="jxr_linenumber" name="L949" href="#L949">949</a>             tupleMap.put(<span class="jxr_string">"pEleYErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getFittedMomentumError(0).y());
+<a class="jxr_linenumber" name="L950" href="#L950">950</a>             tupleMap.put(<span class="jxr_string">"pEleZErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getFittedMomentumError(0).z());
+<a class="jxr_linenumber" name="L951" href="#L951">951</a>             tupleMap.put(<span class="jxr_string">"pPosXErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getFittedMomentumError(1).x());
+<a class="jxr_linenumber" name="L952" href="#L952">952</a>             tupleMap.put(<span class="jxr_string">"pPosYErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getFittedMomentumError(1).y());
+<a class="jxr_linenumber" name="L953" href="#L953">953</a>             tupleMap.put(<span class="jxr_string">"pPosZErrRefitBSCFromV0/D"</span>, vtxFitBSCShiftFromV0.getFittedMomentumError(1).z());
+<a class="jxr_linenumber" name="L954" href="#L954">954</a>         }
+<a class="jxr_linenumber" name="L955" href="#L955">955</a>         
+<a class="jxr_linenumber" name="L956" href="#L956">956</a>         <strong class="jxr_keyword">if</strong>(TCV0List.size()==1){                      
+<a class="jxr_linenumber" name="L957" href="#L957">957</a> 
+<a class="jxr_linenumber" name="L958" href="#L958">958</a>             <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtxFitTCShiftFromV0 = (<a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a>) TCV0List.get(0).getStartVertex();
+<a class="jxr_linenumber" name="L959" href="#L959">959</a>             Hep3Vector vtxPosRefitTCFromV0 = vtxFitTCShiftFromV0.getPosition();
+<a class="jxr_linenumber" name="L960" href="#L960">960</a>             Hep3Vector pEleRefitTCFromV0 = vtxFitTCShiftFromV0.getFittedMomentum(0);
+<a class="jxr_linenumber" name="L961" href="#L961">961</a>             Hep3Vector pPosRefitTCFromV0 = vtxFitTCShiftFromV0.getFittedMomentum(1);
+<a class="jxr_linenumber" name="L962" href="#L962">962</a>             <strong class="jxr_keyword">double</strong> mUncRefitTCFromV0 = vtxFitTCShiftFromV0.getInvMass();
+<a class="jxr_linenumber" name="L963" href="#L963">963</a>             <strong class="jxr_keyword">double</strong> chisqRefitTCFromV0 = vtxFitTCShiftFromV0.getChi2();
+<a class="jxr_linenumber" name="L964" href="#L964">964</a>             Hep3Vector v0MomTCFromV0 = vtxFitTCShiftFromV0.getV0Momentum();
+<a class="jxr_linenumber" name="L965" href="#L965">965</a>             Hep3Vector v0MomErrorTCFromV0 = vtxFitTCShiftFromV0.getV0MomentumError();
+<a class="jxr_linenumber" name="L966" href="#L966">966</a>             <strong class="jxr_keyword">double</strong>[] v0AtTargetTCFromV0 = vtxFitTCShiftFromV0.getV0TargetXY();
+<a class="jxr_linenumber" name="L967" href="#L967">967</a>             <strong class="jxr_keyword">double</strong>[] v0AtTargetErrorTCFromV0 = vtxFitTCShiftFromV0.getV0TargetXYError();
+<a class="jxr_linenumber" name="L968" href="#L968">968</a> 
+<a class="jxr_linenumber" name="L969" href="#L969">969</a>             tupleMap.put(<span class="jxr_string">"mRefitTCFromV0/D"</span>, mUncRefitTCFromV0);
+<a class="jxr_linenumber" name="L970" href="#L970">970</a>             tupleMap.put(<span class="jxr_string">"vtxXRefitTCFromV0/D"</span>, vtxPosRefitTCFromV0.x());
+<a class="jxr_linenumber" name="L971" href="#L971">971</a>             tupleMap.put(<span class="jxr_string">"vtxYRefitTCFromV0/D"</span>, vtxPosRefitTCFromV0.y());
+<a class="jxr_linenumber" name="L972" href="#L972">972</a>             tupleMap.put(<span class="jxr_string">"vtxZRefitTCFromV0/D"</span>, vtxPosRefitTCFromV0.z());
+<a class="jxr_linenumber" name="L973" href="#L973">973</a>             tupleMap.put(<span class="jxr_string">"pEleXRefitTCFromV0/D"</span>, pEleRefitTCFromV0.x());
+<a class="jxr_linenumber" name="L974" href="#L974">974</a>             tupleMap.put(<span class="jxr_string">"pEleYRefitTCFromV0/D"</span>, pEleRefitTCFromV0.y());
+<a class="jxr_linenumber" name="L975" href="#L975">975</a>             tupleMap.put(<span class="jxr_string">"pEleZRefitTCFromV0/D"</span>, pEleRefitTCFromV0.z());
+<a class="jxr_linenumber" name="L976" href="#L976">976</a>             tupleMap.put(<span class="jxr_string">"pPosXRefitTCFromV0/D"</span>, pPosRefitTCFromV0.x());
+<a class="jxr_linenumber" name="L977" href="#L977">977</a>             tupleMap.put(<span class="jxr_string">"pPosYRefitTCFromV0/D"</span>, pPosRefitTCFromV0.y());
+<a class="jxr_linenumber" name="L978" href="#L978">978</a>             tupleMap.put(<span class="jxr_string">"pPosZRefitTCFromV0/D"</span>, pPosRefitTCFromV0.z());
+<a class="jxr_linenumber" name="L979" href="#L979">979</a>             tupleMap.put(<span class="jxr_string">"chisqRefitTCFromV0/D"</span>, chisqRefitTCFromV0);
+<a class="jxr_linenumber" name="L980" href="#L980">980</a>             tupleMap.put(<span class="jxr_string">"probRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getProbability());
+<a class="jxr_linenumber" name="L981" href="#L981">981</a> 
+<a class="jxr_linenumber" name="L982" href="#L982">982</a>             tupleMap.put(<span class="jxr_string">"v0MomXErrRefitTCFromV0/D"</span>, v0MomErrorTCFromV0.x());
+<a class="jxr_linenumber" name="L983" href="#L983">983</a>             tupleMap.put(<span class="jxr_string">"v0MomYErrRefitTCFromV0/D"</span>, v0MomErrorTCFromV0.y());
+<a class="jxr_linenumber" name="L984" href="#L984">984</a>             tupleMap.put(<span class="jxr_string">"v0MomZErrRefitTCFromV0/D"</span>, v0MomErrorTCFromV0.z());
+<a class="jxr_linenumber" name="L985" href="#L985">985</a>             tupleMap.put(<span class="jxr_string">"v0XYTarXErrRefitTCFromV0/D"</span>, v0AtTargetErrorTCFromV0[0]);
+<a class="jxr_linenumber" name="L986" href="#L986">986</a>             tupleMap.put(<span class="jxr_string">"v0XYTarYErrRefitTCFromV0/D"</span>, v0AtTargetErrorTCFromV0[1]);
+<a class="jxr_linenumber" name="L987" href="#L987">987</a>             tupleMap.put(<span class="jxr_string">"v0MomXRefitTCFromV0/D"</span>, v0MomTCFromV0.x());
+<a class="jxr_linenumber" name="L988" href="#L988">988</a>             tupleMap.put(<span class="jxr_string">"v0MomYRefitTCFromV0/D"</span>, v0MomTCFromV0.y());
+<a class="jxr_linenumber" name="L989" href="#L989">989</a>             tupleMap.put(<span class="jxr_string">"v0MomZRefitTCFromV0/D"</span>, v0MomTCFromV0.z());
+<a class="jxr_linenumber" name="L990" href="#L990">990</a>             tupleMap.put(<span class="jxr_string">"v0XYTarXRefitTCFromV0/D"</span>, v0AtTargetTCFromV0[0]);
+<a class="jxr_linenumber" name="L991" href="#L991">991</a>             tupleMap.put(<span class="jxr_string">"v0XYTarYRefitTCFromV0/D"</span>, v0AtTargetTCFromV0[1]);
+<a class="jxr_linenumber" name="L992" href="#L992">992</a> 
+<a class="jxr_linenumber" name="L993" href="#L993">993</a>             tupleMap.put(<span class="jxr_string">"mErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getInvMassError());
+<a class="jxr_linenumber" name="L994" href="#L994">994</a>             tupleMap.put(<span class="jxr_string">"vtxXErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getPositionError().x());
+<a class="jxr_linenumber" name="L995" href="#L995">995</a>             tupleMap.put(<span class="jxr_string">"vtxYErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getPositionError().y());
+<a class="jxr_linenumber" name="L996" href="#L996">996</a>             tupleMap.put(<span class="jxr_string">"vtxZErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getPositionError().z());
+<a class="jxr_linenumber" name="L997" href="#L997">997</a>             tupleMap.put(<span class="jxr_string">"pEleXErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getFittedMomentumError(0).x());
+<a class="jxr_linenumber" name="L998" href="#L998">998</a>             tupleMap.put(<span class="jxr_string">"pEleYErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getFittedMomentumError(0).y());
+<a class="jxr_linenumber" name="L999" href="#L999">999</a>             tupleMap.put(<span class="jxr_string">"pEleZErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getFittedMomentumError(0).z());
+<a class="jxr_linenumber" name="L1000" href="#L1000">1000</a>             tupleMap.put(<span class="jxr_string">"pPosXErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getFittedMomentumError(1).x());
+<a class="jxr_linenumber" name="L1001" href="#L1001">1001</a>             tupleMap.put(<span class="jxr_string">"pPosYErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getFittedMomentumError(1).y());
+<a class="jxr_linenumber" name="L1002" href="#L1002">1002</a>             tupleMap.put(<span class="jxr_string">"pPosZErrRefitTCFromV0/D"</span>, vtxFitTCShiftFromV0.getFittedMomentumError(1).z());
+<a class="jxr_linenumber" name="L1003" href="#L1003">1003</a>             
+<a class="jxr_linenumber" name="L1004" href="#L1004">1004</a>         }
+<a class="jxr_linenumber" name="L1005" href="#L1005">1005</a>         tupleMap.put(<span class="jxr_string">"mRefitBSC/D"</span>, mBSCShift);
+<a class="jxr_linenumber" name="L1006" href="#L1006">1006</a>         tupleMap.put(<span class="jxr_string">"vtxXRefitBSC/D"</span>, vtxPosRefitBSC.x());
+<a class="jxr_linenumber" name="L1007" href="#L1007">1007</a>         tupleMap.put(<span class="jxr_string">"vtxYRefitBSC/D"</span>, vtxPosRefitBSC.y());
+<a class="jxr_linenumber" name="L1008" href="#L1008">1008</a>         tupleMap.put(<span class="jxr_string">"vtxZRefitBSC/D"</span>, vtxPosRefitBSC.z());
+<a class="jxr_linenumber" name="L1009" href="#L1009">1009</a>         tupleMap.put(<span class="jxr_string">"pEleXRefitBSC/D"</span>, pEleRefitBSC.x());
+<a class="jxr_linenumber" name="L1010" href="#L1010">1010</a>         tupleMap.put(<span class="jxr_string">"pEleYRefitBSC/D"</span>, pEleRefitBSC.y());
+<a class="jxr_linenumber" name="L1011" href="#L1011">1011</a>         tupleMap.put(<span class="jxr_string">"pEleZRefitBSC/D"</span>, pEleRefitBSC.z());
+<a class="jxr_linenumber" name="L1012" href="#L1012">1012</a>         tupleMap.put(<span class="jxr_string">"pPosXRefitBSC/D"</span>, pPosRefitBSC.x());
+<a class="jxr_linenumber" name="L1013" href="#L1013">1013</a>         tupleMap.put(<span class="jxr_string">"pPosYRefitBSC/D"</span>, pPosRefitBSC.y());
+<a class="jxr_linenumber" name="L1014" href="#L1014">1014</a>         tupleMap.put(<span class="jxr_string">"pPosZRefitBSC/D"</span>, pPosRefitBSC.z());
+<a class="jxr_linenumber" name="L1015" href="#L1015">1015</a>         tupleMap.put(<span class="jxr_string">"chisqRefitBSC/D"</span>, chisqBSCShift);
+<a class="jxr_linenumber" name="L1016" href="#L1016">1016</a>         tupleMap.put(<span class="jxr_string">"probRefitBSC/D"</span>, vtxFitBSCShift.getProbability());
+<a class="jxr_linenumber" name="L1017" href="#L1017">1017</a> 
+<a class="jxr_linenumber" name="L1018" href="#L1018">1018</a>         tupleMap.put(<span class="jxr_string">"v0MomXErrRefitBSC/D"</span>, v0MomErrorRefitBSC.x());
+<a class="jxr_linenumber" name="L1019" href="#L1019">1019</a>         tupleMap.put(<span class="jxr_string">"v0MomYErrRefitBSC/D"</span>, v0MomErrorRefitBSC.y());
+<a class="jxr_linenumber" name="L1020" href="#L1020">1020</a>         tupleMap.put(<span class="jxr_string">"v0MomZErrRefitBSC/D"</span>, v0MomErrorRefitBSC.z());
+<a class="jxr_linenumber" name="L1021" href="#L1021">1021</a>         tupleMap.put(<span class="jxr_string">"v0XYTarXErrRefitBSC/D"</span>, v0AtTargetErrorRefitBSC[0]);
+<a class="jxr_linenumber" name="L1022" href="#L1022">1022</a>         tupleMap.put(<span class="jxr_string">"v0XYTarYErrRefitBSC/D"</span>, v0AtTargetErrorRefitBSC[1]);
+<a class="jxr_linenumber" name="L1023" href="#L1023">1023</a>         tupleMap.put(<span class="jxr_string">"v0MomXRefitBSC/D"</span>, v0MomRefitBSC.x());
+<a class="jxr_linenumber" name="L1024" href="#L1024">1024</a>         tupleMap.put(<span class="jxr_string">"v0MomYRefitBSC/D"</span>, v0MomRefitBSC.y());
+<a class="jxr_linenumber" name="L1025" href="#L1025">1025</a>         tupleMap.put(<span class="jxr_string">"v0MomZRefitBSC/D"</span>, v0MomRefitBSC.z());
+<a class="jxr_linenumber" name="L1026" href="#L1026">1026</a>         tupleMap.put(<span class="jxr_string">"v0XYTarXRefitBSC/D"</span>, v0AtTargetRefitBSC[0]);
+<a class="jxr_linenumber" name="L1027" href="#L1027">1027</a>         tupleMap.put(<span class="jxr_string">"v0XYTarYRefitBSC/D"</span>, v0AtTargetRefitBSC[1]);
+<a class="jxr_linenumber" name="L1028" href="#L1028">1028</a> 
+<a class="jxr_linenumber" name="L1029" href="#L1029">1029</a>         tupleMap.put(<span class="jxr_string">"mErrRefitBSC/D"</span>, vtxFitBSCShift.getInvMassError());
+<a class="jxr_linenumber" name="L1030" href="#L1030">1030</a>         tupleMap.put(<span class="jxr_string">"vtxXErrRefitBSC/D"</span>, vtxFitBSCShift.getPositionError().x());
+<a class="jxr_linenumber" name="L1031" href="#L1031">1031</a>         tupleMap.put(<span class="jxr_string">"vtxYErrRefitBSC/D"</span>, vtxFitBSCShift.getPositionError().y());
+<a class="jxr_linenumber" name="L1032" href="#L1032">1032</a>         tupleMap.put(<span class="jxr_string">"vtxZErrRefitBSC/D"</span>, vtxFitBSCShift.getPositionError().z());
+<a class="jxr_linenumber" name="L1033" href="#L1033">1033</a>         tupleMap.put(<span class="jxr_string">"pEleXErrRefitBSC/D"</span>, vtxFitBSCShift.getFittedMomentumError(0).x());
+<a class="jxr_linenumber" name="L1034" href="#L1034">1034</a>         tupleMap.put(<span class="jxr_string">"pEleYErrRefitBSC/D"</span>, vtxFitBSCShift.getFittedMomentumError(0).y());
+<a class="jxr_linenumber" name="L1035" href="#L1035">1035</a>         tupleMap.put(<span class="jxr_string">"pEleZErrRefitBSC/D"</span>, vtxFitBSCShift.getFittedMomentumError(0).z());
+<a class="jxr_linenumber" name="L1036" href="#L1036">1036</a>         tupleMap.put(<span class="jxr_string">"pPosXErrRefitBSC/D"</span>, vtxFitBSCShift.getFittedMomentumError(1).x());
+<a class="jxr_linenumber" name="L1037" href="#L1037">1037</a>         tupleMap.put(<span class="jxr_string">"pPosYErrRefitBSC/D"</span>, vtxFitBSCShift.getFittedMomentumError(1).y());
+<a class="jxr_linenumber" name="L1038" href="#L1038">1038</a>         tupleMap.put(<span class="jxr_string">"pPosZErrRefitBSC/D"</span>, vtxFitBSCShift.getFittedMomentumError(1).z());
+<a class="jxr_linenumber" name="L1039" href="#L1039">1039</a> 
+<a class="jxr_linenumber" name="L1040" href="#L1040">1040</a>         <strong class="jxr_keyword">if</strong> (tupleWriter != <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L1041" href="#L1041">1041</a>             writeTuple();
+<a class="jxr_linenumber" name="L1042" href="#L1042">1042</a>     }
+<a class="jxr_linenumber" name="L1043" href="#L1043">1043</a> 
+<a class="jxr_linenumber" name="L1044" href="#L1044">1044</a>     <strong class="jxr_keyword">private</strong> <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> fitVertex(VertexDebugTupleDriver.Constraint constraint, <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> electron, <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> positron) {
+<a class="jxr_linenumber" name="L1045" href="#L1045">1045</a>         <strong class="jxr_keyword">return</strong> fitVertex(constraint, electron, positron, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L1046" href="#L1046">1046</a>     }
+<a class="jxr_linenumber" name="L1047" href="#L1047">1047</a> 
+<a class="jxr_linenumber" name="L1048" href="#L1048">1048</a>     <strong class="jxr_keyword">private</strong> <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> fitVertex(VertexDebugTupleDriver.Constraint constraint, <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> electron, <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> positron, Hep3Vector v0) {
+<a class="jxr_linenumber" name="L1049" href="#L1049">1049</a>         <em class="jxr_comment">// Create a vertex fitter from the magnetic field.</em>
+<a class="jxr_linenumber" name="L1050" href="#L1050">1050</a> 
+<a class="jxr_linenumber" name="L1051" href="#L1051">1051</a>         <a name="BilliorVertexer" href="../../../../org/hps/recon/vertexing/BilliorVertexer.html#BilliorVertexer">BilliorVertexer</a> vtxFitter = <strong class="jxr_keyword">new</strong> <a name="BilliorVertexer" href="../../../../org/hps/recon/vertexing/BilliorVertexer.html#BilliorVertexer">BilliorVertexer</a>(B_FIELD);
+<a class="jxr_linenumber" name="L1052" href="#L1052">1052</a>         <em class="jxr_comment">// TODO: The beam size should come from the conditions database.</em>
+<a class="jxr_linenumber" name="L1053" href="#L1053">1053</a>         vtxFitter.setBeamSize(beamSize);
+<a class="jxr_linenumber" name="L1054" href="#L1054">1054</a>         vtxFitter.setBeamPosition(beamPosition);
+<a class="jxr_linenumber" name="L1055" href="#L1055">1055</a>         vtxFitter.setDebug(false);
+<a class="jxr_linenumber" name="L1056" href="#L1056">1056</a> 
+<a class="jxr_linenumber" name="L1057" href="#L1057">1057</a> <em class="jxr_comment">//  mg: 5/11/2018  use ReferencePosition now instead of beam position...</em>
+<a class="jxr_linenumber" name="L1058" href="#L1058">1058</a> <em class="jxr_comment">//        if (v0 != null)</em>
+<a class="jxr_linenumber" name="L1059" href="#L1059">1059</a> <em class="jxr_comment">//            vtxFitter.setBeamPosition(v0.v());</em>
+<a class="jxr_linenumber" name="L1060" href="#L1060">1060</a>         <strong class="jxr_keyword">if</strong> (v0 != <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L1061" href="#L1061">1061</a>             vtxFitter.setReferencePosition(v0.v());
+<a class="jxr_linenumber" name="L1062" href="#L1062">1062</a> 
+<a class="jxr_linenumber" name="L1063" href="#L1063">1063</a>         <em class="jxr_comment">// Perform the vertexing based on the specified constraint.</em>
+<a class="jxr_linenumber" name="L1064" href="#L1064">1064</a>         <strong class="jxr_keyword">switch</strong> (constraint) {
+<a class="jxr_linenumber" name="L1065" href="#L1065">1065</a>             <strong class="jxr_keyword">case</strong> UNCONSTRAINED:
+<a class="jxr_linenumber" name="L1066" href="#L1066">1066</a>                 vtxFitter.doBeamSpotConstraint(false);
+<a class="jxr_linenumber" name="L1067" href="#L1067">1067</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L1068" href="#L1068">1068</a>             <strong class="jxr_keyword">case</strong> BS_CONSTRAINED:
+<a class="jxr_linenumber" name="L1069" href="#L1069">1069</a>                 vtxFitter.doBeamSpotConstraint(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L1070" href="#L1070">1070</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L1071" href="#L1071">1071</a>             <strong class="jxr_keyword">case</strong> TARGET_CONSTRAINED:
+<a class="jxr_linenumber" name="L1072" href="#L1072">1072</a>                 vtxFitter.doTargetConstraint(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L1073" href="#L1073">1073</a>                 <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L1074" href="#L1074">1074</a>         }
+<a class="jxr_linenumber" name="L1075" href="#L1075">1075</a> 
+<a class="jxr_linenumber" name="L1076" href="#L1076">1076</a>         <em class="jxr_comment">// Add the electron and positron tracks to a track list for</em>
+<a class="jxr_linenumber" name="L1077" href="#L1077">1077</a>         <em class="jxr_comment">// the vertex fitter.</em>
+<a class="jxr_linenumber" name="L1078" href="#L1078">1078</a>         List&lt;BilliorTrack&gt; billiorTracks = <strong class="jxr_keyword">new</strong> ArrayList&lt;BilliorTrack&gt;();
+<a class="jxr_linenumber" name="L1079" href="#L1079">1079</a>         billiorTracks.add(electron);
+<a class="jxr_linenumber" name="L1080" href="#L1080">1080</a>         billiorTracks.add(positron);
+<a class="jxr_linenumber" name="L1081" href="#L1081">1081</a> 
+<a class="jxr_linenumber" name="L1082" href="#L1082">1082</a>         <em class="jxr_comment">// Find and return a vertex based on the tracks.</em>
+<a class="jxr_linenumber" name="L1083" href="#L1083">1083</a>         <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> vtx = vtxFitter.fitVertex(billiorTracks);
+<a class="jxr_linenumber" name="L1084" href="#L1084">1084</a> 
+<a class="jxr_linenumber" name="L1085" href="#L1085">1085</a>         <strong class="jxr_keyword">return</strong> vtx;
+<a class="jxr_linenumber" name="L1086" href="#L1086">1086</a>     }
+<a class="jxr_linenumber" name="L1087" href="#L1087">1087</a> 
+<a class="jxr_linenumber" name="L1088" href="#L1088">1088</a>     <strong class="jxr_keyword">private</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> toBilliorTrack(Track track) {
+<a class="jxr_linenumber" name="L1089" href="#L1089">1089</a>         <em class="jxr_comment">// Generate and return the billior track.</em>
+<a class="jxr_linenumber" name="L1090" href="#L1090">1090</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a>(track);
+<a class="jxr_linenumber" name="L1091" href="#L1091">1091</a>     }
+<a class="jxr_linenumber" name="L1092" href="#L1092">1092</a> 
+<a class="jxr_linenumber" name="L1093" href="#L1093">1093</a>     <strong class="jxr_keyword">private</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> toBilliorTrack(HelicalTrackFit htf) {
+<a class="jxr_linenumber" name="L1094" href="#L1094">1094</a>         <em class="jxr_comment">// Generate and return the billior track.</em>
+<a class="jxr_linenumber" name="L1095" href="#L1095">1095</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a>(htf);
+<a class="jxr_linenumber" name="L1096" href="#L1096">1096</a>     }
+<a class="jxr_linenumber" name="L1097" href="#L1097">1097</a> 
+<a class="jxr_linenumber" name="L1098" href="#L1098">1098</a>     <strong class="jxr_keyword">private</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a> toBilliorTrack(TrackState track) {
+<a class="jxr_linenumber" name="L1099" href="#L1099">1099</a>         <em class="jxr_comment">// Generate and return the billior track.</em>
+<a class="jxr_linenumber" name="L1100" href="#L1100">1100</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a name="BilliorTrack" href="../../../../org/hps/recon/vertexing/BilliorTrack.html#BilliorTrack">BilliorTrack</a>(track, 0, 0); <em class="jxr_comment">// track state doesn't store chi^2 info (stored in the Track object)</em>
+<a class="jxr_linenumber" name="L1101" href="#L1101">1101</a>     }
+<a class="jxr_linenumber" name="L1102" href="#L1102">1102</a> 
+<a class="jxr_linenumber" name="L1103" href="#L1103">1103</a>     <em class="jxr_comment">// patchVertex written by Norman Graf...I plucked this from HpsReconParticleDriver</em>
+<a class="jxr_linenumber" name="L1104" href="#L1104">1104</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> patchVertex(ReconstructedParticle electron, ReconstructedParticle positron, <a name="BilliorVertex" href="../../../../org/hps/recon/vertexing/BilliorVertex.html#BilliorVertex">BilliorVertex</a> v) {
+<a class="jxr_linenumber" name="L1105" href="#L1105">1105</a> <em class="jxr_comment">//        ReconstructedParticle rp = v.getAssociatedParticle();</em>
+<a class="jxr_linenumber" name="L1106" href="#L1106">1106</a> <em class="jxr_comment">//        List&lt;ReconstructedParticle&gt; parts = rp.getParticles();</em>
+<a class="jxr_linenumber" name="L1107" href="#L1107">1107</a> <em class="jxr_comment">//        ReconstructedParticle electron = null;</em>
+<a class="jxr_linenumber" name="L1108" href="#L1108">1108</a> <em class="jxr_comment">//        ReconstructedParticle positron = null;</em>
+<a class="jxr_linenumber" name="L1109" href="#L1109">1109</a> <em class="jxr_comment">//        for (ReconstructedParticle part : parts) {</em>
+<a class="jxr_linenumber" name="L1110" href="#L1110">1110</a> <em class="jxr_comment">//            if (part.getCharge() &lt; 0)</em>
+<a class="jxr_linenumber" name="L1111" href="#L1111">1111</a> <em class="jxr_comment">//                electron = part;</em>
+<a class="jxr_linenumber" name="L1112" href="#L1112">1112</a> <em class="jxr_comment">//            if (part.getCharge() &gt; 0)</em>
+<a class="jxr_linenumber" name="L1113" href="#L1113">1113</a> <em class="jxr_comment">//                positron = part;</em>
+<a class="jxr_linenumber" name="L1114" href="#L1114">1114</a> <em class="jxr_comment">//        }</em>
+<a class="jxr_linenumber" name="L1115" href="#L1115">1115</a>         <em class="jxr_comment">//electron</em>
+<a class="jxr_linenumber" name="L1116" href="#L1116">1116</a>         Track et = electron.getTracks().get(0);
+<a class="jxr_linenumber" name="L1117" href="#L1117">1117</a>         <strong class="jxr_keyword">double</strong> etrackMom = electron.getMomentum().magnitude();
+<a class="jxr_linenumber" name="L1118" href="#L1118">1118</a>         HelicalTrackFit ehtf = TrackUtils.getHTF(et);
+<a class="jxr_linenumber" name="L1119" href="#L1119">1119</a>         <em class="jxr_comment">// propagate this to the vertex z position...</em>
+<a class="jxr_linenumber" name="L1120" href="#L1120">1120</a>         <em class="jxr_comment">// Note that HPS y is lcsim z  //mg...I don't think this is correct!!!  First, HPS x is lcsim y!    </em>
+<a class="jxr_linenumber" name="L1121" href="#L1121">1121</a>         <em class="jxr_comment">//  And I think the vertex is already in the HPS frame!</em>
+<a class="jxr_linenumber" name="L1122" href="#L1122">1122</a>         <strong class="jxr_keyword">double</strong> es = HelixUtils.PathToZPlane(ehtf, v.getPosition().y());
+<a class="jxr_linenumber" name="L1123" href="#L1123">1123</a> <em class="jxr_comment">//        double es = HelixUtils.PathToXPlane(ehtf, v.getPosition().z(), 10000., 100).get(0);</em>
+<a class="jxr_linenumber" name="L1124" href="#L1124">1124</a>         LOGGER.info(<span class="jxr_string">"vertex z="</span> + v.getPosition().z() + <span class="jxr_string">" vertex y = "</span> + v.getPosition().y());
+<a class="jxr_linenumber" name="L1125" href="#L1125">1125</a>         Hep3Vector epointOnTrackAtVtx = HelixUtils.PointOnHelix(ehtf, es);
+<a class="jxr_linenumber" name="L1126" href="#L1126">1126</a>         Hep3Vector edirOfTrackAtVtx = HelixUtils.Direction(ehtf, es);
+<a class="jxr_linenumber" name="L1127" href="#L1127">1127</a>         Hep3Vector emomAtVtx = VecOp.mult(etrackMom, VecOp.unit(edirOfTrackAtVtx));
+<a class="jxr_linenumber" name="L1128" href="#L1128">1128</a>         <em class="jxr_comment">//positron</em>
+<a class="jxr_linenumber" name="L1129" href="#L1129">1129</a>         Track pt = positron.getTracks().get(0);
+<a class="jxr_linenumber" name="L1130" href="#L1130">1130</a>         <strong class="jxr_keyword">double</strong> ptrackMom = positron.getMomentum().magnitude();
+<a class="jxr_linenumber" name="L1131" href="#L1131">1131</a>         HelicalTrackFit phtf = TrackUtils.getHTF(pt);
+<a class="jxr_linenumber" name="L1132" href="#L1132">1132</a>         <em class="jxr_comment">// propagate this to the vertex z position...</em>
+<a class="jxr_linenumber" name="L1133" href="#L1133">1133</a>         <em class="jxr_comment">// Note that HPS y is lcsim z</em>
+<a class="jxr_linenumber" name="L1134" href="#L1134">1134</a>         <strong class="jxr_keyword">double</strong> ps = HelixUtils.PathToZPlane(phtf, v.getPosition().y());
+<a class="jxr_linenumber" name="L1135" href="#L1135">1135</a> <em class="jxr_comment">//        double ps = HelixUtils.PathToXPlane(phtf, v.getPosition().z(), 10000., 100).get(0);</em>
+<a class="jxr_linenumber" name="L1136" href="#L1136">1136</a>         Hep3Vector ppointOnTrackAtVtx = HelixUtils.PointOnHelix(phtf, ps);
+<a class="jxr_linenumber" name="L1137" href="#L1137">1137</a>         Hep3Vector pdirOfTrackAtVtx = HelixUtils.Direction(phtf, ps);
+<a class="jxr_linenumber" name="L1138" href="#L1138">1138</a>         Hep3Vector pmomAtVtx = VecOp.mult(ptrackMom, VecOp.unit(pdirOfTrackAtVtx));
+<a class="jxr_linenumber" name="L1139" href="#L1139">1139</a> 
+<a class="jxr_linenumber" name="L1140" href="#L1140">1140</a>         <strong class="jxr_keyword">double</strong> mass = invMass(emomAtVtx, pmomAtVtx);
+<a class="jxr_linenumber" name="L1141" href="#L1141">1141</a>         v.setVertexTrackParameters(emomAtVtx, pmomAtVtx, mass);
+<a class="jxr_linenumber" name="L1142" href="#L1142">1142</a>     }
+<a class="jxr_linenumber" name="L1143" href="#L1143">1143</a> 
+<a class="jxr_linenumber" name="L1144" href="#L1144">1144</a>     <em class="jxr_comment">// invMass  is probably defined in the code a hundred times...here it is again. </em>
+<a class="jxr_linenumber" name="L1145" href="#L1145">1145</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> invMass(Hep3Vector p1, Hep3Vector p2) {
+<a class="jxr_linenumber" name="L1146" href="#L1146">1146</a>         <strong class="jxr_keyword">double</strong> me2 = 0.000511 * 0.000511;
+<a class="jxr_linenumber" name="L1147" href="#L1147">1147</a>         <strong class="jxr_keyword">double</strong> esum = sqrt(p1.magnitudeSquared() + me2) + sqrt(p2.magnitudeSquared() + me2);
+<a class="jxr_linenumber" name="L1148" href="#L1148">1148</a>         <strong class="jxr_keyword">double</strong> pxsum = p1.x() + p2.x();
+<a class="jxr_linenumber" name="L1149" href="#L1149">1149</a>         <strong class="jxr_keyword">double</strong> pysum = p1.y() + p2.y();
+<a class="jxr_linenumber" name="L1150" href="#L1150">1150</a>         <strong class="jxr_keyword">double</strong> pzsum = p1.z() + p2.z();
+<a class="jxr_linenumber" name="L1151" href="#L1151">1151</a> 
+<a class="jxr_linenumber" name="L1152" href="#L1152">1152</a>         <strong class="jxr_keyword">double</strong> psum = Math.sqrt(pxsum * pxsum + pysum * pysum + pzsum * pzsum);
+<a class="jxr_linenumber" name="L1153" href="#L1153">1153</a>         <strong class="jxr_keyword">double</strong> evtmass = esum * esum - psum * psum;
+<a class="jxr_linenumber" name="L1154" href="#L1154">1154</a> 
+<a class="jxr_linenumber" name="L1155" href="#L1155">1155</a>         <strong class="jxr_keyword">if</strong> (evtmass &gt; 0)
+<a class="jxr_linenumber" name="L1156" href="#L1156">1156</a>             <strong class="jxr_keyword">return</strong> Math.sqrt(evtmass);
+<a class="jxr_linenumber" name="L1157" href="#L1157">1157</a>         <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L1158" href="#L1158">1158</a>             <strong class="jxr_keyword">return</strong> -99;
+<a class="jxr_linenumber" name="L1159" href="#L1159">1159</a>     }
+<a class="jxr_linenumber" name="L1160" href="#L1160">1160</a> 
+<a class="jxr_linenumber" name="L1161" href="#L1161">1161</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> getCosOpenX(Hep3Vector p1, Hep3Vector p2) {   <em class="jxr_comment">// p vectors are in tracking frame...return open angle in X-detector!!!       </em>
+<a class="jxr_linenumber" name="L1162" href="#L1162">1162</a>         Hep3Vector pEleX = <strong class="jxr_keyword">new</strong> BasicHep3Vector(p1.y(), 0.0, p1.x());
+<a class="jxr_linenumber" name="L1163" href="#L1163">1163</a>         Hep3Vector pPosX = <strong class="jxr_keyword">new</strong> BasicHep3Vector(p2.y(), 0.0, p2.x());
+<a class="jxr_linenumber" name="L1164" href="#L1164">1164</a>         <strong class="jxr_keyword">return</strong> Math.acos(VecOp.dot(pEleX, pPosX) / (pEleX.magnitude() * pPosX.magnitude()));
+<a class="jxr_linenumber" name="L1165" href="#L1165">1165</a>     }
+<a class="jxr_linenumber" name="L1166" href="#L1166">1166</a> 
+<a class="jxr_linenumber" name="L1167" href="#L1167">1167</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> writeTrackerHits(List&lt;TrackerHit&gt; hits, String ofile) <strong class="jxr_keyword">throws</strong> FileNotFoundException {
+<a class="jxr_linenumber" name="L1168" href="#L1168">1168</a>         PrintWriter writer = <strong class="jxr_keyword">new</strong> PrintWriter(ofile);
+<a class="jxr_linenumber" name="L1169" href="#L1169">1169</a>         writer.println(<span class="jxr_string">"x/D:y/D:z/D"</span>);
+<a class="jxr_linenumber" name="L1170" href="#L1170">1170</a>         <strong class="jxr_keyword">for</strong> (TrackerHit hit : hits)
+<a class="jxr_linenumber" name="L1171" href="#L1171">1171</a>             writer.println(hit.getPosition()[0] + <span class="jxr_string">" "</span> + hit.getPosition()[1] + <span class="jxr_string">" "</span> + hit.getPosition()[2] + <span class="jxr_string">" "</span>);
+<a class="jxr_linenumber" name="L1172" href="#L1172">1172</a>         writer.close();
+<a class="jxr_linenumber" name="L1173" href="#L1173">1173</a>     }
+<a class="jxr_linenumber" name="L1174" href="#L1174">1174</a> 
+<a class="jxr_linenumber" name="L1175" href="#L1175">1175</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> writePoint(Hep3Vector hit, String ofile) <strong class="jxr_keyword">throws</strong> FileNotFoundException {
+<a class="jxr_linenumber" name="L1176" href="#L1176">1176</a>         PrintWriter writer = <strong class="jxr_keyword">new</strong> PrintWriter(ofile);
+<a class="jxr_linenumber" name="L1177" href="#L1177">1177</a>         writer.println(<span class="jxr_string">"x/D:y/D:z/D"</span>);
+<a class="jxr_linenumber" name="L1178" href="#L1178">1178</a>         writer.println(hit.x() + <span class="jxr_string">" "</span> + hit.y() + <span class="jxr_string">" "</span> + hit.z() + <span class="jxr_string">" "</span>);
+<a class="jxr_linenumber" name="L1179" href="#L1179">1179</a>         writer.close();
+<a class="jxr_linenumber" name="L1180" href="#L1180">1180</a>     }
+<a class="jxr_linenumber" name="L1181" href="#L1181">1181</a> 
+<a class="jxr_linenumber" name="L1182" href="#L1182">1182</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong>[] getTargetXY(Hep3Vector mom, Hep3Vector vertex) {
+<a class="jxr_linenumber" name="L1183" href="#L1183">1183</a>         <strong class="jxr_keyword">double</strong> sX = mom.x() / mom.z();
+<a class="jxr_linenumber" name="L1184" href="#L1184">1184</a>         <strong class="jxr_keyword">double</strong> sY = mom.y() / mom.z();
+<a class="jxr_linenumber" name="L1185" href="#L1185">1185</a>         <strong class="jxr_keyword">double</strong> vX = vertex.x();
+<a class="jxr_linenumber" name="L1186" href="#L1186">1186</a>         <strong class="jxr_keyword">double</strong> vY = vertex.y();
+<a class="jxr_linenumber" name="L1187" href="#L1187">1187</a>         <strong class="jxr_keyword">double</strong> vZ = vertex.z();
+<a class="jxr_linenumber" name="L1188" href="#L1188">1188</a>         <strong class="jxr_keyword">double</strong> delZ = -vZ;
+<a class="jxr_linenumber" name="L1189" href="#L1189">1189</a>         <strong class="jxr_keyword">double</strong>[] tXY = {delZ * sX + vX, delZ * sY + vY};
+<a class="jxr_linenumber" name="L1190" href="#L1190">1190</a>         <strong class="jxr_keyword">return</strong> tXY;
+<a class="jxr_linenumber" name="L1191" href="#L1191">1191</a> 
+<a class="jxr_linenumber" name="L1192" href="#L1192">1192</a>     }
+<a class="jxr_linenumber" name="L1193" href="#L1193">1193</a> 
+<a class="jxr_linenumber" name="L1194" href="#L1194">1194</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>TruthGBLRefitterDriver xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../apidocs/org/hps/analysis/MC/TruthGBLRefitterDriver.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.analysis.MC;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.apache.commons.math3.util.Pair;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.MaterialSupervisor;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.MultipleScattering;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.gbl.GBLKinkData;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.gbl.MakeGblTracks;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.DetectorElementStore;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.IDetectorElement;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IExpandedIdentifier;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IIdentifier;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IIdentifierDictionary;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.HpsSiSensor;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.SiSensor;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.LCRelation;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.MCParticle;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RelationalTable;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseLCRelation;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseRelationalTable;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.FieldMap;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.compact.Subdetector;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.lcsim.lcio.LCIOConstants;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> * A Driver which refits tracks using GBL, but only the truth hits of interest. Does not require GBL collections to</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> * be present in the event. This is adapted from the nominal GBLRefitterDriver.</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="TruthGBLRefitterDriver" href="../../../../org/hps/analysis/MC/TruthGBLRefitterDriver.html#TruthGBLRefitterDriver">TruthGBLRefitterDriver</a> <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">private</strong> String inputCollectionName = <span class="jxr_string">"MatchedTracks"</span>;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <strong class="jxr_keyword">private</strong> String outputCollectionName = <span class="jxr_string">"GBLTracks"</span>;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">private</strong> String trackRelationCollectionName = <span class="jxr_string">"MatchedToGBLTrackRelations"</span>;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <strong class="jxr_keyword">private</strong> String helicalTrackHitRelationsCollectionName = <span class="jxr_string">"HelicalTrackHitRelations"</span>;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">private</strong> String rotatedHelicalTrackHitRelationsCollectionName = <span class="jxr_string">"RotatedHelicalTrackHitRelations"</span>;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">private</strong> String rawHitCollectionName = <span class="jxr_string">"SVTRawTrackerHits"</span>;
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">private</strong> String kinkDataCollectionName = <span class="jxr_string">"GBLKinkData_truth"</span>;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">private</strong> String kinkDataRelationsName = <span class="jxr_string">"GBLKinkDataRelations_truth"</span>;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">private</strong> String trackToMCParticleRelationsName = <span class="jxr_string">"TrackTruthToMCParticleRelations"</span>;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> bfield;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="MultipleScattering" href="../../../../org/hps/recon/tracking/MultipleScattering.html#MultipleScattering">MultipleScattering</a> _scattering = <strong class="jxr_keyword">new</strong> <a name="MultipleScattering" href="../../../../org/hps/recon/tracking/MultipleScattering.html#MultipleScattering">MultipleScattering</a>(<strong class="jxr_keyword">new</strong> <a name="MaterialSupervisor" href="../../../../org/hps/recon/tracking/MaterialSupervisor.html#MaterialSupervisor">MaterialSupervisor</a>());
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> storeTrackStates = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">private</strong> List&lt;HpsSiSensor&gt; sensors = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      FieldMap bFieldMap = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String SUBDETECTOR_NAME = <span class="jxr_string">"Tracker"</span>;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> Subdetector trackerSubdet;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setStoreTrackStates(<strong class="jxr_keyword">boolean</strong> input) {
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          storeTrackStates = input;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      }
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>  
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> getStoreTrackStates() {
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          <strong class="jxr_keyword">return</strong> storeTrackStates;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      }
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setInputCollectionName(String inputCollectionName) {
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          <strong class="jxr_keyword">this</strong>.inputCollectionName = inputCollectionName;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      }
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>  
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setOutputCollectionName(String outputCollectionName) {
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          <strong class="jxr_keyword">this</strong>.outputCollectionName = outputCollectionName;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      }
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setTrackRelationCollectionName(String trackRelationCollectionName) {
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          <strong class="jxr_keyword">this</strong>.trackRelationCollectionName = trackRelationCollectionName;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      }
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setHelicalTrackHitRelationsCollectionName(String helicalTrackHitRelationsCollectionName) {
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">this</strong>.helicalTrackHitRelationsCollectionName = helicalTrackHitRelationsCollectionName;
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      }
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setRotatedHelicalTrackHitRelationsCollectionName(String rotatedHelicalTrackHitRelationsCollectionName) {
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>          <strong class="jxr_keyword">this</strong>.rotatedHelicalTrackHitRelationsCollectionName = rotatedHelicalTrackHitRelationsCollectionName;
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      }
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setRawHitCollectionName(String rawHitCollectionName) {
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          <strong class="jxr_keyword">this</strong>.rawHitCollectionName = rawHitCollectionName;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      }
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setKinkDataCollectionName(String kinkDataCollectionName) {
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          <strong class="jxr_keyword">this</strong>.kinkDataCollectionName = kinkDataCollectionName;
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      }
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setKinkDataRelationsName(String kinkDataRelationsName) {
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          <strong class="jxr_keyword">this</strong>.kinkDataRelationsName = kinkDataRelationsName;
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      }
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> 
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>     @Override
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector) {
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>         _scattering.getMaterialManager().buildModel(detector);
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         _scattering.setBField(bfield); <em class="jxr_comment">// only absolute of B is needed as it's used for momentum calculation only</em>
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         bFieldMap = detector.getFieldMap();
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <em class="jxr_comment">// Get the HpsSiSensor objects from the tracker detector element</em>
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>         sensors = detector.getSubdetector(SUBDETECTOR_NAME)
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>                           .getDetectorElement().findDescendants(HpsSiSensor.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         trackerSubdet = detector.getSubdetector(SUBDETECTOR_NAME);
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>     }
+<a class="jxr_linenumber" name="L115" href="#L115">115</a> 
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     @Override
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         <strong class="jxr_keyword">if</strong> (!event.hasCollection(Track.<strong class="jxr_keyword">class</strong>, inputCollectionName)){
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>             System.out.println(<span class="jxr_string">"System has no input collection"</span>);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         }
+<a class="jxr_linenumber" name="L122" href="#L122">122</a> 
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         setupSensors(event);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         List&lt;Track&gt; tracks = event.get(Track.<strong class="jxr_keyword">class</strong>, inputCollectionName);
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>         RelationalTable hitToStrips = getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>         RelationalTable hitToRotated = getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         List&lt;Track&gt; refittedTracks = <strong class="jxr_keyword">new</strong> ArrayList&lt;Track&gt;();
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         List&lt;LCRelation&gt; trackRelations = <strong class="jxr_keyword">new</strong> ArrayList&lt;LCRelation&gt;();
+<a class="jxr_linenumber" name="L130" href="#L130">130</a> 
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         List&lt;GBLKinkData&gt; kinkDataCollection = <strong class="jxr_keyword">new</strong> ArrayList&lt;GBLKinkData&gt;();
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>         List&lt;LCRelation&gt; kinkDataRelations = <strong class="jxr_keyword">new</strong> ArrayList&lt;LCRelation&gt;();
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>         
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>         List&lt;LCRelation&gt; trackToMCParticleRelations = <strong class="jxr_keyword">new</strong> ArrayList&lt;LCRelation&gt;();
+<a class="jxr_linenumber" name="L135" href="#L135">135</a> 
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>         Map&lt;Track, Track&gt; inputToRefitted = <strong class="jxr_keyword">new</strong> HashMap&lt;Track, Track&gt;();
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         <strong class="jxr_keyword">for</strong> (Track track : tracks) {
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>             <strong class="jxr_keyword">if</strong> (TrackUtils.getStripHits(track, hitToStrips, hitToRotated).size() == 0){
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>             }
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>             Pair&lt;Track, GBLKinkData&gt; newTrack = MakeGblTracks.refitTrack(TrackUtils.getHTF(track), TrackUtils.getStripHits(track, hitToStrips, hitToRotated), track.getTrackerHits(), 5, track.getType(), _scattering, bfield, storeTrackStates);
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>             <strong class="jxr_keyword">if</strong> (newTrack == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>             Track gblTrk = newTrack.getFirst();
+<a class="jxr_linenumber" name="L145" href="#L145">145</a> 
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>             refittedTracks.add(gblTrk);
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>             trackRelations.add(<strong class="jxr_keyword">new</strong> BaseLCRelation(track, gblTrk));
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>             inputToRefitted.put(track, gblTrk);
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>             <a name="MCFullDetectorTruth" href="../../../../org/hps/analysis/MC/MCFullDetectorTruth.html#MCFullDetectorTruth">MCFullDetectorTruth</a> truthMatch = <strong class="jxr_keyword">new</strong> <a name="MCFullDetectorTruth" href="../../../../org/hps/analysis/MC/MCFullDetectorTruth.html#MCFullDetectorTruth">MCFullDetectorTruth</a>(event, track, bFieldMap, sensors, trackerSubdet);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>             <strong class="jxr_keyword">if</strong>(truthMatch != <strong class="jxr_keyword">null</strong>){
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>                 MCParticle p = truthMatch.getMCParticle();
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>                 trackToMCParticleRelations.add(<strong class="jxr_keyword">new</strong> BaseLCRelation(gblTrk,p));
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>             }
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>             kinkDataCollection.add(newTrack.getSecond());
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>             kinkDataRelations.add(<strong class="jxr_keyword">new</strong> BaseLCRelation(newTrack.getSecond(), gblTrk));
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>         }
+<a class="jxr_linenumber" name="L157" href="#L157">157</a> 
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>         <em class="jxr_comment">// Put the tracks back into the event and exit</em>
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>         <strong class="jxr_keyword">int</strong> flag = 1 &lt;&lt; LCIOConstants.TRBIT_HITS;
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>         event.put(outputCollectionName, refittedTracks, Track.<strong class="jxr_keyword">class</strong>, flag);
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         event.put(trackRelationCollectionName, trackRelations, LCRelation.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>         event.put(kinkDataCollectionName, kinkDataCollection, GBLKinkData.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>         event.put(kinkDataRelationsName, kinkDataRelations, LCRelation.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>         event.put(trackToMCParticleRelationsName, trackToMCParticleRelations, LCRelation.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>     }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a> 
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setupSensors(EventHeader event) {
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>         List&lt;RawTrackerHit&gt; rawTrackerHits = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(RawTrackerHit.<strong class="jxr_keyword">class</strong>, rawHitCollectionName))
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>             rawTrackerHits = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, rawHitCollectionName);
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(RawTrackerHit.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"RawTrackerHitMaker_RawTrackerHits"</span>))
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>             rawTrackerHits = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"RawTrackerHitMaker_RawTrackerHits"</span>);
+<a class="jxr_linenumber" name="L173" href="#L173">173</a> 
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>         <em class="jxr_comment">// Get the ID dictionary and field information.</em>
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>         IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>         <strong class="jxr_keyword">int</strong> fieldIdx = dict.getFieldIndex(<span class="jxr_string">"side"</span>);
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         <strong class="jxr_keyword">int</strong> sideIdx = dict.getFieldIndex(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         <strong class="jxr_keyword">for</strong> (RawTrackerHit hit : rawTrackerHits) {
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>             <em class="jxr_comment">// if sensor already has a DetectorElement, skip it</em>
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>             <strong class="jxr_keyword">if</strong> (hit.getDetectorElement() != <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L183" href="#L183">183</a> 
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             <em class="jxr_comment">// The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.</em>
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>             IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>             expId.setValue(fieldIdx, 0);
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>             expId.setValue(sideIdx, 0);
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>             IIdentifier strippedId = dict.pack(expId);
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>             <em class="jxr_comment">// Find the sensor DetectorElement.</em>
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>             List&lt;IDetectorElement&gt; des = DetectorElementStore.getInstance().find(strippedId);
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>             <strong class="jxr_keyword">if</strong> (des == <strong class="jxr_keyword">null</strong> || des.size() == 0)
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Failed to find any DetectorElements with stripped ID &lt;0x"</span> + Long.toHexString(strippedId.getValue()) + <span class="jxr_string">"&gt;."</span>);
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>             <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (des.size() == 1)
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>                 hit.setDetectorElement((SiSensor) des.get(0));
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>             <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>                 <em class="jxr_comment">// Use first sensor found, which should work unless there are sensors with duplicate IDs.</em>
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>                 <strong class="jxr_keyword">for</strong> (IDetectorElement de : des)
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>                     <strong class="jxr_keyword">if</strong> (de instanceof SiSensor) {
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>                         hit.setDetectorElement((SiSensor) de);
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>                     }
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>             <em class="jxr_comment">// No sensor was found.</em>
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>             <strong class="jxr_keyword">if</strong> (hit.getDetectorElement() == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No sensor was found for hit with stripped ID &lt;0x"</span> + Long.toHexString(strippedId.getValue()) + <span class="jxr_string">"&gt;."</span>);
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>         }
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>     }
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>     
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>     <em class="jxr_comment">//These functions are adapted from the same ones in TrackUtils, but without the "cache"</em>
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>     <strong class="jxr_keyword">static</strong> RelationalTable getHitToStripsTable(EventHeader event,String HelicalTrackHitRelationsCollectionName) {
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>         RelationalTable hitToStrips = <strong class="jxr_keyword">new</strong> BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>         List&lt;LCRelation&gt; hitrelations = event.get(LCRelation.<strong class="jxr_keyword">class</strong>, HelicalTrackHitRelationsCollectionName);
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>         <strong class="jxr_keyword">for</strong> (LCRelation relation : hitrelations)
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>             <strong class="jxr_keyword">if</strong> (relation != <strong class="jxr_keyword">null</strong> &amp;&amp; relation.getFrom() != <strong class="jxr_keyword">null</strong> &amp;&amp; relation.getTo() != <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>                 hitToStrips.add(relation.getFrom(), relation.getTo());
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         <strong class="jxr_keyword">return</strong> hitToStrips;
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>     }
+<a class="jxr_linenumber" name="L217" href="#L217">217</a> 
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>     <strong class="jxr_keyword">static</strong> RelationalTable getHitToRotatedTable(EventHeader event, String RotatedHelicalTrackHitRelationsCollectionName) {
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         RelationalTable hitToRotated = <strong class="jxr_keyword">new</strong> BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         List&lt;LCRelation&gt; rotaterelations = event.get(LCRelation.<strong class="jxr_keyword">class</strong>, RotatedHelicalTrackHitRelationsCollectionName);
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         <strong class="jxr_keyword">for</strong> (LCRelation relation : rotaterelations)
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>             <strong class="jxr_keyword">if</strong> (relation != <strong class="jxr_keyword">null</strong> &amp;&amp; relation.getFrom() != <strong class="jxr_keyword">null</strong> &amp;&amp; relation.getTo() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>                 hitToRotated.add(relation.getFrom(), relation.getTo());
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>             }
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>         <strong class="jxr_keyword">return</strong> hitToRotated;
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>     }
+<a class="jxr_linenumber" name="L227" href="#L227">227</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

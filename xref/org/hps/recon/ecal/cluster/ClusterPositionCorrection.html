@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>ClusterPositionCorrection xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/recon/ecal/cluster/ClusterPositionCorrection.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.ecal.cluster;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.Cluster;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseCluster;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <em class="jxr_javadoccomment"> * This uses the uncorrected cluster energy to correct the position of the cluster.</em>
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <em class="jxr_javadoccomment"> * This should be used before the energy is corrected on the Cluster and after</em>
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <em class="jxr_javadoccomment"> * cluster-track matching.</em>
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a name="ClusterPositionCorrection" href="../../../../../org/hps/recon/ecal/cluster/ClusterPositionCorrection.html#ClusterPositionCorrection">ClusterPositionCorrection</a> {
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <em class="jxr_comment">//Parameterizations tested in MC using v3-fieldmap</em>
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <em class="jxr_comment">//Nov 2015</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      <em class="jxr_comment">// Variables for electron position corrections.</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> ELECTRON_POS_A1 = 0.004483;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> ELECTRON_POS_A2 = -0.02884;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> ELECTRON_POS_B1 = 0.6197;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> ELECTRON_POS_B2 = -2.279;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> ELECTRON_POS_B3 = 3.66;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <em class="jxr_comment">// Variables for positron position corrections.</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> POSITRON_POS_A1 = 0.006887;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> POSITRON_POS_A2 = -0.03207;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> POSITRON_POS_B1 = -0.8048;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> POSITRON_POS_B2 = 0.9366;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> POSITRON_POS_B3 = 2.628;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      <em class="jxr_comment">// Variables for photon position corrections.</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> PHOTON_POS_A1 = 0.005385;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> PHOTON_POS_A2 = -0.03562;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> PHOTON_POS_B1 = -0.1948;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> PHOTON_POS_B2 = -0.7991;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> PHOTON_POS_B3 = 3.797;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong>[] calculateCorrectedPosition(Cluster cluster) {
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          <strong class="jxr_keyword">double</strong> clusterPosition[] = cluster.getPosition();                
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          <strong class="jxr_keyword">double</strong> correctedPosition = computeCorrectedPosition(cluster.getParticleId(), clusterPosition[0], cluster.getEnergy());
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          <strong class="jxr_keyword">double</strong>[] position = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[3];
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          position[0] = correctedPosition;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          position[1] = clusterPosition[1];
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          position[2] = clusterPosition[2];
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          <strong class="jxr_keyword">return</strong> position;
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      }
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> setCorrectedPosition(BaseCluster cluster) {
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          cluster.setPosition(calculateCorrectedPosition(cluster));
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      }
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <em class="jxr_javadoccomment">     * Calculates position correction based on cluster raw energy, x calculated position, </em>
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  <em class="jxr_javadoccomment">     * and particle type as per </em>
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  <em class="jxr_javadoccomment">     * &lt;a href="<a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014" target="alexandria_uri">https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014</a>"&gt;HPS Note 2014-001&lt;/a&gt;</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  <em class="jxr_javadoccomment">     * @param pdg Particle id as per PDG</em>
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  <em class="jxr_javadoccomment">     * @param xCl Calculated x centroid position of the cluster, uncorrected, at face</em>
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>  <em class="jxr_javadoccomment">     * @param rawEnergy Raw energy of the cluster (sum of hits with shared hit distribution)</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  <em class="jxr_javadoccomment">     * @return the corrected x position</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>  <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> computeCorrectedPosition(<strong class="jxr_keyword">int</strong> pdg, <strong class="jxr_keyword">double</strong> xPos, <strong class="jxr_keyword">double</strong> rawEnergy) {
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          <em class="jxr_comment">//double xCl = xPos / 10.0;//convert to cm</em>
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          <strong class="jxr_keyword">double</strong> xCorr;
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          <strong class="jxr_keyword">switch</strong>(pdg) {
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              <strong class="jxr_keyword">case</strong> 11: <em class="jxr_comment">//Particle is electron        </em>
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>                  xCorr = positionCorrection(xPos, rawEnergy, ELECTRON_POS_A1, ELECTRON_POS_A2, ELECTRON_POS_B1, ELECTRON_POS_B2, ELECTRON_POS_B3);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>                  <strong class="jxr_keyword">return</strong> xCorr;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>              <strong class="jxr_keyword">case</strong> -11:<em class="jxr_comment">// Particle is positron       </em>
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>                  xCorr = positionCorrection(xPos, rawEnergy, POSITRON_POS_A1, POSITRON_POS_A2, POSITRON_POS_B1, POSITRON_POS_B2, POSITRON_POS_B3);
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>                  <strong class="jxr_keyword">return</strong> xCorr;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>              <strong class="jxr_keyword">case</strong> 22: <em class="jxr_comment">// Particle is photon      </em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>                  xCorr = positionCorrection(xPos, rawEnergy, PHOTON_POS_A1, PHOTON_POS_A2, PHOTON_POS_B1, PHOTON_POS_B2, PHOTON_POS_B3);
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>                  <strong class="jxr_keyword">return</strong> xCorr;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>              <strong class="jxr_keyword">default</strong>: <em class="jxr_comment">//Unknown </em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>                  xCorr = xPos;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>                  <strong class="jxr_keyword">return</strong> xCorr;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          }
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      }
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>  
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>  <em class="jxr_javadoccomment">     * Calculates the position correction in cm using the raw energy and variables associated with the fit</em>
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>  <em class="jxr_javadoccomment">     * of the particle. Prodecure described in  </em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>  <em class="jxr_javadoccomment">     * &lt;a href="<a href="https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014" target="alexandria_uri">https://misportal.jlab.org/mis/physics/hps_notes/index.cfm?note_year=2014</a>"&gt;HPS Note 2014-001&lt;/a&gt;</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  <em class="jxr_javadoccomment">     * @param xCl</em>
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  <em class="jxr_javadoccomment">     * @param rawEnergy</em>
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>  <em class="jxr_javadoccomment">     * @param varA1</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <em class="jxr_javadoccomment">     * @param varA2</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_javadoccomment">     * @param varA3</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>  <em class="jxr_javadoccomment">     * @param varB1</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>  <em class="jxr_javadoccomment">     * @param varB2</em>
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>  <em class="jxr_javadoccomment">     * @param varB3</em>
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  <em class="jxr_javadoccomment">     * @return the cluster position correction</em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>  <em class="jxr_javadoccomment">     */</em>    
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> positionCorrection(<strong class="jxr_keyword">double</strong> xCl, <strong class="jxr_keyword">double</strong> rawEnergy, <strong class="jxr_keyword">double</strong> varA1, <strong class="jxr_keyword">double</strong> varA2, <strong class="jxr_keyword">double</strong> varB1, <strong class="jxr_keyword">double</strong> varB2, <strong class="jxr_keyword">double</strong> varB3) {
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          <em class="jxr_comment">//return ((xCl - (varB1 * rawEnergy + varB2 / Math.sqrt(rawEnergy) + varB3))/(varA1 / Math.sqrt(rawEnergy) + varA2 + 1));</em>
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          <strong class="jxr_keyword">return</strong> ((xCl - (varB1 * rawEnergy + varB2 / Math.sqrt(rawEnergy) + varB3))/(varA1 / Math.sqrt(rawEnergy) + varA2 + 1));
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      }
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

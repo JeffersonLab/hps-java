@@ -1,0 +1,447 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>GBLRefitterDriver xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/recon/tracking/gbl/GBLRefitterDriver.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.recon.tracking.gbl;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.math3.util.Pair;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.MaterialSupervisor;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.MultipleScattering;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackResidualsData;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.hps.record.StandardCuts;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.DetectorElementStore;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.IDetectorElement;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IExpandedIdentifier;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IIdentifier;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.identifier.IIdentifierDictionary;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.SiSensor;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.LCRelation;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RelationalTable;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseTrack;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackerHit;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseLCRelation;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.lcsim.lcio.LCIOConstants;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.AlignableDetectorElement;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_comment">//Derivatives plots</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <em class="jxr_comment">//import hep.aida.IManagedObject;</em>
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_comment">//import hep.aida.IBaseHistogram;</em>
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment"> * A Driver which refits tracks using GBL. Does not require GBL collections to</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <em class="jxr_javadoccomment"> * be present in the event.</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="GBLRefitterDriver" href="../../../../../org/hps/recon/tracking/gbl/GBLRefitterDriver.html#GBLRefitterDriver">GBLRefitterDriver</a> <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      <strong class="jxr_keyword">private</strong> AIDA aidaGBL; 
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      String derFolder = <span class="jxr_string">"/gbl_derivatives/"</span>;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">private</strong> String inputCollectionName = <span class="jxr_string">"MatchedTracks"</span>;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">private</strong> String outputCollectionName = <span class="jxr_string">"GBLTracks"</span>;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">private</strong> String trackRelationCollectionName = <span class="jxr_string">"MatchedToGBLTrackRelations"</span>;
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">private</strong> String helicalTrackHitRelationsCollectionName = <span class="jxr_string">"HelicalTrackHitRelations"</span>;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">private</strong> String rotatedHelicalTrackHitRelationsCollectionName = <span class="jxr_string">"RotatedHelicalTrackHitRelations"</span>;
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">private</strong> String trackResidualsColName = <span class="jxr_string">"TrackResidualsGBL"</span>;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <strong class="jxr_keyword">private</strong> String trackResidualsRelColName = <span class="jxr_string">"TrackResidualsGBLRelations"</span>;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">private</strong> String rawHitCollectionName = <span class="jxr_string">"SVTRawTrackerHits"</span>;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> bfield;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="MultipleScattering" href="../../../../../org/hps/recon/tracking/MultipleScattering.html#MultipleScattering">MultipleScattering</a> _scattering = <strong class="jxr_keyword">new</strong> <a name="MultipleScattering" href="../../../../../org/hps/recon/tracking/MultipleScattering.html#MultipleScattering">MultipleScattering</a>(<strong class="jxr_keyword">new</strong> <a name="MaterialSupervisor" href="../../../../../org/hps/recon/tracking/MaterialSupervisor.html#MaterialSupervisor">MaterialSupervisor</a>());
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> storeTrackStates = false;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <strong class="jxr_keyword">private</strong> <a name="StandardCuts" href="../../../../../org/hps/record/StandardCuts.html#StandardCuts">StandardCuts</a> cuts = <strong class="jxr_keyword">new</strong> <a name="StandardCuts" href="../../../../../org/hps/record/StandardCuts.html#StandardCuts">StandardCuts</a>();
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">private</strong> <a name="MilleBinary" href="../../../../../org/hps/recon/tracking/gbl/MilleBinary.html#MilleBinary">MilleBinary</a> mille;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">private</strong> String milleBinaryFileName = MilleBinary.DEFAULT_OUTPUT_FILE_NAME;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> writeMilleBinary = false;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> writeMilleChi2Cut = 99999;
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> includeNoHitScatters = false;
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> computeGBLResiduals  = false;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> enableStandardCuts = false;
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> enableAlignmentCuts = false;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">private</strong> List&lt;AlignableDetectorElement&gt;  Alignabledes = <strong class="jxr_keyword">new</strong> ArrayList&lt;AlignableDetectorElement&gt;();
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">private</strong> List&lt;SiSensor&gt; sensors = <strong class="jxr_keyword">new</strong> ArrayList&lt;SiSensor&gt;();
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> usePoints = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <em class="jxr_comment">//Calculator for Frame to Frame derivatives</em>
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">private</strong> <a name="FrameToFrameDers" href="../../../../../org/hps/recon/tracking/gbl/FrameToFrameDers.html#FrameToFrameDers">FrameToFrameDers</a> f2fD = <strong class="jxr_keyword">new</strong> <a name="FrameToFrameDers" href="../../../../../org/hps/recon/tracking/gbl/FrameToFrameDers.html#FrameToFrameDers">FrameToFrameDers</a>();
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <em class="jxr_comment">//Setting 0 is a single refit, 1 refit twice and so on..</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> gblRefitIterations = 5; 
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setUsePoints (<strong class="jxr_keyword">boolean</strong> val) {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          usePoints = val;
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      }
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setEnableAlignmentCuts (<strong class="jxr_keyword">boolean</strong> val) {
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          enableAlignmentCuts = val;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>      }
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>  
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setIncludeNoHitScatters(<strong class="jxr_keyword">boolean</strong> val) {
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>          includeNoHitScatters = val;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      }
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setComputeGBLResiduals(<strong class="jxr_keyword">boolean</strong> val) {
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          computeGBLResiduals = val;
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>      }
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setGblRefitIterations(<strong class="jxr_keyword">int</strong> val) {
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         gblRefitIterations = val;
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     }
+<a class="jxr_linenumber" name="L103" href="#L103">103</a> 
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setWriteMilleChi2Cut(<strong class="jxr_keyword">int</strong> input) {
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         writeMilleChi2Cut = input;
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     }
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> 
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMilleBinaryFileName(String filename) {
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         milleBinaryFileName = filename;
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     }
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> 
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setWriteMilleBinary(<strong class="jxr_keyword">boolean</strong> writeMillepedeFile) {
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         writeMilleBinary = writeMillepedeFile;
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>     }
+<a class="jxr_linenumber" name="L115" href="#L115">115</a> 
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setStoreTrackStates(<strong class="jxr_keyword">boolean</strong> input) {
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         storeTrackStates = input;
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>     }
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> 
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> getStoreTrackStates() {
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         <strong class="jxr_keyword">return</strong> storeTrackStates;
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>     }
+<a class="jxr_linenumber" name="L123" href="#L123">123</a> 
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setInputCollectionName(String inputCollectionName) {
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>         <strong class="jxr_keyword">this</strong>.inputCollectionName = inputCollectionName;
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     }
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setOutputCollectionName(String outputCollectionName) {
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         <strong class="jxr_keyword">this</strong>.outputCollectionName = outputCollectionName;
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>     }
+<a class="jxr_linenumber" name="L131" href="#L131">131</a> 
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setTrackResidualsColName (String val) {
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>         trackResidualsColName = val;
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>     }
+<a class="jxr_linenumber" name="L135" href="#L135">135</a> 
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setTrackResidualsRelColName (String val) {
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         trackResidualsRelColName = val;
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>     }
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>     
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setTrackRelationCollectionName(String trackRelationCollectionName) {
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>         <strong class="jxr_keyword">this</strong>.trackRelationCollectionName = trackRelationCollectionName;
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>     }
+<a class="jxr_linenumber" name="L143" href="#L143">143</a> 
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setHelicalTrackHitRelationsCollectionName(String helicalTrackHitRelationsCollectionName) {
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         <strong class="jxr_keyword">this</strong>.helicalTrackHitRelationsCollectionName = helicalTrackHitRelationsCollectionName;
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>     }
+<a class="jxr_linenumber" name="L147" href="#L147">147</a> 
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setRotatedHelicalTrackHitRelationsCollectionName(String rotatedHelicalTrackHitRelationsCollectionName) {
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>         <strong class="jxr_keyword">this</strong>.rotatedHelicalTrackHitRelationsCollectionName = rotatedHelicalTrackHitRelationsCollectionName;
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>     }
+<a class="jxr_linenumber" name="L151" href="#L151">151</a> 
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setRawHitCollectionName(String rawHitCollectionName) {
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>         <strong class="jxr_keyword">this</strong>.rawHitCollectionName = rawHitCollectionName;
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>     }
+<a class="jxr_linenumber" name="L155" href="#L155">155</a> 
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxTrackChisq(<strong class="jxr_keyword">int</strong> nhits, <strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>         cuts.setMaxTrackChisq(nhits, input);
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>     }
+<a class="jxr_linenumber" name="L159" href="#L159">159</a> 
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxTrackChisq4hits(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         cuts.setMaxTrackChisq(4, input);
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>     }
+<a class="jxr_linenumber" name="L163" href="#L163">163</a> 
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxTrackChisq5hits(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>         cuts.setMaxTrackChisq(5, input);
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>     }
+<a class="jxr_linenumber" name="L167" href="#L167">167</a> 
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxTrackChisq6hits(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         cuts.setMaxTrackChisq(6, input);
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     }
+<a class="jxr_linenumber" name="L171" href="#L171">171</a> 
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxTrackChisqProb(<strong class="jxr_keyword">double</strong> input) {
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>         cuts.changeChisqTrackProb(input);
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>     }
+<a class="jxr_linenumber" name="L175" href="#L175">175</a> 
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setEnableStandardCuts(<strong class="jxr_keyword">boolean</strong> val) {
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>         System.out.println(<span class="jxr_string">"GBLRefitterDriver::WARNING:Enabling standardCuts!"</span>);
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         enableStandardCuts = val;
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>     }
+<a class="jxr_linenumber" name="L180" href="#L180">180</a> 
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>     @Override
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> startOfData() {
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         <strong class="jxr_keyword">if</strong> (writeMilleBinary)
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             mille = <strong class="jxr_keyword">new</strong> <a name="MilleBinary" href="../../../../../org/hps/recon/tracking/gbl/MilleBinary.html#MilleBinary">MilleBinary</a>(milleBinaryFileName);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>     }
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> 
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>     @Override
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> endOfData() {
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>         <strong class="jxr_keyword">if</strong> (writeMilleBinary)
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>             mille.close();
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>     }
+<a class="jxr_linenumber" name="L192" href="#L192">192</a> 
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>     @Override
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector) {
+<a class="jxr_linenumber" name="L195" href="#L195">195</a> 
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>         bfield = Math.abs(TrackUtils.getBField(detector).magnitude());
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>         _scattering.getMaterialManager().buildModel(detector);
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>         _scattering.setBField(bfield); <em class="jxr_comment">// only absolute of B is needed as it's used for momentum calculation only</em>
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>         
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>         IDetectorElement detectorElement = detector.getDetectorElement();
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>         sensors = detectorElement.findDescendants(SiSensor.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L202" href="#L202">202</a> 
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>     }
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>     
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>     @Override
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event) {
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>         <strong class="jxr_keyword">if</strong> (!event.hasCollection(Track.<strong class="jxr_keyword">class</strong>, inputCollectionName))
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>             <strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>         
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>         setupSensors(event);
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>         List&lt;Track&gt; tracks = event.get(Track.<strong class="jxr_keyword">class</strong>, inputCollectionName);
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>         <em class="jxr_comment">// System.out.println("GBLRefitterDriver::process number of tracks = "+tracks.size());</em>
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>         <em class="jxr_comment">//RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);</em>
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>         <em class="jxr_comment">//RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);</em>
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event,helicalTrackHitRelationsCollectionName);
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event,rotatedHelicalTrackHitRelationsCollectionName);
+<a class="jxr_linenumber" name="L217" href="#L217">217</a> 
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>         List&lt;Track&gt; refittedTracks = <strong class="jxr_keyword">new</strong> ArrayList&lt;Track&gt;();
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         List&lt;LCRelation&gt; trackRelations = <strong class="jxr_keyword">new</strong> ArrayList&lt;LCRelation&gt;();
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>         
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>         List&lt;GBLKinkData&gt; kinkDataCollection = <strong class="jxr_keyword">new</strong> ArrayList&lt;GBLKinkData&gt;();
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>         List&lt;LCRelation&gt; kinkDataRelations = <strong class="jxr_keyword">new</strong> ArrayList&lt;LCRelation&gt;();
+<a class="jxr_linenumber" name="L223" href="#L223">223</a> 
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>         <em class="jxr_comment">//Hit on Track Residuals</em>
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>         List&lt;TrackResidualsData&gt; trackResidualsCollection =  <strong class="jxr_keyword">new</strong> ArrayList&lt;TrackResidualsData&gt;();
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>         List&lt;LCRelation&gt; trackResidualsRelations          = <strong class="jxr_keyword">new</strong> ArrayList&lt;LCRelation&gt;();
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>         
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>         <em class="jxr_comment">//Map&lt;Track, Track&gt; inputToRefitted = new HashMap&lt;Track, Track&gt;();</em>
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>         <strong class="jxr_keyword">for</strong> (Track track : tracks) {
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             List&lt;TrackerHit&gt; temp = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>             <strong class="jxr_keyword">if</strong> (temp.size() == 0)
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>                 <em class="jxr_comment">//               System.out.println("GBLRefitterDriver::process  did not find any strip hits on this track???");</em>
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>             
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>             Pair&lt;Pair&lt;Track, GBLKinkData&gt;, FittedGblTrajectory&gt; newTrackTraj = MakeGblTracks.refitTrackWithTraj(TrackUtils.getHTF(track), temp, track.getTrackerHits(), gblRefitIterations, track.getType(), _scattering, bfield, storeTrackStates,includeNoHitScatters);
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>             <strong class="jxr_keyword">if</strong> (newTrackTraj == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>                 getLogger().warning(<span class="jxr_string">"Null returned from MakeGblTracks.refitTrackWithTraj - aborting refit"</span>);
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>             }
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>             Pair&lt;Track, GBLKinkData&gt; newTrack = newTrackTraj.getFirst();
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>             <strong class="jxr_keyword">if</strong> (newTrack == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>             Track gblTrk = newTrack.getFirst();
+<a class="jxr_linenumber" name="L244" href="#L244">244</a> 
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>             <strong class="jxr_keyword">if</strong> (enableStandardCuts &amp;&amp; gblTrk.getChi2() &gt; cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size()))
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>             
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>             <em class="jxr_comment">//Include trackSelector to decide which tracks to use for alignment. </em>
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>             <em class="jxr_comment">//Propose to use tracks with at least 6 hits in the detector. </em>
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>             
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>             
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>             <strong class="jxr_keyword">if</strong> (enableAlignmentCuts) {
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>                 
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>                 <em class="jxr_comment">//At least 1 GeV</em>
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                 Hep3Vector momentum = <strong class="jxr_keyword">new</strong> BasicHep3Vector(gblTrk.getTrackStates().get(0).getMomentum());
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>                 
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>                 
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>                 <strong class="jxr_keyword">if</strong> (momentum.magnitude() &lt; 1)
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>                 
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>                 <em class="jxr_comment">////At least 6 hits</em>
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>                 <em class="jxr_comment">//if (gblTrk.getTrackerHits().size() &lt; 6) </em>
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>                 <em class="jxr_comment">//continue;</em>
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>                 
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>                 <strong class="jxr_keyword">double</strong>[] trk_prms = track.getTrackParameters();
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>                 <strong class="jxr_keyword">double</strong> tanLambda = trk_prms[BaseTrack.TANLAMBDA];
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>                 
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>                 <em class="jxr_comment">//Align with tracks without hole on track</em>
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>                 <strong class="jxr_keyword">if</strong> ((tanLambda &gt; 0 &amp;&amp; track.getTrackerHits().size() &lt; 5) || (tanLambda &lt; 0 &amp;&amp; track.getTrackerHits().size() &lt; 5 )) 
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>                     <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L271" href="#L271">271</a> 
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>             }
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>             
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>             <em class="jxr_comment">//System.out.printf("gblTrkNDF %d  gblTrkChi2 %f  getMaxTrackChisq5 %f getMaxTrackChisq6 %f \n", gblTrk.getNDF(), gblTrk.getChi2(), cuts.getMaxTrackChisq(5), cuts.getMaxTrackChisq(6));</em>
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>             <strong class="jxr_keyword">if</strong> (enableStandardCuts &amp;&amp; (gblTrk.getChi2() &gt; cuts.getMaxTrackChisq(gblTrk.getTrackerHits().size())))
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>             
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>             refittedTracks.add(gblTrk);
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>             trackRelations.add(<strong class="jxr_keyword">new</strong> BaseLCRelation(track, gblTrk));
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>             <em class="jxr_comment">//PF :: unused</em>
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>             <em class="jxr_comment">//inputToRefitted.put(track, gblTrk);</em>
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>             kinkDataCollection.add(newTrack.getSecond());
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>             kinkDataRelations.add(<strong class="jxr_keyword">new</strong> BaseLCRelation(newTrack.getSecond(), gblTrk));
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>             
+<a class="jxr_linenumber" name="L285" href="#L285">285</a> 
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>             <strong class="jxr_keyword">if</strong> (computeGBLResiduals) { 
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>                 
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>                 <a name="GblTrajectory" href="../../../../../org/hps/recon/tracking/gbl/GblTrajectory.html#GblTrajectory">GblTrajectory</a> gbl_fit_trajectory =  newTrackTraj.getSecond().get_traj();
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>                 
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                 List&lt;Double&gt;  b_residuals = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>                 List&lt;Float&gt;   b_sigmas    = <strong class="jxr_keyword">new</strong> ArrayList&lt;Float&gt;();
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>                 <em class="jxr_comment">//List&lt;Double&gt;  u_residuals = new ArrayList&lt;Double&gt;();</em>
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>                 <em class="jxr_comment">//List&lt;Float&gt;   u_sigmas    = new ArrayList&lt;Float&gt;();</em>
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>                 List&lt;Integer&gt; r_sensors   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Integer&gt;();
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>                 
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>                 <strong class="jxr_keyword">int</strong> numData[] = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[1];
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>                 <em class="jxr_comment">//System.out.printf("Getting the residuals. Points  on trajectory: %d \n",gbl_fit_trajectory.getNpointsOnTraj());</em>
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>                 <em class="jxr_comment">//The fitted trajectory has a mapping between the MPID and the ilabel. Use that to get the MPID of the residual.</em>
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>                 Integer[] sensorsFromMapArray = newTrackTraj.getSecond().getSensorMap().keySet().toArray(<strong class="jxr_keyword">new</strong> Integer[0]);
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>                 <em class="jxr_comment">//System.out.printf("Getting the residuals. Sensors on trajectory: %d \n",sensorsFromMapArray.length);</em>
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>                 
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>                 <em class="jxr_comment">//System.out.println("Check residuals of the original fit");</em>
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>                 <em class="jxr_comment">//Looping on all the sensors on track -  to get the biased residuals.</em>
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>                 <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i_s = 0; i_s &lt; sensorsFromMapArray.length; i_s++) {       
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>                     <em class="jxr_comment">//Get the point label</em>
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>                     <strong class="jxr_keyword">int</strong> ilabel = sensorsFromMapArray[i_s];
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>                     <em class="jxr_comment">//Get the millepede ID</em>
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>                     <strong class="jxr_keyword">int</strong> mpid = newTrackTraj.getSecond().getSensorMap().get(ilabel);
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>                     List&lt;Double&gt; aResiduals   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();   
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>                     List&lt;Double&gt; aMeasErrors  = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>                     List&lt;Double&gt; aResErrors   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();  
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>                     List&lt;Double&gt; aDownWeights = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>                     gbl_fit_trajectory.getMeasResults(ilabel,numData,aResiduals,aMeasErrors,aResErrors,aDownWeights); 
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>                     <strong class="jxr_keyword">if</strong> (numData[0]&gt;1) { 
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>                         System.out.printf(<span class="jxr_string">"GBLRefitterDriver::WARNING::We have SCT sensors. Residuals dimensions should be &lt;=1\n"</span>);
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>                     }
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>                     <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i=0; i&lt;numData[0];i++) {
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>                         <em class="jxr_comment">//System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");</em>
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>                         <em class="jxr_comment">//System.out.printf("Example1::measResults %d %d %d %f %f %f \n",ilabel, i, mpid, aResiduals.get(i),aMeasErrors.get(i),aResErrors.get(i));</em>
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>                         
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>                         r_sensors.add(mpid);
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>                         b_residuals.add(aResiduals.get(i));
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>                         b_sigmas.add(aResErrors.get(i).floatValue());
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>                     }
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>                     <em class="jxr_comment">//Perform an unbiasing fit for each traj</em>
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>                     
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>                     <em class="jxr_comment">//System.out.println("Run the unbiased residuals!!!\n");</em>
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>                     <em class="jxr_comment">//For each sensor create a trajectory </em>
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>                     <a name="GblTrajectory" href="../../../../../org/hps/recon/tracking/gbl/GblTrajectory.html#GblTrajectory">GblTrajectory</a> gbl_fit_traj_u = <strong class="jxr_keyword">new</strong> <a name="GblTrajectory" href="../../../../../org/hps/recon/tracking/gbl/GblTrajectory.html#GblTrajectory">GblTrajectory</a>(gbl_fit_trajectory.getSingleTrajPoints());
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>                     <strong class="jxr_keyword">double</strong>[] u_dVals = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[2];
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>                     <strong class="jxr_keyword">int</strong>[] u_iVals    = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[1];
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>                     <strong class="jxr_keyword">int</strong>[] u_numData  = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[1]; 
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>                     <em class="jxr_comment">//Fit it once to have exactly the same starting point of gbl_fit_trajectory.</em>
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>                     gbl_fit_traj_u.fit(u_dVals,u_iVals,<span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>                     List&lt;Double&gt; u_aResiduals   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();   
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>                     List&lt;Double&gt; u_aMeasErrors  = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>                     List&lt;Double&gt; u_aResErrors   = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();  
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>                     List&lt;Double&gt; u_aDownWeights = <strong class="jxr_keyword">new</strong> ArrayList&lt;Double&gt;();
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>                     
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>                     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>                         <em class="jxr_comment">//Fit removing the measurement</em>
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>                         gbl_fit_traj_u.fit(u_dVals,u_iVals,<span class="jxr_string">""</span>,ilabel);
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>                         gbl_fit_traj_u.getMeasResults(ilabel,numData,u_aResiduals,u_aMeasErrors,u_aResErrors,u_aDownWeights); 
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>                         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i=0; i&lt;numData[0];i++) {
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>                             <em class="jxr_comment">//System.out.printf("Example1::ilabel numDataIDX MPID aResidual aMeasError aResError\n");</em>
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>                             <em class="jxr_comment">//System.out.printf("Example1::UmeasResults %d %d %d %f %f %f \n",ilabel, i, mpid, u_aResiduals.get(i),u_aMeasErrors.get(i),u_aResErrors.get(i));</em>
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>                             
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>                             r_sensors.add(mpid);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>                             b_residuals.add(u_aResiduals.get(i));
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>                             b_sigmas.add(u_aResErrors.get(i).floatValue());
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>                         }
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>                     }
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>                     <strong class="jxr_keyword">catch</strong> (RuntimeException e){
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>                     <em class="jxr_comment">//  e.printStackTrack();</em>
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>                         r_sensors.add(-999);
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>                         b_residuals.add(-9999.);
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>                         b_sigmas.add((<strong class="jxr_keyword">float</strong>)-9999.);
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>                         <em class="jxr_comment">//System.out.printf("Unbiasing fit fails! For label::%d\n",ilabel);</em>
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>                     }
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>                     
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>                 }<em class="jxr_comment">//loop on sensors on track</em>
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>                 
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>                 <em class="jxr_comment">//Set top by default</em>
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>                 <strong class="jxr_keyword">int</strong> trackerVolume = 0;
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>                 <em class="jxr_comment">//if tanLamda&lt;0 set bottom</em>
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>                 <em class="jxr_comment">//System.out.printf("Residuals size %d \n", r_sensors.size());</em>
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>                 <strong class="jxr_keyword">if</strong> (gblTrk.getTrackStates().get(0).getTanLambda() &lt; 0) trackerVolume = 1;
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>                 <a name="TrackResidualsData" href="../../../../../org/hps/recon/tracking/TrackResidualsData.html#TrackResidualsData">TrackResidualsData</a> resData  = <strong class="jxr_keyword">new</strong> <a name="TrackResidualsData" href="../../../../../org/hps/recon/tracking/TrackResidualsData.html#TrackResidualsData">TrackResidualsData</a>(trackerVolume,r_sensors,b_residuals,b_sigmas);
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>                 trackResidualsCollection.add(resData);
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>                 trackResidualsRelations.add(<strong class="jxr_keyword">new</strong> BaseLCRelation(resData,gblTrk));
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>             }<em class="jxr_comment">//computeGBLResiduals</em>
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>         }<em class="jxr_comment">//loop on tracks</em>
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>         
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>         <em class="jxr_comment">// Put the tracks back into the event and exit</em>
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>         <strong class="jxr_keyword">int</strong> flag = 1 &lt;&lt; LCIOConstants.TRBIT_HITS;
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         event.put(outputCollectionName, refittedTracks, Track.<strong class="jxr_keyword">class</strong>, flag);
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>         event.put(trackRelationCollectionName, trackRelations, LCRelation.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L378" href="#L378">378</a> 
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>         <strong class="jxr_keyword">if</strong> (computeGBLResiduals) {
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>             event.put(trackResidualsColName,    trackResidualsCollection,  TrackResidualsData.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>             event.put(trackResidualsRelColName, trackResidualsRelations, LCRelation.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>         }
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>         
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>         event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>         event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.<strong class="jxr_keyword">class</strong>, 0);
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>     }
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>     
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>     
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setupSensors(EventHeader event) {
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>         List&lt;RawTrackerHit&gt; rawTrackerHits = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(RawTrackerHit.<strong class="jxr_keyword">class</strong>, rawHitCollectionName))
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             rawTrackerHits = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, rawHitCollectionName);
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(RawTrackerHit.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"RawTrackerHitMaker_RawTrackerHits"</span>))
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>             rawTrackerHits = event.get(RawTrackerHit.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"RawTrackerHitMaker_RawTrackerHits"</span>);
+<a class="jxr_linenumber" name="L395" href="#L395">395</a> 
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>         EventHeader.LCMetaData meta = event.getMetaData(rawTrackerHits);
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>         <em class="jxr_comment">// Get the ID dictionary and field information.</em>
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>         IIdentifierDictionary dict = meta.getIDDecoder().getSubdetector().getDetectorElement().getIdentifierHelper().getIdentifierDictionary();
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>         <strong class="jxr_keyword">int</strong> fieldIdx = dict.getFieldIndex(<span class="jxr_string">"side"</span>);
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>         <strong class="jxr_keyword">int</strong> sideIdx = dict.getFieldIndex(<span class="jxr_string">"strip"</span>);
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>         <strong class="jxr_keyword">for</strong> (RawTrackerHit hit : rawTrackerHits) {
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>             <em class="jxr_comment">// if sensor already has a DetectorElement, skip it</em>
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>             <strong class="jxr_keyword">if</strong> (hit.getDetectorElement() != <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L405" href="#L405">405</a> 
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>             <em class="jxr_comment">// The "side" and "strip" fields needs to be stripped from the ID for sensor lookup.</em>
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>             IExpandedIdentifier expId = dict.unpack(hit.getIdentifier());
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>             expId.setValue(fieldIdx, 0);
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>             expId.setValue(sideIdx, 0);
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>             IIdentifier strippedId = dict.pack(expId);
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>             <em class="jxr_comment">// Find the sensor DetectorElement.</em>
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>             List&lt;IDetectorElement&gt; des = DetectorElementStore.getInstance().find(strippedId);
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>             <strong class="jxr_keyword">if</strong> (des == <strong class="jxr_keyword">null</strong> || des.size() == 0)
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"Failed to find any DetectorElements with stripped ID &lt;0x"</span> + Long.toHexString(strippedId.getValue()) + <span class="jxr_string">"&gt;."</span>);
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>             <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (des.size() == 1)
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>                 hit.setDetectorElement((SiSensor) des.get(0));
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>             <strong class="jxr_keyword">else</strong>
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>                 <em class="jxr_comment">// Use first sensor found, which should work unless there are sensors with duplicate IDs.</em>
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>                 <strong class="jxr_keyword">for</strong> (IDetectorElement de : des)
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>                     <strong class="jxr_keyword">if</strong> (de instanceof SiSensor) {
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>                         hit.setDetectorElement((SiSensor) de);
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>                         <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>                     }
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>             <em class="jxr_comment">// No sensor was found.</em>
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>             <strong class="jxr_keyword">if</strong> (hit.getDetectorElement() == <strong class="jxr_keyword">null</strong>)
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>                 <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No sensor was found for hit with stripped ID &lt;0x"</span> + Long.toHexString(strippedId.getValue()) + <span class="jxr_string">"&gt;."</span>);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>         }
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>     }
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>     
+<a class="jxr_linenumber" name="L430" href="#L430">430</a> }
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>     
+<a class="jxr_linenumber" name="L432" href="#L432">432</a> 
+<a class="jxr_linenumber" name="L433" href="#L433">433</a> 
+<a class="jxr_linenumber" name="L434" href="#L434">434</a> 
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

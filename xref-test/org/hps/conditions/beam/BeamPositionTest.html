@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>BeamPositionTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../testapidocs/org/hps/conditions/beam/BeamPositionTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.conditions.beam;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.LinkedHashMap;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.Map.Entry;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.hps.conditions.beam.BeamPosition.BeamPositionCollection;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> org.hps.conditions.database.DatabaseConditionsManager;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> junit.framework.TestCase;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment"> * Test that beam positions from conditions database match </em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> * hard-coded map copied from reconstruction driver.</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="BeamPositionTest" href="../../../../org/hps/conditions/beam/BeamPositionTest.html#BeamPositionTest">BeamPositionTest</a> <strong class="jxr_keyword">extends</strong> TestCase {
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>      <strong class="jxr_keyword">private</strong> Map&lt;Integer, <strong class="jxr_keyword">double</strong>[]&gt; beamPositionMap = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>      
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setUp() {
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          beamPositionMap = <strong class="jxr_keyword">new</strong> LinkedHashMap&lt;Integer, <strong class="jxr_keyword">double</strong>[]&gt;();
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          <em class="jxr_comment">// Values copied from HpsReconParticleDriver.java</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          <em class="jxr_comment">// 20190111 Values from Matt Solt's analysis of tuple output from Pass2 (note copied here)</em>
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          beamPositionMap.put(7629, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.17277481802, -0.12993997991, -0.0853344591497});
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          beamPositionMap.put(7630, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.14431582882, -0.131667930281, -0.0818403429116});
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          beamPositionMap.put(7636, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.21047915591, -0.133674849016, -0.089578068184});
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          beamPositionMap.put(7637, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.24645776407, -0.101418909471, -0.0910518478041});
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          beamPositionMap.put(7644, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.17901911124, -0.130285615341, -0.0822733438671});
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          beamPositionMap.put(7653, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.17260490817, -0.131034318083, -0.0791072417695});
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          beamPositionMap.put(7779, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.1787064368, -0.14063872959, -0.0964567926519});
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          beamPositionMap.put(7780, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.1728601751, -0.138420200972, -0.0946284667682});
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          beamPositionMap.put(7781, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.16985657657, -0.156226289295, -0.0968035162023});
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>          beamPositionMap.put(7782, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.18257346152, -0.140219484074, -0.109736506045});
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          beamPositionMap.put(7783, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.18257346152, -0.140219484074, -0.109736506045});
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          beamPositionMap.put(7786, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.12972261841, -0.166377573933, -0.0970139372611});
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          beamPositionMap.put(7795, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.21859751579, -0.144244767944, -0.0853166371595});
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          beamPositionMap.put(7796, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.20194805564, -0.143712797497, -0.0814142818837});
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          beamPositionMap.put(7798, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.23579296792, -0.145096101419, -0.0763395379254});
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          beamPositionMap.put(7799, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.21915161348, -0.150063795069, -0.0747834605672});
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          beamPositionMap.put(7800, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.21341596102, -0.148070389758, -0.0759533031441});
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          beamPositionMap.put(7801, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.22235421469, -0.152015276101, -0.0771084658072});
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          beamPositionMap.put(7803, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.34166909052, -0.142164101651, -0.0737517199669});
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          beamPositionMap.put(7804, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.32755215514, -0.142501982627, -0.0736984742692});
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>          beamPositionMap.put(7805, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.34001918433, -0.14128234629, -0.0719415420433});
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          beamPositionMap.put(7807, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.2913881367, -0.146538069491, -0.0713110421539});
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          beamPositionMap.put(7947, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.11570919432, -0.0910859069129, -0.115216742215});
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          beamPositionMap.put(7948, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.15441978567, -0.0686135478054, -0.129060986622});
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          beamPositionMap.put(7949, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.15625618167, -0.0732414149365, -0.133909636515});
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          beamPositionMap.put(7953, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.1247535341, -0.0498468870412, -0.136667869602});
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>          beamPositionMap.put(7962, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.18892745552, -0.0888237919098, -0.133084782275});
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          beamPositionMap.put(7963, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.21544617772, -0.0746121484095, -0.138791648195});
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>          beamPositionMap.put(7964, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.22151568434, -0.0767100152439, -0.138029976144});
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          beamPositionMap.put(7965, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.21982078088, -0.0633124399662, -0.13548854});
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          beamPositionMap.put(7966, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.22967441763, -0.074293601613, -0.136050581329});
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          beamPositionMap.put(7968, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.24234161374, -0.0898360310379, -0.1348398567});
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          beamPositionMap.put(7969, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.27252423462, -0.0870002501041, -0.133719459818});
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          beamPositionMap.put(7970, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.26842346064, -0.0857240792101, -0.116971022199});
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          beamPositionMap.put(7972, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.33363167982, 0.0345877733342, -0.100637477098});
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          beamPositionMap.put(7976, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.28593685326, 0.0248070264018, -0.102808747635});
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          beamPositionMap.put(7982, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.29646985597, 0.0127599017288, -0.101991281778});
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          beamPositionMap.put(7983, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.26170058486, 0.0189046639217, -0.107073001527});
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          beamPositionMap.put(7984, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.27436464212, 0.0245269396206, -0.108859729825});
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          beamPositionMap.put(7985, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.27834263863, 0.0236149343493, -0.114436070246});
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>          beamPositionMap.put(7986, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.27263205142, 0.0290293298289, -0.129868804995});
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>          beamPositionMap.put(7987, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.26816324002, 0.021546891022, -0.134582348971});
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>          beamPositionMap.put(7988, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.25916023097, 0.0288738200402, -0.134675209766});
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>          beamPositionMap.put(8025, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.26772080184, -0.0374515885847, -0.111794925212});
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          beamPositionMap.put(8026, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.26342349557, -0.0130037595274, -0.108269292234});
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          beamPositionMap.put(8027, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.26228873413, -0.00643925463781, -0.10675932599});
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          beamPositionMap.put(8028, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.24130730501, -0.00747575221052, -0.102814820173});
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>          beamPositionMap.put(8029, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.22872103491, -0.00447916152702, -0.105249943381});
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          beamPositionMap.put(8030, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.23900754195, -0.000357473510209, -0.106146355534});
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>          beamPositionMap.put(8031, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.20496275068, 0.000100290515539, -0.104054377677});
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>          beamPositionMap.put(8039, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.22124716174, -0.0011390722464, -0.101544332935});
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>          beamPositionMap.put(8040, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.2205668431, -0.00181385356273, -0.102991182594});
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>          beamPositionMap.put(8041, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.28721393166, 0.00197335438837, -0.101551648105});
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          beamPositionMap.put(8043, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.22920389672, -0.000848565041975, -0.0995558470643});
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          beamPositionMap.put(8044, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.22870291956, -0.00175258909226, -0.0988413432517});
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          beamPositionMap.put(8045, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.20258011807, -0.00866029673502, -0.100045336346});
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>          beamPositionMap.put(8046, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.22290557247, -0.00729779373861, -0.100652118073});
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>          beamPositionMap.put(8047, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.14601676145, -0.0202991409332, -0.105998899874});
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>          beamPositionMap.put(8048, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.20679634717, -0.00924325674287, -0.106248419021});
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          beamPositionMap.put(8049, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.21496917922, -0.00500571957867, -0.10725973208});
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>          beamPositionMap.put(8051, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.2126457536, -0.00153038672528, -0.111092588541});
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>          beamPositionMap.put(8055, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.28341733723, 0.0206565632476, -0.115598253441});
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>          beamPositionMap.put(8057, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.2882639213, 0.00480487421616, -0.104316741434});
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          beamPositionMap.put(8058, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.29698307957, 0.00818999458705, -0.109941003868});
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          beamPositionMap.put(8059, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.28762465865, -0.00153129299044, -0.111814005204});
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>          beamPositionMap.put(8072, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.13924541982, 0.0180721454354, -0.113772583512});
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>          beamPositionMap.put(8073, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.15278781506, -0.00108521877967, -0.112893566712});
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>          beamPositionMap.put(8074, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.15571729252, 0.00618781078807, -0.113017354596});
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          beamPositionMap.put(8075, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.1733104989, -0.00486744222345, -0.112424119993});
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>          beamPositionMap.put(8077, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.20683436964, 0.0110201050856, -0.109299859828});
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>          beamPositionMap.put(8085, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.13876392508, 0.0439497207201, -0.0903205833013});
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          beamPositionMap.put(8086, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.16507539815, 0.0597982603734, -0.0910001508689});
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          beamPositionMap.put(8087, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.20213132671, 0.0396348079161, -0.0784607661075});
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          beamPositionMap.put(8088, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.23374437206, 0.0741295264942, -0.0838311072439});
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>         beamPositionMap.put(8090, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.18462908099, 0.0224605407948, -0.078660407208});
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         beamPositionMap.put(8092, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.23292219117, 0.00789727246464, -0.0745098357754});
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>         beamPositionMap.put(8094, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.21308308691, 0.00356660582853, -0.072071620408});
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>         beamPositionMap.put(8095, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.20185037174, 0.00805359635246, -0.0747092315702});
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>         beamPositionMap.put(8096, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.23251278514, 0.00613811160073, -0.0741564828197});
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         beamPositionMap.put(8097, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.19022011872, 0.00740408472403, -0.0735952313026});
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>         beamPositionMap.put(8098, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.20923479595, 0.00408775878779, -0.0755429310062});
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         beamPositionMap.put(8099, <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">double</strong>[]{-4.20773101369, 0.0051498614277, -0.0797183115611});
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>     }
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L111" href="#L111">111</a> <em class="jxr_javadoccomment">     * Perform a run-by-run comparison between the conditions values and the data map.</em>
+<a class="jxr_linenumber" name="L112" href="#L112">112</a> <em class="jxr_javadoccomment">     * @throws ConditionsNotFoundException If there is a problem initializing the conditions system</em>
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testBeamPositions() <strong class="jxr_keyword">throws</strong> ConditionsNotFoundException {
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         <strong class="jxr_keyword">final</strong> DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         <strong class="jxr_keyword">for</strong> (Entry&lt;Integer, <strong class="jxr_keyword">double</strong>[]&gt; entry : <strong class="jxr_keyword">this</strong>.beamPositionMap.entrySet()) {
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>             <strong class="jxr_keyword">final</strong> Integer runNumber = entry.getKey();
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong>[] beamPositionArr = entry.getValue();
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>             mgr.setDetector(<span class="jxr_string">"HPS-dummy-detector"</span>, runNumber);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>             <strong class="jxr_keyword">final</strong> BeamPositionCollection beamPositionCond = 
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>                     mgr.getCachedConditions(BeamPositionCollection.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"beam_positions"</span>).getCachedData();
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>             <strong class="jxr_keyword">final</strong> BeamPosition beamPosition = beamPositionCond.get(0);
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>             System.out.println(<span class="jxr_string">"Testing run "</span> + runNumber);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>             assertEquals(<span class="jxr_string">"Beam Z position does not match."</span>, beamPositionArr[0], beamPosition.getPositionZ());
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>             assertEquals(<span class="jxr_string">"Beam X position does not match."</span>, beamPositionArr[1], beamPosition.getPositionX());
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>             assertEquals(<span class="jxr_string">"Beam Y position does not match."</span>, beamPositionArr[2], beamPosition.getPositionY());
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>         }
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>     }
+<a class="jxr_linenumber" name="L129" href="#L129">129</a> }
+<a class="jxr_linenumber" name="L130" href="#L130">130</a> 
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

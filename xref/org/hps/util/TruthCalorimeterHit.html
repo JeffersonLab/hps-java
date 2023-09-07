@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>TruthCalorimeterHit xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../apidocs/org/hps/util/TruthCalorimeterHit.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.util;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.CalorimeterHit;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader.LCMetaData;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.lcsim.event.base.BaseSimCalorimeterHit;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="TruthCalorimeterHit" href="../../../org/hps/util/TruthCalorimeterHit.html#TruthCalorimeterHit">TruthCalorimeterHit</a> <strong class="jxr_keyword">extends</strong> BaseSimCalorimeterHit {
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">public</strong> <a name="TruthCalorimeterHit" href="../../../org/hps/util/TruthCalorimeterHit.html#TruthCalorimeterHit">TruthCalorimeterHit</a>(<strong class="jxr_keyword">double</strong> rawEnergy, <strong class="jxr_keyword">double</strong> correctedEnergy, <strong class="jxr_keyword">double</strong> energyError, <strong class="jxr_keyword">double</strong> time, <strong class="jxr_keyword">long</strong> id,
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>              Hep3Vector positionVec, <strong class="jxr_keyword">int</strong> type, Object[] mcparts, <strong class="jxr_keyword">float</strong>[] energies, <strong class="jxr_keyword">float</strong>[] times, <strong class="jxr_keyword">int</strong>[] pdgs, LCMetaData metaData) {
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>          <em class="jxr_comment">// Instantiate the regular calorimeter hit fields.</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>          <strong class="jxr_keyword">this</strong>.rawEnergy = rawEnergy;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>          <strong class="jxr_keyword">this</strong>.correctedEnergy = correctedEnergy;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>          <strong class="jxr_keyword">this</strong>.energyError = energyError;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>          <strong class="jxr_keyword">this</strong>.time = time;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          <strong class="jxr_keyword">this</strong>.id = id;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          <strong class="jxr_keyword">this</strong>.positionVec = positionVec;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          <strong class="jxr_keyword">this</strong>.type = type;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          <em class="jxr_comment">// Set the metadata.</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          setMetaData(metaData);
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          <em class="jxr_comment">// Store the truth information.</em>
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          <strong class="jxr_keyword">this</strong>.nContributions = mcparts.length;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          <strong class="jxr_keyword">this</strong>.particle = mcparts;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          <strong class="jxr_keyword">this</strong>.energyContrib = energies;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          <strong class="jxr_keyword">this</strong>.times = times;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          <strong class="jxr_keyword">this</strong>.pdg = pdgs;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          <strong class="jxr_keyword">this</strong>.steps = <strong class="jxr_keyword">new</strong> ArrayList&lt;<strong class="jxr_keyword">float</strong>[]&gt;(nContributions);
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      }
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>      <strong class="jxr_keyword">public</strong> <a name="TruthCalorimeterHit" href="../../../org/hps/util/TruthCalorimeterHit.html#TruthCalorimeterHit">TruthCalorimeterHit</a>(CalorimeterHit baseHit, Object[] mcparts, <strong class="jxr_keyword">float</strong>[] energies, <strong class="jxr_keyword">float</strong>[] times, <strong class="jxr_keyword">int</strong>[] pdgs) {
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          <strong class="jxr_keyword">this</strong>(baseHit.getRawEnergy(), baseHit.getCorrectedEnergy(), baseHit.getEnergyError(), baseHit.getTime(),
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>                  baseHit.getCellID(), baseHit.getPositionVec(), baseHit.getType(), mcparts, energies, times,
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>                  pdgs, baseHit.getMetaData());
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      }
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setTime(<strong class="jxr_keyword">float</strong> newTime) {
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          time = newTime;
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      }
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      @Override
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">double</strong> getTime() {
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          <em class="jxr_comment">// SimCalorimeterHit usually calculates time based on the</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>          <em class="jxr_comment">// input particles. We would prefer that it simply return the</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          <em class="jxr_comment">// given time, as the time calculation is performed in a</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          <em class="jxr_comment">// different manner here.</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          <strong class="jxr_keyword">return</strong> time;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      }
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>EcalEventDisplay xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/org/hps/monitoring/ecal/plots/EcalEventDisplay.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.monitoring.ecal.plots;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram1D;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram2D;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> hep.aida.IPlotter;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> hep.aida.IPlotterFactory;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.aida.IPlotterStyle;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> java.awt.Point;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> java.awt.event.ActionEvent;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> java.awt.event.ActionListener;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> javax.swing.SwingUtilities;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.hps.monitoring.ecal.eventdisplay.ui.PDataEventViewer;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.hps.monitoring.ecal.eventdisplay.ui.PEventViewer;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.hps.monitoring.ecal.eventdisplay.ui.Viewer;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.hps.monitoring.ecal.eventdisplay.util.CrystalEvent;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.hps.monitoring.ecal.eventdisplay.util.CrystalListener;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.ecal.EcalUtils;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.CalorimeterHit;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Cluster;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <em class="jxr_javadoccomment"> * This &lt;code&gt;Driver&lt;/code&gt; creates an instance of the ECAL event display viewer and will generate plots in the</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_javadoccomment"> * monitoring app for individual channels that are selected. The event display is updated regularly, according to the</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_javadoccomment"> * event refresh rate. If the user clicks on a crystal, the corresponding energy and time distributions (both of type</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_javadoccomment"> * &lt;code&gt;IHistogram1D&lt;/code&gt;) are shown in the last panel of the monitoring application, as well as a 2D histogram (hit</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <em class="jxr_javadoccomment"> * time vs. hit energy). The fourth panel reports energy for the crystal.</em>
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="EcalEventDisplay" href="../../../../../org/hps/monitoring/ecal/plots/EcalEventDisplay.html#EcalEventDisplay">EcalEventDisplay</a> <strong class="jxr_keyword">extends</strong> Driver <strong class="jxr_keyword">implements</strong> CrystalListener, ActionListener {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String CLUSTER_ENERGY_TITLE = <span class="jxr_string">"Cluster Energy (GeV)"</span>;
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <em class="jxr_comment">// private static final String SIGNAL_DATA_STYLE_COLOR = "orange";</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      <em class="jxr_comment">// private static final String RAW_WAVEFORM_TITLE = "Raw Waveform";</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String HIT_ENERGY_TITLE = <span class="jxr_string">"Hit Energy (GeV)"</span>;
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>      <em class="jxr_comment">// private static final String SIGNAL_TIME_TITLE = "Time (ns)";</em>
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String HIT_TIME_TITLE = <span class="jxr_string">"Hit Time (ns)"</span>;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <em class="jxr_comment">// Plot style and title variables.</em>
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String NO_TITLE = <span class="jxr_string">""</span>;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      <em class="jxr_comment">// Class variables.</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> NUM_CHANNELS = 11 * 47;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> AIDA aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      <em class="jxr_comment">// Channel plot lists.</em>
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">private</strong> ArrayList&lt;IHistogram1D&gt; channelEnergyPlot;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      <strong class="jxr_keyword">private</strong> ArrayList&lt;IHistogram1D&gt; channelTimePlot;
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      <em class="jxr_comment">// private ArrayList&lt;IHistogram1D&gt; channelRawWaveform;</em>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">private</strong> ArrayList&lt;IHistogram2D&gt; channelTimeVsEnergyPlot;
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">private</strong> String clusterCollection = <span class="jxr_string">"EcalClusters"</span>;
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">private</strong> ArrayList&lt;IHistogram1D&gt; clusterEnergyPlot;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">private</strong> String detectorName;
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      <em class="jxr_comment">// private static final String SIGNAL_AMPLITUDE_TITLE = "Signal Amplitude (mV)";</em>
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> eventRefreshRate = 1; <em class="jxr_comment">// The number of seconds before an update occurs.</em>
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <em class="jxr_comment">// LCIO Collection names.</em>
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">private</strong> String inputCollection = <span class="jxr_string">"EcalCalHits"</span>;
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      <strong class="jxr_keyword">private</strong> String inputCollectionRaw = <span class="jxr_string">"EcalReadoutHits"</span>;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>  
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      <em class="jxr_comment">// channel.</em>
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">long</strong> lastEventTime = 0; <em class="jxr_comment">// Tracks the time at which the last event occurred.</em>
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> maxEch = 3500 * EcalUtils.MeV; <em class="jxr_comment">// The energy scale maximum.</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">double</strong> minEch = 10 * EcalUtils.MeV; <em class="jxr_comment">// The energy scale minimum.</em>
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> pedSamples = 10; <em class="jxr_comment">//</em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <em class="jxr_comment">// Plotter objects and variables.</em>
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>      <strong class="jxr_keyword">private</strong> IPlotter plotter;
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">private</strong> IPlotterFactory plotterFactory;
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">private</strong> IPlotterStyle pstyle; <em class="jxr_comment">// The plotter style for all plots.</em>
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> resetOnUpdate = <strong class="jxr_keyword">true</strong>; <em class="jxr_comment">// Clears the event display on each update.</em>
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      <em class="jxr_comment">// Internal variables.</em>
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="PEventViewer" href="../../../../../org/hps/monitoring/ecal/eventdisplay/ui/PEventViewer.html#PEventViewer">PEventViewer</a> viewer; <em class="jxr_comment">// Single event display.</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>  
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      <strong class="jxr_keyword">public</strong> <a name="EcalEventDisplay" href="../../../../../org/hps/monitoring/ecal/plots/EcalEventDisplay.html#EcalEventDisplay">EcalEventDisplay</a>() {
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>          <em class="jxr_comment">// Check if the configuration mapping file exists.</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>          <strong class="jxr_keyword">final</strong> File config = <strong class="jxr_keyword">new</strong> File(<span class="jxr_string">"ecal-mapping-config.csv"</span>);
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>          <em class="jxr_comment">// If the file exists, load the viewer that will display it.</em>
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <strong class="jxr_keyword">if</strong> (config.exists() &amp;&amp; config.canRead()) {
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>              <em class="jxr_comment">// Account for IO read errors. Only load this version if</em>
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>              <em class="jxr_comment">// the data file can be read successfully.</em>
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>              <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>                  <strong class="jxr_keyword">this</strong>.viewer = <strong class="jxr_keyword">new</strong> <a name="PDataEventViewer" href="../../../../../org/hps/monitoring/ecal/eventdisplay/ui/PDataEventViewer.html#PDataEventViewer">PDataEventViewer</a>(config.getAbsolutePath());
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>              }
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>              <em class="jxr_comment">// Otherwise, open the regular version.</em>
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>              <strong class="jxr_keyword">catch</strong> (<strong class="jxr_keyword">final</strong> IOException e) {
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>                  <em class="jxr_comment">// Throw an error if this happens as configuration file should be accessible (checked for it already).</em>
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>                  <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e);
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>                  <em class="jxr_comment">// this.viewer = new PEventViewer();</em>
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>             }
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>             <em class="jxr_comment">// If the file is not present, then just load the normal version.</em>
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>             <strong class="jxr_keyword">this</strong>.viewer = <strong class="jxr_keyword">new</strong> <a name="PEventViewer" href="../../../../../org/hps/monitoring/ecal/eventdisplay/ui/PEventViewer.html#PEventViewer">PEventViewer</a>();
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>         }
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>     }
+<a class="jxr_linenumber" name="L106" href="#L106">106</a> 
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>     @Override
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> actionPerformed(<strong class="jxr_keyword">final</strong> ActionEvent ae) {
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     }
+<a class="jxr_linenumber" name="L110" href="#L110">110</a> 
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L112" href="#L112">112</a> <em class="jxr_javadoccomment">     * Initializes the default style for plots.</em>
+<a class="jxr_linenumber" name="L113" href="#L113">113</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L114" href="#L114">114</a> <em class="jxr_javadoccomment">     * @return Returns an &lt;code&gt;IPlotterStyle&lt;/code&gt; object that represents the default style for plots.</em>
+<a class="jxr_linenumber" name="L115" href="#L115">115</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     <strong class="jxr_keyword">public</strong> IPlotterStyle createDefaultStyle() {
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         <strong class="jxr_keyword">final</strong> IPlotterStyle pstyle = <strong class="jxr_keyword">this</strong>.plotterFactory.createPlotterStyle();
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         <em class="jxr_comment">// Set the appearance of the axes.</em>
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         pstyle.xAxisStyle().labelStyle().setBold(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         pstyle.yAxisStyle().labelStyle().setBold(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         pstyle.xAxisStyle().tickLabelStyle().setBold(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>         pstyle.yAxisStyle().tickLabelStyle().setBold(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>         pstyle.xAxisStyle().lineStyle().setColor(<span class="jxr_string">"black"</span>);
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         pstyle.yAxisStyle().lineStyle().setColor(<span class="jxr_string">"black"</span>);
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>         pstyle.xAxisStyle().lineStyle().setThickness(2);
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>         pstyle.yAxisStyle().lineStyle().setThickness(2);
+<a class="jxr_linenumber" name="L127" href="#L127">127</a> 
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         <em class="jxr_comment">// Set color settings.</em>
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         pstyle.dataStyle().fillStyle().setParameter(<span class="jxr_string">"colorMapScheme"</span>, <span class="jxr_string">"rainbow"</span>);
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>         pstyle.dataStyle().fillStyle().setParameter(<span class="jxr_string">"showZeroHeightBins"</span>, Boolean.FALSE.toString());
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         pstyle.dataStyle().errorBarStyle().setVisible(false);
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>         pstyle.setParameter(<span class="jxr_string">"hist2DStyle"</span>, <span class="jxr_string">"colorMap"</span>);
+<a class="jxr_linenumber" name="L133" href="#L133">133</a> 
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>         <em class="jxr_comment">// Force auto range to zero.</em>
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>         pstyle.yAxisStyle().setParameter(<span class="jxr_string">"allowZeroSuppression"</span>, <span class="jxr_string">"false"</span>);
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>         pstyle.xAxisStyle().setParameter(<span class="jxr_string">"allowZeroSuppression"</span>, <span class="jxr_string">"false"</span>);
+<a class="jxr_linenumber" name="L137" href="#L137">137</a> 
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         <em class="jxr_comment">// Set the title style.</em>
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>         pstyle.titleStyle().textStyle().setFontSize(20);
+<a class="jxr_linenumber" name="L140" href="#L140">140</a> 
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>         <em class="jxr_comment">// Draw caps on error bars.</em>
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>         pstyle.dataStyle().errorBarStyle().setParameter(<span class="jxr_string">"errorBarDecoration"</span>, <strong class="jxr_keyword">new</strong> Float(1.0f).toString());
+<a class="jxr_linenumber" name="L143" href="#L143">143</a> 
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>         <em class="jxr_comment">// Turn off grid lines until explicitly enabled.</em>
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>         pstyle.gridStyle().setVisible(false);
+<a class="jxr_linenumber" name="L146" href="#L146">146</a> 
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>         <em class="jxr_comment">// Return the style.</em>
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>         <strong class="jxr_keyword">return</strong> pstyle;
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>     }
+<a class="jxr_linenumber" name="L150" href="#L150">150</a> 
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>     @Override
+<a class="jxr_linenumber" name="L152" href="#L152">152</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> crystalActivated(<strong class="jxr_keyword">final</strong> <a name="CrystalEvent" href="../../../../../org/hps/monitoring/ecal/eventdisplay/util/CrystalEvent.html#CrystalEvent">CrystalEvent</a> e) {
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>     }
+<a class="jxr_linenumber" name="L154" href="#L154">154</a> 
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L156" href="#L156">156</a> <em class="jxr_javadoccomment">     * Updates the monitoring plots for the crystal that was clicked.</em>
+<a class="jxr_linenumber" name="L157" href="#L157">157</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>     @Override
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> crystalClicked(<strong class="jxr_keyword">final</strong> <a name="CrystalEvent" href="../../../../../org/hps/monitoring/ecal/eventdisplay/util/CrystalEvent.html#CrystalEvent">CrystalEvent</a> e) {
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>         <em class="jxr_comment">// Get the crystal that was clicked in the LCSim coordinate system.</em>
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>         <strong class="jxr_keyword">final</strong> Point ecalPoint = Viewer.toEcalPoint(e.getCrystalID());
+<a class="jxr_linenumber" name="L162" href="#L162">162</a> 
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>         <em class="jxr_comment">// Make sure that the clicked crystal is valid. Necessary??</em>
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>         <strong class="jxr_keyword">if</strong> (ecalPoint.x != 0 &amp;&amp; ecalPoint.y != 0) {
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>             <strong class="jxr_keyword">if</strong> (!EcalMonitoringUtilities.isInHole(ecalPoint.y, ecalPoint.x)) {
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>                 <em class="jxr_comment">// Get the crystal ID.</em>
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>                 <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> id = EcalMonitoringUtilities.getHistoIDFromRowColumn(ecalPoint.y, ecalPoint.x);
+<a class="jxr_linenumber" name="L168" href="#L168">168</a> 
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>                 <em class="jxr_comment">// Clear and replot region 0 for the new crystal.</em>
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>                 <strong class="jxr_keyword">this</strong>.plotter.region(0).clear();
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>                 <strong class="jxr_keyword">this</strong>.pstyle.xAxisStyle().setLabel(HIT_ENERGY_TITLE);
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>                 <strong class="jxr_keyword">this</strong>.pstyle.yAxisStyle().setLabel(NO_TITLE);
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>                 <strong class="jxr_keyword">this</strong>.plotter.region(0).plot(<strong class="jxr_keyword">this</strong>.channelEnergyPlot.get(id), <strong class="jxr_keyword">this</strong>.pstyle);
+<a class="jxr_linenumber" name="L174" href="#L174">174</a> 
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>                 <em class="jxr_comment">// Clear and replot region 1 for the new crystal.</em>
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>                 <strong class="jxr_keyword">this</strong>.plotter.region(1).clear();
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>                 <strong class="jxr_keyword">this</strong>.pstyle.xAxisStyle().setLabel(HIT_TIME_TITLE);
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>                 <strong class="jxr_keyword">this</strong>.pstyle.yAxisStyle().setLabel(NO_TITLE);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>                 <strong class="jxr_keyword">this</strong>.plotter.region(1).plot(<strong class="jxr_keyword">this</strong>.channelTimePlot.get(id), <strong class="jxr_keyword">this</strong>.pstyle);
+<a class="jxr_linenumber" name="L180" href="#L180">180</a> 
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>                 <em class="jxr_comment">// Clear and replot region 2 for the new crystal.</em>
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>                 <strong class="jxr_keyword">this</strong>.plotter.region(2).clear();
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>                 <strong class="jxr_keyword">this</strong>.pstyle.xAxisStyle().setLabel(HIT_TIME_TITLE);
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>                 <strong class="jxr_keyword">this</strong>.pstyle.yAxisStyle().setLabel(HIT_ENERGY_TITLE);
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>                 <strong class="jxr_keyword">this</strong>.plotter.region(2).plot(<strong class="jxr_keyword">this</strong>.channelTimeVsEnergyPlot.get(id), <strong class="jxr_keyword">this</strong>.pstyle);
+<a class="jxr_linenumber" name="L186" href="#L186">186</a> 
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>                 <em class="jxr_comment">// Process and plot the region 3 plot.</em>
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>                 <strong class="jxr_keyword">this</strong>.plotter.region(3).clear();
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>                 <strong class="jxr_keyword">this</strong>.pstyle.xAxisStyle().setLabel(CLUSTER_ENERGY_TITLE);
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>                 <strong class="jxr_keyword">this</strong>.pstyle.yAxisStyle().setLabel(NO_TITLE);
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>                 <strong class="jxr_keyword">this</strong>.plotter.region(3).plot(<strong class="jxr_keyword">this</strong>.clusterEnergyPlot.get(id), <strong class="jxr_keyword">this</strong>.pstyle);
+<a class="jxr_linenumber" name="L192" href="#L192">192</a> 
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>             }
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>         }
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>     }
+<a class="jxr_linenumber" name="L196" href="#L196">196</a> 
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>     @Override
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> crystalDeactivated(<strong class="jxr_keyword">final</strong> <a name="CrystalEvent" href="../../../../../org/hps/monitoring/ecal/eventdisplay/util/CrystalEvent.html#CrystalEvent">CrystalEvent</a> e) {
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>     }
+<a class="jxr_linenumber" name="L200" href="#L200">200</a> 
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L202" href="#L202">202</a> <em class="jxr_javadoccomment">     * Initializes the single channel monitoring plots for all crystal channels and defines the plotter region that</em>
+<a class="jxr_linenumber" name="L203" href="#L203">203</a> <em class="jxr_javadoccomment">     * contains them.</em>
+<a class="jxr_linenumber" name="L204" href="#L204">204</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>     @Override
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> detectorChanged(<strong class="jxr_keyword">final</strong> Detector detector) {
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>         <em class="jxr_comment">// Reset the AIDA tree directory.</em>
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>         <strong class="jxr_keyword">this</strong>.aida.tree().cd(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>         <strong class="jxr_keyword">this</strong>.detectorName = detector.getName();
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>         <em class="jxr_comment">// Store histograms for the crystals.</em>
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>         <strong class="jxr_keyword">this</strong>.channelEnergyPlot = <strong class="jxr_keyword">new</strong> ArrayList&lt;IHistogram1D&gt;(NUM_CHANNELS);
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>         <strong class="jxr_keyword">this</strong>.channelTimePlot = <strong class="jxr_keyword">new</strong> ArrayList&lt;IHistogram1D&gt;(NUM_CHANNELS);
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>         <em class="jxr_comment">// channelRawWaveform = new ArrayList&lt;IHistogram1D&gt;(NUM_CHANNELS);</em>
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>         <strong class="jxr_keyword">this</strong>.clusterEnergyPlot = <strong class="jxr_keyword">new</strong> ArrayList&lt;IHistogram1D&gt;(NUM_CHANNELS);
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>         <strong class="jxr_keyword">this</strong>.channelTimeVsEnergyPlot = <strong class="jxr_keyword">new</strong> ArrayList&lt;IHistogram2D&gt;(NUM_CHANNELS);
+<a class="jxr_linenumber" name="L216" href="#L216">216</a> 
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>         <em class="jxr_comment">// Create the histograms for single channel energy and time</em>
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>         <em class="jxr_comment">// distribution.</em>
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> ii = 0; ii &lt; NUM_CHANNELS; ii++) {
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>             <em class="jxr_comment">// The above instruction is a terrible hack, just to fill</em>
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>             <em class="jxr_comment">// the arrayList with all the elements. They'll be initialized</em>
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>             <em class="jxr_comment">// properly during the event readout, Since we want to account</em>
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>             <em class="jxr_comment">// for possibly different raw waveform dimensions!</em>
+<a class="jxr_linenumber" name="L224" href="#L224">224</a> 
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>             <em class="jxr_comment">// Get the x and y indices for the current channel.</em>
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> row = EcalMonitoringUtilities.getRowFromHistoID(ii);
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>             <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
+<a class="jxr_linenumber" name="L228" href="#L228">228</a> 
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>             <em class="jxr_comment">// Initialize the histograms for the current crystal channel.</em>
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             <strong class="jxr_keyword">this</strong>.channelEnergyPlot.add(<strong class="jxr_keyword">this</strong>.aida.histogram1D(<strong class="jxr_keyword">this</strong>.detectorName + <span class="jxr_string">" : "</span> + <strong class="jxr_keyword">this</strong>.inputCollection
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>                     + <span class="jxr_string">" : Hit Energy : "</span> + column + <span class="jxr_string">" "</span> + row + <span class="jxr_string">": "</span> + ii, 100, -0.2, <strong class="jxr_keyword">this</strong>.maxEch));
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>             <strong class="jxr_keyword">this</strong>.channelTimePlot.add(<strong class="jxr_keyword">this</strong>.aida.histogram1D(<strong class="jxr_keyword">this</strong>.detectorName + <span class="jxr_string">" : "</span> + <strong class="jxr_keyword">this</strong>.inputCollection
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>                     + <span class="jxr_string">" : Hit Time : "</span> + column + <span class="jxr_string">" "</span> + row + <span class="jxr_string">": "</span> + ii, 100, 0, 400));
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>             <strong class="jxr_keyword">this</strong>.channelTimeVsEnergyPlot
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>                     .add(<strong class="jxr_keyword">this</strong>.aida.histogram2D(<strong class="jxr_keyword">this</strong>.detectorName + <span class="jxr_string">" : "</span> + <strong class="jxr_keyword">this</strong>.inputCollection
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>                             + <span class="jxr_string">" : Hit Time Vs Energy : "</span> + column + <span class="jxr_string">" "</span> + row + <span class="jxr_string">": "</span> + ii, 100, 0, 400, 100, -0.2,
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>                             <strong class="jxr_keyword">this</strong>.maxEch));
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>             <em class="jxr_comment">// channelRawWaveform.add(aida.histogram1D(detector.getDetectorName() + " : "</em>
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>             <em class="jxr_comment">// + inputCollection + " : Hit Energy : " + column + " " + row + ": " + ii));</em>
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>             <strong class="jxr_keyword">this</strong>.clusterEnergyPlot.add(<strong class="jxr_keyword">this</strong>.aida.histogram1D(<strong class="jxr_keyword">this</strong>.detectorName + <span class="jxr_string">" : "</span> + <strong class="jxr_keyword">this</strong>.inputCollection
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>                     + <span class="jxr_string">" : Cluster Energy : "</span> + column + <span class="jxr_string">" "</span> + row + <span class="jxr_string">": "</span> + ii, 100, -0.2, <strong class="jxr_keyword">this</strong>.maxEch));
+<a class="jxr_linenumber" name="L242" href="#L242">242</a> 
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         }
+<a class="jxr_linenumber" name="L244" href="#L244">244</a> 
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>         <em class="jxr_comment">// Define the plot region that will display the single channel</em>
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>         <em class="jxr_comment">// plots in the monitoring application.</em>
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>         <strong class="jxr_keyword">this</strong>.plotterFactory = <strong class="jxr_keyword">this</strong>.aida.analysisFactory().createPlotterFactory(<span class="jxr_string">"Single Channel"</span>);
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>         <strong class="jxr_keyword">this</strong>.plotter = <strong class="jxr_keyword">this</strong>.plotterFactory.create(<span class="jxr_string">"Single Channel"</span>);
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>         <strong class="jxr_keyword">this</strong>.pstyle = <strong class="jxr_keyword">this</strong>.createDefaultStyle();
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>         <strong class="jxr_keyword">this</strong>.plotter.setTitle(<span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>         <strong class="jxr_keyword">this</strong>.plotter.createRegions(2, 2);
+<a class="jxr_linenumber" name="L252" href="#L252">252</a> 
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>         <em class="jxr_comment">// Define the first plot region.</em>
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         <strong class="jxr_keyword">this</strong>.pstyle.xAxisStyle().setLabel(HIT_ENERGY_TITLE);
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>         <strong class="jxr_keyword">this</strong>.pstyle.yAxisStyle().setLabel(NO_TITLE);
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>         <strong class="jxr_keyword">this</strong>.plotter.region(0).plot(<strong class="jxr_keyword">this</strong>.channelEnergyPlot.get(0), <strong class="jxr_keyword">this</strong>.pstyle);
+<a class="jxr_linenumber" name="L257" href="#L257">257</a> 
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>         <em class="jxr_comment">// Define the second plot region.</em>
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>         <strong class="jxr_keyword">this</strong>.pstyle.xAxisStyle().setLabel(HIT_TIME_TITLE);
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>         <strong class="jxr_keyword">this</strong>.pstyle.yAxisStyle().setLabel(NO_TITLE);
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>         <strong class="jxr_keyword">this</strong>.plotter.region(1).plot(<strong class="jxr_keyword">this</strong>.channelTimePlot.get(0), <strong class="jxr_keyword">this</strong>.pstyle);
+<a class="jxr_linenumber" name="L262" href="#L262">262</a> 
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>         <em class="jxr_comment">// Define the third plot region; this encompasses the time vs.</em>
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>         <em class="jxr_comment">// energy plots.</em>
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         <strong class="jxr_keyword">this</strong>.pstyle.xAxisStyle().setLabel(HIT_TIME_TITLE);
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>         <strong class="jxr_keyword">this</strong>.pstyle.yAxisStyle().setLabel(HIT_ENERGY_TITLE);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>         <strong class="jxr_keyword">this</strong>.plotter.region(2).plot(<strong class="jxr_keyword">this</strong>.channelTimeVsEnergyPlot.get(0), <strong class="jxr_keyword">this</strong>.pstyle);
+<a class="jxr_linenumber" name="L268" href="#L268">268</a> 
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>         <em class="jxr_comment">// Define the fourth plot region; this encompasses the cluster</em>
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>         <em class="jxr_comment">// energy for each channel.</em>
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>         <strong class="jxr_keyword">this</strong>.pstyle.xAxisStyle().setLabel(CLUSTER_ENERGY_TITLE);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>         <strong class="jxr_keyword">this</strong>.pstyle.yAxisStyle().setLabel(NO_TITLE);
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>         <strong class="jxr_keyword">this</strong>.plotter.region(3).plot(<strong class="jxr_keyword">this</strong>.clusterEnergyPlot.get(0), <strong class="jxr_keyword">this</strong>.pstyle);
+<a class="jxr_linenumber" name="L274" href="#L274">274</a> 
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>         <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L276" href="#L276">276</a> <em class="jxr_javadoccomment">         * // Define the fourth plot region; this encompasses the raw // wave form plots.</em>
+<a class="jxr_linenumber" name="L277" href="#L277">277</a> <em class="jxr_javadoccomment">         * pstyle.xAxisStyle().setLabel(RAW_WAVEFORM_TITLE); pstyle.yAxisStyle().setLabel(NO_TITLE);</em>
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> <em class="jxr_javadoccomment">         * pstyle.dataStyle().fillStyle().setColor(SIGNAL_DATA_STYLE_COLOR);</em>
+<a class="jxr_linenumber" name="L279" href="#L279">279</a> <em class="jxr_javadoccomment">         * pstyle.dataStyle().markerStyle().setColor(SIGNAL_DATA_STYLE_COLOR);</em>
+<a class="jxr_linenumber" name="L280" href="#L280">280</a> <em class="jxr_javadoccomment">         * pstyle.dataStyle().errorBarStyle().setVisible(false); plotter.region(3).plot(channelRawWaveform.get(0),</em>
+<a class="jxr_linenumber" name="L281" href="#L281">281</a> <em class="jxr_javadoccomment">         * pstyle);</em>
+<a class="jxr_linenumber" name="L282" href="#L282">282</a> <em class="jxr_javadoccomment">         **/</em>
+<a class="jxr_linenumber" name="L283" href="#L283">283</a> 
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>         <em class="jxr_comment">// Display the plot region.</em>
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>         <strong class="jxr_keyword">this</strong>.plotter.show();
+<a class="jxr_linenumber" name="L286" href="#L286">286</a> 
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         <em class="jxr_comment">// Set the time tracker variables.</em>
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         <strong class="jxr_keyword">this</strong>.lastEventTime = 0;
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>     }
+<a class="jxr_linenumber" name="L290" href="#L290">290</a> 
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L292" href="#L292">292</a> <em class="jxr_javadoccomment">     * Hides the single event display and disposes it from memory. Also removes histograms from aida tree. We do not</em>
+<a class="jxr_linenumber" name="L293" href="#L293">293</a> <em class="jxr_javadoccomment">     * want them in the output aida file, if any..</em>
+<a class="jxr_linenumber" name="L294" href="#L294">294</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>     @Override
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> endOfData() {
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>         <em class="jxr_comment">// Disposing of event display window needs to happen on the Swing EDT.</em>
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>         SwingUtilities.invokeLater(<strong class="jxr_keyword">new</strong> Runnable() {
+<a class="jxr_linenumber" name="L299" href="#L299">299</a> 
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>             @Override
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>             <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>                 System.out.println(<span class="jxr_string">"turning ECAL event display off"</span>);
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>                 EcalEventDisplay.<strong class="jxr_keyword">this</strong>.viewer.setVisible(false);
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>                 System.out.println(<span class="jxr_string">"disposing ECAL event display ..."</span>);
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>                 EcalEventDisplay.<strong class="jxr_keyword">this</strong>.viewer.dispose();
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>                 System.out.println(<span class="jxr_string">"done disposing ECAL event display"</span>);
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>             }
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>         });
+<a class="jxr_linenumber" name="L309" href="#L309">309</a> 
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>         <strong class="jxr_keyword">int</strong> row, column;
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>         String hName;
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>         System.out.println(<span class="jxr_string">"EcalEventDisplay endOfData clear histograms"</span>);
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> ii = 0; ii &lt; NUM_CHANNELS; ii++) {
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             row = EcalMonitoringUtilities.getRowFromHistoID(ii);
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>             column = EcalMonitoringUtilities.getColumnFromHistoID(ii);
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>             hName = detectorName + <span class="jxr_string">" : "</span> + inputCollection + <span class="jxr_string">" : Hit Energy : "</span> + column + <span class="jxr_string">" "</span> + row + <span class="jxr_string">": "</span> + ii;
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>                 aida.tree().rm(hName);
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>             } <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e) {
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>                 System.out.println(<span class="jxr_string">"Got exception "</span> + e);
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>             }
+<a class="jxr_linenumber" name="L322" href="#L322">322</a> 
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>             hName = detectorName + <span class="jxr_string">" : "</span> + inputCollection + <span class="jxr_string">" : Hit Time : "</span> + column + <span class="jxr_string">" "</span> + row + <span class="jxr_string">": "</span> + ii;
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>                 aida.tree().rm(hName);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>             } <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e) {
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>                 System.out.println(<span class="jxr_string">"Got exception "</span> + e);
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>             }
+<a class="jxr_linenumber" name="L329" href="#L329">329</a> 
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>             hName = detectorName + <span class="jxr_string">" : "</span> + inputCollection + <span class="jxr_string">" : Hit Time Vs Energy : "</span> + column + <span class="jxr_string">" "</span> + row + <span class="jxr_string">": "</span>
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>                     + ii;
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>                 aida.tree().rm(hName);
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>             } <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e) {
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>                 System.out.println(<span class="jxr_string">"Got exception "</span> + e);
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>             }
+<a class="jxr_linenumber" name="L337" href="#L337">337</a> 
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>         }
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>         System.out.println(<span class="jxr_string">"EcalEventDisplay endOfData clear histograms done"</span>);
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>     }
+<a class="jxr_linenumber" name="L341" href="#L341">341</a> 
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>     @Override
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(<strong class="jxr_keyword">final</strong> EventHeader event) {
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>         <em class="jxr_comment">// Check whether enough time has passed to perform an update</em>
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>         <em class="jxr_comment">// on the event display.</em>
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>         <strong class="jxr_keyword">boolean</strong> update = false;
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>         <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> currentTime = System.currentTimeMillis() / 1000;
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>         <strong class="jxr_keyword">if</strong> (currentTime - <strong class="jxr_keyword">this</strong>.lastEventTime &gt; <strong class="jxr_keyword">this</strong>.eventRefreshRate) {
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>             <strong class="jxr_keyword">this</strong>.lastEventTime = currentTime;
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>             update = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>         }
+<a class="jxr_linenumber" name="L352" href="#L352">352</a> 
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>         <em class="jxr_comment">// If an update should be made, perform the update.</em>
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>         <strong class="jxr_keyword">if</strong> (update &amp;&amp; <strong class="jxr_keyword">this</strong>.resetOnUpdate) {
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>             <strong class="jxr_keyword">this</strong>.viewer.resetDisplay();
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>         }
+<a class="jxr_linenumber" name="L357" href="#L357">357</a> 
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>         <em class="jxr_comment">// If the event has calorimeter hit objects...</em>
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(CalorimeterHit.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">this</strong>.inputCollection)) {
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>             <em class="jxr_comment">// Get the list of calorimeter hits.</em>
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>             <strong class="jxr_keyword">final</strong> List&lt;CalorimeterHit&gt; hits = event.get(CalorimeterHit.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">this</strong>.inputCollection);
+<a class="jxr_linenumber" name="L362" href="#L362">362</a> 
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>             <em class="jxr_comment">// For each of the calorimeter hits...</em>
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> CalorimeterHit hit : hits) {
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>                 <em class="jxr_comment">// Get the x and y indices for the current hit.</em>
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>                 <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> ix = hit.getIdentifierFieldValue(<span class="jxr_string">"ix"</span>);
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>                 <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> iy = hit.getIdentifierFieldValue(<span class="jxr_string">"iy"</span>);
+<a class="jxr_linenumber" name="L368" href="#L368">368</a> 
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>                 <strong class="jxr_keyword">if</strong> (iy != 0 &amp;&amp; ix != 0) {
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>                     <em class="jxr_comment">// Get the histogram index for the hit.</em>
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>                     <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> id = EcalMonitoringUtilities.getHistoIDFromRowColumn(iy, ix);
+<a class="jxr_linenumber" name="L372" href="#L372">372</a> 
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>                     <em class="jxr_comment">// If the hit has energy, populate the plots.</em>
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>                     <strong class="jxr_keyword">if</strong> (hit.getCorrectedEnergy() &gt; 0) {
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>                         <strong class="jxr_keyword">this</strong>.channelEnergyPlot.get(id).fill(hit.getCorrectedEnergy());
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>                         <strong class="jxr_keyword">this</strong>.channelTimePlot.get(id).fill(hit.getTime());
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>                         <strong class="jxr_keyword">this</strong>.channelTimeVsEnergyPlot.get(id).fill(hit.getTime(), hit.getCorrectedEnergy());
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>                     }
+<a class="jxr_linenumber" name="L379" href="#L379">379</a> 
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>                     <em class="jxr_comment">// If an update to the event display should be</em>
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>                     <em class="jxr_comment">// performed, give it the hits.</em>
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>                     <strong class="jxr_keyword">if</strong> (update) {
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>                         <strong class="jxr_keyword">this</strong>.viewer.addHit(hit);
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>                     }
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>                 }
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>             }
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>         }
+<a class="jxr_linenumber" name="L388" href="#L388">388</a> 
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>         <em class="jxr_comment">// If there are clusters in the event...</em>
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>         <strong class="jxr_keyword">if</strong> (event.hasCollection(Cluster.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">this</strong>.clusterCollection)) {
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>             <em class="jxr_comment">// Get the list of clusters.</em>
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>             <strong class="jxr_keyword">final</strong> List&lt;Cluster&gt; clusters = event.get(Cluster.<strong class="jxr_keyword">class</strong>, <strong class="jxr_keyword">this</strong>.clusterCollection);
+<a class="jxr_linenumber" name="L393" href="#L393">393</a> 
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>             <em class="jxr_comment">// Iterate over the clusters and add them to the event</em>
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>             <em class="jxr_comment">// display if appropriate.</em>
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Cluster cluster : clusters) {
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>                 <em class="jxr_comment">// Get the ix and iy indices for the seed.</em>
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>                 <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> ix = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue(<span class="jxr_string">"ix"</span>);
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>                 <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> iy = cluster.getCalorimeterHits().get(0).getIdentifierFieldValue(<span class="jxr_string">"iy"</span>);
+<a class="jxr_linenumber" name="L400" href="#L400">400</a> 
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>                 <em class="jxr_comment">// Get the histogram index for the hit.</em>
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>                 <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> id = EcalMonitoringUtilities.getHistoIDFromRowColumn(iy, ix);
+<a class="jxr_linenumber" name="L403" href="#L403">403</a> 
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>                 <em class="jxr_comment">// Add the cluster energy to the plot.</em>
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>                 <strong class="jxr_keyword">if</strong> (cluster.getEnergy() &gt; 0.0) {
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>                     <strong class="jxr_keyword">this</strong>.clusterEnergyPlot.get(id).fill(cluster.getEnergy());
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>                 }
+<a class="jxr_linenumber" name="L408" href="#L408">408</a> 
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>                 <em class="jxr_comment">// If an update is needed, add the cluster to the viewer.</em>
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>                 <strong class="jxr_keyword">if</strong> (update) {
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>                     <strong class="jxr_keyword">this</strong>.viewer.addCluster(cluster);
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>                 }
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>             }
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>         }
+<a class="jxr_linenumber" name="L415" href="#L415">415</a> 
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>         <em class="jxr_comment">// Update the single event display.</em>
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>         <strong class="jxr_keyword">if</strong> (update) {
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>             <strong class="jxr_keyword">this</strong>.viewer.updateDisplay();
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>         }
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>     }
+<a class="jxr_linenumber" name="L421" href="#L421">421</a> 
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L423" href="#L423">423</a> <em class="jxr_javadoccomment">     * Sets the rate at which the GUI updates its elements,</em>
+<a class="jxr_linenumber" name="L424" href="#L424">424</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L425" href="#L425">425</a> <em class="jxr_javadoccomment">     * @param eventRefreshRate - The rate at which the GUI should be updated, in seconds.</em>
+<a class="jxr_linenumber" name="L426" href="#L426">426</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setEventRefreshRate(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> eventRefreshRate) {
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>         <strong class="jxr_keyword">this</strong>.eventRefreshRate = eventRefreshRate;
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>     }
+<a class="jxr_linenumber" name="L430" href="#L430">430</a> 
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L432" href="#L432">432</a> <em class="jxr_javadoccomment">     * Sets the LCIO collection name for calorimeter clusters.</em>
+<a class="jxr_linenumber" name="L433" href="#L433">433</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L434" href="#L434">434</a> <em class="jxr_javadoccomment">     * @param inputClusterCollection - The LCIO collection name.</em>
+<a class="jxr_linenumber" name="L435" href="#L435">435</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setInputClusterCollection(<strong class="jxr_keyword">final</strong> String inputClusterCollection) {
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>         <strong class="jxr_keyword">this</strong>.clusterCollection = inputClusterCollection;
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>     }
+<a class="jxr_linenumber" name="L439" href="#L439">439</a> 
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L441" href="#L441">441</a> <em class="jxr_javadoccomment">     * Sets the LCIO collection name for the processed calorimeter hits.</em>
+<a class="jxr_linenumber" name="L442" href="#L442">442</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L443" href="#L443">443</a> <em class="jxr_javadoccomment">     * @param inputCollection - The LCIO collection name.</em>
+<a class="jxr_linenumber" name="L444" href="#L444">444</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setInputCollection(<strong class="jxr_keyword">final</strong> String inputCollection) {
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>         <strong class="jxr_keyword">this</strong>.inputCollection = inputCollection;
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>     }
+<a class="jxr_linenumber" name="L448" href="#L448">448</a> 
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L450" href="#L450">450</a> <em class="jxr_javadoccomment">     * Sets the LCIO collection name for the raw waveform hits.</em>
+<a class="jxr_linenumber" name="L451" href="#L451">451</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L452" href="#L452">452</a> <em class="jxr_javadoccomment">     * @param inputCollectionRaw - The LCIO collection name.</em>
+<a class="jxr_linenumber" name="L453" href="#L453">453</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setInputCollectionRaw(<strong class="jxr_keyword">final</strong> String inputCollectionRaw) {
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>         <strong class="jxr_keyword">this</strong>.inputCollectionRaw = inputCollectionRaw;
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>     }
+<a class="jxr_linenumber" name="L457" href="#L457">457</a> 
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L459" href="#L459">459</a> <em class="jxr_javadoccomment">     * Sets the upper bound of the energy scales used by the driver. Energy units are in GeV.</em>
+<a class="jxr_linenumber" name="L460" href="#L460">460</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L461" href="#L461">461</a> <em class="jxr_javadoccomment">     * @param maxEch - The energy scale upper bound.</em>
+<a class="jxr_linenumber" name="L462" href="#L462">462</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMaxEch(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> maxEch) {
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>         <strong class="jxr_keyword">this</strong>.maxEch = maxEch;
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>     }
+<a class="jxr_linenumber" name="L466" href="#L466">466</a> 
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L468" href="#L468">468</a> <em class="jxr_javadoccomment">     * Sets the lower bound of the energy scales used by the driver. Energy units are in GeV.</em>
+<a class="jxr_linenumber" name="L469" href="#L469">469</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L470" href="#L470">470</a> <em class="jxr_javadoccomment">     * @param minEch - The lower energy scale bound.</em>
+<a class="jxr_linenumber" name="L471" href="#L471">471</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setMinEch(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">double</strong> minEch) {
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>         <strong class="jxr_keyword">this</strong>.minEch = minEch;
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>     }
+<a class="jxr_linenumber" name="L475" href="#L475">475</a> 
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setPedSamples(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> pedSamples) {
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>         <strong class="jxr_keyword">this</strong>.pedSamples = pedSamples;
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>     }
+<a class="jxr_linenumber" name="L479" href="#L479">479</a> 
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L481" href="#L481">481</a> <em class="jxr_javadoccomment">     * Sets whether the event display should be cleared after event or whether it should retain the previously displayed</em>
+<a class="jxr_linenumber" name="L482" href="#L482">482</a> <em class="jxr_javadoccomment">     * results.</em>
+<a class="jxr_linenumber" name="L483" href="#L483">483</a> <em class="jxr_javadoccomment">     *</em>
+<a class="jxr_linenumber" name="L484" href="#L484">484</a> <em class="jxr_javadoccomment">     * @param resetOnUpdate - &lt;code&gt;true&lt;/code&gt; means that the event display should be cleared on each update and</em>
+<a class="jxr_linenumber" name="L485" href="#L485">485</a> <em class="jxr_javadoccomment">     * &lt;code&gt;false&lt;/code&gt; that it should not.</em>
+<a class="jxr_linenumber" name="L486" href="#L486">486</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setResetOnUpdate(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> resetOnUpdate) {
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>         <strong class="jxr_keyword">this</strong>.resetOnUpdate = resetOnUpdate;
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>     }
+<a class="jxr_linenumber" name="L490" href="#L490">490</a> 
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>     <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L492" href="#L492">492</a> <em class="jxr_javadoccomment">     * Initializes the &lt;code&gt;Viewer&lt;/code&gt; for the single event display. If a configuration file is available, then it</em>
+<a class="jxr_linenumber" name="L493" href="#L493">493</a> <em class="jxr_javadoccomment">     * is used by the &lt;code&gt;Viewer&lt;/code&gt; to display hardware configuration mappings. Otherwise, this is excluded.</em>
+<a class="jxr_linenumber" name="L494" href="#L494">494</a> <em class="jxr_javadoccomment">     */</em>
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>     @Override
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> startOfData() {
+<a class="jxr_linenumber" name="L497" href="#L497">497</a> 
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>         <em class="jxr_comment">// Set the viewer properties from the Driver configuration parameters.</em>
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>         <strong class="jxr_keyword">this</strong>.viewer.setScaleMinimum(<strong class="jxr_keyword">this</strong>.minEch);
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>         <strong class="jxr_keyword">this</strong>.viewer.setScaleMaximum(<strong class="jxr_keyword">this</strong>.maxEch);
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>         <strong class="jxr_keyword">this</strong>.viewer.addCrystalListener(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L502" href="#L502">502</a> 
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>         <em class="jxr_comment">// Make the Viewer object visible. Run on the Swing EDT.</em>
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>         SwingUtilities.invokeLater(<strong class="jxr_keyword">new</strong> Runnable() {
+<a class="jxr_linenumber" name="L505" href="#L505">505</a> 
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>             @Override
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>             <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>                 EcalEventDisplay.<strong class="jxr_keyword">this</strong>.viewer.setVisible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L509" href="#L509">509</a>             }
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>         });
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>     }
+<a class="jxr_linenumber" name="L512" href="#L512">512</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>

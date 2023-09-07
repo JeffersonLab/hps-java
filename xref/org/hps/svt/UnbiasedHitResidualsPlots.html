@@ -1,0 +1,503 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>UnbiasedHitResidualsPlots xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../apidocs/org/hps/svt/UnbiasedHitResidualsPlots.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> org.hps.svt;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.util.HashMap;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> java.util.Map;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> hep.aida.IAnalysisFactory;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogramFactory;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> hep.aida.IHistogram1D;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  <strong class="jxr_keyword">import</strong> hep.aida.IHistogram2D;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> hep.aida.ITree;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.BasicHep3Vector;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  <strong class="jxr_keyword">import</strong> hep.physics.vec.Hep3Vector;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.solids.Box;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.solids.LineSegment3D;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.solids.Polygon3D;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.ChargeCarrier;
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.HpsSiSensor;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">import</strong> org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.EventHeader;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.RawTrackerHit;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.Track;
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackState;
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  <strong class="jxr_keyword">import</strong> org.lcsim.event.TrackerHit;
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  <strong class="jxr_keyword">import</strong> org.lcsim.fit.helicaltrack.HelicalTrackFit;
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.Detector;
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  <strong class="jxr_keyword">import</strong> org.lcsim.geometry.FieldMap;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>  <strong class="jxr_keyword">import</strong> org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.Driver;
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  <strong class="jxr_keyword">import</strong> org.lcsim.util.aida.AIDA;
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>  <strong class="jxr_keyword">import</strong> org.apache.commons.math3.util.Pair;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  <strong class="jxr_keyword">import</strong> org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  <strong class="jxr_keyword">import</strong> org.hps.conditions.database.DatabaseConditionsManager;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <strong class="jxr_keyword">import</strong> org.hps.conditions.svt.SvtConditions;
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> org.hps.conditions.svt.SvtDaqMapping.SvtDaqMappingCollection;
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> org.hps.conditions.svt.SvtChannel.SvtChannelCollection;
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackStateUtils;
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> org.hps.recon.tracking.TrackUtils;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="UnbiasedHitResidualsPlots" href="../../../org/hps/svt/UnbiasedHitResidualsPlots.html#UnbiasedHitResidualsPlots">UnbiasedHitResidualsPlots</a> <strong class="jxr_keyword">extends</strong> Driver {
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>      <em class="jxr_comment">// Plotting</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>      <strong class="jxr_keyword">protected</strong> AIDA aida = AIDA.defaultInstance();
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>      ITree tree; 
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      IHistogramFactory histogramFactory; 
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      <em class="jxr_comment">//List of Sensors</em>
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">private</strong> List&lt;HpsSiSensor&gt; sensors = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>      
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      <em class="jxr_comment">//List of Histograms</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>      IHistogram1D momentum;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>      
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      Map&lt;String, IHistogram1D&gt; residualY = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>      Map&lt;String, IHistogram1D&gt; residualYSingleHit = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>      Map&lt;String, IHistogram1D&gt; residualYMultipleHit = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      Map&lt;String, IHistogram2D&gt; residualYvsV = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>      Map&lt;String, IHistogram2D&gt; residualYvsU = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      Map&lt;String, IHistogram2D&gt; residualYSingleHitvsU = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      Map&lt;String, IHistogram2D&gt; residualYMultipleHitvsU = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      Map&lt;String, IHistogram2D&gt; residualYSingleHitvsV = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      Map&lt;String, IHistogram2D&gt; residualYMultipleHitvsV = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>      Map&lt;String, IHistogram1D&gt; residualYEle = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      Map&lt;String, IHistogram2D&gt; residualYvsVEle = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      Map&lt;String, IHistogram2D&gt; residualYvsUEle = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      Map&lt;String, IHistogram1D&gt; residualYPos = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram1D&gt;();
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      Map&lt;String, IHistogram2D&gt; residualYvsVPos = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      Map&lt;String, IHistogram2D&gt; residualYvsUPos = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      Map&lt;String, IHistogram2D&gt; residualYvsP = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      Map&lt;String, IHistogram2D&gt; residualYvsPEle = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      Map&lt;String, IHistogram2D&gt; residualYvsPPos = <strong class="jxr_keyword">new</strong> HashMap&lt;String,IHistogram2D&gt;();
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      <em class="jxr_comment">//Histogram Settings</em>
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      <strong class="jxr_keyword">int</strong> nBins = 100;
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <strong class="jxr_keyword">double</strong> maxYRes = 0.5;
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>      <strong class="jxr_keyword">double</strong> minYRes = -maxYRes;
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>      
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <em class="jxr_comment">//Collection Strings</em>
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>      <strong class="jxr_keyword">private</strong> String stripHitOutputCollectionName = <span class="jxr_string">"StripClusterer_SiTrackerHitStrip1D"</span>;
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>      <strong class="jxr_keyword">private</strong> String GBLTrackCollectionName = <span class="jxr_string">"GBLTracks"</span>;
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>      
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>      <em class="jxr_comment">//Bfield</em>
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">double</strong> bfield;
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>      FieldMap bFieldMap = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>     
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String SUBDETECTOR_NAME = <span class="jxr_string">"Tracker"</span>;
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">boolean</strong> cleanFEE = false;
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>      <strong class="jxr_keyword">double</strong> nSig = 5;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>      <strong class="jxr_keyword">int</strong> chanExtd = 0;
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>      
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <em class="jxr_comment">//Daq map</em>
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      SvtChannelCollection channelMap;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      SvtDaqMappingCollection daqMap;
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setCleanFEE(<strong class="jxr_keyword">boolean</strong> cleanFEE) { 
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>          <strong class="jxr_keyword">this</strong>.cleanFEE = cleanFEE;
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>      }
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>      
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setSig(<strong class="jxr_keyword">double</strong> nSig) { 
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>         <strong class="jxr_keyword">this</strong>.nSig = nSig;
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     }
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setChanExtd(<strong class="jxr_keyword">int</strong> chanExtd) { 
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>         <strong class="jxr_keyword">this</strong>.chanExtd = chanExtd;
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>     }
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>     
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>     <em class="jxr_comment">//Beam Energy</em>
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>     <strong class="jxr_keyword">double</strong> ebeam;
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> detectorChanged(Detector detector){
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>     
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>         aida.tree().cd(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         tree = aida.tree();
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         histogramFactory = IAnalysisFactory.create().createHistogramFactory(tree);
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>         
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>         <em class="jxr_comment">//Grab channel map and daq map from conditions database</em>
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>         <a name="DatabaseConditionsManager" href="../../../org/hps/conditions/database/DatabaseConditionsManager.html#DatabaseConditionsManager">DatabaseConditionsManager</a> mgr = DatabaseConditionsManager.getInstance();
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>         <a name="SvtConditions" href="../../../org/hps/conditions/svt/SvtConditions.html#SvtConditions">SvtConditions</a> svtConditions = mgr.getCachedConditions(SvtConditions.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"svt_conditions"</span>).getCachedData();
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>         
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>         channelMap = svtConditions.getChannelMap();
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>         daqMap = svtConditions.getDaqMap();
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>     
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>         <em class="jxr_comment">//Set Beam Energy</em>
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>         BeamEnergyCollection beamEnergyCollection = 
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>                 <strong class="jxr_keyword">this</strong>.getConditionsManager().getCachedConditions(BeamEnergyCollection.<strong class="jxr_keyword">class</strong>, <span class="jxr_string">"beam_energies"</span>).getCachedData();        
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>         ebeam = beamEnergyCollection.get(0).getBeamEnergy();
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>         
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>         bfield = TrackUtils.getBField(detector).magnitude();
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>         bFieldMap = detector.getFieldMap();
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>         
+<a class="jxr_linenumber" name="L132" href="#L132">132</a>         <em class="jxr_comment">// Get the HpsSiSensor objects from the tracker detector element</em>
+<a class="jxr_linenumber" name="L133" href="#L133">133</a>         sensors = detector.getSubdetector(SUBDETECTOR_NAME)
+<a class="jxr_linenumber" name="L134" href="#L134">134</a>                           .getDetectorElement().findDescendants(HpsSiSensor.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>    
+<a class="jxr_linenumber" name="L136" href="#L136">136</a>         <em class="jxr_comment">// If the detector element had no sensors associated with it, throw</em>
+<a class="jxr_linenumber" name="L137" href="#L137">137</a>         <em class="jxr_comment">// an exception</em>
+<a class="jxr_linenumber" name="L138" href="#L138">138</a>         <strong class="jxr_keyword">if</strong> (sensors.size() == 0) {
+<a class="jxr_linenumber" name="L139" href="#L139">139</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(<span class="jxr_string">"No sensors were found in this detector."</span>);
+<a class="jxr_linenumber" name="L140" href="#L140">140</a>         }
+<a class="jxr_linenumber" name="L141" href="#L141">141</a>         
+<a class="jxr_linenumber" name="L142" href="#L142">142</a>         <em class="jxr_comment">//Setup Plots</em>
+<a class="jxr_linenumber" name="L143" href="#L143">143</a>         momentum = histogramFactory.createHistogram1D(<span class="jxr_string">"Momentum"</span>, nBins, 0, 1.5*ebeam);
+<a class="jxr_linenumber" name="L144" href="#L144">144</a>         <strong class="jxr_keyword">for</strong>(<a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor:sensors){
+<a class="jxr_linenumber" name="L145" href="#L145">145</a>             String sensorName = sensor.getName();
+<a class="jxr_linenumber" name="L146" href="#L146">146</a>             <strong class="jxr_keyword">int</strong> nChan = sensor.getNumberOfChannels();
+<a class="jxr_linenumber" name="L147" href="#L147">147</a>             <strong class="jxr_keyword">double</strong> readoutPitch = sensor.getReadoutStripPitch();
+<a class="jxr_linenumber" name="L148" href="#L148">148</a>             <strong class="jxr_keyword">double</strong> maxU = nChan * readoutPitch / 2;
+<a class="jxr_linenumber" name="L149" href="#L149">149</a>             <strong class="jxr_keyword">double</strong> width = getSensorLength(sensor);
+<a class="jxr_linenumber" name="L150" href="#L150">150</a>             <strong class="jxr_keyword">double</strong> maxV = width/2.;
+<a class="jxr_linenumber" name="L151" href="#L151">151</a>             <strong class="jxr_keyword">double</strong> minV = -maxV;
+<a class="jxr_linenumber" name="L152" href="#L152">152</a> 
+<a class="jxr_linenumber" name="L153" href="#L153">153</a>             residualY.put(sensorName,histogramFactory.createHistogram1D(<span class="jxr_string">"Residual U "</span> + sensorName, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L154" href="#L154">154</a>             residualYSingleHit.put(sensorName,histogramFactory.createHistogram1D(<span class="jxr_string">"Residual U Single Hit "</span> + sensorName, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L155" href="#L155">155</a>             residualYMultipleHit.put(sensorName,histogramFactory.createHistogram1D(<span class="jxr_string">"Residual U Multiple Hit "</span> + sensorName, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>             residualYSingleHitvsV.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs V Single Hit "</span> + sensorName, 2*nBins, minV, maxV, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>             residualYSingleHitvsU.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs U Single Hit "</span> + sensorName, 2*nBins, -maxU, maxU, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>             residualYMultipleHitvsV.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs V Multiple Hit "</span> + sensorName, 2*nBins, minV, maxV, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>             residualYMultipleHitvsU.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs U Multiple Hit "</span> + sensorName, 2*nBins, -maxU, maxU, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>             residualYvsV.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs V "</span> + sensorName, 2*nBins, minV, maxV, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>             residualYvsU.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs U "</span> + sensorName, 2*nBins, -maxU, maxU, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>             residualYEle.put(sensorName,histogramFactory.createHistogram1D(<span class="jxr_string">"Residual U Electron "</span> + sensorName, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>             residualYvsVEle.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs V Electron "</span> + sensorName, 2*nBins, minV, maxV, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>             residualYvsUEle.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs U Electron "</span> + sensorName, 2*nBins, -maxU, maxU, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>             residualYPos.put(sensorName,histogramFactory.createHistogram1D(<span class="jxr_string">"Residual U Positron "</span> + sensorName, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>             residualYvsVPos.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs V Positron "</span> + sensorName, 2*nBins, minV, maxV, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>             residualYvsUPos.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs U Positron "</span> + sensorName, 2*nBins, -maxU, maxU, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>             residualYvsP.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs P "</span> + sensorName, nBins, 0, 1.3*ebeam, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>             residualYvsPEle.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs P Electron "</span> + sensorName, nBins, 0, 1.3*ebeam, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>             residualYvsPPos.put(sensorName,histogramFactory.createHistogram2D(<span class="jxr_string">"Residual U vs P Positron "</span> + sensorName, nBins, 0, 1.3*ebeam, nBins, minYRes, maxYRes));
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>         }
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>     }
+<a class="jxr_linenumber" name="L173" href="#L173">173</a> 
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> process(EventHeader event){
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>         aida.tree().cd(<span class="jxr_string">"/"</span>);
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>         
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>         <em class="jxr_comment">//Grab all GBL tracks in the event</em>
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>         List&lt;Track&gt; tracks = event.get(Track.<strong class="jxr_keyword">class</strong>,GBLTrackCollectionName);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>         
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>         <em class="jxr_comment">//Grab all the clusters in the event</em>
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>         List&lt;SiTrackerHitStrip1D&gt; stripHits = event.get(SiTrackerHitStrip1D.<strong class="jxr_keyword">class</strong>, stripHitOutputCollectionName);
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>     
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>         <strong class="jxr_keyword">for</strong>(Track track:tracks){
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>             <em class="jxr_comment">//Grab the unused layer on the track</em>
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>             <strong class="jxr_keyword">int</strong> unusedLay = getUnusedSvtLayer(track.getTrackerHits());   
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>             <strong class="jxr_keyword">if</strong>(unusedLay == -1) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L187" href="#L187">187</a>             
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>             TrackState tState = getTrackState(track,unusedLay);
+<a class="jxr_linenumber" name="L189" href="#L189">189</a>             <strong class="jxr_keyword">if</strong>(tState == <strong class="jxr_keyword">null</strong>){
+<a class="jxr_linenumber" name="L190" href="#L190">190</a>                 <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L191" href="#L191">191</a>             }
+<a class="jxr_linenumber" name="L192" href="#L192">192</a>         
+<a class="jxr_linenumber" name="L193" href="#L193">193</a>             Hep3Vector p = toHep3(tState.getMomentum());
+<a class="jxr_linenumber" name="L194" href="#L194">194</a>             <strong class="jxr_keyword">double</strong> q = track.getCharge();
+<a class="jxr_linenumber" name="L195" href="#L195">195</a>             
+<a class="jxr_linenumber" name="L196" href="#L196">196</a>             <strong class="jxr_keyword">if</strong>(cleanFEE){
+<a class="jxr_linenumber" name="L197" href="#L197">197</a>                 <em class="jxr_comment">// Require track to be an electron</em>
+<a class="jxr_linenumber" name="L198" href="#L198">198</a>                 <strong class="jxr_keyword">if</strong>(q &lt; 0) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L199" href="#L199">199</a>                 
+<a class="jxr_linenumber" name="L200" href="#L200">200</a>                 <em class="jxr_comment">// Select around the FEE momentum peak</em>
+<a class="jxr_linenumber" name="L201" href="#L201">201</a>                 <strong class="jxr_keyword">if</strong>(p.magnitude() &lt; 0.75*ebeam || p.magnitude() &gt; 1.25*ebeam) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L202" href="#L202">202</a>             }
+<a class="jxr_linenumber" name="L203" href="#L203">203</a>         
+<a class="jxr_linenumber" name="L204" href="#L204">204</a>             <em class="jxr_comment">//See if track is within acceptance of both the axial and stereo sensors of the unused layer</em>
+<a class="jxr_linenumber" name="L205" href="#L205">205</a>             Pair&lt;HpsSiSensor,Pair&lt;Integer,Hep3Vector&gt;&gt; axialSensorPair = isWithinSensorAcceptance(track,tState,unusedLay,<strong class="jxr_keyword">true</strong>, p,bFieldMap);
+<a class="jxr_linenumber" name="L206" href="#L206">206</a>             Pair&lt;HpsSiSensor,Pair&lt;Integer,Hep3Vector&gt;&gt; stereoSensorPair = isWithinSensorAcceptance(track,tState,unusedLay,false,p,bFieldMap);           
+<a class="jxr_linenumber" name="L207" href="#L207">207</a>             
+<a class="jxr_linenumber" name="L208" href="#L208">208</a>             <em class="jxr_comment">//Skip track if it isn't within acceptance of both axial and stereo pairs of a given unused layer</em>
+<a class="jxr_linenumber" name="L209" href="#L209">209</a>             <strong class="jxr_keyword">if</strong>(axialSensorPair == <strong class="jxr_keyword">null</strong> || stereoSensorPair == <strong class="jxr_keyword">null</strong>) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L210" href="#L210">210</a>             
+<a class="jxr_linenumber" name="L211" href="#L211">211</a>             <em class="jxr_comment">//Fill momentum histogram</em>
+<a class="jxr_linenumber" name="L212" href="#L212">212</a>             momentum.fill(p.magnitude());
+<a class="jxr_linenumber" name="L213" href="#L213">213</a>            
+<a class="jxr_linenumber" name="L214" href="#L214">214</a>             <em class="jxr_comment">//Set axial and stereo sensors of the missing layer</em>
+<a class="jxr_linenumber" name="L215" href="#L215">215</a>             <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> axialSensor = axialSensorPair.getFirst();
+<a class="jxr_linenumber" name="L216" href="#L216">216</a>             <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> stereoSensor = stereoSensorPair.getFirst();
+<a class="jxr_linenumber" name="L217" href="#L217">217</a>             
+<a class="jxr_linenumber" name="L218" href="#L218">218</a>             String sensorAxialName = axialSensor.getName();
+<a class="jxr_linenumber" name="L219" href="#L219">219</a>             String sensorStereoName = stereoSensor.getName();
+<a class="jxr_linenumber" name="L220" href="#L220">220</a>             
+<a class="jxr_linenumber" name="L221" href="#L221">221</a>             <em class="jxr_comment">//Grab the track extrapolations at each sensor</em>
+<a class="jxr_linenumber" name="L222" href="#L222">222</a>             Hep3Vector axialExtrapPosSensor = axialSensorPair.getSecond().getSecond();
+<a class="jxr_linenumber" name="L223" href="#L223">223</a>             Hep3Vector stereoExtrapPosSensor = stereoSensorPair.getSecond().getSecond();
+<a class="jxr_linenumber" name="L224" href="#L224">224</a>             
+<a class="jxr_linenumber" name="L225" href="#L225">225</a>             <strong class="jxr_keyword">double</strong> UresidualAxial = 9999;
+<a class="jxr_linenumber" name="L226" href="#L226">226</a>             <strong class="jxr_keyword">double</strong> UresidualStereo = 9999;
+<a class="jxr_linenumber" name="L227" href="#L227">227</a>             
+<a class="jxr_linenumber" name="L228" href="#L228">228</a>             <strong class="jxr_keyword">boolean</strong> isSingleHitAxial = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>             <strong class="jxr_keyword">boolean</strong> isSingleHitStereo = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>             
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>             <em class="jxr_comment">//Loop over all reconstructed 1D hits on sensor of interest in the events</em>
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>             <strong class="jxr_keyword">for</strong>(<a name="SiTrackerHitStrip1D" href="../../../org/hps/recon/tracking/SiTrackerHitStrip1D.html#SiTrackerHitStrip1D">SiTrackerHitStrip1D</a> hit:stripHits){
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>                 <em class="jxr_comment">//Get the sensor and position of the hit</em>
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>                 <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = (<a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>                 <strong class="jxr_keyword">double</strong>[] hitPos = hit.getPosition();
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>                 <em class="jxr_comment">//Change to sensor coordinates</em>
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>                 Hep3Vector hitPosSensor = globalToSensor(toHep3(hitPos),sensor);
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>                 <em class="jxr_comment">//Check to see if the sensor of this hit is the same sensor you expect to see an axial hit</em>
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>                 <strong class="jxr_keyword">if</strong>(sensorAxialName == sensor.getName()){
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>                     <em class="jxr_comment">//Compute the residual between extrapolated track and hit position</em>
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>                     <em class="jxr_comment">//Keep the value of the smallest residual</em>
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>                     <strong class="jxr_keyword">double</strong> Uresidual = axialExtrapPosSensor.x() - hitPosSensor.x();
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>                     <strong class="jxr_keyword">if</strong>(Math.abs(Uresidual) &lt; Math.abs(UresidualAxial)){
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>                         UresidualAxial = Uresidual;
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>                         <strong class="jxr_keyword">if</strong>(hit.getRawHits().size() &gt; 1) isSingleHitAxial = false;
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>                     }
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>                 }
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>               <em class="jxr_comment">//Check to see if the sensor of this hit is the same sensor you expect to see a stereo hit</em>
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>                 <strong class="jxr_keyword">if</strong>(sensorStereoName == sensor.getName()){
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>                     <em class="jxr_comment">//Compute the residual between extrapolated track and hit position</em>
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>                     <em class="jxr_comment">//Keep the value of the smallest residual</em>
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>                     <strong class="jxr_keyword">double</strong> Uresidual = stereoExtrapPosSensor.x() - hitPosSensor.x();
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>                     <strong class="jxr_keyword">if</strong>(Math.abs(Uresidual) &lt; Math.abs(UresidualStereo)){
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>                         UresidualStereo = Uresidual;
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>                         <strong class="jxr_keyword">if</strong>(hit.getRawHits().size() &gt; 1) isSingleHitAxial = false;
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>                     }
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>                 }
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>             }
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>         
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>             <em class="jxr_comment">//Fill histograms for residuals</em>
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>             residualY.get(sensorAxialName).fill(UresidualAxial);
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>             residualY.get(sensorStereoName).fill(UresidualStereo);
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>             residualYvsV.get(sensorAxialName).fill(axialExtrapPosSensor.y(),UresidualAxial);
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>             residualYvsV.get(sensorStereoName).fill(stereoExtrapPosSensor.y(),UresidualStereo);
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>             residualYvsU.get(sensorAxialName).fill(axialExtrapPosSensor.x(),UresidualAxial);
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>             residualYvsU.get(sensorStereoName).fill(stereoExtrapPosSensor.x(),UresidualStereo);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>             residualYvsP.get(sensorAxialName).fill(p.magnitude(),UresidualAxial);
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>             residualYvsP.get(sensorStereoName).fill(p.magnitude(),UresidualAxial);
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>             
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>             
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>             
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>             <em class="jxr_comment">//Fill single hit and multiple hit histograms</em>
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>             <strong class="jxr_keyword">if</strong>(isSingleHitAxial){
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>                 residualYSingleHit.get(sensorAxialName).fill(UresidualAxial);
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>                 residualYSingleHitvsV.get(sensorAxialName).fill(axialExtrapPosSensor.y(),UresidualAxial);
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>                 residualYSingleHitvsU.get(sensorAxialName).fill(axialExtrapPosSensor.x(),UresidualAxial);
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>             }
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>             <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>                 residualYMultipleHit.get(sensorAxialName).fill(UresidualAxial);
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>                 residualYMultipleHitvsV.get(sensorAxialName).fill(axialExtrapPosSensor.y(),UresidualAxial);
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>                 residualYMultipleHitvsU.get(sensorAxialName).fill(axialExtrapPosSensor.x(),UresidualAxial);
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>             }
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>             
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>             <strong class="jxr_keyword">if</strong>(isSingleHitStereo){
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>                 residualYSingleHit.get(sensorStereoName).fill(UresidualStereo);
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>                 residualYSingleHitvsV.get(sensorStereoName).fill(stereoExtrapPosSensor.y(),UresidualStereo);
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>                 residualYSingleHitvsU.get(sensorStereoName).fill(stereoExtrapPosSensor.x(),UresidualStereo);
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>             }
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>             <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>                 residualYMultipleHit.get(sensorStereoName).fill(UresidualStereo);
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>                 residualYMultipleHitvsV.get(sensorStereoName).fill(stereoExtrapPosSensor.y(),UresidualStereo);
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>                 residualYMultipleHitvsU.get(sensorStereoName).fill(stereoExtrapPosSensor.x(),UresidualStereo);
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>             }
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>             
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>             <strong class="jxr_keyword">if</strong>(q &gt; 0){
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>                 residualYEle.get(sensorAxialName).fill(UresidualAxial);
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>                 residualYEle.get(sensorStereoName).fill(UresidualStereo);
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>                 residualYvsVEle.get(sensorAxialName).fill(axialExtrapPosSensor.y(),UresidualAxial);
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>                 residualYvsVEle.get(sensorStereoName).fill(stereoExtrapPosSensor.y(),UresidualStereo);
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>                 residualYvsUEle.get(sensorAxialName).fill(axialExtrapPosSensor.x(),UresidualAxial);
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>                 residualYvsUEle.get(sensorStereoName).fill(stereoExtrapPosSensor.x(),UresidualStereo);
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>                 residualYvsPEle.get(sensorAxialName).fill(p.magnitude(),UresidualAxial);
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>                 residualYvsPEle.get(sensorStereoName).fill(p.magnitude(),UresidualAxial);
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>             }
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>             <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>                 residualYPos.get(sensorAxialName).fill(UresidualAxial);
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>                 residualYPos.get(sensorStereoName).fill(UresidualStereo);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>                 residualYvsVPos.get(sensorAxialName).fill(axialExtrapPosSensor.y(),UresidualAxial);
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>                 residualYvsVPos.get(sensorStereoName).fill(stereoExtrapPosSensor.y(),UresidualStereo);
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>                 residualYvsUPos.get(sensorAxialName).fill(axialExtrapPosSensor.x(),UresidualAxial);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>                 residualYvsUPos.get(sensorStereoName).fill(stereoExtrapPosSensor.x(),UresidualStereo);
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>                 residualYvsPPos.get(sensorAxialName).fill(p.magnitude(),UresidualAxial);
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>                 residualYvsPPos.get(sensorStereoName).fill(p.magnitude(),UresidualAxial);
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>             }
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>         }
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>     }
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>     
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>     <em class="jxr_comment">//Converts position into sensor frame</em>
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>     <strong class="jxr_keyword">private</strong> Hep3Vector globalToSensor(Hep3Vector trkpos, <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor){
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>         SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         <strong class="jxr_keyword">if</strong>(electrodes == <strong class="jxr_keyword">null</strong>){
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>             electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>             System.out.println(<span class="jxr_string">"Charge Carrier is NULL"</span>);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         }
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>         <strong class="jxr_keyword">return</strong> electrodes.getGlobalToLocal().transformed(trkpos);
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>     }
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>     
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>     <em class="jxr_comment">//Get the track state at the previous sensor</em>
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>     <strong class="jxr_keyword">private</strong> TrackState getTrackState(Track track, <strong class="jxr_keyword">int</strong> unusedLay){
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>         <strong class="jxr_keyword">int</strong> layer = -1;
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>         <strong class="jxr_keyword">boolean</strong> isTop = track.getTrackStates().get(0).getTanLambda() &gt; 0;
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         <em class="jxr_comment">//If unused layer is L1, then get trackstate at IP</em>
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>         <strong class="jxr_keyword">if</strong>(unusedLay == 1){
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>             <strong class="jxr_keyword">return</strong> track.getTrackStates().get(0);
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         }
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>             layer = unusedLay - 1;
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>         }
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>         <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensorHole = getSensor(track,layer,isTop,<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>         <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensorSlot = getSensor(track,layer,isTop,false);
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>         TrackState tState = TrackStateUtils.getTrackStateAtSensor(track,sensorHole.getMillepedeId());
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>         <strong class="jxr_keyword">if</strong>(tState == <strong class="jxr_keyword">null</strong>){
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>             tState = TrackStateUtils.getTrackStateAtSensor(track,sensorSlot.getMillepedeId());
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>         }
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>         <strong class="jxr_keyword">return</strong> tState;
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>     }
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>     
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>     <em class="jxr_comment">//Returns channel number of a given position in the sensor frame</em>
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> getChan(Hep3Vector pos, <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor){
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>         <strong class="jxr_keyword">double</strong> readoutPitch = sensor.getReadoutStripPitch();
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>         <strong class="jxr_keyword">int</strong> nChan = sensor.getNumberOfChannels();
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>         <strong class="jxr_keyword">double</strong> height = readoutPitch * nChan;
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>         <strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) ((height/2-pos.x())/readoutPitch);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>     }
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>     
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>     <em class="jxr_comment">//Converts double array into Hep3Vector</em>
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>     <strong class="jxr_keyword">private</strong> Hep3Vector toHep3(<strong class="jxr_keyword">double</strong>[] arr) {
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> BasicHep3Vector(arr[0], arr[1], arr[2]);
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>     }
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>     
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>     <em class="jxr_comment">//Return the HpsSiSensor for a given top/bottom track, layer, axial/stereo, and slot/hole</em>
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>     <strong class="jxr_keyword">private</strong> <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> getSensor(Track track, <strong class="jxr_keyword">int</strong> layer, <strong class="jxr_keyword">boolean</strong> isAxial, <strong class="jxr_keyword">boolean</strong> isHole) {
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>         <strong class="jxr_keyword">double</strong> tanLambda = track.getTrackStates().get(0).getTanLambda();
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>         <strong class="jxr_keyword">for</strong>(<a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor: sensors){
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>             <strong class="jxr_keyword">int</strong> senselayer = (sensor.getLayerNumber() + 1)/2;
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>             <strong class="jxr_keyword">if</strong>(senselayer != layer) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>             <strong class="jxr_keyword">if</strong>((tanLambda &gt; 0 &amp;&amp; !sensor.isTopLayer()) || (tanLambda &lt; 0 &amp;&amp; sensor.isTopLayer())) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>             <strong class="jxr_keyword">if</strong>((isAxial &amp;&amp; !sensor.isAxial()) || (!isAxial &amp;&amp; sensor.isAxial())) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>             <strong class="jxr_keyword">if</strong>(layer &lt; 4 &amp;&amp; layer &gt; 0){
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>                 <strong class="jxr_keyword">return</strong> sensor;
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>             }
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>             <strong class="jxr_keyword">else</strong>{
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>                 <strong class="jxr_keyword">if</strong>((!sensor.getSide().matches(<span class="jxr_string">"ELECTRON"</span>) &amp;&amp; isHole) || (sensor.getSide().matches(<span class="jxr_string">"ELECTRON"</span>) &amp;&amp; !isHole)) <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>                 <strong class="jxr_keyword">return</strong> sensor;
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>             }
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         }
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>     }
+<a class="jxr_linenumber" name="L379" href="#L379">379</a> 
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">int</strong> getUnusedSvtLayer(List&lt;TrackerHit&gt; stereoHits) {      
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>         <strong class="jxr_keyword">int</strong>[] svtLayer = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[6];
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>         
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>         <em class="jxr_comment">// Loop over all of the stereo hits associated with the track</em>
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>         <strong class="jxr_keyword">for</strong> (TrackerHit stereoHit : stereoHits) {
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>             
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>             <em class="jxr_comment">// Retrieve the sensor associated with one of the hits.  This will</em>
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>             <em class="jxr_comment">// be used to retrieve the layer number</em>
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>             <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor = (<a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a>) ((RawTrackerHit) stereoHit.getRawHits().get(0)).getDetectorElement();
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>             
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>             <em class="jxr_comment">// Retrieve the layer number by using the sensor</em>
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>             <strong class="jxr_keyword">int</strong> layer = (sensor.getLayerNumber() + 1)/2;
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>            
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>             <em class="jxr_comment">// If a hit is associated with that layer, increment its </em>
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>             <em class="jxr_comment">// corresponding counter</em>
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>             svtLayer[layer - 1]++;
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>         }
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>         
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>         <em class="jxr_comment">// Loop through the layer counters and find which layer has not been</em>
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>         <em class="jxr_comment">// incremented i.e. is unused by the track</em>
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>         <strong class="jxr_keyword">for</strong>(<strong class="jxr_keyword">int</strong> layer = 0; layer &lt; svtLayer.length; layer++){
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>             <strong class="jxr_keyword">if</strong>(svtLayer[layer] == 0) { 
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>                 <strong class="jxr_keyword">return</strong> (layer + 1);
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>             }
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>         }
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>         <strong class="jxr_keyword">return</strong> -1;
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>     }
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>     
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>     <em class="jxr_comment">//Checks to see if track is within acceptance of both axial and stereo sensors at a given layer</em>
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>     <em class="jxr_comment">//Also returns channel number of the intersection</em>
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>     <strong class="jxr_keyword">private</strong> Pair&lt;HpsSiSensor,Pair&lt;Integer,Hep3Vector&gt;&gt; isWithinSensorAcceptance(Track track, TrackState tState, <strong class="jxr_keyword">int</strong> layer, <strong class="jxr_keyword">boolean</strong> axial, Hep3Vector p,FieldMap fieldMap) {
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>      
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>         <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> axialSensorHole = getSensor(track,layer,<strong class="jxr_keyword">true</strong>,<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>         <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> axialSensorSlot = getSensor(track,layer,<strong class="jxr_keyword">true</strong>,false);
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>         <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> stereoSensorHole = getSensor(track,layer,false,<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>         <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> stereoSensorSlot = getSensor(track,layer,false,false);
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>         
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>         HelicalTrackFit htf = TrackUtils.getHTF(tState);
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>         
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>         Hep3Vector axialTrackHolePos = TrackStateUtils.getLocationAtSensor(htf,axialSensorHole,bfield);
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>         Hep3Vector axialTrackSlotPos = TrackStateUtils.getLocationAtSensor(htf,axialSensorSlot,bfield);
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>         Hep3Vector stereoTrackHolePos = TrackStateUtils.getLocationAtSensor(htf,stereoSensorHole,bfield);
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>         Hep3Vector stereoTrackSlotPos = TrackStateUtils.getLocationAtSensor(htf,stereoSensorSlot,bfield);
+<a class="jxr_linenumber" name="L423" href="#L423">423</a> 
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>         Pair&lt;Boolean,Pair&lt;Integer,Hep3Vector&gt;&gt; axialHolePair = <strong class="jxr_keyword">this</strong>.sensorContainsTrack(axialTrackHolePos, axialSensorHole);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>         Pair&lt;Boolean,Pair&lt;Integer,Hep3Vector&gt;&gt; axialSlotPair = <strong class="jxr_keyword">this</strong>.sensorContainsTrack(axialTrackSlotPos, axialSensorSlot);
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>         Pair&lt;Boolean,Pair&lt;Integer,Hep3Vector&gt;&gt; stereoHolePair = <strong class="jxr_keyword">this</strong>.sensorContainsTrack(stereoTrackHolePos, stereoSensorHole);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>         Pair&lt;Boolean,Pair&lt;Integer,Hep3Vector&gt;&gt; stereoSlotPair = <strong class="jxr_keyword">this</strong>.sensorContainsTrack(stereoTrackSlotPos, stereoSensorSlot);
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>         
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>         <strong class="jxr_keyword">if</strong>(axialHolePair.getFirst() &amp;&amp; axial){
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Pair&lt;&gt; (axialSensorHole,axialHolePair.getSecond());
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>         }
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>     
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>         <strong class="jxr_keyword">if</strong>(axialSlotPair.getFirst() &amp;&amp; axial){
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Pair&lt;&gt; (axialSensorSlot,axialSlotPair.getSecond());
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>         }
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>        
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>         <strong class="jxr_keyword">if</strong>(stereoHolePair.getFirst() &amp;&amp; !axial){
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Pair&lt;&gt; (stereoSensorHole,stereoHolePair.getSecond());
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>         }
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>         
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>         <strong class="jxr_keyword">if</strong>(stereoSlotPair.getFirst() &amp;&amp; !axial){
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Pair&lt;&gt; (stereoSensorSlot,stereoSlotPair.getSecond());
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>         }
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>         
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>     }
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>     
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>     <em class="jxr_comment">//Checks to see if track is in acceptance of sensor. Computes within sensor frame</em>
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>     <em class="jxr_comment">//Also return channel number of the position</em>
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>     <strong class="jxr_keyword">public</strong> Pair&lt;Boolean,Pair&lt;Integer,Hep3Vector&gt;&gt; sensorContainsTrack(Hep3Vector trackPosition, <a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor){
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>         Hep3Vector pos = globalToSensor(trackPosition, sensor);
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>         <strong class="jxr_keyword">int</strong> nChan = sensor.getNumberOfChannels();
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>         <strong class="jxr_keyword">int</strong> chan = getChan(pos,sensor);
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>         <strong class="jxr_keyword">double</strong> width = getSensorLength(sensor);
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>         Pair&lt;Integer,Hep3Vector&gt; pair = <strong class="jxr_keyword">new</strong> Pair&lt;&gt;(chan,pos);
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>         <strong class="jxr_keyword">if</strong>(chan &lt; -<strong class="jxr_keyword">this</strong>.chanExtd || chan &gt; (nChan + <strong class="jxr_keyword">this</strong>.chanExtd)){
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Pair&lt;&gt;(false,pair);
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>         }
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>         <strong class="jxr_keyword">if</strong>(Math.abs(pos.y())&gt;width/2){
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Pair&lt;&gt;(false,pair);
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>         }
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Pair&lt;&gt;(<strong class="jxr_keyword">true</strong>,pair);
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>     }
+<a class="jxr_linenumber" name="L464" href="#L464">464</a> 
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>     <em class="jxr_comment">//Returns the horizontal length of the sensor</em>
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>     <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">double</strong> getSensorLength(<a name="HpsSiSensor" href="../../../org/lcsim/detector/tracker/silicon/HpsSiSensor.html#HpsSiSensor">HpsSiSensor</a> sensor) {
+<a class="jxr_linenumber" name="L467" href="#L467">467</a> 
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>         <strong class="jxr_keyword">double</strong> length = 0;
+<a class="jxr_linenumber" name="L469" href="#L469">469</a> 
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>         <em class="jxr_comment">// Get the faces normal to the sensor</em>
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>         <strong class="jxr_keyword">final</strong> List&lt;Polygon3D&gt; faces = ((Box) sensor.getGeometry().getLogicalVolume().getSolid())
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>                 .getFacesNormalTo(<strong class="jxr_keyword">new</strong> BasicHep3Vector(0, 0, 1));
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> Polygon3D face : faces) {
+<a class="jxr_linenumber" name="L474" href="#L474">474</a> 
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>             <em class="jxr_comment">// Loop through the edges of the sensor face and find the longest one</em>
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>             <strong class="jxr_keyword">final</strong> List&lt;LineSegment3D&gt; edges = face.getEdges();
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>             <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">final</strong> LineSegment3D edge : edges) {
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>                 <strong class="jxr_keyword">if</strong> (edge.getLength() &gt; length) {
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>                     length = edge.getLength();
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>                 }
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>             }
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>         }
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>         <strong class="jxr_keyword">return</strong> length;
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>     }
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>     
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> endOfData(){
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>         System.out.println(<span class="jxr_string">"End of Data."</span>);
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>         
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>     }
+<a class="jxr_linenumber" name="L490" href="#L490">490</a> }
+</pre>
+<hr/>
+<div id="footer">Copyright &#169; 2023 <a href="https://confluence.slac.stanford.edu/display/hpsg/Heavy+Photon+Search+Experiment">Heavy Photon Search (HPS)</a>. All rights reserved.</div>
+</body>
+</html>
