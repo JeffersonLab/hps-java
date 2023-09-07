@@ -3,12 +3,14 @@
   <artifactId>hps-online-recon</artifactId>
   <name>online-recon</name>
   <description>online recon tools</description>
+
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
     <version>5.2.1-SNAPSHOT</version>
   </parent>
+
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
@@ -29,48 +31,38 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20180813</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.6</version>
     </dependency>
     <dependency>
       <groupId>org.freehep</groupId>
       <artifactId>freehep-jaida-remote</artifactId>
-      <version>3.4.13</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.sonatype.nexus/google-guava-eventbus -->
     <dependency>
       <groupId>org.sonatype.nexus</groupId>
       <artifactId>google-guava-eventbus</artifactId>
-      <version>3.2.0-01</version>
     </dependency>
     <dependency>
       <groupId>org.java-websocket</groupId>
       <artifactId>Java-WebSocket</artifactId>
-      <version>1.5.2</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.5</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.5</version>
     </dependency>
   </dependencies>
+
   <build>
     <plugins>
-      <!-- https://www.mojohaus.org/appassembler/appassembler-maven-plugin/ -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>appassembler-maven-plugin</artifactId>
-        <version>1.10</version>
         <executions>
           <execution>
             <phase>install</phase>
@@ -95,7 +87,8 @@
                 <initialMemorySize>1g</initialMemorySize>
                 <maxStackSize>128m</maxStackSize>
                 <systemProperties>
-                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.ServerLoggingConfig</systemProperty>
+                  <systemProperty>
+                    java.util.logging.config.class=org.hps.online.recon.logging.ServerLoggingConfig</systemProperty>
                 </systemProperties>
                 <extraArguments>
                   <extraArgument>-XX:+UnlockExperimentalVMOptions</extraArgument>
@@ -114,7 +107,8 @@
               <jvmSettings>
                 <maxMemorySize>200m</maxMemorySize>
                 <systemProperties>
-                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.ClientLoggingConfig</systemProperty>
+                  <systemProperty>
+                    java.util.logging.config.class=org.hps.online.recon.logging.ClientLoggingConfig</systemProperty>
                 </systemProperties>
               </jvmSettings>
             </program>
@@ -124,7 +118,8 @@
               <jvmSettings>
                 <maxMemorySize>1g</maxMemorySize>
                 <systemProperties>
-                  <systemProperty>java.util.logging.config.class=org.hps.online.recon.logging.LoggingConfig</systemProperty>
+                  <systemProperty>
+                    java.util.logging.config.class=org.hps.online.recon.logging.LoggingConfig</systemProperty>
                 </systemProperties>
               </jvmSettings>
             </program>
@@ -140,4 +135,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>

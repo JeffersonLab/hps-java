@@ -1,0 +1,63 @@
+name: site
+
+permissions:
+  deployments: write
+  pages: write
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "Tag to use for site deployment"
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to use for site deployment"
+        required: true
+        type: string
+
+jobs:
+  deploy-site:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Validate tag
+        run: |
+          if [ "$(git name-rev --name-only --tags HEAD)" == "undefined" ]; then
+            echo "ERROR: Reference used as input is not a valid tag."
+            exit 1
+          fi
+
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Get email
+        id: get_email
+        uses: evvanErb/get-github-email-by-username-action@v1.25
+        with:
+          github-username: ${{ github.actor }}
+
+      - name: Configure Git user
+        run: |
+          git config --global user.email "${{ steps.get_email.outputs.email }}"
+          git config --global user.name "${{ github.actor }}"
+          echo "Username: ${{ github.actor }}"
+          echo "Email: ${{ steps.get_email.outputs.email }}"
+
+      - name: Build project and run tests
+        run: mvn clean install verify
+
+      - name: Build and deploy the site
+        run: mvn site site:stage scm-publish:publish-scm -q
