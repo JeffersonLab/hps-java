@@ -179,6 +179,7 @@
             <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
             <applyClusterCorrections>false</applyClusterCorrections>
+	    <isMC>true</isMC>
         </driver>         
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
@@ -206,6 +207,7 @@
             <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
             <applyClusterCorrections>true</applyClusterCorrections>
+	    <isMC>true</isMC>
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
