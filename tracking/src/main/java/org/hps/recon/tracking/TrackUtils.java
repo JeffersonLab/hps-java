@@ -1523,7 +1523,7 @@ public class TrackUtils {
                 return null;
             }
             List<LCRelation> rotaterelations = event.get(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName);
-            for (LCRelation relation : rotaterelations)
+            for (LCRelation relation : rotaterelations){
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null){
                     hitToRotated.add(relation.getFrom(), relation.getTo());
                 }
@@ -1562,19 +1562,10 @@ public class TrackUtils {
 
     public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hits = new ArrayList<TrackerHit>();
-<<<<<<< HEAD
-        //        System.out.println("Track Utils hitToRotated  "  + hitToRotated.size());
-            
-        for (TrackerHit hit : track.getTrackerHits()){
-            //  System.out.println("hitToRotated.from(hit) = "+hitToRotated.from(hit).toString());
-            //System.out.println("hitToStrips.from(rotated) = "+hitToStrips.allFrom(hitToRotated.from(hit)).toString());            
-=======
         for (TrackerHit hit : track.getTrackerHits()) {
->>>>>>> master
             hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
         }
-
-        }
+                
         return hits;
     }
 

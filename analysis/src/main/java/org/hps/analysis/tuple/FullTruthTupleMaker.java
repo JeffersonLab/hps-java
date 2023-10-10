@@ -284,11 +284,11 @@ public abstract class FullTruthTupleMaker extends MCTupleMaker {
         MCParticle pos = posFullTruth.getMCParticle();       
         
         if(ele != null){
-            System.out.println("Found electron truth match")
+            System.out.println("Found electron truth match");
             fillTruth("ele",eleFullTruth);
         }
         else{
-            System.out.println("NOOO electron truth match")
+            System.out.println("NOOO electron truth match");
             tupleMap.put("eleHasTruthMatch/I", (double) 0);
         }
         if(pos != null)
