@@ -10,8 +10,6 @@ import org.jlab.coda.jevio.EvioReader;
 
 /**
  * An ET processor that will activate the conditions system from PRESTART events.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 // FIXME: This class is currently unused in HPS Java.
 public class PreStartProcessor extends EtEventProcessor {

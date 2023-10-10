@@ -1,0 +1,36 @@
+# Wed Jul 16 13:48:13 PDT 2014
+# Monitoring Application configuration
+
+# job settings
+DetectorName=HPS-Proposal2014-v8-6pt6
+DisconnectOnError=true
+DisconnectOnEndRun=true
+EventBuilderClassName=org.hps.evio.LCSimEngRunEventBuilder
+#LogFileName=
+LogLevel=ALL
+LogLevelFilter=ALL
+LogToFile=false
+MaxEvents=-1
+#SteeringFile=
+SteeringResource=org/hps/steering/monitoring/DummyMonitoring.lcsim
+SteeringType=RESOURCE
+PlotsDir=.
+# event source
+DataSourceType=ET_SERVER
+#DataSourcePath=
+ProcessingStage=LCIO
+ 
+# ET connection settings
+# FIXME: These should really all be prepended by 'Et' so their purpose is clear.
+Blocking=false
+EtName=ETBuffer
+ChunkSize=1
+Host=localhost
+Port=11111
+StationPosition=1
+Prescale=1
+QueueSize=0
+StationName=MY_STATION
+Verbose=false
+WaitMode=TIMED
+WaitTime=1000000000

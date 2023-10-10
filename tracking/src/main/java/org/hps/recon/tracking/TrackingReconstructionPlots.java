@@ -2,7 +2,6 @@ package org.hps.recon.tracking;
 
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
-//import hep.aida.IProfile;
 import hep.physics.vec.Hep3Vector;
 
 import java.io.IOException;
@@ -32,16 +31,8 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Analysis class to check recon.
- * 
- * @author phansson
- * @author mdiamond <mdiamond@slac.stanford.edu>
- * @version $id: 2.0 06/04/17$
  */
 public class TrackingReconstructionPlots extends Driver {
-
-    //static {
-    //    hep.aida.jfree.AnalysisFactory.register();
-    //}
 
     public AIDA aida;
     private String helicalTrackHitCollectionName = "HelicalTrackHits";
@@ -364,8 +355,8 @@ public class TrackingReconstructionPlots extends Driver {
         }
     }
 
-    private void doClustersOnTrack(Track trk, List<Cluster> clusters) {
-        Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk);
+    private void doClustersOnTrack(Track trk, List<Cluster> clusters, int runNumber) {
+        Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(trk,runNumber);
         Cluster clust = findClosestCluster(posAtEcal, clusters);
         if (clust == null)
             return;
@@ -454,6 +445,7 @@ public class TrackingReconstructionPlots extends Driver {
 
     @Override
     public void process(EventHeader event) {
+        int runNumber = event.getRunNumber();
         aida.tree().cd("/");
         if (!event.hasCollection(TrackerHit.class, helicalTrackHitCollectionName)) {
             System.out.println(helicalTrackHitCollectionName + " does not exist; skipping event");
@@ -540,7 +532,7 @@ public class TrackingReconstructionPlots extends Driver {
                 doAmplitude(fittedHits, trk);
 
             if (doMatchedClusterPlots)
-                doClustersOnTrack(trk, clusters);
+                doClustersOnTrack(trk, clusters,runNumber);
         }
 
         if (doElectronPositronPlots)

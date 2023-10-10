@@ -1,9 +1,3 @@
-/*
- * SeedTrackFinder.java
- *
- * Created on January 22, 2008, 9:39 AM
- *
- */
 package org.hps.recon.tracking.straighttracks;
 
 import java.util.ArrayList;
@@ -23,8 +17,6 @@ import org.lcsim.recon.tracking.seedtracker.diagnostic.ISeedTrackerDiagnostics;
  * Find straight tracks in 0-bfield
  * 
  * copied/modified from org.lcsim.recon.tracking.SeedTrackFinder
- * @author Mathew Graham
-
  */
 public class StraightTrackFinder {
 

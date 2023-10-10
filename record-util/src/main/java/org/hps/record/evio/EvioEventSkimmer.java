@@ -21,9 +21,6 @@ import org.jlab.coda.jevio.EvioReader;
 
 /**
  * Skim EVIO events into a new file based on a list of event numbers to include.
- * 
- * @author Jeremy McCormick
- * @author Norman Graf
  */
 public class EvioEventSkimmer {
 

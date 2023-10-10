@@ -12,9 +12,6 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 /**
- *
- * @author Norman A Graf
- *
  * @todo Move to recon.filtering
  */
 public class StripRunAndEventDriver extends Driver

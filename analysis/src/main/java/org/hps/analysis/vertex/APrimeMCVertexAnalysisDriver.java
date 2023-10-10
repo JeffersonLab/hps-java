@@ -46,10 +46,6 @@ import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.fourvec.Lorentz4Vector;
 import org.lcsim.util.fourvec.Momentum4Vector;
 
-/**
- *
- * @author Norman A. Graf
- */
 public class APrimeMCVertexAnalysisDriver extends Driver {
 
     String vertexCollectionName = "UnconstrainedV0Vertices";

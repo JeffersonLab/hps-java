@@ -31,8 +31,6 @@ import org.lcsim.util.aida.AIDA;
 /**
  * DQM driver for reconstructed track quantities plots things like number of
  * tracks/event, chi^2, track parameters (d0/z0/theta/phi/curvature)
- *
- * @author mgraham on Mar 28, 2014
  */
 // TODO:  Add some quantities for DQM monitoring:  e.g. <tracks>, <hits/track>, etc
 public class TrackingMonitoring extends DataQualityMonitor {
@@ -329,6 +327,8 @@ public class TrackingMonitoring extends DataQualityMonitor {
     @Override
     public void process(EventHeader event) {
 
+        int runNumber = event.getRunNumber();
+        
         aida.tree().cd("/");
 
         if (!event.hasCollection(LCRelation.class, helicalTrackHitRelationsCollectionName) || !event.hasCollection(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName))
@@ -385,7 +385,7 @@ public class TrackingMonitoring extends DataQualityMonitor {
         int cntTop = 0;
         int cntBot = 0;
         for (Track trk : tracks) {
-            Hep3Vector trackPosAtEcalFace = TrackUtils.getTrackPositionAtEcal(trk);
+            Hep3Vector trackPosAtEcalFace = TrackUtils.getTrackPositionAtEcal(trk, runNumber);
             double xAtECal = trackPosAtEcalFace.x();
             double yAtECal = trackPosAtEcalFace.y();
             if (yAtECal > 0) {

@@ -33,8 +33,6 @@ import org.jlab.coda.jevio.EvioReader;
  * A command line utility for streaming EVIO files to an ET server.
  * <p>
  * The original version was copied from the CODA ET module and modified.
- *
- * @author <a href="mailto:jeremym@slac.stanford.edu">Jeremy McCormick</a>
  */
 public final class EvioFileProducer {
 
@@ -79,11 +77,11 @@ public final class EvioFileProducer {
      * Minimum port number of ET server (lower port numbers not allowed).
      */
     private static final int ET_PORT_MIN = 1024;
-   
+
     /**
      * Initialize the logger.
      */
-    private static final Logger LOGGER = Logger.getLogger(EvioFileProducer.class.getPackage().getName());
+    private static final Logger LOG = Logger.getLogger(EvioFileProducer.class.getCanonicalName());
 
     /**
      * The command line options.
@@ -111,13 +109,17 @@ public final class EvioFileProducer {
      * @param args the command line arguments
      */
     public static void main(final String[] args) {
-        EvioFileProducer efp = new EvioFileProducer();
+        EvioFileProducer producer = new EvioFileProducer();
         try {
-            efp.parse(args);
+            producer.parse(args);
         } catch (Exception e) {
             throw new RuntimeException("Error parsing command line", e);
         }
-        efp.run();
+        try {
+            producer.run();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -125,7 +127,7 @@ public final class EvioFileProducer {
      */
     private static void printUsage() {
         final HelpFormatter help = new HelpFormatter();
-        help.printHelp(80, "EvioFileProducer [options] file.evio.0 file.evio.1 [...]", "EVIO File Producer", OPTIONS, 
+        help.printHelp(80, "EvioFileProducer [options] file.evio.0 file.evio.1 [...]", "EVIO File Producer", OPTIONS,
                 "Provide EVIO files as extra arguments or using the -l option to provide a file containing a list of them.");
         System.exit(1);
     }
@@ -192,7 +194,7 @@ public final class EvioFileProducer {
         for (final File evioFile : this.evioFiles) {
             sb.append(evioFile.getPath() + '\n');
         }
-        LOGGER.config(sb.toString());
+        LOG.config(sb.toString());
     }
 
     /**
@@ -213,12 +215,12 @@ public final class EvioFileProducer {
             printUsage();
             System.exit(0);
         }
-        
+
         // Add EVIO files to the job from extra args.
         List<String> extraArgs = cl.getArgList();
         for (final String extraArg : extraArgs) {
             final File evioFile = new File(extraArg);
-            LOGGER.config("Adding EVIO file: " + evioFile.getPath());
+            LOG.config("Adding EVIO file: " + evioFile.getPath());
             this.evioFiles.add(evioFile);
         }
 
@@ -312,7 +314,7 @@ public final class EvioFileProducer {
         }
 
         // Check existence of EVIO files.
-        LOGGER.info("Checking EVIO files");
+        LOG.info("Checking EVIO files");
         if (this.evioFiles.size() == 0) {
             throw new RuntimeException("No EVIO files were given by command line options!");
         }
@@ -323,20 +325,21 @@ public final class EvioFileProducer {
         }
 
         // Print out the configuration for the job to the log.
-        logConfig();        
+        logConfig();
     }
-    
-    private void run() {
-        
+
+    private void run() throws Exception {
+
         EtSystem sys = null;
         EvioReader reader = null;
-        
+
         try {
 
             // Setup ET system from the command line options.
-            LOGGER.info("Opening ET system on host " + this.host + ", port " + this.port + " and file " + this.etName);
+            LOG.info("Opening ET system on host " + this.host + ", port " + this.port + " and file " + this.etName);
             final EtSystemOpenConfig config = new EtSystemOpenConfig(this.etName, this.host, this.port);
             sys = new EtSystem(config, EtConstants.debugInfo);
+            // TODO: Add multiple connection attempts as the initial handshake tends to fail a lot
             sys.open();
             final EtStation gc = sys.stationNameToObject(GRAND_CENTRAL);
             final EtAttachment att = sys.attach(gc);
@@ -348,7 +351,7 @@ public final class EvioFileProducer {
             for (final File evioFile : this.evioFiles) {
 
                 // Open a new EVIO reader in sequential read mode so events are immediately streamed to server.
-                LOGGER.info("Opening next EVIO file " + evioFile.getPath());
+                LOG.info("Opening next EVIO file " + evioFile.getPath());
                 reader = new EvioReader(evioFile.getPath(), false, true);
 
                 // Reference to the current EVIO event.
@@ -360,31 +363,28 @@ public final class EvioFileProducer {
                 // Loop until event source is exhausted.
                 while ((event = reader.nextEvent()) != null) {
 
-                    // Increment event count.
-                    ++eventCount;
-
-                    // Print event sequence.
-                    if (eventCount % this.eventPrintInterval == 0) {
-                        LOGGER.info("EVIO event " + eventCount);
-                    }
-
                     try {
                         // Parse the next EVIO event.
                         reader.parseEvent(event);
-                        LOGGER.finest("EVIO event " + event.getEventNumber() + " is " + event.getTotalBytes()
-                                + " bytes.");
+
+                        // Increment event count.
+                        ++eventCount;
+
+                        // Print event sequence.
+                        if (eventCount % this.eventPrintInterval == 0) {
+                            LOG.info("EVIO event: " + eventCount + ", bytes: " + event.getTotalBytes());
+                        }
                     } catch (final Exception e) { /* Catches parse errors reading the EVIO events. */
                         e.printStackTrace();
-                        LOGGER.severe("Error making EVIO event with seq number " + eventCount + " in file "
+                        LOG.severe("Error making EVIO event with seq number " + eventCount + " in file "
                                 + evioFile.getPath());
                         // Attempt to recover from errors by skipping to next event if there are exceptions.
                         continue;
                     }
 
-                    //LOGGER.finest("New events: size=" + this.size + "; group=" + this.group);
-
                     final int eventTag = EvioEventUtilities.getEventTag(event);
 
+                    LOG.finest("Creating new ET events...");
                     // Create a new array of ET events. This always has one event.
                     mevs = sys.newEvents(att, // attachment
                             Mode.SLEEP, // wait mode
@@ -393,6 +393,7 @@ public final class EvioFileProducer {
                             1, // number of events
                             this.size, // size of event but overwritten later
                             this.group); // group number; default value is arbitrary
+                    LOG.finest("Done creating ET events!");
 
                     // Create control data array for event selection.
                     final int[] control = new int[EtConstants.stationSelectInts];
@@ -405,43 +406,44 @@ public final class EvioFileProducer {
                     }
 
                     // Write the next EVIO event to the EtEvent's buffer.
-                    final ByteBuffer buf = mevs[0].getDataBuffer();
-                    buf.order(ByteOrder.nativeOrder());
-                    final EventWriter writer = new EventWriter(buf, 100000, 100, null, null);
-                    writer.writeEvent(event);
                     try {
-                        writer.close();
-                    } catch (final Exception e) {
-                        LOGGER.log(Level.WARNING, "Error while closing writer.", e);
+                        LOG.finest("Writing to buffer...");
+                        final ByteBuffer buf = mevs[0].getDataBuffer();
+                        buf.order(ByteOrder.nativeOrder());
+                        final EventWriter writer = new EventWriter(buf, 100000, 100, null, null);
+                        writer.writeEvent(event);
+                        LOG.finest("Done writing to buffer!");
+                        try {
+                            writer.close();
+                        } catch (final Exception e) {
+                            LOG.log(Level.WARNING, "Error while closing writer.", e);
+                        }
+                        mevs[0].setLength(buf.position());
+                        mevs[0].setByteOrder(ByteOrder.nativeOrder());
+
+                        for (final EtEvent mev : mevs) {
+                            LOG.finest("event length = " + mev.getLength() + ", remaining bytes: "
+                                    + mev.getDataBuffer().remaining());
+                        }
+
+                        // Put events onto the ET ring.
+                        LOG.finest("Putting events onto ET ring...");
+                        sys.putEvents(att, mevs);
+                        LOG.finest("Successfully wrote events to ET ring!");
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                    mevs[0].setLength(buf.position());
-                    mevs[0].setByteOrder(ByteOrder.nativeOrder());
-
-                    for (final EtEvent mev : mevs) {
-                        LOGGER.finest("event length = " + mev.getLength() + ", remaining bytes: "
-                                + mev.getDataBuffer().remaining());
-                    }
-
-                    // Put events onto the ET ring.
-                    sys.putEvents(att, mevs);
-
-                    LOGGER.finest("Sucessfully wrote " + eventCount + " event to ET which was EVIO event number "
-                            + event.getEventNumber() + " from file " + evioFile.getPath() + ".");
                 }
-                LOGGER.info(eventCount + " events were read from " + evioFile.getPath());
+                LOG.info(eventCount + " events were read from " + evioFile.getPath());
                 reader.close();
             }
-
-        } catch (final Exception e) { /* Catches all event processing errors. */
-            // This catches and re-throws all errors from processing the EVIO events and configuring the ET system.
-            throw new RuntimeException("Error streaming EVIO events to ET system", e);
         } finally {
             // Cleanup the EVIO reader if needed.
             if (reader != null && !reader.isClosed()) {
                 try {
                     reader.close();
                 } catch (final IOException e) {
-                    LOGGER.log(Level.WARNING, e.getMessage(), e);
+                    LOG.log(Level.WARNING, e.getMessage(), e);
                 }
             }
             // Cleanup the ET system.
@@ -450,6 +452,6 @@ public final class EvioFileProducer {
             }
         }
 
-        LOGGER.info("Done!");
+        LOG.info("Done!");
     }
 }

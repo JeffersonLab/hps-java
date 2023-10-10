@@ -4,10 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-// This class provides an interface between hps-java and the Kalman Filter fitting and pattern recognition code.
-// It can be used to refit the hits on an existing hps track, or it can be used to drive the pattern recognition.
-// However, both cannot be done at the same time. The interface must be reset between doing one and the other. 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Matrix;
@@ -23,10 +21,13 @@ import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
+import org.apache.commons.math.util.FastMath;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
-import org.hps.util.Pair;
+import org.apache.commons.math3.util.Pair;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
@@ -41,30 +42,56 @@ import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
+import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 
-//import static org.lcsim.constants.Constants.fieldConversion;
-
+/**
+ *  This class provides an interface between hps-java and the Kalman Filter fitting and pattern recognition code.
+ *  It can be used to refit the hits on an existing hps track, or it can be used to drive the pattern recognition.
+ *  However, both cannot be done at the same time. The interface must be reset between doing one and the other. 
+ */
 public class KalmanInterface {
+    private Detector det;
+    private List<HpsSiSensor> sensors;
     private Map<Measurement, TrackerHit> hitMap;
     private Map<Measurement, SimTrackerHit> simHitMap;
     private Map<SiModule, SiStripPlane> moduleMap;
-    public static RotMatrix HpsSvtToKalman;
-    public static RotMatrix KalmanToHpsSvt;
-    public static BasicHep3Matrix HpsSvtToKalmanMatrix;
     private ArrayList<KalHit> trackHitsKalman;
     private ArrayList<SiModule> SiMlist;
     private List<Integer> SeedTrackLayers = null;
-    private static boolean uniformB;
     private int _siHitsLimit = -1;
-    public boolean verbose = false;
-    public int verboseLevel = 0;
+    double alphaCenter;
+    private List<SiStripPlane> detPlanes;
     double svtAngle;
-    private HelixPlaneIntersect hpi;
+    org.lcsim.geometry.FieldMap fM;
     KalmanParams kPar;
+    private KalmanPatRecHPS kPat;
     Random rnd;
+    private static Logger logger;
+    public static RotMatrix HpsSvtToKalman;
+    public static RotMatrix KalmanToHpsSvt;
+    public static BasicHep3Matrix HpsSvtToKalmanMatrix;
+    private static boolean uniformB;
+    private static DMatrixRMaj tempM;
+    private static DMatrixRMaj Ft;
+    private int maxHits;
+    private int nBigEvents;
+    private int eventNumber;
+    private static double target_pos = -999.9;
+    private static boolean addTrackStateAtTarget = false;
+    private double[] beamPosition = null;
+    
+    private static final boolean debug = false;    
+    private static final double SVTcenter = 505.57;
+    private static final double c = 2.99793e8; // Speed of light in m/s
+    
+    private int runNumber = 14168;
+    
+    public void setRunNumber(int runNumber){
+        this.runNumber = runNumber;
+    }
     
     public void setSiHitsLimit(int limit) {
         _siHitsLimit = limit;
@@ -72,6 +99,18 @@ public class KalmanInterface {
     
     public int getSiHitsLimit() {
         return _siHitsLimit;
+    }
+
+    public void setTargetPosition(double target_pos){
+        this.target_pos = target_pos;   
+    }
+
+    public void setAddTrackStateAtTarget(boolean input){
+        this.addTrackStateAtTarget = input;
+    }
+
+    public void setBeamPosition(double[] beamPosition){
+        this.beamPosition = beamPosition;
     }
     
     // Get the HPS tracker hit corresponding to a Kalman hit
@@ -97,8 +136,12 @@ public class KalmanInterface {
     // The HPS field map is in the HPS global coordinate system. This routine includes the transformations
     // to return the field in the Kalman global coordinate system given a coordinate in the same system.
     static Vec getField(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
+        return new Vec(3, getFielD(kalPos, hpsFm));
+    }
+    
+    static double [] getFielD(Vec kalPos, org.lcsim.geometry.FieldMap hpsFm) {
         // Field map for stand-alone running
-        if (FieldMap.class.isInstance(hpsFm)) { return ((FieldMap) (hpsFm)).getField(kalPos); }
+        if (FieldMap.class.isInstance(hpsFm)) return ((FieldMap) (hpsFm)).getField(kalPos);
 
         // Standard field map for running in hps-java
         //System.out.format("Accessing HPS field map for position %8.3f %8.3f %8.3f\n", kalPos.v[0], kalPos.v[1], kalPos.v[2]);
@@ -106,13 +149,20 @@ public class KalmanInterface {
         if (uniformB) {
             hpsPos[0] = 0.;
             hpsPos[1] = 0.;
-            hpsPos[2] = 505.57;
+            hpsPos[2] = SVTcenter;
+        } else {
+            if (hpsPos[1] > 70.0) hpsPos[1] = 70.0;   // To avoid getting a field returned that is identically equal to zero
+            if (hpsPos[1] < -70.0) hpsPos[1] = -70.0;
+            if (hpsPos[0] < -225.) hpsPos[0] = -225.;
+            if (hpsPos[0] > 270.) hpsPos[0] = 270.;
         }
- 
         double[] hpsField = hpsFm.getField(hpsPos);
-        if (uniformB) return new Vec(0., 0., -1.0 * hpsField[1]);
-        //if (uniformB) return new Vec(0., 0., 0.5319090951929661);
-        return new Vec(hpsField[0], hpsField[2], -1.0 * hpsField[1]);
+        if (uniformB) {
+            double [] kalField = {0., 0., -1.0 * hpsField[1]};
+            return kalField;
+        }
+        double [] kalField = {hpsField[0], hpsField[2], -1.0 * hpsField[1]};
+        return kalField;
     }
 
     // Set the layers to be used for finding seed tracks (not used by Kalman pattern recognition)
@@ -120,23 +170,26 @@ public class KalmanInterface {
         SeedTrackLayers = input;
     }
 
-    public void setVerboseLevel(int input) {
-        verboseLevel = input;
+    // Constructor with no uniformB argument defaults to non-uniform field
+    public KalmanInterface(KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
+        this(false, kPar, fM);
     }
 
-    // Constructor with no argument defaults to verbose being turned off
-    public KalmanInterface() {
-        this(false, false);
-    }
-
-    public KalmanInterface(boolean verbose, boolean uniformB) {
+    public KalmanInterface(boolean uniformB, KalmanParams kPar, org.lcsim.geometry.FieldMap fM) {
         
-        if (verbose) {
-            System.out.format("Entering the KalmanInterface constructor\n");
-        }
-        this.verbose = verbose;
+        this.det = det;
+        this.sensors = sensors;
+        this.fM = fM;
+        this.kPar = kPar;
+        logger = Logger.getLogger(KalmanInterface.class.getName());
+        logger.info("Entering the KalmanInterface constructor");
+        maxHits = 0;
+        nBigEvents = 0;
+        
+        tempM = new DMatrixRMaj(5,5);
+        Ft = new DMatrixRMaj(5,5);
+        
         KalmanInterface.uniformB = uniformB;
-        hpi = new HelixPlaneIntersect();
         hitMap = new HashMap<Measurement, TrackerHit>();
         simHitMap = new HashMap<Measurement, SimTrackerHit>();
         moduleMap = new HashMap<SiModule, SiStripPlane>();
@@ -149,7 +202,7 @@ public class KalmanInterface {
         SeedTrackLayers.add(5);
         
         if (uniformB) {
-            System.out.format("KalmanInterface WARNING: the magnetic field is set to a uniform value.\n");
+            logger.log(Level.WARNING, "KalmanInterface WARNING: the magnetic field is set to a uniform value.");
         }
         
         // Transformation from HPS SVT tracking coordinates to Kalman global coordinates
@@ -161,7 +214,7 @@ public class KalmanInterface {
                 HpsSvtToKalmanMatrix.setElement(i, j, HpsSvtToKalmanVals[i][j]);
         }
         KalmanToHpsSvt = HpsSvtToKalman.invert();
-        if (verbose) {
+        if (debug) {
             HpsSvtToKalman.print("HPS tracking to Kalman conversion");
             KalmanToHpsSvt.print("Kalman to HPS tracking conversion");
             Vec zHPS = new Vec(0.,0.,1.);
@@ -177,7 +230,19 @@ public class KalmanInterface {
         rnd = new Random();
         rnd.setSeed(rndSeed);
         
-        kPar = new KalmanParams();
+        kPat = new KalmanPatRecHPS(kPar);
+        
+        Vec centerB = KalmanInterface.getField(new Vec(0., SVTcenter, 0.), fM);
+        double conFac = 1.0e12 / c;
+        alphaCenter = conFac/ centerB.mag();
+    }
+    
+    public void summary() {
+        System.out.format("KalmanInterface::summary: number of events with > 200 hits=%d.\n", nBigEvents);
+        System.out.format("                          Maximum event size = %d strip hits.\n", maxHits);
+        System.out.format("                          Events with > %d hits were not processed.\n", _siHitsLimit);
+        System.out.format("                          Number of tracks with bad covariance in filterTrack= %d %d\n", KalmanPatRecHPS.nBadCov[0], KalmanPatRecHPS.nBadCov[1]);
+        System.out.format("                          Number of tracks with bad covariance in KalTrack.fit=%d %d\n", KalTrack.nBadCov[0], KalTrack.nBadCov[1]);
     }
 
     // Return the reference to the parameter setting code for the driver to use
@@ -248,7 +313,7 @@ public class KalmanInterface {
 
     // Clear the event hit and track information without deleting the SiModule geometry information
     public void clearInterface() {
-        if (verbose) System.out.println("Clearing the Kalman interface\n");
+        logger.fine("Clearing the Kalman interface");
         hitMap.clear();
         simHitMap.clear();
         trackHitsKalman.clear();
@@ -257,92 +322,106 @@ public class KalmanInterface {
         }
     }
 
-    // Create an HPS track state from a Kalman track state at the location of a particular SiModule
+    // Create an HPS TrackState from a Kalman HelixState at the location of a particular SiModule
     public TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
-        // public BaseTrackState(double[] trackParameters, double[] covarianceMatrix, double[] position, int location)
+        // Note that the helix parameters that get stored in the TrackState assume a B-field exactly oriented in the
+        // z direction and a pivot point at the origin (0,0,0). The referencePoint of the TrackState is set to the
+        // intersection point with the detector plane.
         StateVector sv = null;
         if (useSmoothed) {
             if (!ms.smoothed) return null;
             sv = ms.aS;
-        } else {
+        } else {   // using the filtered state is really not recommended
             if (!ms.filtered) return null;
             sv = ms.aF;
         }
 
-        // Local helix params, rotated from the field frame back to the HPS global frame.
-        // First pivot transform to the point of intersection of helix with SSD.  
-        // Then rotate to the global frame.
-        // Then pivot transform back to the origin
-        double phiS = sv.planeIntersect(ms.m.p);
-        if (Double.isNaN(phiS)) phiS = 0.;
-        Vec newPivot = sv.atPhi(phiS);
-        Vec localParams = sv.pivotTransform(newPivot);
-        // Note: this rotation doesn't totally make sense, as the helix parameters are defined, strictly speaking, 
-        // only in a frame in which the B field is the axis of the helix. It's probably okay, though, as long
-        // as the parameters are not used to propagate the helix over a large distance.
-        SquareMatrix F = sv.makeF(localParams);
-        SquareMatrix fRot = new SquareMatrix(5);
-        Vec rotatedParams = StateVector.rotateHelix(localParams, sv.Rot.invert(), fRot);
-        Vec globalParams = StateVector.pivotTransform(sv.origin.scale(-1.0), rotatedParams, newPivot, sv.alpha, 0.);
-        double phiInt3 = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.alpha, ms.m.p);
-        double[] newParams = getLCSimParams(globalParams.v, sv.alpha);
-        SquareMatrix F2 = StateVector.makeF(globalParams, rotatedParams, sv.alpha);
-        SquareMatrix localCov = sv.C;
-        SquareMatrix globalCov = localCov.similarity(F2.multiply(fRot.multiply(F)));
-        double[] newCov = getLCSimCov(globalCov.M, sv.alpha).asPackedArray(true);
-        if (verbose) {  // The enclosed code is for testing that the transformations made some sense. . .
-            System.out.format("KalmanInterface.createTrackState: transforming to the HPS global frame\n");
-            sv.X0.print("helix pivot");
-            sv.origin.print("origin of local field frame");
-            sv.a.print("local helix parameters");
-            newPivot.print("new pivot on helix");
-            localParams.print("local helix parameters transformed to pivot on helix; should have drho & dz = 0");
-            rotatedParams.print("rotated local helix parameters");
-            globalParams.print("helix parameters for pivot at the origin");
-            F.print("Jacobian of first pivot transform");
-            fRot.print("Jacobian for rotation");
-            F2.print("Jacobian of second pivot transform");
-            localCov.print("original covariance");
-            globalCov.print("transformed covariance");
-            Plane pTest = new Plane(new Vec(0.,0.,0.),new Vec(0.,1.,0.));            
-            double phiInt = hpi.planeIntersect(globalParams, new Vec(0.,0.,0.), sv.alpha, pTest);
-            Vec rInt = StateVector.atPhi(new Vec(0.,0.,0.), globalParams, phiInt, sv.alpha);
-            Plane pTran = new Plane(sv.toLocal(new Vec(0.,0.,0.)), sv.Rot.rotate(new Vec(0.,1.,0.)));
-            pTran.print("y=0 plane in field system");
-            double phiInt2 = sv.planeIntersect(pTest);
-            Vec rInt2 = sv.atPhi(phiInt2);
-            rInt2.print("intersection of the original helix with the y=0 plane in field coordinates");
-            System.out.format("The following two points will not match exactly, due to the field tilt\n");
-            rInt.print("intersection of the transformed helix with y=0 plane");
-            sv.toGlobal(rInt2).print("intersection of the original helix with the y=0 plane in global coordinates");            
-            rInt = StateVector.atPhi(new Vec(0.,0.,0.), globalParams, phiInt3, sv.alpha);
-            rInt.print("intersection of the global helix with the sensor plane, in global coordinates");
-            sv.toGlobal(newPivot).print("intersection of local helix wit the sensor plane, in global coordinates");
-        } 
-
-        BaseTrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, loc);
-        
-        // Set phi to be the angle through which the helix turns to reach the SSD plane
-        //PF::Do not use a different definition wrt GBL
-        //ts.setPhi(phiInt3);
-        // Set the reference point (normally defaulted to the origin) to be the intersection point, in HPS tracking coordinates
-        ts.setReferencePoint(vectorKalmanToTrk(sv.toGlobal(newPivot)));
-        //Compute and store the momentum in the track state
-        double [] momtm = ts.computeMomentum(sv.B);
-        
-        if (verbose && ts != null) {
-            System.out.format("KalmanInterface.createTrackState: location=%d layer=%d detector=%d\n", ts.getLocation(), ms.m.Layer, ms.m.detector);
-            double [] refpt= ts.getReferencePoint();
-            System.out.format("  p=%9.4f %9.4f %9.4f, ref=%9.4f %9.4f %9.4f\n", momtm[0], momtm[1], momtm[2], refpt[0], refpt[1], refpt[2]);
-            System.out.format("  phi=%10.6f  tan(lambda)=%10.6f\n", ts.getPhi(), ts.getTanLambda());
-            double [] prm = ts.getParameters();
-            System.out.format("  Helix parameters=%9.4f %9.4f %9.4f %9.4f %9.4f\n", prm[0], prm[1], prm[2], prm[3], prm[4]);
-        }
-        return ts;
+        return sv.helix.toTrackState(alphaCenter, ms.m.p, loc);
     }
 
+    // Transform a Kalman helix to an HPS helix rotated to the global frame and with the pivot at the origin
+    // Provide covHPS with 15 elements to get the covariance as well
+    // Provide 3-vector position to get the location in HPS global coordinates of the original helix pivot
+    static double [] toHPShelix(HelixState helixState, Plane pln, double alphaCenter, double [] covHPS, double[] position) {
+        final boolean debug = false;
+        double phiInt = helixState.planeIntersect(pln);
+        if (Double.isNaN(phiInt)) {
+            Logger logger = Logger.getLogger(KalmanInterface.class.getName());
+            logger.fine(String.format("toHPShelix: no intersection with the plane at %s",pln.toString()));
+            phiInt = 0.;
+        }
+        // Transforms helix to a pivot point on the helix itself (so rho0 and z0 become zero)
+        Vec newPivot = helixState.atPhi(phiInt);
+        Vec helixParamsPivoted = helixState.pivotTransform(newPivot);
+        DMatrixRMaj F = new DMatrixRMaj(5,5);
+        helixState.makeF(helixParamsPivoted, F);
+        if (debug) {
+            System.out.format("Entering KalmanInterface.toHPShelix");
+            helixState.print("provided");
+            pln.print("provided");
+            newPivot.print("new pivot");
+            helixParamsPivoted.print("pivoted helix params");
+            System.out.format("turning angle to the plane containing the helixState origin=%10.6f\n", phiInt);
+            Vec intGlb = helixState.toGlobal(newPivot);
+            intGlb.print("global intersection with plane");
+        }
+        
+        // Then rotate the helix to the global system. This isn't quite kosher, since the B-field will not
+        // be aligned with the global system in general, but we have to do it to fit back into the HPS TrackState
+        // coordinate convention, for which the field is assumed to be uniform and aligned.
+        DMatrixRMaj fRot = new DMatrixRMaj(5,5);
+        Vec helixParamsRotated = HelixState.rotateHelix(helixParamsPivoted, helixState.Rot.invert(), fRot);
+        CommonOps_DDRM.mult(fRot, F, Ft);             
+        
+        CommonOps_DDRM.multTransB(helixState.C, Ft, tempM);
+        DMatrixRMaj covRotated = new DMatrixRMaj(5,5);
+        CommonOps_DDRM.mult(Ft, tempM, covRotated);
+        if (debug) helixParamsRotated.print("rotated helix params");
+        
+        // Transform the pivot to the global system. 
+        Vec pivotGlobal = helixState.toGlobal(newPivot);
+        if (debug) pivotGlobal.print("pivot in global system");
+        
+        // Pivot transform to the final pivot at the origin
+        Vec finalPivot = new Vec(0.,0.,0.);
+        Vec finalHelixParams = HelixState.pivotTransform(finalPivot, helixParamsRotated, pivotGlobal, alphaCenter, 0.);
+        HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter);
+        CommonOps_DDRM.multTransB(covRotated, F, tempM);
+        CommonOps_DDRM.mult(F, tempM, covRotated);
+        if (debug) {
+            finalPivot.print("final pivot point");
+            finalHelixParams.print("final helix parameters");
+            HelixPlaneIntersect hpi = new HelixPlaneIntersect();
+            phiInt = hpi.planeIntersect(finalHelixParams, finalPivot, alphaCenter, pln);
+            if (!Double.isNaN(phiInt)) {
+                Vec rInt = HelixState.atPhi(finalPivot, finalHelixParams, phiInt, alphaCenter);
+                rInt.print("final helix intersection with given plane");
+            }
+            System.out.format("Exiting KalmanInterface.toHPShelix\n");
+        }
+        if (covHPS != null) {
+            double [] temp = KalmanInterface.getLCSimCov(covRotated, alphaCenter).asPackedArray(true);
+            for (int i=0; i<15; ++i) covHPS[i] = temp[i];
+        }
+        if (position != null) {
+            double [] temp = KalmanInterface.vectorKalmanToGlb(pivotGlobal);
+            for (int i=0; i<3; ++i) position[i] = temp[i];
+        }
+        return KalmanInterface.getLCSimParams(finalHelixParams.v, alphaCenter);
+    }
+    
+    static TrackState toTrackState(HelixState helixState, Plane pln, double alphaCenter, int loc) {
+        double [] covHPS = new double[15];
+        double [] position = new double[3];
+        double [] helixHPS = KalmanInterface.toHPShelix(helixState, pln, alphaCenter, covHPS, position);
+                
+        return new BaseTrackState( helixHPS, covHPS, position, loc); 
+    }
+    
     public void printGBLStripClusterData(GBLStripClusterData clstr) {
         System.out.format("\nKalmanInterface.printGBLStripClusterData: cluster ID=%d, scatterOnly=%d\n", clstr.getId(), clstr.getScatterOnly());
+        Pair<Integer, Integer> IDdecode = TrackUtils.getLayerSide(clstr.getVolume(), clstr.getId());
+        System.out.format("  Volume = %d Layer = %d Detector = %d\n", clstr.getVolume(), IDdecode.getFirst(), IDdecode.getSecond());
         System.out.format("  HPS tracking system U=%s\n", clstr.getU().toString());
         System.out.format("  HPS tracking system V=%s\n", clstr.getV().toString());
         System.out.format("  HPS tracking system W=%s\n", clstr.getW().toString());
@@ -357,23 +436,39 @@ public class KalmanInterface {
     // Make a GBLStripClusterData object for each MeasurementSite of a Kalman track
     public List<GBLStripClusterData> createGBLStripClusterData(KalTrack kT) {
         List<GBLStripClusterData> rtnList = new ArrayList<GBLStripClusterData>(kT.SiteList.size());
+
+        //Arc length from origin to first plane
         
+        double phi_org         = kT.originHelixParms()[1];
+        double phi_1state      = kT.SiteList.get(0).aS.helix.a.v[1]; 
+        double alpha           = kT.helixAtOrigin.alpha;
+        double radius          = Math.abs(alpha/kT.originHelixParms()[2]);
+        double arcLength2D     = radius*(phi_1state-phi_org);
+        double arcLength       = arcLength2D*Math.sqrt(1.0 + kT.originHelixParms()[4] * kT.originHelixParms()[4]);
+
+        double total_s3D = arcLength;
+        double total_s2D = arcLength2D;
+        
+        double phiLast = 9999.;
+
         for (MeasurementSite site : kT.SiteList) {
-            GBLStripClusterData clstr = new GBLStripClusterData(kT.SiteList.indexOf(site));
+            GBLStripClusterData clstr = new GBLStripClusterData(site.m.millipedeID);
+            clstr.setVolume(site.m.topBottom);
             
             // Sites without hits are "scatter-only"
             if (site.hitID < 0) clstr.setScatterOnly(1);
             else clstr.setScatterOnly(0);
             
-            // Arc length along helix from the previous site
-            clstr.setPath3D(site.arcLength);
-            double tanL = site.aS.a.v[4];
-            clstr.setPath(site.arcLength/Math.sqrt(1.+tanL*tanL));
+            // Store the total Arc length in the GBLStripClusterData
+            total_s3D += site.arcLength;
+            clstr.setPath3D(total_s3D);
+            double tanL = site.aS.helix.a.v[4];
+            clstr.setPath(site.arcLength/FastMath.sqrt(1.+tanL*tanL));
             
-            // Direction cosines of the sensor axes in the HPS tracking coordinate system
-            Hep3Vector u = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.V().scale(-1.0)));
-            Hep3Vector v = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.U()));
+            Hep3Vector u = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.V()));
+            Hep3Vector v = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.U().scale(-1.0)));
             Hep3Vector w = new BasicHep3Vector(vectorKalmanToTrk(site.m.p.T()));
+            
             clstr.setU(u);
             clstr.setV(v);
             clstr.setW(w);
@@ -381,29 +476,36 @@ public class KalmanInterface {
             // Direction of the track in the HPS tracking coordinate system
             // Find the momentum from the smoothed helix at the sensor location, make it a unit vector, 
             // and then transform from the B-field frame to the Kalman global tracking frame.
-            Vec momentum = site.aS.getMom(0.);
-            Vec pDir= site.aS.Rot.inverseRotate(momentum.unitVec());
+            Vec momentum = site.aS.helix.getMom(0.);
+            Vec pDir= site.aS.helix.Rot.inverseRotate(momentum.unitVec());
             Hep3Vector trackDir = new BasicHep3Vector(vectorKalmanToTrk(pDir));
             clstr.setTrackDir(trackDir);
             
             // Phi and lambda of the track (assuming standard spherical polar coordinates)
-            double phi = Math.atan2(trackDir.y(), trackDir.x());
+            double phi = FastMath.atan2(trackDir.y(), trackDir.x());
             double ct = trackDir.z()/trackDir.magnitude();
-            double tanLambda = ct/Math.sqrt(1-ct*ct);  // Should be very much the same as tanL above, after accounting for the field tilt
-            if (verbose) {
-                Vec tilted = site.aS.Rot.inverseRotate(new Vec(0.,0.,1.));
-                double tiltAngle = Math.acos(tilted.v[2]);
+            double tanLambda = ct/FastMath.sqrt(1-ct*ct);  // Should be very much the same as tanL above, after accounting for the field tilt
+            if (debug) {
+                Vec tilted = site.aS.helix.Rot.inverseRotate(new Vec(0.,0.,1.));
+                double tiltAngle = FastMath.acos(tilted.v[2]);
                 System.out.format("KalmanInterface.createGBLStripClusterData: layer=%d det=%d tanL=%10.6f, tanLambda=%10.6f, tilt=%10.6f, sum=%10.6f\n", 
                         site.m.Layer, site.m.detector, -tanL, tanLambda, tiltAngle, tiltAngle+tanLambda);
             }
             clstr.setTrackPhi(phi);
-            clstr.setTrackLambda(Math.atan(tanLambda));
+            if (phiLast < 10.) {
+                if (Math.abs(phi - phiLast) > 1.2) System.out.format("Big phi change in event %d\n", eventNumber);
+            }
+            phiLast = phi;
+            clstr.setTrackLambda(FastMath.atan(tanLambda));
             
             // Measured value in the sensor coordinates (u-value in the HPS system)
             double uMeas, uMeasErr;
             if (site.hitID >= 0) {
                 uMeas = site.m.hits.get(site.hitID).v; 
-                uMeasErr = Math.sqrt(site.aS.R);
+                uMeasErr = site.m.hits.get(site.hitID).sigma;
+                //This is the un-biased residual error (post-fit)
+                //uMeasErr = Math.sqrt(site.aS.R);
+
             } else {
                 uMeas = -999.;
                 uMeasErr = -9999.;
@@ -412,51 +514,54 @@ public class KalmanInterface {
             clstr.setMeasErr(uMeasErr);
             
             // Track position in local frame. First coordinate will be the predicted measurement.
-            Vec rGlb = site.aS.toGlobal(site.aS.atPhi(0.));
+            Vec rGlb = site.aS.helix.toGlobal(site.aS.helix.atPhi(0.));
             Vec rLoc = site.m.toLocal(rGlb);
             Hep3Vector rLocHps = new BasicHep3Vector(localKalToHps(rLoc));
             clstr.setTrackPos(rLocHps);
             
             // rms projected scattering angle
             double ctSensor = pDir.dot(site.m.p.T());
-            double XL = Math.abs(site.radLen/ctSensor);
-            clstr.setScatterAngle(StateVector.projMSangle(momentum.mag(), XL));
+            double XL = Math.abs((site.m.thickness / site.radLen) / ctSensor);
+            clstr.setScatterAngle(HelixState.projMSangle(momentum.mag(), XL));
             
             rtnList.add(clstr);
         }
         return rtnList;
     }
-    
+
+    // Propagate a TrackState "stateHPS" to a plane given by "location" and "direction".
+    // The PropagatedTrackState object created includes the new propagated TrackState plus information on
+    // the intersection point of the track with the plane.
+    public PropagatedTrackState propagateTrackState(TrackState stateHPS, double [] location, double [] direction) {
+        return new PropagatedTrackState(stateHPS, location, direction, detPlanes, fM);
+    }
+
     // Create an HPS track from a Kalman track
     public BaseTrack createTrack(KalTrack kT, boolean storeTrackStates) {
         if (kT.SiteList == null) {
-            System.out.format("KalmanInterface.createTrack: Kalman track is incomplete.\n");
+            logger.log(Level.WARNING, "KalmanInterface.createTrack: Kalman track is incomplete.");
             return null;
         }
         if (kT.covNaN()) {
-            System.out.format("KalmanInterface.createTrack: Kalman track has NaN cov matrix. \n");
+            logger.log(Level.FINE, "KalmanInterface.createTrack: Kalman track has NaN cov matrix.");
             return null;
         }
         
         kT.sortSites(true);
-        int prevID = 0;
-        int dummyCounter = -1;
         BaseTrack newTrack = new BaseTrack();
         
         // Add trackstate at IP as first trackstate,
         // and make this trackstate's params the overall track params
-        double[][] globalCov = kT.originCovariance();
+        DMatrixRMaj globalCov = new DMatrixRMaj(kT.originCovariance());
         double[] globalParams = kT.originHelixParms();
-        double c = 2.99793e8; // Speed of light in m/s
-        double conFac = 1.0e12 / c;
-        // Field at the origin => For 2016 this is ~ 0.430612 T
-        //Vec Bfield = KalmanInterface.getField(new Vec(0.,0.,0.), kT.SiteList.get(0).m.Bfield); 
-        //In the center of SVT => For 2016 this is ~ 0.52340 T
-        Vec Bfield = KalmanInterface.getField(new Vec(0.,500.,0.), kT.SiteList.get(0).m.Bfield);
+        // To get the LCSIM curvature parameter, we want the curvature at the center of the SVT (more-or-less the
+        // center of the magnet), so we need to use the magnetic field there to convert from 1/pt to curvature.
+        // Field at the origin  => For 2016 this is ~ 0.430612 T
+        // In the center of SVT => For 2016 this is ~ 0.52340 T
+        Vec Bfield = KalmanInterface.getField(new Vec(0., SVTcenter ,0.), kT.SiteList.get(0).m.Bfield);
         double B = Bfield.mag();
-        double alpha = conFac / B; // Convert from pt in GeV to curvature in mm
-        double[] newParams = getLCSimParams(globalParams, alpha);
-        double[] newCov = getLCSimCov(globalCov, alpha).asPackedArray(true);
+        double[] newParams = getLCSimParams(globalParams, alphaCenter);
+        double[] newCov = getLCSimCov(globalCov, alphaCenter).asPackedArray(true);
         TrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, TrackState.AtIP);
         if (ts != null) {
             newTrack.getTrackStates().add(ts);                    
@@ -469,6 +574,7 @@ public class KalmanInterface {
             if (site.hitID < 0) continue;
             newTrack.addHit(getHpsHit(site.m.hits.get(site.hitID)));
         }
+        //System.out.printf("PF::Debug::newTrack site size %d \n",newTrack.getTrackerHits().size());
         
         // Get the track states at each layer
         for (int i = 0; i < kT.SiteList.size(); i++) {
@@ -476,8 +582,8 @@ public class KalmanInterface {
             ts = null;
             int loc = TrackState.AtOther;
 
-            HpsSiSensor hssd = (HpsSiSensor) moduleMap.get(site.m).getSensor();
-            int lay = hssd.getMillepedeId();
+            //HpsSiSensor hssd = (HpsSiSensor) moduleMap.get(site.m).getSensor();
+            //int lay = hssd.getMillepedeId();
             // System.out.printf("ssp id %d \n", hssd.getMillepedeId());
 
             if (i == 0) {
@@ -485,6 +591,8 @@ public class KalmanInterface {
             } else if (i == kT.SiteList.size() - 1) 
                 loc = TrackState.AtLastHit;
             
+            /*
+              //DO Not att the missing layer track states yet.
             if (storeTrackStates) {
                 for (int k = 1; k < lay - prevID; k++) {
                     // uses new lcsim constructor
@@ -494,6 +602,7 @@ public class KalmanInterface {
                 }
                 prevID = lay;
             }
+            */
                         
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true);
@@ -501,11 +610,23 @@ public class KalmanInterface {
             }
         }
         
-        //TODO Ecal extrapolation should be done here [ Currently is done in the PatRecDriver ]
+        // Extrapolate to the ECAL and make a new trackState there.
+        BaseTrackState ts_ecal = new BaseTrackState();
+        ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
+        newTrack.getTrackStates().add(ts_ecal);
+
+        // Extrapolate to Target and make a new trackState there.
+        BaseTrackState ts_target = new BaseTrackState();
+        if (target_pos != -999.9 && addTrackStateAtTarget){
+            ts_target = TrackUtils.getTrackExtrapAtTargetRK(newTrack, target_pos, beamPosition, fM, 0);
+            if (ts_target != null){
+                newTrack.getTrackStates().add(ts_target);
+            }
+        }
         
         // other track properties
         newTrack.setChisq(kT.chi2);
-        newTrack.setNDF(kT.SiteList.size() - 5);
+        newTrack.setNDF(newTrack.getTrackerHits().size() - 5);
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
         newTrack.setFitSuccess(true);
         
@@ -513,25 +634,23 @@ public class KalmanInterface {
     }
 
     // Convert helix parameters from Kalman to LCSim
-    static double[] getLCSimParams(double[] oldParams, double alpha) {        
+    static double[] getLCSimParams(double[] oldParams, double alpha) {  
+        // Note: since HPS-java has assumed a constant field for tracking, the alpha value used here should
+        // correspond to the field at the center of the SVT or magnet.   See the class variable alphaCenter.
         double[] params = new double[5];
         params[ParameterName.d0.ordinal()] = oldParams[0];
         params[ParameterName.phi0.ordinal()] = -1.0 * oldParams[1];
         params[ParameterName.omega.ordinal()] = oldParams[2] / alpha * -1.0;
         params[ParameterName.z0.ordinal()] = oldParams[3] * -1.0;
         params[ParameterName.tanLambda.ordinal()] = oldParams[4] * -1.0;
-        // System.out.printf("d0 ordinal = %d\n", ParameterName.d0.ordinal());
-        // System.out.printf("phi0 ordinal = %d\n", ParameterName.phi0.ordinal());
-        // System.out.printf("omega ordinal = %d\n", ParameterName.omega.ordinal());
-        // System.out.printf("z0 ordinal = %d\n", ParameterName.z0.ordinal());
-        // System.out.printf("tanLambda ordinal = %d\n",
-        // ParameterName.tanLambda.ordinal());
 
         return params;
     }
 
     // Convert helix parameters from LCSim to Kalman
-    static double[] unGetLCSimParams(double[] oldParams, double alpha) {      
+    static double[] unGetLCSimParams(double[] oldParams, double alpha) { 
+        // Note: since HPS-java has assumed a constant field for tracking, the alpha value used here should
+        // correspond to the field at the center of the SVT or magnet.   See the class variable alphaCenter.
         double[] params = new double[5];
         params[0] = oldParams[ParameterName.d0.ordinal()];
         params[1] = -1.0 * oldParams[ParameterName.phi0.ordinal()];
@@ -542,12 +661,14 @@ public class KalmanInterface {
     }
 
     // Convert helix parameter covariance matrix from Kalman to LCSim
-    static SymmetricMatrix getLCSimCov(double[][] oldCov, double alpha) {
+    static SymmetricMatrix getLCSimCov(DMatrixRMaj oldCov, double alpha) {
+        // Note: since HPS-java has assumed a constant field for tracking, the alpha value used here should
+        // correspond to the field at the center of the SVT or magnet.   See the class variable alphaCenter.
         double[] d = { 1.0, -1.0, -1.0 / alpha, -1.0, -1.0 };
         SymmetricMatrix cov = new SymmetricMatrix(5);
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
-                cov.setElement(i, j, d[i] * d[j] * oldCov[i][j]);
+                cov.setElement(i, j, d[i] * d[j] * oldCov.unsafe_get(i, j));
             }
         }
         /*
@@ -561,6 +682,8 @@ public class KalmanInterface {
 
     // Convert helix parameter covariance matrix from LCSim to Kalman
     static double[][] ungetLCSimCov(double[] oldCov, double alpha) {
+        // Note: since HPS-java has assumed a constant field for tracking, the alpha value used here should
+        // correspond to the field at the center of the SVT or magnet.   See the class variable alphaCenter.
         double[] d = { 1.0, -1.0, -1.0 * alpha, -1.0, -1.0 };
         double[][] cov = new double[5][5];
         cov[0][0] = oldCov[0] * d[0] * d[0];
@@ -602,8 +725,8 @@ public class KalmanInterface {
     // Create an HPS track from a Kalman seed
     public BaseTrack createTrack(SeedTrack trk) {
         double[] newPivot = { 0., 0., 0. };
-        double[] params = getLCSimParams(trk.pivotTransform(newPivot), trk.getAlpha());
-        SymmetricMatrix cov = getLCSimCov(trk.covariance().M, trk.getAlpha());
+        double[] params = getLCSimParams(trk.pivotTransform(newPivot), alphaCenter);
+        SymmetricMatrix cov = getLCSimCov(trk.covariance(), alphaCenter);
         BaseTrack newTrack = new BaseTrack();
         newTrack.setTrackParameters(params, trk.B());
         newTrack.setCovarianceMatrix(cov);
@@ -615,14 +738,20 @@ public class KalmanInterface {
     }
 
     // Method to create one Kalman SiModule object for each silicon-strip detector
-    public void createSiModules(List<SiStripPlane> inputPlanes, org.lcsim.geometry.FieldMap fm) {
-        if (verbose && verboseLevel > 1) {
+    public void createSiModules(List<SiStripPlane> inputPlanes) {
+        if (debug) {
             System.out.format("Entering KalmanInterface.creasteSiModules\n");
         }
+        detPlanes = inputPlanes;  // keep this reference for use by other methods
         
         //2016 => 12 planes, 2019 => 14 planes
         int nPlanes = inputPlanes.size();
         //System.out.printf("PF::nPlanes::%d", nPlanes);
+        if (nPlanes == 40) { // 2019 vs 2016 detector first layer
+            kPar.setFirstLayer(0);
+        } else {            
+            kPar.setFirstLayer(2);
+        }
         
         SiMlist.clear();
 
@@ -645,7 +774,7 @@ public class KalmanInterface {
             double[] pointOnPlane = inputPlane.getSensor().getGeometry().getLocalToGlobal().getTranslation().getTranslationVector().v();
             Vec pointOnPlaneTransformed = vectorGlbToKalman(pointOnPlane);
 
-            if (verbose) {
+            if (debug) {
                 System.out.format("\nSiTrackerHit local to global rotation matrix for %s:\n",temp.getName());
                 for (int row=0; row<3; ++row) {
                     for (int col=0; col<3; ++col) {
@@ -666,32 +795,40 @@ public class KalmanInterface {
                         new BasicHep3Vector(pointOnPlaneTransformed.v).toString(), new BasicHep3Vector(tK.v).toString());
             }
             Plane p =new Plane(pointOnPlaneTransformed, tK, uK, vK);
-            
-            //Indexing valid for 2016 detector
-            int kalLayer = temp.getLayerNumber()+1;  
-            
-            //Indexing valid for 2019 detector -> Include new layer-0, layers go from 0 to 13!!
-            if (nPlanes == 40) {
+                        
+            int kalLayer;                         
+            boolean split;
+            if (nPlanes == 40) { //Indexing valid for 2019 detector -> Include new layer-0, layers go from 0 to 13!!
                 kalLayer = temp.getLayerNumber()-1;
+                split = (kalLayer < 4);
+            } else {            //Indexing valid for 2016 detector
+                kalLayer = temp.getLayerNumber()+1;
+                split = false;
             }
-            
+            int topBottom = 1;
+            if (temp.isBottomLayer()) topBottom = 0;
             int detector = temp.getModuleNumber();
             if (kalLayer > 13) {
                 System.out.format("***KalmanInterface.createSiModules Warning: Kalman layer %d , tempLayer = %d out of range.***\n", kalLayer,temp.getLayerNumber());
-            }
+            }           
+            int millipedeID = temp.getMillepedeId();
             SiModule newMod = new SiModule(kalLayer, p, temp.isStereo(), inputPlane.getWidth(), inputPlane.getLength(),
-                    inputPlane.getThickness(), fm, detector);
+                    split, inputPlane.getThickness(), fM, detector, millipedeID, topBottom);           
             moduleMap.put(newMod, inputPlane);
             SiMlist.add(newMod);
         }
         Collections.sort(SiMlist, new SortByLayer());
+        for (SiModule sim : SiMlist) {
+            logger.log(Level.INFO, sim.toString());
+        }
     }
     
     // Method to feed simulated hits into the pattern recognition, for testing
     private boolean fillAllSimHits(EventHeader event, IDDecoder decoder) {
         boolean success = false;
+        eventNumber = event.getEventNumber();
 
-        if (verbose || event.getEventNumber() < 50) System.out.format("KalmanInterface.fillAllSimHits: entering for event %d\n", event.getEventNumber());
+        if (debug || event.getEventNumber() < 50) System.out.format("KalmanInterface.fillAllSimHits: entering for event %d\n", event.getEventNumber());
         
         // Get the collection of 1D hits
         String stripHitInputCollectionName = "TrackerHits";
@@ -718,14 +855,14 @@ public class KalmanInterface {
             }
             hitsInSensor.add(hit1D);
             hitSensorMap.put(sensor, hitsInSensor);
-            if (verbose) System.out.format("    Adding hit for layer %d, module %d\n", Layer, Module);
+            if (debug) System.out.format("    Adding hit for layer %d, module %d\n", Layer, Module);
         }
 
         int hitsFilled = 0;
         for (int modIndex = 0; modIndex < SiMlist.size(); ++modIndex) {
             SiModule module = SiMlist.get(modIndex);
             Pair<Integer,Integer> sensor = new Pair<Integer,Integer>(module.Layer,module.detector);
-            if (verbose) System.out.format("   Si module in layer %d module %d, extent=%8.3f to %8.3f\n", module.Layer, module.detector, module.yExtent[0], module.yExtent[1]);
+            if (debug) System.out.format("   Si module in layer %d module %d, extent=%8.3f to %8.3f\n", module.Layer, module.detector, module.yExtent[0], module.yExtent[1]);
 
             if (!hitSensorMap.containsKey(sensor)) continue;
             ArrayList<SimTrackerHit> hitsInSensor = hitSensorMap.get(sensor);
@@ -741,9 +878,8 @@ public class KalmanInterface {
                 double du = 0.006;
                 double umeas = rLocal.v[1] + rnd.nextGaussian()*du;
 
-                if (verbose) {
-                    System.out.format("\nKalmanInterface:fillAllSimHits %d, the measurement uncertainty is set to %10.7f\n", i,
-                            du);
+                if (debug) {
+                    System.out.format("\nKalmanInterface:fillAllSimHits %d, the measurement uncertainty is set to %10.7f\n", i, du);
                     System.out.printf("Filling SiMod Layer %d, detector %d\n", module.Layer, module.detector);
                     module.p.print("Corresponding KalmanPlane");
                     Vec globalX = module.R.rotate(new Vec(1, 0, 0));
@@ -752,17 +888,17 @@ public class KalmanInterface {
                     globalY.print("globalY");
                     System.out.format("     Adding measurement %10.5f to layer %d, module %d\n", umeas, module.Layer, module.detector);
                 }
-                Measurement m = new Measurement(umeas, du, 0., rGlobal, rLocal.v[1]);
+                Measurement m = new Measurement(umeas, 0., du, 0., hit.getdEdx()*1000000., rGlobal, rLocal.v[1]);
                 //rGlobal.print("new global hit location");
 
                 module.addMeasurement(m);
                 simHitMap.put(m, hit);
                 hitsFilled++;
             }
-            if (verbose) { module.print("SiModule-filled"); }
+            if (debug) { module.print("SiModule-filled"); }
         }
         if (hitsFilled > 0) success = true;
-        if (verbose) System.out.format("KalmanInterface.fillAllMeasurements: %d hits were filled into Si Modules\n", hitsFilled);
+        if (debug) System.out.format("KalmanInterface.fillAllSimHits: %d hits were filled into Si Modules\n", hitsFilled);
 
         return success;
     }
@@ -770,18 +906,29 @@ public class KalmanInterface {
     // Method to fill all Si hits into the SiModule objects, to feed to the pattern recognition.
     private boolean fillAllMeasurements(EventHeader event) {
         boolean success = false;
+        eventNumber = event.getEventNumber();
 
         // Get the collection of 1D hits
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         List<TrackerHit> striphits = event.get(TrackerHit.class, stripHitInputCollectionName);
         
+        if (striphits.size() > maxHits) maxHits = striphits.size(); 
+        if (striphits.size() > 200) nBigEvents++;
         if (_siHitsLimit > 0 && striphits.size() > _siHitsLimit) {
-            System.out.println("KalmanInterface::Skip event with " + stripHitInputCollectionName + " > " + String.valueOf(_siHitsLimit));
+            System.out.format("KalmanInterface::Skip event %d with %s %d hits > %d\n", event.getEventNumber(), 
+                    stripHitInputCollectionName, striphits.size(), _siHitsLimit);
             return false;
+        } else if (striphits.size() > 500) {
+            System.out.format("KalmanInterface::fillAllMeasurements: event %d has > 500 hits!\n", event.getEventNumber());
         }
 
         // Make a mapping from sensor to hits
         Map<HpsSiSensor, ArrayList<TrackerHit>> hitSensorMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
+        if (debug) {
+            if (striphits.size() == 0) {
+                System.out.format("KalmanInterface:fillAllMeasurements, there are no strip hits in event %d\n",event.getEventNumber());
+            }
+        }
         for (TrackerHit hit1D : striphits) {
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit1D.getRawHits().get(0)).getDetectorElement();
 
@@ -808,7 +955,7 @@ public class KalmanInterface {
 
                 SiTrackerHitStrip1D localHit = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
 
-                if (verbose) {
+                if (debug) {
                     System.out.format("\nFilling hits in SiModule for %s\n", plane.getName());
                     SiTrackerHitStrip1D global = (new SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL); 
                     Vec rGlobal = vectorGlbToKalman(global.getPosition());
@@ -856,10 +1003,20 @@ public class KalmanInterface {
                     newHitLocal.print("transformed global hit");
                     */
                 }
-                
-                double umeas = localHit.getPosition()[0];
-                double du = Math.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
-                double time = localHit.getTime();
+                double [] lpos = localHit.getPosition();
+                double umeas = lpos[0];
+                double du = FastMath.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
+                double time = localHit.getTime(); 
+                double xStrip = -lpos[1];    // Center of strip, i.e. ~0 except in layers 0 and 1
+                if (xStrip > module.xExtent[1] || xStrip < module.xExtent[0]) {
+                    logger.log(Level.WARNING, String.format("Event %d Layer %d, local hit at %9.4f %9.4f, %9.4f is outside detector extents %8.3f->%8.3f %8.3f->%8.3f", 
+                            event.getEventNumber(), module.Layer, lpos[0], lpos[1], lpos[2], module.yExtent[0], module.yExtent[1], module.xExtent[0], module.xExtent[1]));
+                }
+                if (debug) {
+                    int nstrp = localHit.getRawHits().size();
+                    System.out.format("%d %d u = %9.4f +- %9.4f    cov=%10.4e, %10.4e, %10.4e\n", module.Layer, nstrp, umeas, du, localHit.getCovarianceAsMatrix().e(0,0), 
+                            localHit.getCovarianceAsMatrix().e(1,0), localHit.getCovarianceAsMatrix().e(1,1));
+                }
 
                 // If HPS measured coordinate axis is opposite to Kalman measured coordinate axis
                 // This really should not happen, as the Kalman axis is copied directly from the hps geometry.
@@ -869,7 +1026,7 @@ public class KalmanInterface {
                     umeas *= -1.0;
                 }
 
-                if (verbose) {
+                if (debug) {
                     System.out.format("\nKalmanInterface:fillAllMeasurements Measurement %d, the measurement uncertainty is set to %10.7f\n", i,
                             du);
                     System.out.printf("Filling SiMod: %s \n", plane.getName());
@@ -884,15 +1041,15 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, du, time);
+                Measurement m = new Measurement(umeas, xStrip, du, time, localHit.getdEdx()*1000000.);
                 module.addMeasurement(m);
                 hitMap.put(m, hit);
                 hitsFilled++;
             }
-            if (verbose) { module.print("SiModule-filled"); }
+            if (debug) { module.print("SiModule-filled"); }
         }
         if (hitsFilled > 0) success = true;
-        if (verbose) System.out.format("KalmanInterface.fillAllMeasurements: %d hits were filled into Si Modules\n", hitsFilled);
+        if (debug) System.out.format("KalmanInterface.fillAllMeasurements: %d hits were filled into Si Modules\n", hitsFilled);
         
         // Add MC truth information to each hit if it is available
         if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
@@ -960,7 +1117,8 @@ public class KalmanInterface {
                 // SiTrackerHitStrip1D(hit)).getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL);
 
                 double umeas = local.getPosition()[0];
-                double du = Math.sqrt(local.getCovarianceAsMatrix().diagonal(0));
+                double xStrip = -local.getPosition()[1];
+                double du = FastMath.sqrt(local.getCovarianceAsMatrix().diagonal(0));
 
                 // if hps measured coord axis is opposite to kalman measured coord axis
                 // This really should not happen, as the Kalman axis is copied directly from the hps geometry.
@@ -969,7 +1127,7 @@ public class KalmanInterface {
                     umeas *= -1.0; 
                 }
 
-                if (verbose) {
+                if (debug) {
                     System.out.format("\nKalmanInterface:fillMeasurements Measurement %d, the measurement uncertainty is set to %10.7f\n", i,
                             du);
                     System.out.printf("Filling SiMod: %s \n", plane.getName());
@@ -984,7 +1142,7 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, du, 0.);
+                Measurement m = new Measurement(umeas, xStrip, du, 0., hit.getdEdx()*1000000.);
 
                 KalHit hitPair = new KalHit(mod,m);
                 trackHitsKalman.add(hitPair);
@@ -992,7 +1150,7 @@ public class KalmanInterface {
                 hitMap.put(m, hit);
 
             }
-            if (verbose) { mod.print("SiModule-filled"); }
+            if (debug) { mod.print("SiModule-filled"); }
         }
         return firstZ;
     }
@@ -1001,16 +1159,16 @@ public class KalmanInterface {
     public SeedTrack createKalmanSeedTrack(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
         double firstHitZ = fillMeasurements(hitsOnTrack, 0);
-        if (verbose) System.out.printf("firstHitZ %f \n", firstHitZ);
-        return new SeedTrack(trackHitsKalman, firstHitZ, verbose);
+        if (debug) System.out.printf("firstHitZ %f \n", firstHitZ);
+        return new SeedTrack(trackHitsKalman, firstHitZ, 0.);
     }
 
     // Method to refit an existing track's hits, using the Kalman seed-track to initialize the Kalman Filter.
     public KalmanTrackFit2 createKalmanTrackFit(int evtNumb, SeedTrack seed, Track track, RelationalTable hitToStrips,
-            RelationalTable hitToRotated, org.lcsim.geometry.FieldMap fm, int nIt) {
+            RelationalTable hitToRotated, int nIt) {
         double firstHitZ = 10000.;
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
-        if (verbose) { System.out.format("createKalmanTrackFit: number of hits on track = %d\n", hitsOnTrack.size()); }
+        if (debug) { System.out.format("createKalmanTrackFit: number of hits on track = %d\n", hitsOnTrack.size()); }
         for (TrackerHit hit1D : hitsOnTrack) {
             if (hit1D.getPosition()[2] < firstHitZ) firstHitZ = hit1D.getPosition()[2];
         }
@@ -1026,23 +1184,23 @@ public class KalmanInterface {
         for (int i = 0; i < SiMoccupied.size(); i++) {
             SiModule SiM = SiMoccupied.get(i);
             if (SeedTrackLayers.contains((SiM.Layer + 1) / 2) && (i > startIndex)) { startIndex = i; }
-            if (verbose) { SiM.print(String.format("SiMoccupied%d", i)); }
+            if (debug) { SiM.print(String.format("SiMoccupied%d", i)); }
         }
         // startIndex++;
 
-        if (verbose) { System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); }
+        if (debug) { System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); }
 
-        SquareMatrix cov = seed.covariance();
-        cov.scale(1000.0);
+        DMatrixRMaj cov = seed.covariance().copy();
+        CommonOps_DDRM.scale(10., cov);
 
-        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, fm, verbose);
+        return new KalmanTrackFit2(evtNumb, SiMoccupied, null, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, kPar, fM);
     }
 
     // Method to refit an existing track, using the track's helix parameters and covariance to initialize the Kalman Filter.
-    public KalmanTrackFit2 createKalmanTrackFit(int evtNumb, Vec helixParams, Vec pivot, SquareMatrix cov, Track track,
-            RelationalTable hitToStrips, RelationalTable hitToRotated, org.lcsim.geometry.FieldMap fm, int nIt) {
+    public KalmanTrackFit2 createKalmanTrackFit(int evtNumb, Vec helixParams, Vec pivot, DMatrixRMaj cov, Track track,
+            RelationalTable hitToStrips, RelationalTable hitToRotated, int nIt) {
         List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
-        if (verbose) { System.out.format("createKalmanTrackFit: using GBL fit as start; number of hits on track = %d\n", hitsOnTrack.size()); }
+        if (debug) { System.out.format("createKalmanTrackFit: using GBL fit as start; number of hits on track = %d\n", hitsOnTrack.size()); }
 
         ArrayList<SiModule> SiMoccupied = new ArrayList<SiModule>();
 
@@ -1054,13 +1212,13 @@ public class KalmanInterface {
 
         for (int i = 0; i < SiMoccupied.size(); i++) {
             SiModule SiM = SiMoccupied.get(i);
-            if (verbose) SiM.print(String.format("SiMoccupied%d", i));
+            if (debug) SiM.print(String.format("SiMoccupied%d", i));
         }
 
         int startIndex = 0;
-        if (verbose) { System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); }
-        cov.scale(1000.0);
-        return new KalmanTrackFit2(evtNumb, SiMoccupied, startIndex, nIt, pivot, helixParams, cov, fm, verbose);
+        if (debug) System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex); 
+        CommonOps_DDRM.scale(10., cov);
+        return new KalmanTrackFit2(evtNumb, SiMoccupied, null, startIndex, nIt, pivot, helixParams, cov, kPar, fM);
     }
 
     // public KalTrack createKalmanTrack(KalmanTrackFit2 ktf, int trackID) {
@@ -1068,7 +1226,6 @@ public class KalmanInterface {
     // }
 
     class SortByLayer implements Comparator<SiModule> {
-
         @Override
         public int compare(SiModule o1, SiModule o2) {
             return o1.Layer - o2.Layer;
@@ -1076,42 +1233,230 @@ public class KalmanInterface {
     }
 
     // Method to drive the Kalman-Filter based pattern recognition
-    public ArrayList<KalmanPatRecHPS> KalmanPatRec(EventHeader event, IDDecoder decoder) {
+    public ArrayList<KalTrack>[] KalmanPatRec(EventHeader event, IDDecoder decoder) {
+        if (debug) System.out.format("KalmanInterface: entering KalmanPatRec for event %d\n", event.getEventNumber());
+        ArrayList<KalTrack>[] outList = new ArrayList[2];
         if (!fillAllMeasurements(event)) {
-            System.out.format("KalmanInterface.KalmanPatRec: recon SVT hits not found for event %d; try sim hits\n",event.getEventNumber());
-            if (!fillAllSimHits(event, decoder)) {
-                System.out.format("KalmanInterface.KalmanPatRec: failed to fill sim SVT hits for event %d.\n",event.getEventNumber());
-                return null;
+            if (debug) System.out.format("KalmanInterface.KalmanPatRec: recon SVT hits not found for event %d\n",event.getEventNumber());
+            for (int topBottom=0; topBottom<2; ++topBottom) {
+                outList[topBottom] = new ArrayList<KalTrack>();
             }
+            return outList;  // Return empty track lists if there are no hits
         }
 
         int evtNum = event.getEventNumber();
         
-        ArrayList<KalmanPatRecHPS> outList = new ArrayList<KalmanPatRecHPS>(2);
         for (int topBottom=0; topBottom<2; ++topBottom) {
             ArrayList<SiModule> SiMoccupied = new ArrayList<SiModule>();
             for (SiModule SiM : SiMlist) {
-                if (topBottom == 0) {
-                    if (SiM.p.X().v[2] < 0) continue;
-                } else {
-                    if (SiM.p.X().v[2] > 0) continue;
-                }
-                if (!SiM.hits.isEmpty()) SiMoccupied.add(SiM);
+                if (SiM.topBottom != topBottom) continue;
+                //if (topBottom == 0) {
+                //    if (SiM.p.X().v[2] < 0.) continue;
+                //} else {
+                //    if (SiM.p.X().v[2] > 0.) continue;
+                //}
+                SiMoccupied.add(SiM);  // Need to keep all of these even if there are no hits!!!!!!
             }
             Collections.sort(SiMoccupied, new SortByLayer());
             
-            if (verbose) {
+            if (debug) {
                 for (int i = 0; i < SiMoccupied.size(); i++) {
                     SiModule SiM = SiMoccupied.get(i);
                     SiM.print(String.format("SiMoccupied Number %d for topBottom=%d", i, topBottom));
                 }
                 System.out.format("KalmanInterface.KalmanPatRec event %d: calling KalmanPatRecHPS for topBottom=%d\n", event.getEventNumber(), topBottom);
             }
-            KalmanPatRecHPS kPat = new KalmanPatRecHPS(SiMoccupied, topBottom, evtNum, kPar, verbose);
-            outList.add(kPat);
+            outList[topBottom] = kPat.kalmanPatRec(event, hitMap, SiMoccupied, topBottom);
         }
         return outList;
     }
+
+    // The following method is a debugging aid for comparing SeedTracker/GBL tracks to the Kalman counterparts.
+    public void compareAllTracks(String trackCollectionName, EventHeader event, ArrayList<KalTrack>[] kPatList) {
+        if (!event.hasCollection(Track.class, trackCollectionName)) {
+            System.out.format("\nKalmanInterface.compareAllTracks: the track collection %s is missing. Abort.\n",trackCollectionName);
+            return;
+        }
+        String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+        if (!event.hasCollection(TrackerHit.class, stripHitInputCollectionName)) {
+            System.out.format("\nKalmanInterface.compareAllTracks: the hit collection %s is missing. Abort.\n",stripHitInputCollectionName);
+            return;
+        }    
+        List<Track> tracksGBL = event.get(Track.class, trackCollectionName);
+        System.out.format("\nPrinting %s tracks for event %d\n", trackCollectionName, event.getEventNumber());
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+        //System.out.format("   relation tables: %s %d  %s %d\n", hitToStrips.toString(), hitToStrips.size(), hitToRotated.toString(), hitToRotated.size());
+        for (Track tkr : tracksGBL) {
+            double minz = 999.;
+            TrackState ts1 = null;
+            for (TrackState state : tkr.getTrackStates()) {
+                //System.out.format("Track state %d: location=%d\n", tkr.getTrackStates().indexOf(state), state.getLocation());
+                if (state.getLocation() == TrackState.AtIP) {
+                    ts1 = state;
+                    break;
+                }
+            }
+            if (ts1 == null) {
+                System.out.format("Track %d, missing TrackState.\n", tracksGBL.indexOf(tkr));
+                continue;
+            }
+            double [] a = new double[5];
+            for (int i=0; i<5; ++i) {
+                a[i] = ts1.getParameter(i);
+            }
+            double[] covHPS = ts1.getCovMatrix();
+            double Q = tkr.getCharge();
+            double chi2 = tkr.getChi2();
+            int nHits = tkr.getTrackerHits().size();
+            System.out.format("Track %d, Q=%4.1f, %d 3D hits, chi^2=%7.1f, helix=%8.3f %9.6f %9.6f %8.4f %8.4f\n", tracksGBL.indexOf(tkr),  
+                    Q, nHits, chi2, a[0], a[1], a[2], a[3], a[4]);
+            Vec kalParms = new Vec(5,unGetLCSimParams(a, alphaCenter));
+            System.out.format("     Helix in Kalman parameterization = %s\n", kalParms.toString());
+/*            for (TrackerHit hit3D : tkr.getTrackerHits()) {
+                double [] hitPos3D = hit3D.getPosition();
+                System.out.format("compareAllTracks: tracker 3D hit %10.6f %10.6f %10.6f\n", hitPos3D[0], hitPos3D[1], hitPos3D[2]);
+                List<TrackerHit> hits = new ArrayList<TrackerHit>();
+                hits.addAll(hitToStrips.allFrom(hit3D));
+                System.out.format("     hits = %s, %d\n", hits.toString(), hits.size());
+                for (TrackerHit ht : hits) {                
+                    double [] pnt = ht.getPosition();
+                    System.out.format("    Hit global position: %10.6f %10.6f %10.6f\n", pnt[0], pnt[1], pnt[2]);
+                    List<RawTrackerHit> rawHits = ht.getRawHits();
+                    for (RawTrackerHit rawHit : rawHits) {
+                        int chan = rawHit.getIdentifierFieldValue("strip");
+                        HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                        int Layer = sensor.getLayerNumber();
+                        System.out.format("      Raw hit in layer %d, channel %d\n", Layer, chan);
+                    }
+                }
+            }
+            */
+            List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkr, hitToStrips, hitToRotated);
+            //System.out.format("    hitsOnTrack = %s, %d\n", hitsOnTrack.toString(), hitsOnTrack.size());
+            int [] chanGBL = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+            int [] chanKAL = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+            for (TrackerHit ht : hitsOnTrack) {                
+                double [] pnt = ht.getPosition();
+                System.out.format("    Hit global position: %10.6f %10.6f %10.6f\n", pnt[0], pnt[1], pnt[2]);
+                List<RawTrackerHit> rawHits = ht.getRawHits();
+                for (RawTrackerHit rawHit : rawHits) {
+                    int chan = rawHit.getIdentifierFieldValue("strip");
+                    HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                    int Layer = sensor.getLayerNumber();
+                    int sensorID = sensor.getModuleNumber();
+                    System.out.format("      Raw hit in layer %d, sensor %d, channel %d\n", Layer, sensorID, chan);
+                    if (sensorID*10000 + chan > chanGBL[Layer-1]) chanGBL[Layer-1] = sensorID*10000 + chan;
+                }
+            }
+            //double [] pnt0 = hitsOnTrack.get(0).getPosition();
+            //Vec newPivot = KalmanInterface.vectorGlbToKalman(pnt0);
+            //DMatrixRMaj cov = new DMatrixRMaj(KalmanInterface.ungetLCSimCov(covHPS, alphaCenter));
+            //KalmanTrackFit2 ktf2 = this.createKalmanTrackFit(event.getEventNumber(), kalParms, newPivot, cov, tkr, hitToStrips, hitToRotated, 2);
+            //if (ktf2 != null) {
+            //    HelixState hx = ktf2.sites.get(0).aS.helix;
+            //    System.out.format("    Kalman fit of hits: chi2=%9.4f, helix=%s\n", ktf2.chi2s, hx.a.toString());
+            //}
+            int topBottom = 0;
+            int nGood = 0;
+            if (kalParms.v[4] < 0.) topBottom = 1;
+            KalTrack kMatch = null;
+            for (KalTrack ktk : kPatList[topBottom]) {
+                int nMatch = 0;
+                for (MeasurementSite site : ktk.SiteList) {
+                    if (site.hitID < 0) continue;
+                    SiModule mod = site.m;
+                    if (mod != null) {
+                        TrackerHit ht = this.getHpsHit(mod.hits.get(site.hitID));
+                        List<RawTrackerHit> rawHits = ht.getRawHits();
+                        for (RawTrackerHit rawHit : rawHits) {
+                            int chan = rawHit.getIdentifierFieldValue("strip");
+                            HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                            int Layer = sensor.getLayerNumber();
+                            int sensorID = sensor.getModuleNumber();
+                            if (chanGBL[Layer-1] == 10000*sensorID + chan) {
+                                nMatch++;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (nMatch > nGood) {
+                    kMatch = ktk;
+                    nGood = nMatch;
+                }
+            }
+            if (kMatch != null) {
+                int nKalHits = 0;
+                for (MeasurementSite site : kMatch.SiteList) {
+                    if (site.hitID < 0) continue;
+                    nKalHits++;
+                    SiModule mod = site.m;
+                    if (mod != null) {
+                        TrackerHit ht = this.getHpsHit(mod.hits.get(site.hitID));
+                        List<RawTrackerHit> rawHits = ht.getRawHits();
+                        for (RawTrackerHit rawHit : rawHits) {
+                            int chan = rawHit.getIdentifierFieldValue("strip");
+                            HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+                            int Layer = sensor.getLayerNumber();
+                            int sensorID = sensor.getModuleNumber();
+                            if (10000*sensorID + chan > chanKAL[Layer-1]) chanKAL[Layer-1] = 10000*sensorID + chan;
+                        }
+                    }
+                }
+                System.out.format("GBL/Kalman match, ID=%d, %d hits, with %d matching layers\n", kMatch.ID, nKalHits, nGood);
+                for (int lyr=0; lyr<14; ++lyr) {
+                    System.out.format("    Layer %d: GBL=%d   KAL=%d\n", lyr, chanGBL[lyr], chanKAL[lyr]);
+                }
+                boolean refit = false;
+                HelixState hx = null;
+                for (MeasurementSite site : kMatch.SiteList) {
+                    if (site.hitID >= 0) {
+                        if (site.aS != null) {
+                            refit = true;
+                            hx = site.aS.helix;
+                            break;
+                        }
+                    }
+                }
+                if (refit) {
+                    ArrayList<SiModule> modList = new ArrayList<SiModule>(nGood);
+                    ArrayList<Integer> hits = new ArrayList<Integer>(nGood);
+                    for (int lyr=0; lyr<14; ++lyr) {
+                        if (chanGBL[lyr] >= 0) {
+                            for (SiModule mod : SiMlist) {
+                                if (mod.Layer != lyr) continue;
+                                int sensorID = mod.detector;
+                                HitLoop: for (Measurement kalHt : mod.hits) {
+                                    TrackerHit ht = this.getHpsHit(kalHt);
+                                    List<RawTrackerHit> rawHits = ht.getRawHits();
+                                    for (RawTrackerHit rawHit : rawHits) {
+                                        if (10000*sensorID + rawHit.getIdentifierFieldValue("strip") == chanGBL[lyr]) {
+                                            modList.add(mod);
+                                            hits.add(mod.hits.indexOf(kalHt));
+                                            break HitLoop;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } 
+                    
+                    // The following is for testing by refitting the existing Kalman track
+                    //for (MeasurementSite site : kMatch.SiteList) {
+                    //    if (site.hitID < 0) continue;
+                    //    modList.add(site.m);
+                    //    hits.add(site.hitID);
+                    //}
+                    DMatrixRMaj cov = hx.C.copy();
+                    CommonOps_DDRM.scale(10., cov);
+                    KalmanTrackFit2 kft2 = new KalmanTrackFit2(event.getEventNumber(), modList, hits, 0, 2, hx.X0, hx.a, cov, kPar, fM);
+                    if (kft2 != null) kft2.printFit("refit with GBL hits");
+                }
+                kMatch.print("matching Kalman track");
+            }
+        }
+    }    
     
     public void plotGBLtracks(String path, EventHeader event) {
         
@@ -1150,6 +1495,33 @@ public class KalmanInterface {
         RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
+        double vPos = 0.9;
+        for (Track tkr : tracksGBL) {
+            double [] a = new double[5];
+            for (int i=0; i<5; ++i) {
+                a[i] = tkr.getTrackStates().get(0).getParameter(i);
+            }
+            double Q = tkr.getCharge();
+            double chi2 = tkr.getChi2();
+            int nHits = tkr.getTrackerHits().size();
+            String s = String.format("Track %d, Q=%4.1f, %d hits, chi^2=%7.1f, helix=%8.3f %8.3f %8.3f %8.3f %8.3f", tracksGBL.indexOf(tkr),  
+                    Q, nHits, chi2, a[0], a[1], a[2], a[3], a[4]);
+            printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);
+            vPos = vPos - 0.03;
+        }
+        
+        for (Track tkr : tracksGBL) {
+            printWriter3.format("$tkr%d << EOD\n", tracksGBL.indexOf(tkr));
+            for (TrackState state : tkr.getTrackStates()) {
+                int loc = state.getLocation();
+                if (loc != state.AtIP && loc != state.AtCalorimeter && loc != state.AtOther && loc != state.AtVertex) {
+                    double [] pnt = state.getReferencePoint();
+                    printWriter3.format(" %10.6f %10.6f %10.6f\n", pnt[0], pnt[2], -pnt[1]);
+                }
+            }
+            printWriter3.format("EOD\n");
+        }       
+        
         for (Track tkr : tracksGBL) {
             printWriter3.format("$tkp%d << EOD\n", tracksGBL.indexOf(tkr));
             List<TrackerHit> hitsOnTrack = TrackUtils.getStripHits(tkr, hitToStrips, hitToRotated);
@@ -1177,13 +1549,15 @@ public class KalmanInterface {
         printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2");
         for (Track tkr : tracksGBL) {
             printWriter3.format(", $tkp%d u 1:2:3 with points pt 7 ps 2", tracksGBL.indexOf(tkr));
+            //printWriter3.format(", $tkr%d u 1:2:3 with lines lw 3", tracksGBL.indexOf(tkr));
         }
         printWriter3.format("\n");
         printWriter3.close();
     }
     // This method makes a Gnuplot file to display the Kalman tracks and hits in 3D.
-    public void plotKalmanEvent(String path, EventHeader event, ArrayList<KalmanPatRecHPS> patRecList) {
+    public void plotKalmanEvent(String path, EventHeader event, ArrayList<KalTrack>[] patRecList) {
         
+        boolean debug = false;
         PrintWriter printWriter3 = null;
         int eventNumber = event.getEventNumber();
         String fn = String.format("%shelix3_%d.gp", path, eventNumber);
@@ -1203,18 +1577,21 @@ public class KalmanInterface {
         printWriter3.format("set xlabel 'X'\n");
         printWriter3.format("set ylabel 'Y'\n");
         double vPos = 0.9;
-        for (KalmanPatRecHPS patRec : patRecList) {
-            for (KalTrack tkr : patRec.TkrList) {
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            for (KalTrack tkr : patRecList[topBottom]) {
                 double [] a = tkr.originHelixParms();
+                if (a == null) a = tkr.SiteList.get(0).aS.helix.a.v;
                 String s = String.format("TB %d Track %d, %d hits, chi^2=%7.1f, a=%8.3f %8.3f %8.3f %8.3f %8.3f t=%6.1f", 
-                        patRec.topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4], tkr.getTime());
+                        topBottom, tkr.ID, tkr.nHits, tkr.chi2, a[0], a[1], a[2], a[3], a[4], tkr.getTime());
                 printWriter3.format("set label '%s' at screen 0.1, %2.2f\n", s, vPos);
                 vPos = vPos - 0.03;
             }
         }
-        for (KalmanPatRecHPS patRec : patRecList) {
-            for (KalTrack tkr : patRec.TkrList) {
-                printWriter3.format("$tkr%d_%d << EOD\n", tkr.ID, patRec.topBottom);
+        int [] nTkpL = {0, 0};
+        int [] nTkpS = {0, 0};
+        for (int topBottom=0; topBottom<2; ++topBottom) {   // Plotting tracks as lines
+            for (KalTrack tkr : patRecList[topBottom]) {
+                printWriter3.format("$tkr%d_%d << EOD\n", tkr.ID, topBottom);
                 for (MeasurementSite site : tkr.SiteList) {
                     StateVector aS = site.aS;
                     SiModule module = site.m;
@@ -1228,11 +1605,16 @@ public class KalmanInterface {
                         site.print(" bad site ");
                         continue;
                     }
-                    double phiS = aS.planeIntersect(module.p);
+                    double phiS = aS.helix.planeIntersect(module.p);
                     if (Double.isNaN(phiS)) continue;
-                    Vec rLocal = aS.atPhi(phiS);
-                    Vec rGlobal = aS.toGlobal(rLocal);
+                    Vec rLocal = aS.helix.atPhi(phiS);
+                    Vec rGlobal = aS.helix.toGlobal(rLocal);
                     printWriter3.format(" %10.6f %10.6f %10.6f\n", rGlobal.v[0], rGlobal.v[1], rGlobal.v[2]);
+                    if (debug) {
+                        System.out.format("plotKalmanEvent %d: tk %d lyr %d phiS=%11.6f\n", event.getEventNumber(), tkr.ID, module.Layer, phiS);
+                        rLocal.print(" local point in B frame");
+                        rGlobal.print(" global point");
+                    }
                     // Vec rDetector = m.toLocal(rGlobal);
                     // double vPred = rDetector.v[1];
                     // if (site.hitID >= 0) {
@@ -1242,20 +1624,64 @@ public class KalmanInterface {
                 printWriter3.format("EOD\n");
             }
 
-            for (KalTrack tkr : patRec.TkrList) {
-                printWriter3.format("$tkp%d_%d << EOD\n", tkr.ID, patRec.topBottom);
+            for (KalTrack tkr : patRecList[topBottom]) {    // Plotting hits on tracks
+                printWriter3.format("$tkp%d_%d << EOD\n", tkr.ID, topBottom);
                 for (MeasurementSite site : tkr.SiteList) {
                     SiModule module = site.m;
                     int hitID = site.hitID;
                     if (hitID < 0) continue;
                     Measurement mm = module.hits.get(hitID);
+                    if (mm.energy < kPar.minSeedE[module.Layer]) continue;
+                    if (mm.tracks.size() > 1) continue;
                     Vec rLoc = null;
                     if (mm.rGlobal == null) {         // If there is no MC truth, use the track intersection for x and z
                         StateVector aS = site.aS;
-                        double phiS = aS.planeIntersect(module.p);
+                        double phiS = aS.helix.planeIntersect(module.p);
                         if (!Double.isNaN(phiS)) {
-                            Vec rLocal = aS.atPhi(phiS);        // Position in the Bfield frame
-                            Vec rGlobal = aS.toGlobal(rLocal);  // Position in the global frame                 
+                            Vec rLocal = aS.helix.atPhi(phiS);        // Position in the Bfield frame
+                            Vec rGlobal = aS.helix.toGlobal(rLocal);  // Position in the global frame                 
+                            rLoc = module.toLocal(rGlobal);     // Position in the detector frame
+                            if (debug) {
+                                double resid = rLoc.v[1] - mm.v;
+                                System.out.format("plotKalmanEvent %d: tk %d lyr %d phiS=%11.6f resid= %11.8f vs %11.8f\n",
+                                        event.getEventNumber(), tkr.ID, module.Layer, phiS, resid, site.aS.r);
+                                aS.helix.a.print(" helix parameters ");
+                                rLocal.print(" local position in B frame");
+                                rGlobal.print(" global position ");
+                                rLoc.print(" position in detector frame");
+                            }
+                        } else {
+                            if (debug) {
+                                System.out.format("plotKalmanEvent %d: tk %d lyr %d phiS is NaN.\n", event.getEventNumber(),tkr.ID, module.Layer);
+                                aS.helix.a.print(" helix parameters ");
+                            }
+                            rLoc = new Vec(0.,0.,0.);
+                        }
+                    } else {
+                        rLoc = module.toLocal(mm.rGlobal); // Use MC truth for the x and z coordinates in the detector frame
+                    }
+                    Vec rmG = module.toGlobal(new Vec(rLoc.v[0], mm.v, rLoc.v[2]));
+                    if (debug) System.out.format("plotKalmanEvent %d: tk %d lyr %d rmG=%s\n", event.getEventNumber(), tkr.ID, module.Layer, rmG.toString());
+                    printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
+                }
+                printWriter3.format("EOD\n");
+            }
+            for (KalTrack tkr : patRecList[topBottom]) {    // Plotting shared hits on tracks
+                printWriter3.format("$tkpS%d_%d << EOD\n", tkr.ID, topBottom);
+                for (MeasurementSite site : tkr.SiteList) {
+                    SiModule module = site.m;
+                    int hitID = site.hitID;
+                    if (hitID < 0) continue;
+                    Measurement mm = module.hits.get(hitID);
+                    if (mm.energy < kPar.minSeedE[module.Layer]) continue;
+                    if (mm.tracks.size() <= 1) continue;
+                    Vec rLoc = null;
+                    if (mm.rGlobal == null) {         // If there is no MC truth, use the track intersection for x and z
+                        StateVector aS = site.aS;
+                        double phiS = aS.helix.planeIntersect(module.p);
+                        if (!Double.isNaN(phiS)) {
+                            Vec rLocal = aS.helix.atPhi(phiS);        // Position in the Bfield frame
+                            Vec rGlobal = aS.helix.toGlobal(rLocal);  // Position in the global frame                 
                             rLoc = module.toLocal(rGlobal);     // Position in the detector frame
                         } else {
                             rLoc = new Vec(0.,0.,0.);
@@ -1265,14 +1691,44 @@ public class KalmanInterface {
                     }
                     Vec rmG = module.toGlobal(new Vec(rLoc.v[0], mm.v, rLoc.v[2]));
                     printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
+                    nTkpS[topBottom]++;
+                }
+                printWriter3.format("EOD\n");
+            }
+            for (KalTrack tkr : patRecList[topBottom]) {    // Plotting low-ph hits on tracks
+                printWriter3.format("$tkpL%d_%d << EOD\n", tkr.ID, topBottom);
+                for (MeasurementSite site : tkr.SiteList) {
+                    SiModule module = site.m;
+                    int hitID = site.hitID;
+                    if (hitID < 0) continue;
+                    Measurement mm = module.hits.get(hitID);
+                    if (mm.energy >= kPar.minSeedE[module.Layer]) continue;
+                    Vec rLoc = null;
+                    if (mm.rGlobal == null) {         // If there is no MC truth, use the track intersection for x and z
+                        StateVector aS = site.aS;
+                        double phiS = aS.helix.planeIntersect(module.p);
+                        if (!Double.isNaN(phiS)) {
+                            Vec rLocal = aS.helix.atPhi(phiS);        // Position in the Bfield frame
+                            Vec rGlobal = aS.helix.toGlobal(rLocal);  // Position in the global frame                 
+                            rLoc = module.toLocal(rGlobal);           // Position in the detector frame
+                        } else {
+                            rLoc = new Vec(0.,0.,0.);
+                        }
+                    } else {
+                        rLoc = module.toLocal(mm.rGlobal); // Use MC truth for the x and z coordinates in the detector frame
+                    }
+                    Vec rmG = module.toGlobal(new Vec(rLoc.v[0], mm.v, rLoc.v[2]));
+                    printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
+                    nTkpL[topBottom]++;
                 }
                 printWriter3.format("EOD\n");
             }
         }
         printWriter3.format("$pnts << EOD\n");
         for (SiModule si : SiMlist) {
-            for (Measurement mm : si.hits) {
+            for (Measurement mm : si.hits) {    // Plotting high-amplitude hits not on tracks
                 if (mm.tracks.size() > 0) continue;
+                if (mm.energy < kPar.minSeedE[si.Layer]) continue;
                 Vec rLoc = null;
                 if (mm.rGlobal == null) {
                     rLoc = new Vec(0.,0.,0.);      // Use the center of the detector if there is no MC truth info
@@ -1284,10 +1740,34 @@ public class KalmanInterface {
             }
         }
         printWriter3.format("EOD\n");
-        printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2");
-        for (KalmanPatRecHPS patRec : patRecList) {
-            for (KalTrack tkr : patRec.TkrList) { printWriter3.format(", $tkr%d_%d u 1:2:3 with lines lw 3", tkr.ID, patRec.topBottom); }
-            for (KalTrack tkr : patRec.TkrList) { printWriter3.format(", $tkp%d_%d u 1:2:3 with points pt 7 ps 2", tkr.ID, patRec.topBottom); }
+        printWriter3.format("$pntsL << EOD\n");
+        for (SiModule si : SiMlist) {
+            for (Measurement mm : si.hits) {    // Plotting low-amplitude hits not on tracks
+                if (mm.tracks.size() > 0) continue;
+                if (mm.energy >= kPar.minSeedE[si.Layer]) continue;
+                Vec rLoc = null;
+                if (mm.rGlobal == null) {
+                    rLoc = new Vec(0.,0.,0.);      // Use the center of the detector if there is no MC truth info
+                } else {
+                    rLoc = si.toLocal(mm.rGlobal); // Use MC truth for the x and z coordinates in the detector frame
+                }
+                Vec rmG = si.toGlobal(new Vec(rLoc.v[0], mm.v, rLoc.v[2]));
+                printWriter3.format(" %10.6f %10.6f %10.6f\n", rmG.v[0], rmG.v[1], rmG.v[2]);
+            }
+        }
+        printWriter3.format("EOD\n");
+        int idx = 1;
+        printWriter3.format("splot $pnts u 1:2:3 with points pt 6 ps 2 lc %d", idx);
+        idx++;
+        printWriter3.format(", $pntsL u 1:2:3 with points pt 4 ps 1 lc %d", idx);
+        for (int topBottom=0; topBottom<2; ++topBottom) {
+            for (KalTrack tkr : patRecList[topBottom]) { 
+                idx++;
+                printWriter3.format(", $tkr%d_%d u 1:2:3 with lines lw 3 lc %d", tkr.ID, topBottom, idx); 
+                printWriter3.format(", $tkp%d_%d u 1:2:3 with points pt 7 ps 2 lc %d", tkr.ID, topBottom, idx); 
+                if (nTkpL[topBottom] > 0) printWriter3.format(", $tkpL%d_%d u 1:2:3 with points pt 9 ps 2 lc %d", tkr.ID, topBottom, idx);
+                if (nTkpS[topBottom] > 0) printWriter3.format(", $tkpS%d_%d u 1:2:3 with points pt 15 ps 2 lc %d", tkr.ID, topBottom, idx);
+            }
         }
         printWriter3.format("\n");
         printWriter3.close();

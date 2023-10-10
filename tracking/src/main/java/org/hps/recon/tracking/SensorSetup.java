@@ -1,6 +1,8 @@
 package org.hps.recon.tracking; 
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.event.EventHeader;
@@ -16,6 +18,8 @@ public class SensorSetup extends RawTrackerHitSensorSetup {
 
     /// Name of the collection of fitted hits 
     private String fittedHitColName_ = ""; 
+    
+    private List<String> sensorNames_ = new ArrayList<String>();
 
     /// Constructor
     public SensorSetup() { }
@@ -29,6 +33,10 @@ public class SensorSetup extends RawTrackerHitSensorSetup {
      */
     public void setFittedHitCollection(String fittedHitColName) { fittedHitColName_ = fittedHitColName; }
 
+    public void setSkipSensors(String[] sensorNames) {
+        this.sensorNames_ = new ArrayList<String>(Arrays.asList(sensorNames));
+    }
+    
     @Override
     protected void process(EventHeader event) { 
         
@@ -50,7 +58,26 @@ public class SensorSetup extends RawTrackerHitSensorSetup {
     public void loadFittedHits(List< LCRelation > fittedHits) {
 
         for (LCRelation fittedHit : fittedHits) { 
+
+            Boolean skipHit = false;
             RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(fittedHit);
+            
+            SiSensor sensor = (SiSensor) rawHit.getDetectorElement();
+            String name = sensor.getName();
+            
+            if (sensorNames_.size() > 0) {
+                
+                for (String sensorName : sensorNames_) {
+                    if (name.contains(sensorName)) {
+                        skipHit = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (skipHit)
+                continue;
+            
             ((SiSensor) rawHit.getDetectorElement()).getReadout().addHit(fittedHit); 
         }
     }

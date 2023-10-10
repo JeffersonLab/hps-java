@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <artifactId>hps-distribution</artifactId>
   <name>distribution</name>
   <description>module for creating a standalone runnable bin jar for HPS Java</description>
+
   <properties>
     <maven.javadoc.skip>true</maven.javadoc.skip>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
   </properties>
+
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.5-SNAPSHOT</version>
+    <version>5.2.2-SNAPSHOT</version>
   </parent>
+
   <build>
     <defaultGoal>install</defaultGoal>
     <resources>
@@ -25,6 +29,12 @@
     </resources>
     <plugins>
       <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <configuration>
+          <skip>false</skip>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
@@ -34,6 +44,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
               <shadedArtifactAttached>true</shadedArtifactAttached>
               <shadedClassifierName>bin</shadedClassifierName>
               <transformers>
@@ -64,7 +75,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>appassembler-maven-plugin</artifactId>
-        <version>1.10</version>
         <executions>
           <execution>
             <phase>install</phase>
@@ -72,9 +82,9 @@
               <goal>assemble</goal>
             </goals>
             <configuration>
-              <binFileExtensions>
-                <unix>.sh</unix>
-              </binFileExtensions>
+              <platforms>
+                <platform>unix</platform>
+              </platforms>
               <extraJvmArguments>-Xmx2g
                 -Djava.util.logging.config.class=org.hps.logging.config.DefaultLoggingConfig</extraJvmArguments>
               <programs>
@@ -89,10 +99,6 @@
                 <program>
                   <mainClass>org.hps.conditions.cli.CommandLineTool</mainClass>
                   <id>conditions-cli</id>
-                </program>
-                <program>
-                  <mainClass>org.hps.run.database.RunDatabaseCommandLine</mainClass>
-                  <id>run-database-cli</id>
                 </program>
                 <program>
                   <mainClass>org.hps.monitoring.application.Main</mainClass>
@@ -117,18 +123,6 @@
                     <commandLineArgument>-v</commandLineArgument>
                   </commandLineArguments>
                 </program>
-                <program>
-                  <mainClass>org.hps.crawler.MetadataWriter</mainClass>
-                  <id>dc-create-metadata</id>
-                </program>
-                <program>
-                  <mainClass>org.hps.crawler.DatacatAddFile</mainClass>
-                  <id>dc-add-file</id>
-                </program>
-                <program>
-                  <mainClass>org.hps.crawler.DatacatCrawler</mainClass>
-                  <id>dc-crawler</id>
-                </program>
               </programs>
             </configuration>
           </execution>
@@ -136,10 +130,11 @@
       </plugin>
     </plugins>
   </build>
+
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
-      <artifactId>hps-monitoring-app</artifactId>
+      <artifactId>hps-online-monitoring</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
@@ -155,14 +150,6 @@
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
-      <artifactId>hps-run-database</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
-      <artifactId>hps-crawler</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
       <artifactId>hps-job</artifactId>
     </dependency>
     <dependency>
@@ -173,5 +160,10 @@
       <groupId>org.hps</groupId>
       <artifactId>hps-online-recon</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-digi</artifactId>
+    </dependency>
   </dependencies>
+
 </project>

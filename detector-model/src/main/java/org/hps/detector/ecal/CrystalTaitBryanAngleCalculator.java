@@ -1,17 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties. To change this template file, choose
- * Tools | Templates and open the template in the editor.
- */
 package org.hps.detector.ecal;
-
 
 /**
  * Calculates Euler (actually Tait-Bryan) angles for a rotation which transfers the crystal from it's initial
  * state parallel to the Z axis into the center position defined by the center points of the front and back faces.
  * <p>
  * For information about Tait-Bryan angles <a href="http://sedris.org/wg8home/Documents/WG80485.pdf">look here</a>. 
- * 
- * @author Annie Simonyan
  */
 class CrystalTaitBryanAngleCalculator {
     

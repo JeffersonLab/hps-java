@@ -25,8 +25,6 @@ import org.lcsim.util.loop.LCSimConditionsManagerImplementation;
  * Extracts LCIO events with positron hits at Ecal. For an event, loop all hits
  * at Ecal. If any hit has contribution from positron, then the event is
  * extracted to be saved in output. Hits could be cut with lower energy limit.
- *
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class ExtractEventsWithHitAtHodoEcal {
     static {

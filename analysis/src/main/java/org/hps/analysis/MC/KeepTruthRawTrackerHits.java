@@ -14,8 +14,6 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 
 /**
- *
- * @author mrsolt
  * This driver keeps all truth hits that correspond to a track's 1D strip hits
  */
 public class KeepTruthRawTrackerHits extends Driver {

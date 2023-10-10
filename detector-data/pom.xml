@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <artifactId>hps-detector-data</artifactId>
   <name>detector-data</name>
   <description>detector conditions data including text based conditions and compact XML files</description>
+
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.5-SNAPSHOT</version>
+    <version>5.2.2-SNAPSHOT</version>
   </parent>
+
   <build>
     <resources>
       <resource>
@@ -22,4 +25,5 @@
       </resource>
     </resources>
   </build>
+
 </project>

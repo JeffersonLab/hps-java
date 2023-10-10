@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.recon.filtering;
 
 import hep.physics.vec.Hep3Vector;
@@ -15,14 +12,9 @@ import org.lcsim.event.Track;
 import org.lcsim.lcio.LCIOConstants;
 
 /**
- * 
  * Filter events to be used for SVT alignment.
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
  */
 public class SvtAlignmentFilter extends EventReconFilter {
-
     
 //    private static Logger logger = LogUtil.create(SvtAlignmentFilter.class.getSimpleName(), new BasicLogFormatter(), Level.INFO);
 //    private int minRawHits = 12;
@@ -34,10 +26,10 @@ public class SvtAlignmentFilter extends EventReconFilter {
 //    private int maxEcalClustersInHalf = 99999999;
 //    private Double minStripIsolation = 0.2;
     
-    
     @Override
     protected void process(EventHeader event) {
-     
+        int runNumber = event.getRunNumber();
+        
         incrementEventProcessed();
         
         if(!event.hasCollection(Track.class,"MatchedTracks")) skipEvent();
@@ -51,7 +43,7 @@ public class SvtAlignmentFilter extends EventReconFilter {
         List<Track> selectedTracks = new ArrayList<Track>();
 
         for(Track track : tracks) {
-            Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(tracks.get(0));
+            Hep3Vector posAtEcal = TrackUtils.getTrackPositionAtEcal(tracks.get(0),runNumber);
             Cluster cand_clust = findClosestCluster(posAtEcal, clusters);
             if(cand_clust!=null) {
                 if(Math.abs( posAtEcal.x() - cand_clust.getPosition()[0])<30.0 && 

@@ -13,12 +13,13 @@ import org.jdom.Element;
 import org.lcsim.detector.Translation3D;
 import org.lcsim.geometry.compact.converter.HPSTracker2014GeometryDefinition.SvtBox;
 import org.lcsim.geometry.util.TransformationUtils;
+import org.lcsim.detector.Transform3D;
 
 /**
  * Contains the geometry information that is used to build any volume.
  */
 public abstract class SurveyVolume {
-
+    
     protected boolean debug = false;
     private String name;
     private String material = "Vacuum";
@@ -31,6 +32,7 @@ public abstract class SurveyVolume {
     private Hep3Vector center;
     private Hep3Vector boxDim;
     private AlignmentCorrection alignmentCorrections;
+    private Transform3D l2gTransform;
 
     public SurveyVolume(String name, SurveyVolume m, AlignmentCorrection alignmentCorrection) {
         setName(name);
@@ -71,6 +73,7 @@ public abstract class SurveyVolume {
         setBoxDim();
         applyGenericCoordinateSystemCorrections();
         applyLocalAlignmentCorrections();
+        setl2gTransform();
         if (debug) {
             // printCoordInfo();
             System.out.printf("%s: init of SurveyVolume %s DONE\n", this.getClass().getSimpleName(), getName());
@@ -413,7 +416,7 @@ public abstract class SurveyVolume {
      * Applies a user supplied reference transformation to the module. This is convenient as it allows for intermediary "virtual" mother volumes to be used in referencing a volume to it's physcial mother volume.
      */
     protected void applyReferenceTransformation() {
-
+        
         if (referenceGeom != null) {
 
             if (debug)
@@ -452,7 +455,7 @@ public abstract class SurveyVolume {
                         getName());
 
         }
-
+        
     }
 
     /**
@@ -674,6 +677,14 @@ public abstract class SurveyVolume {
         this.material = material;
     }
 
+    public void setl2gTransform() {
+        this.l2gTransform = HPSTrackerBuilder.getTransform(getCoord().getTransformation(),getMother(),"trackingVolume");
+    }
+    
+    public Transform3D  getl2gTransform() {
+        return l2gTransform;
+    }
+    
     public String toString() {
         String s = "==\n" + getName() + " with mother " + (getMother() == null ? "<no mother>" : getMother().getName())
                 + ":\n";
@@ -684,7 +695,7 @@ public abstract class SurveyVolume {
         if (this.coord == null)
             s += " No coord system \n";
         else {
-            s += getName() + " origin " + getCoord().origin() + " u " + getCoord().u() + " v " + getCoord().v() + " w "
+            s += getName() + " origin " + getCoord().origin() + "\n u " + getCoord().u() + "\n v " + getCoord().v() + "\n w "
                     + getCoord().w();
         }
         s += "AlignmentCorrections: \n";
@@ -701,14 +712,28 @@ public abstract class SurveyVolume {
             s += " no alignment corrections associated.\n";
         }
         SurveyVolume m = getMother();
+        
+        if (getCoord()!=null && m!=null) {
+            s+= String.format("%s the transformation to mother volume %s is %s\n", getName(), m.getName(), getCoord().getTransformation().toString());
+            s+= String.format("%s the transformation to tracking volume is %s\n", getName(), HPSTrackerBuilder.getTransform(getCoord().getTransformation(),m,"trackingVolume").toString());
+        }
+        
         while (m != null) {
             Hep3Vector origin_m = HPSTrackerBuilder.transformToParent(new BasicHep3Vector(0, 0, 0), this, m.getName());
             String unitVecStr = "";
             if (getCoord() != null) {
-                Hep3Vector u_m = HPSTrackerBuilder.rotateToParent(getCoord().u(), this, m.getName());
-                Hep3Vector v_m = HPSTrackerBuilder.rotateToParent(getCoord().v(), this, m.getName());
-                Hep3Vector w_m = HPSTrackerBuilder.rotateToParent(getCoord().w(), this, m.getName());
-                unitVecStr += String.format("u %s v %s w %s", u_m.toString(), v_m.toString(), w_m.toString());
+                
+                //Very confusing code! This is *not* going from local basis to mother basis !!
+                //Hep3Vector u_m = HPSTrackerBuilder.rotateToParent(getCoord().u(), this, m.getName());
+                //Hep3Vector v_m = HPSTrackerBuilder.rotateToParent(getCoord().v(), this, m.getName());
+                //Hep3Vector w_m = HPSTrackerBuilder.rotateToParent(getCoord().w(), this, m.getName());
+                
+                //This is going from local basis in mother coordinates
+                Hep3Vector u_m = HPSTrackerBuilder.rotateToParent(new BasicHep3Vector(1, 0, 0), this, m.getName());
+                Hep3Vector v_m = HPSTrackerBuilder.rotateToParent(new BasicHep3Vector(0, 1, 0), this, m.getName());
+                Hep3Vector w_m = HPSTrackerBuilder.rotateToParent(new BasicHep3Vector(0, 0, 1), this, m.getName());
+                
+                unitVecStr += String.format("u_%s %s v_%s %s w_%s %s", m.getName(), u_m.toString(), m.getName(),v_m.toString(),m.getName(), w_m.toString());
             }
             s += String.format("%s origin in %s : %s (mm) %s\n", getName(), m.getName(), origin_m.toString(),
                     unitVecStr);
@@ -716,7 +741,7 @@ public abstract class SurveyVolume {
             // s += String.format("%s origin in %s : (%.4f %.4f %.4f) (inch)\n",getName(), m.getName(), origin_m.x(),origin_m.y(),origin_m.z());
             m = m.getMother();
         }
-
+        
         return s;
     }
 

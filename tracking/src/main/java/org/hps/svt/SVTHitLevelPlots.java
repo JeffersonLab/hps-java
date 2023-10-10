@@ -1,16 +1,3 @@
-/**
- * Driver used to compute SVT hit efficiencies at each sensor
- * as a function of strip and y
- * Unbiased Hit Residuals are also computed
- * TODO Cleanup Code, add comments
- * TODO Move general functions to a different driver
- * TODO Fix u error function
- * TODO Update Track Extrapolations
- */
-/**
- * @author mrsolt
- *
- */
 package org.hps.svt;
 
 import static java.lang.Math.abs;
@@ -68,6 +55,15 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.GblUtils;
 import org.hps.recon.tracking.gbl.matrix.Matrix;
 
+/**
+ * Driver used to compute SVT hit efficiencies at each sensor
+ * as a function of strip and y
+ * Unbiased Hit Residuals are also computed
+ * TODO Cleanup Code, add comments
+ * TODO Move general functions to a different driver
+ * TODO Fix u error function
+ * TODO Update Track Extrapolations
+ */
 public class SVTHitLevelPlots extends Driver {
 
     // Plotting

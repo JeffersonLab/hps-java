@@ -6,8 +6,6 @@ import junit.framework.TestCase;
 
 /**
  * Test that the default package loggers are setup properly.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class DefaultLoggingConfigTest extends TestCase {
   

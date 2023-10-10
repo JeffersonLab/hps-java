@@ -69,12 +69,7 @@ import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
  * <li>{@link #setHelicalTrackMCRelationsCollectionName(String)} -  HelicalTrackMCRelations</li>
  * <li>{@link #setOutputHitCollectionName(String)} - HelicalTrackHits</li>
  * </ul>
- *
- * @author Mathew Graham <mgraham@slac.stanford.edu>
- * @author Per Hansson <phansson@slac.stanford.edu>
- * @author Omar Moreno <omoreno1@ucsc.edu>
  */
-
 public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTrackHitDriver {
 
     private boolean _debug = false;
@@ -94,7 +89,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
     private boolean allowHoleSlotCombo = false;
 
     /**
-     * Default Ctor
+     * Default Constructor
      */
     public HelicalTrackHitDriver() {
         _crosser.setMaxSeparation(20.0);
@@ -277,6 +272,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                 System.out.printf("%s: found %d SiTrackerHits\n", this.getClass().getSimpleName(), hitlist.size());
             }
             Map<HelicalTrackStrip, SiTrackerHitStrip1D> stripmap = new LinkedHashMap<HelicalTrackStrip, SiTrackerHitStrip1D>();
+            Map<HelicalTrackStrip, TrackerHit> oldstripmap = new LinkedHashMap<>();
             for (SiTrackerHit hit : hitlist) {
                 //if (hit instanceof SiTrackerHitStrip1D) {
                 // Cast the hit as a 1D strip hit and find the
@@ -306,6 +302,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                 // Map a reference back to the hit needed to create
                 // the stereo hit LC relations
                 stripmap.put(strip, h);
+                oldstripmap.put(strip,(TrackerHit)hit);
                 if (_debug) {
                     System.out.printf("%s: added strip org %s layer %d\n", this.getClass().getSimpleName(), strip.origin().toString(), strip.layer());
                 }
@@ -363,7 +360,7 @@ public class HelicalTrackHitDriver extends org.lcsim.fit.helicaltrack.HelicalTra
                     }
                 }
                 for (HelicalTrackStrip strip : cross.getStrips()) {
-                    hitrelations.add(new MyLCRelation(cross, stripmap.get(strip)));
+                    hitrelations.add(new MyLCRelation(cross, oldstripmap.get(strip)));                   
                 }
                 if (_debug) {
                     System.out.printf("%s: cross at %.2f,%.2f,%.2f \n", this.getClass().getSimpleName(), cross.getPosition()[0], cross.getPosition()[1], cross.getPosition()[2]);

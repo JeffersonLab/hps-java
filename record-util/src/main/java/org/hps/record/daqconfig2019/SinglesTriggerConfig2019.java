@@ -3,8 +3,6 @@ package org.hps.record.daqconfig2019;
 /**
  * Class <code>SinglesTriggerConfig</code> holds the configuration data
  * for a singles trigger.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class SinglesTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2019<Double>> {
     private static final int CUT_ENERGY_MIN = 0;
@@ -17,12 +15,19 @@ public class SinglesTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2
     private static final int L1L2_GEO_MATCHING = 7;
     private static final int HODOECAL_GEO_MATCHING = 8;
     
+    //2021 update
+    private static final int CUT_X_MAX = 9;
+    private static final int CUT_Y_MIN = 10;
+    private static final int CUT_Y_MAX = 11;    
+    private boolean singlesMollerModeEnabled = false;
+    private boolean singlesXYMinMaxEnabled = false;
+    
     /**
      * Creates a new <code>SinglesTriggerConfig</code> object.
      */
     public SinglesTriggerConfig2019() {
         // Instantiate the base object.
-        super(9);
+        super(12);
         
         // Define the singles cuts.
         setValue(CUT_ENERGY_MIN, new LBOCutConfig2019());
@@ -34,7 +39,12 @@ public class SinglesTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2
         setValue(L2_MATCHING,  new HodoEcalCoincidence2019());
         setValue(L1L2_GEO_MATCHING,  new HodoEcalCoincidence2019());
         setValue(HODOECAL_GEO_MATCHING,  new HodoEcalCoincidence2019());
-    }
+        
+        //2021 update
+        setValue(CUT_X_MAX,  new UBOCutConfig2019());
+        setValue(CUT_Y_MIN,  new LBOCutConfig2019());
+        setValue(CUT_Y_MAX,  new UBOCutConfig2019());
+    }       
     
     /**
      * Gets the configuration object for the cluster energy lower bound
@@ -112,4 +122,70 @@ public class SinglesTriggerConfig2019 extends AbstractConfig2019<AbstractConfig2
     public HodoEcalCoincidence2019 getHodoEcalGeoMatchingConfig() {
         return (HodoEcalCoincidence2019) getValue(HODOECAL_GEO_MATCHING);
     }
+    
+    //2021 update
+    /**
+     * Gets the configuration object for the cluster XMax cut.
+     * Note that cuts are in units of X.
+     * @return Returns the configuration object for the cut.
+     */
+    public UBOCutConfig2019 getXMaxCutConfig() {
+        return (UBOCutConfig2019) getValue(CUT_X_MAX);
+    }
+    
+    /**
+     * Gets the configuration object for the cluster YMin cut.
+     * Note that cuts are in units of Y.
+     * @return Returns the configuration object for the cut.
+     */
+    public LBOCutConfig2019 getYMinCutConfig() {
+        return (LBOCutConfig2019) getValue(CUT_Y_MIN);
+    }
+    
+    /**
+     * Gets the configuration object for the cluster YMax cut.
+     * Note that cuts are in units of Y.
+     * @return Returns the configuration object for the cut.
+     */
+    public UBOCutConfig2019 getYMaxCutConfig() {
+        return (UBOCutConfig2019) getValue(CUT_Y_MAX);
+    }
+    
+    /**
+     * Sets whether singlesMollerModeEn is enabled
+     * @param state <code>true</code> means that singlesMollerModeEn is enabled
+     * and <code>false</code> that it is disabled.
+     */
+    protected void setIsSinglesMollerModeEnabled(boolean state) {
+        singlesMollerModeEnabled = state;
+    }
+    
+    /**
+     * Indicates whether singlesMollerModeEn is enabled or not.
+     * @return Returns <code>true</code> if singlesMollerModeEn is enabled and
+     * <code>false</code> otherwise.
+     */
+    public boolean isSinglesMollerModeEnabled() {
+        return singlesMollerModeEnabled;
+    }
+    
+    /**
+     * Sets whether singlesXYMinMaxEn is enabled
+     * @param state <code>true</code> means that singlesXYMinMaxEn is enabled
+     * and <code>false</code> that it is disabled.
+     */
+    protected void setIsSinglesXYMinMaxEnabled(boolean state) {
+        singlesXYMinMaxEnabled = state;
+    }
+    
+    /**
+     * Indicates whether singlesXYMinMaxEn is enabled or not.
+     * @return Returns <code>true</code> if singlesXYMinMaxEn is enabled and
+     * <code>false</code> otherwise.
+     */
+    public boolean isSinglesXYMinMaxEnabled() {
+        return singlesXYMinMaxEnabled;
+    }
+    
+    
 }

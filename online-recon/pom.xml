@@ -3,16 +3,26 @@
   <artifactId>hps-online-recon</artifactId>
   <name>online-recon</name>
   <description>online recon tools</description>
+
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.5-SNAPSHOT</version>
+    <version>5.2.2-SNAPSHOT</version>
   </parent>
+
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
-      <artifactId>hps-record-util</artifactId>
+      <artifactId>hps-online-monitoring</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-recon</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-steering-files</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
@@ -21,13 +31,109 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20180813</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.6</version>
-    </dependency>    
+    </dependency>
+    <dependency>
+      <groupId>org.freehep</groupId>
+      <artifactId>freehep-jaida-remote</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.sonatype.nexus</groupId>
+      <artifactId>google-guava-eventbus</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.java-websocket</groupId>
+      <artifactId>Java-WebSocket</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+    </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>appassembler-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>install</phase>
+            <goals>
+              <goal>assemble</goal>
+              <goal>create-repository</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <repositoryLayout>flat</repositoryLayout>
+          <platforms>
+            <platform>unix</platform>
+          </platforms>
+          <extraJvmArguments>-server</extraJvmArguments>
+          <programs>
+            <program>
+              <mainClass>org.hps.online.recon.Server</mainClass>
+              <id>online-recon-server</id>
+              <jvmSettings>
+                <maxMemorySize>4g</maxMemorySize>
+                <initialMemorySize>1g</initialMemorySize>
+                <maxStackSize>128m</maxStackSize>
+                <systemProperties>
+                  <systemProperty>
+                    java.util.logging.config.class=org.hps.online.recon.logging.ServerLoggingConfig</systemProperty>
+                </systemProperties>
+                <extraArguments>
+                  <extraArgument>-XX:+UnlockExperimentalVMOptions</extraArgument>
+                  <extraArgument>-XX:+UseConcMarkSweepGC</extraArgument>
+                  <extraArgument>-XX:MaxGCPauseMillis=50</extraArgument>
+                  <extraArgument>-XX:G1HeapRegionSize=32M</extraArgument>
+                  <extraArgument>-XX:G1NewSizePercent=20</extraArgument>
+                  <extraArgument>-XX:G1ReservePercent=20</extraArgument>
+                  <extraArgument>-XX:SoftRefLRUPolicyMSPerMB=1</extraArgument>
+                </extraArguments>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>org.hps.online.recon.Client</mainClass>
+              <id>online-recon-client</id>
+              <jvmSettings>
+                <maxMemorySize>200m</maxMemorySize>
+                <systemProperties>
+                  <systemProperty>
+                    java.util.logging.config.class=org.hps.online.recon.logging.ClientLoggingConfig</systemProperty>
+                </systemProperties>
+              </jvmSettings>
+            </program>
+            <program>
+              <mainClass>org.hps.record.evio.EvioFileProducer</mainClass>
+              <id>evio-producer</id>
+              <jvmSettings>
+                <maxMemorySize>1g</maxMemorySize>
+                <systemProperties>
+                  <systemProperty>
+                    java.util.logging.config.class=org.hps.online.recon.logging.LoggingConfig</systemProperty>
+                </systemProperties>
+              </jvmSettings>
+            </program>
+          </programs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

@@ -1,12 +1,5 @@
 package org.hps.svt.alignment;
 
-/*
- * SiStrips.java Created on July 22, 2005, 4:07 PM To change this template, choose Tools | Options and locate the
- * template under the Source Creation and Management node. Right-click the template and choose Open. You can then make
- * changes to the template in the Source Editor.
- */
-
-// import static org.lcsim.units.clhep.SystemOfUnits.*;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
@@ -32,9 +25,6 @@ import org.lcsim.detector.tracker.silicon.ChargeDistribution;
 import org.lcsim.detector.tracker.silicon.SiSensor;
 import org.lcsim.detector.tracker.silicon.SiStrips;
 
-/**
- * @author tknelson
- */
 public class HPSStrips extends SiStrips {
 
     // Fields

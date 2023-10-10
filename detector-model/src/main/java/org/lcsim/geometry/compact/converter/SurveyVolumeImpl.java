@@ -1,6 +1,7 @@
 package org.lcsim.geometry.compact.converter;
 
 import hep.physics.vec.Hep3Vector;
+import org.lcsim.detector.Transform3D;
 
 public abstract class SurveyVolumeImpl extends SurveyVolumeVisualization {
 
@@ -15,13 +16,17 @@ public abstract class SurveyVolumeImpl extends SurveyVolumeVisualization {
     public abstract void buildPhysVolume();
 
     public abstract void buildBox();
-
+    
     public abstract void buildVolume();
-
+    
     public abstract void setPositionAndRotation(SurveyVolume base);
-
+    
     public String getName() {
         return surveyVolume.getName();
+    }
+    
+    public Transform3D getSVl2gTransform() {
+        return surveyVolume.getl2gTransform();
     }
 
     protected Hep3Vector getBoxDim() {

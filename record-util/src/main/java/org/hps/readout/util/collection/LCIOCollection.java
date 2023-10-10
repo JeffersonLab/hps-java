@@ -7,7 +7,6 @@ import org.hps.readout.ReadoutDriver;
  * for use in the LCIO framework. It contains all of the information
  * needed to create and write an LCSim event to an LCIO file.
  * 
- * @author Kyle McCarty <mccarty@jlab.org>
  * @param <T> - The object type of the data stored by the collection.
  */
 public class LCIOCollection<T> implements Comparable<LCIOCollection<T>> {

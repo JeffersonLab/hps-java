@@ -32,9 +32,6 @@ import org.hps.recon.tracking.TrackUtils;
  * Analysis driver used to study SVT strip clusters. 
  * Copied from the SvtClusterAnalysis driver in org.hps.users.omoreno
  * These will be used for Svt NIM paper
- *  
- * @author <a href="mailto:omoreno@slac.stanford.edu">Omar Moreno</a> 
- * @auther Matt Solt mrsolt@slac.stanford.edu
  */
 public class SvtClusterAnalysis extends Driver {
 
@@ -384,7 +381,6 @@ public class SvtClusterAnalysis extends Driver {
    
     /**
      * 
-     * @author omoreno
      *
      */
     private class Cluster { 

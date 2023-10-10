@@ -12,8 +12,6 @@ import org.lcsim.conditions.ConditionsManager;
 
 /**
  * Convert records in the <i>conditions_tags</i> table to a conditions object collection. 
- * 
- * @author Jeremy McCormick, SLAC
  */
 public class ConditionsTagConverter extends AbstractConditionsObjectConverter<ConditionsTagCollection>  {
     

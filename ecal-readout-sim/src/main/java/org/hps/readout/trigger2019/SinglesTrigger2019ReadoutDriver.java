@@ -1,10 +1,15 @@
 package org.hps.readout.trigger2019;
 
 import java.util.Collection;
+import java.util.List;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.TriggerDriver;
+import org.hps.record.daqconfig2019.ConfigurationManager2019;
+import org.hps.record.daqconfig2019.DAQConfig2019;
 import org.hps.record.triggerbank.TriggerModule2019;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -25,13 +30,16 @@ import hep.aida.IHistogram2D;
  * {@link HodoscopePatternReadoutDriver}, and perform the necessary trigger
  * logic on them. If a trigger is detected, it is sent to the readout data
  * manager so that a triggered readout event may be written.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
+public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {     
     // ==============================================================
     // ==== LCIO Collections ========================================
     // ==============================================================
+    /**
+     * Indicates singles trigger type. Corresponding DAQ configuration is accessed by DAQ
+     * configuration system, and applied into readout.
+     */
+    private String triggerType = "singles3";   
     
     /**
      * Indicates the name of the calorimeter geometry object. This is
@@ -76,12 +84,8 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     /**
      * Defines the size of an energy bin for trigger output plots.
      */
-    private static final double BIN_SIZE = 0.025;
+    private static final double BIN_SIZE = 0.025;      
     
-    /**
-     * If require geometry matching
-     */
-    private boolean geometryMatchingRequired = false;
     
     // ==============================================================
     // ==== AIDA Plots ==============================================
@@ -94,7 +98,32 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     private IHistogram1D[] clusterHitCount = new IHistogram1D[2];
     private IHistogram1D[] clusterTotalEnergy = new IHistogram1D[2];
     private IHistogram2D[] clusterDistribution = new IHistogram2D[2];
-    
+  
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfigurationAppliedintoReadout(boolean state) {
+        // If the DAQ configuration should be read, attach a listener
+        // to track when it updates.               
+        if (state) {
+            ConfigurationManager2019.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig2019 daq = ConfigurationManager2019.getInstance();  
+                    if(triggerType.contentEquals(SINGLES3)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles3Config());
+                    else if(triggerType.equals(SINGLES2)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles2Config());
+                    else if(triggerType.equals(SINGLES1)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles1Config());
+                    else if(triggerType.equals(SINGLES0)) triggerModule.loadDAQConfiguration(daq.getVTPConfig().getSingles0Config());
+                }
+            });
+        }                               
+    }
     
     @Override
     public void detectorChanged(Detector detector) {
@@ -104,11 +133,11 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             ecal = (HPSEcal3) ecalSub;
         } else {
             throw new IllegalStateException("Error: Unexpected calorimeter sub-detector of type \"" + ecalSub.getClass().getSimpleName() + "; expected HPSEcal3.");
-        }
+        }        
     }
     
     @Override
-    public void process(EventHeader event) {
+    public void process(EventHeader event) {                
         // Check that clusters are available for the trigger.
         Collection<Cluster> clusters = null;
         Collection<HodoscopePattern> hodoPatterns = null;
@@ -133,6 +162,9 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
         // regardless of the outcome.
         if(isInDeadTime()) { return; }
         
+        // Record top/bot status for singles triggers
+        List<String> topBot = new ArrayList();
+        
         // Plot the trigger distributions before trigger cuts are
         // performed.
         for(Cluster cluster : clusters) {
@@ -148,12 +180,16 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             clusterDistribution[NO_CUTS].fill(ixy.x, ixy.y);           
             
             // Perform the hit count cut.
-            if(!triggerModule.clusterHitCountCut(cluster)) {
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_HIT_COUNT_LOW_EN) && !triggerModule.clusterHitCountCut(cluster)) {
                 continue;
             }            
             
             // Perform the cluster energy cut.
-            if(!triggerModule.clusterTotalEnergyCut(cluster)) {
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_TOTAL_ENERGY_LOW_EN) && !triggerModule.clusterTotalEnergyCutLow(cluster)) {
+                continue;
+            }
+            
+            if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_TOTAL_ENERGY_HIGH_EN) && !triggerModule.clusterTotalEnergyCutHigh(cluster)) {
                 continue;
             }
             
@@ -162,24 +198,47 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             int clusterX = ixy.x;
             if(clusterX < 0) clusterX++;
             
+            int clusterY = ixy.y;
+            
             // XMin is at least 0.
-            if(!triggerModule.clusterXMinCut(clusterX)) {
+            if(!triggerModule.getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN)) {
+                if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_XMIN_EN) && !triggerModule.clusterXMinCut(clusterX)) {
+                    continue;
+                }
+                
+                // XMin cut has been applied.
+                if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_PDE_EN) && !triggerModule.clusterPDECut(cluster, clusterX)) {
+                    continue;                
+                } 
+            }
+            
+            if(triggerModule.getCutEn(TriggerModule2019.SINGLES_L1L2ECAL_MATCHING_EN) && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList)) {
                 continue;
             }
             
-            // XMin cut has been applied.
-            if(!triggerModule.clusterPDECut(cluster, clusterX)) {
-                continue;                
+            //For 2021 update, Moller triggers
+            if(triggerModule.getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN)) {
+                if(triggerModule.getCutEn(TriggerModule2019.SINGLES_XYMINMAX_EN) && !triggerModule.clusterXMinCut(clusterX)) {
+                    continue;
+                }
+                if(triggerModule.getCutEn(TriggerModule2019.SINGLES_XYMINMAX_EN) && !triggerModule.clusterXMaxCut(clusterX)) {
+                    continue;
+                }            
+                if(triggerModule.getCutEn(TriggerModule2019.SINGLES_XYMINMAX_EN) && !triggerModule.clusterYMinCut(clusterY)) {
+                    continue;
+                }
+                if(triggerModule.getCutEn(TriggerModule2019.SINGLES_XYMINMAX_EN) && !triggerModule.clusterYMaxCut(clusterY)) {
+                    continue;
+                }
+                if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_PDE_EN) && !triggerModule.clusterMollerPDECut(cluster, clusterX)) {
+                    continue;                
+                }  
             }
-           
-            
-            if(geometryMatchingRequired && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList)) {
-                continue;
-            }
-            
-            
             // Note that a trigger occurred.
             triggered = true;
+            
+            if(ixy.y > 0) topBot.add(TOP);
+            else topBot.add(BOT);
             
             // Populate the cut plots.
             clusterSeedEnergy[WITH_CUTS].fill(TriggerModule2019.getValueClusterSeedEnergy(cluster));
@@ -189,12 +248,19 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
         }
         
         if(triggered) {
-            sendTrigger();
+            boolean topStat = false;
+            boolean botStat = false;            
+            if(topBot.contains(TOP)) topStat = true;
+            if(topBot.contains(BOT)) botStat = true;
+            
+            if(topStat && botStat) sendTrigger(triggerType, TOPBOT);
+            else if(topStat) sendTrigger(triggerType, TOP);
+            else sendTrigger(triggerType, BOT);            
         }
     }
     
     @Override
-    public void startOfData() {
+    public void startOfData() {         
         // Define the driver collection dependencies.
         addDependency(inputCollectionNameEcal);
         
@@ -250,6 +316,12 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     
     public void setInputCollectionNameHodo(String collection) {
         inputCollectionNameHodo = collection;
+    }
+    
+    public void setTriggerType(String trigger) {
+        if(!trigger.equals(SINGLES0) && !trigger.equals(SINGLES1) && !trigger.equals(SINGLES2) && !trigger.equals(SINGLES3))
+            throw new IllegalArgumentException("Error: wrong trigger type name \"" + trigger + "\".");
+        triggerType = trigger;
     }
     
     /**
@@ -309,9 +381,5 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     public void setClusterPDEC3(double pdeC3) {
         triggerModule.setCutValue(TriggerModule2019.CLUSTER_PDE_C3, pdeC3);
     }
-    
-    public void setGeometryMatchingRequired(boolean geometryMatchingRequired) {
-        this.geometryMatchingRequired = geometryMatchingRequired;
-    }
-        
+            
 }

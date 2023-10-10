@@ -22,8 +22,6 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 /**
  * This sub-command of the conditions CLI prints conditions conditions table data by run number to the console or
  * optionally writes it to an output file.
- *
- * @author Jeremy McCormick, SLAC
  */
 final class PrintCommand extends AbstractCommand {
 
@@ -48,7 +46,7 @@ final class PrintCommand extends AbstractCommand {
     /**
      * The field delimiter for print output.
      */
-    private static final char DELIMITER = ',';    
+    private static final char DELIMITER = ',';
 
     /**
      * Output file if printing to a file.
@@ -166,7 +164,7 @@ final class PrintCommand extends AbstractCommand {
         for (final Object object : collection) {
             for (final String columnName : collection.getTableMetaData().getFieldNames()) {
                 if (!"collection_id".equals(columnName)) {
-                    buffer.append(((ConditionsObject) object).getFieldValue(columnName));
+                    buffer.append(((ConditionsObject) object).getFieldValue(columnName).toString());        
                     buffer.append(DELIMITER);
                 }
             }
@@ -185,8 +183,8 @@ final class PrintCommand extends AbstractCommand {
      */
     private void printCollectionHeader(final ConditionsObjectCollection<?> collection) {
         LOGGER.info('\n' + "--------------------------------------" + '\n' + "table: "
-                + collection.getTableMetaData().getTableName() + '\n' + "collection ID: "
-                + collection.getCollectionId() + '\n' + "--------------------------------------");
+                + collection.getTableMetaData().getTableName() + '\n' + "collection ID: " + collection.getCollectionId()
+                + '\n' + "--------------------------------------");
     }
 
     /**
@@ -254,13 +252,14 @@ final class PrintCommand extends AbstractCommand {
 
             // This shouldn't ever happen but check anyways.
             if (tableMetaData == null) {
-                throw new RuntimeException("The table meta data for " + conditionsKey
-                        + " does not exist.  The key might be invalid.");
+                throw new RuntimeException(
+                        "The table meta data for " + conditionsKey + " does not exist.  The key might be invalid.");
             }
 
             // Use only the single collection which would be seen by a user job for this run number and key.
-            final ConditionsObjectCollection<?> collection = conditionsManager.getCachedConditions(
-                    tableMetaData.getCollectionClass(), tableMetaData.getTableName()).getCachedData();
+            final ConditionsObjectCollection<?> collection = conditionsManager
+                    .getCachedConditions(tableMetaData.getCollectionClass(), tableMetaData.getTableName())
+                    .getCachedData();
 
             collectionList.add(collection);
 

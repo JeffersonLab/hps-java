@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.hps.evio;
 
 import org.lcsim.event.GenericObject;
@@ -11,8 +6,6 @@ import org.lcsim.event.GenericObject;
  * This was created very similarly to the EPICGenericObject
  * This is designed only to keep only words from the VTP banks,
  * which are only 32 bit integers.
- * 
- * @author rafopar
  */
 final class VTPGenericObject implements GenericObject {
 

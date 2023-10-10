@@ -9,9 +9,6 @@ import java.util.Map;
 
 /**
  * Utility methods for {@link EpicsData}.
- *
- * @author Jeremy McCormick, SLAC
- *
  */
 public final class EpicsUtilities {
 

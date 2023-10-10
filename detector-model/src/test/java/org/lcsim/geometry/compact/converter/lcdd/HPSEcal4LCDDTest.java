@@ -11,10 +11,6 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.hps.conditions.database.DatabaseConditionsManager;
 
-/**
- *
- * @author Annie Simonyan <annie@jlab.org>
- */
 public class HPSEcal4LCDDTest extends TestCase {
 
     public HPSEcal4LCDDTest(String name) {

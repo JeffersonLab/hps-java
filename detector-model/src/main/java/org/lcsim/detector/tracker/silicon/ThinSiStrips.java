@@ -13,9 +13,6 @@ import org.lcsim.detector.solids.Line3D;
 import org.lcsim.detector.solids.LineSegment3D;
 import org.lcsim.detector.solids.Point3D;
 
-/**
- * @author Omar Moreno, SLAC National Accelerator Laboratory
- */
 public class ThinSiStrips extends SiStrips {
 
     private int channelOffset = 255;

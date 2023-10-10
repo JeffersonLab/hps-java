@@ -2,9 +2,6 @@ package org.hps.recon.vertexing;
 
 import org.lcsim.util.Driver;
 
-/**
- * @author richp 
- */
 public class VertexingTestDriver extends Driver {
 
     public VertexingTestDriver() {

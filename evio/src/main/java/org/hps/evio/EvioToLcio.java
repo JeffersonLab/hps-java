@@ -67,8 +67,6 @@ import org.lcsim.lcio.LCIOWriter;
  * be used to buffer a number of EVIO events. If there is a head bank found while adding these events to queue, the
  * conditions system will be initialized from it.
  *
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
- * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public final class EvioToLcio {
 
@@ -690,12 +688,7 @@ public final class EvioToLcio {
      * @return The LCSimEventBuilder for the Test Run or Engineering Run.
      */
     private void setupEventBuilder(final int runNumber) {
-        // Is this run number from the Test Run?
-        if (DatabaseConditionsManager.isTestRun(runNumber)) {
-            // Configure conditions system for Test Run.
-            LOGGER.info("using Test Run event builder");
-            eventBuilder = new LCSimTestRunEventBuilder();
-        } else if (DatabaseConditionsManager.isPhys2019Run(runNumber)) { 
+        if (DatabaseConditionsManager.isPhys2019Run(runNumber)) { 
             LOGGER.info("using 2019 Physics Run builder."); 
             eventBuilder = new LCSimPhys2019EventBuilder(); 
         } else {

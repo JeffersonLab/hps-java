@@ -1,100 +1,146 @@
 package org.hps.online.recon;
 
+import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hps.online.recon.properties.Property;
 import org.hps.record.et.EtConnection;
 import org.jlab.coda.et.EtConstants;
 import org.jlab.coda.et.EtStationConfig;
 import org.jlab.coda.et.EtSystem;
 import org.jlab.coda.et.EtSystemOpenConfig;
 import org.jlab.coda.et.enums.Mode;
+import org.jlab.coda.et.exception.EtClosedException;
+import org.jlab.coda.et.exception.EtDeadException;
+import org.jlab.coda.et.exception.EtException;
+import org.jlab.coda.et.exception.EtExistsException;
+import org.jlab.coda.et.exception.EtTooManyException;
 
 /**
- * Create a parallel ET connection appropriate for a pool of stations to 
- * process reconstruction jobs.
- * 
- * Sub-class {@link org.hps.record.et.EtConnection} so we don't accidentally 
- * screw up the monitoring application. 
+ * Create an ET connection for a pool of stations to process
+ * reconstruction jobs in parallel.
  */
 class EtParallelStation extends EtConnection {
-    
-    private Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
-    
-    /**
-     * Class constructor.
-     * @param name The file buffer name
-     * @param host The ET system hostname
-     * @param port The ET system port
-     * @param queueSize The queue size when reading events
-     * @param prescale The prescale factor
-     * @param stationName The name of the new station
-     * @param waitMode The wait mode (see ET documentation)
-     * @param waitTime The wait time if using timed mode
-     * @param chunkSize The chunk size when reading events
-     * @param logLevel The ET system log level
-     * @throws Exception If there is an error initializing and connecting to the ET system
-     */
-    EtParallelStation(
-            final String name, 
-            final String host,
-            final int port, 
-            final int queueSize, 
-            final int prescale, 
-            final String stationName, 
-            final Mode waitMode, 
-            final int waitTime, 
-            final int chunkSize,
-            final int logLevel) throws Exception {
 
-        // make a direct connection to ET system's tcp server
-        final EtSystemOpenConfig etConfig = new EtSystemOpenConfig(name, host, port);
-        
-        // create ET system object with verbose debugging output
-        sys = new EtSystem(etConfig, logLevel);
-        sys.open();
-                        
-        // configuration of a new station
+    private static Logger LOGGER = Logger.getLogger(EtParallelStation.class.getPackage().getName());
+
+    private static final int STATION_POSITION = 1;
+
+    /**
+     * Create an ET connection from station properties
+     *
+     * If there is an existing station with the same name, it will be woken
+     * up and removed before a new one is created.
+     *
+     * @param props The station properties
+     * @throws EtException
+     * @throws EtTooManyException
+     * @throws EtExistsException
+     * @throws EtClosedException
+     * @throws EtDeadException
+     * @throws IOException
+     * @throws Exception If there is an error opening the ET system
+     */
+    EtParallelStation(StationProperties props)
+            throws EtException, IOException, EtDeadException,
+            EtClosedException, EtExistsException, EtTooManyException {
+
+        Property<String> host = props.get("et.host");
+        Property<String> buffer = props.get("et.buffer");
+        Property<Integer> port = props.get("et.port");
+        Property<Integer> connAttempts = props.get("et.connectionAttempts");
+        Property<Integer> logLevel = props.get("et.logLevel");
+        Property<Integer> prescale = props.get("et.prescale");
+        Property<String> stationName = props.get("et.stationName");
+        Property<Integer> waitMode = props.get("et.mode");
+        Property<Integer> waitTime = props.get("et.waitTime");
+        Property<Integer> chunk = props.get("et.chunk");
+
+        LOGGER.config("Opening ET system: " + host.value() + ":" + port.value() + buffer.value());
+        EtSystemOpenConfig etConfig =
+                new EtSystemOpenConfig(buffer.value(), host.value(), port.value());
+
+        // Connection attempt loop
+        for (int i = 1; i <= connAttempts.value(); i++) {
+            LOGGER.config("Attempting ET connection: " + i);
+            try {
+                sys = new EtSystem(etConfig, logLevel.value());
+                sys.open();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (sys.alive()) {
+                LOGGER.config("Connection successful!");
+                break;
+            }
+
+            try {
+                Thread.sleep(1000L);
+            } catch (InterruptedException e) {
+                LOGGER.info("Connection attempt was interrupted!");
+                break;
+            }
+        }
+
+        // Failed to connect to the ET system
+        if (!sys.alive()) {
+            RuntimeException rte = new RuntimeException(
+                    "Failed to connect to ET system after "
+                    + connAttempts.value() + " attempts");
+            LOGGER.log(Level.SEVERE, rte.getMessage(), rte);
+            throw rte;
+        }
+
+        // See if there is an existing ET station
+        try {
+            stat = sys.stationNameToObject(stationName.value());
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error while attempting to find station", e);
+        }
+
+        // Raise an error if the station exists already.
+        if (stat != null) {
+            throw new RuntimeException("ET station already exists: " + stationName.value());
+        }
+
+        // Create the new ET station
         final EtStationConfig stationConfig = new EtStationConfig();
         stationConfig.setFlowMode(EtConstants.stationParallel);
         stationConfig.setBlockMode(EtConstants.stationBlocking);
         stationConfig.setSelectMode(EtConstants.stationSelectRRobin);
-        
-        // Set prescale.
-        if (prescale > 0) {
-            stationConfig.setPrescale(prescale);
+        stationConfig.setRestoreMode(EtConstants.stationRestoreGC);
+        stat = sys.createStation(stationConfig, stationName.value(), STATION_POSITION, EtConstants.end);
+        if (prescale.value() > 0) {
+            stationConfig.setPrescale(prescale.value());
         }
 
-        // Position relative to grand central.
-        int position = 1;
-        
-        // Parallel position of station which is always after the last one.
-        int pposition = EtConstants.end;
-
-        // Create the station.
-        stat = sys.createStation(stationConfig, stationName, position, pposition);
-
-        // attach to new station
         att = sys.attach(stat);
-        
-        // These are used when getting events later.
-        this.waitMode = waitMode;
-        this.waitTime = waitTime;
-        this.chunkSize = chunkSize;
+
+        LOGGER.info("Created ET station: name=" + stat.getName() + "; pos=" + sys.getStationPosition(stat)
+                + "; ppos: " + sys.getStationParallelPosition(stat));
+
+        this.waitMode = Mode.getMode(waitMode.value());
+        this.waitTime = waitTime.value();
+        this.chunkSize = chunk.value();
     }
-    
+
     /**
-     * Cleanup the connection by detaching the station and removing it from the ET system.
+     * Cleanup the connection by detaching it.
      */
     public void cleanup() {
         try {
-            if (!this.sys.alive()) {
-                return;
+            if (sys!= null && sys.alive()) {
+                sys.wakeUpAttachment(att);
+                sys.detach(att);
+                sys.removeStation(stat);
+                sys.close();
             }
-            this.sys.detach(this.att);
-            this.sys.removeStation(this.stat);
-            this.sys.close();
         } catch (final Exception e) {
             e.printStackTrace();
         }
+        // Can't use a logger when this is called in the shutdown hook
+        System.out.println("Cleaned up ET station");
     }
 }

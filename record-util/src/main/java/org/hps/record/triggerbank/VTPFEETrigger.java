@@ -11,10 +11,7 @@ import java.util.logging.Logger;
  * <li>10bit [0 : 9] trigger time in 4 ns unit</li> 
  * <li>7bit [10 : 16] bit mask specify which FEE regions (ECal x-ranges) triggered the system</li>
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class VTPFEETrigger {
     // FEE trigger's variables.
     private int t; // in 4 ns units

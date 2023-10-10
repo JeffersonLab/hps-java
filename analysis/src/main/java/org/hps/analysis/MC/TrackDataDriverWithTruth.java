@@ -32,14 +32,10 @@ import org.lcsim.util.Driver;
  * Driver used to persist additional {@link org.lcsim.event.Track} information via a 
  * {@link org.lcsim.event.GenericObject} collection. This driver is only useful for 
  * refitting the truth hits on a track.
- *
- * @author Omar Moreno, UCSC
- * @author Sho Uemura, SLAC
  */
 public final class TrackDataDriverWithTruth extends Driver {
 
     /** logger **/
-
     private static final Logger LOGGER = Logger.getLogger(TrackDataDriver.class.getPackage().getName());
 
     /** The B field map */
@@ -105,6 +101,8 @@ public final class TrackDataDriverWithTruth extends Driver {
         // doesn't skip the event.
         if (!event.hasCollection(Track.class))
             return;
+        
+        int runNumber = event.getRunNumber();
 
         // Get all collections of the type Track from the event. This is
         // required since the event contains a track collection for each of the
@@ -224,7 +222,7 @@ public final class TrackDataDriverWithTruth extends Driver {
 
                 // Extrapolate the track to the face of the Ecal and get the TrackState
                 if (TrackType.isGBL(track.getType())) {
-                    TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap);
+                    TrackState stateEcal = TrackUtils.getTrackExtrapAtEcalRK(track, bFieldMap,runNumber);
                     if (stateEcal != null)
                         track.getTrackStates().add(stateEcal);
                 }

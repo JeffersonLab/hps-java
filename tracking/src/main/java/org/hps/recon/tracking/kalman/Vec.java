@@ -1,10 +1,13 @@
 package org.hps.recon.tracking.kalman;
 
-class Vec { // N-vector for the Kalman filter
+/**
+ * Simple N-vector for the Kalman filter
+ */
+public class Vec {
     double[] v;
     int N;
 
-    Vec(int N, double[] vin) {
+    public Vec(int N, double[] vin) {
         v = new double[N];
         for (int i = 0; i < N; i++) {
             v[i] = vin[i];
@@ -44,18 +47,25 @@ class Vec { // N-vector for the Kalman filter
     }
 
     void print(String s) {
-        System.out.format("    Vector-%d %s: ", N, s);
-        for (int i = 0; i < N; i++) {
-            System.out.format(" %11.7f", v[i]);
-        }
-        System.out.format("\n");
-    }
-
-    String string() {
-        String s = String.format("%10.5f %10.5f %10.5f", v[0], v[1], v[2]);
-        return s;
+        System.out.format("%s\n",this.toString(s));
     }
     
+    String toString(String s) {
+        String str = String.format("    Vector-%d %s: ", N, s);
+        for (int i = 0; i < N; i++) {
+            str=str+String.format(" %11.7f", v[i]);
+        }
+        return str;
+    }
+    
+    public String toString() {
+        String str = " ";
+        for (int i = 0; i < N; i++) {
+            str=str+String.format("%11.7f ", v[i]);
+        }
+        return str;
+    }
+
     Vec copy() {
         return new Vec(N, v);
     }

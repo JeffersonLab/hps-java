@@ -21,12 +21,6 @@ import org.lcsim.event.TrackerHit;
 import org.lcsim.event.Vertex;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Norman A Graf
- *
- * @version $Id:
- */
 public class StripEventDriver extends Driver
 {
 

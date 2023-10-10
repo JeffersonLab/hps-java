@@ -3,16 +3,16 @@ package org.hps.record.daqconfig2019;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-
 /**
  * Class <code>DAQConfig2019</code> holds all of the supported parameters
  * from the DAQ configuration that exists in EVIO files. These values
  * are stored in various subclasses appropriate to the parameter that
  * are accessed through this primary interface.
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class DAQConfig2019 extends IDAQConfig2019 {
+    //If print out configuration in terminal
+    private boolean printConfiguration = false;
+    
     // Store the configuration objects.
     private VTPConfig2019 vtpConfig = new VTPConfig2019();
     private FADCConfigEcal2019 fadcConfigEcal = new FADCConfigEcal2019();
@@ -52,7 +52,7 @@ public class DAQConfig2019 extends IDAQConfig2019 {
         tsConfig.loadConfig(parser);
         
         // Print the loaded configuration to the terminal.
-        printConfig(System.out);
+        if(printConfiguration) printConfig(System.out);
     }
 
     @Override

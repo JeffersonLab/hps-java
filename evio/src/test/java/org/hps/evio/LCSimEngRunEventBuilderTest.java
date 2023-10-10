@@ -9,6 +9,7 @@ import junit.framework.TestCase;
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.record.LCSimEventBuilder;
 import org.hps.record.evio.EvioEventUtilities;
+import org.hps.util.test.TestUtil;
 import org.jlab.coda.jevio.EvioEvent;
 import org.jlab.coda.jevio.EvioReader;
 import org.lcsim.event.EventHeader;
@@ -19,13 +20,11 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 /**
  * Test conversion of EVIO to LCIO for Engineering Run EVIO data. This is ECAL
  * data only for now.
- * 
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class LCSimEngRunEventBuilderTest extends TestCase {
 
     public void testLCSimEngRunEventBuilder() throws Exception {
-        
+
         // Setup database conditions.
         DatabaseConditionsManager conditionsManager = DatabaseConditionsManager.getInstance();
         conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2000);
@@ -47,8 +46,7 @@ public class LCSimEngRunEventBuilderTest extends TestCase {
         conditionsManager.setDetector("HPS-Proposal2014-v8-6pt6", 2744);
 
         // Get remote test file.
-        FileCache cache = new FileCache();
-        File evioFile = cache.getCachedFile(new URL("http://www.lcsim.org/test/hps-java/LCSimEngRunEventBuilderTest/hps_002744.evio.0"));
+        final File evioFile = TestUtil.downloadTestFile("hps_002744.evio.0");
 
         // Open the EVIO reader.
         System.out.println("Opening file " + evioFile);

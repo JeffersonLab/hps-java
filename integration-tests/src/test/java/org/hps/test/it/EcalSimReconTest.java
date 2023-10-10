@@ -1,35 +1,31 @@
 package org.hps.test.it;
 
-import hep.aida.IHistogram1D;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.hps.job.JobManager;
 import org.hps.recon.ecal.cluster.ClusterUtilities;
-import org.hps.test.util.TestFileUrl;
-import org.hps.test.util.TestOutputFile;
+import org.hps.util.test.TestUtil;
+import org.hps.util.test.TestOutputFile;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
 import org.lcsim.util.loop.LCSimLoop;
 
+import hep.aida.IHistogram1D;
+import junit.framework.TestCase;
+
 /**
  * Run readout simulation and full 2015 Engineering Run reconstruction on ECal MC input data and then check histograms
  * of cluster data.
- *
- * @author Jeremy McCormick, SLAC
  */
 public class EcalSimReconTest extends TestCase {
 
     /**
      * Driver for checking test output.
      *
-     * @author Jeremy McCormick, SLAC
      */
     static class EcalSimReconCheckDriver extends Driver {
 
@@ -190,7 +186,7 @@ public class EcalSimReconTest extends TestCase {
     public void testEcalSimRecon() throws Exception {
 
         // Get the input events file.
-        final File readoutFile = TestFileUrl.getInputFile(EcalSimReconTest.class, "readout.slcio");
+        final File readoutFile = TestUtil.downloadTestFile("EcalSimReconTest.slcio");
 
         // Run the recon on the readout output.
         final File reconFile = new TestOutputFile(EcalSimReconTest.class, "recon.slcio");

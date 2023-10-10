@@ -26,9 +26,6 @@ import org.lcsim.geometry.Detector;
 /**
  * DQM driver V0 particles (i.e. e+e- pars) plots things like number of vertex
  * position an mass
- *
- * @author mgraham on May 14, 2014
- *
  */
 public class MollerMonitoring extends DataQualityMonitor {
 
@@ -369,6 +366,8 @@ public class MollerMonitoring extends DataQualityMonitor {
         if (!matchTrigger(event)) {
             return;
         }
+        
+        int runNumber = event.getRunNumber();
 
         List<ReconstructedParticle> unConstrainedV0List = event.get(ReconstructedParticle.class,
                 unconstrainedV0CandidatesColName);
@@ -428,8 +427,8 @@ public class MollerMonitoring extends DataQualityMonitor {
             Hep3Vector pTopRot = VecOp.mult(beamAxisRotation, top.getMomentum());
             Hep3Vector pBotRot = VecOp.mult(beamAxisRotation, bot.getMomentum());
 
-            Hep3Vector topAtEcal = TrackUtils.getTrackPositionAtEcal(top.getTracks().get(0));
-            Hep3Vector botAtEcal = TrackUtils.getTrackPositionAtEcal(bot.getTracks().get(0));
+            Hep3Vector topAtEcal = TrackUtils.getTrackPositionAtEcal(top.getTracks().get(0), runNumber);
+            Hep3Vector botAtEcal = TrackUtils.getTrackPositionAtEcal(bot.getTracks().get(0), runNumber);
 
             BilliorVertexer vtxFitter = new BilliorVertexer(TrackUtils.getBField(event.getDetector()).y());
             vtxFitter.setBeamSize(beamSize);

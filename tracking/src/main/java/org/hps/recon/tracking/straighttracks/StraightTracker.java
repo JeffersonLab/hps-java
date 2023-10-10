@@ -1,9 +1,3 @@
-/*
- * SeedTracker.java
- *
- * Created on August 16, 2005, 8:54 AM
- *
- */
 package org.hps.recon.tracking.straighttracks;
 
 import hep.physics.vec.BasicHep3Vector;
@@ -34,9 +28,7 @@ import org.lcsim.util.aida.AIDA;
  * by a list of SeedStrategy that define the tracker layers to be used and the
  * cuts on the tracking algorithm.
  *
- * @author Mathew Graham <mgraham.slac.stanford.edu>
  * Copied/Modified from org.lcsim.recon.tracking.SeedTracker
- * 
  */
 public class StraightTracker extends Driver {
 
@@ -99,7 +91,7 @@ public class StraightTracker extends Driver {
      * @param debug switch
      */
     public void setDebug(boolean debug) {
-        _debug = true;
+        _debug = debug;
         _materialmanager.setDebug(debug);
         _fitter.setDebug(debug);
         _finder.setDebug(debug);

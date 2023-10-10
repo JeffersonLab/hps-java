@@ -4,12 +4,14 @@
   <artifactId>hps-detector-model</artifactId>
   <name>detector-model</name>
   <description>detector modeling code based on lcsim framework</description>
+
   <parent>
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>4.5-SNAPSHOT</version>
+    <version>5.2.2-SNAPSHOT</version>
   </parent>
+
   <build>
     <plugins>
       <plugin>
@@ -50,6 +52,7 @@
       </plugin>
     </plugins>
   </build>
+
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
@@ -60,4 +63,5 @@
       <artifactId>hps-detector-data</artifactId>
     </dependency>
   </dependencies>
+
 </project>

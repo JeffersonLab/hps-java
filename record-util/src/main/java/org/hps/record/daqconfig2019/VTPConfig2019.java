@@ -16,14 +16,12 @@ import java.io.PrintStream;
  * <li>Pair 3 Trigger</li>
  * <li>Pair 4 Trigger</li>
  * </ul>
- * 
- * @author Tongtong Cao <caot@jlab.org>
  */
 public class VTPConfig2019 extends IDAQConfig2019 {
     ////// Store cluster cut parameters
     // Cluster hit timing coincidence: 0 to 16, units: +/-ns
     private int ecalClusterHitDT = 0;
-    // Cluster seed threshold in: 1 to 8191, units MeV
+    // Cluster seed threshold in: 1/1000 to 8191/1000, units GeV
     private double ecalClusterSeedThr = 0;
     // Hodoscope fadc hit cut: minimum acceptable FADC hit integral: 1 to 8191, units TBD
     private int hodoFADCHitThr = 0;
@@ -60,6 +58,18 @@ public class VTPConfig2019 extends IDAQConfig2019 {
             singlesTrigger[triggerNum].getEnergyMaxCutConfig().setIsEnabled(parser.singlesEnergyMaxEn[triggerNum]);
             singlesTrigger[triggerNum].getHitCountCutConfig().setIsEnabled(parser.singlesNhitsMinEn[triggerNum]);
             singlesTrigger[triggerNum].getXMinCutConfig().setIsEnabled(parser.singlesXMinEn[triggerNum]);
+            
+            //For 2021 update
+            if(parser.singlesXYMinMaxEn[triggerNum]) {
+                singlesTrigger[triggerNum].getXMinCutConfig().setIsEnabled(parser.singlesXYMinMaxEn[triggerNum]); // Default: false
+                singlesTrigger[triggerNum].getXMaxCutConfig().setIsEnabled(parser.singlesXYMinMaxEn[triggerNum]); // Default: false
+                singlesTrigger[triggerNum].getYMinCutConfig().setIsEnabled(parser.singlesXYMinMaxEn[triggerNum]); // Default: false
+                singlesTrigger[triggerNum].getYMaxCutConfig().setIsEnabled(parser.singlesXYMinMaxEn[triggerNum]); // Default: false
+            }
+            singlesTrigger[triggerNum].setIsSinglesXYMinMaxEnabled(parser.singlesXYMinMaxEn[triggerNum]);
+            singlesTrigger[triggerNum].setIsSinglesMollerModeEnabled(parser.singlesMollerModeEn[triggerNum]);
+            
+                                  
             singlesTrigger[triggerNum].getPDECutConfig().setIsEnabled(parser.singlesPDEEn[triggerNum]);
             singlesTrigger[triggerNum].getL1MatchingConfig().setIsEnabled(parser.singlesL1MatchingEn[triggerNum]);
             singlesTrigger[triggerNum].getL2MatchingConfig().setIsEnabled(parser.singlesL2MatchingEn[triggerNum]);
@@ -76,6 +86,10 @@ public class VTPConfig2019 extends IDAQConfig2019 {
             singlesTrigger[triggerNum].getPDECutConfig().setParC2(parser.singlesPDEC2[triggerNum]/ 1000.0);
             singlesTrigger[triggerNum].getPDECutConfig().setParC3(parser.singlesPDEC3[triggerNum]/ 1000.0);
             
+            //For 2021 update
+            singlesTrigger[triggerNum].getXMaxCutConfig().setUpperBound(parser.singlesXMax[triggerNum]);
+            singlesTrigger[triggerNum].getYMinCutConfig().setLowerBound(parser.singlesYMin[triggerNum]);
+            singlesTrigger[triggerNum].getYMaxCutConfig().setUpperBound(parser.singlesYMax[triggerNum]);              
             
             // The pair trigger singles cuts are always enabled.
             pairTrigger[triggerNum].getEnergyMinCutConfig().setIsEnabled(true);
@@ -104,6 +118,11 @@ public class VTPConfig2019 extends IDAQConfig2019 {
             pairTrigger[triggerNum].getTimeDifferenceCutConfig().setUpperBound(parser.pairsTimeDiffMax[triggerNum]);
         }
         
+        pairTrigger[3].getL1MatchingConfig().setIsEnabled(parser.pairs3L1MatchingEn);
+        pairTrigger[3].getL2MatchingConfig().setIsEnabled(parser.pairs3L2MatchingEn);
+        pairTrigger[3].getL1L2GeoMatchingConfig().setIsEnabled(parser.pairs3L1L2MatchingEn);
+        pairTrigger[3].getHodoEcalGeoMatchingConfig().setIsEnabled(parser.pairs3L1L2EcalMatchingEn);
+        
         for(int triggerNum = 0; triggerNum < 2; triggerNum++) {
             // Set whether the triggers are enabled or not.
             multiplicityTrigger[triggerNum].setIsEnabled(parser.multEn[triggerNum]);
@@ -121,7 +140,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
         FEETrigger.setIsEnabled(parser.FEEEn);
         FEETrigger.getEnergyMinCutConfig().setLowerBound(parser.FEEEnergyMin / 1000.0);
         FEETrigger.getEnergyMaxCutConfig().setUpperBound(parser.FEEEnergyMax / 1000.0);
-        FEETrigger.getHitCountCutConfig().setLowerBound(parser.FEENhitsMin / 1000.0);
+        FEETrigger.getHitCountCutConfig().setLowerBound(parser.FEENhitsMin);
         FEETrigger.getPrescaleRegion0Config().setRegionMin(parser.FEERegionXMin[0]);
         FEETrigger.getPrescaleRegion0Config().setRegionMax(parser.FEERegionXMax[0]);
         FEETrigger.getPrescaleRegion0Config().setRegionPrescale(parser.FEERegionPrescale[0]);
@@ -153,7 +172,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
         return ecalClusterHitDT;
     }
     /**
-     * Gets cluster seed threshold in: 1 to 8191, units MeV.
+     * Gets cluster seed threshold in: 1/1000 to 8191/1000, units GeV.
      * @return Ecal cluster seed threshold.
      */
     public double getEcalClusterSeedThr() {
@@ -185,7 +204,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the first singles trigger.
      * @return Returns the first singles trigger configuration.
      */
-    public SinglesTriggerConfig2019 getSingles1Config() {
+    public SinglesTriggerConfig2019 getSingles0Config() {
         return singlesTrigger[0];
     }
     
@@ -193,23 +212,23 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the second singles trigger.
      * @return Returns the second singles trigger configuration.
      */
-    public SinglesTriggerConfig2019 getSingles2Config() {
+    public SinglesTriggerConfig2019 getSingles1Config() {
         return singlesTrigger[1];
     }
     
     /**
      * Gets the configuration parameters for the third singles trigger.
-     * @return Returns the second singles trigger configuration.
+     * @return Returns the third singles trigger configuration.
      */
-    public SinglesTriggerConfig2019 getSingles3Config() {
+    public SinglesTriggerConfig2019 getSingles2Config() {
         return singlesTrigger[2];
     }
     
     /**
      * Gets the configuration parameters for the forth singles trigger.
-     * @return Returns the second singles trigger configuration.
+     * @return Returns the forth singles trigger configuration.
      */
-    public SinglesTriggerConfig2019 getSingles4Config() {
+    public SinglesTriggerConfig2019 getSingles3Config() {
         return singlesTrigger[3];
     }
     
@@ -217,7 +236,7 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the first pair trigger.
      * @return Returns the first pair trigger configuration.
      */
-    public PairTriggerConfig2019 getPair1Config() {
+    public PairTriggerConfig2019 getPair0Config() {
         return pairTrigger[0];
     }
     
@@ -225,24 +244,32 @@ public class VTPConfig2019 extends IDAQConfig2019 {
      * Gets the configuration parameters for the second pair trigger.
      * @return Returns the second trigger trigger configuration.
      */
-    public PairTriggerConfig2019 getPair2Config() {
+    public PairTriggerConfig2019 getPair1Config() {
         return pairTrigger[1];
     }
     
     /**
      * Gets the configuration parameters for the third pair trigger.
-     * @return Returns the second trigger trigger configuration.
+     * @return Returns the third trigger trigger configuration.
      */
-    public PairTriggerConfig2019 getPair3Config() {
+    public PairTriggerConfig2019 getPair2Config() {
         return pairTrigger[2];
     }
     
     /**
      * Gets the configuration parameters for the forth pair trigger.
+     * @return Returns the forth trigger trigger configuration.
+     */
+    public PairTriggerConfig2019 getPair3Config() {
+        return pairTrigger[3];
+    }
+    
+    /**
+     * Gets the configuration parameters for the FEE trigger.
      * @return Returns the second trigger trigger configuration.
      */
-    public PairTriggerConfig2019 getPair4Config() {
-        return pairTrigger[3];
+    public FEETriggerConfig2019 getFEEConfig() {
+        return FEETrigger;
     }
     
     @Override
@@ -258,7 +285,8 @@ public class VTPConfig2019 extends IDAQConfig2019 {
         
         // Print the singles triggers.
         for(int triggerNum = 0; triggerNum < 4; triggerNum++) {
-            ps.printf("\tSingles Trigger %d%n", (triggerNum + 1));
+            ps.printf("\tSingles Trigger %d%n", (triggerNum));
+            ps.printf("\tEnabled :: %b%n", singlesTrigger[triggerNum].isEnabled());
             ps.println("\t\tCluster Energy Lower Bound Cut");
             ps.printf("\t\t\tEnabled :: %b%n", singlesTrigger[triggerNum].getEnergyMinCutConfig().isEnabled());
             ps.printf("\t\t\tValue   :: %5.3f GeV%n", singlesTrigger[triggerNum].getEnergyMinCutConfig().getLowerBound());
@@ -290,7 +318,8 @@ public class VTPConfig2019 extends IDAQConfig2019 {
         
         // Print the pair triggers.
         for(int triggerNum = 0; triggerNum < 4; triggerNum++) {
-            ps.printf("\tPair Trigger %d%n", (triggerNum + 1));
+            ps.printf("\tPair Trigger %d%n", (triggerNum));
+            ps.printf("\tEnabled :: %b%n", pairTrigger[triggerNum].isEnabled());
             ps.println("\t\tCluster Energy Lower Bound Cut");
             ps.printf("\t\t\tEnabled :: %b%n", pairTrigger[triggerNum].getEnergyMinCutConfig().isEnabled());
             ps.printf("\t\t\tValue   :: %5.3f GeV%n", pairTrigger[triggerNum].getEnergyMinCutConfig().getLowerBound());
@@ -326,6 +355,10 @@ public class VTPConfig2019 extends IDAQConfig2019 {
             ps.printf("\t\t\tValue   :: %1.0f ns%n", pairTrigger[triggerNum].getTimeDifferenceCutConfig().getUpperBound());
             ps.println();
         }
+        
+        ps.println("\t\tHodoscope and calorimeter coincidence");
+        ps.printf("\t\t\tEnabled :: %b\t%b\t%b\t%b%n", pairTrigger[3].getL1MatchingConfig().isEnabled(), 
+                pairTrigger[3].getL2MatchingConfig().isEnabled(), pairTrigger[3].getL1L2GeoMatchingConfig().isEnabled(), pairTrigger[3].getHodoEcalGeoMatchingConfig().isEnabled());
         
         // Print the Multiplicity triggers.
         for(int triggerNum = 0; triggerNum < 2; triggerNum++) {

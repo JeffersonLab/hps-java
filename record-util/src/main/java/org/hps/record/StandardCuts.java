@@ -16,6 +16,10 @@ public class StandardCuts {
     private double maxMatchChisq;
     // max time diff [ns] between track and cluster time for recon particle
     private double maxMatchDt;
+    //max x diff [mm] between track and cluster for recon particle
+    private double maxMatchDx;
+    //max y diff [mm] between track and cluster for recon particle
+    private double maxMatchDy;
     // max vertex momentum (magnitude)
     private double maxVertexP;
     // max chisq prob for V0 vertex fit
@@ -42,9 +46,10 @@ public class StandardCuts {
     private boolean OffsetSet = false;
     private boolean maxSharedHitsPerTrackSet = false;
     private boolean maxMatchDtSet = false;
+    private boolean maxMatchDxSet = false;
+    private boolean maxMatchDySet = false;
     private boolean maxVertexClusterDtSet = false;
-    
-    
+
     public double getTrackClusterTimeOffset() {
         return trackClusterTimeOffset;
     }
@@ -119,6 +124,26 @@ public class StandardCuts {
     public double getMaxMatchDt() {
         return maxMatchDt;
     }
+
+    public void setMaxMatchDx(double input) {
+        if (!maxMatchDxSet) {
+            maxMatchDx = input;
+            maxMatchDxSet = true;
+        }
+    }
+    public double getMaxMatchDx() {
+        return maxMatchDx;
+    }
+
+    public void setMaxMatchDy(double input) {
+        if (!maxMatchDySet) {
+            maxMatchDy = input;
+            maxMatchDySet = true;
+        }
+    }
+    public double getMaxMatchDy() {
+        return maxMatchDy;
+    }
     
     public void setMaxVertexClusterDt(double input) {
         if (!maxVertexClusterDtSet) {
@@ -164,6 +189,8 @@ public class StandardCuts {
         maxSharedHitsPerTrack = 5;
         maxMatchChisq = 10.0;
         maxMatchDt = 6.0;
+        maxMatchDx = 20.0;
+        maxMatchDy = 20.0;
         maxVertexClusterDt = 2.0;
         minVertexChisqProb = 0.00001;
         minMollerChisqProb = 0.00001;

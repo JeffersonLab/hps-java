@@ -23,10 +23,6 @@ import org.lcsim.util.Driver;
  * This class runs the Track Reconstruction for the HPS Test Proposal detector.
  * The tracker digitization must be run in front of it. It is intended to work
  * with the {@link TrackerDigiDriver} digitization Driver.
- *
- * @author Matt Graham
- * @author Miriam Diamond <mdiamond@slac.stanford.edu>
- * 
  */
 // FIXME: Printing to System.out should be converted to use logger.
 public final class TrackerReconDriver extends Driver {
@@ -244,7 +240,7 @@ public final class TrackerReconDriver extends Driver {
                     double correction = VecOp.sub(hth.getCorrectedPosition(), new BasicHep3Vector(hth.getPosition())).magnitude();
                     double chisq = hth.chisq();
                     if (correction < 1e-6) {
-                        this.getLogger().warning(String.format(event.getRunNumber()+ " " + event.getEventNumber()+
+                        this.getLogger().fine(String.format(event.getRunNumber()+ " " + event.getEventNumber()+
                                 " Discarding track with bad HelicalTrackHit (correction distance %f, chisq penalty %f) Layer = %d"
                                 , correction, chisq,hth.Layer(),hth.Layer()));
 //                        System.out.println("Y = "+hth.getPosition()[2]);

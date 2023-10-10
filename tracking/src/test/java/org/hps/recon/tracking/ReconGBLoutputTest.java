@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.detector.svt.SvtDetectorSetup;
+import org.hps.util.test.TestUtil;
 import org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup;
 import org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver;
 import org.lcsim.util.Driver;
@@ -18,8 +19,6 @@ import org.lcsim.util.test.TestUtil.TestOutputFile;
 /**
  * Skeleton class for raw->reco LCIO + tests.
  * Assign any driver to testTrackingDriver for tests on the reco LCIO, if desired
- *
- * @author mdiamond <mdiamond@slac.stanford.edu>
  */
 public class ReconGBLoutputTest extends TestCase {
 
@@ -28,21 +27,13 @@ public class ReconGBLoutputTest extends TestCase {
     }
     protected String testInputFileName = "ap_prompt_raw.slcio";
     protected String testOutputFileName;
-    protected String testURLBase = "http://www.lcsim.org/test/hps-java";
     protected long nEvents = 100;
     protected URL testURL;
     protected FileCache cache;
 
     public void testRecon() throws Exception {
 
-        File inputFile = null;
-        if (testURLBase == null) {
-            inputFile = new File(testInputFileName);
-        } else {
-            URL testURL = new URL(testURLBase + "/" + testInputFileName);
-            cache = new FileCache();
-            inputFile = cache.getCachedFile(testURL);
-        }
+        File inputFile = TestUtil.downloadTestFile(testInputFileName);
 
         testOutputFileName = "RecoTest_" + testInputFileName;
         File outputFile = new TestOutputFile(testOutputFileName);

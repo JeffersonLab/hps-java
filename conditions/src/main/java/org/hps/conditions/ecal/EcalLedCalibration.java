@@ -7,8 +7,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * ECAL LED calibration information per channel.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = "ecal_led_calibrations")
 public final class EcalLedCalibration extends BaseConditionsObject {

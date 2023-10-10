@@ -14,8 +14,6 @@ import org.lcsim.conditions.ConditionsManager;
 
 /**
  * Read {@link org.hps.conditions.api.ConditionsRecord} objects from the conditions database.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class ConditionsRecordConverter extends AbstractConditionsObjectConverter<ConditionsRecordCollection> {
 

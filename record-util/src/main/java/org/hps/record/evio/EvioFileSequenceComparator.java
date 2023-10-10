@@ -5,8 +5,6 @@ import java.util.Comparator;
 
 /**
  * Compare two EVIO files by their sequence numbers.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class EvioFileSequenceComparator implements Comparator<File> {
 

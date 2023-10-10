@@ -10,8 +10,6 @@ import org.hps.conditions.database.Table;
 
 /**
  * This class represents an ECAL channel that is considered "bad" which means it should not be used in reconstruction.
- * 
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"ecal_bad_channels", "test_run_ecal_bad_channels"})
 public final class EcalBadChannel extends BaseConditionsObject {

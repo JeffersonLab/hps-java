@@ -8,9 +8,6 @@ import java.util.NoSuchElementException;
  * Class <code>RingBuffer</code> is a framework for defining a buffer
  * which loops around at the end back to the beginning. A subclass is
  * able to define an implementation of the class for any object type.
- * 
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @author Kyle McCarty <mccarty@jlab.org>
  */
 public abstract class RingBuffer<T, V> implements Iterable<T> {
     /**
@@ -144,7 +141,7 @@ public abstract class RingBuffer<T, V> implements Iterable<T> {
      * @param value - The value to which all buffer entries should be
      * set.
      */
-    protected void setAll(T value) {
+    public void setAll(T value) {
         for(int i = 0; i < array.length; i++) {
             array[i] = value;
         }
@@ -171,7 +168,6 @@ public abstract class RingBuffer<T, V> implements Iterable<T> {
      * org.hps.readout.ecal.updated.NumericRingBuffer
      * NumericRingBuffer} and any subclasses.
      * 
-     * @author Kyle McCarty <mccarty@jlab.org>
      */
     private class RingBufferIterator implements Iterator<T> {
         private int position = 0;

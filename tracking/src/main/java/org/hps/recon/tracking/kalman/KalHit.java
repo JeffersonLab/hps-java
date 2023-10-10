@@ -4,6 +4,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Relationships between hits, silicon modules, and track candidates
+ */
 class KalHit {
     SiModule module;
     Measurement hit;
@@ -19,26 +22,33 @@ class KalHit {
         return module.isStereo;
     }
     void print(String s) {
+        System.out.format("%s", this.toString(s));
+    }
+    
+    String toString(String s) {
         int ntks = hit.tracks.size();
+        String str;
         if (s=="short") {
             int idx = module.hits.indexOf(hit);
             if (module.isStereo) {
-                System.out.format(" {%d %d %d %d %5.1f} ", module.Layer, module.detector, idx, ntks, hit.time);
+                str = String.format(" {%d %d %d %d %5.1f %6.3f} ", module.Layer, module.detector, idx, ntks, hit.time, hit.energy);
             } else {
-                System.out.format(" (%d %d %d %d %5.1f) ", module.Layer, module.detector, idx, ntks, hit.time);
+                str = String.format(" (%d %d %d %d %5.1f %6.3f) ", module.Layer, module.detector, idx, ntks, hit.time, hit.energy);
             }
         } else {
-            System.out.format("Hit %s in layer %d, detector %d, hit %d, value=%10.5f, #tkrs=%d, candidate chi2=", s, module.Layer, module.detector, module.hits.indexOf(hit), hit.v, ntks);
+            str = String.format("Hit %s in layer %d, detector %d, hit %d, value=%10.5f, #tkrs=%d, candidate chi2=", s, module.Layer, module.detector, module.hits.indexOf(hit), hit.v, ntks);
             for (TrackCandidate cnd : tkrCandidates) {
-                System.out.format(" (%7.3f %d)", cnd.chi2s, cnd.hashCode());
+                str=str+String.format(" (%7.3f %d)", cnd.chi2s, cnd.hashCode());
             }
-            System.out.format("\n");
+            str=str+String.format("\n");
         }
+        return str;
     }
     
     // Comparator function for sorting hits on a track candidate
     static Comparator<KalHit> HitComparator = new Comparator<KalHit>() {
         public int compare(KalHit h1, KalHit h2) {
+            if (h1 == h2) return 0;
             int lyr1 = h1.module.Layer;
             int lyr2 = h2.module.Layer;
             if (lyr1 < lyr2) {

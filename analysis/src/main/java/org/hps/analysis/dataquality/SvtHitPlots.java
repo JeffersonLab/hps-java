@@ -1,10 +1,3 @@
-/**
- * Driver for analyzing hits in SVT
- */
-/**
- * @author mrsolt
- *
- */
 package org.hps.analysis.dataquality;
 
 import java.util.HashMap;
@@ -35,6 +28,9 @@ import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.tracking.FittedRawTrackerHit;
 import org.hps.recon.tracking.ShapeFitParameters;
 
+/**
+ * Driver for analyzing hits in SVT
+ */
 public class SvtHitPlots extends Driver {
 
     // Plotting

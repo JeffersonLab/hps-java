@@ -13,6 +13,7 @@ import org.hps.conditions.svt.SvtTimingConstants;
 import org.lcsim.detector.tracker.silicon.ChargeCarrier;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.detector.tracker.silicon.SiSensor;
+import org.lcsim.detector.tracker.silicon.SiStriplets; 
 import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.event.EventHeader;
@@ -38,8 +39,6 @@ import org.hps.util.RandomGaussian;
 
 /**
  * SVT readout simulation.
- *
- * @author Sho Uemura <meeg@slac.stanford.edu>
  */
 public class SVTReadoutDriver extends ReadoutDriver {
     //-----------------//
@@ -250,6 +249,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
     
     @Override
     public void process(EventHeader event) {
+
         super.process(event);
         
         // Generate the truth hits.
@@ -267,6 +267,17 @@ public class SVTReadoutDriver extends ReadoutDriver {
                 // Get the sensor and channel for the truth hit.
                 SiSensor sensor = stripHit.sensor;
                 int channel = stripHit.channel;
+               
+                // This is required to account for the fact that the channel 
+                // number of SiStriplets is shifted by 1. If left uncorrected, 
+                // this leads to an 'out of bounds' error when trying to access
+                // the queue associated with channel 510.
+                // TODO: A cleaner solution is to add a CHANNEL_OFFSET parameter 
+                //       to all instances of readout electrodes and use that to
+                //       shift the channel. For SiStrips, the offset would be
+                //       0.
+                if (sensor.getReadoutElectrodes(ChargeCarrier.HOLE) instanceof SiStriplets)
+                    channel -= 1; 
                 
                 // Queue the hit in the processing queue appropriate
                 // to its sensor and channel.
@@ -420,6 +431,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
                     
                     // Loop over all sensor channels.
                     for(Integer channel : electrodeDataCol.keySet()) {
+
                         // Get the electrode data for this channel.
                         SiElectrodeData electrodeData = electrodeDataCol.get(channel);
                         Set<SimTrackerHit> simHits = electrodeData.getSimulatedHits();
@@ -584,9 +596,22 @@ public class SVTReadoutDriver extends ReadoutDriver {
         for(SiSensor sensor : sensors) {
             // Get the hit queues for the current sensor.
             PriorityQueue<StripHit>[] hitQueues = hitMap.get(sensor);
+
+            // Check if a channel offset needs to be applied.  This will be 
+            // needed to retrieve the proper conditions for queues associated
+            // with SiStriplets.
+            int channelOffset = 0; 
+            if (sensor.getReadoutElectrodes(ChargeCarrier.HOLE) instanceof SiStriplets)
+                channelOffset = 1;  
             
             // Iterate over the hit queue channels.
-            for(int channel = 0; channel < hitQueues.length; channel++) {
+            for(int channel = 0; channel < hitQueues.length; channel++) { 
+               
+                // Use this to retrieve the correct conditions from the 
+                // conditions database.  This accounts for the shift in the 
+                // channel map in the thin sensors.
+                int conditionsChannel = channel + channelOffset; 
+                
                 // Unless noise should be added, there is nothing to
                 // process on an empty hit queue. Skip it.
                 if(!addNoise && (hitQueues[channel] == null || hitQueues[channel].isEmpty())) {
@@ -598,12 +623,12 @@ public class SVTReadoutDriver extends ReadoutDriver {
                 // pedestal values.
                 double[] signal = new double[6];
                 for(int sampleN = 0; sampleN < 6; sampleN++) {
-                    signal[sampleN] = ((HpsSiSensor) sensor).getPedestal(channel, sampleN);
+                    signal[sampleN] = ((HpsSiSensor) sensor).getPedestal(conditionsChannel, sampleN);
                 }
                 
                 // If noise should be added, do so.
                 if(addNoise) {
-                    addNoise(sensor, channel, signal);
+                    addNoise(sensor, conditionsChannel, signal);
                 }
                 
                 // Create a list to store truth SVT hits.
@@ -628,7 +653,7 @@ public class SVTReadoutDriver extends ReadoutDriver {
                             double signalAtTime = hit.amplitude * shape.getAmplitudePeakNorm(sampleTime - hit.time);
                             totalContrib += signalAtTime;
                             signal[sampleN] += signalAtTime;
-                            meanNoise += ((HpsSiSensor) sensor).getNoise(channel, sampleN);
+                            meanNoise += ((HpsSiSensor) sensor).getNoise(conditionsChannel, sampleN);
                             
                             signalBuffer.append(signalAtTime + " (" + sampleTime + ")");
                             if(sampleN != 5) {
@@ -658,7 +683,9 @@ public class SVTReadoutDriver extends ReadoutDriver {
                 }
                 
                 // Get the proper channel ID.
-                long channel_id = ((HpsSiSensor) sensor).makeChannelID(channel);
+                // For the thin sensors, the channel number needs to be offset
+                // by 1. 
+                long channel_id = ((HpsSiSensor) sensor).makeChannelID(conditionsChannel);
                 
                 // Create a new tracker hit.
                 RawTrackerHit hit = new BaseRawTrackerHit(0, channel_id, samples, simHits, sensor);

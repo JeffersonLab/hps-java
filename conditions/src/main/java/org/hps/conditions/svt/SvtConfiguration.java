@@ -19,8 +19,6 @@ import org.jdom.output.XMLOutputter;
 
 /**
  * This class is the conditions object model for an SVT configuration saved into the database.
- *
- * @author Jeremy McCormick, SLAC
  */
 @Table(names = {"svt_configurations"})
 @Converter(multipleCollectionsAction = MultipleCollectionsAction.LAST_UPDATED)
@@ -44,6 +42,8 @@ public final class SvtConfiguration extends BaseConditionsObject {
         final byte[] bytes = this.getFieldValue("content");
         final InputStream inputStream = new ByteArrayInputStream(bytes);
         final SAXBuilder builder = new SAXBuilder();
+        builder.setExpandEntities(false);
+
         builder.setValidation(false);
         return builder.build(inputStream);
     }

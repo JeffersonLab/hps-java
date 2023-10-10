@@ -21,9 +21,6 @@ hs_err_pid*
 .settings
 nbproject
 
-# Maven target dir
-target
-
 # Diff output
 *.diff
 
@@ -35,3 +32,22 @@ target
 
 # name of ET mem map file
 ETBuffer
+
+.m2repo
+
+deps.txt 
+
+# directories to ignore
+scratch/
+bin/
+target/
+
+
+# editor swap files
+.*.swp
+
+# local Maven repository
+.m2repo
+
+# ignore user VS Code settings
+.vscode

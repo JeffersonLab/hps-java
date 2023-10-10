@@ -12,9 +12,6 @@ import org.lcsim.event.base.BaseCluster;
 
 /**
  * This is a simple (example) nearest-neighbor clustering algorithm.
- *
- * @author Norman A. Graf
- * @author Jeremy McCormick <jeremym@slac.stanford.edu>
  */
 public class NearestNeighborClusterer extends AbstractClusterer {
 

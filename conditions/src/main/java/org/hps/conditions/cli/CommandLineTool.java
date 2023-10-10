@@ -17,8 +17,6 @@ import org.lcsim.conditions.ConditionsManager.ConditionsNotFoundException;
 /**
  * This class is a command-line tool for performing commands on the conditions database using sub-commands for
  * operations such as 'add' and 'print'.
- *
- * @author Jeremy McCormick, SLAC
  */
 public final class CommandLineTool {
 

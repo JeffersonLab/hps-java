@@ -1,6 +1,3 @@
-/*
- * To change this template, choose Tools | Templates and open the template in the editor.
- */
 package org.hps.recon.tracking.gbl;
 
 import hep.aida.IAnalysisFactory;
@@ -26,10 +23,6 @@ import org.lcsim.util.aida.AIDA;
 
 /**
  * Calculates and plots truth residuals for track
- * 
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- * @version $Id: TruthResiduals.java,v 1.10 2013/11/07 03:54:58 phansson Exp $ $Date: 2013/11/07 03:54:58 $ $Author:
- *          phansson $
  */
 public class TruthResiduals {
 

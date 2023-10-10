@@ -47,8 +47,6 @@ import org.hps.recon.tracking.CoordinateTransformations;
 
 /**
  * Class building a new compact.xml detector based on MillepedeII input corrections.
- * 
- * @author Per Ola Hansson Adrian <phansson@slac.stanford.edu>
  */
 public class BuildCompact {
 
@@ -203,6 +201,8 @@ public class BuildCompact {
 
         // read XML
         SAXBuilder builder = new SAXBuilder();
+        builder.setExpandEntities(false);
+
         Document compact_document = null;
         try {
             compact_document = (Document) builder.build(compactFile);

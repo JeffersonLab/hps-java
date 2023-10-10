@@ -17,8 +17,6 @@ import org.lcsim.event.SimTrackerHit;
  * and feeding it to the <code>ReadoutDataManager</code>. It will
  * also include all truth particles associated with any truth hits
  * that are output, if it is set to persist its data.
- * 
- * @author Kyle McCarty
  */
 public class SimTrackerHitReadoutDriver extends SLICDataReadoutDriver<SimTrackerHit> {
     public SimTrackerHitReadoutDriver() {

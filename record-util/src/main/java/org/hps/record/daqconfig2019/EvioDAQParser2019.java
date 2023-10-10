@@ -8,6 +8,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.BufferedWriter;
+import java.io.IOException;
+
 import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalConditions;
@@ -24,10 +29,11 @@ import org.hps.conditions.hodoscope.HodoscopeConditions;
  * <code>ConfigurationManager</code>. The latter should be used for accessing
  * this information for any other classes.
  * 
- * @author Tongtong Cao <caot@jlab.org>
  */
-
 public class EvioDAQParser2019 {
+    /** Indicates if save DAQ configuration banks into txt files */
+    private boolean saveConfigBank = false;
+    
     /** The EvIO bank identification tag for DAQ configuration banks. */
     public static final int BANK_TAG = 0xE10E;
 
@@ -93,6 +99,24 @@ public class EvioDAQParser2019 {
      * <code>{ Singles0_Cut_Enabled, Singles1_Cut_Enabled, Singles2_Cut_Enabled, Singles3_Cut_Enabled  }</code>.
      */
     boolean[] singlesXMinEn = { false, false, false, false };
+    
+    /**
+     * Update for 2021 DAQ configuration with VTP_HPS_SINGLE_MOLLER_MODE_EN
+     * It determines if the PDE is min threshold (when <en>=0) or if it's a max threshold (when <en>=1)
+     * <code>{ Singles0_Cut_Enabled, Singles1_Cut_Enabled, Singles2_Cut_Enabled, Singles3_Cut_Enabled  }</code>.
+     */
+    boolean[] singlesMollerModeEn = { false, false, false, false };
+    
+    /**
+     * 2021 DAQ configraution changes from VTP_HPS_SINGLE_XMIN into VTP_HPS_SINGLE_XYMINMAX
+     * For Single1 as Moller trigger, xy min and max are set.
+     * For Single2 and Single3, xmax ymin and ymax are default to be open.
+     * Indicates whether the singles trigger cluster xy minmax cuts are enabled or not.
+     * Uses the format
+     * <code>{ Singles0_Cut_Enabled, Singles1_Cut_Enabled, Singles2_Cut_Enabled, Singles3_Cut_Enabled  }</code>.
+     */
+    boolean[] singlesXYMinMaxEn = { false, false, false, false };
+    
     /**
      * Indicates whether the singles trigger cluster Position Dependent Energy (PDE)
      * cuts are enabled or not. Uses the format
@@ -148,7 +172,33 @@ public class EvioDAQParser2019 {
      * format, in units of crystal index,
      * <code>{ Singles0_Cut_Value, Singles1_Cut_Value, Singles2_Cut_Value, Singles3_Cut_Value }</code>.
      */
-    int[] singlesXMin = { 0, 0, 0, 0 };
+    int[] singlesXMin = { -31, -31, -31, -31 };
+    
+    /**
+     * 2021 update
+     * Specifies the value of the singles trigger cluster x max cuts. Use the
+     * format, in units of crystal index,
+     * <code>{ Singles0_Cut_Value, Singles1_Cut_Value, Singles2_Cut_Value, Singles3_Cut_Value }</code>.
+     */
+    int[] singlesXMax = { 31, 31, 31, 31 };
+    
+    /**
+     * 2021 update
+     * Specifies the value of the singles trigger cluster y min cuts. Use the
+     * format, in units of crystal index,
+     * <code>{ Singles0_Cut_Value, Singles1_Cut_Value, Singles2_Cut_Value, Singles3_Cut_Value }</code>.
+     */
+    int[] singlesYMin = { -7, -7, -7, -7 };
+    
+    /**
+     * 2021 update
+     * Specifies the value of the singles trigger cluster y max cuts. Use the
+     * format, in units of crystal index,
+     * <code>{ Singles0_Cut_Value, Singles1_Cut_Value, Singles2_Cut_Value, Singles3_Cut_Value }</code>.
+     */
+    int[] singlesYMax = { 7, 7, 7, 7 };
+    
+    
     /**
      * Specifies the value of the singles trigger cluster Position Dependent Energy
      * (PDE) cuts: Energy >= C0 + C1*x + C2*x^2 + C3*x^3, where x is crystal X
@@ -214,6 +264,11 @@ public class EvioDAQParser2019 {
      * <code>{ Pair0_Cut_Enabled, Pair1_Cut_Enabled, Pair2_Cut_Enabled, Pair3_Cut_Enabled }</code>.
      */
     boolean[] pairsEnergyDistEn = { false, false, false, false };
+    
+    boolean pairs3L1MatchingEn = false;
+    boolean pairs3L2MatchingEn = false;
+    boolean pairs3L1L2MatchingEn = false;
+    boolean pairs3L1L2EcalMatchingEn = false;
 
     // Cut Values:
     /**
@@ -517,6 +572,27 @@ public class EvioDAQParser2019 {
         if (nBanks > 4 && debug) {
             printVars();
         }
+        
+        // If saveConfigBank is enabled, save configuration into a text file for each crate separately.
+        if(saveConfigBank) {
+            try{
+                String fileName = Integer.toString(runNumber) + '_' + Integer.toString(crate) + ".txt";
+                File file = new File(fileName);
+                //if file doesnt exists, then create it
+                if(!file.exists()){
+                    file.createNewFile();
+                }
+                FileWriter fileWritter = new FileWriter(file.getName(),true);
+                BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+                for (String configTable : configurationTables) {
+                    bufferWritter.write(configTable);
+                }
+                bufferWritter.close();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -572,7 +648,7 @@ public class EvioDAQParser2019 {
                 // Add the parameter key and its values to the map.
                 configMap.put(key, vals);
             }
-        }
+        }        
     }
 
     /**
@@ -600,6 +676,10 @@ public class EvioDAQParser2019 {
             singlesEnergyMinEn[ii] = getBoolConfigVTP(ii, "SINGLE_EMIN", 1);
             singlesEnergyMaxEn[ii] = getBoolConfigVTP(ii, "SINGLE_EMAX", 1);
             singlesXMinEn[ii] = getBoolConfigVTP(ii, "SINGLE_XMIN", 1);
+            // 2021 update
+            singlesXYMinMaxEn[ii] = getBoolConfigVTP(ii, "SINGLE_XYMINMAX", 4);
+            singlesMollerModeEn[ii] = getBoolConfigVTP(ii, "SINGLE_MOLLER_MODE_EN", 0);                       
+            
             singlesPDEEn[ii] = getBoolConfigVTP(ii, "SINGLE_PDE", 4);
             singlesL1MatchingEn[ii] = getBoolConfigVTP(ii, "SINGLE_HODO", 0);
             singlesL2MatchingEn[ii] = getBoolConfigVTP(ii, "SINGLE_HODO", 1);
@@ -610,7 +690,18 @@ public class EvioDAQParser2019 {
             singlesNhitsMin[ii] = getIntConfigVTP(ii, "SINGLE_NMIN", 0);
             singlesEnergyMin[ii] = getIntConfigVTP(ii, "SINGLE_EMIN", 0);
             singlesEnergyMax[ii] = getIntConfigVTP(ii, "SINGLE_EMAX", 0);
-            singlesXMin[ii] = getIntConfigVTP(ii, "SINGLE_XMIN", 0);
+            
+            // 2021 update
+            if(singlesXMinEn[ii])
+                singlesXMin[ii] = getIntConfigVTP(ii, "SINGLE_XMIN", 0);
+            
+            if(singlesXYMinMaxEn[ii]) {
+                singlesXMin[ii] = getIntConfigVTP(ii, "SINGLE_XYMINMAX", 0);
+                singlesXMax[ii] = getIntConfigVTP(ii, "SINGLE_XYMINMAX", 1);
+                singlesYMin[ii] = getIntConfigVTP(ii, "SINGLE_XYMINMAX", 2);
+                singlesYMax[ii] = getIntConfigVTP(ii, "SINGLE_XYMINMAX", 3);
+            }
+            
             singlesPDEC0[ii] = getFloatConfigVTP(ii, "SINGLE_PDE", 0);
             singlesPDEC1[ii] = getFloatConfigVTP(ii, "SINGLE_PDE", 1);
             singlesPDEC2[ii] = getFloatConfigVTP(ii, "SINGLE_PDE", 2);
@@ -637,6 +728,11 @@ public class EvioDAQParser2019 {
             pairsEnergyDistSlope[ii] = getFloatConfigVTP(ii, "PAIR_ENERGYDIST", 0);
             pairsEnergyDistMin[ii] = getIntConfigVTP(ii, "PAIR_ENERGYDIST", 1);
         }
+        
+        pairs3L1MatchingEn = getBoolConfigVTP(3, "PAIR_HODO", 0);
+        pairs3L2MatchingEn = getBoolConfigVTP(3, "PAIR_HODO", 1);
+        pairs3L1L2MatchingEn = getBoolConfigVTP(3, "PAIR_HODO", 2);
+        pairs3L1L2EcalMatchingEn = getBoolConfigVTP(3, "PAIR_HODO", 3);
 
         // Parse cluster multiplicity trigger data
         for (int ii = 0; ii < 2; ii++) {
@@ -1093,6 +1189,8 @@ public class EvioDAQParser2019 {
             System.out.println(String.format("SINGLES_EMIN_EN %d %b", ii, singlesEnergyMinEn[ii]));
             System.out.println(String.format("SINGLES_EMAX_EN %d %b", ii, singlesEnergyMaxEn[ii]));
             System.out.println(String.format("SINGLES_XMIN_EN %d %b", ii, singlesXMinEn[ii]));
+            System.out.println(String.format("SINGLES_XYMINMAX_EN %d %b", ii, singlesXYMinMaxEn[ii]));
+            System.out.println(String.format("SINGLES_MOLLERMODE_EN %d %b", ii, singlesMollerModeEn[ii]));
             System.out.println(String.format("SINGLES_L1Matching_EN %d %b", ii, singlesL1MatchingEn[ii]));
             System.out.println(String.format("SINGLES_L2Matching_EN %d %b", ii, singlesL2MatchingEn[ii]));
             System.out.println(String.format("SINGLES_L1L2Matching_EN %d %b", ii, singlesL1L2MatchingEn[ii]));
@@ -1101,6 +1199,9 @@ public class EvioDAQParser2019 {
             System.out.println(String.format("SINGLES_EMIN %d %d", ii, singlesEnergyMin[ii]));
             System.out.println(String.format("SINGLES_EMAX %d %d", ii, singlesEnergyMax[ii]));
             System.out.println(String.format("SINGLES_XMIN %d %d", ii, singlesXMin[ii]));
+            System.out.println(String.format("SINGLES_XMAX %d %d", ii, singlesXMax[ii]));
+            System.out.println(String.format("SINGLES_YMIN %d %d", ii, singlesYMin[ii]));
+            System.out.println(String.format("SINGLES_YMAX %d %d", ii, singlesYMax[ii]));
             System.out.println(String.format("SINGLES_PDE_CO %d %f", ii, singlesPDEC0[ii]));
             System.out.println(String.format("SINGLES_PDE_C1 %d %f", ii, singlesPDEC1[ii]));
             System.out.println(String.format("SINGLES_PDE_C2 %d %f", ii, singlesPDEC2[ii]));
@@ -1123,6 +1224,12 @@ public class EvioDAQParser2019 {
             System.out.println(String.format("PAIRS_EDISTSLOP %d %f", ii, pairsEnergyDistSlope[ii]));
         }
 
+        System.out.println(String.format("Pair_L1Matching_EN 3 %b", pairs3L1MatchingEn));
+        System.out.println(String.format("Pair_L2Matching_EN 3 %b", pairs3L2MatchingEn));
+        System.out.println(String.format("Pair_L1L2Matching_EN 3 %b", pairs3L1L2MatchingEn));
+        System.out.println(String.format("Pair_L1L2EcalMatching_EN 3 %b", pairs3L1L2EcalMatchingEn));
+        
+        
         for (int ii = 0; ii < 2; ii++) {
             System.out.println(String.format("MULT_EN %d %b", ii, multEn[ii]));
             System.out.println(String.format("MULT_NHITS %d %d", ii, multNhitsMin[ii]));

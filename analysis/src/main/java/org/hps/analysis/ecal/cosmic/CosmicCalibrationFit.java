@@ -23,10 +23,7 @@ import hep.aida.IFitResult;
  * containing the histogram spectra for each crystal, both for the fit and the
  * sum, the 2-D correlation between the two and the histograms of pedestal
  * values for each crystal.
- *
- * @author LucaMarsicano
  */
-
 public class CosmicCalibrationFit extends Driver {
 
     // private ITree tree = null;

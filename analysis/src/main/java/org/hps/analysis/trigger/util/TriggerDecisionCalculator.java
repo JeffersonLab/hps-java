@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.hps.analysis.trigger.util;
 
 import java.util.ArrayList;
@@ -14,10 +11,6 @@ import org.hps.record.triggerbank.TIData;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.GenericObject;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class TriggerDecisionCalculator {
 
     public enum TriggerType {

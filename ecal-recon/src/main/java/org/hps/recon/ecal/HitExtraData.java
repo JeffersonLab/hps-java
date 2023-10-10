@@ -1,15 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties. To change this template file, choose
- * Tools | Templates and open the template in the editor.
- */
 package org.hps.recon.ecal;
 
 import org.lcsim.event.GenericObject;
 
-/**
- * @author Sho Uemura <meeg@slac.stanford.edu>
- * @version $Id: $
- */
 public class HitExtraData implements GenericObject {
 
     protected final int mode;

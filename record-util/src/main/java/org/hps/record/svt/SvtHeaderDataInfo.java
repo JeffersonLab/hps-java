@@ -1,22 +1,13 @@
-/**
- * 
- */
 package org.hps.record.svt;
 
 import org.lcsim.event.GenericObject;
 
-/**
- * @author Per Hansson Adrian <phansson@slac.stanford.edu>
- *
- */
 public class SvtHeaderDataInfo implements GenericObject {
 
     private final int num;
     private final int header;
     private final int tail;
     private int[] multisampleheader;
-    
-    
         
     public SvtHeaderDataInfo(int num, int header, int tail) {
         this.num = num;

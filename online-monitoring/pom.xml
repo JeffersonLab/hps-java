@@ -1,0 +1,60 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>hps-online-monitoring</artifactId>
+  <name>online-monitoring</name>
+  <description>online monitoring tools</description>
+
+  <parent>
+    <groupId>org.hps</groupId>
+    <artifactId>hps-java</artifactId>
+    <relativePath>../pom.xml</relativePath>
+    <version>5.2.2-SNAPSHOT</version>
+  </parent>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/*Test.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-evio</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-ecal-recon</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-steering-files</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hps</groupId>
+      <artifactId>hps-analysis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jfreechart-aida-experimental</groupId>
+      <artifactId>jfreechart-aida-experimental</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>itextpdf</artifactId>
+    </dependency>
+  </dependencies>
+
+</project>

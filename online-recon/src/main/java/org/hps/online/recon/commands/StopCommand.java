@@ -1,6 +1,5 @@
 package org.hps.online.recon.commands;
 
-import org.apache.commons.cli.CommandLine;
 import org.hps.online.recon.Command;
 
 /**
@@ -8,13 +7,13 @@ import org.hps.online.recon.Command;
  * then stop all stations.
  */
 public class StopCommand extends Command {
-    
-    StopCommand() {
-        super("stop", "Stop a station", "[IDs]", 
+
+    public StopCommand() {
+        super("stop", "Stop a station", "[IDs]",
                 "Provide a list of IDs or none for all.");
     }
-        
-    protected void process(CommandLine cl) {
+
+    protected void process() {
         readStationIDs(cl);
-    }        
+    }
 }

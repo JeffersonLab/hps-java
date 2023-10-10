@@ -3,20 +3,15 @@ package org.hps.recon.tracking;
 import java.util.ArrayList;
 import java.util.Collection;
 
-
-//===>import org.hps.conditions.deprecated.HPSSVTCalibrationConstants.ChannelConstants;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.RawTrackerHit;
 
-/**
- *
- * @author Matt Graham
- */
 // FIXME: Change the name of the class to SimpleShaperFit - OM
 // TODO: Add class documentation.
 public class DumbShaperFit implements ShaperFitAlgorithm {
 
     private boolean debug = false;
+    private String fitTimeMinimizer = "Simplex";
 
     public DumbShaperFit() {
     }
@@ -26,15 +21,20 @@ public class DumbShaperFit implements ShaperFitAlgorithm {
     }
 
     @Override
+    public void setFitTimeMinimizer(String fitTimeMinimizer) {
+        this.fitTimeMinimizer = fitTimeMinimizer;
+    }
+
+    @Override
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, PulseShape shape) {
         short[] samples = rth.getADCValues();
         HpsSiSensor sensor =(HpsSiSensor) rth.getDetectorElement();
         int channel = rth.getIdentifierFieldValue("strip");
         return fitShape(channel, samples, sensor);
     }
-    
+
     public Collection<ShapeFitParameters> fitShape(int channel, short[] samples, HpsSiSensor sensor){
-        
+
         ShapeFitParameters fitresults = new ShapeFitParameters();
         double[] pedSub = {-99.0, -99.0, -99.0, -99.0, -99.0, -99.0};
         double maxADC = -99999;

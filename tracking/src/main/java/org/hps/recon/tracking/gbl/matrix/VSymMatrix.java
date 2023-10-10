@@ -7,9 +7,6 @@ import java.util.ArrayList;
 
 /**
  * Simple symmetric Matrix based on ArrayList
- *
- * @author Norman A. Graf
- * @version $Id$
  */
 public class VSymMatrix {
 

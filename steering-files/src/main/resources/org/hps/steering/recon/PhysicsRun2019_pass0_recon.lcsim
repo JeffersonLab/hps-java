@@ -21,45 +21,35 @@
         <driver name="EcalTimeCorrection"/> 
         <driver name="ReconClusterer" /> 
         <driver name="CopyCluster" />
-
         <!-- Hodoscope drivers -->
         <driver name="HodoRunningPedestal"/>
         <driver name="HodoRawConverter"/>
- 
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-        
         <driver name="HelicalTrackHitDriver"/> 
-        
         <!-- Track finding and fitting using seed tracker. -->
-        
         <driver name="TrackReconSeed123Conf4Extd56"/>    
         <driver name="TrackReconSeed123Conf5Extd46"/>
-        
         <driver name="TrackReconSeed567Conf4Extd123"/>
         <driver name="TrackReconSeed456Conf3Extd127"/>
         <driver name="TrackReconSeed356Conf7Extd124"/>
         <driver name="TrackReconSeed235Conf6Extd147"/> 
         <driver name="TrackReconSeed234Conf6Extd157"/> 
-
         <!-- 
            TrackDataDriver needs to be run before ReconParticleDriver so the
            ReconstructedParticle types are properly set.
         -->
-        
         <driver name="MergeTrackCollections"/>
         <driver name="GBLRefitterDriver" />
         <driver name="TrackDataDriver" />
         <driver name="KalmanPatRecDriver"/>
         <driver name="ReconParticleDriver" /> 
         <driver name="ReconParticleDriver_Kalman" /> 
-        
         <!--  DQM   -->
-              
         <!-- Following are optional Analysis Drivers  -->
-<!--        
+        <!--        
         <driver name="EcalMonitoring"/>  
         <driver name="EcalMonitoringCorr"/>  
         <driver name="SVTMonitoring"/>
@@ -71,7 +61,6 @@
         <driver name="TridentMonitoring"/>           
         <driver name="MuonCandidateMonitoring"/>    
         -->      
-             
         <driver name="LCIOWriter"/>
         <!-- Toggle between saving in aida or root format -->
         <!-- <driver name="AidaToRootSaveDriver"/> -->
@@ -83,19 +72,15 @@
         <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
             <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> 
         </driver>
-        
         <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver"/>
         <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver"/>
-  
         <!-- Driver to reject "bad" events -->
         <!-- Not yet implemented for 2019
              <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter"> 
             <flagNames>svt_bias_good svt_position_good svt_burstmode_noise_good svt_event_header_good</flagNames> 
         </driver> 
         -->
-        
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
-
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
@@ -114,14 +99,13 @@
             <inputCollectionName>EcalClusters</inputCollectionName>
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
         </driver>
-        
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
-        
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
             <fitAlgorithm>Pileup</fitAlgorithm>
+            <fitTimeMinimizer>Migrad</fitTimeMinimizer>
             <useTimestamps>false</useTimestamps>
             <correctTimeOffset>true</correctTimeOffset>
             <correctT0Shift>false</correctT0Shift>
@@ -131,14 +115,12 @@
             <correctChanT0>false</correctChanT0>
             <debug>false</debug>
         </driver>
-       
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
             <saveMonsterEvents>false</saveMonsterEvents>
             <thresholdMonsterEvents>200</thresholdMonsterEvents>
             <debug>false</debug>
         </driver>
-      
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <clusterTimeCut>40.0</clusterTimeCut>
@@ -146,15 +128,11 @@
             <maxDt>20.0</maxDt>
             <saveAxialHits>false</saveAxialHits>
         </driver>   
-        
         <!--   Track finding strategies -->
         <!--   TrackReconSeed_ABC_Conf_D_Extd_EFG -->
         <!--   Seed the track with a fit to the triplet of hits in layers ABC -->
         <!--   Confirm that track with a hit in layer D -->
         <!--   Extend that track to hits in layers EFG -->
-
-
-
         <driver name="TrackReconSeed123Conf4Extd56" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s123_c4_e56</trackCollectionName>
             <strategyResource>HPS_s123_c4_e56_4hit.xml</strategyResource>
@@ -162,7 +140,6 @@
 	        <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
-        
         <driver name="TrackReconSeed123Conf5Extd46" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s123_c5_e46</trackCollectionName>
             <strategyResource>HPS_s123_c5_e46_4hit.xml</strategyResource>
@@ -170,8 +147,6 @@
 	        <rmsTimeCut>1000.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
-
-
         <driver name="TrackReconSeed567Conf4Extd123" type="org.hps.recon.tracking.TrackerReconDriver">
             <trackCollectionName>Tracks_s567_c4_e123</trackCollectionName>
             <strategyResource>HPS_s567_c4_e123.xml</strategyResource>
@@ -289,14 +264,12 @@
             <rmsTimeCut>20.0</rmsTimeCut>
             <maxTrackerHits>250</maxTrackerHits>
         </driver>
-       
-       <!-- Resolve duplicate tracks found with different strategies -->
+        <!-- Resolve duplicate tracks found with different strategies -->
         <driver name="MergeTrackCollections" type="org.hps.recon.tracking.MergeTrackCollections" />
-
         <!-- Refit tracks using the GBL algorithm -->
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver" >
           <!--            <maxTrackChisq5hits> 60. </maxTrackChisq5hits>
-               <maxTrackChisq6hits> 84. </maxTrackChisq6hits>-->
+          <maxTrackChisq6hits> 84. </maxTrackChisq6hits>-->
           <includeNoHitScatters>true</includeNoHitScatters>
           <gblRefitIterations>5</gblRefitIterations>
           <storeTrackStates>false</storeTrackStates>
@@ -305,23 +278,17 @@
           <!--<maxTrackChisq5hits> 100. </maxTrackChisq5hits> -->
           <!--<maxTrackChisq6hits> 100. </maxTrackChisq6hits> -->
         </driver> 
-        
-        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
             <!--<doDebugPlots>false</doDebugPlots>-->
             <!-- <siHitsLimit>50</siHitsLimit> -->
             <seedCompThr>0.05</seedCompThr>
             <verbose>false</verbose>
-          </driver>
-          
-
-        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
-          <outputPlotsFilename>${outputFile}_gblplots.root</outputPlotsFilename>
-          <trackCollectionName>GBLTracks</trackCollectionName>
         </driver>
-                
+        <driver name="GBLOutputDriver" type="org.hps.recon.tracking.gbl.GBLOutputDriver">
+            <outputPlotsFilename>${outputFile}_gblplots.root</outputPlotsFilename>
+            <trackCollectionName>GBLTracks</trackCollectionName>
+        </driver>
         <driver name="TrackDataDriver" type="org.hps.recon.tracking.TrackDataDriver" />
-        
         <!-- Create Reconstructed Particles by pairing up tracks and clusters when possible - Beamspot location and size valid for 10031 -->
         <driver name="ReconParticleDriver" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
@@ -333,20 +300,19 @@
             <beamSigmaX>0.05</beamSigmaX>
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
-            <beamPositionZ>-10</beamPositionZ>
-            <maxElectronP>7.0</maxElectronP>
+            <beamPositionZ>-7.5</beamPositionZ>
+            <maxElectronP>10.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <maxVertexClusterDt> 40.0 </maxVertexClusterDt>           
             <maxMatchDt>40</maxMatchDt>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-            <applyClusterCorrections>false</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
+            <applyClusterCorrections>true</applyClusterCorrections>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
             <makeMollerCols>false</makeMollerCols>
         </driver>  
-
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>KalmanFullTracks</trackCollectionNames>          
@@ -364,8 +330,8 @@
             <beamSigmaX>0.05</beamSigmaX>
             <beamPositionY>0.04</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
-            <beamPositionZ>-10</beamPositionZ>
-            <maxElectronP>7.0</maxElectronP>
+            <beamPositionZ>-7.5</beamPositionZ>
+            <maxElectronP>10.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>40.0</maxVertexClusterDt>           
@@ -373,13 +339,11 @@
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
             <applyClusterCorrections>false</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>false</useTrackPositionForClusterCorrection>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
             <debug>false</debug>
 	    <makeMollerCols>false</makeMollerCols>
         </driver>  
-        
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>       
@@ -389,7 +353,6 @@
         <driver name="AidaToRootSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}.root</outputFileName>
         </driver>
-
         <!-- all triggers  -->
         <driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>all</triggerType>
@@ -429,7 +392,6 @@
         <driver name="TrackingMonitoringMatched" type="org.hps.analysis.dataquality.TrackingMonitoring">
             <triggerType>all</triggerType>           
         </driver>   
-
     </drivers>
 </lcsim>
 

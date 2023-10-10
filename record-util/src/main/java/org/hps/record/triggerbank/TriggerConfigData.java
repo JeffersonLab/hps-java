@@ -9,8 +9,6 @@ import org.hps.record.daqconfig.EvioDAQParser;
 
 /**
  * Raw trigger config string data with an associated timestamp.
- * 
- * @author Jeremy McCormick, SLAC
  */
 public final class TriggerConfigData {
         

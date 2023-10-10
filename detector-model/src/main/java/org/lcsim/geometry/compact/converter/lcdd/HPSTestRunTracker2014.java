@@ -22,7 +22,6 @@ import org.lcsim.geometry.util.TransformationUtils;
 /**
  * Convert the HPS Test run tracker 2014 to the LCDD format.
  * 
- * @author Per Hansson <phansson@slac.stanford.edu>
  * @todo Remove example methods from this class.
  */
 public class HPSTestRunTracker2014 extends HPSTracker2014Base {
