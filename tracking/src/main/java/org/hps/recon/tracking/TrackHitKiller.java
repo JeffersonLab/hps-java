@@ -27,8 +27,9 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.event.Track;
 import org.lcsim.lcio.LCIOUtil;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.util.Driver;
-
 /**
  *
  * @author mgraham created 2/2/20
@@ -55,6 +56,10 @@ public class TrackHitKiller extends Driver {
     private static final String SUBDETECTOR_NAME = "Tracker";
     private static Pattern layerPattern = Pattern.compile("L(\\d+)(t|b)");
     private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+    private String helicalTrackHitCollectionName = "HelicalTrackHits";
+    private final String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
+    private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
+    private final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String trackCollectionName="MatchedTracks";
     private boolean _debug = false;
     //  instead of just removing hit at a given channel, remove all hits within Nsigma
@@ -164,19 +169,26 @@ public class TrackHitKiller extends Driver {
     public void process(EventHeader event) {
         //    System.out.println("In process of SVTHitKiller");
         //        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-
+        
         if (event.hasItem(stripHitInputCollectionName))
             siClusters = (List<TrackerHit>) event.get(stripHitInputCollectionName);
         else {
             System.out.println("StripHitKiller::process No Input Collection Found?? " + stripHitInputCollectionName);
             return;
         }
+        
+        if (!event.hasCollection(LCRelation.class, helicalTrackHitRelationsCollectionName) || !event.hasCollection(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName))
+            return;
+        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
 
-        List<TrackerHit> l1HitsOnTracks=getTrackHitsPerLayer(tracks,1);
-        
+        List<TrackerHit> l1HitsOnTracks=getTrackHitsPerLayer(tracks,hitToStrips,hitToRotated,1);
+        List<TrackerHit> tmpClusterList=new ArrayList<TrackerHit>(siClusters);
+
         int oldClusterListSize = siClusters.size();
+            //for (TrackerHit siCluster : siClusters) {
         for (TrackerHit siCluster : l1HitsOnTracks) {
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) siCluster.getRawHits().get(0)).getDetectorElement();            
             for (SensorToKill sensorToKill : _sensorsToKill)
@@ -197,19 +209,34 @@ public class TrackHitKiller extends Driver {
                     ratio=1-killFactor;
                     if (ratio != -666) {
                         double random = Math.random(); //throw a random number to see if this hit should be rejected
-                        if (random < ratio) {
+                        if(_debug)
+                            System.out.println("ratio = "+ratio+"; random # = "+random);
+                        if (random > ratio) {
                             //                            passHit = false;
-                            siClusters.remove(siCluster);
-            
+                            if(_debug){
+                                System.out.println("Removing cluster...");
+                                System.out.println(siCluster.toString());
+                                if(!tmpClusterList.contains(siCluster))
+                                    System.out.println("....Cluster not in tmpList");
+                                if(!siClusters.contains(siCluster))
+                                    System.out.println("....Cluster not in siClusters");
+                            }
+                            tmpClusterList.remove(siCluster);            
                         }
                     }
-                }
+                }           
         }
 
-        if (_debug)
-            System.out.println("New Cluster List Has " + siClusters.size() + "; old List had " + oldClusterListSize);
+        if (_debug){
+            System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
+            System.out.println("");
+        }
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
-        event.put(this.stripHitInputCollectionName, siClusters, SiTrackerHitStrip1D.class, 0, toString());
+        event.put(this.stripHitInputCollectionName, tmpClusterList, SiTrackerHitStrip1D.class, 0, toString());
+        if(_debug)
+            System.out.println("Clearing hit relational table caches");
+        TrackUtils.clearCaches();
+
     }
 
     @Override
@@ -496,19 +523,33 @@ public class TrackHitKiller extends Driver {
     private double Gauss(double x, double mean, double sigma) {
         return 1 / (Math.sqrt(2 * Math.PI * Math.pow(sigma, 2))) * Math.exp(-Math.pow(x - mean, 2) / (2 * Math.pow(sigma, 2)));
     }
-
-    private List<TrackerHit> getTrackHitsPerLayer(List<Track> tracks, int layer){
+    
+    private List<TrackerHit> getTrackHitsPerLayer(List<Track> tracks, RelationalTable hitToStrips, RelationalTable hitToRotated, int layer){
         List<TrackerHit> lhits=new ArrayList<TrackerHit>();
+        for(Track trk: tracks){
+            List<TrackerHit> hitsontrack=TrackUtils.getStripHits(trk,hitToStrips,hitToRotated);
+            for (TrackerHit hit: hitsontrack) {
+                int thislayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
+                int module = thislayer / 2 + 1;
+                if(module == layer && !(lhits.contains(hit))){// if it's layer of interest and it's not in list yet
+                    lhits.add(hit);
+                }
+            }
+        }                
+        return lhits;
+    }
+
+    /*
+    private boolean isHitOnTrack(List<Track> tracks, TrackerHit cluster){
         for(Track trk: tracks){
             for (TrackerHit hit : trk.getTrackerHits()) {
                 int thislayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
                 int module = thislayer / 2 + 1;
                 if(module == layer && !(lhits.contains(hit))){// if it's layer of interest and it's not in list yet
                     lhits.add(hit);
-                }
-                
+                }                
             }            
         }
-        return lhits;
-    }
+        return false;
+        } */
 }

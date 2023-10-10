@@ -1309,6 +1309,10 @@ public class TrackUtils {
         return new HelicalTrackHit(pos, hitcov, dedx, time, type, rhits, detname, layer, beflag);
     }
 
+    public static void clearCaches(){
+        hitToStripsCache = null;
+        hitToRotatedCache = null;
+    }
     private static Pair<EventHeader, RelationalTable> hitToStripsCache = null;
 
     public static RelationalTable getHitToStripsTable(EventHeader event,String HelicalTrackHitRelationsCollectionName) {
@@ -1342,9 +1346,11 @@ public class TrackUtils {
             //List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
             List<LCRelation> rotaterelations = event.get(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName);
             for (LCRelation relation : rotaterelations)
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null)
-                    //                   System.out.println("getHitToRotatedTable:  adding a relation to hitToRotated");
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null){
+                    //                    System.out.println("getHitToRotatedTable:  adding a relation to hitToRotated");
+                    //System.out.println("TrackUtils::getHitToRotatedTable  "+ relation.getFrom().toString()+"  "+relation.getTo().toString());
                     hitToRotated.add(relation.getFrom(), relation.getTo());
+                }
             hitToRotatedCache = new Pair<EventHeader, RelationalTable>(event, hitToRotated);
         }
         //       System.out.println("getHitToRotatedTable: returning hitToRotatedCache with size = " + hitToRotatedCache.getSecond().size());
@@ -1378,9 +1384,14 @@ public class TrackUtils {
 
     public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         List<TrackerHit> hits = new ArrayList<TrackerHit>();
-        for (TrackerHit hit : track.getTrackerHits())
+        //        System.out.println("Track Utils hitToRotated  "  + hitToRotated.size());
+            
+        for (TrackerHit hit : track.getTrackerHits()){
+            //  System.out.println("hitToRotated.from(hit) = "+hitToRotated.from(hit).toString());
+            //System.out.println("hitToStrips.from(rotated) = "+hitToStrips.allFrom(hitToRotated.from(hit)).toString());            
             hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
 
+        }
         return hits;
     }
 

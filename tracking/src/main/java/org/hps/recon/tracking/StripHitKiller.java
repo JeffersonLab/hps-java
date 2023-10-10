@@ -213,8 +213,8 @@ public class StripHitKiller extends Driver {
 
 //        if (_debug)
         List<TrackerHit> tmpClusterList = getFinalHits(_siClustersAcceptMap);
-        if (_debug)
-            System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
+        //        if (_debug)
+        System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
         event.put(this.stripHitInputCollectionName, tmpClusterList, SiTrackerHitStrip1D.class, 0, toString());
 
