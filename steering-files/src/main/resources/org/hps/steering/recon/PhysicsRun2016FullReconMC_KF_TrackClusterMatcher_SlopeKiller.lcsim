@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!-- 
+      @brief Steering file that will be used for pass 1 reconstruction of 
+             the 2016 Engineering Run data. 
+      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+      @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
+    -->
+    <execute>
+
+        <!--RF driver-->
+        <driver name="RfFitter"/>
+        <driver name="PreCleanupDriver"/> 
+        <!-- Ecal reconstruction drivers -->        
+        <driver name="EcalRunningPedestal"/>
+        <driver name="EcalRawConverter" />
+        <driver name="HitTimeSmear"/>
+        <driver name="ReconClusterer" />
+        <driver name="CopyCluster" />
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+      
+        <!-- KF tracking  -->
+
+        <driver name="KalmanPatRecDriver"/>
+        <driver name="ReconParticleDriver_Kalman" />  
+        <driver name="SlopeBasedTrackHitKiller"/> 
+        <!-- Ok...now do it again --> 
+        <driver name="AfterKillingCleanupDriver"/>     
+         <!-- KF tracking ...again  -->
+         <driver name="KalmanPatRecDriverREDO"/>
+
+        <driver name="ReconParticleDriver_KalmanREDO" /> 
+ 
+        <driver name="LCIOWriter"/>           
+        <!--        <driver name="FullTruthTuple"/> -->
+        <driver name="KFTrackingReconPlots"/>
+        <driver name="AidaSaveDriver"/>
+        <driver name="CleanupDriver"/>
+    </execute>    
+    <drivers>   
+        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
+        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">          
+
+            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles 
+            UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates 
+            UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices 
+            TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates 
+            BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices 
+            GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits 
+            HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  
+            RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  
+            SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations 
+            TrackResiduals TrackResidualsRelations OtherElectrons UnconstrainedVcCandidates UnconstrainedVcVertices
+            KalmanFullTracks UnconstrainedV0Candidates_KF TargetConstrainedV0Candidates_KF BeamspotConstrainedV0Candidates_KF UnconstrainedV0Vertices_KF TargetConstrainedV0Vertices_KF BeamspotConstrainedV0Vertices_KF
+            </collectionNames>
+        </driver>
+
+        <driver name="AfterKillingCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
+            <collectionNames> HelicalTrackHits 
+                HelicalTrackHitRelations MatchedTracks  
+                RotatedHelicalTrackHits RotatedHelicalTrackHitRelations 
+                FinalStateParticles 
+                UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates 
+                UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices 
+                TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates 
+                BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices 
+                GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations  GBLTracks
+                TrackData TrackDataRelations 
+                TrackResiduals TrackResidualsRelations OtherElectrons UnconstrainedVcCandidates UnconstrainedVcVertices
+                KalmanFullTracks UnconstrainedV0Candidates_KF TargetConstrainedV0Candidates_KF BeamspotConstrainedV0Candidates_KF UnconstrainedV0Vertices_KF TargetConstrainedV0Vertices_KF BeamspotConstrainedV0Vertices_KF
+            </collectionNames>
+        </driver>
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+            <logLevel>CONFIG</logLevel>
+        </driver>
+
+        <!--<driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+        </driver>-->
+
+        <driver name="SlopeBasedTrackHitKiller" type="org.hps.recon.tracking.KalmanSlopeBasedTrackHitKiller">
+          <ratioFiles>EmGamma-L1HitEfficiencyResults-2016.txt</ratioFiles>
+          <scaleKillFactor>1.0</scaleKillFactor> 
+          <debug>true</debug>
+          <useSqrtKillFactor>true</useSqrtKillFactor>
+          <correctForDisplacement>false</correctForDisplacement>
+          <trackCollectionName>KalmanFullTracks</trackCollectionName>
+        </driver>
+
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">
+            <ecalCollectionName>EcalCalHits</ecalCollectionName>
+            <fixShapeParameter>true</fixShapeParameter>
+            <globalFixedPulseWidth>2.4</globalFixedPulseWidth>
+        </driver>
+
+        <driver name="HitTimeSmear" type="org.hps.recon.ecal.cluster.HitTMCSmearDriver">
+        </driver>
+
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver>
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+        
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
+            <useTimestamps>true</useTimestamps>     
+            <!--offset to get times centered at 0 after timestamp correction-->                 
+            <tsCorrectionScale>171.</tsCorrectionScale>
+            <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
+            <correctTimeOffset>true</correctTimeOffset>   
+            <!--per sensor shift...set false becasue it's not in readout sim-->       
+            <correctT0Shift>false</correctT0Shift>      
+            <!--use truth time for MC???  typically not used-->             
+            <useTruthTime>false</useTruthTime>    
+            <!--time of flight corrections-->              
+            <subtractTOF>true</subtractTOF>     
+            <!--set this false for MC, true for data-->              
+            <subtractTriggerTime>false</subtractTriggerTime>           
+            <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
+            <correctChanT0>true</correctChanT0>          
+            <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>8.0</neighborDeltaT>
+        </driver>
+        <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+        </driver>
+        <driver name="HelicalTrackHitDriverREDO" type="org.hps.recon.tracking.HelicalTrackHitDriver">
+            <debug>false</debug>
+            <clusterTimeCut>12.0</clusterTimeCut>
+            <maxDt>16.0</maxDt>
+            <clusterAmplitudeCut>400.0</clusterAmplitudeCut>
+        </driver>
+
+        <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+            <!--<doDebugPlots>true</doDebugPlots>-->
+            <!-- <siHitsLimit>50</siHitsLimit> -->
+            <!-- <seedCompThr>0.05</seedCompThr> -->
+            <!-- <addResiduals>true</addResiduals> -->
+            <numEvtPlots>40</numEvtPlots>
+            <targetPosition>-4.3</targetPosition>
+            <addTrackStateAtTarget>true</addTrackStateAtTarget>
+            <verbose>false</verbose>
+        </driver>
+        
+
+        <driver name="KalmanPatRecDriverREDO" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+            <!--<doDebugPlots>true</doDebugPlots>-->
+            <!-- <siHitsLimit>50</siHitsLimit> -->
+            <!-- <seedCompThr>0.05</seedCompThr> -->
+            <!-- <addResiduals>true</addResiduals> -->
+            <numEvtPlots>40</numEvtPlots>
+            <targetPosition>-4.3</targetPosition>
+            <addTrackStateAtTarget>true</addTrackStateAtTarget>
+            <verbose>false</verbose>
+        </driver>
+        
+        <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" >
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
+            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
+            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+            <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
+            <beamPositionX>-0.224</beamPositionX>
+            <beamSigmaX>0.125</beamSigmaX>
+            <beamPositionY>-0.08</beamPositionY>
+            <beamSigmaY>0.030</beamSigmaY>
+            <beamPositionZ>-4.3</beamPositionZ>
+            <maxElectronP>2.15</maxElectronP>
+            <maxVertexP>2.8</maxVertexP>
+            <minVertexChisqProb>0.0</minVertexChisqProb>
+            <maxVertexClusterDt>5.0</maxVertexClusterDt>
+            <maxMatchDt>10</maxMatchDt>
+            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
+            <isMC>true</isMC>
+            <trackClusterMatchPlots>false</trackClusterMatchPlots>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
+
+        </driver>
+        
+
+        
+        <driver name="ReconParticleDriver_KalmanREDO" type="org.hps.recon.particle.HpsReconParticleDriver" >
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
+            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
+            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+            <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
+            <beamPositionX>-0.224</beamPositionX>
+            <beamSigmaX>0.125</beamSigmaX>
+            <beamPositionY>-0.08</beamPositionY>
+            <beamSigmaY>0.030</beamSigmaY>
+            <beamPositionZ>-4.3</beamPositionZ>
+            <maxElectronP>2.15</maxElectronP>
+            <maxVertexP>2.8</maxVertexP>
+            <minVertexChisqProb>0.0</minVertexChisqProb>
+            <maxVertexClusterDt>5.0</maxVertexClusterDt>
+            <maxMatchDt>10</maxMatchDt>
+            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
+            <isMC>true</isMC>
+            <trackClusterMatchPlots>false</trackClusterMatchPlots>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
+        </driver>
+
+        <driver name="KFTrackingReconPlots" type="org.hps.monitoring.drivers.trackrecon.KFTrackingReconPlots"/>
+
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}.root</outputFileName>
+        </driver>             
+         <driver name="FullTruthTuple" type="org.hps.analysis.tuple.TridentFullTupleDriver">
+            <nEcalHit>3</nEcalHit>
+            <tupleFile>${outputFile}_fulltruth.txt</tupleFile>
+            <cutTuple>false</cutTuple>
+        </driver>
+
+    </drivers>
+</lcsim>

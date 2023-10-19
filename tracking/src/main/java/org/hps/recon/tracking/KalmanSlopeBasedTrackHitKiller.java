@@ -41,7 +41,7 @@ import org.lcsim.event.ReconstructedParticle;
  *
  * mg...this only works for L1 module at the moment
  */
-public class SlopeBasedTrackHitKiller extends Driver {
+public class KalmanSlopeBasedTrackHitKiller extends Driver {
 
     Set<String> ratioFiles = new HashSet<String>();
     private List<ModuleSlopeMap> _modulesToKill = new ArrayList<ModuleSlopeMap>();
@@ -50,13 +50,9 @@ public class SlopeBasedTrackHitKiller extends Driver {
     private static final String SUBDETECTOR_NAME = "Tracker";
     private static Pattern layerPattern = Pattern.compile("L(\\d+)");
     private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
-    private String helicalTrackHitCollectionName = "HelicalTrackHits";
-    private final String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
-    private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
-    private final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     //    private String trackCollectionName="MatchedTracks";
-    private String trackCollectionName="GBLTracks";
+    private String trackCollectionName="KalmanFullTracks";
     private boolean _debug = false;
     private double _scaleKillFactor=1.0;
     private List<TrackerHit> siClusters=new ArrayList<TrackerHit>();
@@ -66,6 +62,7 @@ public class SlopeBasedTrackHitKiller extends Driver {
 
     private boolean _useSqrtKillFactor=true;
     private boolean _correctForDisplacement=true;
+   
 
     public void setRatioFiles(String[] ratioNames) {
         System.out.println("Setting ratio files!!!  " + ratioNames[0]);
@@ -92,7 +89,9 @@ public class SlopeBasedTrackHitKiller extends Driver {
         this.trackCollectionName=name;
     }
 
-    public SlopeBasedTrackHitKiller() {
+   
+
+    public KalmanSlopeBasedTrackHitKiller() {
     }
 
     @Override
@@ -108,7 +107,7 @@ public class SlopeBasedTrackHitKiller extends Driver {
         //parse the ratio names and register sensors to kill
         String delims = "-";// this will split strings between  "-"
         for (String ratioFile : ratioFiles) {
-            System.out.println("SlopeBasedTrackHitKiller::Using this ratioFile:  " + ratioFile);
+            System.out.println("KalmanSlopeBasedTrackHitKiller::Using this ratioFile:  " + ratioFile);
             int layer = -1;
             boolean top = false;
             boolean stereo = false;
@@ -123,7 +122,7 @@ public class SlopeBasedTrackHitKiller extends Driver {
                 continue;
             }
  
-            System.out.println("SlopeBasedTrackHitKiller::Killing this:  "
+            System.out.println("KalmanSlopeBasedTrackHitKiller::Killing this:  "
                     + "layer = " + layer);
             this.registerModule(layer, ratioFile);            
         }
@@ -131,27 +130,21 @@ public class SlopeBasedTrackHitKiller extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        //    System.out.println("In process of SVTHitKiller");
-        //        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
         
         if (event.hasItem(stripHitInputCollectionName))
             siClusters = (List<TrackerHit>) event.get(stripHitInputCollectionName);
         else {
-            System.out.println("SlopeBasedTrackHitKiller::process No Input Collection Found?? " + stripHitInputCollectionName);
+            System.out.println("KalmanSlopeBasedTrackHitKiller::process No Input Collection Found?? " + stripHitInputCollectionName);
             return;
         }
-        
-        if (!event.hasCollection(LCRelation.class, helicalTrackHitRelationsCollectionName) || !event.hasCollection(LCRelation.class, rotatedHelicalTrackHitRelationsCollectionName))
-            return;
-        RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
-        RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+              
         List<Track> tracks = event.get(Track.class, trackCollectionName);                
         Map<Track,Double> trkNewSlopeMap=new HashMap<Track, Double>();
 
         if(_correctForDisplacement){
             if(!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
                 if (_debug)
-                    System.out.println("SlopeBasedTrackHitKiller::process No Input Collection Found?? " + unconstrainedV0CandidatesColName);
+                    System.out.println("KalmanSlopeBasedTrackHitKiller::process No Input Collection Found?? " + unconstrainedV0CandidatesColName);
                 return;
             }
             List<ReconstructedParticle> unconstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
@@ -171,10 +164,11 @@ public class SlopeBasedTrackHitKiller extends Driver {
                     continue;
                 double lambda=-666;
                 if(_correctForDisplacement){
-                    lambda=adjustedSlopeFromMap(trkNewSlopeMap,siCluster,hitToStrips,hitToRotated);
-                    //                    System.out.println("corrected lambda= "+lambda);
+                    lambda=adjustedSlopeFromMap(trkNewSlopeMap,siCluster);
+                    if(_debug)
+                        System.out.println("corrected lambda= "+lambda);
                 }else{
-                    Track trk=getTrackWithHit(tracks,siCluster,hitToStrips,hitToRotated);
+                    Track trk=getTrackWithHit(tracks,siCluster);
                     if (trk==null)
                         continue;
                     lambda = trk.getTrackStates().get(0).getTanLambda(); 
@@ -192,22 +186,7 @@ public class SlopeBasedTrackHitKiller extends Driver {
                 double random = Math.random(); //throw a random number to see if this hit should be rejected
                 if(_debug)
                     System.out.println("ratio = "+ratio+"; killFactor = "+killFactor+"; random # = "+random);
-                if (random < killFactor) {
-                    //                    List<TrackerHit> stripsToKill=getTrackHitsPerModule(trk,hitToStrips,hitToRotated,modToKill.getLayer());
-                    //                    boolean removed=tmpClusterList.removeAll(stripsToKill);
-                    //if(_debug){
-                    //    System.out.println("Removed hits? "+removed);
-                    // }
-                    //for(TrackerHit hit: stripsToKill){
-                    //    if(_debug){
-                    //       System.out.println("Removing clusters...");
-                    //        System.out.println(hit.toString());
-                    //        if(!tmpClusterList.contains(hit))
-                    //            System.out.println("....Cluster not in tmpList");
-                    //        if(!siClusters.contains(hit))
-                    //           System.out.println("....Cluster not in siClusters");
-                    //    }
-                    //    tmpClusterList.remove(hit);                        
+                if (random < killFactor) {                
                     tmpClusterList.remove(siCluster);
                 }
             }
@@ -290,7 +269,7 @@ public class SlopeBasedTrackHitKiller extends Driver {
                     _inefficiency.add(Double.parseDouble(tokens[2]));
                 }
             } catch (IOException ex) {
-                Logger.getLogger(SlopeBasedTrackHitKiller.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(KalmanSlopeBasedTrackHitKiller.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -321,36 +300,6 @@ public class SlopeBasedTrackHitKiller extends Driver {
         return new BasicHep3Vector(arr[0], arr[1], arr[2]);
     }
     
-    private List<TrackerHit> getTrackHitsPerModule(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, int layer){
-        List<TrackerHit> lhits=new ArrayList<TrackerHit>();
-        List<TrackerHit> hitsontrack=TrackUtils.getStripHits(track,hitToStrips,hitToRotated);
-        //        System.out.println("hitsontrack size = " + hitsontrack.size());
-        for (TrackerHit hit: hitsontrack) {
-            int thislayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();            
-            int module = (thislayer-1) / 2 + 1;
-            //            System.out.println("this layer ="+thislayer+"; module ="+module);
-            if(module == layer && !(lhits.contains(hit))){// if it's layer of interest and it's not in list yet
-                //                System.out.println("add hit to remove");
-                lhits.add(hit);
-            }            
-        }                
-        return lhits;
-    }
-    
-    private List<TrackerHit> getTrackHitsPerLayer(List<Track> tracks, RelationalTable hitToStrips, RelationalTable hitToRotated, int layer){
-        List<TrackerHit> lhits=new ArrayList<TrackerHit>();
-        for(Track trk: tracks){
-            List<TrackerHit> hitsontrack=TrackUtils.getStripHits(trk,hitToStrips,hitToRotated);
-            for (TrackerHit hit: hitsontrack) {
-                int thislayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
-                int module = (thislayer-1) / 2 + 1;
-                if(module == layer && !(lhits.contains(hit))){// if it's layer of interest and it's not in list yet
-                    lhits.add(hit);
-                }
-            }
-        }                
-        return lhits;
-    }
 
     /*
      * mg...7/5/20...
@@ -360,11 +309,11 @@ public class SlopeBasedTrackHitKiller extends Driver {
      * ...just checking if the SiCluster TrackerHit "hit" is in the hitsontrack collection doesn't work..
      * that's why I go back to the raw hits and compare these lists.  
      */
-    private Track getTrackWithHit(List<Track> tracks, TrackerHit hit, RelationalTable hitToStrips, RelationalTable hitToRotated){
+    private Track getTrackWithHit(List<Track> tracks, TrackerHit hit){
         for(Track trk: tracks){
-            List<TrackerHit> hitsontrack=TrackUtils.getStripHits(trk,hitToStrips,hitToRotated);
-            /*
-              if(hitsontrack.contains(hit)){
+        List<TrackerHit> hitsontrack=trk.getTrackerHits();
+        /*
+          if(hitsontrack.contains(hit)){
                 System.out.println("found a track with this hit "+hit.toString());
                 return trk;
                 } */
@@ -400,7 +349,7 @@ public class SlopeBasedTrackHitKiller extends Driver {
                 Track trk=part.getTracks().get(0);
                 double slope=trk.getTrackStates().get(0).getTanLambda();
                 double newslope=correctSlope(vz,slope);
-                if(_debug)System.out.println(slope+" ; "+newslope);
+                System.out.println(slope+" ; "+newslope);
                 if(trkmap.containsKey(trk)){
                     if(Math.abs(trkmap.get(trk))<Math.abs(newslope)){
                         if(_debug)System.out.println("Replacing new trk/slope pair "+newslope+"; old slope = "+slope);
@@ -417,19 +366,13 @@ public class SlopeBasedTrackHitKiller extends Driver {
         return trkmap;
     }
 
-    private double  adjustedSlopeFromMap(Map<Track,Double> trkmap, TrackerHit hit, RelationalTable hitToStrips, RelationalTable hitToRotated){
+    private double  adjustedSlopeFromMap(Map<Track,Double> trkmap, TrackerHit hit){
         
         for (Map.Entry<Track,Double> entry : trkmap.entrySet())  {
             Track trk=entry.getKey();
             double newSlope=entry.getValue();
-            List<TrackerHit> hitsontrack=TrackUtils.getStripHits(trk,hitToStrips,hitToRotated);
-            /*
-              if(hitsontrack.contains(hit)){
-                System.out.println("found a track with this hit "+hit.toString());
-                return trk;
-                } */
+            List<TrackerHit> hitsontrack=trk.getTrackerHits();
             for (TrackerHit hot: hitsontrack) {
-                //                System.out.println(hit.toString()+" "+hot.toString());
                 List<RawTrackerHit> rawTrkHits= (List<RawTrackerHit>)( hot.getRawHits());
                 List<RawTrackerHit> rawHitHits= (List<RawTrackerHit>)( hit.getRawHits());
                 if(rawHitHits.equals(rawTrkHits)){
