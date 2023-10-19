@@ -7,7 +7,7 @@
       @author <a href="mailto:Norman.Graf@slac.stanford.edu">Norman Graf</a>
     -->
     <execute>
-        <driver name="PreCleanupDriver"/> 
+
         <!--RF driver-->
         <driver name="RfFitter"/>
  
@@ -21,7 +21,6 @@
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
         <driver name="TrackerHitDriver"/>
-        <driver name="StripHitKiller"/>
         <driver name="HelicalTrackHitDriver"/>
         <!-- 
             Will run track finding algorithm using layers 345 as a seed, 
@@ -62,19 +61,6 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
-        
-        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
-            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles 
-                UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates 
-                UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices 
-                TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates 
-                BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices 
-                GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits 
-                HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  
-                RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  
-                SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations 
-                TrackResiduals TrackResidualsRelations OtherElectrons UnconstrainedVcCandidates UnconstrainedVcVertices</collectionNames>
-        </driver>
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 
         <!-- Ecal reconstruction drivers -->
@@ -130,10 +116,6 @@
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
             <neighborDeltaT>8.0</neighborDeltaT>
         </driver>
-        <driver name="StripHitKiller" type="org.hps.recon.tracking.StripHitKiller">
-            <ratioFiles>pass4b-hps2016_L1b_axial_hole.txt pass4b-hps2016_L1b_stereo_hole.txt pass4b-hps2016_L1t_axial_hole.txt pass4b-hps2016_L1t_stereo_hole.txt pass4b-hps2016_L6b_axial_hole.txt pass4b-hps2016_L6b_axial_slot.txt pass4b-hps2016_L6b_stereo_hole.txt pass4b-hps2016_L6b_stereo_slot.txt pass4b-hps2016_L6t_axial_hole.txt pass4b-hps2016_L6t_axial_slot.txt pass4b-hps2016_L6t_stereo_hole.txt pass4b-hps2016_L6t_stereo_slot.txt</ratioFiles>
-        </driver>
-
         <driver name="HelicalTrackHitDriver" type="org.hps.recon.tracking.HelicalTrackHitDriver">
             <debug>false</debug>
             <clusterTimeCut>12.0</clusterTimeCut>

@@ -230,9 +230,9 @@ public class SVTHitLevelPlots extends Driver {
     int nBins = 50;
     double maxPull = 7;
     double minPull = -maxPull;
-    double maxRes = 1;
+    double maxRes = 0.5;
     double minRes = -maxRes;
-    double maxYerror = 1;
+    double maxYerror = 0.1;
     double maxD0 = 5;
     double minD0 = -maxD0;
     double maxZ0 = 10;
@@ -267,22 +267,18 @@ public class SVTHitLevelPlots extends Driver {
     private static final String SUBDETECTOR_NAME = "Tracker";
 
     String outputFileName = "channelEff.txt";
-    boolean cleanTridents = false;
+    boolean cleanFEE = false;
     int nLay = 6;
     double nSig = 5;
     boolean maskBadChannels = false;
     int chanExtd = 0;
-    boolean cleanFEE=false;
+
     //Daq map
     SvtChannelCollection channelMap;
     SvtDaqMappingCollection daqMap;
 
     public void setOutputFileName(String outputFileName) {
         this.outputFileName = outputFileName;
-    }
-
-    public void setCleanTridents(boolean cleanTridents) {
-        this.cleanTridents = cleanTridents;
     }
 
     public void setNLay(int nLay) {
@@ -521,20 +517,6 @@ public class SVTHitLevelPlots extends Driver {
         //Grab all the clusters in the event
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, stripHitOutputCollectionName);
 
-        if (cleanTridents) {
-            // Require an event to have exactly two tracks
-            if (tracks.size() != 2)
-                return;
-
-            // Require the two tracks to be in opposite volumes
-            if (tracks.get(0).getTrackStates().get(0).getTanLambda() * tracks.get(1).getTrackStates().get(0).getTanLambda() >= 0)
-                return;
-
-            // Require the two tracks to be oppositely charged
-            if (tracks.get(0).getTrackStates().get(0).getOmega() * tracks.get(1).getTrackStates().get(0).getOmega() >= 0)
-                return;
-        }
-
         for (Track track : tracks) {
             //Grab the unused layer on the track
             int unusedLay = getUnusedSvtLayer(track.getTrackerHits());
@@ -583,144 +565,233 @@ public class SVTHitLevelPlots extends Driver {
             Pair<HpsSiSensor, Pair<Integer, Hep3Vector>> stereoSensorPair = isWithinSensorAcceptance(track, tState, unusedLay, false, p, bFieldMap);
 
             //Skip track if it isn't within acceptance of both axial and stereo pairs of a given unused layer
+            if (axialSensorPair == null || stereoSensorPair == null)
+                continue;
 
-            //mg...actually, let's allow this!!!
-//              if(axialSensorPair == null || stereoSensorPair == null) continue;
-            if (axialSensorPair != null)
-                fillAllHistograms(track, axialSensorPair, stripHits);
-            if (stereoSensorPair != null)
-                fillAllHistograms(track, stereoSensorPair, stripHits);
+            //Set axial and stereo sensors of the missing layer
+            HpsSiSensor axialSensor = axialSensorPair.getFirst();
+            HpsSiSensor stereoSensor = stereoSensorPair.getFirst();
 
-        }
-    }
+            String sensorAxialName = axialSensor.getName();
+            String sensorStereoName = stereoSensor.getName();
 
-    private void fillAllHistograms(Track track, Pair<HpsSiSensor, Pair<Integer, Hep3Vector>> sensorPair, List<SiTrackerHitStrip1D> stripHits) {
+            //Grab the track extrapolations at each sensor
+            Hep3Vector axialExtrapPosSensor = axialSensorPair.getSecond().getSecond();
+            Hep3Vector stereoExtrapPosSensor = stereoSensorPair.getSecond().getSecond();
 
-        //Grab the unused layer on the track
-        int unusedLay = getUnusedSvtLayer(track.getTrackerHits());
-        if (unusedLay == -1)
-            return;
-        //Get all track states for this track
-        List<TrackState> TStates = track.getTrackStates();
-        TrackState tState = getTrackState(track, unusedLay);
-        if (tState == null)
-            return;
-        Hep3Vector p = toHep3(tState.getMomentum());
-        HpsSiSensor Sensor = sensorPair.getFirst();
-        String sensorName = Sensor.getName();
-        Hep3Vector ExtrapPosSensor = sensorPair.getSecond().getSecond();
-        double yError = computeExtrapErrorY(track, tState, Sensor, unusedLay)[0];
-//        double yError = computeExtrapErrorY(track, tState, Sensor, unusedLay)[0]*1.4;//mg 5/2/19...scale yError by ~ residual pull width
-        int chan = sensorPair.getSecond().getFirst();
-        double weight = findWeight(ExtrapPosSensor.x(), yError, Sensor);
-        double trackP = toHep3(track.getTrackStates().get(0).getMomentum()).magnitude();
-        if (weight < 0.975)
-            System.out.println("SVTHitLevelPlots::fillAllHistograms Unused Layer = " + unusedLay + "; y = " + ExtrapPosSensor.x() + "; yError = " + yError + "; chan = " + chan + "; weight = " + weight);
-        numberOfTracksChannel.get(sensorName).fill(chan);
-        numberOfTracksY.get(sensorName).fill(ExtrapPosSensor.x());
-        numberOfTracksP.get(sensorName).fill(trackP);
-        numberOfTracksChannelCorrected.get(sensorName).fill(chan, weight);
-        numberOfTracksYCorrected.get(sensorName).fill(ExtrapPosSensor.x(), weight);
-        numberOfTracksPCorrected.get(sensorName).fill(trackP, weight);
+            //Compute the extrapolation errors in u direction
+            //TODO this needs to be done correctly
+            double yErrorAxial = computeExtrapErrorY(track, tState, axialSensor, unusedLay)[0];
+            double yErrorStereo = computeExtrapErrorY(track, tState, stereoSensor, unusedLay)[0];
 
-//        double q = track.getCharge();
-     //mg  5/7/19...track charge is opposite of particle charge because of sign flip in b-field (needed because HelicalTrackFitter only deals with positive B-fields)
+            //Compute the channel where the track extrapolates to in each sensor
+            int chanAxial = axialSensorPair.getSecond().getFirst();
+            int chanStereo = stereoSensorPair.getSecond().getFirst();
 
-        double q = -track.getCharge(); 
-        if (q < 0) {
-            numberOfTracksChannelEle.get(sensorName).fill(chan);
-            numberOfTracksYEle.get(sensorName).fill(ExtrapPosSensor.x());
-            numberOfTracksPEle.get(sensorName).fill(trackP);
-            numberOfTracksChannelCorrectedEle.get(sensorName).fill(chan, weight);
-            numberOfTracksYCorrectedEle.get(sensorName).fill(ExtrapPosSensor.x(), weight);
-            numberOfTracksPCorrectedEle.get(sensorName).fill(trackP, weight);
-        } //Fill positron histograms
-        else {
-            numberOfTracksChannelPos.get(sensorName).fill(chan);
-            numberOfTracksYPos.get(sensorName).fill(ExtrapPosSensor.x());
-            numberOfTracksPPos.get(sensorName).fill(trackP);
+            double trackP = toHep3(track.getTrackStates().get(0).getMomentum()).magnitude();
 
-            numberOfTracksChannelCorrectedPos.get(sensorName).fill(chan, weight);
-            numberOfTracksYCorrectedPos.get(sensorName).fill(ExtrapPosSensor.x(), weight);
-            numberOfTracksPCorrectedPos.get(sensorName).fill(trackP, weight);
-        }
-        //Fill the error histos
-        errorY.get(sensorName).fill(yError);
-        errorYvsV.get(sensorName).fill(ExtrapPosSensor.y(), yError);
-        errorYvsU.get(sensorName).fill(ExtrapPosSensor.x(), yError);
-        errorYvsP.get(sensorName).fill(p.magnitude(), yError);
-        if (q < 0) {
-            errorYEle.get(sensorName).fill(yError);
-            errorYvsVEle.get(sensorName).fill(ExtrapPosSensor.y(), yError);
-            errorYvsUEle.get(sensorName).fill(ExtrapPosSensor.x(), yError);
-            errorYvsPEle.get(sensorName).fill(p.magnitude(), yError);
-        } else {
-            errorYPos.get(sensorName).fill(yError);
-            errorYvsVPos.get(sensorName).fill(ExtrapPosSensor.y(), yError);
-            errorYvsUPos.get(sensorName).fill(ExtrapPosSensor.x(), yError);
-            errorYvsPPos.get(sensorName).fill(p.magnitude(), yError);
-        }
-        double residual = 9999;
-        //Loop over all reconstructed 1D hits on sensor of interest in the events
-        for (SiTrackerHitStrip1D hit : stripHits) {
-            //Get the sensor and position of the hit
-            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
-            double[] hitPos = hit.getPosition();
-            //Change to sensor coordinates
-            Hep3Vector hitPosSensor = globalToSensor(toHep3(hitPos), sensor);    
-            //Check to see if the sensor of this hit is the same sensor you expect to see a stereo hit
-            if (sensorName == sensor.getName()) {
-                //Compute the residual between extrapolated track and hit position
-                //Keep the value of the smallest residual
-                double residualTmp = ExtrapPosSensor.x() - hitPosSensor.x();
-                if (Math.abs(residualTmp) < Math.abs(residual))
-                    residual = residualTmp;
-            }
-        }
-        //Fill histograms for residuals and pulls
-        residualY.get(sensorName).fill(residual);
-        pullY.get(sensorName).fill(residual / yError);
-        residualYvsV.get(sensorName).fill(ExtrapPosSensor.y(), residual);
-        pullYvsV.get(sensorName).fill(ExtrapPosSensor.y(), residual / yError);
-        residualYvsU.get(sensorName).fill(ExtrapPosSensor.x(), residual);
-        pullYvsU.get(sensorName).fill(ExtrapPosSensor.x(), residual / yError);
-        residualYvsP.get(sensorName).fill(p.magnitude(), residual);
-        pullYvsP.get(sensorName).fill(p.magnitude(), residual / yError);
-        if (q < 0) {
-            residualYEle.get(sensorName).fill(residual);
-            pullYEle.get(sensorName).fill(residual / yError);
-            residualYvsVEle.get(sensorName).fill(ExtrapPosSensor.y(), residual);
-            pullYvsVEle.get(sensorName).fill(ExtrapPosSensor.y(), residual / yError);
-            residualYvsUEle.get(sensorName).fill(ExtrapPosSensor.x(), residual);
-            pullYvsUEle.get(sensorName).fill(ExtrapPosSensor.x(), residual / yError);
-            residualYvsPEle.get(sensorName).fill(p.magnitude(), residual);
-            pullYvsPEle.get(sensorName).fill(p.magnitude(), residual / yError);
-        } else {
-            residualYPos.get(sensorName).fill(residual);
-            pullYPos.get(sensorName).fill(residual / yError);
-            residualYvsVPos.get(sensorName).fill(ExtrapPosSensor.y(), residual);
-            pullYvsVPos.get(sensorName).fill(ExtrapPosSensor.y(), residual / yError);
-            residualYvsUPos.get(sensorName).fill(ExtrapPosSensor.x(), residual);
-            pullYvsUPos.get(sensorName).fill(ExtrapPosSensor.x(), residual / yError);    
-            residualYvsPPos.get(sensorName).fill(p.magnitude(), residual);
-            pullYvsPPos.get(sensorName).fill(p.magnitude(), residual / yError);
-        }
-        if ((Math.abs(residual) < this.nSig * yError)) {
-            numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).fill(chan);
-            numberOfTracksWithHitOnMissingLayerY.get(sensorName).fill(ExtrapPosSensor.x());
-            numberOfTracksWithHitOnMissingLayerP.get(sensorName).fill(trackP);
+            double weightAxial = findWeight(axialExtrapPosSensor.x(), yErrorAxial, axialSensor);
+            double weightStereo = findWeight(stereoExtrapPosSensor.x(), yErrorStereo, stereoSensor);
+
+            //Fill the denominator of the efficiency histos
+            numberOfTracksChannel.get(sensorAxialName).fill(chanAxial);
+            numberOfTracksChannel.get(sensorStereoName).fill(chanStereo);
+            numberOfTracksY.get(sensorAxialName).fill(axialExtrapPosSensor.x());
+            numberOfTracksY.get(sensorStereoName).fill(stereoExtrapPosSensor.x());
+            numberOfTracksP.get(sensorAxialName).fill(trackP);
+            numberOfTracksP.get(sensorStereoName).fill(trackP);
+
+            numberOfTracksChannelCorrected.get(sensorAxialName).fill(chanAxial, weightAxial);
+            numberOfTracksChannelCorrected.get(sensorStereoName).fill(chanStereo, weightStereo);
+            numberOfTracksYCorrected.get(sensorAxialName).fill(axialExtrapPosSensor.x(), weightAxial);
+            numberOfTracksYCorrected.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), weightStereo);
+            numberOfTracksPCorrected.get(sensorAxialName).fill(trackP, weightAxial);
+            numberOfTracksPCorrected.get(sensorStereoName).fill(trackP, weightStereo);
+
+            //Fill electron histograms
             if (q < 0) {
-                numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).fill(chan);
-                numberOfTracksWithHitOnMissingLayerYEle.get(sensorName).fill(ExtrapPosSensor.x());
-                numberOfTracksWithHitOnMissingLayerPEle.get(sensorName).fill(trackP);
+                numberOfTracksChannelEle.get(sensorAxialName).fill(chanAxial);
+                numberOfTracksChannelEle.get(sensorStereoName).fill(chanStereo);
+                numberOfTracksYEle.get(sensorAxialName).fill(axialExtrapPosSensor.x());
+                numberOfTracksYEle.get(sensorStereoName).fill(stereoExtrapPosSensor.x());
+                numberOfTracksPEle.get(sensorAxialName).fill(trackP);
+                numberOfTracksPEle.get(sensorStereoName).fill(trackP);
+
+                numberOfTracksChannelCorrectedEle.get(sensorAxialName).fill(chanAxial, weightAxial);
+                numberOfTracksChannelCorrectedEle.get(sensorStereoName).fill(chanStereo, weightStereo);
+                numberOfTracksYCorrectedEle.get(sensorAxialName).fill(axialExtrapPosSensor.x(), weightAxial);
+                numberOfTracksYCorrectedEle.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), weightStereo);
+                numberOfTracksPCorrectedEle.get(sensorAxialName).fill(trackP, weightAxial);
+                numberOfTracksPCorrectedEle.get(sensorStereoName).fill(trackP, weightStereo);
+            } //Fill positron histograms
+            else {
+                numberOfTracksChannelPos.get(sensorAxialName).fill(chanAxial);
+                numberOfTracksChannelPos.get(sensorStereoName).fill(chanStereo);
+                numberOfTracksYPos.get(sensorAxialName).fill(axialExtrapPosSensor.x());
+                numberOfTracksYPos.get(sensorStereoName).fill(stereoExtrapPosSensor.x());
+                numberOfTracksPPos.get(sensorAxialName).fill(trackP);
+                numberOfTracksPPos.get(sensorStereoName).fill(trackP);
+
+                numberOfTracksChannelCorrectedPos.get(sensorAxialName).fill(chanAxial, weightAxial);
+                numberOfTracksChannelCorrectedPos.get(sensorStereoName).fill(chanStereo, weightStereo);
+                numberOfTracksYCorrectedPos.get(sensorAxialName).fill(axialExtrapPosSensor.x(), weightAxial);
+                numberOfTracksYCorrectedPos.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), weightStereo);
+                numberOfTracksPCorrectedPos.get(sensorAxialName).fill(trackP, weightAxial);
+                numberOfTracksPCorrectedPos.get(sensorStereoName).fill(trackP, weightStereo);
+            }
+
+            //Fill the error histos
+            errorY.get(sensorAxialName).fill(yErrorAxial);
+            errorY.get(sensorStereoName).fill(yErrorStereo);
+            errorYvsV.get(sensorAxialName).fill(axialExtrapPosSensor.y(), yErrorAxial);
+            errorYvsV.get(sensorStereoName).fill(stereoExtrapPosSensor.y(), yErrorStereo);
+            errorYvsU.get(sensorAxialName).fill(axialExtrapPosSensor.x(), yErrorAxial);
+            errorYvsU.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), yErrorStereo);
+            errorYvsP.get(sensorAxialName).fill(p.magnitude(), yErrorAxial);
+            errorYvsP.get(sensorStereoName).fill(p.magnitude(), yErrorStereo);
+
+            if (q < 0) {
+                errorYEle.get(sensorAxialName).fill(yErrorAxial);
+                errorYEle.get(sensorStereoName).fill(yErrorStereo);
+                errorYvsVEle.get(sensorAxialName).fill(axialExtrapPosSensor.y(), yErrorAxial);
+                errorYvsVEle.get(sensorStereoName).fill(stereoExtrapPosSensor.y(), yErrorStereo);
+                errorYvsUEle.get(sensorAxialName).fill(axialExtrapPosSensor.x(), yErrorAxial);
+                errorYvsUEle.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), yErrorStereo);
+                errorYvsPEle.get(sensorAxialName).fill(p.magnitude(), yErrorAxial);
+                errorYvsPEle.get(sensorStereoName).fill(p.magnitude(), yErrorStereo);
             } else {
-                numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorName).fill(chan);
-                numberOfTracksWithHitOnMissingLayerYPos.get(sensorName).fill(ExtrapPosSensor.x());
-                numberOfTracksWithHitOnMissingLayerPPos.get(sensorName).fill(trackP);
+                errorYPos.get(sensorAxialName).fill(yErrorAxial);
+                errorYPos.get(sensorStereoName).fill(yErrorStereo);
+                errorYvsVPos.get(sensorAxialName).fill(axialExtrapPosSensor.y(), yErrorAxial);
+                errorYvsVPos.get(sensorStereoName).fill(stereoExtrapPosSensor.y(), yErrorStereo);
+                errorYvsUPos.get(sensorAxialName).fill(axialExtrapPosSensor.x(), yErrorAxial);
+                errorYvsUPos.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), yErrorStereo);
+                errorYvsPPos.get(sensorAxialName).fill(p.magnitude(), yErrorAxial);
+                errorYvsPPos.get(sensorStereoName).fill(p.magnitude(), yErrorStereo);
+            }
+            double residualAxial = 9999;
+            double residualStereo = 9999;
+
+            //Loop over all reconstructed 1D hits on sensor of interest in the events
+            for (SiTrackerHitStrip1D hit : stripHits) {
+                //Get the sensor and position of the hit
+                HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
+                double[] hitPos = hit.getPosition();
+                //Change to sensor coordinates
+                Hep3Vector hitPosSensor = globalToSensor(toHep3(hitPos), sensor);
+                //Check to see if the sensor of this hit is the same sensor you expect to see an axial hit
+                if (sensorAxialName == sensor.getName()) {
+                    //Compute the residual between extrapolated track and hit position
+                    //Keep the value of the smallest residual
+                    double residual = axialExtrapPosSensor.x() - hitPosSensor.x();
+                    if (Math.abs(residual) < Math.abs(residualAxial))
+                        residualAxial = residual;
+                }
+                //Check to see if the sensor of this hit is the same sensor you expect to see a stereo hit
+                if (sensorStereoName == sensor.getName()) {
+                    //Compute the residual between extrapolated track and hit position
+                    //Keep the value of the smallest residual
+                    double residual = stereoExtrapPosSensor.x() - hitPosSensor.x();
+                    if (Math.abs(residual) < Math.abs(residualStereo))
+                        residualStereo = residual;
+                }
+            }
+
+            //Fill histograms for residuals and pulls
+            residualY.get(sensorAxialName).fill(residualAxial);
+            pullY.get(sensorAxialName).fill(residualAxial / yErrorAxial);
+            residualY.get(sensorStereoName).fill(residualStereo);
+            pullY.get(sensorStereoName).fill(residualStereo / yErrorStereo);
+
+            residualYvsV.get(sensorAxialName).fill(axialExtrapPosSensor.y(), residualAxial);
+            pullYvsV.get(sensorAxialName).fill(axialExtrapPosSensor.y(), residualAxial / yErrorAxial);
+            residualYvsV.get(sensorStereoName).fill(stereoExtrapPosSensor.y(), residualStereo);
+            pullYvsV.get(sensorStereoName).fill(stereoExtrapPosSensor.y(), residualStereo / yErrorStereo);
+
+            residualYvsU.get(sensorAxialName).fill(axialExtrapPosSensor.x(), residualAxial);
+            pullYvsU.get(sensorAxialName).fill(axialExtrapPosSensor.x(), residualAxial / yErrorAxial);
+            residualYvsU.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), residualStereo);
+            pullYvsU.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), residualStereo / yErrorStereo);
+
+            residualYvsP.get(sensorAxialName).fill(p.magnitude(), residualAxial);
+            residualYvsP.get(sensorStereoName).fill(p.magnitude(), residualAxial);
+            pullYvsP.get(sensorAxialName).fill(p.magnitude(), residualAxial / yErrorAxial);
+            pullYvsP.get(sensorStereoName).fill(p.magnitude(), residualStereo / yErrorStereo);
+
+            if (q < 0) {
+                residualYEle.get(sensorAxialName).fill(residualAxial);
+                pullYEle.get(sensorAxialName).fill(residualAxial / yErrorAxial);
+                residualYEle.get(sensorStereoName).fill(residualStereo);
+                pullYEle.get(sensorStereoName).fill(residualStereo / yErrorStereo);
+
+                residualYvsVEle.get(sensorAxialName).fill(axialExtrapPosSensor.y(), residualAxial);
+                pullYvsVEle.get(sensorAxialName).fill(axialExtrapPosSensor.y(), residualAxial / yErrorAxial);
+                residualYvsVEle.get(sensorStereoName).fill(stereoExtrapPosSensor.y(), residualStereo);
+                pullYvsVEle.get(sensorStereoName).fill(stereoExtrapPosSensor.y(), residualStereo / yErrorStereo);
+
+                residualYvsUEle.get(sensorAxialName).fill(axialExtrapPosSensor.x(), residualAxial);
+                pullYvsUEle.get(sensorAxialName).fill(axialExtrapPosSensor.x(), residualAxial / yErrorAxial);
+                residualYvsUEle.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), residualStereo);
+                pullYvsUEle.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), residualStereo / yErrorStereo);
+
+                residualYvsPEle.get(sensorAxialName).fill(p.magnitude(), residualAxial);
+                residualYvsPEle.get(sensorStereoName).fill(p.magnitude(), residualAxial);
+                pullYvsPEle.get(sensorAxialName).fill(p.magnitude(), residualAxial / yErrorAxial);
+                pullYvsPEle.get(sensorStereoName).fill(p.magnitude(), residualStereo / yErrorStereo);
+            } else {
+                residualYPos.get(sensorAxialName).fill(residualAxial);
+                pullYPos.get(sensorAxialName).fill(residualAxial / yErrorAxial);
+                residualYPos.get(sensorStereoName).fill(residualStereo);
+                pullYPos.get(sensorStereoName).fill(residualStereo / yErrorStereo);
+
+                residualYvsVPos.get(sensorAxialName).fill(axialExtrapPosSensor.y(), residualAxial);
+                pullYvsVPos.get(sensorAxialName).fill(axialExtrapPosSensor.y(), residualAxial / yErrorAxial);
+                residualYvsVPos.get(sensorStereoName).fill(stereoExtrapPosSensor.y(), residualStereo);
+                pullYvsVPos.get(sensorStereoName).fill(stereoExtrapPosSensor.y(), residualStereo / yErrorStereo);
+
+                residualYvsUPos.get(sensorAxialName).fill(axialExtrapPosSensor.x(), residualAxial);
+                pullYvsUPos.get(sensorAxialName).fill(axialExtrapPosSensor.x(), residualAxial / yErrorAxial);
+                residualYvsUPos.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), residualStereo);
+                pullYvsUPos.get(sensorStereoName).fill(stereoExtrapPosSensor.x(), residualStereo / yErrorStereo);
+
+                residualYvsPPos.get(sensorAxialName).fill(p.magnitude(), residualAxial);
+                residualYvsPPos.get(sensorStereoName).fill(p.magnitude(), residualAxial);
+                pullYvsPPos.get(sensorAxialName).fill(p.magnitude(), residualAxial / yErrorAxial);
+                pullYvsPPos.get(sensorStereoName).fill(p.magnitude(), residualStereo / yErrorStereo);
+            }
+            //Check to see if residual is within nSig (5 default) of the u error
+            //If so, fill the numerator efficiency histograms
+            if ((Math.abs(residualAxial) < this.nSig * yErrorAxial)) {
+                numberOfTracksWithHitOnMissingLayerChannel.get(sensorAxialName).fill(chanAxial);
+                numberOfTracksWithHitOnMissingLayerY.get(sensorAxialName).fill(axialExtrapPosSensor.x());
+                numberOfTracksWithHitOnMissingLayerP.get(sensorAxialName).fill(trackP);
+                if (q < 0) {
+                    numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorAxialName).fill(chanAxial);
+                    numberOfTracksWithHitOnMissingLayerYEle.get(sensorAxialName).fill(axialExtrapPosSensor.x());
+                    numberOfTracksWithHitOnMissingLayerPEle.get(sensorAxialName).fill(trackP);
+                } else {
+                    numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorAxialName).fill(chanAxial);
+                    numberOfTracksWithHitOnMissingLayerYPos.get(sensorAxialName).fill(axialExtrapPosSensor.x());
+                    numberOfTracksWithHitOnMissingLayerPPos.get(sensorAxialName).fill(trackP);
+                }
+            }
+
+            if ((Math.abs(residualStereo) < this.nSig * yErrorStereo)) {
+                numberOfTracksWithHitOnMissingLayerChannel.get(sensorStereoName).fill(chanStereo);
+                numberOfTracksWithHitOnMissingLayerY.get(sensorStereoName).fill(stereoExtrapPosSensor.x());
+                numberOfTracksWithHitOnMissingLayerP.get(sensorStereoName).fill(trackP);
+                if (q < 0) {
+                    numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorStereoName).fill(chanStereo);
+                    numberOfTracksWithHitOnMissingLayerYEle.get(sensorStereoName).fill(stereoExtrapPosSensor.x());
+                    numberOfTracksWithHitOnMissingLayerPEle.get(sensorStereoName).fill(trackP);
+                } else {
+                    numberOfTracksWithHitOnMissingLayerChannelPos.get(sensorStereoName).fill(chanStereo);
+                    numberOfTracksWithHitOnMissingLayerYPos.get(sensorStereoName).fill(stereoExtrapPosSensor.x());
+                    numberOfTracksWithHitOnMissingLayerPPos.get(sensorStereoName).fill(trackP);
+                }
             }
         }
     }
-    
 
     //Computes weight based on the number of sigmas (u error) the track extrapolates from the edge of the sensor
     private double findWeight(double y, double yErr, HpsSiSensor sensor) {
@@ -734,9 +805,6 @@ public class SVTHitLevelPlots extends Driver {
         else
             distanceToEdge = height / 2 + y;
         double nSig = distanceToEdge / yErr;
-        if (nSig < 2.0)
-            System.out.println("SVTHitLevelPlots::findWeight firstChan = " + firstChan + "; y = " + y + "; yError = " + yErr + "; height = " + height + "; distanceToEdge = " + distanceToEdge + "; nSig = " + nSig);
-
         return computeGaussInt(nSig, 1000);
     }
 
@@ -768,15 +836,17 @@ public class SVTHitLevelPlots extends Driver {
                 return false;
             else
                 return true;
-        else if (sensor.isAxial())
-            if (sensor.getSide().matches("ELECTRON"))
-                return false;
-            else
-                return true;
-        else if (!sensor.getSide().matches("ELECTRON"))
-            return false;
         else
-            return true;
+            if (sensor.isAxial())
+                if (sensor.getSide().matches("ELECTRON"))
+                    return false;
+                else
+                    return true;
+            else
+                if (!sensor.getSide().matches("ELECTRON"))
+                    return false;
+                else
+                    return true;
     }
 
     //Converts position into sensor frame
@@ -867,7 +937,9 @@ public class SVTHitLevelPlots extends Driver {
         if (unusedLay != 1) {
             boolean isTop = sensor.isTopLayer();
             boolean isHole = sensor.getSide().matches("ELECTRON");
+            System.out.println(sensor.getName());
             HpsSiSensor prevSensor = getSensor(track, unusedLay - 1, isTop, isHole);
+            System.out.println(prevSensor);
             hitPos = prevSensor.getGeometry().getPosition();
         }
 
@@ -1047,7 +1119,7 @@ public class SVTHitLevelPlots extends Driver {
                     hitEfficiencyChannel.get(sensorName).fill(chan, numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).binHeight(i) / (double) numberOfTracksChannel.get(sensorName).binHeight(i));
                     hitEfficiencyChannelerr.get(sensorName).fill(chan, Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).binHeight(i) + 1 / (double) numberOfTracksChannel.get(sensorName).binHeight(i)));
                     hitEfficiencyChannelCorrected.get(sensorName).fill(chan, numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).binHeight(i) / (double) numberOfTracksChannelCorrected.get(sensorName).binHeight(i));
-                    hitEfficiencyChannelCorrectederr.get(sensorName).fill(chan, Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).binHeight(i) + 1 / (double) numberOfTracksChannelCorrected.get(sensorName).binHeight(i)));
+                    hitEfficiencyChannelCorrectederr.get(sensorName).fill(chan, Math.sqrt(1 / (double) numberOfTracksWithHitOnMissingLayerChannel.get(sensorName).binHeight(i) + 1 / (double) numberOfTracksChannel.get(sensorName).binHeight(i)));
                 }
                 if (numberOfTracksChannelEle.get(sensorName).binHeight(i) != 0 && numberOfTracksChannelEle.get(sensorName).binHeight(i) != 0) {
                     hitEfficiencyChannelEle.get(sensorName).fill(chan, numberOfTracksWithHitOnMissingLayerChannelEle.get(sensorName).binHeight(i) / (double) numberOfTracksChannelEle.get(sensorName).binHeight(i));

@@ -12,16 +12,6 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHit;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 
-/**
- *
- * @author Matt Graham
- * This driver runs the strip clusterer on all sensors of the tracker.  
- * The output is a collection of all 1d strip clusters, which is put into the 
- * event as (default) "StripClusterer_SiTrackerHitStrip1D"
- * Driver should be run after "RawTrackerHitFitterDriver" and before
- * "HelicalTrackHitDriver" (or "StripHitKiller" if removing 1d clusters from MC)
- */
-
 public class DataTrackerHitDriver extends Driver {
 
     // Debug switch for development.
