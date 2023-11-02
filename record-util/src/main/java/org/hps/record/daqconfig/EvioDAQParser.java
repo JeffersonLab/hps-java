@@ -1,5 +1,9 @@
 package org.hps.record.daqconfig;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,6 +27,9 @@ import org.hps.conditions.ecal.EcalConditions;
  * should be used for accessing this information for any other classes.
  */
 public class EvioDAQParser {
+    /** Indicates if save DAQ configuration banks into txt files */
+    private boolean saveConfigBank = false;
+    
     /*
      * Read/Parse/Save the DAQ trigger configuration settings.
      * These settings arrive in multiple banks, but they *should* be in the same event.
@@ -42,6 +49,9 @@ public class EvioDAQParser {
      */
     /** The EvIO bank identification tag for DAQ configuration banks. */
     public static final int BANK_TAG = 0xE10E;
+    
+    // Threshold constant
+    public static final int THRESHOLDCONSTANT = 18;
     
     // Stores the hardware codes for each trigger type.
     private static final int[] singlesIOsrc = { 20, 21 };
@@ -239,9 +249,43 @@ public class EvioDAQParser {
         // the DAQ configuration from it.
         parseConfigMap();
         
+        if(THRESHOLD.size() != GAIN.size()) {
+            assignConstantTHRESHOLD();
+        }
+        
         // If the expected number of banks have been parsed and debugging
         // text is enabled, print out all of the parsed variables.
         if(nBanks > 2 && debug) { printVars(); }
+        
+        // If saveConfigBank is enabled, save configuration into a text file for each crate separately.
+        if(saveConfigBank) {
+            try{
+                String fileName = Integer.toString(runNumber) + '_' + Integer.toString(crate) + ".txt";
+                File file = new File(fileName);
+                //if file doesnt exists, then create it
+                if(!file.exists()){
+                    file.createNewFile();
+                }
+                FileWriter fileWritter = new FileWriter(file.getName(),true);
+                BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+                for (String configTable : configurationTables) {
+                    bufferWritter.write(configTable);
+                }
+                bufferWritter.close();
+            }
+            catch(IOException e){
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Set constant threshold for each Ecal channel
+     */
+    private void assignConstantTHRESHOLD() {
+        for(EcalChannel ch : GAIN.keySet()) {
+            THRESHOLD.put(ch, THRESHOLDCONSTANT);
+        }
     }
     
     /**

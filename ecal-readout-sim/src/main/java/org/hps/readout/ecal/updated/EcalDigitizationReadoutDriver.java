@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.util.Set;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.ecal.EcalChannel;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
@@ -13,6 +14,8 @@ import org.hps.readout.ReadoutTimestamp;
 import org.hps.record.daqconfig2019.ConfigurationManager2019;
 import org.hps.record.daqconfig2019.DAQConfig2019;
 import org.hps.record.daqconfig2019.FADCConfigEcal2019;
+import org.hps.record.daqconfig.ConfigurationManager;
+import org.hps.record.daqconfig.DAQConfig;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
@@ -50,7 +53,37 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
         
         setPhotoelectronsPerMeV(32.8);
         setPulseTimeParameter(9.6);
-    }    
+    }
+    
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfiguration2016AppliedintoReadout(boolean state) {
+        // If the DAQ configuration should be read, attach a listener
+        // to track when it updates.               
+        if (state) {
+            ConfigurationManager.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig daq = ConfigurationManager.getInstance();
+
+                    // Load the DAQ settings from the configuration manager.
+                    numSamplesAfter = daq.getFADCConfig().getNSA() / nsPerSample;
+                    numSamplesBefore = daq.getFADCConfig().getNSB() / nsPerSample;
+                    readoutWindow = daq.getFADCConfig().getWindowWidth() / nsPerSample;
+                    
+                    // Get the FADC configuration.
+                    configStat = true;                    
+                }
+            });
+        }
+    }
     
     /**
      * Sets whether or not the DAQ configuration is applied into the driver
@@ -78,7 +111,6 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
                     // Get the FADC configuration.
                     config = daq.getEcalFADCConfig();
                     configStat = true;
-                    integrationThreshold = config.getThreshold((int)10);
                 }
             });
         }
@@ -88,11 +120,11 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
     public void detectorChanged(Detector detector) {        
         // Get a copy of the calorimeter conditions for the detector.
         ecalConditions = DatabaseConditionsManager.getInstance().getEcalConditions();
-        
+                
         // Store the calorimeter conditions table for converting between
         // geometric IDs and channel objects.
         geoMap = DatabaseConditionsManager.getInstance().getCachedConditions(EcalChannelCollection.class, "ecal_channels").getCachedData();
-        
+                
         // Run the superclass method.
         super.detectorChanged(detector);
     }    
