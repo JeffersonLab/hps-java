@@ -113,7 +113,7 @@
             <!-- <addResiduals>true</addResiduals> -->
             <numEvtPlots>40</numEvtPlots>
             <targetPosition>-4.3</targetPosition>
-            <addTrackStateAtTarget>true</addTrackStateAtTarge>
+            <addTrackStateAtTarget>true</addTrackStateAtTarget>
             <verbose>false</verbose>
           </driver>
 
