@@ -56,18 +56,22 @@ public class StripHitKiller extends Driver {
     //  instead of just removing hit at a given channel, remove all hits within Nsigma
     private boolean removeHitsWithinNSig = false;
     //  used sigma-weighted ratios
-    private boolean useSigmaWeightedRatios = true;
+    private boolean useSigmaWeightedRatios = false;
     double nSig = 5;
     double sigmaUL1 = 0.1; //100 microns...this is roughly the 5-hit track projection error in U for layer 1, plotted in SVTHitLevelPlots
     double sigmaUL6 = 0.25; //250 microns...this is roughly the 5-hit track projection error in U for layer 6*1.5 because pull is too wide, plotted in SVTHitLevelPlots
     //    double sigmaUL6 = 0.05; //50 microns...this is narrow just to check the effect. 
-    double firstSensorKillFactor=3.0;
-    double secondSensorKillFactor=2.0;
+    //    double firstSensorKillFactor=3.0;
+    /// double secondSensorKillFactor=2.0;
+    double firstSensorKillFactor=1.0;
+    double secondSensorKillFactor=1.0;
     //these are just used for debugging...
-    int checkHitsChannel = 634;
+    int checkHitsChannel = 4;
     int checkHitsTotal = 0;
     int checkHitsPassed = 0;
     double checkHitsRatio = 0;
+
+    double maxLayer=12;
     ///
 
     private List<TrackerHit> siClusters=new ArrayList<TrackerHit>();
@@ -177,16 +181,18 @@ public class StripHitKiller extends Driver {
                     //ok, get hit channel and kill or not
                     Hep3Vector pos = globalToSensor(toHep3(siCluster.getPosition()), sensor);
                     int chan = getChan(pos, sensor);
-                    if (_debug)
-                        System.out.println("Found a hit on a sensor to kill!!!  Layer = " + sensor.getLayerNumber()
-                                + " isTop? " + sensorToKill.getIsTop() + "isStereo? " + sensorToKill.getIsStereo()
-                                + " isSlot? " + sensorToKill.getIsSlot() + " channel = " + chan);
+                 
                     double ratio = 0;
                     if (useSigmaWeightedRatios)
                         ratio = this.getSmearedRatio(chan, sensorToKill);
                     else
                         ratio = sensorToKill.getRatio(chan);
                     double killFactor=(1-ratio)*sensorToKill.getScaleKillFactor();
+                    if (_debug)
+                        System.out.println("Found a hit on a sensor to kill!!! "+sensor.getName()+"  Layer = " + sensor.getLayerNumber()
+                                           + " isTop? " + sensorToKill.getIsTop() + " isStereo? " + sensorToKill.getIsStereo()
+                                           + " isSlot? " + sensorToKill.getIsSlot() + " channel = " + chan+" ratio = "+ratio);
+                    
                     ratio=1-killFactor;
                     if (ratio != -666) {
                         double random = Math.random(); //throw a random number to see if this hit should be rejected
@@ -194,9 +200,9 @@ public class StripHitKiller extends Driver {
                             passHit = false;
                             if (_debug)
                                 System.out.println("Killing this hit Layer = " + sensor.getLayerNumber()
-                                                   + " isTop? " + sensorToKill.getIsTop() + "isStereo? " + sensorToKill.getIsStereo()
+                                                   + " isTop? " + sensorToKill.getIsTop() + "; isStereo? " + sensorToKill.getIsStereo()
                                                    + " isSlot? " + sensorToKill.getIsSlot() +" scaleKillFactor= "+ sensorToKill.getScaleKillFactor()
-                                                   + " channel = " + chan + "  ratio = " + ratio);
+                                                   + " channel = " + chan + "  kill ratio = " + ratio+"  random = "+random);
 
                         }
                     }
@@ -214,8 +220,9 @@ public class StripHitKiller extends Driver {
 //        if (_debug)
         List<TrackerHit> tmpClusterList = getFinalHits(_siClustersAcceptMap);
         //        if (_debug)
-        System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
+         if (_debug)System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
+        event.remove(this.stripHitInputCollectionName);
         event.put(this.stripHitInputCollectionName, tmpClusterList, SiTrackerHitStrip1D.class, 0, toString());
 
     }
@@ -228,6 +235,12 @@ public class StripHitKiller extends Driver {
     }
 
     public void registerSensor(int layer, boolean isTop, boolean isStereo, boolean isSlot, String ratioFile) {
+        if (_debug){
+            System.out.println("================  Registering New SensorToKill  =============== ");
+            System.out.println("  "
+                               + "layer = " + layer + "; top = " + isTop + "; stereo = " + isStereo
+                               + "; slot = " + isSlot+";  ratio file = "+ratioFile);
+        }
         SensorToKill newSensor = new SensorToKill(layer, isTop, isStereo, isSlot, ratioFile);
         System.out.println("newSensor isTop " + newSensor.getIsTop());
         if(newSensor.getIsTop() && !(newSensor.getIsStereo()) && newSensor.getLayer()==1)
@@ -239,7 +252,10 @@ public class StripHitKiller extends Driver {
             newSensor.setScaleKillFactor(firstSensorKillFactor);
         if(!(newSensor.getIsTop()) && !(newSensor.getIsStereo()) && newSensor.getLayer()==1)
            newSensor.setScaleKillFactor(secondSensorKillFactor);
-       
+        if (_debug){
+            System.out.println("      channel 10 ratio for newSensor = "+newSensor.getRatio(10));
+            System.out.println("================  Done With New SensorToKill  =============== ");
+        }
         _sensorsToKill.add(newSensor);
     }
 
@@ -253,11 +269,15 @@ public class StripHitKiller extends Driver {
                 continue;
             if ((isAxial && !sensor.isAxial()) || (!isAxial && sensor.isAxial()))
                 continue;
-            if (layer < 4 && layer > 0)
+            if (layer < 4 && layer > 0){//only for pre-2019 runs...fix this...
+                 if (_debug)System.out.println("Matching with sensor = "+sensor.getName());
                 return sensor;
+            }
             else {
                 if ((!sensor.getSide().matches("ELECTRON") && isHole) || (sensor.getSide().matches("ELECTRON") && !isHole))
                     continue;
+                
+                 if (_debug)System.out.println("Matching with sensor = "+sensor.getName());
                 return sensor;
             }
         }
@@ -395,7 +415,7 @@ public class StripHitKiller extends Driver {
         Map<Integer, Double> _channelToRatioMap = new HashMap<Integer, Double>();
 
         public SensorToKill(int layer, boolean isTop, boolean isStereo, boolean isSlot, String ratioFile) {
-            System.out.println("Making new SensorToKill layer = " + layer);
+             if (_debug)System.out.println("Making new SensorToKill layer = " + layer);
             _layer = layer;
             _isTop = isTop;
             _isStereo = isStereo;
@@ -440,13 +460,14 @@ public class StripHitKiller extends Driver {
         private void readRatioFile() {
             String infile = "/org/hps/recon/tracking/efficiencyCorrections/" + _ratioFile;
             InputStream inRatios = this.getClass().getResourceAsStream(infile);
+             if (_debug)System.out.println("StripHitKiller::Reading ratio file "+infile);
             BufferedReader reader = new BufferedReader(new InputStreamReader(inRatios));
             String line;
             String delims = "[ ]+";// this will split strings between one or more spaces
             try {
                 while ((line = reader.readLine()) != null) {
                     String[] tokens = line.split(delims);
-                    System.out.println("channel number = " + tokens[0] + "; ratio = " + tokens[1]);
+                     if (_debug) System.out.println("channel number = " + tokens[0] + "; ratio = " + tokens[1]);
                     _channelToRatioMap.put(Integer.parseInt(tokens[0]), Double.parseDouble(tokens[1]));
                 }
             } catch (IOException ex) {
@@ -455,6 +476,7 @@ public class StripHitKiller extends Driver {
         }
 
         public double getRatio(int channel) {
+             if (_debug)System.out.println("SensorToKill::  getRatio:  layer = "+this.getLayer()+"; channel  "+channel); 
             if (_channelToRatioMap.get(channel) == null)
                 return -666;
             return _channelToRatioMap.get(channel);
@@ -467,14 +489,25 @@ public class StripHitKiller extends Driver {
         return new BasicHep3Vector(arr[0], arr[1], arr[2]);
     }
     //Returns channel number of a given position in the sensor frame
-
+    /*
     private int getChan(Hep3Vector pos, HpsSiSensor sensor) {
         double readoutPitch = sensor.getReadoutStripPitch();
         int nChan = sensor.getNumberOfChannels();
         double height = readoutPitch * nChan;
         return (int) ((height / 2 - pos.x()) / readoutPitch);
     }
-
+    */
+    
+    private int getChan(Hep3Vector pos, HpsSiSensor sensor) {   
+        SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
+        if(maxLayer>12 && sensor.getLayerNumber()<5){//thin sensors
+            int row=electrodes.getRowNumber(pos);
+            int col=electrodes.getColumnNumber(pos);
+            return electrodes.getCellID(row,col);
+        }else{
+            return electrodes.getCellID(pos);            
+        }
+    }
     //Converts position into sensor frame
     private Hep3Vector globalToSensor(Hep3Vector trkpos, HpsSiSensor sensor) {
         SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);

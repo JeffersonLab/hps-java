@@ -8,7 +8,7 @@
     -->
     <execute>
         <!--RF driver-->
-        <!-- <driver name="PreCleanupDriver"/>-->
+        <driver name="PreCleanupDriver"/>
         <driver name="RfFitter"/>
  
         <!-- Ecal reconstruction drivers -->        
@@ -28,12 +28,13 @@
         <driver name="TrackDataDriver" /> -->
         <driver name="KalmanPatRecDriver"/>
         <driver name="ReconParticleDriver_Kalman" />
-
+        <driver name="KFTrackingReconPlots"/>
+        <driver name="AidaSaveDriver"/>
         <driver name="LCIOWriter"/>            
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
-
+      <driver name="KFTrackingReconPlots" type="org.hps.monitoring.drivers.trackrecon.KFTrackingReconPlots"/>
     <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
           <!-- Clean all -->
            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations </collectionNames>
@@ -113,7 +114,7 @@
             <!-- <addResiduals>true</addResiduals> -->
             <numEvtPlots>40</numEvtPlots>
             <targetPosition>-4.3</targetPosition>
-            <addTrackStateAtTarget>true</addTrackStateAtTarge>
+            <addTrackStateAtTarget>true</addTrackStateAtTarget>
             <verbose>false</verbose>
           </driver>
 

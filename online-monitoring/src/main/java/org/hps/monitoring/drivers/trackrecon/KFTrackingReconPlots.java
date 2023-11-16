@@ -51,14 +51,14 @@ public class KFTrackingReconPlots extends Driver {
 
     double feeMomentumCut = 0;
     int nmodules = 7;
-
+    /*
     IPlotter plotter;
     IPlotter plotter22;
     IPlotter plotterECal;
     IPlotter plotterFEE;
     IPlotter plotterLayers;
     IPlotter plotterHodo;
-
+    */
     IHistogram1D nTracks;
     IHistogram1D nhits;
     IHistogram1D charge;
@@ -101,11 +101,12 @@ public class KFTrackingReconPlots extends Driver {
     //    IHistogram2D[] xvsyTopHOT = new IHistogram2D[nmodules];
     //IHistogram2D[] xvsyBotHOT = new IHistogram2D[nmodules];
 //HODOSCOPE Stuff
+/*
     private static final String SUBDETECTOR_NAME = "Hodoscope";
     private List<HodoscopePixelDetectorElement> pixels;
     private List<HodoscopeDetectorElement> hodos;
     private Map<IIdentifier, DetectorElement> hodoMap = new HashMap<IIdentifier, DetectorElement>();
-
+*/
     // ===== The Mode1 Hodo hit collection name =====
 //    private String rawCollectionName = "HodoReadoutHits";
 //    private String hodoCollectionName = "HodoCalHits";
@@ -136,8 +137,8 @@ public class KFTrackingReconPlots extends Driver {
 //            System.out.println("KFTrackingReconPlots:: cellID =" + pix.getIdentifier().toString());
 //            hodoMap.put(pix.getIdentifier(), pix);
 //        }
-        hodoMap = HodoUtils.getHodoscopeMap(detector);
-
+//        hodoMap = HodoUtils.getHodoscopeMap(detector);
+ 
         //pix.getGeometry().getPhysicalVolume(pix.getGeometry().getPosition()).
 //         hodos = detector.getSubdetector(SUBDETECTOR_NAME).getDetectorElement().findDescendants(HodoscopeDetectorElement.class);
 //        for (HodoscopeDetectorElement hod : hodos)
@@ -158,10 +159,10 @@ public class KFTrackingReconPlots extends Driver {
         tree.cd(dirName);
 
         IAnalysisFactory fac = aida.analysisFactory();
-        IPlotterFactory pfac = fac.createPlotterFactory("Track Recon");
-        plotter = pfac.create("1a Momentum");
+        //        IPlotterFactory pfac = fac.createPlotterFactory("Track Recon");
+        //        plotter = pfac.create("1a Momentum");
 
-        plotter.createRegions(2, 3);
+        //        plotter.createRegions(2, 3);
         // plotterFrame.addPlotter(plotter);
 
         nhits = aida.histogram1D("Hits per Track", 11, 4, 15);
@@ -171,7 +172,7 @@ public class KFTrackingReconPlots extends Driver {
         trkPy = aida.histogram1D("Track Momentum (Py)", 50, -0.2, 0.2);
         trkPz = aida.histogram1D("Track Momentum (Pz)", 50, 0, pMax);
         trkChi2 = aida.histogram1D("Track Chi2 PDF", 50, 0, 15.0);
-
+        /*
         plot(plotter, nhits, null, 0);
         plot(plotter, charge, null, 1);
         plot(plotter, trkPx, null, 2);
@@ -180,7 +181,7 @@ public class KFTrackingReconPlots extends Driver {
         plot(plotter, trkChi2, null, 5);
 
         plotter.show();
-
+        */
         // ******************************************************************
         nTracks = aida.histogram1D("Number of Tracks ", 7, 0, 7.0);
         trkd0 = aida.histogram1D("d0 ", 50, -5.0, 5.0);
@@ -188,7 +189,7 @@ public class KFTrackingReconPlots extends Driver {
         trkomega = aida.histogram1D("omega ", 50, -0.0006, 0.0006);
         trklam = aida.histogram1D("tan(lambda) ", 50, -0.1, 0.1);
         trkz0 = aida.histogram1D("y0 ", 50, -1.0, 1.0);
-
+        /*
         plotter22 = pfac.create("1b Track parameters");
         plotter22.createRegions(2, 3);
         plot(plotter22, nTracks, null, 0);
@@ -199,13 +200,13 @@ public class KFTrackingReconPlots extends Driver {
         plot(plotter22, trkz0, null, 5);
 
         plotter22.show();
-
+        */
         // ******************************************************************
         heOverP = aida.histogram1D("Cluster Energy over Track Momentum ", 50, 0, 2.0);
         hdelXECal = aida.histogram1D("delta X @ ECal (mm) ", 50, -15.0, 15.0);
         hdelYECal = aida.histogram1D("delta Y @ ECal (mm) ", 50, -15.0, 15.0);
         heVsP = aida.histogram2D("Momentum vs ECal E ", 50, 0, 7.0, 50, 0, 7.0);
-
+        /*
         plotterECal = pfac.create("1c Cluster Matching");
         plotterECal.createRegions(2, 2);
         plot(plotterECal, heOverP, null, 0);
@@ -214,7 +215,7 @@ public class KFTrackingReconPlots extends Driver {
         plot(plotterECal, heVsP, null, 3);
 
         plotterECal.show();
-
+        */
         // ******************************************************************
         // fix the ranges here...
         hfeeMom = aida.histogram1D("FEE Momentum", 50, feeMomentumCut, pMax);
@@ -223,7 +224,7 @@ public class KFTrackingReconPlots extends Driver {
         hfeeTheta = aida.histogram1D("FEE Angle", 50, -15.0, 15.0);
         hfeePOverE = aida.histogram1D("FEE EOverP", 50, 0, 1.5);
         hfeeClustPos = aida.histogram2D("FEE Cluster Position", 50, -2000.0, 2000.0, 50, -500, 500);
-
+        /*
         plotterFEE = pfac.create("1d Full Energy Electrons");
         plotterFEE.createRegions(2, 2);
         plot(plotterFEE, hfeeMom, null, 0);
@@ -232,7 +233,7 @@ public class KFTrackingReconPlots extends Driver {
         plot(plotterFEE, hfeeMomTop, null, 2);
 
         plotterFEE.show();
-
+        */
         //        plotterHTH = pfac.create("Track Hits");
         //plotterHTH.createRegions(4, 4);
         //plotterXvsY = pfac.create("3d Hit Positions");
@@ -270,12 +271,13 @@ public class KFTrackingReconPlots extends Driver {
         //        plotterXvsYHOT.show();
         htopLay = aida.histogram1D("Top Layers on Track", 15, 0, 15);
         hbotLay = aida.histogram1D("Bottom Layers on Track", 15, 0, 15);
+        /*
         plotterLayers = pfac.create("1e Layers Hit on Track");
         plotterLayers.createRegions(1, 2);
         plot(plotterLayers, htopLay, null, 0);
         plot(plotterLayers, hbotLay, null, 1);
         plotterLayers.show();
-
+        */
 //        plotterHodo = pfac.create("Hodoscope Matching");
 //        plotterHodo.createRegions(2, 4);
 //        htrkProjH1TopMatch = aida.histogram2D("Top Hodoscope L1 Projection Match", 50, 0, 350, 50, 0, 100);
@@ -476,7 +478,8 @@ public class KFTrackingReconPlots extends Driver {
 
     @Override
     public void endOfData() {
-        if (outputPlots != null) {
+        /*
+          if (outputPlots != null) {
             try {
                 plotter.writeToFile(outputPlots + "-mom.gif");
                 plotter22.writeToFile(outputPlots + "-trkparams.gif");
@@ -486,6 +489,7 @@ public class KFTrackingReconPlots extends Driver {
                         .getName()).log(Level.SEVERE, null, ex);
             }
         }
+        */
 
         // plotterFrame.dispose();
         // topFrame.dispose();
