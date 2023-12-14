@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
 
-<info name="HPS_PhysicsRun2019_Pass2">
+<info name="HPS_PhysicsRun2019_Pass2_fixed">
     <comment>HPS detector for 2019 run with fieldmap,
     Tracker at nominal opening angle.
     SVT Survey for back of the detector from 2016.
@@ -213,12 +213,12 @@
           <unitvec name="Y" x="7.6453e-05" y="1.0000e+00" z="-3.0945e-05" />
           <unitvec name="Z" x="3.0082e-02" y="2.8631e-05" z="9.9955e-01" />
         </SurveyVolume>
-        <!-- <SurveyVolume name="support_top_L46" desc="T46 ball basis in box fiducial frame:">
+        <SurveyVolume name="support_top_L46" desc="T46 ball basis in box fiducial frame:">
           <origin x="-6.3106" y="8.462" z="773.7906" />
           <unitvec name="X" x="9.9954e-01" y="7.3687e-05" z="-3.0209e-02" />
           <unitvec name="Y" x="-7.2695e-05" y="1.0000e+00" z="3.3946e-05" />
           <unitvec name="Z" x="3.0209e-02" y="-3.1734e-05" z="9.9954e-01" />
-        </SurveyVolume> -->
+        </SurveyVolume>
 
         <!-- Originally the x of the bottom was 0.0 +1.0, but that seems like a hack -->
 
@@ -806,14 +806,14 @@
         <millepede_constant name="22362" value="0.0" /> <!-- rw -->
 
         <!-- L3 Top/Bottom translations and angles -->
-        <millepede_constant name="11163" value="0.0 + 0.018801 + 0.000277 + -0.001333 + -0.000319 + -0.7" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11163" value="0.0 + 0.018801 + 0.000277 + -0.001333 + -0.000319" /> <!-- u  -> global Y   -->
         <millepede_constant name="11263" value="0.0" /> <!-- v  -> X+svtAngle -->
         <millepede_constant name="11363" value="0.0" /> <!-- w  -> Z+svtAngle -->
         <millepede_constant name="12163" value="0.0" /> <!-- ru -->
         <millepede_constant name="12263" value="0.0" /> <!-- rv -->
         <millepede_constant name="12363" value="0.0" /> <!-- rw -->
 
-        <millepede_constant name="21163" value="0.0 + 0.002791 + -0.7" /> <!-- u -->
+        <millepede_constant name="21163" value="0.0 + 0.002791" /> <!-- u -->
         <millepede_constant name="21263" value="0.0" /> <!-- v -->
         <millepede_constant name="21363" value="0.0" /> <!-- w -->
         <millepede_constant name="22163" value="0.0" /> <!-- ru -->
@@ -821,14 +821,14 @@
         <millepede_constant name="22363" value="0.0" /> <!-- rw -->
 
         <!-- L4 Top/Bottom translations and angles -->
-        <millepede_constant name="11164" value="0.0 + 0.022586 + -0.004495 + -0.004089 + -0.000772 + -0.7" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11164" value="0.0 + 0.022586 + -0.004495 + -0.004089 + -0.000772" /> <!-- u  -> global Y   -->
         <millepede_constant name="11264" value="0.0" /> <!-- v  -> X+svtAngle -->
         <millepede_constant name="11364" value="0.0" /> <!-- w  -> Z+svtAngle -->
         <millepede_constant name="12164" value="0.0" /> <!-- ru -->
         <millepede_constant name="12264" value="0.0" /> <!-- rv -->
         <millepede_constant name="12364" value="0.0" /> <!-- rw -->
 
-        <millepede_constant name="21164" value="0.0 + 0.003839 + -0.7" /> <!-- u -->
+        <millepede_constant name="21164" value="0.0 + 0.003839" /> <!-- u -->
         <millepede_constant name="21264" value="0.0" /> <!-- v -->
         <millepede_constant name="21364" value="0.0" /> <!-- w -->
         <millepede_constant name="22164" value="0.0" /> <!-- ru -->
