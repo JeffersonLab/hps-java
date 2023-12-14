@@ -67,10 +67,9 @@ public class TruthResiduals {
         for (SimTrackerHit sh : simTrackerHits) {
             Hep3Vector shpos = CoordinateTransformations.transformVectorToTracking(sh.getPositionVec());
             if (Math.abs(shpos.x()) < 50.0) {
-                System.out.printf("%s: Weird hit at %s (%s) in layer %d for MC part %d org %s p %s\n", this.getClass()
-                        .getSimpleName(), sh.getPositionVec().toString(), shpos.toString(), sh
-                        .getIdentifierFieldValue("layer"), sh.getMCParticle().getPDGID(), sh.getMCParticle()
-                        .getOrigin().toString(), sh.getMCParticle().getMomentum().toString());
+                System.out.printf("%s: Weird hit at %s (%s) in layer %d for MC part %d org %s p %s\n", this.getClass().getSimpleName(),
+                        sh.getPositionVec().toString(), shpos.toString(), sh.getIdentifierFieldValue("layer"), sh.getMCParticle().getPDGID(),
+                        sh.getMCParticle().getOrigin().toString(), sh.getMCParticle().getMomentum().toString());
                 System.exit(1);
             }
 
@@ -112,14 +111,12 @@ public class TruthResiduals {
                         continue;
 
                     // Position in tracking coord
-                    Hep3Vector simHitPosTracking = CoordinateTransformations.transformVectorToTracking(simHit
-                            .getPositionVec());
+                    Hep3Vector simHitPosTracking = CoordinateTransformations.transformVectorToTracking(simHit.getPositionVec());
 
                     if (_debug > 0) {
-                        System.out.printf("%s: simHit for layer %d at %s (%s) from MC part %d org %s p %s\n", this
-                                .getClass().getSimpleName(), layer, simHit.getPositionVec().toString(),
-                                simHitPosTracking.toString(), simHit.getMCParticle().getPDGID(), simHit.getMCParticle()
-                                        .getOrigin().toString(), simHit.getMCParticle().getMomentum().toString());
+                        System.out.printf("%s: simHit for layer %d at %s (%s) from MC part %d org %s p %s\n", this.getClass().getSimpleName(), layer,
+                                simHit.getPositionVec().toString(), simHitPosTracking.toString(), simHit.getMCParticle().getPDGID(),
+                                simHit.getMCParticle().getOrigin().toString(), simHit.getMCParticle().getMomentum().toString());
 
                         if (simHitPosTracking.x() < 50.)
                             System.exit(1);
@@ -147,15 +144,18 @@ public class TruthResiduals {
                         if (simHit.getMCParticle().getPDGID() < 0) {
                             this.res_truthsimhit_top_plus.get(layer).get(0).fill(res.y());
                             this.res_truthsimhit_top_plus.get(layer).get(1).fill(res.z());
-                        } else {
+                        }
+                        else {
                             this.res_truthsimhit_top_minus.get(layer).get(0).fill(res.y());
                             this.res_truthsimhit_top_minus.get(layer).get(1).fill(res.z());
                         }
-                    } else {
+                    }
+                    else {
                         if (simHit.getMCParticle().getPDGID() < 0) {
                             this.res_truthsimhit_bot_plus.get(layer).get(0).fill(res.y());
                             this.res_truthsimhit_bot_plus.get(layer).get(1).fill(res.z());
-                        } else {
+                        }
+                        else {
                             this.res_truthsimhit_bot_minus.get(layer).get(0).fill(res.y());
                             this.res_truthsimhit_bot_minus.get(layer).get(1).fill(res.z());
                         }
@@ -166,8 +166,7 @@ public class TruthResiduals {
                         double xpos = mcp.getOriginZ();
                         while (xpos < 100.) {
                             xpos += dx;
-                            trkposExtraPolator = CoordinateTransformations.transformVectorToTracking(TrackUtils
-                                    .extrapolateTrack(htfTruth, xpos));
+                            trkposExtraPolator = CoordinateTransformations.transformVectorToTracking(TrackUtils.extrapolateTrack(htfTruth, xpos));
                             double ypos = trkposExtraPolator.y();
                             trkpos_y_vs_x.fill(xpos, ypos);
                         }
@@ -242,16 +241,17 @@ public class TruthResiduals {
                 if (layer < 2) {
                     max = 0.05;// 0.07;
                     min = -0.05;// -0.07;
-                } else if (layer < 3) {
+                }
+                else if (layer < 3) {
                     max = 0.3;// 0.07;
                     min = -0.3;// -0.07;
-                } else {
+                }
+                else {
                     max = 0.5 * layer;
                     min = -1.0 * max;
                 }
 
-                IHistogram1D h = hf.createHistogram1D(String.format("dres_truthsimhit_layer%d_%s", layer, dir), 50,
-                        min, max);
+                IHistogram1D h = hf.createHistogram1D(String.format("dres_truthsimhit_layer%d_%s", layer, dir), 50, min, max);
                 h.setTitle(String.format("L%d SimHit-Truth Track Residual in %s", layer, dir));
                 res_truthsimhit.get(layer).add(h);
                 pl1.region(layer - 1).plot(h);
@@ -261,14 +261,12 @@ public class TruthResiduals {
                 res_truthsimhit_top_plus.get(layer).add(h);
                 pl2.region(layer - 1).plot(h);
 
-                h = hf.createHistogram1D(String.format("res_truthsimhit_top_minus_layer%d_%s", layer, dir), 50, min,
-                        max);
+                h = hf.createHistogram1D(String.format("res_truthsimhit_top_minus_layer%d_%s", layer, dir), 50, min, max);
                 h.setTitle(String.format("L%d SimHit-Truth Track (top,q=-1) Residual in %s", layer, dir));
                 res_truthsimhit_top_minus.get(layer).add(h);
                 pl3.region(layer - 1).plot(h);
 
-                h = hf.createHistogram1D(String.format("res_truthsimhit_bot_minus_layer%d_%s", layer, dir), 50, min,
-                        max);
+                h = hf.createHistogram1D(String.format("res_truthsimhit_bot_minus_layer%d_%s", layer, dir), 50, min, max);
                 h.setTitle(String.format("L%d SimHit-Truth Track (bot,q=-1) Residual in %s", layer, dir));
                 res_truthsimhit_bot_minus.get(layer).add(h);
                 pl4.region(layer - 1).plot(h);
@@ -291,7 +289,8 @@ public class TruthResiduals {
                 pl3.show();
                 pl4.show();
                 pl5.show();
-            } else {
+            }
+            else {
                 pl1.hide();
                 pl2.hide();
                 pl3.hide();

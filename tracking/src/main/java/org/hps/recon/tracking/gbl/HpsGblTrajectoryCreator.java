@@ -8,22 +8,21 @@ import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
-//import java.util.HashMap;
+// import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.hps.recon.tracking.gbl.matrix.Matrix;
-//import org.hps.recon.tracking.gbl.matrix.SymMatrix;
+// import org.hps.recon.tracking.gbl.matrix.SymMatrix;
 import org.hps.recon.tracking.gbl.matrix.Vector;
 import org.lcsim.geometry.compact.converter.MilleParameter;
-
 
 public class HpsGblTrajectoryCreator {
 
     private final static Logger LOGGER = Logger.getLogger(HpsGblRefitter.class.getPackage().getName());
     private boolean _debug = false;
-    
+
     public void setDebug(boolean debug) {
         _debug = debug;
     }
@@ -32,54 +31,65 @@ public class HpsGblTrajectoryCreator {
         // System.out.println("level " + LOGGER.getLevel().toString());
     }
 
-    public List<GblPointJna> MakeGblPointsList(List<GBLStripClusterData> hits, GBLBeamSpotPoint bs, double bfac, Map<Integer, Integer> sensorMap, Map<Integer, Double> pathLengthMap) {
-        
-        
+    public List<GblPointJna> MakeGblPointsList(List<GBLStripClusterData> hits, GBLBeamSpotPoint bs, double bfac, Map<Integer, Integer> sensorMap,
+            Map<Integer, Double> pathLengthMap) {
+
         // Save the association between strip cluster and label, and between label and path length
-        //Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
-        //Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
+        // Map<Integer, Double> pathLengthMap = new HashMap<Integer, Double>();
+        // Map<Integer, Integer> sensorMap = new HashMap<Integer, Integer>();
         List<GblPointJna> listOfPoints = new ArrayList<GblPointJna>();
         
+        
+        
+
+
         
 
         int iLabel = 0;
         double s = 0.;
-        Matrix jacPointToPoint = new Matrix(5,5);
+        Matrix jacPointToPoint = new Matrix(5, 5);
         jacPointToPoint.UnitMatrix();
-                
+
         if (bs != null) {
 
-            double cosL_bs = 1. / Math.sqrt(1. + bs._tanLambda*bs._tanLambda); 
-            //double s = 0.;
+            double cosL_bs = 1. / Math.sqrt(1. + bs._tanLambda * bs._tanLambda);
+            // double s = 0.;
             s = bs._arcLength / cosL_bs;
-                        
-            //start trajectory at the beamspot
+
+            // start trajectory at the beamspot
             jacPointToPoint = gblSimpleJacobianLambdaPhi(bs._arcLength / cosL_bs, cosL_bs, abs(bfac));
         
         
-            GblPointJna bs_point = new GblPointJna(jacPointToPoint);
-            bs_point.addMeasurement(bs._projL2m,bs._aResidual,bs._aPrecision,0.);
-            listOfPoints.add(bs_point);
-            iLabel=listOfPoints.size();
-            pathLengthMap.put(iLabel, s);
         
-            //jacPointToPoint.UnitMatrix(); 
-            //jacPointToPoint = gblSimpleJacobianLambdaPhi(0. - bs._arcLength / cosL_bs, cosL_bs, abs(bfac));
-            //GblPointJna ref_point = new GblPointJna(jacPointToPoint);
-            //listOfPoints.add(ref_point);
-            //iLabel = listOfPoints.size();
-            //pathLengthMap.put(iLabel,0.);
-            
-        } else {
-            
+
+        
+            GblPointJna bs_point = new GblPointJna(jacPointToPoint);
+            bs_point.addMeasurement(bs._projL2m, bs._aResidual, bs._aPrecision, 0.);
+            listOfPoints.add(bs_point);
+            iLabel = listOfPoints.size();
+            pathLengthMap.put(iLabel, s);
+
+            // jacPointToPoint.UnitMatrix();
+            // jacPointToPoint = gblSimpleJacobianLambdaPhi(0. - bs._arcLength / cosL_bs, cosL_bs, abs(bfac));
+            // GblPointJna ref_point = new GblPointJna(jacPointToPoint);
+            // listOfPoints.add(ref_point);
+            // iLabel = listOfPoints.size();
+            // pathLengthMap.put(iLabel,0.);
+
+        }
+        else {
+
             GblPointJna ref_point = new GblPointJna(jacPointToPoint);
             listOfPoints.add(ref_point);
             iLabel = listOfPoints.size();
-            pathLengthMap.put(iLabel,0.);
+            pathLengthMap.put(iLabel, 0.);
         }
-        
+
         s = 0.;
         
+        
+        
+
         
         // Loop over strips
         int n_strips = hits.size();
@@ -97,7 +107,7 @@ public class HpsGblTrajectoryCreator {
             if (_debug) {
                 System.out.println("HpsGblFitter: " + "Path length step " + step + " from " + s + " to " + strip.getPath3D());
             }
-            
+
             if (strip.getScatterOnly() == 1 && _debug) {
                 System.out.println("This is scatter only on sensor: MPID " + strip.getId());
             }
@@ -156,8 +166,8 @@ public class HpsGblTrajectoryCreator {
 
             // projection from local (uv) to measurement directions (dm/duv)
             Matrix proL2m = proM2l.copy();
-            
-            //Invertible
+
+            // Invertible
             if (strip.getScatterOnly() == 0)
                 proL2m = proL2m.inverse();
 
@@ -203,7 +213,7 @@ public class HpsGblTrajectoryCreator {
             GblPointJna point = new GblPointJna(jacPointToPoint);
             // Add measurement to the point
 
-            if (strip.getScatterOnly()==0)
+            if (strip.getScatterOnly() == 0)
                 point.addMeasurement(proL2m, meas, measPrec, 0.);
             // Add scatterer in curvilinear frame to the point
             // no direction in this frame
@@ -217,7 +227,7 @@ public class HpsGblTrajectoryCreator {
             scatPrec.set(0, 1.0 / (scatErr.get(0) * scatErr.get(0)));
             scatPrec.set(1, 1.0 / (scatErr.get(1) * scatErr.get(1)));
 
-            // add scatterer 
+            // add scatterer
             point.addScatterer(scat, scatPrec);
             if (_debug) {
                 System.out.println("HpsGblFitter: " + "adding scatError to this point:");
@@ -247,28 +257,28 @@ public class HpsGblTrajectoryCreator {
             // measurements: non-measured directions
             double vmeas = 0.;
             double wmeas = 0.;
-            
-            //Add derivatives only to measurements
-            if (strip.getScatterOnly()==0) {
+
+            // Add derivatives only to measurements
+            if (strip.getScatterOnly() == 0) {
                 // calculate and add derivatives to point
                 GlobalDers glDers = new GlobalDers(strip.getId(), meas.get(0), vmeas, wmeas, tDirMeas, strip.getTrackPos(), normalMeas);
-                
+
                 // TODO find a more robust way to get half.
                 boolean isTop = Math.sin(strip.getTrackLambda()) > 0;
-                
+
                 // Get the list of millepede parameters
                 List<MilleParameter> milleParameters = glDers.getDers(isTop);
 
                 // need to make vector and matrices for interface
                 List<Integer> labGlobal = new ArrayList<Integer>();
-                
-                //The Matrix addDer is a single row vector of the size of the milleParameters (6)
+
+                // The Matrix addDer is a single row vector of the size of the milleParameters (6)
                 Matrix addDer = new Matrix(1, milleParameters.size());
                 if (_debug) {
                     System.out.println("PF::Derivatives Informations");
                     System.out.printf("MilleParameters size %d\n", milleParameters.size());
                 }
-                
+
                 for (int i = 0; i < milleParameters.size(); ++i) {
                     labGlobal.add(milleParameters.get(i).getId());
                     addDer.set(0, i, milleParameters.get(i).getValue());
@@ -276,24 +286,25 @@ public class HpsGblTrajectoryCreator {
                 if (_debug) {
                     System.out.println("PF::Print the lables and the derivatives");
                     System.out.println(labGlobal.toString());
-                    addDer.print(6,6);
+                    addDer.print(6, 6);
                 }
-                
+
                 point.addGlobals(labGlobal, addDer);
-                
-                //            String logders = "";
-                //            for (int i = 0; i < milleParameters.size(); ++i) {
-                //                logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
-                //            }
-                //            LOGGER.info("\n" + logders);
-                
-                //LOGGER.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," + strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
+
+                // String logders = "";
+                // for (int i = 0; i < milleParameters.size(); ++i) {
+                //     logders += labGlobal.get(i) + "\t" + addDer.get(0, i) + "\n";
+                // }
+                // LOGGER.info("\n" + logders);
+
+                // LOGGER.info("uRes " + strip.getId() + " uRes " + uRes + " pred (" + strip.getTrackPos().x() + "," + strip.getTrackPos().y() + "," +
+                // strip.getTrackPos().z() + ") s(3D) " + strip.getPath3D());
             }
             // go to next point
             s += step;
-            
+
         } // strips
-        
+
         /*
         // create the trajectory
         GblTrajectoryJna traj = null;
@@ -344,7 +355,7 @@ public class HpsGblTrajectoryCreator {
 
         return listOfPoints;
     }
-    
+
     private static Matrix gblSimpleJacobianLambdaPhi(double ds, double cosl, double bfac) {
         /**
          * Simple jacobian: quadratic in arc length difference. using lambda phi as directions

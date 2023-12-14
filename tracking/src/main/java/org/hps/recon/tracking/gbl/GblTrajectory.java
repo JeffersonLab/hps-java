@@ -92,7 +92,7 @@ public class GblTrajectory {
     BorderedBandMatrix theMatrix = new BorderedBandMatrix(); // /< (Bordered band) matrix of linear equation system
     int skippedMeasLabel = -999;
     boolean debug = false;
-    
+
     // /// Create new (simple) trajectory from list of points.
     // /**
     // * Curved trajectory in space (default) or without curvature (q/p) or in one
@@ -102,8 +102,8 @@ public class GblTrajectory {
     // */
     GblTrajectory(List<GblPoint> aPointList, boolean flagCurv, boolean flagU1dir, boolean flagU2dir) {
 
-        //        System.out.println("aPointList Size = "+aPointList.size());
-        //        System.out.println("aPointList:  "+aPointList.toString());
+        // System.out.println("aPointList Size = "+aPointList.size());
+        // System.out.println("aPointList: "+aPointList.toString());
 
         numAllPoints = aPointList.size();
         numOffsets = 0;
@@ -138,15 +138,14 @@ public class GblTrajectory {
         numAllPoints = aPointList.size();
         numOffsets = 0;
         numInnerTrans = 0;
-        //numInnerTransOffsets = 0;
+        // numInnerTransOffsets = 0;
         numCurvature = (flagCurv ? 1 : 0);
         numParameters = 0;
         numLocals = 0;
         numMeasurements = 0;
         externalPoint = aLabel;
-        //skippedMeasLabel = -999;
-        //maxNumGlobals = 0;
-        
+        // skippedMeasLabel = -999;
+        // maxNumGlobals = 0;
 
         if (flagU1dir) {
             theDimension.add(0);
@@ -154,16 +153,16 @@ public class GblTrajectory {
         if (flagU2dir) {
             theDimension.add(1);
         }
-        
-        //Copy the precision matrix inside the trajectory
+
+        // Copy the precision matrix inside the trajectory
         externalSeed = new SymMatrix(aSeed);
         // simple (single) trajectory
         thePoints.add(aPointList);
         numPoints.add(numAllPoints);
         construct(); // construct trajectory
     }
-    
-    //Return a copy of the single trajectory points
+
+    // Return a copy of the single trajectory points
     public List<GblPoint> getSingleTrajPoints() {
         if (thePoints.size() > 0) {
             List<GblPoint> singlePoints = new ArrayList<GblPoint>(thePoints.get(0));
@@ -172,12 +171,11 @@ public class GblTrajectory {
         return null;
     }
 
-    //return a copy of the GBL Data 
+    // return a copy of the GBL Data
     public List<GblData> getTrajData() {
         List<GblData> returnData = new ArrayList<GblData>(theData);
         return returnData;
     }
-
 
     // / Retrieve validity of trajectory
     public boolean isValid() {
@@ -199,8 +197,8 @@ public class GblTrajectory {
         fitOK = false;
         int aLabel = 0;
 
-        //Check on numAllPoints is missing
-        
+        // Check on numAllPoints is missing
+
         // loop over trajectories
         numTrajectories = thePoints.size();
         for (List<GblPoint> list : thePoints) {
@@ -237,7 +235,8 @@ public class GblTrajectory {
                 GblPoint p = list.get(i);
                 if (p.hasScatterer()) {
                     p.setOffset(numOffsets++);
-                } else {
+                }
+                else {
                     p.setOffset(-numOffsets);
                 }
             }
@@ -261,7 +260,8 @@ public class GblTrajectory {
                 GblPoint p = list.get(i);
                 if (numStep == 0) {
                     scatJacobian = p.getP2pJacobian();
-                } else {
+                }
+                else {
                     scatJacobian = p.getP2pJacobian().times(scatJacobian);
                 }
                 numStep++;
@@ -326,7 +326,8 @@ public class GblTrajectory {
                 aLabel = lastLabel;
                 nJacobian = 0;
             }
-        } else {
+        }
+        else {
             nJacobian = 0;
             if (aLabel <= firstLabel) {
                 aLabel = firstLabel;
@@ -408,7 +409,8 @@ public class GblTrajectory {
                 anIndex.set(1 + theDimension.get(i), iOff + i);
                 anIndex.set(3 + theDimension.get(i), iOff + nDim + i);
             }
-        } else { // at point
+        }
+        else { // at point
             // anIndex must be sorted
             // forward : iOff2 = iOff1 + nDim, index1 = 1, index2 = 3
             // backward: iOff2 = iOff1 - nDim, index1 = 3, index2 = 1
@@ -487,47 +489,46 @@ public class GblTrajectory {
         }
     }
 
+    void getResAndErr(int aData, boolean used, double[] results) {
 
-    void getResAndErr(int aData, boolean used, double [] results) {
-        
-        //residual, variance and down-weight
+        // residual, variance and down-weight
         double[] residVarDW = new double[3];
         List<Integer> indLocal = new ArrayList<Integer>();
-        List<Double> derLocal  = new ArrayList<Double>();
-        theData.get(aData).getResidual(residVarDW,indLocal,derLocal);
+        List<Double> derLocal = new ArrayList<Double>();
+        theData.get(aData).getResidual(residVarDW, indLocal, derLocal);
         int numLocal = derLocal.size();
         if (debug) {
-            System.out.printf("GblTrajectory::getResAndErr: %f %f %f \n", residVarDW[0], residVarDW[1],residVarDW[2]);
-            System.out.printf("aData: %d\n",aData);
-            System.out.printf("numLocal: %d\n",numLocal);
+            System.out.printf("GblTrajectory::getResAndErr: %f %f %f \n", residVarDW[0], residVarDW[1], residVarDW[2]);
+            System.out.printf("aData: %d\n", aData);
+            System.out.printf("numLocal: %d\n", numLocal);
         }
         Vector aVec = new Vector(numLocal);
-        for (int j = 0; j<numLocal;j++) {
-            aVec.set(j,derLocal.get(j));
+        for (int j = 0; j < numLocal; j++) {
+            aVec.set(j, derLocal.get(j));
         }
-        //compressed covariance matrix
-        Matrix aMat = theMatrix.getBlockMatrix(indLocal); 
-        
-        //Variance from track fit = aVecT * aMat * aVec;
+        // compressed covariance matrix
+        Matrix aMat = theMatrix.getBlockMatrix(indLocal);
+
+        // Variance from track fit = aVecT * aMat * aVec;
         Vector aMataVec = aMat.times(aVec);
-        Matrix aVecT   = aVec.transpose();
-        double aFitVar = (aVecT.times(aMataVec)).get(0,0);
-        //Account for down weighting of measurement in fit -  DW not implemented in this port yet
-        aFitVar*=residVarDW[2];
-        
-        //error of measurement 
-        double aMeasVar   = residVarDW[1];
+        Matrix aVecT = aVec.transpose();
+        double aFitVar = (aVecT.times(aMataVec)).get(0, 0);
+        // Account for down weighting of measurement in fit - DW not implemented in this port yet
+        aFitVar *= residVarDW[2];
+
+        // error of measurement
+        double aMeasVar = residVarDW[1];
         double aMeasError = sqrt(aMeasVar);
-        double aResError  = -999.;
-        
-        if (used) 
-            //Error of (biased) residual
+        double aResError = -999.;
+
+        if (used)
+            // Error of (biased) residual
             aResError = (aFitVar < aMeasVar ? sqrt(aMeasVar - aFitVar) : 0.);
         else
-            //Error of (unbiased) residual
+            // Error of (unbiased) residual
             aResError = sqrt(aMeasVar + aFitVar);
 
-        //Return the results
+        // Return the results
         results[0] = residVarDW[0];
         results[1] = aMeasError;
         results[2] = aResError;
@@ -558,74 +559,70 @@ public class GblTrajectory {
     }
 
     /// Get residuals from fit at point for measurement.
-    /** 
-     * Get (diagonalized) residual, error of measurement and residual and down-weighting  
-     * factor for measurement at point  
-     * 
-     * \param [in]  aLabel Label of point on trajectory
+    /**
+     * Get (diagonalized) residual, error of measurement and residual and down-weighting
+     * factor for measurement at point
+     * \param [in] aLabel Label of point on trajectory
      * \param [out] numData Number of data blocks from measurement at point
      * \param [out] aResiduals Measurements-Predictions
      * \param [out] aMeasErrors Errors of Measurements
      * \param [out] aResErrors Errors of Residuals (including correlations from track fit)
      * \param [out] aDownWeights Down-Weighting factors
-     * \return error code (non-zero if trajectory not fitted successfully)         
+     * \return error code (non-zero if trajectory not fitted successfully)
      */
-    int getMeasResults(int aLabel, int numData[], List<Double> aResiduals,List<Double> aMeasErrors, List<Double> aResErrors, List<Double> aDownWeights) {
+    int getMeasResults(int aLabel, int numData[], List<Double> aResiduals, List<Double> aMeasErrors, List<Double> aResErrors, List<Double> aDownWeights) {
         numData[0] = 0;
         if (!fitOK)
             return 1;
-        
-        //first data block with measurement
-        int firstData = measDataIndex.get(aLabel-1);
+
+        // first data block with measurement
+        int firstData = measDataIndex.get(aLabel - 1);
         if (debug) {
             System.out.printf("getMeasResults::firstData=%d\n", firstData);
-            System.out.printf("getMeasResults::measDataIndex.get(aLabel)=%d\n",measDataIndex.get(aLabel));
+            System.out.printf("getMeasResults::measDataIndex.get(aLabel)=%d\n", measDataIndex.get(aLabel));
         }
-        //number of data blocks
+        // number of data blocks
         numData[0] = measDataIndex.get(aLabel) - firstData;
         double results[] = new double[4];
-        for (int i=0; i<numData[0];i++) {
-            getResAndErr(firstData+i,(aLabel != skippedMeasLabel), results);
+        for (int i = 0; i < numData[0]; i++) {
+            getResAndErr(firstData + i, (aLabel != skippedMeasLabel), results);
             aResiduals.add(results[0]);
             aMeasErrors.add(results[1]);
             aResErrors.add(results[2]);
             aDownWeights.add(results[3]);
         }
         return 1;
-    } 
-    
+    }
 
-    /// Get (kink) residuals from fit at point for scatterer.                                                                                                   
+    /// Get (kink) residuals from fit at point for scatterer.
     /**
      * Get (diagonalized) residual, error of measurement and residual and down-weighting
      * factor for scatterering kinks at point
-     *
      * \param [out] numData Number of data blocks from scatterer at point
      * \param [out] aResiduals (kink)Measurements-(kink)Predictions
-     * \param [out] aMeasErrors Errors of (kink)Measurements        
-     * \param [out] aResErrors Errors of Residuals (including correlations from track fit)   
-     * \param [out] aDownWeights Down-Weighting factors        
+     * \param [out] aMeasErrors Errors of (kink)Measurements
+     * \param [out] aResErrors Errors of Residuals (including correlations from track fit)
+     * \param [out] aDownWeights Down-Weighting factors
      * \return error code (non-zero if trajectory not fitted successfully)
      */
 
-    int getScatResults(int aLabel, int numData [], Vector aResiduals, Vector aMeasErrors, Vector aResErrors, Vector aDownWeights) {
-        numData[0] = 0 ;
-        if (!fitOK) 
+    int getScatResults(int aLabel, int numData[], Vector aResiduals, Vector aMeasErrors, Vector aResErrors, Vector aDownWeights) {
+        numData[0] = 0;
+        if (!fitOK)
             return 1;
-        int firstData = scatDataIndex.get(aLabel-1);
+        int firstData = scatDataIndex.get(aLabel - 1);
         numData[0] = scatDataIndex.get(aLabel) - firstData;
         for (int i = 0; i < numData[0]; ++i) {
-            double results [] = new double[4];
+            double results[] = new double[4];
             getResAndErr(firstData + i, true, results);
-            aResiduals.set(i,results[0]);
-            aMeasErrors.set(i,results[1]);
-            aResErrors.set(i,results[2]);
-            aDownWeights.set(i,results[3]);
+            aResiduals.set(i, results[0]);
+            aMeasErrors.set(i, results[1]);
+            aResErrors.set(i, results[2]);
+            aDownWeights.set(i, results[3]);
         }
         return 0;
     }
 
-    
     // / Build linear equation system from data (blocks).
 
     void buildLinearEquationSystem() {
@@ -636,7 +633,7 @@ public class GblTrajectory {
         double aValue, aWeight;
         int nData = 0;
         for (GblData d : theData) {
-            //skipped (internal) measurement? 
+            // skipped (internal) measurement?
             if (d.getLabel() == skippedMeasLabel && d.getType() == GblData.dataBlockType.InternalMeasurement)
                 continue;
             int size = d.getNumParameters();
@@ -701,7 +698,8 @@ public class GblTrajectory {
                     getFitToLocalJacobian(labDer, matDer, point, measDim, nJacobian);
                     if (measDim > 2) {
                         matPDer = matP.times(matDer);
-                    } else { // 'shortcut' for position measurements
+                    }
+                    else { // 'shortcut' for position measurements
                         Matrix tmp = matP.sub(2, 2, 3, 3).times(matDer.sub(2, 5, 3, 0));
                         matPDer.placeAt(tmp, 3, 0);
                     }
@@ -757,49 +755,43 @@ public class GblTrajectory {
             scatDataIndex.set(list.get(list.size() - 1).getLabel(), nData);
         } // end loop over trajectories
 
+        // External seed
 
-        //External seed
-        
         if (externalPoint != 0) {
-            
+
             Pair<List<Integer>, Matrix> indexAndJacobian = getJacobian(externalPoint);
             List<Integer> externalSeedIndex = indexAndJacobian.getFirst();
             List<Double> externalSeedDerivatives = new ArrayList<Double>();
-            for (int i=0; i<externalSeedIndex.size(); ++i){
+            for (int i = 0; i < externalSeedIndex.size(); ++i) {
                 externalSeedDerivatives.add(0.);
             }
             EigenvalueDecomposition externalSeedEigen = new EigenvalueDecomposition(externalSeed);
             Vector valEigen = new Vector(externalSeedEigen.getRealEigenvalues());
             Matrix vecEigen = externalSeedEigen.getEigenVectors();
             vecEigen = (vecEigen.transpose()).times(indexAndJacobian.getSecond());
-            
-            for (int i = 0; i < externalSeed.getRowDimension(); ++i ) {
+
+            for (int i = 0; i < externalSeed.getRowDimension(); ++i) {
                 if (valEigen.get(i) > 0.) {
-                    for (int j = 0; j<externalSeed.getColumnDimension(); ++j) {
-                        externalSeedDerivatives.set(j,vecEigen.get(i,j));
+                    for (int j = 0; j < externalSeed.getColumnDimension(); ++j) {
+                        externalSeedDerivatives.set(j, vecEigen.get(i, j));
                     }
-                    
-                    GblData aData = new GblData(externalPoint,GblData.dataBlockType.ExternalSeed, 0., valEigen.get(i));
-                    aData.addDerivatives(externalSeedIndex,externalSeedDerivatives);
+
+                    GblData aData = new GblData(externalPoint, GblData.dataBlockType.ExternalSeed, 0., valEigen.get(i));
+                    aData.addDerivatives(externalSeedIndex, externalSeedDerivatives);
                     theData.add(aData);
                     nData++;
-                    
-                }//eigen value is positive
-            }//loop on eigen values
+
+                }// eigen value is positive
+            }// loop on eigen values
         }
-        
+
         measDataIndex.set(numAllPoints + 1, nData);
-        
+
         //////////////////////////////////////////////////
-        //Insert the code for external measurements here//
+        // Insert the code for external measurements here//
         //////////////////////////////////////////////////
-        
+
         measDataIndex.set(numAllPoints + 2, nData);
-
-
-
-
-
 
     }
 
@@ -814,11 +806,11 @@ public class GblTrajectory {
 
     // / Perform fit of trajectory.
 
-    int fit (double[] retDVals, int[] retIVals, String optionList) {
-        int ierr = fit (retDVals,retIVals,optionList,-999);
+    int fit(double[] retDVals, int[] retIVals, String optionList) {
+        int ierr = fit(retDVals, retIVals, optionList, -999);
         return ierr;
     }
-    
+
     /**
      * Optionally iterate for outlier down-weighting. \param [out] Chi2 Chi2 sum (corrected for down-weighting) \param
      * [out] Ndf Number of degrees of freedom \param [out] lostWeight Sum of weights lost due to down-weighting \param
@@ -826,7 +818,7 @@ public class GblTrajectory {
      * Cauchy function) \return Error code (non zero value indicates failure of fit)
      */
     int fit(double[] retDVals, int[] retIVals, String optionList, int aLabel) {
-        final double[] normChi2 = { 1.0, 0.8737, 0.9326, 0.8228 };
+        final double[] normChi2 = {1.0, 0.8737, 0.9326, 0.8228};
         String methodList = "TtHhCc";
 
         double Chi2 = 0.;
@@ -837,18 +829,18 @@ public class GblTrajectory {
         }
         int aMethod = 0;
 
-        //Support for fitting and produce unbiased residuals
+        // Support for fitting and produce unbiased residuals
         skippedMeasLabel = aLabel;
-        
+
         buildLinearEquationSystem();
         lostWeight = 0.;
         int ierr = 0;
 
-        //        System.out.println("numParameters="+numParameters);
-        //        System.out.println("Printing Data");
-        //        System.out.println(theData.toString());
-        //        System.out.println("Printing Vector");
-        //theVector.print();
+        // System.out.println("numParameters="+numParameters);
+        // System.out.println("Printing Data");
+        // System.out.println(theData.toString());
+        // System.out.println("Printing Vector");
+        // theVector.print();
 
         theMatrix.solveAndInvertBorderedBand(theVector, theVector);
         predict();
@@ -891,8 +883,8 @@ public class GblTrajectory {
             aMille.addData(floats[0], floats[1], indLocal, derLocal, labGlobal, derGlobal);
         }
 
-        //for debug only
-        //aMille.printRecord();
+        // for debug only
+        // aMille.printRecord();
 
         aMille.writeRecord();
     }
@@ -905,7 +897,8 @@ public class GblTrajectory {
     void printTrajectory(int level) {
         if (numInnerTrans != 0) {
             System.out.println("Composed GblTrajectory, " + numInnerTrans + " subtrajectories");
-        } else {
+        }
+        else {
             System.out.println("Simple GblTrajectory");
         }
         if (theDimension.size() < 2) {
@@ -981,7 +974,7 @@ public class GblTrajectory {
             data.printData();
         }
     }
-    
+
     int getNpointsOnTraj() {
         return numAllPoints;
     }

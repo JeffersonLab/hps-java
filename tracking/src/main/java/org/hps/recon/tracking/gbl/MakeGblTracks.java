@@ -54,12 +54,14 @@ public class MakeGblTracks {
     public static void setDebug(boolean debug) {
         if (debug) {
             LOGGER.setLevel(Level.INFO);
-        } else {
+        }
+        else {
             LOGGER.setLevel(Level.OFF);
         }
     }
 
-    public static Pair<Track, GBLKinkData> makeCorrectedTrack(FittedGblTrajectory fittedGblTrajectory, HelicalTrackFit helicalTrackFit, List<TrackerHit> hitsOnTrack, int trackType, double bfield) {
+    public static Pair<Track, GBLKinkData> makeCorrectedTrack(FittedGblTrajectory fittedGblTrajectory, HelicalTrackFit helicalTrackFit,
+            List<TrackerHit> hitsOnTrack, int trackType, double bfield) {
         return makeCorrectedTrack(fittedGblTrajectory, helicalTrackFit, hitsOnTrack, trackType, bfield, false);
     }
 
@@ -74,9 +76,10 @@ public class MakeGblTracks {
      * @return the new {@link BaseTrack} and the kinks along the
      * {@link GblTrajectory} as a {@link Pair}.
      */
-    public static Pair<Track, GBLKinkData> makeCorrectedTrack(FittedGblTrajectory fittedGblTrajectory, HelicalTrackFit helicalTrackFit, List<TrackerHit> hitsOnTrack, int trackType, double bfield, boolean storeTrackStates) {
-        //  Initialize the reference point to the origin
-        double[] ref = new double[] { 0., 0., 0. };
+    public static Pair<Track, GBLKinkData> makeCorrectedTrack(FittedGblTrajectory fittedGblTrajectory, HelicalTrackFit helicalTrackFit,
+            List<TrackerHit> hitsOnTrack, int trackType, double bfield, boolean storeTrackStates) {
+        // Initialize the reference point to the origin
+        double[] ref = new double[] {0., 0., 0.};
 
         // Create a new SeedTrack
         BaseTrack trk = new BaseTrack();
@@ -108,24 +111,32 @@ public class MakeGblTracks {
         }
 
         // Set state at IP
-        Pair<double[], SymmetricMatrix> correctedHelixParams = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.IP, bfield);
+        Pair<double[], SymmetricMatrix> correctedHelixParams = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit,
+                FittedGblTrajectory.GBLPOINT.IP, bfield);
 
         if (correctedHelixParams == null) {
             return null;
         }
         
+        
+
+
 
         trk.setTrackParameters(correctedHelixParams.getFirst(), bfield);// hack to set the track charge
         trk.getTrackStates().clear();
-        TrackState stateIP = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtIP, bfield);
+        TrackState stateIP = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtIP,
+                bfield);
         trk.getTrackStates().add(stateIP);
 
         if (!storeTrackStates) {
             // just store last state
-            Pair<double[], SymmetricMatrix> correctedHelixParamsLast = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.LAST, bfield);
-            TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true), TrackState.AtLastHit, bfield);
+            Pair<double[], SymmetricMatrix> correctedHelixParamsLast = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit,
+                    FittedGblTrajectory.GBLPOINT.LAST, bfield);
+            TrackState stateLast = new BaseTrackState(correctedHelixParamsLast.getFirst(), ref, correctedHelixParamsLast.getSecond().asPackedArray(true),
+                    TrackState.AtLastHit, bfield);
             trk.getTrackStates().add(stateLast);
-        } else {
+        }
+        else {
 
             // store states at all 18 sensors
             int prevID = 0;
@@ -151,11 +162,13 @@ public class MakeGblTracks {
                 int loc = TrackState.AtOther;
                 if (i == 0) {
                     loc = TrackState.AtFirstHit;
-                } else if (i == sensorsFromMapArray.length - 1) {
+                }
+                else if (i == sensorsFromMapArray.length - 1) {
                     loc = TrackState.AtLastHit;
                 }
                 // insert TrackState at sensor
-                TrackState stateSensor = new BaseTrackState(correctedHelixParamsSensor.getFirst(), ref, correctedHelixParamsSensor.getSecond().asPackedArray(true), loc, bfield);
+                TrackState stateSensor = new BaseTrackState(correctedHelixParamsSensor.getFirst(), ref,
+                        correctedHelixParamsSensor.getSecond().asPackedArray(true), loc, bfield);
                 trk.getTrackStates().add(stateSensor);
             }
 
@@ -171,12 +184,14 @@ public class MakeGblTracks {
         trk.setRefPointIsDCA(true);
         trk.setTrackType(TrackType.setGBL(trackType, true));
 
-        LOGGER.fine(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helicalTrackFit.chisqtot(), helicalTrackFit.ndf()[0] + helicalTrackFit.ndf()[1], trk.getChi2(), trk.getNDF()));
+        LOGGER.fine(String.format("helix chi2 %f ndf %d gbl chi2 %f ndf %d\n", helicalTrackFit.chisqtot(), helicalTrackFit.ndf()[0] + helicalTrackFit.ndf()[1],
+                trk.getChi2(), trk.getNDF()));
 
         return new Pair<Track, GBLKinkData>(trk, kinkData);
     }
 
-    public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield) {
+    public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations,
+            int trackType, MultipleScattering scattering, double bfield) {
         return refitTrack(helix, stripHits, hth, nIterations, trackType, scattering, bfield, false);
     }
 
@@ -195,28 +210,33 @@ public class MakeGblTracks {
      * @param bfield B-field
      * @return The refitted track.
      */
-    public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates) {
-        Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> refitTrack = refitTrackWithTraj(helix, stripHits, hth, nIterations, trackType, scattering, bfield, storeTrackStates,false);
-        if(refitTrack == null)
+    public static Pair<Track, GBLKinkData> refitTrack(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations,
+            int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates) {
+        Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> refitTrack = refitTrackWithTraj(helix, stripHits, hth, nIterations, trackType, scattering, bfield,
+                storeTrackStates, false);
+        if (refitTrack == null)
             return null;
         else
             return refitTrack.getFirst();
     }
 
-    public static Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> refitTrackWithTraj(HelicalTrackFit helix, Collection<TrackerHit> stripHits, Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates,boolean includeMS) {
+    public static Pair<Pair<Track, GBLKinkData>, FittedGblTrajectory> refitTrackWithTraj(HelicalTrackFit helix, Collection<TrackerHit> stripHits,
+            Collection<TrackerHit> hth, int nIterations, int trackType, MultipleScattering scattering, double bfield, boolean storeTrackStates,
+            boolean includeMS) {
 
         List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
         List<TrackerHit> sortedStripHits = TrackUtils.sortHits(stripHits);
-        FittedGblTrajectory fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0,includeMS);
-        if(fit==null) return null;
+        FittedGblTrajectory fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0, includeMS);
+        if (fit == null)
+            return null;
         for (int i = 0; i < nIterations; i++) {
             Pair<Track, GBLKinkData> newTrack = makeCorrectedTrack(fit, helix, allHthList, trackType, bfield);
-            
+
             if (newTrack == null)
                 return null;
-            
+
             helix = TrackUtils.getHTF(newTrack.getFirst());
-            fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0,includeMS);
+            fit = doGBLFit(helix, sortedStripHits, scattering, bfield, 0, includeMS);
             if (fit == null)
                 return null;
         }
@@ -236,7 +256,8 @@ public class MakeGblTracks {
      * @param debug - debug flag.
      * @return the fitted GBL trajectory
      */
-    public static FittedGblTrajectory doGBLFit(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double bfield, int debug,boolean includeMS) {
+    public static FittedGblTrajectory doGBLFit(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double bfield, int debug,
+            boolean includeMS) {
         List<GBLStripClusterData> stripData = makeStripData(htf, stripHits, _scattering, bfield, debug, includeMS);
         if (stripData == null)
             return null;
@@ -256,120 +277,123 @@ public class MakeGblTracks {
      * @param _debug
      * @return the list of GBL strip cluster data
      */
-    public static List<GBLStripClusterData> makeStripData(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double _B, int _debug,boolean includeMS) {
+    public static List<GBLStripClusterData> makeStripData(HelicalTrackFit htf, List<TrackerHit> stripHits, MultipleScattering _scattering, double _B,
+            int _debug, boolean includeMS) {
         List<GBLStripClusterData> stripClusterDataList = new ArrayList<GBLStripClusterData>();
 
         // Find scatter points along the path
-        //In principle I could use this to add the hits - TODO ?
+        // In principle I could use this to add the hits - TODO ?
         MultipleScattering.ScatterPoints scatters = _scattering.FindHPSScatterPoints(htf);
+
+        // Loop over the Scatters
+
+        // Two things can happen here at each iteration:
+        // 1) Nscatters >= Nhits on tracks =>
+        //    Build GBLStripClusterData for both measurements and scatters
+        // 2) Nscatters < Nhits on track =>
+        //    The hit has been associated to the track but couldn't find the scatter on the volume => create a scatter at that sensor
+        //    Does this makes sense?
         
-        //Loop over the Scatters
-        
-        //Two things can happen here at each iteration:
-        //1) Nscatters >= Nhits on tracks =>
-        //   Build GBLStripClusterData for both measurements and scatters
-        //2) Nscatters < Nhits on track =>
-        //   The hit has been associated to the track but couldn't find the scatter on the volume => create a scatter at that sensor
-        //   Does this makes sense?
-        
-        //Case (1)
-        //Check if the scatter has a measurement => then use the usual way to build the HelicalTrackStripGbl
-        
+        // Case (1)
+        // Check if the scatter has a measurement => then use the usual way to build the HelicalTrackStripGbl
+
         int nhits = 0;
         int nscatters = 0;
         boolean addScatters = true;
-            
+
         if (scatters.getPoints().size() >= stripHits.size() && includeMS) {
-            
+
             for (MultipleScattering.ScatterPoint scatter : scatters.getPoints()) {
-            
+
                 boolean MeasOnScatter = false;
-            
-                //This is bit inefficient as it always loop on all the stripHits
-                //TODO: optimize and only check hit once if is in the scatters.
-                
+
+                // This is bit inefficient as it always loop on all the stripHits
+                // TODO: optimize and only check hit once if is in the scatters.
+
                 HpsSiSensor scatter_sensor = (HpsSiSensor) scatter.getDet();
-            
+
                 for (TrackerHit stripHit : stripHits) {
-                
+
                     if (MeasOnScatter)
                         continue;
-                
+
                     IDetectorElement det_element = ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
-                
+
                     if (det_element.equals(scatter.getDet())) {
                         MeasOnScatter = true;
                         HpsSiSensor hit_sensor = (HpsSiSensor) det_element;
-                        nhits+=1;
+                        nhits += 1;
                         HelicalTrackStripGbl gbl_strip;
                         if (stripHit instanceof SiTrackerHitStrip1D) {
-                            gbl_strip = new HelicalTrackStripGbl(makeDigiStrip((SiTrackerHitStrip1D) stripHit),true);
-                        } else {
+                            gbl_strip = new HelicalTrackStripGbl(makeDigiStrip((SiTrackerHitStrip1D) stripHit), true);
+                        }
+                        else {
                             SiTrackerHitStrip1D newHit = new SiTrackerHitStrip1D(stripHit);
                             gbl_strip = new HelicalTrackStripGbl(makeDigiStrip(newHit), true);
                         }
-                        //hit_sensor or scatter_sensor, they are the same here
+                        // hit_sensor or scatter_sensor, they are the same here
                         GBLStripClusterData stripData = makeStripData(hit_sensor, gbl_strip, htf, scatter);
                         if (stripData != null) {
-                            stripClusterDataList.add(stripData); 
+                            stripClusterDataList.add(stripData);
                         }
                         else {
                             System.out.printf("WARNING::MakeGblTracks::Couldn't make stripClusterData for hps sensor. Skipping scatter");
                         }
                     }
                 }
-            
+
                 if (!MeasOnScatter && addScatters) {
-                    //No measurement
-                    nscatters+=1;
-                    //If the scatter has no measurement => then only build a scatter point 
-                    //Here only scatter sensor is available
-                    GBLStripClusterData stripData = makeScatterOnlyData(scatter_sensor,htf,scatter);
-                    
+                    // No measurement
+                    nscatters += 1;
+                    // If the scatter has no measurement => then only build a scatter point
+                    // Here only scatter sensor is available
+                    GBLStripClusterData stripData = makeScatterOnlyData(scatter_sensor, htf, scatter);
+
                     if (stripData != null) {
                         stripClusterDataList.add(stripData);
                     }
                 }
             } // loop on scatters
         } // more scatters than hits
-        
-        else { //more hits than scatters 
-            
-   
+
+        else { // more hits than scatters
+
             for (TrackerHit stripHit : stripHits) {
                 HelicalTrackStripGbl strip;
                 if (stripHit instanceof SiTrackerHitStrip1D) {
-                    
+
                     strip = new HelicalTrackStripGbl(makeDigiStrip((SiTrackerHitStrip1D) stripHit), true);
-                    
-                } else {
+
+                }
+                else {
                     SiTrackerHitStrip1D newHit = new SiTrackerHitStrip1D(stripHit);
-                    strip = new HelicalTrackStripGbl(makeDigiStrip(newHit),true);
-                                                            
+                    strip = new HelicalTrackStripGbl(makeDigiStrip(newHit), true);
+
                 }
                 HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) stripHit.getRawHits().get(0)).getDetectorElement();
                 MultipleScattering.ScatterPoint temp = scatters.getScatterPoint(((RawTrackerHit) strip.getStrip().rawhits().get(0)).getDetectorElement());
-                
-                //This is done to correct the fact that the helical fit might not hit a volume
-                //But hit is associated to the track => must scatter
-                if (temp == null){
+
+                // This is done to correct the fact that the helical fit might not hit a volume
+                // But hit is associated to the track => must scatter
+                if (temp == null) {
                     temp = getScatterPointGbl(sensor, strip, htf, _scattering, _B);
-                    if(temp == null){
+                    if (temp == null) {
                         return null;
                     }
                 }
 
-                //Making strip data 
+                // Making strip data
                 GBLStripClusterData stripData = makeStripData(sensor, strip, htf, temp);
                 if (stripData != null)
                     stripClusterDataList.add(stripData);
             }
         }
-        
+
         return stripClusterDataList;
     }
 
-    public static MultipleScattering.ScatterPoint getScatterPointGbl(HpsSiSensor sensor, HelicalTrackStripGbl strip, HelicalTrackFit htf, MultipleScattering _scattering, double _B) {
+    public static MultipleScattering.ScatterPoint getScatterPointGbl(HpsSiSensor sensor, HelicalTrackStripGbl strip, HelicalTrackFit htf,
+            MultipleScattering _scattering, double _B) {
 
         MultipleScattering.ScatterPoint temp = null;
 
@@ -385,44 +409,44 @@ public class MakeGblTracks {
 
         return temp;
     }
-    
+
     public static GBLStripClusterData makeScatterOnlyData(HpsSiSensor sensor, HelicalTrackFit htf, MultipleScattering.ScatterPoint temp) {
-        
-        if (temp ==null)
+
+        if (temp == null)
             return null;
-        
+
         // find Millepede layer definition from DetectorElement
         int millepedeId = sensor.getMillepedeId();
         // find volume of the sensor (top or bottom)
         int volume = sensor.isTopLayer() ? 0 : 1;
-                                                
+
         // GBLDATA
         GBLStripClusterData stripData = new GBLStripClusterData(millepedeId);
         stripData.setVolume(volume);
-        
-        //This GBLStripData doesn't hold a measurement
+
+        // This GBLStripData doesn't hold a measurement
         stripData.setScatterOnly(1);
 
         double s3D = temp.getScatterAngle().PathLen() / Math.cos(Math.atan(htf.slope()));
         stripData.setPath(temp.getScatterAngle().PathLen());
         stripData.setPath3D(s3D);
-        
-        //Do not set U,V,W
-        
+
+        // Do not set U,V,W
+
         // Print track direction at intercept
         double phi = htf.phi0() - temp.getScatterAngle().PathLen() / htf.R();
         double lambda = Math.atan(htf.slope());
-        
+
         stripData.setTrackDir(temp.getDirection());
         stripData.setTrackPhi(phi);
         stripData.setTrackLambda(lambda);
-        
-        //Do not set the measurement. 
-        //Set a negative large error
+
+        // Do not set the measurement.
+        // Set a negative large error
         stripData.setMeasErr(-9999);
 
         stripData.setScatterAngle(temp.getScatterAngle().Angle());
-        
+
         return stripData;
     }
 
@@ -437,26 +461,26 @@ public class MakeGblTracks {
 
         // Center of the strip
         Hep3Vector origin = strip.origin();
-        
-        //Get the sensor frame transformations
-        //ITransform3D sensor_l2g = sensor.getGeometry().getLocalToGlobal();
-        //Hep3Vector s_org = sensor_l2g.transformed(new BasicHep3Vector(0.,0.,0.));
 
-        //This is the center of the sensor
+        // Get the sensor frame transformations
+        // ITransform3D sensor_l2g = sensor.getGeometry().getLocalToGlobal();
+        // Hep3Vector s_org = sensor_l2g.transformed(new BasicHep3Vector(0.,0.,0.));
+
+        // This is the center of the sensor
         Hep3Vector s_pos = sensor.getGeometry().getPosition();
-        
-        //Center of the sensor in tracking coordinates.
+
+        // Center of the sensor in tracking coordinates.
         Hep3Vector s_neworigin = CoordinateTransformations.transformVectorToTracking(s_pos);
-        
+
         // GBLDATA
         GBLStripClusterData stripData = new GBLStripClusterData(millepedeId);
 
         // Add the volume
         stripData.setVolume(volume);
 
-        //This GBLStripData holds a measurement
+        // This GBLStripData holds a measurement
         stripData.setScatterOnly(0);
-        
+
         // Add to output list
 
         // path length to intercept
@@ -466,7 +490,7 @@ public class MakeGblTracks {
         stripData.setPath(temp.getScatterAngle().PathLen());
         stripData.setPath3D(s3D);
 
-        //GBLDATA
+        // GBLDATA
         stripData.setU(strip.u());
         stripData.setV(strip.v());
         stripData.setW(strip.w());
@@ -483,27 +507,26 @@ public class MakeGblTracks {
         // Print residual in measurement system
         // start by find the distance vector between the center and the track position
 
-        //DEBUG PF: check if the we return the origin or the corner of the sensors. 
-        
-        // Find the rotation from tracking to measurement frame 
-        // This matrix is just 
-        //|u1 u2 u3 | 
-        //|v1 v2 v3 |
-        //|w1 w2 w3 | 
-        
-        //OLD WAY.
-        //Hep3Matrix trkToStripRot = getTrackToStripRotation(sensor);
-        
-        //This is clearer and it's identical
+        // DEBUG PF: check if the we return the origin or the corner of the sensors.
+
+        // Find the rotation from tracking to measurement frame
+        // This matrix is just
+        // |u1 u2 u3 |
+        // |v1 v2 v3 |
+        // |w1 w2 w3 |
+
+        // OLD WAY.
+        // Hep3Matrix trkToStripRot = getTrackToStripRotation(sensor);
+
+        // This is clearer and it's identical
         Hep3Matrix trkToStripRot = VecOp.mult(sensor.getGeometry().getGlobalToLocal().getRotation().getRotationMatrix(),
-                                              CoordinateTransformations.getMatrixInverse());
-                        
+                CoordinateTransformations.getMatrixInverse());
+
         Hep3Vector vdiffTrk = VecOp.sub(temp.getPosition(), s_neworigin);
-                
+
         // then rotate that vector into the measurement frame to get the predicted measurement position
         Hep3Vector trkpos_meas = VecOp.mult(trkToStripRot, vdiffTrk);
-                
-        
+
         /*
         //Hep3Vector vdiffTrk_old = VecOp.sub(temp.getPosition(), origin);
         // then rotate that vector into the measurement frame to get the predicted measurement position
@@ -524,7 +547,7 @@ public class MakeGblTracks {
         
         System.out.printf("trkpos_diff %s \n", ((BasicHep3Vector)vdiffTrk).toString());
         System.out.printf("trkpos_meas %s \n", ((BasicHep3Vector)trkpos_meas).toString());
-
+        
         System.out.printf("trkpos_diff_old %s \n", ((BasicHep3Vector)vdiffTrk_old).toString());
         System.out.printf("trkpos_meas_old %s \n", ((BasicHep3Vector)trkpos_meas_old).toString());
         */
@@ -551,12 +574,11 @@ public class MakeGblTracks {
 
         return VecOp.mult(detToStripMatrix, CoordinateTransformations.getMatrixInverse());
     }
-    
+
     private static HelicalTrackStrip makeDigiStrip(SiTrackerHitStrip1D h) {
 
-        
-        SiTrackerHitStrip1D local  = new SiTrackerHitStrip1D (h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR));
-        SiTrackerHitStrip1D global = new SiTrackerHitStrip1D (h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL));
+        SiTrackerHitStrip1D local = new SiTrackerHitStrip1D(h.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR));
+        SiTrackerHitStrip1D global = new SiTrackerHitStrip1D(h.getTransformedHit(TrackerHitType.CoordinateSystem.GLOBAL));
 
         ITransform3D trans = local.getLocalToGlobal();
         Hep3Vector org = trans.transformed(new BasicHep3Vector(0., 0., 0.));
@@ -576,15 +598,12 @@ public class MakeGblTracks {
         double time = h.getTime();
         List<RawTrackerHit> rawhits = h.getRawHits();
 
-        //Print the origins!
-        //System.out.printf("PF::Debug MakeDigiStrip For det element %d! \n", ((HpsSiSensor) det_element).getMillepedeId());
-        //System.out.printf("Strip  origin %s \n", ((BasicHep3Vector)org).toString());
-        //System.out.printf("Strip  origin Tracking %s \n", ((BasicHep3Vector)neworigin).toString());
-        
-        
+        // Print the origins!
+        // System.out.printf("PF::Debug MakeDigiStrip For det element %d! \n", ((HpsSiSensor) det_element).getMillepedeId());
+        // System.out.printf("Strip origin %s \n", ((BasicHep3Vector)org).toString());
+        // System.out.printf("Strip origin Tracking %s \n", ((BasicHep3Vector)neworigin).toString());
 
         HelicalTrackStrip strip = new HelicalTrackStrip(neworigin, newu, newv, umeas, du, vmin, vmax, dEdx, time, rawhits, null, -1, null);
-        
 
         return strip;
     }

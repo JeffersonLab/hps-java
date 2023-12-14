@@ -42,7 +42,6 @@ scratch/
 bin/
 target/
 
-
 # editor swap files
 .*.swp
 

@@ -10,7 +10,7 @@ import com.sun.jna.Pointer;
  * with more sensible HPS defaults
  */
 public class MilleBinaryJna {
-    
+
     /**
      * internal handle to memory created and operated on by the GBL library
      */
@@ -20,9 +20,9 @@ public class MilleBinaryJna {
      * full one-to-one constructor
      */
     public MilleBinaryJna(String fileName, boolean doublePrec, boolean keepZeros, int aSize) {
-        self = GblInterface.INSTANCE.MilleBinaryCtor(fileName, fileName.length(), doublePrec?1:0, keepZeros?1:0, aSize);
+        self = GblInterface.INSTANCE.MilleBinaryCtor(fileName, fileName.length(), doublePrec ? 1 : 0, keepZeros ? 1 : 0, aSize);
     }
-    
+
     /**
      * more useful constructor with HPS-sensible defaults
      */
