@@ -35,12 +35,22 @@
     </execute>    
     <drivers>   
       <driver name="KFTrackingReconPlots" type="org.hps.monitoring.drivers.trackrecon.KFTrackingReconPlots"/>
-    <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
-          <!-- Clean all -->
-           <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations </collectionNames>
-          <!-- Clean tracking and Final state particles -->
-          <!-- <collectionNames>FinalStateParticles GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations RotatedHelicalTrackHits RotatedHelicalTrackHitRelations TrackData  </collectionNames> -->
-      </driver>
+      <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">          
+        <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles 
+        UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates 
+        UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices 
+        TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates 
+        BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices 
+        GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits 
+        HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  
+        RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  
+        SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations 
+        TrackResiduals TrackResidualsRelations OtherElectrons UnconstrainedVcCandidates UnconstrainedVcVertices
+	KFTrackData KFTrackDataRelations KFGBLStripClusterData  KFGBLStripClusterDataRelations SVTShapeFitParameters UnconstrainedVcCandidates_KF UnconstrainedVcVertices_KF
+        KalmanFullTracks UnconstrainedV0Candidates_KF TargetConstrainedV0Candidates_KF BeamspotConstrainedV0Candidates_KF UnconstrainedV0Vertices_KF TargetConstrainedV0Vertices_KF BeamspotConstrainedV0Vertices_KF
+        </collectionNames>
+        </driver>
+
 
         <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
 

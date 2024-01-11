@@ -163,6 +163,8 @@ public class StripHitKiller extends Driver {
     @Override
     public void process(EventHeader event) {
         //    System.out.println("In process of SVTHitKiller");
+
+        int nhitsremoved = 0;
         _siClustersAcceptMap.clear();
         if (event.hasItem(stripHitInputCollectionName))
             siClusters = (List<TrackerHit>) event.get(stripHitInputCollectionName);
@@ -203,7 +205,7 @@ public class StripHitKiller extends Driver {
                                                    + " isTop? " + sensorToKill.getIsTop() + "; isStereo? " + sensorToKill.getIsStereo()
                                                    + " isSlot? " + sensorToKill.getIsSlot() +" scaleKillFactor= "+ sensorToKill.getScaleKillFactor()
                                                    + " channel = " + chan + "  kill ratio = " + ratio+"  random = "+random);
-
+                            nhitsremoved++; 
                         }
                     }
                     if (chan == checkHitsChannel) {
@@ -220,7 +222,8 @@ public class StripHitKiller extends Driver {
 //        if (_debug)
         List<TrackerHit> tmpClusterList = getFinalHits(_siClustersAcceptMap);
         //        if (_debug)
-         if (_debug)System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
+        if (_debug)System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
+        System.out.println("number of hits removed for this event = "+nhitsremoved);
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
         event.remove(this.stripHitInputCollectionName);
         event.put(this.stripHitInputCollectionName, tmpClusterList, SiTrackerHitStrip1D.class, 0, toString());
