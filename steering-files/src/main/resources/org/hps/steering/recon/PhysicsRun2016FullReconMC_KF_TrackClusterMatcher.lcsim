@@ -139,7 +139,7 @@
             <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>5.0</maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
-            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
+            <trackClusterTimeOffset>36.8</trackClusterTimeOffset>
             <isMC>true</isMC>
             <trackClusterMatchPlots>false</trackClusterMatchPlots>
             <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
