@@ -65,7 +65,8 @@ public class DAQConfigDriver extends Driver {
     public void startOfData() {
         // Check whether to apply the DAQ configuration into the readout system.
         if (daqConfigurationAppliedintoReadout) {
-            daqVersion = "2016_v8_200nA";
+            if(runNumber == -1) runNumber = this.getConditionsManager().getRun(); 
+            daqVersion = mapBetweenRunNumberDAQVersion(runNumber);
             // Define the data file objects.
             for (int i = 0; i < inputFiles.length; i++) {
                 inputFiles[i] = DAQConfigDriver.class.getResourceAsStream(daqVersion + "_" + crateNumber[i] + ".txt");
@@ -339,5 +340,19 @@ public class DAQConfigDriver extends Driver {
      */
     public void setDaqConfigurationAppliedintoReadout(boolean state) {
         daqConfigurationAppliedintoReadout = state;
+    }
+    
+    /**
+     * According to run number, a specified DAQ version name is returned.
+     * @param runNumber
+     * @return name of a DAQ configuration version
+     */
+    private String mapBetweenRunNumberDAQVersion(int runNumber) {
+        
+        // 2019 experiment
+        if(runNumber >= 7609 && runNumber <=7809)
+            return "2016_v7_200nA";                           
+        else return "2016_v8_200nA";
+        
     }
 }
