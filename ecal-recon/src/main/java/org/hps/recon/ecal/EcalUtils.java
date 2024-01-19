@@ -23,6 +23,7 @@ public class EcalUtils {
     public static final double readoutGain = Req * lightYield * quantumEff * surfRatio * gainAPD * gainPreAmpl * elemCharge;// = 15.0545 volt-seconds/GeV
     public static final double gainFactor = adcResolution / readoutGain;
     public static final double ecalReadoutPeriod = 4.0; // readout period in ns, it is hardcoded in the public declaration of EcalReadoutDriver. 
+    public static final double photoelectronsPerMeV = 30.8;
 
     /**
      * Returns the quadrant which contains the ECal cluster

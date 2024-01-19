@@ -8,6 +8,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.conditions.ecal.EcalChannelConstants;
 import org.hps.conditions.ecal.EcalConditions;
 import org.hps.readout.ReadoutTimestamp;
+import org.hps.recon.ecal.EcalUtils;
 import org.lcsim.event.RawTrackerHit;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
@@ -50,7 +51,7 @@ public class EcalDigitizationWithPulserDataMergingReadoutDriver extends Digitiza
         setTriggerPathTruthRelationsCollectionName("TriggerPathTruthRelations");
         setReadoutHitCollectionName("EcalReadoutHits");
         
-        setPhotoelectronsPerMeV(32.8);
+        setPhotoelectronsPerMeV(EcalUtils.photoelectronsPerMeV);
         setPulseTimeParameter(9.6);
     }
     
