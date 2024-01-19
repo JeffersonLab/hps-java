@@ -305,7 +305,7 @@ public class KalTrack {
             Double varUmeas = CommonOps_DDRM.dot(site.H, tempV);
             return new Pair<>(new Double[]{localInt.v[0], localInt.v[1], localInt.v[2]}, varUmeas);
         } else {
-            System.out.println("no phi-interect with this layer found!");
+            if(debug)System.out.println("no phi-interect with this layer found!");
         }
 
         return new Pair<>(new Double[]{666., 666., 666.}, 666.);

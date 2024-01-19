@@ -1079,7 +1079,7 @@ public class SvtHitEfficiencyKalman extends Driver {
                 //  just generally negative channel numbers are bogus...I include >-999 here so I can print out 
                 //  when it does compute an intersection with layer but its out of acceptance 
                 if(chan<0 && chan > -999){
-                    System.out.println("layer = "+hpsLayer+" chan = "+chan+"   u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
+                    if(debug)System.out.println("layer = "+hpsLayer+" chan = "+chan+"   u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
                     inAcceptance=false;
                 }                
                 //  outer layers

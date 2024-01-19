@@ -27,9 +27,10 @@
         <driver name="KalmanPatRecDriver"/>
         <driver name="ReconParticleDriver_Kalman" />  
         <driver name="LCIOWriter"/>     
-        <driver name="KFTrackingReconPlots"/>
-        <driver name="SVTHitEfficiency"/> 
-        <driver name="AidaSaveDriver"/>
+	<!--  uncomment the next 3 drivers to save some diagnostic plots -->
+	<!--     <driver name="KFTrackingReconPlots"/>
+        <driver name="SVTHitEfficiency"/>  
+        <driver name="AidaSaveDriver"/> -->
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
@@ -38,6 +39,7 @@
         <useTrkTimeCut>false</useTrkTimeCut>
         <trkTimeCut>10.0</trkTimeCut>
         <trkTimeMean>15.0</trkTimeMean>
+	<debug>false</debug>
       </driver>
       
       <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
@@ -86,6 +88,7 @@
         <driver name="StripHitKiller" type="org.hps.recon.tracking.StripHitKiller">
 <!--          <ratioFiles>pass4b-KF-hps2016_L1b_axial_hole.txt pass4b-KF-hps2016_L1b_stereo_hole.txt pass4b-KF-hps2016_L1t_axial_hole.txt pass4b-KF-hps2016_L1t_stereo_hole.txt pass4b-KF-hps2016_L6b_axial_hole.txt pass4b-KF-hps2016_L6b_axial_slot.txt pass4b-KF-hps2016_L6b_stereo_hole.txt pass4b-KF-hps2016_L6b_stereo_slot.txt pass4b-KF-hps2016_L6t_axial_hole.txt pass4b-KF-hps2016_L6t_axial_slot.txt pass4b-KF-hps2016_L6t_stereo_hole.txt pass4b-KF-hps2016_L6t_stereo_slot.txt</ratioFiles>  -->
           <ratioFiles>pass4b-KF-hps2016_L1b_axial_hole.txt pass4b-KF-hps2016_L1b_stereo_hole.txt pass4b-KF-hps2016_L1t_axial_hole.txt pass4b-KF-hps2016_L1t_stereo_hole.txt  pass4b-KF-hps2016_L2b_axial_hole.txt pass4b-KF-hps2016_L2b_stereo_hole.txt pass4b-KF-hps2016_L2t_axial_hole.txt pass4b-KF-hps2016_L2t_stereo_hole.txt</ratioFiles>
+	  <debug>false</debug>
         </driver> 
         
         <!-- SVT reconstruction drivers -->
