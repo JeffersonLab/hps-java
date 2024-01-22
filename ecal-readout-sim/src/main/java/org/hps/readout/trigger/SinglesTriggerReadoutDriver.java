@@ -1,9 +1,13 @@
 package org.hps.readout.trigger;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Collection;
 
 import org.hps.readout.ReadoutDataManager;
 import org.hps.readout.TriggerDriver;
+import org.hps.record.daqconfig.ConfigurationManager;
+import org.hps.record.daqconfig.DAQConfig;
 import org.hps.record.triggerbank.TriggerModule;
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
@@ -23,6 +27,11 @@ import hep.aida.IHistogram2D;
  * manager so that a triggered readout event may be written.
  */
 public class SinglesTriggerReadoutDriver extends TriggerDriver {
+    /**
+     * Indicates pair trigger type. Corresponding DAQ configuration is accessed by DAQ
+     * configuration system, and applied into readout.
+     */
+    private String triggerType = "singles0";   
     
     // ==============================================================
     // ==== LCIO Collections ========================================
@@ -92,6 +101,30 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
         } else {
             throw new IllegalStateException("Error: Unexpected calorimeter sub-detector of type \"" + ecalSub.getClass().getSimpleName() + "; expected HPSEcal3.");
         }
+    }
+    
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfiguration2016AppliedintoReadout(boolean state) {
+        // If the DAQ configuration should be read, attach a listener
+        // to track when it updates.   
+        if (state) {
+            ConfigurationManager.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig daq = ConfigurationManager.getInstance();  
+                    if(triggerType.contentEquals(SINGLES0)) triggerModule.loadDAQConfiguration(daq.getSSPConfig().getSingles1Config());
+                    else if(triggerType.contentEquals(SINGLES1)) triggerModule.loadDAQConfiguration(daq.getSSPConfig().getSingles2Config());
+                }
+            });
+        }         
     }
     
     @Override
@@ -188,6 +221,12 @@ public class SinglesTriggerReadoutDriver extends TriggerDriver {
     @Override
     protected double getTimeNeededForLocalOutput() {
         return 0;
+    }
+    
+    public void setTriggerType(String trigger) {
+        if(!trigger.equals(SINGLES0) && !trigger.equals(SINGLES1))
+            throw new IllegalArgumentException("Error: wrong trigger type name \"" + trigger + "\".");
+        triggerType = trigger;
     }
     
     /**
