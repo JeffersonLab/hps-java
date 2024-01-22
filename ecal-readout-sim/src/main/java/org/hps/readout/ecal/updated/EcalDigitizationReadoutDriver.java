@@ -10,6 +10,7 @@ import org.hps.conditions.ecal.EcalConditions;
 import org.hps.conditions.ecal.EcalChannel.EcalChannelCollection;
 import org.hps.readout.DigitizationReadoutDriver;
 import org.hps.readout.ReadoutTimestamp;
+import org.hps.recon.ecal.EcalUtils;
 import org.hps.record.daqconfig2019.ConfigurationManager2019;
 import org.hps.record.daqconfig2019.DAQConfig2019;
 import org.hps.record.daqconfig2019.FADCConfigEcal2019;
@@ -48,7 +49,7 @@ public class EcalDigitizationReadoutDriver extends DigitizationReadoutDriver<HPS
         setTriggerPathTruthRelationsCollectionName("TriggerPathTruthRelations");
         setReadoutHitCollectionName("EcalReadoutHits");
         
-        setPhotoelectronsPerMeV(32.8);
+        setPhotoelectronsPerMeV(EcalUtils.photoelectronsPerMeV);
         setPulseTimeParameter(9.6);
     }    
     
