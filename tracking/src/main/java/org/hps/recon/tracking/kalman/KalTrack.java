@@ -87,28 +87,23 @@ public class KalTrack {
         Collections.sort(SiteList, MeasurementSite.SiteComparatorUp);
         int firstSite = -1;
         int lastSite = 999;
-        //        if (trimSites){
-        for (int idx = 0; idx < SiteList.size(); ++idx) {
-            firstSite = idx;
-            if (SiteList.get(idx).hitID >= 0) {
-                //                System.out.println("Found first hit at "+firstSite); 
-                break;
-            }
-        }
-        for (int idx = SiteList.size() - 1; idx >= 0; --idx) {
-            lastSite = idx;
-            if (SiteList.get(idx).hitID >= 0) {
-                //                System.out.println("Found last hit at "+lastSite); 
-                break;
-            }
-        }
-            //        } else{
-        //don't trim the site list...leaves everything
-        firstSite=0;
-        lastSite=SiteList.size() - 1;
-            //        }
-
-        // Make a new list of sites, without empty sites at beginning or end
+	if (trimSites){
+	    for (int idx = 0; idx < SiteList.size(); ++idx) {
+		firstSite = idx;
+		if (SiteList.get(idx).hitID >= 0) {
+		    break;
+		}
+	    }
+	    for (int idx = SiteList.size() - 1; idx >= 0; --idx) {
+		lastSite = idx;
+		if (SiteList.get(idx).hitID >= 0) {
+		    break;
+		}
+	    }
+	}else{
+	    firstSite=0;
+	    lastSite=SiteList.size() - 1;
+	}
         if(debug)System.out.println("SiteList size for this track is :  "+SiteList.size());
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
         for (int idx = firstSite; idx <= lastSite; ++idx) {
@@ -124,9 +119,6 @@ public class KalTrack {
             }
             this.SiteList.add(site);
         }
-        //        System.out.println("SiteList size for this track after removing bad ones is :  "+this.SiteList.size());
-        
-
         helixAtOrigin = null;
         propagated = false;
         MeasurementSite site0 = this.SiteList.get(0);

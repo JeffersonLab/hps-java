@@ -60,7 +60,6 @@ public class MCFullDetectorTruth{
     private String trackCollectionName = "GBLTracks";
     
     public MCFullDetectorTruth(EventHeader event, Track trk, FieldMap fieldMap, List<HpsSiSensor> sensors, Subdetector trackerSubdet) {
-        System.out.println("Making MCFullDetectorTruth");
         doTruth(event, trk, fieldMap, sensors, trackerSubdet);
     }
     
@@ -70,10 +69,8 @@ public class MCFullDetectorTruth{
         List<SimTrackerHit> trackerHits_Inactive = null;
         List<Track> tracks = event.get(Track.class, trackCollectionName);
         
-        System.out.println("Number of active layer hits = "+trackerHits.size());
         if(event.hasCollection(SimTrackerHit.class , inactiveTrackerHitsCollectionName)){
             trackerHits_Inactive = event.get(SimTrackerHit.class, inactiveTrackerHitsCollectionName);
-            System.out.println("Number of inactive layer hits = "+trackerHits_Inactive.size());
         }
         Map<MCParticle, List<SimTrackerHit>> trackerHitMap = BuildTrackerHitMap(trackerHits);
         Map<MCParticle, List<SimTrackerHit>> trackerInHitMap = BuildTrackerHitMap(trackerHits_Inactive);
@@ -81,7 +78,6 @@ public class MCFullDetectorTruth{
         RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
         if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
             List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
-            System.out.println("Number of true hit relations = "+trueHitRelations.size());
             for (LCRelation relation : trueHitRelations)
                 if (relation != null && relation.getFrom() != null && relation.getTo() != null)
                     rawtomc.add(relation.getFrom(), relation.getTo());
@@ -90,10 +86,9 @@ public class MCFullDetectorTruth{
         
         MCParticle truthp = _pTruth.getMCParticle();
         
-        if(truthp == null){
-            System.out.println("Couldn't get truthp, returning");
+        if(truthp == null)
             return;
-        }        
+        
         List<TrackerHit> trk_hits = trk.getTrackerHits();
         for(Track track : tracks){
             if(track.equals(trk))
@@ -130,18 +125,17 @@ public class MCFullDetectorTruth{
         List<SimTrackerHit> truthInActHits = trackerInHitMap.get(truthp);
         
         ComputeSVTVars(truthp, _truthActHits, truthInActHits, bFieldMap, sensors, trackerSubdet);
-        if(event.hasCollection(SimCalorimeterHit.class , ecalHitsCollectionName)){
-            List<SimCalorimeterHit> calHits = event.get(SimCalorimeterHit.class, ecalHitsCollectionName);
-            Map<MCParticle, List<SimCalorimeterHit>> calHitMap = BuildCalHitMap(calHits);
         
-            List<SimCalorimeterHit> truthEcalHits = calHitMap.get(truthp);
-            if(truthEcalHits == null)
-                return;
+        List<SimCalorimeterHit> calHits = event.get(SimCalorimeterHit.class, ecalHitsCollectionName);
+        Map<MCParticle, List<SimCalorimeterHit>> calHitMap = BuildCalHitMap(calHits);
         
-            IDDecoder calDecoder = event.getMetaData(calHits).getIDDecoder();
+        List<SimCalorimeterHit> truthEcalHits = calHitMap.get(truthp);
+        if(truthEcalHits == null)
+            return;
         
-            ComputeEcalVars(event,truthEcalHits,calDecoder);
-        }
+        IDDecoder calDecoder = event.getMetaData(calHits).getIDDecoder();
+        
+        ComputeEcalVars(event,truthEcalHits,calDecoder);
     }
 
     private void ComputeSVTVars(MCParticle p, List<SimTrackerHit> hits_act, List<SimTrackerHit> hits_in, FieldMap bFieldMap, List<HpsSiSensor> sensors, Subdetector trackerSubdet){

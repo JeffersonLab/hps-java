@@ -129,8 +129,6 @@ class KalmanPatRecHPS {
                 lyrHits.get(thisSi.Layer).add(hit);
                 hitMap.put(m, hit);
             }
-            if(debug)
-                System.out.println("KalPatRecHPS::  adding thisSi.Layer = "+thisSi.Layer);
             moduleList.get(thisSi.Layer).add(thisSi);
         }
 

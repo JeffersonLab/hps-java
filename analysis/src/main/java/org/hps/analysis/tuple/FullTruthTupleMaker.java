@@ -262,35 +262,28 @@ public abstract class FullTruthTupleMaker extends MCTupleMaker {
     
     protected void fillFullVertexTruth(EventHeader event, Track eleTrack, Track posTrack){
         if (!event.hasCollection(SimTrackerHit.class, trackerHitsCollectionName)) {
-            System.out.println("Event has no SimTrackerHit collection: "+trackerHitsCollectionName);
             return;
         }
-        //        if (!event.hasCollection(SimTrackerHit.class, inactiveTrackerHitsCollectionName)) {
-        //    System.out.println("Event has no inactive hits collection: "+inactiveTrackerHitsCollectionName);
-        //    return;
-        // }
-        //if (!event.hasCollection(SimCalorimeterHit.class, ecalHitsCollectionName)) {
-        //    System.out.println("Event has no SimCalHit collection: "+ecalHitsCollectionName);
-        //    return;
-        // }
+        if (!event.hasCollection(SimTrackerHit.class, inactiveTrackerHitsCollectionName)) {
+            return;
+        }
+        if (!event.hasCollection(SimCalorimeterHit.class, ecalHitsCollectionName)) {
+            return;
+        }
         if (!event.hasCollection(MCParticle.class, mcParticleCollectionName)) {
-            System.out.println("Event has no MCParticle collection: "+mcParticleCollectionName);
             return;
         }
         MCFullDetectorTruth eleFullTruth = new MCFullDetectorTruth(event, eleTrack, bFieldMap, sensors, trackerSubdet);
         MCFullDetectorTruth posFullTruth = new MCFullDetectorTruth(event, posTrack, bFieldMap, sensors, trackerSubdet);
         
         MCParticle ele = eleFullTruth.getMCParticle();
-        MCParticle pos = posFullTruth.getMCParticle();       
+        MCParticle pos = posFullTruth.getMCParticle();
         
-        if(ele != null){
-            System.out.println("Found electron truth match");
+        if(ele != null)
             fillTruth("ele",eleFullTruth);
-        }
-        else{
-            System.out.println("NOOO electron truth match");
+        else
             tupleMap.put("eleHasTruthMatch/I", (double) 0);
-        }
+        
         if(pos != null)
             fillTruth("pos",posFullTruth);
         else

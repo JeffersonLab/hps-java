@@ -37,7 +37,6 @@ public class TridentFullTupleDriver extends FullTruthTupleMaker {
             
             ReconstructedParticle electron = uncV0.getParticles().get(ReconParticleDriver.ELECTRON);
             ReconstructedParticle positron = uncV0.getParticles().get(ReconParticleDriver.POSITRON);
-            System.out.println("TridentFullTupleDriver::calling fillFulVertexTruth");
             fillFullVertexTruth(event,electron.getTracks().get(0),positron.getTracks().get(0));
             
             if (tupleWriter != null && isOK) {
