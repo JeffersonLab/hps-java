@@ -82,7 +82,6 @@ public class EcalDigitizationWithPulserDataMergingReadoutDriver extends Digitiza
                     // Get the FADC configuration.
                     config = daq.getEcalFADCConfig();
                     configStat = true;
-                    integrationThreshold = config.getThreshold((int)10);
                 }
             });
         }

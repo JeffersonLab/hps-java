@@ -11,6 +11,8 @@ import org.hps.readout.rawconverter.AbstractMode3RawConverter;
 import org.hps.readout.rawconverter.EcalReadoutMode3RawConverter;
 import org.hps.record.daqconfig2019.ConfigurationManager2019;
 import org.hps.record.daqconfig2019.DAQConfig2019;
+import org.hps.record.daqconfig.ConfigurationManager;
+import org.hps.record.daqconfig.DAQConfig;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 
@@ -43,6 +45,34 @@ public class EcalRawConverterReadoutDriver extends RawConverterReadoutDriver {
         super("EcalRawHits", "EcalCorrectedHits");
         setSkipBadChannels(true);
     }
+    
+    /**
+     * Sets whether or not the DAQ configuration is applied into the driver
+     * the EvIO data stream or whether to read the configuration from data files.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfiguration2016AppliedintoReadout(boolean state) {
+        // Track changes in the DAQ configuration.
+        if (state) {
+            ConfigurationManager.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Get the DAQ configuration.
+                    DAQConfig daq = ConfigurationManager.getInstance();
+
+                    // Load the DAQ settings from the configuration manager.
+                    getConverter().setNumberSamplesAfter(daq.getFADCConfig().getNSA());
+                    getConverter().setNumberSamplesBefore(daq.getFADCConfig().getNSB());
+                    
+                    // Get the FADC configuration.
+                    getConverter().setFADCConfig2016(daq.getFADCConfig());
+                }
+            });
+        }  
+    } 
     
     /**
      * Sets whether or not the DAQ configuration is applied into the driver
