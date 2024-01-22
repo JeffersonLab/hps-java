@@ -349,7 +349,7 @@ public class DAQConfigDriver extends Driver {
      */
     private String mapBetweenRunNumberDAQVersion(int runNumber) {
         
-        // 2019 experiment
+        // 2016 experiment
         if(runNumber >= 7609 && runNumber <=7809)
             return "2016_v7_200nA";                           
         else return "2016_v8_200nA";
