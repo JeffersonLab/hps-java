@@ -60,7 +60,7 @@ public class TrackHitKiller extends Driver {
     private final String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
     private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
     private final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
-    private String trackCollectionName="MatchedTracks";
+    private String trackCollectionName = "MatchedTracks";
     private boolean _debug = false;
     //  instead of just removing hit at a given channel, remove all hits within Nsigma
     private boolean removeHitsWithinNSig = false;
@@ -70,8 +70,8 @@ public class TrackHitKiller extends Driver {
     double sigmaUL1 = 0.1; //100 microns...this is roughly the 5-hit track projection error in U for layer 1, plotted in SVTHitLevelPlots
     double sigmaUL6 = 0.25; //250 microns...this is roughly the 5-hit track projection error in U for layer 6*1.5 because pull is too wide, plotted in SVTHitLevelPlots
     //    double sigmaUL6 = 0.05; //50 microns...this is narrow just to check the effect. 
-    double firstSensorKillFactor=1.0;
-    double secondSensorKillFactor=1.0;
+    double firstSensorKillFactor = 1.0;
+    double secondSensorKillFactor = 1.0;
     //these are just used for debugging...
     int checkHitsChannel = 634;
     int checkHitsTotal = 0;
@@ -79,7 +79,7 @@ public class TrackHitKiller extends Driver {
     double checkHitsRatio = 0;
     ///
 
-    private List<TrackerHit> siClusters=new ArrayList<TrackerHit>();
+    private List<TrackerHit> siClusters = new ArrayList<TrackerHit>();
 
     private Map<TrackerHit, Boolean> _siClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
     private Map<TrackerHit, Boolean> _finalSiClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
@@ -184,14 +184,14 @@ public class TrackHitKiller extends Driver {
 
         List<Track> tracks = event.get(Track.class, trackCollectionName);
 
-        List<TrackerHit> l1HitsOnTracks=getTrackHitsPerLayer(tracks,hitToStrips,hitToRotated,1);
-        List<TrackerHit> tmpClusterList=new ArrayList<TrackerHit>(siClusters);
+        List<TrackerHit> l1HitsOnTracks = getTrackHitsPerLayer(tracks, hitToStrips, hitToRotated, 1);
+        List<TrackerHit> tmpClusterList = new ArrayList<TrackerHit>(siClusters);
 
         int oldClusterListSize = siClusters.size();
             //for (TrackerHit siCluster : siClusters) {
         for (TrackerHit siCluster : l1HitsOnTracks) {
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) siCluster.getRawHits().get(0)).getDetectorElement();            
-            for (SensorToKill sensorToKill : _sensorsToKill)
+            for (SensorToKill sensorToKill : _sensorsToKill) {
                 if (sensorToKill.matchSensor(sensor)) {
                     //ok, get hit channel and kill or not
                     Hep3Vector pos = globalToSensor(toHep3(siCluster.getPosition()), sensor);
@@ -205,35 +205,37 @@ public class TrackHitKiller extends Driver {
                         ratio = this.getSmearedRatio(chan, sensorToKill);
                     else
                         ratio = sensorToKill.getRatio(chan);
-                    double killFactor=(1-ratio)*sensorToKill.getScaleKillFactor();
-                    ratio=1-killFactor;
+                    double killFactor = (1-ratio)*sensorToKill.getScaleKillFactor();
+                    ratio = 1-killFactor;
                     if (ratio != -666) {
                         double random = Math.random(); //throw a random number to see if this hit should be rejected
-                        if(_debug)
-                            System.out.println("ratio = "+ratio+"; random # = "+random);
+                        if (_debug)
+                            System.out.println("ratio = " + ratio + "; random # = " + random);
                         if (random > ratio) {
                             //                            passHit = false;
-                            if(_debug){
+                            if (_debug) {
                                 System.out.println("Removing cluster...");
                                 System.out.println(siCluster.toString());
-                                if(!tmpClusterList.contains(siCluster))
+                                if (!tmpClusterList.contains(siCluster))
                                     System.out.println("....Cluster not in tmpList");
-                                if(!siClusters.contains(siCluster))
+                                if (!siClusters.contains(siCluster))
                                     System.out.println("....Cluster not in siClusters");
                             }
                             tmpClusterList.remove(siCluster);            
                         }
                     }
-                }           
+                }
+            }         
         }
 
-        if (_debug){
+        if (_debug) {
             System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
             System.out.println("");
         }
+        // TODO flag not used
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
         event.put(this.stripHitInputCollectionName, tmpClusterList, SiTrackerHitStrip1D.class, 0, toString());
-        if(_debug)
+        if (_debug)
             System.out.println("Clearing hit relational table caches");
         TrackUtils.clearCaches();
 
@@ -249,14 +251,14 @@ public class TrackHitKiller extends Driver {
     public void registerSensor(int layer, boolean isTop, boolean isStereo, boolean isSlot, String ratioFile) {
         SensorToKill newSensor = new SensorToKill(layer, isTop, isStereo, isSlot, ratioFile);
         System.out.println("newSensor isTop " + newSensor.getIsTop());
-        if(newSensor.getIsTop() && !(newSensor.getIsStereo()) && newSensor.getLayer()==1)
+        if (newSensor.getIsTop() && !(newSensor.getIsStereo()) && newSensor.getLayer()==1)
             newSensor.setScaleKillFactor(firstSensorKillFactor) ;      
-        if(newSensor.getIsTop() && newSensor.getIsStereo() && newSensor.getLayer()==1)
+        if (newSensor.getIsTop() && newSensor.getIsStereo() && newSensor.getLayer()==1)
             newSensor.setScaleKillFactor(secondSensorKillFactor);
        
-        if(!(newSensor.getIsTop()) && newSensor.getIsStereo() && newSensor.getLayer()==1)
+        if (!(newSensor.getIsTop()) && newSensor.getIsStereo() && newSensor.getLayer()==1)
             newSensor.setScaleKillFactor(firstSensorKillFactor);
-        if(!(newSensor.getIsTop()) && !(newSensor.getIsStereo()) && newSensor.getLayer()==1)
+        if (!(newSensor.getIsTop()) && !(newSensor.getIsStereo()) && newSensor.getLayer()==1)
            newSensor.setScaleKillFactor(secondSensorKillFactor);
        
         _sensorsToKill.add(newSensor);
@@ -283,6 +285,7 @@ public class TrackHitKiller extends Driver {
         return null;
     }
 
+    // TODO this is not used again
     private List<TrackerHit> getFinalHits(Map<TrackerHit, Boolean> _initialSiClustersAcceptMap) {
         _finalSiClustersAcceptMap.clear();
         List<TrackerHit> tmpClusterList = new ArrayList<TrackerHit>();
@@ -410,7 +413,7 @@ public class TrackHitKiller extends Driver {
         boolean _isTop = false;
         String _ratioFile = "foobarTopL1Stereo.txt";
         HpsSiSensor _sensor = null;
-        double _scaleKillFactor=1.0;
+        double _scaleKillFactor = 1.0;
         Map<Integer, Double> _channelToRatioMap = new HashMap<Integer, Double>();
 
         public SensorToKill(int layer, boolean isTop, boolean isStereo, boolean isSlot, String ratioFile) {
@@ -424,8 +427,8 @@ public class TrackHitKiller extends Driver {
             readRatioFile();
         }
 
-        void setScaleKillFactor(double scale){
-            this._scaleKillFactor=scale;
+        void setScaleKillFactor(double scale) {
+            this._scaleKillFactor = scale;
         }
 
         int getLayer() {
@@ -448,7 +451,7 @@ public class TrackHitKiller extends Driver {
             return _ratioFile;
         }
 
-        double getScaleKillFactor(){
+        double getScaleKillFactor() {
             return(this._scaleKillFactor);
         }
 
@@ -519,19 +522,19 @@ public class TrackHitKiller extends Driver {
         return integral + 0.5;
     }
 
-    //Gaussian function
+    //Gaussian function TODO this is also defined in striphitkiller
     private double Gauss(double x, double mean, double sigma) {
         return 1 / (Math.sqrt(2 * Math.PI * Math.pow(sigma, 2))) * Math.exp(-Math.pow(x - mean, 2) / (2 * Math.pow(sigma, 2)));
     }
     
-    private List<TrackerHit> getTrackHitsPerLayer(List<Track> tracks, RelationalTable hitToStrips, RelationalTable hitToRotated, int layer){
-        List<TrackerHit> lhits=new ArrayList<TrackerHit>();
-        for(Track trk: tracks){
-            List<TrackerHit> hitsontrack=TrackUtils.getStripHits(trk,hitToStrips,hitToRotated);
+    private List<TrackerHit> getTrackHitsPerLayer(List<Track> tracks, RelationalTable hitToStrips, RelationalTable hitToRotated, int layer) {
+        List<TrackerHit> lhits = new ArrayList<TrackerHit>();
+        for(Track trk: tracks) {
+            List<TrackerHit> hitsontrack = TrackUtils.getStripHits(trk, hitToStrips, hitToRotated);
             for (TrackerHit hit: hitsontrack) {
                 int thislayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
                 int module = thislayer / 2 + 1;
-                if(module == layer && !(lhits.contains(hit))){// if it's layer of interest and it's not in list yet
+                if (module == layer && !(lhits.contains(hit))) {// if it's layer of interest and it's not in list yet
                     lhits.add(hit);
                 }
             }
@@ -540,12 +543,12 @@ public class TrackHitKiller extends Driver {
     }
 
     /*
-    private boolean isHitOnTrack(List<Track> tracks, TrackerHit cluster){
-        for(Track trk: tracks){
+    private boolean isHitOnTrack(List<Track> tracks, TrackerHit cluster) {
+        for(Track trk: tracks) {
             for (TrackerHit hit : trk.getTrackerHits()) {
                 int thislayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
                 int module = thislayer / 2 + 1;
-                if(module == layer && !(lhits.contains(hit))){// if it's layer of interest and it's not in list yet
+                if (module == layer && !(lhits.contains(hit))) {// if it's layer of interest and it's not in list yet
                     lhits.add(hit);
                 }                
             }            

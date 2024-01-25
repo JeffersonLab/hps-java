@@ -45,17 +45,17 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
 
     Set<String> ratioFiles = new HashSet<String>();
     private List<ModuleSlopeMap> _modulesToKill = new ArrayList<ModuleSlopeMap>();
-    //List of Sensors
+    // List of Sensors
     private List<HpsSiSensor> sensors = null;
     private static final String SUBDETECTOR_NAME = "Tracker";
     private static Pattern layerPattern = Pattern.compile("L(\\d+)");
     private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
     //    private String trackCollectionName="MatchedTracks";
-    private String trackCollectionName="KalmanFullTracks";
+    private String trackCollectionName = "KalmanFullTracks";
     private boolean _debug = false;
-    private double _scaleKillFactor=1.0;
-    private List<TrackerHit> siClusters=new ArrayList<TrackerHit>();
+    private double _scaleKillFactor = 1.0;
+    private List<TrackerHit> siClusters = new ArrayList<TrackerHit>();
     
     private Map<TrackerHit, Boolean> _siClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
     private Map<TrackerHit, Boolean> _finalSiClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
@@ -73,23 +73,21 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
         this._debug = debug;
     }
 
-    public void setScaleKillFactor(double kill){
+    public void setScaleKillFactor(double kill) {
         this._scaleKillFactor=kill;
     }
 
-    public void setUseSqrtKillFactor(boolean use){
+    public void setUseSqrtKillFactor(boolean use) {
         this._useSqrtKillFactor=use;
     }
       
-    public void setCorrectForDisplacement(boolean setme){
+    public void setCorrectForDisplacement(boolean setme) {
         this._correctForDisplacement=setme;
     }
 
-    public void setTrackCollectionName(String name){
+    public void setTrackCollectionName(String name) {
         this.trackCollectionName=name;
     }
-
-   
 
     public KalmanSlopeBasedTrackHitKiller() {
     }
@@ -139,10 +137,10 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
         }
               
         List<Track> tracks = event.get(Track.class, trackCollectionName);                
-        Map<Track,Double> trkNewSlopeMap=new HashMap<Track, Double>();
+        Map<Track,Double> trkNewSlopeMap = new HashMap<Track, Double>();
 
-        if(_correctForDisplacement){
-            if(!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
+        if (_correctForDisplacement) {
+            if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
                 if (_debug)
                     System.out.println("KalmanSlopeBasedTrackHitKiller::process No Input Collection Found?? " + unconstrainedV0CandidatesColName);
                 return;
@@ -150,22 +148,22 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
             List<ReconstructedParticle> unconstrainedV0List = event.get(ReconstructedParticle.class, unconstrainedV0CandidatesColName);
             if (_debug)
                 System.out.println("This events has " + unconstrainedV0List.size() + " unconstrained V0s");
-            trkNewSlopeMap=getUniqueTracksFromV0List(unconstrainedV0List);
-            System.out.println("# of tracks in map = "+trkNewSlopeMap.size());
+            trkNewSlopeMap = getUniqueTracksFromV0List(unconstrainedV0List);
+            System.out.println("# of tracks in map = " + trkNewSlopeMap.size());
 
         }
 
-        List<TrackerHit> tmpClusterList=new ArrayList<TrackerHit>(siClusters);
+        List<TrackerHit> tmpClusterList = new ArrayList<TrackerHit>(siClusters);
         int oldClusterListSize = siClusters.size();
 
         for (TrackerHit siCluster : siClusters) {
-            for (ModuleSlopeMap modToKill : _modulesToKill){
-                if(modToKill.getLayer() != layerToModule(((RawTrackerHit) siCluster.getRawHits().get(0)).getLayerNumber()))
+            for (ModuleSlopeMap modToKill : _modulesToKill) {
+                if (modToKill.getLayer() != layerToModule(((RawTrackerHit) siCluster.getRawHits().get(0)).getLayerNumber()))
                     continue;
-                double lambda=-666;
-                if(_correctForDisplacement){
-                    lambda=adjustedSlopeFromMap(trkNewSlopeMap,siCluster);
-                    if(_debug)
+                double lambda = -666;
+                if (_correctForDisplacement) {
+                    lambda = adjustedSlopeFromMap(trkNewSlopeMap,siCluster);
+                    if (_debug)
                         System.out.println("corrected lambda= "+lambda);
                 }else{
                     Track trk=getTrackWithHit(tracks,siCluster);
@@ -176,30 +174,29 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
 
                
                 double ratio = modToKill.getInefficiency(lambda);
-                if(ratio == -666)
+                if (ratio == -666)
                     continue;
-                if(_useSqrtKillFactor){
-                    double eff=Math.sqrt(1-ratio);
-                    ratio=1-eff;
+                if (_useSqrtKillFactor) {
+                    double eff = Math.sqrt(1-ratio);
+                    ratio = 1-eff;
                 }
-                double killFactor=ratio*modToKill.getScaleKillFactor();
+                double killFactor = ratio*modToKill.getScaleKillFactor();
                 double random = Math.random(); //throw a random number to see if this hit should be rejected
-                if(_debug)
-                    System.out.println("ratio = "+ratio+"; killFactor = "+killFactor+"; random # = "+random);
+                if (_debug)
+                    System.out.println("ratio = " + ratio + "; killFactor = " + killFactor + "; random # = " + random);
                 if (random < killFactor) {                
                     tmpClusterList.remove(siCluster);
                 }
             }
         }
-        
 
-        if (_debug){
+        if (_debug) {
             System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
             System.out.println("");
         }
         int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
         event.put(this.stripHitInputCollectionName, tmpClusterList, SiTrackerHitStrip1D.class, 0, toString());
-        if(_debug)
+        if (_debug)
             System.out.println("Clearing hit relational table caches");
         TrackUtils.clearCaches();
 
@@ -210,7 +207,7 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
       
     }
 
-    public void registerModule(int layer,  String ratioFile) {
+    public void registerModule(int layer, String ratioFile) {
         ModuleSlopeMap newModule = new ModuleSlopeMap(layer, ratioFile);
         newModule.setScaleKillFactor(this._scaleKillFactor);
         _modulesToKill.add(newModule);
@@ -237,20 +234,18 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
         return null;
     }
 
-  
-   
 
     public class ModuleSlopeMap {
 
-        private List<Double> _lowEdge=new ArrayList<Double>();
-        private List<Double> _upEdge=new ArrayList<Double>(); 
-        private List<Double>  _inefficiency=new ArrayList<Double>();
-        private int _layer=-666;
-        private String _ratioFile="foo";
-        private double _scaleKillFactor=0.5; // since we loop over all 1D clusters and there are 2 1D clusters per 3D hit, don't want to double the chance that the 3D hit is killed
-        public ModuleSlopeMap(int layer, String ratioFile){
-            _layer=layer; 
-            _ratioFile=ratioFile;
+        private List<Double> _lowEdge = new ArrayList<Double>();
+        private List<Double> _upEdge = new ArrayList<Double>(); 
+        private List<Double>  _inefficiency = new ArrayList<Double>();
+        private int _layer = -666;
+        private String _ratioFile = "foo";
+        private double _scaleKillFactor = 0.5; // since we loop over all 1D clusters and there are 2 1D clusters per 3D hit, don't want to double the chance that the 3D hit is killed
+        public ModuleSlopeMap(int layer, String ratioFile) {
+            _layer = layer; 
+            _ratioFile = ratioFile;
             readRatioFile();
         }
 
@@ -263,7 +258,7 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
             try {
                 while ((line = reader.readLine()) != null) {
                     String[] tokens = line.split(delims);
-                    System.out.println("loweredge = " + tokens[0] + "; upperedge = " + tokens[1]+"; ratio = " + tokens[1]);
+                    System.out.println("loweredge = " + tokens[0] + "; upperedge = " + tokens[1] + "; ratio = " + tokens[1]);
                     _lowEdge.add(Double.parseDouble(tokens[0]));
                     _upEdge.add(Double.parseDouble(tokens[1]));
                     _inefficiency.add(Double.parseDouble(tokens[2]));
@@ -273,33 +268,30 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
             }
         }
 
-        public void setScaleKillFactor(double kill){
-            System.out.println("Setting scaleKillFactor to "+kill);
-            _scaleKillFactor=kill;
+        public void setScaleKillFactor(double kill) {
+            System.out.println("Setting scaleKillFactor to " + kill);
+            _scaleKillFactor = kill;
         }
-        public double getScaleKillFactor(){
+        public double getScaleKillFactor() {
             return _scaleKillFactor;
         }
-        public int getLayer(){
+        public int getLayer() {
             return _layer;
         }
 
         public double getInefficiency(double slope) {
-            for(int i=0;i<_lowEdge.size();i++){
-                if(slope<_upEdge.get(i) && slope>_lowEdge.get(i))
+            for(int i=0; i<_lowEdge.size(); i++) {
+                if (slope<_upEdge.get(i) && slope>_lowEdge.get(i))
                     return _inefficiency.get(i);
             }
             return -666;
         }
-        
     }
-    
 
     //Converts double array into Hep3Vector
     private Hep3Vector toHep3(double[] arr) {
         return new BasicHep3Vector(arr[0], arr[1], arr[2]);
     }
-    
 
     /*
      * mg...7/5/20...
@@ -309,20 +301,20 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
      * ...just checking if the SiCluster TrackerHit "hit" is in the hitsontrack collection doesn't work..
      * that's why I go back to the raw hits and compare these lists.  
      */
-    private Track getTrackWithHit(List<Track> tracks, TrackerHit hit){
-        for(Track trk: tracks){
+    private Track getTrackWithHit(List<Track> tracks, TrackerHit hit) {
+        for(Track trk: tracks) {
         List<TrackerHit> hitsontrack=trk.getTrackerHits();
         /*
-          if(hitsontrack.contains(hit)){
+          if (hitsontrack.contains(hit)) {
                 System.out.println("found a track with this hit "+hit.toString());
                 return trk;
                 } */
             for (TrackerHit hot: hitsontrack) {
                 //                System.out.println(hit.toString()+" "+hot.toString());
-                List<RawTrackerHit> rawTrkHits= (List<RawTrackerHit>)( hot.getRawHits());
-                List<RawTrackerHit> rawHitHits= (List<RawTrackerHit>)( hit.getRawHits());
-                if(rawHitHits.equals(rawTrkHits)){
-                    if(_debug)
+                List<RawTrackerHit> rawTrkHits = (List<RawTrackerHit>)( hot.getRawHits());
+                List<RawTrackerHit> rawHitHits = (List<RawTrackerHit>)( hit.getRawHits());
+                if (rawHitHits.equals(rawTrkHits)) {
+                    if (_debug)
                         System.out.println("found match to SiCluster in track");
                     return trk;
                 }
@@ -330,53 +322,53 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
         }                
         return null;
     }
-    private int layerToModule(int layer){
+    private int layerToModule(int layer) {
         return (layer-1)/2+1;
     }
     
-    private double correctSlope(double z,double slp){
+    private double correctSlope(double z, double slp) {
         double d = 100;
         return (1 - z/d) * slp;
     }
 
-    private Map<Track,Double> getUniqueTracksFromV0List(List<ReconstructedParticle> unconstrainedV0List){
-        Map<Track,Double> trkmap=new HashMap<Track,Double>();
-        for(ReconstructedParticle uncV0:unconstrainedV0List){
-            double vz=uncV0.getStartVertex().getPosition().z();
-            if(_debug)System.out.println("vertex z = "+vz);
-            if(_debug)System.out.println("number of tracks = "+uncV0.getTracks().size());
-            for(ReconstructedParticle  part: uncV0.getParticles()){
-                Track trk=part.getTracks().get(0);
-                double slope=trk.getTrackStates().get(0).getTanLambda();
-                double newslope=correctSlope(vz,slope);
-                System.out.println(slope+" ; "+newslope);
-                if(trkmap.containsKey(trk)){
-                    if(Math.abs(trkmap.get(trk))<Math.abs(newslope)){
-                        if(_debug)System.out.println("Replacing new trk/slope pair "+newslope+"; old slope = "+slope);
+    private Map<Track,Double> getUniqueTracksFromV0List(List<ReconstructedParticle> unconstrainedV0List) {
+        Map<Track,Double> trkmap = new HashMap<Track,Double>();
+        for(ReconstructedParticle uncV0:unconstrainedV0List) {
+            double vz = uncV0.getStartVertex().getPosition().z();
+            if (_debug)System.out.println("vertex z = " + vz);
+            if (_debug)System.out.println("number of tracks = " + uncV0.getTracks().size());
+            for(ReconstructedParticle  part: uncV0.getParticles()) {
+                Track trk = part.getTracks().get(0);
+                double slope = trk.getTrackStates().get(0).getTanLambda();
+                double newslope = correctSlope(vz, slope);
+                System.out.println(slope + " ; " + newslope);
+                if (trkmap.containsKey(trk)) {
+                    if (Math.abs(trkmap.get(trk)) < Math.abs(newslope)) {
+                        if (_debug)System.out.println("Replacing new trk/slope pair " + newslope + "; old slope = " + slope);
                         //                        trkmap.replace(trk,newslope);  this only works in java 8
                         trkmap.remove(trk);
-                        trkmap.put(trk,newslope);
+                        trkmap.put(trk, newslope);
                     }
                 }else{
-                    if(_debug)System.out.println("Putting new trk/slope pair "+newslope+"; old slope = "+slope);
-                    trkmap.put(trk,newslope);
+                    if (_debug)System.out.println("Putting new trk/slope pair " + newslope + "; old slope = " + slope);
+                    trkmap.put(trk, newslope);
                 }
             }
         }
         return trkmap;
     }
 
-    private double  adjustedSlopeFromMap(Map<Track,Double> trkmap, TrackerHit hit){
+    private double adjustedSlopeFromMap(Map<Track,Double> trkmap, TrackerHit hit) {
         
         for (Map.Entry<Track,Double> entry : trkmap.entrySet())  {
-            Track trk=entry.getKey();
-            double newSlope=entry.getValue();
-            List<TrackerHit> hitsontrack=trk.getTrackerHits();
+            Track trk = entry.getKey();
+            double newSlope = entry.getValue();
+            List<TrackerHit> hitsontrack = trk.getTrackerHits();
             for (TrackerHit hot: hitsontrack) {
-                List<RawTrackerHit> rawTrkHits= (List<RawTrackerHit>)( hot.getRawHits());
-                List<RawTrackerHit> rawHitHits= (List<RawTrackerHit>)( hit.getRawHits());
-                if(rawHitHits.equals(rawTrkHits)){
-                    if(_debug)
+                List<RawTrackerHit> rawTrkHits = (List<RawTrackerHit>)(hot.getRawHits());
+                List<RawTrackerHit> rawHitHits = (List<RawTrackerHit>)(hit.getRawHits());
+                if (rawHitHits.equals(rawTrkHits)) {
+                    if (_debug)
                         System.out.println("found match to SiCluster in track");
                     return newSlope;
                 }
@@ -384,5 +376,4 @@ public class KalmanSlopeBasedTrackHitKiller extends Driver {
         }                
         return -666;
     }
-    
 }

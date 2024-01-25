@@ -62,7 +62,7 @@ public class SvtHitEfficiencyKalman extends Driver {
     protected AIDA aida = AIDA.defaultInstance();
     ITree tree;
     IHistogramFactory histogramFactory;
-    boolean debug=false; 
+    boolean debug = false; 
     // List of Sensors
     private List<HpsSiSensor> sensors = null;
     
@@ -257,20 +257,20 @@ public class SvtHitEfficiencyKalman extends Driver {
     Map<String, IHistogram1D> Phi0_err = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram1D> Omega_err = new HashMap<String, IHistogram1D>();
  
-    Map<String, IHistogram1D> frontLayerPatterns=new HashMap<String, IHistogram1D>();
+    Map<String, IHistogram1D> frontLayerPatterns = new HashMap<String, IHistogram1D>();
     
     
-    Map<Integer,Integer> hitLayerMap=new HashMap<Integer,Integer>();
-    Map<Integer,Integer> holeLayerMap=new HashMap<Integer,Integer>();
+    Map<Integer, Integer> hitLayerMap = new HashMap<Integer, Integer>();
+    Map<Integer, Integer> holeLayerMap = new HashMap<Integer, Integer>();
     //  the KF code has the number of layers hardcoded at 14 and the ordering is fixed for 12-layer or 14-layer detectors
     //  it uses "KalmanParams.firstLayer" set set the start index of things like the SiModules.
     //  Upside is for 2016 detectors the first two indices (layers 0,1) are empty in lots of things because they correspond to "Layer0"
     //  and layers 2,3 == "Layer1" independent if you have a 2016 or >2019 detector.  
-    int maxLayer=14;           //this is the Kalman layer and is fixed 
-    int hpsLayerToKFLayer=0;   //0 is correct for >2019, set this to 2 for 2016
-    int minHOTs=8;             //minimum number of hits on track required
-    int maxHOTs=maxLayer-hpsLayerToKFLayer; //calculate the max number of hits (== n layers) in weird way.  
-    int outerLayer=9;          //the Kalman layer number that the outer detector starts ...is fixed!
+    int maxLayer = 14;           //this is the Kalman layer and is fixed 
+    int hpsLayerToKFLayer = 0;   //0 is correct for >2019, set this to 2 for 2016
+    int minHOTs = 8;             //minimum number of hits on track required
+    int maxHOTs = maxLayer-hpsLayerToKFLayer; //calculate the max number of hits (== n layers) in weird way.  
+    int outerLayer = 9;          //the Kalman layer number that the outer detector starts ...is fixed!
     // Histogram Settings
     int nBins = 100;
     int nBins2D = 50;
@@ -279,8 +279,8 @@ public class SvtHitEfficiencyKalman extends Driver {
     double maxRes = 0.5;
     double minRes = -maxRes;
     double maxYerror = 0.1;
-    double minTime=-80.0;
-    double maxTime=80.0;
+    double minTime = -80.0;
+    double maxTime = 80.0;
     double maxD0 = 5;
     double minD0 = -maxD0;
     double maxZ0 = 3;
@@ -302,21 +302,20 @@ public class SvtHitEfficiencyKalman extends Driver {
     double maxOmegaErr = 0.0001;
     double minOmegaErr = 0;
     
-    int nChansThin=-666; //fill these when we get sensors
-    int nChansThick=-666; 
+    int nChansThin = -666; //fill these when we get sensors
+    int nChansThick = -666; 
     String atIP = "IP";
-    
-    
-    boolean fillUPlots=false; 
-    boolean fillPPlots=false; 
-    boolean fillTanLvsPhiPlots=false; 
-    boolean fillPatternPlots=false;
+
+    boolean fillUPlots = false; 
+    boolean fillPPlots = false; 
+    boolean fillTanLvsPhiPlots = false; 
+    boolean fillPatternPlots = false;
     
     // Collection Strings
     private String stripHitOutputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
     private String TrackCollectionName = "KalmanFullTracks";
-    private String kalIntersectsName="KFUnbiasInt";
-    private String kalIntersectsRelsName="KFUnbiasIntRelations";
+    private String kalIntersectsName = "KFUnbiasInt";
+    private String kalIntersectsRelsName = "KFUnbiasIntRelations";
     // Bfield
     protected static double bfield;
     FieldMap bFieldMap = null;
@@ -325,14 +324,14 @@ public class SvtHitEfficiencyKalman extends Driver {
     
     String outputFileName = "channelEff.txt";
     boolean cleanFEE = false;
-    int thinLayCutoff=4; //thin layers = 0,1,2,3
+    int thinLayCutoff = 4; //thin layers = 0,1,2,3
     double nSig = 5;
     boolean maskBadChannels = false;
     int chanExtd = 1;
     
     boolean useTrkTimeCut = false;
-    double trkTimeCut=10.0; //+/- ns
-    double trkTimeMean=0.0;//true for data...not for MC
+    double trkTimeCut = 10.0; //+/- ns
+    double trkTimeMean = 0.0;//true for data...not for MC
     // Daq map
     SvtChannelCollection channelMap;
     SvtDaqMappingCollection daqMap;
@@ -356,25 +355,25 @@ public class SvtHitEfficiencyKalman extends Driver {
     public void setCleanFEE(boolean cleanFEE) {
         this.cleanFEE = cleanFEE;
     }
-    public void setMaxLayer(int nLayers){
-        this.hpsLayerToKFLayer=this.maxLayer-nLayers;
-        this.maxHOTs=nLayers; 
-        this.maxLayer=nLayers;
+    public void setMaxLayer(int nLayers) {
+        this.hpsLayerToKFLayer = this.maxLayer-nLayers;
+        this.maxHOTs = nLayers; 
+        this.maxLayer = nLayers;
     }
     
-    public void setDebug(boolean debug){
-        this.debug=debug;
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
-    public void setUseTrkTimeCut(boolean useit){
-        this.useTrkTimeCut=useit;
-    }
-
-    public void setTrkTimeCut(double val){
-        this.trkTimeCut=val;
+    public void setUseTrkTimeCut(boolean useit) {
+        this.useTrkTimeCut = useit;
     }
 
-    public void setTrkTimeMean(double val){
-        this.trkTimeMean=val;
+    public void setTrkTimeCut(double val) {
+        this.trkTimeCut = val;
+    }
+
+    public void setTrkTimeMean(double val) {
+        this.trkTimeMean = val;
     }
 
     // Beam Energy
@@ -411,21 +410,21 @@ public class SvtHitEfficiencyKalman extends Driver {
             throw new RuntimeException("No sensors were found in this detector.");
         }
 
-        List<String> topBot=new ArrayList<String>();
+        List<String> topBot = new ArrayList<String>();
         topBot.add("Top");
         topBot.add("Bottom");
-        List<String> elePos=new ArrayList<String>();
+        List<String> elePos = new ArrayList<String>();
         elePos.add("Electron");
         elePos.add("Positron");
-        List<String> patStrList=patternStringList(); 
-        List<String> modPairList=new ArrayList<String>();
+        List<String> patStrList = patternStringList(); 
+        List<String> modPairList = new ArrayList<String>();
         modPairList.add("hasModPairHit");
         modPairList.add("noModPairHit");
 
-        for(String detHalf: topBot){
+        for(String detHalf: topBot) {
         // Setup Plots
-            String ipMapName=atIP+detHalf; 
-            String ipHName=detHalf+" "+atIP; 
+            String ipMapName = atIP + detHalf; 
+            String ipHName = detHalf + " " + atIP; 
             trackTimes.put(ipMapName, histogramFactory.createHistogram1D("Track Times " + ipHName, nBins, minTime, maxTime));
             D0.put(ipMapName, histogramFactory.createHistogram1D("D0 " + ipHName, nBins, minD0, maxD0));
             Z0.put(ipMapName, histogramFactory.createHistogram1D("Z0 " + ipHName, nBins, minZ0, maxZ0));
@@ -440,67 +439,67 @@ public class SvtHitEfficiencyKalman extends Driver {
             Phi0_err.put(ipMapName, histogramFactory.createHistogram1D("Phi0 Error " + ipHName, nBins, minPhi0Err, maxPhi0Err));
             Omega_err.put(ipMapName, histogramFactory.createHistogram1D("Omega Error " + ipHName, nBins, minOmegaErr, maxOmegaErr));
 
-            nTrackHits.put(ipMapName,histogramFactory.createHistogram1D("Number of Track Hits "+detHalf, 15, 0, 15));
-            nHoles.put(ipMapName,histogramFactory.createHistogram1D("Number of Holes on Track "+detHalf, 8, 0, 8));
-            layerHits.put(ipMapName,histogramFactory.createHistogram1D("Layers Hit "+detHalf, 14, 1, 15));
-            layerHoles.put(ipMapName,histogramFactory.createHistogram1D("Hole Layers "+detHalf, 14, 1, 15));
-            t0VsLayer.put(ipMapName,histogramFactory.createHistogram2D("t0 vs layer "+detHalf, 14, 1, 15,nBins,minTime,maxTime));
-            tMinus7VsLayer.put(ipMapName,histogramFactory.createHistogram2D("t0-t7 vs layer "+detHalf, 14, 1, 15,nBins,minTime,maxTime));
+            nTrackHits.put(ipMapName,histogramFactory.createHistogram1D("Number of Track Hits " + detHalf, 15, 0, 15));
+            nHoles.put(ipMapName,histogramFactory.createHistogram1D("Number of Holes on Track " + detHalf, 8, 0, 8));
+            layerHits.put(ipMapName,histogramFactory.createHistogram1D("Layers Hit " + detHalf, 14, 1, 15));
+            layerHoles.put(ipMapName,histogramFactory.createHistogram1D("Hole Layers " + detHalf, 14, 1, 15));
+            t0VsLayer.put(ipMapName,histogramFactory.createHistogram2D("t0 vs layer " + detHalf, 14, 1, 15, nBins, minTime, maxTime));
+            tMinus7VsLayer.put(ipMapName,histogramFactory.createHistogram2D("t0-t7 vs layer " + detHalf, 14, 1, 15, nBins, minTime, maxTime));
 
-            frontLayerPatterns.put(ipMapName,histogramFactory.createHistogram1D("Front Layer Pattern "+detHalf, 1200, 0,1200));
-            for(String charge: elePos){
-                ipMapName=atIP+detHalf+charge; 
-                ipHName=charge+" "+detHalf; 
-                String dirCh=charge+"/"; 
+            frontLayerPatterns.put(ipMapName,histogramFactory.createHistogram1D("Front Layer Pattern " + detHalf, 1200, 0, 1200));
+            for(String charge: elePos) {
+                ipMapName = atIP + detHalf + charge; 
+                ipHName = charge + " " + detHalf; 
+                String dirCh = charge + "/"; 
                 aida.tree().cd("/");
                 aida.tree().mkdirs(dirCh);
-                D0.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"D0 " + ipHName, nBins, minD0, maxD0));
-                Z0.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Z0 " + ipHName, nBins, minZ0, maxZ0));
-                Tanlambda.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
+                D0.put(ipMapName, histogramFactory.createHistogram1D(dirCh + "D0 " + ipHName, nBins, minD0, maxD0));
+                Z0.put(ipMapName, histogramFactory.createHistogram1D(dirCh + "Z0 " + ipHName, nBins, minZ0, maxZ0));
+                Tanlambda.put(ipMapName, histogramFactory.createHistogram1D(dirCh + "TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
                 Phi0.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Phi0 " + ipHName, nBins, minPhi0, maxPhi0));
-                Omega.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Momentum " + ipHName,nBins,  0, 1.3 * ebeam ));
-                nTrackHits.put(ipMapName,histogramFactory.createHistogram1D(dirCh+"Number of Track Hits "+ipHName, 15, 0, 15));
-                nHoles.put(ipMapName,histogramFactory.createHistogram1D(dirCh+"Number of Holes on Track "+ipHName, 8, 0, 8));
-                layerHits.put(ipMapName,histogramFactory.createHistogram1D(dirCh+"Layers Hit "+ipHName, 14, 1, 15));
-                layerHoles.put(ipMapName,histogramFactory.createHistogram1D(dirCh+"Hole Layers "+ipHName, 14, 1, 15));
+                Omega.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Momentum " + ipHName,nBins, 0, 1.3 * ebeam ));
+                nTrackHits.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Number of Track Hits " + ipHName, 15, 0, 15));
+                nHoles.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Number of Holes on Track " + ipHName, 8, 0, 8));
+                layerHits.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Layers Hit " + ipHName, 14, 1, 15));
+                layerHoles.put(ipMapName, histogramFactory.createHistogram1D(dirCh+"Hole Layers " + ipHName, 14, 1, 15));
 
                 
             }
-            for (int hot=minHOTs; hot<=maxHOTs; hot++){
-                String dirHotName="nHits"+hot+"/";
-                String mapHotName="nHits"+hot+detHalf;
+            for (int hot=minHOTs; hot<=maxHOTs; hot++) {
+                String dirHotName = "nHits" + hot+"/";
+                String mapHotName = "nHits" + hot + detHalf;
                 aida.tree().cd("/");
                 aida.tree().mkdirs(dirHotName);
-                nHolesNHits.put(mapHotName,histogramFactory.createHistogram1D(dirHotName+ "Number of Holes on Track "+detHalf, 8, 0, 8));
-                layerHitsNHits.put(mapHotName,histogramFactory.createHistogram1D(dirHotName+"Layers Hit "+detHalf, 14, 1, 15));
-                layerHolesNHits.put(mapHotName,histogramFactory.createHistogram1D(dirHotName+"Hole Layers "+detHalf, 14, 1, 15));
-                t0VsLayerNHits.put(mapHotName,histogramFactory.createHistogram2D(dirHotName+"t0 vs layer "+detHalf, 14, 1, 15,nBins,minTime,maxTime));
-                tMinus7VsLayerNHits.put(mapHotName,histogramFactory.createHistogram2D(dirHotName+"t0-t7 vs layer "+detHalf, 14, 1, 15,nBins,minTime,maxTime));  
+                nHolesNHits.put(mapHotName, histogramFactory.createHistogram1D(dirHotName + "Number of Holes on Track " + detHalf, 8, 0, 8));
+                layerHitsNHits.put(mapHotName, histogramFactory.createHistogram1D(dirHotName + "Layers Hit " + detHalf, 14, 1, 15));
+                layerHolesNHits.put(mapHotName, histogramFactory.createHistogram1D(dirHotName + "Hole Layers " + detHalf, 14, 1, 15));
+                t0VsLayerNHits.put(mapHotName, histogramFactory.createHistogram2D(dirHotName + "t0 vs layer " + detHalf, 14, 1, 15,nBins, minTime, maxTime));
+                tMinus7VsLayerNHits.put(mapHotName, histogramFactory.createHistogram2D(dirHotName + "t0-t7 vs layer " + detHalf, 14, 1, 15, nBins, minTime,maxTime));  
             }
-            if(fillPatternPlots){
-                for(String pattern: patStrList){
+            if (fillPatternPlots) {
+                for(String pattern: patStrList) {
                     //                System.out.println(pattern); 
-                    ipMapName=atIP+detHalf+pattern; 
-                    ipHName=detHalf+" "+atIP+" "+pattern; 
-                    String dirPat="Front Layer Pattern "+pattern+"/"; 
+                    ipMapName = atIP + detHalf + pattern; 
+                    ipHName = detHalf + " " + atIP + " " + pattern; 
+                    String dirPat = "Front Layer Pattern " + pattern + "/"; 
                     aida.tree().cd("/");
                     aida.tree().mkdirs(dirPat);
-                    D0.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"D0 " + ipHName, nBins, minD0, maxD0));
-                    Z0.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"Z0 " + ipHName, nBins, minZ0, maxZ0));
-                    Tanlambda.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
-                    Phi0.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"Phi0 " + ipHName, nBins, minPhi0, maxPhi0));
-                    Omega.put(ipMapName, histogramFactory.createHistogram1D(dirPat+"Momentum " + ipHName,nBins,  0, 1.3 * ebeam ));
-                    for(String charge: elePos){
-                        ipMapName=atIP+detHalf+pattern+charge; 
-                        ipHName=charge+" "+detHalf+" "+atIP+" "+pattern; 
-                        String dirPatCh="Front Layer Pattern "+pattern+"/"+charge+"/"; 
+                    D0.put(ipMapName, histogramFactory.createHistogram1D(dirPat + "D0 " + ipHName, nBins, minD0, maxD0));
+                    Z0.put(ipMapName, histogramFactory.createHistogram1D(dirPat + "Z0 " + ipHName, nBins, minZ0, maxZ0));
+                    Tanlambda.put(ipMapName, histogramFactory.createHistogram1D(dirPat + "TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
+                    Phi0.put(ipMapName, histogramFactory.createHistogram1D(dirPat + "Phi0 " + ipHName, nBins, minPhi0, maxPhi0));
+                    Omega.put(ipMapName, histogramFactory.createHistogram1D(dirPat + "Momentum " + ipHName,nBins, 0, 1.3 * ebeam ));
+                    for(String charge: elePos) {
+                        ipMapName = atIP + detHalf + pattern + charge; 
+                        ipHName = charge + " " + detHalf + " " + atIP + " " + pattern; 
+                        String dirPatCh = "Front Layer Pattern " + pattern + "/" + charge + "/"; 
                         aida.tree().cd("/");
                         aida.tree().mkdirs(dirPatCh);
-                        D0.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"D0 " + ipHName, nBins, minD0, maxD0));
-                        Z0.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"Z0 " + ipHName, nBins, minZ0, maxZ0));
-                        Tanlambda.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
-                        Phi0.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"Phi0 " + ipHName, nBins, minPhi0, maxPhi0));
-                        Omega.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh+"Momentum " + ipHName,nBins,  0, 1.3 * ebeam ));
+                        D0.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh + "D0 " + ipHName, nBins, minD0, maxD0));
+                        Z0.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh + "Z0 " + ipHName, nBins, minZ0, maxZ0));
+                        Tanlambda.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh + "TanLambda " + ipHName, nBins, minTLambda, maxTLambda));
+                        Phi0.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh + "Phi0 " + ipHName, nBins, minPhi0, maxPhi0));
+                        Omega.put(ipMapName, histogramFactory.createHistogram1D(dirPatCh + "Momentum " + ipHName,nBins, 0, 1.3 * ebeam ));
                     }
                 }
             }
@@ -513,375 +512,421 @@ public class SvtHitEfficiencyKalman extends Driver {
             double width = getSensorLength(sensor);
             double maxV = width / 2;
             double minV = -maxV;            
-            int layer=sensor.getLayerNumber();
-            if(layer<5){
-                if(debug)System.out.println("Thin layer nChans = "+nChan);
-                nChansThin=nChan; 
-            }else{
-                if(debug)System.out.println("Thick layer nChans = "+nChan);
-                nChansThick=nChan;                 
+            int layer = sensor.getLayerNumber();
+            if (layer<5) {
+                if (debug) System.out.println("Thin layer nChans = " + nChan);
+                nChansThin = nChan; 
+            } else {
+                if (debug) System.out.println("Thick layer nChans = " + nChan);
+                nChansThick = nChan;                 
             }
             
-            String dirName="layer"+layer+"/";
-            String mapName=sensorName;
+            String dirName = "layer" + layer + "/";
+            String mapName = sensorName;
             aida.tree().cd("/");
             aida.tree().mkdirs(dirName);
-            hitTimes.put(mapName, histogramFactory.createHistogram1D(dirName+"Hit Time " + sensorName,nBins,minTime,maxTime));
-            AllHitsnumberOfTracksChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-            AllHitsnumberOfTracksWithHitOnMissingLayerChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-            if(fillUPlots)AllHitsnumberOfTracksU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U " + sensorName, nBins, -maxU, maxU));
-            if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U " + sensorName, nBins, -maxU, maxU));
-            if(fillPPlots)AllHitsnumberOfTracksP.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P " + sensorName, nBins, 0, 1.3 * ebeam));
-            if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerP.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P " + sensorName, nBins, 0, 1.3 * ebeam));
-            AllHitsnumberOfTracksTanL.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
-            AllHitsnumberOfTracksWithHitOnMissingLayerTanL.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda " + sensorName, nBins,  minTLambda, maxTLambda));
-            AllHitsnumberOfTracksPhi.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi " + sensorName, nBins, minPhi0, maxPhi0));
-            AllHitsnumberOfTracksWithHitOnMissingLayerPhi.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi " + sensorName, nBins, minPhi0, maxPhi0));
-            AllHitsnumberOfTracksTanLVsPhi.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+            hitTimes.put(mapName, histogramFactory.createHistogram1D(dirName + "Hit Time " + sensorName, nBins, minTime, maxTime));
+            AllHitsnumberOfTracksChannel.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            AllHitsnumberOfTracksWithHitOnMissingLayerChannel.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            if (fillUPlots) {
+                AllHitsnumberOfTracksU.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U " + sensorName, nBins, -maxU, maxU));
+                AllHitsnumberOfTracksWithHitOnMissingLayerU.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U " + sensorName, nBins, -maxU, maxU));
+            }
+            if (fillPPlots) {
+                AllHitsnumberOfTracksP.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks P " + sensorName, nBins, 0, 1.3 * ebeam));
+                AllHitsnumberOfTracksWithHitOnMissingLayerP.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P " + sensorName, nBins, 0, 1.3 * ebeam));
+            }
+            AllHitsnumberOfTracksTanL.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
+            AllHitsnumberOfTracksWithHitOnMissingLayerTanL.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
+            AllHitsnumberOfTracksPhi.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi " + sensorName, nBins, minPhi0, maxPhi0));
+            AllHitsnumberOfTracksWithHitOnMissingLayerPhi.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi " + sensorName, nBins, minPhi0, maxPhi0));
+            AllHitsnumberOfTracksTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
 
 
-            AllHitsnumberOfTracksChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-            AllHitsnumberOfTracksWithHitOnMissingLayerChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-            if(fillUPlots)AllHitsnumberOfTracksUEle.put(mapName,  histogramFactory.createHistogram1D(dirName+"Number of Tracks U Ele " + sensorName, nBins, -maxU, maxU));
-            if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerUEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Ele " + sensorName, nBins, -maxU, maxU));
-            if(fillPPlots)AllHitsnumberOfTracksPEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
-            if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerPEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Ele " + sensorName, nBins, 0, 1.3 * ebeam));                
-            AllHitsnumberOfTracksTanLEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
-            AllHitsnumberOfTracksWithHitOnMissingLayerTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda Ele " + sensorName, nBins,  minTLambda, maxTLambda));
-            AllHitsnumberOfTracksPhiEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
-            AllHitsnumberOfTracksWithHitOnMissingLayerPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
-            AllHitsnumberOfTracksTanLVsPhiEle.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+            AllHitsnumberOfTracksChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            AllHitsnumberOfTracksWithHitOnMissingLayerChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            if (fillUPlots) {
+                AllHitsnumberOfTracksUEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U Ele " + sensorName, nBins, -maxU, maxU));
+                AllHitsnumberOfTracksWithHitOnMissingLayerUEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U Ele " + sensorName, nBins, -maxU, maxU));
+            }
+            if (fillPPlots) {
+                AllHitsnumberOfTracksPEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+                AllHitsnumberOfTracksWithHitOnMissingLayerPEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+            }
+            AllHitsnumberOfTracksTanLEle.put(mapName,histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
+            AllHitsnumberOfTracksWithHitOnMissingLayerTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
+            AllHitsnumberOfTracksPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
+            AllHitsnumberOfTracksWithHitOnMissingLayerPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
+            AllHitsnumberOfTracksTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
 
 
-            AllHitsnumberOfTracksChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-            AllHitsnumberOfTracksWithHitOnMissingLayerChannelPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Pos " + sensorName,nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-            if(fillUPlots)AllHitsnumberOfTracksUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U Pos " + sensorName, nBins, -maxU, maxU));
-            if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Pos " + sensorName, nBins, -maxU, maxU));
-            if(fillPPlots)AllHitsnumberOfTracksPPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-            if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerPPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-            AllHitsnumberOfTracksTanLPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
-            AllHitsnumberOfTracksWithHitOnMissingLayerTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda Pos " + sensorName, nBins,  minTLambda, maxTLambda));
-            AllHitsnumberOfTracksPhiPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
-            AllHitsnumberOfTracksWithHitOnMissingLayerPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
-            AllHitsnumberOfTracksTanLVsPhiPos.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+            AllHitsnumberOfTracksChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            AllHitsnumberOfTracksWithHitOnMissingLayerChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel Pos " + sensorName,nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+            if (fillUPlots) {
+                AllHitsnumberOfTracksUPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U Pos " + sensorName, nBins, -maxU, maxU));
+                AllHitsnumberOfTracksWithHitOnMissingLayerUPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U Pos " + sensorName, nBins, -maxU, maxU));
+            }
+            if (fillPPlots) {
+                AllHitsnumberOfTracksPPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                AllHitsnumberOfTracksWithHitOnMissingLayerPPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+            }
+            AllHitsnumberOfTracksTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
+            AllHitsnumberOfTracksWithHitOnMissingLayerTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
+            AllHitsnumberOfTracksPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
+            AllHitsnumberOfTracksWithHitOnMissingLayerPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
+            AllHitsnumberOfTracksTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
 
-            for(String modPair :  modPairList){
-                dirName="layer"+layer+"/"+modPair+"/";
-                mapName=sensorName+"-"+modPair;
+            for(String modPair : modPairList) {
+                dirName = "layer" + layer + "/" + modPair + "/";
+                mapName = sensorName + "-" + modPair;
                 aida.tree().cd("/");
                 aida.tree().mkdirs(dirName);
-                hitTimes.put(mapName, histogramFactory.createHistogram1D(dirName+"Hit Time " + sensorName,nBins,minTime,maxTime));
-                AllHitsnumberOfTracksChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                AllHitsnumberOfTracksWithHitOnMissingLayerChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                if(fillUPlots)AllHitsnumberOfTracksU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U " + sensorName, nBins, -maxU, maxU));
-                if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U " + sensorName, nBins, -maxU, maxU));
-                if(fillPPlots)AllHitsnumberOfTracksP.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P " + sensorName, nBins, 0, 1.3 * ebeam));
-                if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerP.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P " + sensorName, nBins, 0, 1.3 * ebeam));
-                AllHitsnumberOfTracksTanL.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
-                AllHitsnumberOfTracksWithHitOnMissingLayerTanL.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda " + sensorName, nBins,  minTLambda, maxTLambda));
-                AllHitsnumberOfTracksPhi.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi " + sensorName, nBins, minPhi0, maxPhi0));
-                AllHitsnumberOfTracksWithHitOnMissingLayerPhi.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi " + sensorName, nBins, minPhi0, maxPhi0));
-                AllHitsnumberOfTracksTanLVsPhi.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+                hitTimes.put(mapName, histogramFactory.createHistogram1D(dirName + "Hit Time " + sensorName, nBins, minTime, maxTime));
+                AllHitsnumberOfTracksChannel.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                AllHitsnumberOfTracksWithHitOnMissingLayerChannel.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                if (fillUPlots) {
+                    AllHitsnumberOfTracksU.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U " + sensorName, nBins, -maxU, maxU));
+                    AllHitsnumberOfTracksWithHitOnMissingLayerU.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U " + sensorName, nBins, -maxU, maxU));
+                }
+                if (fillPPlots) {
+                    AllHitsnumberOfTracksP.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks P " + sensorName, nBins, 0, 1.3 * ebeam));
+                    AllHitsnumberOfTracksWithHitOnMissingLayerP.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P " + sensorName, nBins, 0, 1.3 * ebeam));
+                }
+                AllHitsnumberOfTracksTanL.put(mapName,histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
+                AllHitsnumberOfTracksWithHitOnMissingLayerTanL.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
+                AllHitsnumberOfTracksPhi.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi " + sensorName, nBins, minPhi0, maxPhi0));
+                AllHitsnumberOfTracksWithHitOnMissingLayerPhi.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi " + sensorName, nBins, minPhi0, maxPhi0));
+                AllHitsnumberOfTracksTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+                AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
                 
                 
-                AllHitsnumberOfTracksChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                AllHitsnumberOfTracksWithHitOnMissingLayerChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                if(fillUPlots)AllHitsnumberOfTracksUEle.put(mapName,  histogramFactory.createHistogram1D(dirName+"Number of Tracks U Ele " + sensorName, nBins, -maxU, maxU));
-                if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerUEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Ele " + sensorName, nBins, -maxU, maxU));
-                if(fillPPlots)AllHitsnumberOfTracksPEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
-                if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerPEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Ele " + sensorName, nBins, 0, 1.3 * ebeam));                
-                AllHitsnumberOfTracksTanLEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
-                AllHitsnumberOfTracksWithHitOnMissingLayerTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda Ele " + sensorName, nBins,  minTLambda, maxTLambda));
-                AllHitsnumberOfTracksPhiEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
-                AllHitsnumberOfTracksWithHitOnMissingLayerPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
-                AllHitsnumberOfTracksTanLVsPhiEle.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                
-                
-                AllHitsnumberOfTracksChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                AllHitsnumberOfTracksWithHitOnMissingLayerChannelPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Pos " + sensorName,nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                if(fillUPlots)AllHitsnumberOfTracksUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U Pos " + sensorName, nBins, -maxU, maxU));
-                if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Pos " + sensorName, nBins, -maxU, maxU));
-                if(fillPPlots)AllHitsnumberOfTracksPPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-                if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerPPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-                AllHitsnumberOfTracksTanLPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
-                AllHitsnumberOfTracksWithHitOnMissingLayerTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda Pos " + sensorName, nBins,  minTLambda, maxTLambda));
-                AllHitsnumberOfTracksPhiPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
-                AllHitsnumberOfTracksWithHitOnMissingLayerPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
-                AllHitsnumberOfTracksTanLVsPhiPos.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+                AllHitsnumberOfTracksChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                AllHitsnumberOfTracksWithHitOnMissingLayerChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                if (fillUPlots) {
+                    AllHitsnumberOfTracksUEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U Ele " + sensorName, nBins, -maxU, maxU));
+                    AllHitsnumberOfTracksWithHitOnMissingLayerUEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U Ele " + sensorName, nBins, -maxU, maxU));
+                }
+                if (fillPPlots) {
+                    AllHitsnumberOfTracksPEle.put(mapName,histogramFactory.createHistogram1D(dirName + "Number of Tracks P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+                    AllHitsnumberOfTracksWithHitOnMissingLayerPEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+                }
+                AllHitsnumberOfTracksTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
+                AllHitsnumberOfTracksWithHitOnMissingLayerTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
+                AllHitsnumberOfTracksPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
+                AllHitsnumberOfTracksWithHitOnMissingLayerPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
+                AllHitsnumberOfTracksTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+                AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+
+                AllHitsnumberOfTracksChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                AllHitsnumberOfTracksWithHitOnMissingLayerChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                if (fillUPlots) {
+                    AllHitsnumberOfTracksUPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U Pos " + sensorName, nBins, -maxU, maxU));
+                    AllHitsnumberOfTracksWithHitOnMissingLayerUPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U Pos " + sensorName, nBins, -maxU, maxU));
+                }
+                if (fillPPlots) {
+                    AllHitsnumberOfTracksPPos.put(mapName,histogramFactory.createHistogram1D(dirName + "Number of Tracks P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                    AllHitsnumberOfTracksWithHitOnMissingLayerPPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                }
+                AllHitsnumberOfTracksTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
+                AllHitsnumberOfTracksWithHitOnMissingLayerTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda Pos " + sensorName, nBins,  minTLambda, maxTLambda));
+                AllHitsnumberOfTracksPhiPos.put(mapName,histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
+                AllHitsnumberOfTracksWithHitOnMissingLayerPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
+                AllHitsnumberOfTracksTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+                AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
             }
 
             // histogram orginization:  <layer>/<nhits>/<hname> 
             // <nhits> is the number of hits on track -1 if the layer we are looking at has a hit on track!
-            for (int hot=minHOTs; hot<maxHOTs; hot++){//this will count from minHOTs to maxHOTs-1, which is what we want
-                dirName="layer"+layer+"/nHits"+hot+"/";
-                mapName=sensorName+"-"+hot; 
-                if(debug)System.out.println(" making  sensor-nHOTs name = "+mapName);
+            for (int hot=minHOTs; hot<maxHOTs; hot++) {//this will count from minHOTs to maxHOTs-1, which is what we want
+                dirName = "layer" + layer + "/nHits" + hot + "/";
+                mapName = sensorName + "-" + hot; 
+                if (debug) System.out.println(" making  sensor-nHOTs name = " + mapName);
                                 
                 aida.tree().cd("/");
                 aida.tree().mkdirs(dirName);
-                if(debug)System.out.println("making tree directory with name = "+dirName); 
-                numberOfTracksChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                numberOfTracksWithHitOnMissingLayerChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                if(fillUPlots)numberOfTracksU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U " + sensorName, nBins, -maxU, maxU));
-                if(fillUPlots)numberOfTracksWithHitOnMissingLayerU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U " + sensorName, nBins, -maxU, maxU));
-                if(fillPPlots)numberOfTracksP.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P " + sensorName, nBins, 0, 1.3 * ebeam));
-                if(fillPPlots)numberOfTracksWithHitOnMissingLayerP.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P " + sensorName, nBins, 0, 1.3 * ebeam));
-                numberOfTracksTanL.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
-                numberOfTracksWithHitOnMissingLayerTanL.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda " + sensorName, nBins,  minTLambda, maxTLambda));
-                numberOfTracksPhi.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi " + sensorName, nBins, minPhi0, maxPhi0));
-                numberOfTracksWithHitOnMissingLayerPhi.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi " + sensorName, nBins, minPhi0, maxPhi0));
-                numberOfTracksTanLVsPhi.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                numberOfTracksWithHitOnMissingLayerTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+                if (debug) System.out.println("making tree directory with name = " + dirName); 
 
-                numberOfTracksChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                numberOfTracksWithHitOnMissingLayerChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                if(fillUPlots)numberOfTracksUEle.put(mapName,  histogramFactory.createHistogram1D(dirName+"Number of Tracks U Ele " + sensorName, nBins, -maxU, maxU));
-                if(fillUPlots)numberOfTracksWithHitOnMissingLayerUEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Ele " + sensorName, nBins, -maxU, maxU));
-                if(fillPPlots)numberOfTracksPEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
-                if(fillPPlots)numberOfTracksWithHitOnMissingLayerPEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
-                numberOfTracksTanLEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
-                numberOfTracksWithHitOnMissingLayerTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda Ele " + sensorName, nBins,  minTLambda, maxTLambda));
-                numberOfTracksPhiEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
-                numberOfTracksWithHitOnMissingLayerPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
-                numberOfTracksTanLVsPhiEle.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                numberOfTracksWithHitOnMissingLayerTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+                numberOfTracksChannel.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                numberOfTracksWithHitOnMissingLayerChannel.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                if (fillUPlots) {
+                    numberOfTracksU.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U " + sensorName, nBins, -maxU, maxU));
+                    numberOfTracksWithHitOnMissingLayerU.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U " + sensorName, nBins, -maxU, maxU));
+                }
+                if (fillPPlots) {
+                    numberOfTracksP.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks P " + sensorName, nBins, 0, 1.3 * ebeam));
+                    numberOfTracksWithHitOnMissingLayerP.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P " + sensorName, nBins, 0, 1.3 * ebeam));
+                }
+                numberOfTracksTanL.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
+                numberOfTracksWithHitOnMissingLayerTanL.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
+                numberOfTracksPhi.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi " + sensorName, nBins, minPhi0, maxPhi0));
+                numberOfTracksWithHitOnMissingLayerPhi.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi " + sensorName, nBins, minPhi0, maxPhi0));
+                numberOfTracksTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+                numberOfTracksWithHitOnMissingLayerTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
 
-                numberOfTracksChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                numberOfTracksWithHitOnMissingLayerChannelPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Pos " + sensorName,nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                if(fillUPlots)numberOfTracksUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U Pos " + sensorName, nBins, -maxU, maxU));
-                if(fillUPlots)numberOfTracksWithHitOnMissingLayerUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Pos " + sensorName, nBins, -maxU, maxU));
-                if(fillPPlots)numberOfTracksPPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-                if(fillPPlots)numberOfTracksWithHitOnMissingLayerPPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-                numberOfTracksTanLPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
-                numberOfTracksWithHitOnMissingLayerTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda Pos " + sensorName, nBins,  minTLambda, maxTLambda));
-                numberOfTracksPhiPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
-                numberOfTracksWithHitOnMissingLayerPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
-                numberOfTracksTanLVsPhiPos.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+                numberOfTracksChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                numberOfTracksWithHitOnMissingLayerChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                if (fillUPlots) {
+                    numberOfTracksUEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U Ele " + sensorName, nBins, -maxU, maxU));
+                    numberOfTracksWithHitOnMissingLayerUEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U Ele " + sensorName, nBins, -maxU, maxU));
+                }
+                if (fillPPlots) {
+                    numberOfTracksPEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+                    numberOfTracksWithHitOnMissingLayerPEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+                }
+                numberOfTracksTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
+                numberOfTracksWithHitOnMissingLayerTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
+                numberOfTracksPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
+                numberOfTracksWithHitOnMissingLayerPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
+                numberOfTracksTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+                numberOfTracksWithHitOnMissingLayerTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
 
-                for(String modPair :  modPairList){
-                    dirName="layer"+layer+"/"+"nHits"+hot+"/"+modPair+"/";
-                    mapName=sensorName+"-"+hot+"-"+modPair;
+                numberOfTracksChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                numberOfTracksWithHitOnMissingLayerChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel Pos " + sensorName,nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                if (fillUPlots) {
+                    numberOfTracksUPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U Pos " + sensorName, nBins, -maxU, maxU));
+                    numberOfTracksWithHitOnMissingLayerUPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U Pos " + sensorName, nBins, -maxU, maxU));
+                }
+                if (fillPPlots) {
+                    numberOfTracksPPos.put(mapName,histogramFactory.createHistogram1D(dirName + "Number of Tracks P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                    numberOfTracksWithHitOnMissingLayerPPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                }
+                numberOfTracksTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
+                numberOfTracksWithHitOnMissingLayerTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda Pos " + sensorName, nBins,  minTLambda, maxTLambda));
+                numberOfTracksPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
+                numberOfTracksWithHitOnMissingLayerPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
+                numberOfTracksTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+                numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+
+                for(String modPair : modPairList) {
+                    dirName = "layer" + layer + "/nHits" + hot + "/" + modPair + "/";
+                    mapName = sensorName + "-" + hot + "-" + modPair;
                     aida.tree().cd("/");
                     aida.tree().mkdirs(dirName);
-                    numberOfTracksChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                    numberOfTracksWithHitOnMissingLayerChannel.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                    if(fillUPlots)numberOfTracksU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U " + sensorName, nBins, -maxU, maxU));
-                    if(fillUPlots)numberOfTracksWithHitOnMissingLayerU.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U " + sensorName, nBins, -maxU, maxU));
-                    if(fillPPlots)numberOfTracksP.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P " + sensorName, nBins, 0, 1.3 * ebeam));
-                    if(fillPPlots)numberOfTracksWithHitOnMissingLayerP.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P " + sensorName, nBins, 0, 1.3 * ebeam));
-                    numberOfTracksTanL.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
-                    numberOfTracksWithHitOnMissingLayerTanL.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda " + sensorName, nBins,  minTLambda, maxTLambda));
-                    numberOfTracksPhi.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi " + sensorName, nBins, minPhi0, maxPhi0));
-                    numberOfTracksWithHitOnMissingLayerPhi.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi " + sensorName, nBins, minPhi0, maxPhi0));
-                    numberOfTracksTanLVsPhi.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                    numberOfTracksWithHitOnMissingLayerTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+                    numberOfTracksChannel.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                    numberOfTracksWithHitOnMissingLayerChannel.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                    if (fillUPlots) {
+                        numberOfTracksU.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U " + sensorName, nBins, -maxU, maxU));
+                        numberOfTracksWithHitOnMissingLayerU.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U " + sensorName, nBins, -maxU, maxU));
+                    }
+                    if (fillPPlots) {
+                        numberOfTracksP.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks P " + sensorName, nBins, 0, 1.3 * ebeam));
+                        numberOfTracksWithHitOnMissingLayerP.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P " + sensorName, nBins, 0, 1.3 * ebeam));
+                    }
+                    numberOfTracksTanL.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
+                    numberOfTracksWithHitOnMissingLayerTanL.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
+                    numberOfTracksPhi.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi " + sensorName, nBins, minPhi0, maxPhi0));
+                    numberOfTracksWithHitOnMissingLayerPhi.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi " + sensorName, nBins, minPhi0, maxPhi0));
+                    numberOfTracksTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+                    numberOfTracksWithHitOnMissingLayerTanLVsPhi.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
 
-                    numberOfTracksChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                    numberOfTracksWithHitOnMissingLayerChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                    if(fillUPlots)numberOfTracksUEle.put(mapName,  histogramFactory.createHistogram1D(dirName+"Number of Tracks U Ele " + sensorName, nBins, -maxU, maxU));
-                    if(fillUPlots)numberOfTracksWithHitOnMissingLayerUEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Ele " + sensorName, nBins, -maxU, maxU));
-                    if(fillPPlots)numberOfTracksPEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
-                    if(fillPPlots)numberOfTracksWithHitOnMissingLayerPEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
-                    numberOfTracksTanLEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
-                    numberOfTracksWithHitOnMissingLayerTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda Ele " + sensorName, nBins,  minTLambda, maxTLambda));
-                    numberOfTracksPhiEle.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
-                    numberOfTracksWithHitOnMissingLayerPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
-                    numberOfTracksTanLVsPhiEle.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                    numberOfTracksWithHitOnMissingLayerTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+                    numberOfTracksChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                    numberOfTracksWithHitOnMissingLayerChannelEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel Ele " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                    if (fillUPlots) {
+                        numberOfTracksUEle.put(mapName,  histogramFactory.createHistogram1D(dirName + "Number of Tracks U Ele " + sensorName, nBins, -maxU, maxU));
+                        numberOfTracksWithHitOnMissingLayerUEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U Ele " + sensorName, nBins, -maxU, maxU));
+                    }
+                    if (fillPPlots) {
+                        numberOfTracksPEle.put(mapName,histogramFactory.createHistogram1D(dirName + "Number of Tracks P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+                        numberOfTracksWithHitOnMissingLayerPEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+                    }
+                    numberOfTracksTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
+                    numberOfTracksWithHitOnMissingLayerTanLEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda Ele " + sensorName, nBins, minTLambda, maxTLambda));
+                    numberOfTracksPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
+                    numberOfTracksWithHitOnMissingLayerPhiEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi Ele " + sensorName, nBins, minPhi0, maxPhi0));
+                    numberOfTracksTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+                    numberOfTracksWithHitOnMissingLayerTanLVsPhiEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi Ele " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
 
-                    numberOfTracksChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                    numberOfTracksWithHitOnMissingLayerChannelPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Channel Pos " + sensorName,nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                    if(fillUPlots)numberOfTracksUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks U Pos " + sensorName, nBins, -maxU, maxU));
-                    if(fillUPlots)numberOfTracksWithHitOnMissingLayerUPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit U Pos " + sensorName, nBins, -maxU, maxU));
-                    numberOfTracksPPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-                    numberOfTracksWithHitOnMissingLayerPPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-                    numberOfTracksTanLPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
-                    numberOfTracksWithHitOnMissingLayerTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit vs TanLambda Pos " + sensorName, nBins,  minTLambda, maxTLambda));
-                    numberOfTracksPhiPos.put(mapName,histogramFactory.createHistogram1D(dirName+"Number of Tracks Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
-                    numberOfTracksWithHitOnMissingLayerPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Number of Tracks With Hit Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
-                    numberOfTracksTanLVsPhiPos.put(mapName,histogramFactory.createHistogram2D(dirName+"Number of Tracks TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
-                    numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName+"Number of Tracks With Hit TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0,nBins2D,minTLambda, maxTLambda));
+                    numberOfTracksChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                    numberOfTracksWithHitOnMissingLayerChannelPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Channel Pos " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
+                    if (fillUPlots) {
+                        numberOfTracksUPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks U Pos " + sensorName, nBins, -maxU, maxU));
+                        numberOfTracksWithHitOnMissingLayerUPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit U Pos " + sensorName, nBins, -maxU, maxU));
+                    }
+                    numberOfTracksPPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                    numberOfTracksWithHitOnMissingLayerPPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                    numberOfTracksTanLPos.put(mapName,histogramFactory.createHistogram1D(dirName + "Number of Tracks vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
+                    numberOfTracksWithHitOnMissingLayerTanLPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit vs TanLambda Pos " + sensorName, nBins, minTLambda, maxTLambda));
+                    numberOfTracksPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
+                    numberOfTracksWithHitOnMissingLayerPhiPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Number of Tracks With Hit Phi Pos " + sensorName, nBins, minPhi0, maxPhi0));
+                    numberOfTracksTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
+                    numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
                 }
                 
-                //hitEfficiencyPPos.put(mapName,histogramFactory.createHistogram1D(dirName+"HitEfficiency P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                //hitEfficiencyPPos.put(mapName,histogramFactory.createHistogram1D(dirName + "HitEfficiency P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
                 /*
                   numberOfTracksChannelCorrected.put(sensorName,
-                    histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Corrected " + sensorName,
+                    histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Corrected " + sensorName,
                             nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                             hitEfficiencyChannelCorrected.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName+"HitEfficiency Channel Corrected " + sensorName,
+                            histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected " + sensorName,
                             nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                             numberOfTracksUCorrected.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"Number of Tracks U Corrected " + sensorName, nBins, -maxU, maxU));
+                            .createHistogram1D(dirName + "Number of Tracks U Corrected " + sensorName, nBins, -maxU, maxU));
                             hitEfficiencyUCorrected.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName+"HitEfficiency U Corrected " + sensorName, nBins, -maxU, maxU));
+                            histogramFactory.createHistogram1D(dirName + "HitEfficiency U Corrected " + sensorName, nBins, -maxU, maxU));
                             numberOfTracksPCorrected.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"Number of Tracks P Corrected " + sensorName, nBins, 0, 1.3 * ebeam));
+                            .createHistogram1D(dirName + "Number of Tracks P Corrected " + sensorName, nBins, 0, 1.3 * ebeam));
                             hitEfficiencyPCorrected.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"HitEfficiency P Corrected " + sensorName, nBins, 0, 1.3 * ebeam));
+                            .createHistogram1D(dirName + "HitEfficiency P Corrected " + sensorName, nBins, 0, 1.3 * ebeam));
                             
                             numberOfTracksChannelCorrectedEle.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Corrected Ele " + sensorName,
+                            histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Corrected Ele " + sensorName,
                             nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                             hitEfficiencyChannelCorrectedEle.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName+"HitEfficiency Channel Corrected Ele " + sensorName,
+                            histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Ele " + sensorName,
                             nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                             numberOfTracksUCorrectedEle.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"Number of Tracks U Corrected Ele " + sensorName, nBins, -maxU, maxU));
+                            .createHistogram1D(dirName + "Number of Tracks U Corrected Ele " + sensorName, nBins, -maxU, maxU));
                             hitEfficiencyUCorrectedEle.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"HitEfficiency U Corrected Ele " + sensorName, nBins, -maxU, maxU));
+                            .createHistogram1D(dirName + "HitEfficiency U Corrected Ele " + sensorName, nBins, -maxU, maxU));
                             numberOfTracksPCorrectedEle.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"Number of Tracks P Corrected Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+                            .createHistogram1D(dirName + "Number of Tracks P Corrected Ele " + sensorName, nBins, 0, 1.3 * ebeam));
                             hitEfficiencyPCorrectedEle.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"HitEfficiency P Corrected Ele " + sensorName, nBins, 0, 1.3 * ebeam));
+                            .createHistogram1D(dirName + "HitEfficiency P Corrected Ele " + sensorName, nBins, 0, 1.3 * ebeam));
                             
                             numberOfTracksChannelCorrectedPos.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName+"Number of Tracks Channel Corrected Pos " + sensorName,
+                            histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Corrected Pos " + sensorName,
                             nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                             hitEfficiencyChannelCorrectedPos.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName+"HitEfficiency Channel Corrected Pos " + sensorName,
+                            histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Pos " + sensorName,
                             nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                             numberOfTracksUCorrectedPos.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"Number of Tracks U Corrected Pos " + sensorName, nBins, -maxU, maxU));
+                            .createHistogram1D(dirName + "Number of Tracks U Corrected Pos " + sensorName, nBins, -maxU, maxU));
                             hitEfficiencyUCorrectedPos.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"HitEfficiency U Corrected Pos " + sensorName, nBins, -maxU, maxU));
+                            .createHistogram1D(dirName + "HitEfficiency U Corrected Pos " + sensorName, nBins, -maxU, maxU));
                             numberOfTracksPCorrectedPos.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"Number of Tracks P Corrected Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                            .createHistogram1D(dirName + "Number of Tracks P Corrected Pos " + sensorName, nBins, 0, 1.3 * ebeam));
                             hitEfficiencyPCorrectedPos.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName+"HitEfficiency P Corrected Pos " + sensorName, nBins, 0, 1.3 * ebeam));
+                            .createHistogram1D(dirName + "HitEfficiency P Corrected Pos " + sensorName, nBins, 0, 1.3 * ebeam));
                 */
                 /*
-                TotalEff.put(mapName, histogramFactory.createHistogram1D(dirName+"Total Eff " + sensorName, 1, 0, 1));
-                TotalEffEle.put(mapName, histogramFactory.createHistogram1D(dirName+"Total Eff Ele " + sensorName, 1, 0, 1));
-                TotalEffPos.put(mapName, histogramFactory.createHistogram1D(dirName+"Total Eff Pos " + sensorName, 1, 0, 1));
+                TotalEff.put(mapName, histogramFactory.createHistogram1D(dirName + "Total Eff " + sensorName, 1, 0, 1));
+                TotalEffEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Total Eff Ele " + sensorName, 1, 0, 1));
+                TotalEffPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Total Eff Pos " + sensorName, 1, 0, 1));
                 */
                 /*
                   TotalCorrectedEff.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"Total Corrected Eff " + sensorName, 1, 0, 1));
+                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff " + sensorName, 1, 0, 1));
                   TotalCorrectedEffEle.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"Total Corrected Eff Ele " + sensorName, 1, 0, 1));
+                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Ele " + sensorName, 1, 0, 1));
                   TotalCorrectedEffPos.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"Total Corrected Eff Pos " + sensorName, 1, 0, 1));
+                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Pos " + sensorName, 1, 0, 1));
                 */
                 /*
                 hitEfficiencyChannelerr.put(mapName, histogramFactory.createHistogram1D(
                                                                                            "HitEfficiency Channel Error " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                 hitEfficiencyUerr.put(mapName,
-                                      histogramFactory.createHistogram1D(dirName+"HitEfficiency U Error " + sensorName, nBins, -maxU, maxU));
+                                      histogramFactory.createHistogram1D(dirName + "HitEfficiency U Error " + sensorName, nBins, -maxU, maxU));
                 hitEfficiencyPerr.put(mapName,
-                                      histogramFactory.createHistogram1D(dirName+"HitEfficiency P Error " + sensorName, nBins, 0, 1.3 * ebeam));
+                                      histogramFactory.createHistogram1D(dirName + "HitEfficiency P Error " + sensorName, nBins, 0, 1.3 * ebeam));
                 */
                 /*
                   hitEfficiencyChannelCorrectederr.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"HitEfficiency Channel Corrected Error " + sensorName,
+                  histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Error " + sensorName,
                   nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                   hitEfficiencyUCorrectederr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName+"HitEfficiency U Corrected Error " + sensorName, nBins, -maxU, maxU));
+                  .createHistogram1D(dirName + "HitEfficiency U Corrected Error " + sensorName, nBins, -maxU, maxU));
                   hitEfficiencyPCorrectederr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName+"HitEfficiency P Corrected Error " + sensorName, nBins, 0, 1.3 * ebeam));
+                  .createHistogram1D(dirName + "HitEfficiency P Corrected Error " + sensorName, nBins, 0, 1.3 * ebeam));
                 */
                 /*
                 hitEfficiencyChannelEleerr.put(mapName,
-                                               histogramFactory.createHistogram1D(dirName+"HitEfficiency Channel Ele Error " + sensorName,
+                                               histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Ele Error " + sensorName,
                                                                                   nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                 hitEfficiencyUEleerr.put(mapName,
-                                         histogramFactory.createHistogram1D(dirName+"HitEfficiency U Ele Error " + sensorName, nBins, -maxU, maxU));
+                                         histogramFactory.createHistogram1D(dirName + "HitEfficiency U Ele Error " + sensorName, nBins, -maxU, maxU));
                 hitEfficiencyPEleerr.put(mapName, histogramFactory
-                                         .createHistogram1D(dirName+"HitEfficiency P Ele Error " + sensorName, nBins, 0, 1.3 * ebeam));
+                                         .createHistogram1D(dirName + "HitEfficiency P Ele Error " + sensorName, nBins, 0, 1.3 * ebeam));
                 */
                 /*
                   hitEfficiencyChannelCorrectedEleerr.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"HitEfficiency Channel Corrected Ele Error " + sensorName,
+                  histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Ele Error " + sensorName,
                   nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                   hitEfficiencyUCorrectedEleerr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName+"HitEfficiency U Corrected Ele Error " + sensorName, nBins, -maxU, maxU));
+                  .createHistogram1D(dirName + "HitEfficiency U Corrected Ele Error " + sensorName, nBins, -maxU, maxU));
                   hitEfficiencyPCorrectedEleerr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName+"HitEfficiency P Corrected Ele Error " + sensorName, nBins, 0, 1.3 * ebeam));
+                  .createHistogram1D(dirName + "HitEfficiency P Corrected Ele Error " + sensorName, nBins, 0, 1.3 * ebeam));
                 */
                 /*
                 hitEfficiencyChannelPoserr.put(mapName, histogramFactory.createHistogram1D(
                                                                                               "HitEfficiency Channel Pos Error " + sensorName, nChan, -chanExtd, nChan + chanExtd));
                 hitEfficiencyUPoserr.put(mapName,
-                                         histogramFactory.createHistogram1D(dirName+"HitEfficiency U Pos Error " + sensorName, nBins, -maxU, maxU));
+                                         histogramFactory.createHistogram1D(dirName + "HitEfficiency U Pos Error " + sensorName, nBins, -maxU, maxU));
                 hitEfficiencyPPoserr.put(mapName, histogramFactory
-                                         .createHistogram1D(dirName+"HitEfficiency P Pos Error " + sensorName, nBins, 0, 1.3 * ebeam));
+                                         .createHistogram1D(dirName + "HitEfficiency P Pos Error " + sensorName, nBins, 0, 1.3 * ebeam));
                 */
                 /*
                   hitEfficiencyChannelCorrectedPoserr.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"HitEfficiency Channel Corrected Pos Error " + sensorName,
+                  histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Pos Error " + sensorName,
                   nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
                   hitEfficiencyUCorrectedPoserr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName+"HitEfficiency U Corrected Pos Error " + sensorName, nBins, -maxU, maxU));
+                  .createHistogram1D(dirName + "HitEfficiency U Corrected Pos Error " + sensorName, nBins, -maxU, maxU));
                   hitEfficiencyPCorrectedPoserr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName+"HitEfficiency P Corrected Pos Error " + sensorName, nBins, 0, 1.3 * ebeam));
+                  .createHistogram1D(dirName + "HitEfficiency P Corrected Pos Error " + sensorName, nBins, 0, 1.3 * ebeam));
                 */
                 /*
-                TotalEfferr.put(mapName, histogramFactory.createHistogram1D(dirName+"Total Eff Error " + sensorName, 1, 0, 1));
+                TotalEfferr.put(mapName, histogramFactory.createHistogram1D(dirName + "Total Eff Error " + sensorName, 1, 0, 1));
                 TotalEffEleerr.put(mapName,
-                                   histogramFactory.createHistogram1D(dirName+"Total Eff Ele Error " + sensorName, 1, 0, 1));
+                                   histogramFactory.createHistogram1D(dirName + "Total Eff Ele Error " + sensorName, 1, 0, 1));
                 TotalEffPoserr.put(mapName,
-                                   histogramFactory.createHistogram1D(dirName+"Total Eff Pos Error " + sensorName, 1, 0, 1));
+                                   histogramFactory.createHistogram1D(dirName + "Total Eff Pos Error " + sensorName, 1, 0, 1));
                 */
                 /*
                   TotalCorrectedEfferr.put(mapName,
-                  histogramFactory.createHistogram1D(dirName+"Total Corrected Eff Error " + sensorName, 1, 0, 1));
+                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Error " + sensorName, 1, 0, 1));
                   TotalCorrectedEffEleerr.put(mapName,
-                  histogramFactory.createHistogram1D(dirName+"Total Corrected Eff Ele Error " + sensorName, 1, 0, 1));
+                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Ele Error " + sensorName, 1, 0, 1));
                   TotalCorrectedEffPoserr.put(mapName,
-                  histogramFactory.createHistogram1D(dirName+"Total Corrected Eff Pos Error " + sensorName, 1, 0, 1));
+                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Pos Error " + sensorName, 1, 0, 1));
                 */
                 /*
-                errorU.put(mapName, histogramFactory.createHistogram1D(dirName+"Error U " + sensorName, nBins, 0, maxYerror));
-                errorUvsV.put(mapName, histogramFactory.createHistogram2D(dirName+"Error U vs V " + sensorName, 2 * nBins, minV,
+                errorU.put(mapName, histogramFactory.createHistogram1D(dirName + "Error U " + sensorName, nBins, 0, maxYerror));
+                errorUvsV.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs V " + sensorName, 2 * nBins, minV,
                                                                              maxV, nBins, 0, maxYerror));
-                errorUvsU.put(mapName, histogramFactory.createHistogram2D(dirName+"Error U vs U " + sensorName, 2 * nBins, -maxU,
+                errorUvsU.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs U " + sensorName, 2 * nBins, -maxU,
                                                                              maxU, nBins, 0, maxYerror));
-                errorUvsP.put(mapName, histogramFactory.createHistogram2D(dirName+"Error U vs P " + sensorName, nBins, 0,
+                errorUvsP.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs P " + sensorName, nBins, 0,
                                                                              1.3 * ebeam, nBins, 0, maxYerror));
                 
                 errorUEle.put(mapName,
-                              histogramFactory.createHistogram1D(dirName+"Error U Electrons " + sensorName, nBins, 0, maxYerror));
-                errorUvsVEle.put(mapName, histogramFactory.createHistogram2D(dirName+"Error U vs V Electrons " + sensorName,
+                              histogramFactory.createHistogram1D(dirName + "Error U Electrons " + sensorName, nBins, 0, maxYerror));
+                errorUvsVEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs V Electrons " + sensorName,
                                                                                 2 * nBins, minV, maxV, nBins, 0, maxYerror));
-                errorUvsUEle.put(mapName, histogramFactory.createHistogram2D(dirName+"Error U vs U Electrons " + sensorName,
+                errorUvsUEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs U Electrons " + sensorName,
                                                                                 2 * nBins, -maxU, maxU, nBins, 0, maxYerror));
-                errorUvsPEle.put(mapName, histogramFactory.createHistogram2D(dirName+"Error U vs P Electrons " + sensorName,
+                errorUvsPEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs P Electrons " + sensorName,
                                                                                 nBins, 0, 1.3 * ebeam, nBins, 0, maxYerror));
                 
                 errorUPos.put(mapName,
-                              histogramFactory.createHistogram1D(dirName+"Error U Electrons " + sensorName, nBins, 0, maxYerror));
-                errorUvsVPos.put(mapName, histogramFactory.createHistogram2D(dirName+"Error U vs V Positrons " + sensorName,
+                              histogramFactory.createHistogram1D(dirName + "Error U Electrons " + sensorName, nBins, 0, maxYerror));
+                errorUvsVPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs V Positrons " + sensorName,
                                                                                 2 * nBins, minV, maxV, nBins, 0, maxYerror));
-                errorUvsUPos.put(mapName, histogramFactory.createHistogram2D(dirName+"Error U vs U Positrons " + sensorName,
+                errorUvsUPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs U Positrons " + sensorName,
                                                                                 2 * nBins, -maxU, maxU, nBins, 0, maxYerror));
-                errorUvsPPos.put(mapName, histogramFactory.createHistogram2D(dirName+"Error U vs P Positrons " + sensorName,
+                errorUvsPPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs P Positrons " + sensorName,
                                                                                 nBins, 0, 1.3 * ebeam, nBins, 0, maxYerror));
                 */
                 /*
-                  D0.put(sensorName, histogramFactory.createHistogram1D(dirName+"D0 " + sensorName, nBins, minD0, maxD0));
-                  Z0.put(sensorName, histogramFactory.createHistogram1D(dirName+"Z0 " + sensorName, nBins, minZ0, maxZ0));
+                  D0.put(sensorName, histogramFactory.createHistogram1D(dirName + "D0 " + sensorName, nBins, minD0, maxD0));
+                  Z0.put(sensorName, histogramFactory.createHistogram1D(dirName + "Z0 " + sensorName, nBins, minZ0, maxZ0));
                   Tanlambda.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
-                  Phi0.put(sensorName, histogramFactory.createHistogram1D(dirName+"Phi0 " + sensorName, nBins, minPhi00, maxPhi00));
-                  Omega.put(sensorName, histogramFactory.createHistogram1D(dirName+"Omega " + sensorName, nBins, minOmega, maxOmega));
+                  histogramFactory.createHistogram1D(dirName + "TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
+                  Phi0.put(sensorName, histogramFactory.createHistogram1D(dirName + "Phi0 " + sensorName, nBins, minPhi00, maxPhi00));
+                  Omega.put(sensorName, histogramFactory.createHistogram1D(dirName + "Omega " + sensorName, nBins, minOmega, maxOmega));
                   
                   D0_err.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"D0 Error " + sensorName, nBins, minD0Err, maxD0Err));
+                  histogramFactory.createHistogram1D(dirName + "D0 Error " + sensorName, nBins, minD0Err, maxD0Err));
                   Z0_err.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"Z0 Error " + sensorName, nBins, minZ0Err, maxZ0Err));
-                  Tanlambda_err.put(sensorName, histogramFactory.createHistogram1D(dirName+"TanLambda Error " + sensorName, nBins,
+                  histogramFactory.createHistogram1D(dirName + "Z0 Error " + sensorName, nBins, minZ0Err, maxZ0Err));
+                  Tanlambda_err.put(sensorName, histogramFactory.createHistogram1D(dirName + "TanLambda Error " + sensorName, nBins,
                   minTLambdaErr, maxTLambdaErr));
                   Phi0_err.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"Phi0 Error " + sensorName, nBins, minPhi0Err, maxPhi0Err));
+                  histogramFactory.createHistogram1D(dirName + "Phi0 Error " + sensorName, nBins, minPhi0Err, maxPhi0Err));
                   Omega_err.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName+"Omega Error " + sensorName, nBins, minOmegaErr, maxOmegaErr));
+                  histogramFactory.createHistogram1D(dirName + "Omega Error " + sensorName, nBins, minOmegaErr, maxOmegaErr));
                 */
             }
         }
@@ -897,8 +942,8 @@ public class SvtHitEfficiencyKalman extends Driver {
         List<SiTrackerHitStrip1D> stripHits = event.get(SiTrackerHitStrip1D.class, stripHitOutputCollectionName);
 
         for (Track track : tracks) {
-            int nHits=track.getTrackerHits().size();
-            if(nHits<8)
+            int nHits = track.getTrackerHits().size();
+            if (nHits<8)
                 continue;
            
             TrackIntersectData trkInts = null;
@@ -912,67 +957,65 @@ public class SvtHitEfficiencyKalman extends Driver {
                 continue;
             }
             List<TrackState> TStates = track.getTrackStates();
-            if(debug)
-                for(TrackState ts: TStates )
-                    System.out.println("Track State::  location = "+ts.getLocation()
-                                       +"; reference x = "+ts.getReferencePoint()[0]
-                                       +"; reference y = "+ts.getReferencePoint()[1]
-                                       +"; reference z = "+ts.getReferencePoint()[2]);
+            if (debug)
+                for (TrackState ts: TStates ) {
+                    System.out.println("Track State::  location = " + ts.getLocation()
+                                       + "; reference x = " + ts.getReferencePoint()[0]
+                                       + "; reference y = " + ts.getReferencePoint()[1]
+                                       + "; reference z = " + ts.getReferencePoint()[2]);
+                }
             
             TrackState tStateIP = TStates.get(0);
             double[] covAtIP = TStates.get(0).getCovMatrix();
             SymmetricMatrix LocCovAtIP = new SymmetricMatrix(5, covAtIP, true);
-            double tanLambda=TStates.get(0).getTanLambda(); 
-            double phi0=TStates.get(0).getPhi(); 
+            double tanLambda = TStates.get(0).getTanLambda(); 
+            double phi0 = TStates.get(0).getPhi(); 
             double trackP = toHep3(track.getTrackStates().get(0).getMomentum()).magnitude();
             double q = -track.getCharge(); // HelicalTrackFit flips sign of charge
-            String topOrBottom="Top"; 
-            if(tanLambda<0)
-                topOrBottom="Bottom";
-            String charge="Positron";
-            if(q<0)
-                charge="Electron";
-            String chMapName=atIP+topOrBottom+charge;
+            String topOrBottom = "Top"; 
+            if (tanLambda<0)
+                topOrBottom = "Bottom";
+            String charge = "Positron";
+            if (q<0)
+                charge = "Electron";
+            String chMapName = atIP + topOrBottom + charge;
                 
-            String ipMapName=atIP+topOrBottom;
+            String ipMapName = atIP + topOrBottom;
             nTrackHits.get(ipMapName).fill(nHits);
             nTrackHits.get(chMapName).fill(nHits);
-            String nhitsmap="nHits"+nHits+topOrBottom;
+            String nhitsmap = "nHits" + nHits + topOrBottom;
             //I'm using sensor layer 7 (starting from 1) as the "reference track time"...only works if we have L7 hit of course...
-            boolean hasL7=false;
-            double l7time=-666; 
-           
-            //            String patString=getPatternString(pat); 
-            
+            boolean hasL7 = false;
+            double l7time = -666;
+
             for (TrackerHit stripCluster : track.getTrackerHits()) {
                 int lay=((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
-                if(lay == 7){
-                    hasL7=true;
-                    l7time=stripCluster.getTime();
+                if (lay == 7) {
+                    hasL7 = true;
+                    l7time = stripCluster.getTime();
                 }
             }
 
             // ok, now fill some time histos and get totalT0 for track time 
-            double totalT0=0; 
+            double totalT0 = 0; 
             for (TrackerHit stripCluster : track.getTrackerHits()) {
-                double t0=stripCluster.getTime();
+                double t0 = stripCluster.getTime();
                 totalT0 += t0;
-                int lay=((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
-                if(hasL7 && lay!=7){
-                    double tMinus7=t0-l7time; 
-                    tMinus7VsLayer.get(ipMapName).fill(lay,tMinus7);                    
-                    tMinus7VsLayerNHits.get(nhitsmap).fill(lay,tMinus7);                    
+                int lay = ((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+                if (hasL7 && lay!=7) {
+                    double tMinus7 = t0 - l7time; 
+                    tMinus7VsLayer.get(ipMapName).fill(lay, tMinus7);                    
+                    tMinus7VsLayerNHits.get(nhitsmap).fill(lay, tMinus7);                    
                 }
-                t0VsLayer.get(ipMapName).fill(lay,t0);
-                t0VsLayerNHits.get(nhitsmap).fill(lay,t0);
+                t0VsLayer.get(ipMapName).fill(lay, t0);
+                t0VsLayerNHits.get(nhitsmap).fill(lay, t0);
                 layerHits.get(ipMapName).fill(lay);
                 layerHits.get(chMapName).fill(lay);
                 layerHitsNHits.get(nhitsmap).fill(lay);
-                
             }
             //cut on the track times.  
-            if(useTrkTimeCut && Math.abs(totalT0/nHits-trkTimeMean)>trkTimeCut){
-                if(debug)System.out.println("Cutting track with time = "+totalT0/nHits);
+            if (useTrkTimeCut && Math.abs(totalT0/nHits-trkTimeMean)>trkTimeCut) {
+                if (debug) System.out.println("Cutting track with time = " + totalT0/nHits);
                 continue;
             }
             trackTimes.get(ipMapName).fill(totalT0/nHits); 
@@ -989,33 +1032,33 @@ public class SvtHitEfficiencyKalman extends Driver {
             Omega_err.get(ipMapName).fill(Math.sqrt(LocCovAtIP.e(HelicalTrackFit.curvatureIndex, HelicalTrackFit.curvatureIndex)));
             
             Hep3Vector p = toHep3(tStateIP.getMomentum());
-            int nHitsOnTrack=track.getTrackerHits().size();
-            if(debug)System.out.println("Track has "+trkInts.getNInt()+" integers in layers list for #hits = "+nHitsOnTrack);
+            int nHitsOnTrack = track.getTrackerHits().size();
+            if (debug) System.out.println("Track has " + trkInts.getNInt() + " integers in layers list for #hits = " + nHitsOnTrack);
             //loop over intersects just to get hole information...this is dumb but easy
-            int nHolesCnt=0;
+            int nHolesCnt = 0;
          
             holeLayerMap.clear();
             hitLayerMap.clear();
 
             for (int l = 0; l < trkInts.getNInt()-1; l++) {
-                int layer=trkInts.getLayer(l);  //this is in Kalman layers, so ok
-                Double[] interTmp=trkInts.getIntersect(l);
-                Double[] intersect=flipInter(interTmp);
-                double intersectU=intersect[0];
-                float sigmaU=(float)Math.sqrt(trkInts.getSigma(l));
-                int hpsLayer=layer-hpsLayerToKFLayer;   //0 is correct for >2019, set this to 2 for 2016
-                if(debug)
-                    System.out.println("kalman layer = "+layer+"; hps layer = "+hpsLayer);
-                if(hpsLayer<0)
+                int layer = trkInts.getLayer(l);  //this is in Kalman layers, so ok
+                Double[] interTmp = trkInts.getIntersect(l);
+                Double[] intersect = flipInter(interTmp);
+                double intersectU = intersect[0];
+                float sigmaU = (float)Math.sqrt(trkInts.getSigma(l));
+                int hpsLayer = layer-hpsLayerToKFLayer;   //0 is correct for >2019, set this to 2 for 2016
+                if (debug)
+                    System.out.println("kalman layer = " + layer + "; hps layer = " + hpsLayer);
+                if (hpsLayer<0)
                     continue;
 
-                boolean lyrHasHit=layerHasHit(track,hpsLayer);
-                boolean modPairLyrHasHit=hasSensorModulePairHit(track,hpsLayer);
+                boolean lyrHasHit = layerHasHit(track, hpsLayer);
+                boolean modPairLyrHasHit = hasSensorModulePairHit(track, hpsLayer);
 
-                if(debug && intersectU==-999){
-                    System.out.println("layer = "+layer+"   intersect[0] = "+intersect[0]+
-                                       "   intersect[1] = "+intersect[1]+
-                                       "   intersect[2] = "+intersect[2]);
+                if (debug && intersectU==-999) {
+                    System.out.println("layer = " + layer + "   intersect[0] = " + intersect[0] +
+                                       "   intersect[1] = " + intersect[1] +
+                                       "   intersect[2] = " + intersect[2]);
                 }
                 if (cleanFEE) {
                     // Require track to be an electron
@@ -1030,26 +1073,26 @@ public class SvtHitEfficiencyKalman extends Driver {
                 }
 
                 // See if track is within acceptance of unused layer
-                Pair<HpsSiSensor,Integer> sensorChanAccPair = getSensorChanInAcceptance(track,intersect, hpsLayer);
+                Pair<HpsSiSensor,Integer> sensorChanAccPair = getSensorChanInAcceptance(track, intersect, hpsLayer);
 
                 // Set axial and stereo sensors of the missing layer
                 HpsSiSensor sensor = sensorChanAccPair.getFirstElement();
 
                 String sensorName = sensor.getName();
-                int hot=nHitsOnTrack;
-                if(lyrHasHit)
-                    hot=hot-1; 
-                if(hot<minHOTs)
+                int hot = nHitsOnTrack;
+                if (lyrHasHit)
+                    hot = hot-1; 
+                if (hot<minHOTs)
                     continue; 
-                String modPairString="noModPairHit";
-                if(modPairLyrHasHit){
-                    //                    System.out.println("Checking layer "+hpsLayer+"....has modPairHit!");
-                    modPairString="hasModPairHit";
+                String modPairString = "noModPairHit";
+                if (modPairLyrHasHit) {
+                    if (debug) System.out.println("Checking layer "+ hpsLayer + "....has modPairHit!");
+                    modPairString = "hasModPairHit";
                 }
-                String mapName=sensorName+"-"+hot; 
-                String allMapName=sensorName;
-                String allModPairMapName=sensorName+"-"+modPairString;
-                String nhotsModPairMapName=sensorName+"-"+hot+"-"+modPairString;
+                String mapName = sensorName + "-" + hot; 
+                String allMapName = sensorName;
+                String allModPairMapName = sensorName + "-" + modPairString;
+                String nhotsModPairMapName = sensorName + "-" + hot + "-" + modPairString;
                 // Compute the channel where the track extrapolates to in each sensor
                 int chan = sensorChanAccPair.getSecondElement();
 
@@ -1059,39 +1102,39 @@ public class SvtHitEfficiencyKalman extends Driver {
                 //  if the track intersect returns -999, that means the intersect code failed (usually 
                 //  because track smoothing failed)...I think this happens if track projects way outside of 
                 //  sensor acceptance so mark it false
-                boolean inAcceptance=intersectU>-999;
+                boolean inAcceptance = intersectU>-999;
 
                 //debug...see if any hits are found in acceptance on first two layers
-                if(debug && hpsLayer<2){
-                    System.out.println("layer = "+hpsLayer+" u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
+                if (debug && hpsLayer<2) {
+                    System.out.println("layer = " + hpsLayer + " u-intersection = " + intersectU + " +/- " + sigmaU + "  has hit? " + lyrHasHit);
                 }
                 
-                if(hpsLayer==0  && intersectU>-999){
-                    if(debug)System.out.println("layer = "+hpsLayer+" u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
+                if (hpsLayer==0  && intersectU>-999) {
+                    if (debug) System.out.println("layer = " + hpsLayer + " u-intersection = " + intersectU + " +/- " + sigmaU + "  has hit? " + lyrHasHit);
                 }
                 //  inner, thin layers
                 //channel 1 is the default if position is not on sensor 
                 //set acceptance to false
-                if(maxLayer>12 && (layer<4 && (chan == 1 || chan>=nChansThin))){
-                    if(debug)System.out.println("layer = "+hpsLayer+" chan = "+chan+"  u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
-                    inAcceptance=false;
+                if (maxLayer>12 && (layer<4 && (chan == 1 || chan>=nChansThin))) {
+                    if (debug) System.out.println("layer = " + hpsLayer + " chan = " + chan + "  u-intersection = " + intersectU + " +/- " + sigmaU + "  has hit? " + lyrHasHit);
+                    inAcceptance = false;
                 }
                 //  just generally negative channel numbers are bogus...I include >-999 here so I can print out 
                 //  when it does compute an intersection with layer but its out of acceptance 
-                if(chan<0 && chan > -999){
-                    if(debug)System.out.println("layer = "+hpsLayer+" chan = "+chan+"   u-intersection = "+intersectU+" +/- "+sigmaU+"  has hit? "+lyrHasHit);
-                    inAcceptance=false;
+                if (chan<0 && chan > -999) {
+                    if (debug) System.out.println("layer = " + hpsLayer + " chan = " + chan + "   u-intersection = " + intersectU + " +/- " + sigmaU + "  has hit? " + lyrHasHit);
+                    inAcceptance = false;
                 }                
                 //  outer layers
-                if(maxLayer>12){///this is detector with small,thin sensors in front
-                    if(layer>4 && chan>nChansThick)
-                        inAcceptance=false;
+                if (maxLayer>12) {///this is detector with small,thin sensors in front
+                    if (layer>4 && chan>nChansThick)
+                        inAcceptance = false;
                 }
 
                 //  outer layers
-                if(maxLayer==12){///this is detector 2016 detector, all thick sensors.
-                    if(chan>nChansThick)
-                        inAcceptance=false;
+                if (maxLayer==12) {///this is detector 2016 detector, all thick sensors.
+                    if (chan>nChansThick)
+                        inAcceptance = false;
                 }
 
 
@@ -1099,50 +1142,54 @@ public class SvtHitEfficiencyKalman extends Driver {
                              
                 double weight = findWeight(intersectU, sigmaU, sensor);
                 
-                if(lyrHasHit)
-                    hitLayerMap.put(hpsLayer,1);
+                if (lyrHasHit)
+                    hitLayerMap.put(hpsLayer, 1);
                 else
-                    hitLayerMap.put(hpsLayer,0);
-                if(inAcceptance==false)  // can't have hole if track is not on sensor
-                    holeLayerMap.put(hpsLayer,0);
-                if(inAcceptance==true && lyrHasHit==false){
+                    hitLayerMap.put(hpsLayer, 0);
+                if (inAcceptance==false)  // can't have hole if track is not on sensor
+                    holeLayerMap.put(hpsLayer, 0);
+                if (inAcceptance==true && lyrHasHit==false) {
                     //found a hole
                     nHolesCnt++;
-                    holeLayerMap.put(hpsLayer,1);
-                } else if(inAcceptance==true && lyrHasHit==true){
-                    holeLayerMap.put(hpsLayer,0);  // in acceptance and has hit, no hole
+                    holeLayerMap.put(hpsLayer, 1);
+                } else if (inAcceptance==true && lyrHasHit==true) {
+                    holeLayerMap.put(hpsLayer, 0);  // in acceptance and has hit, no hole
                 }
 
                 // Fill the denominator of the efficiency histos
-                if(inAcceptance){
-                    if(debug)System.out.println("sensor = "+mapName+" channel = " +chan); 
+                if (inAcceptance) {
+                    if (debug) System.out.println("sensor = " + mapName + " channel = " + chan); 
 
                     numberOfTracksChannel.get(mapName).fill(chan);
-                    if(fillUPlots)numberOfTracksU.get(mapName).fill(intersectU);
-                    if(fillPPlots)numberOfTracksP.get(mapName).fill(trackP);                    
                     AllHitsnumberOfTracksChannel.get(allMapName).fill(chan);
-                    if(fillUPlots)AllHitsnumberOfTracksU.get(allMapName).fill(intersectU);
-                    if(fillPPlots)AllHitsnumberOfTracksP.get(allMapName).fill(trackP);
                     AllHitsnumberOfTracksChannel.get(allModPairMapName).fill(chan);
-                    if(fillUPlots)AllHitsnumberOfTracksU.get(allModPairMapName).fill(intersectU);
-                    if(fillPPlots)AllHitsnumberOfTracksP.get(allModPairMapName).fill(trackP);   
                     numberOfTracksChannel.get(nhotsModPairMapName).fill(chan);
-                    if(fillUPlots)numberOfTracksU.get(nhotsModPairMapName).fill(intersectU);
-                    if(fillPPlots)numberOfTracksP.get(nhotsModPairMapName).fill(trackP);
 
+                    if (fillUPlots) {
+                        numberOfTracksU.get(mapName).fill(intersectU);
+                        AllHitsnumberOfTracksU.get(allMapName).fill(intersectU);
+                        AllHitsnumberOfTracksU.get(allModPairMapName).fill(intersectU);
+                        numberOfTracksU.get(nhotsModPairMapName).fill(intersectU);
+                    } 
+                    if (fillPPlots) {
+                        numberOfTracksP.get(mapName).fill(trackP);
+                        AllHitsnumberOfTracksP.get(allMapName).fill(trackP);
+                        AllHitsnumberOfTracksP.get(allModPairMapName).fill(trackP);
+                        numberOfTracksP.get(nhotsModPairMapName).fill(trackP);
+                    }
 
                     AllHitsnumberOfTracksTanL.get(allMapName).fill(tanLambda);
                     AllHitsnumberOfTracksPhi.get(allMapName).fill(phi0);
-                    AllHitsnumberOfTracksTanLVsPhi.get(allMapName).fill(phi0,tanLambda);
+                    AllHitsnumberOfTracksTanLVsPhi.get(allMapName).fill(phi0, tanLambda);
                     AllHitsnumberOfTracksTanL.get(allModPairMapName).fill(tanLambda);
                     AllHitsnumberOfTracksPhi.get(allModPairMapName).fill(phi0);
-                    AllHitsnumberOfTracksTanLVsPhi.get(allModPairMapName).fill(phi0,tanLambda);
+                    AllHitsnumberOfTracksTanLVsPhi.get(allModPairMapName).fill(phi0, tanLambda);
                     numberOfTracksTanL.get(mapName).fill(tanLambda);
                     numberOfTracksPhi.get(mapName).fill(phi0);
                     numberOfTracksTanLVsPhi.get(mapName).fill(phi0,tanLambda);                                        
                     numberOfTracksTanL.get(nhotsModPairMapName).fill(tanLambda);
                     numberOfTracksPhi.get(nhotsModPairMapName).fill(phi0);
-                    numberOfTracksTanLVsPhi.get(nhotsModPairMapName).fill(phi0,tanLambda);
+                    numberOfTracksTanLVsPhi.get(nhotsModPairMapName).fill(phi0, tanLambda);
 
                     /*
                       numberOfTracksChannelCorrected.get(mapName).fill(chan, weight);
@@ -1152,33 +1199,36 @@ public class SvtHitEfficiencyKalman extends Driver {
                     // Fill electron histograms
                     if (q < 0) {
                         numberOfTracksChannelEle.get(mapName).fill(chan);
-                        if(fillUPlots)numberOfTracksUEle.get(mapName).fill(intersectU);
-                        if(fillPPlots)numberOfTracksPEle.get(mapName).fill(trackP);                        
-
                         AllHitsnumberOfTracksChannelEle.get(allMapName).fill(chan);
-                        if(fillUPlots)AllHitsnumberOfTracksUEle.get(allMapName).fill(intersectU);
-                        if(fillPPlots)AllHitsnumberOfTracksPEle.get(allMapName).fill(trackP);
                         numberOfTracksChannelEle.get(nhotsModPairMapName).fill(chan);
-                        if(fillUPlots)numberOfTracksUEle.get(nhotsModPairMapName).fill(intersectU);
-                        if(fillPPlots)numberOfTracksPEle.get(nhotsModPairMapName).fill(trackP);
                         AllHitsnumberOfTracksChannelEle.get(allModPairMapName).fill(chan);
-                        if(fillUPlots)AllHitsnumberOfTracksUEle.get(allModPairMapName).fill(intersectU);
-                        if(fillPPlots)AllHitsnumberOfTracksPEle.get(allModPairMapName).fill(trackP);
 
-                        
+                        if (fillUPlots) {
+                            numberOfTracksUEle.get(mapName).fill(intersectU);
+                            AllHitsnumberOfTracksUEle.get(allMapName).fill(intersectU);
+                            numberOfTracksUEle.get(nhotsModPairMapName).fill(intersectU);
+                            AllHitsnumberOfTracksUEle.get(allModPairMapName).fill(intersectU);
+                        }
+
+                        if (fillPPlots) {
+                            numberOfTracksPEle.get(mapName).fill(trackP);
+                            AllHitsnumberOfTracksPEle.get(allMapName).fill(trackP);
+                            numberOfTracksPEle.get(nhotsModPairMapName).fill(trackP);
+                            AllHitsnumberOfTracksPEle.get(allModPairMapName).fill(trackP);
+                        }
+
                         numberOfTracksTanLEle.get(mapName).fill(tanLambda);
                         numberOfTracksPhiEle.get(mapName).fill(phi0);
-                        numberOfTracksTanLVsPhiEle.get(mapName).fill(phi0,tanLambda);
+                        numberOfTracksTanLVsPhiEle.get(mapName).fill(phi0, tanLambda);
                         AllHitsnumberOfTracksTanLEle.get(allMapName).fill(tanLambda);
                         AllHitsnumberOfTracksPhiEle.get(allMapName).fill(phi0);
-                        AllHitsnumberOfTracksTanLVsPhiEle.get(allMapName).fill(phi0,tanLambda);
+                        AllHitsnumberOfTracksTanLVsPhiEle.get(allMapName).fill(phi0, tanLambda);
                         AllHitsnumberOfTracksTanLEle.get(allModPairMapName).fill(tanLambda);
                         AllHitsnumberOfTracksPhiEle.get(allModPairMapName).fill(phi0);
-                        AllHitsnumberOfTracksTanLVsPhiEle.get(allModPairMapName).fill(phi0,tanLambda);
+                        AllHitsnumberOfTracksTanLVsPhiEle.get(allModPairMapName).fill(phi0, tanLambda);
                         numberOfTracksTanLEle.get(nhotsModPairMapName).fill(tanLambda);
                         numberOfTracksPhiEle.get(nhotsModPairMapName).fill(phi0);
-                        numberOfTracksTanLVsPhiEle.get(nhotsModPairMapName).fill(phi0,tanLambda);
-
+                        numberOfTracksTanLVsPhiEle.get(nhotsModPairMapName).fill(phi0, tanLambda);
 
                     /*
                           numberOfTracksChannelCorrectedEle.get(mapName).fill(chan, weight);
@@ -1188,30 +1238,34 @@ public class SvtHitEfficiencyKalman extends Driver {
                     } // Fill positron histograms
                     else {
                         numberOfTracksChannelPos.get(mapName).fill(chan);
-                        if(fillUPlots)numberOfTracksUPos.get(mapName).fill(intersectU);
-                        if(fillPPlots)numberOfTracksPPos.get(mapName).fill(trackP);
                         AllHitsnumberOfTracksChannelPos.get(allMapName).fill(chan);
-                        if(fillUPlots)AllHitsnumberOfTracksUPos.get(allMapName).fill(intersectU);
-                        if(fillPPlots)AllHitsnumberOfTracksPPos.get(allMapName).fill(trackP);
                         numberOfTracksChannelPos.get(nhotsModPairMapName).fill(chan);
-                        if(fillUPlots)numberOfTracksUPos.get(nhotsModPairMapName).fill(intersectU);
-                        if(fillPPlots)numberOfTracksPPos.get(nhotsModPairMapName).fill(trackP);
                         AllHitsnumberOfTracksChannelPos.get(allModPairMapName).fill(chan);
-                        if(fillUPlots)AllHitsnumberOfTracksUPos.get(allModPairMapName).fill(intersectU);
-                        if(fillPPlots)AllHitsnumberOfTracksPPos.get(allModPairMapName).fill(trackP);
+                        if (fillUPlots) {
+                            numberOfTracksUPos.get(mapName).fill(intersectU);
+                            AllHitsnumberOfTracksUPos.get(allMapName).fill(intersectU);
+                            numberOfTracksUPos.get(nhotsModPairMapName).fill(intersectU);
+                            AllHitsnumberOfTracksUPos.get(allModPairMapName).fill(intersectU);
+                        }
+                        if (fillPPlots) {
+                            numberOfTracksPPos.get(mapName).fill(trackP);
+                            AllHitsnumberOfTracksPPos.get(allMapName).fill(trackP);
+                            numberOfTracksPPos.get(nhotsModPairMapName).fill(trackP);
+                            AllHitsnumberOfTracksPPos.get(allModPairMapName).fill(trackP);
+                        }
 
                         numberOfTracksTanLPos.get(mapName).fill(tanLambda);
                         numberOfTracksPhiPos.get(mapName).fill(phi0);
-                        numberOfTracksTanLVsPhiPos.get(mapName).fill(phi0,tanLambda);
+                        numberOfTracksTanLVsPhiPos.get(mapName).fill(phi0, tanLambda);
                         AllHitsnumberOfTracksTanLPos.get(allMapName).fill(tanLambda);
                         AllHitsnumberOfTracksPhiPos.get(allMapName).fill(phi0);
-                        AllHitsnumberOfTracksTanLVsPhiPos.get(allMapName).fill(phi0,tanLambda);
+                        AllHitsnumberOfTracksTanLVsPhiPos.get(allMapName).fill(phi0, tanLambda);
                         AllHitsnumberOfTracksTanLPos.get(allModPairMapName).fill(tanLambda);
                         AllHitsnumberOfTracksPhiPos.get(allModPairMapName).fill(phi0);
-                        AllHitsnumberOfTracksTanLVsPhiPos.get(allModPairMapName).fill(phi0,tanLambda);
+                        AllHitsnumberOfTracksTanLVsPhiPos.get(allModPairMapName).fill(phi0, tanLambda);
                         numberOfTracksTanLPos.get(nhotsModPairMapName).fill(tanLambda);
                         numberOfTracksPhiPos.get(nhotsModPairMapName).fill(phi0);
-                        numberOfTracksTanLVsPhiPos.get(nhotsModPairMapName).fill(phi0,tanLambda);
+                        numberOfTracksTanLVsPhiPos.get(nhotsModPairMapName).fill(phi0, tanLambda);
 
                         /*
                           numberOfTracksChannelCorrectedPos.get(mapName).fill(chan, weight);
@@ -1242,120 +1296,136 @@ public class SvtHitEfficiencyKalman extends Driver {
                     // If layer has a hit included in track, fill the numerator efficiency histograms
                     if (lyrHasHit) {
                         for (TrackerHit stripCluster : track.getTrackerHits()) {
-                            if(((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber()==layer+1)
+                            if (((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber()==layer+1)
                                 hitTimes.get(allMapName).fill(stripCluster.getTime());                                                         
                         }
+
                         numberOfTracksWithHitOnMissingLayerChannel.get(mapName).fill(chan);
-                        if(fillUPlots)numberOfTracksWithHitOnMissingLayerU.get(mapName).fill(intersectU);
-                        if(fillPPlots)numberOfTracksWithHitOnMissingLayerP.get(mapName).fill(trackP);
                         numberOfTracksWithHitOnMissingLayerChannel.get(nhotsModPairMapName).fill(chan);
-                        if(fillUPlots)numberOfTracksWithHitOnMissingLayerU.get(nhotsModPairMapName).fill(intersectU);
-                        if(fillPPlots)numberOfTracksWithHitOnMissingLayerP.get(nhotsModPairMapName).fill(trackP);
                         AllHitsnumberOfTracksWithHitOnMissingLayerChannel.get(allMapName).fill(chan);
-                        if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerU.get(allMapName).fill(intersectU);
-                        if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerP.get(allMapName).fill(trackP);
                         AllHitsnumberOfTracksWithHitOnMissingLayerChannel.get(allModPairMapName).fill(chan);
-                        if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerU.get(allModPairMapName).fill(intersectU);
-                        if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerP.get(allModPairMapName).fill(trackP);
-                        
+
+                        if (fillUPlots) {
+                            numberOfTracksWithHitOnMissingLayerU.get(mapName).fill(intersectU);
+                            numberOfTracksWithHitOnMissingLayerU.get(nhotsModPairMapName).fill(intersectU);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerU.get(allMapName).fill(intersectU);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerU.get(allModPairMapName).fill(intersectU);
+                        }
+                        if (fillPPlots) {
+                            numberOfTracksWithHitOnMissingLayerP.get(mapName).fill(trackP);
+                            numberOfTracksWithHitOnMissingLayerP.get(nhotsModPairMapName).fill(trackP);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerP.get(allMapName).fill(trackP);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerP.get(allModPairMapName).fill(trackP);
+                        }
+
                         AllHitsnumberOfTracksWithHitOnMissingLayerTanL.get(allMapName).fill(tanLambda);
                         AllHitsnumberOfTracksWithHitOnMissingLayerPhi.get(allMapName).fill(phi0);
-                        AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhi.get(allMapName).fill(phi0,tanLambda);
+                        AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhi.get(allMapName).fill(phi0, tanLambda);
                         AllHitsnumberOfTracksWithHitOnMissingLayerTanL.get(allModPairMapName).fill(tanLambda);
                         AllHitsnumberOfTracksWithHitOnMissingLayerPhi.get(allModPairMapName).fill(phi0);
-                        AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhi.get(allModPairMapName).fill(phi0,tanLambda);
+                        AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhi.get(allModPairMapName).fill(phi0, tanLambda);
                         numberOfTracksWithHitOnMissingLayerTanL.get(mapName).fill(tanLambda);
                         numberOfTracksWithHitOnMissingLayerPhi.get(mapName).fill(phi0);
-                        numberOfTracksWithHitOnMissingLayerTanLVsPhi.get(mapName).fill(phi0,tanLambda);                                        
+                        numberOfTracksWithHitOnMissingLayerTanLVsPhi.get(mapName).fill(phi0, tanLambda);                                        
                         numberOfTracksWithHitOnMissingLayerTanL.get(nhotsModPairMapName).fill(tanLambda);
                         numberOfTracksWithHitOnMissingLayerPhi.get(nhotsModPairMapName).fill(phi0);
-                        numberOfTracksWithHitOnMissingLayerTanLVsPhi.get(nhotsModPairMapName).fill(phi0,tanLambda);
+                        numberOfTracksWithHitOnMissingLayerTanLVsPhi.get(nhotsModPairMapName).fill(phi0, tanLambda);
 
 
                         if (q < 0) {
                             numberOfTracksWithHitOnMissingLayerChannelEle.get(mapName).fill(chan);
-                            if(fillUPlots)numberOfTracksWithHitOnMissingLayerUEle.get(mapName).fill(intersectU);
-                            if(fillPPlots)numberOfTracksWithHitOnMissingLayerPEle.get(mapName).fill(trackP);
                             numberOfTracksWithHitOnMissingLayerChannelEle.get(nhotsModPairMapName).fill(chan);
-                            if(fillUPlots)numberOfTracksWithHitOnMissingLayerUEle.get(nhotsModPairMapName).fill(intersectU);
-                            if(fillPPlots)numberOfTracksWithHitOnMissingLayerPEle.get(nhotsModPairMapName).fill(trackP);
                             AllHitsnumberOfTracksWithHitOnMissingLayerChannelEle.get(allMapName).fill(chan);
-                            if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerUEle.get(allMapName).fill(intersectU);
-                            if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerPEle.get(allMapName).fill(trackP);
                             AllHitsnumberOfTracksWithHitOnMissingLayerChannelEle.get(allModPairMapName).fill(chan);
-                            if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerUEle.get(allModPairMapName).fill(intersectU);
-                            if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerPEle.get(allModPairMapName).fill(trackP);
+
+                            if (fillUPlots) {
+                                numberOfTracksWithHitOnMissingLayerUEle.get(mapName).fill(intersectU);
+                                numberOfTracksWithHitOnMissingLayerUEle.get(nhotsModPairMapName).fill(intersectU);
+                                AllHitsnumberOfTracksWithHitOnMissingLayerUEle.get(allMapName).fill(intersectU);
+                                AllHitsnumberOfTracksWithHitOnMissingLayerUEle.get(allModPairMapName).fill(intersectU);
+                            }
+                            if (fillPPlots) {
+                                numberOfTracksWithHitOnMissingLayerPEle.get(mapName).fill(trackP);
+                                numberOfTracksWithHitOnMissingLayerPEle.get(nhotsModPairMapName).fill(trackP);
+                                AllHitsnumberOfTracksWithHitOnMissingLayerPEle.get(allMapName).fill(trackP);
+                                AllHitsnumberOfTracksWithHitOnMissingLayerPEle.get(allModPairMapName).fill(trackP);
+                            }
+
                             AllHitsnumberOfTracksWithHitOnMissingLayerTanLEle.get(allMapName).fill(tanLambda);
                             AllHitsnumberOfTracksWithHitOnMissingLayerPhiEle.get(allMapName).fill(phi0);
-                            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiEle.get(allMapName).fill(phi0,tanLambda);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiEle.get(allMapName).fill(phi0, tanLambda);
                             AllHitsnumberOfTracksWithHitOnMissingLayerTanLEle.get(allModPairMapName).fill(tanLambda);
                             AllHitsnumberOfTracksWithHitOnMissingLayerPhiEle.get(allModPairMapName).fill(phi0);
-                            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiEle.get(allModPairMapName).fill(phi0,tanLambda);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiEle.get(allModPairMapName).fill(phi0, tanLambda);
                             numberOfTracksWithHitOnMissingLayerTanLEle.get(mapName).fill(tanLambda);
                             numberOfTracksWithHitOnMissingLayerPhiEle.get(mapName).fill(phi0);
-                            numberOfTracksWithHitOnMissingLayerTanLVsPhiEle.get(mapName).fill(phi0,tanLambda);                                        
+                            numberOfTracksWithHitOnMissingLayerTanLVsPhiEle.get(mapName).fill(phi0, tanLambda);                                        
                             numberOfTracksWithHitOnMissingLayerTanLEle.get(nhotsModPairMapName).fill(tanLambda);
                             numberOfTracksWithHitOnMissingLayerPhiEle.get(nhotsModPairMapName).fill(phi0);
-                            numberOfTracksWithHitOnMissingLayerTanLVsPhiEle.get(nhotsModPairMapName).fill(phi0,tanLambda);
+                            numberOfTracksWithHitOnMissingLayerTanLVsPhiEle.get(nhotsModPairMapName).fill(phi0, tanLambda);
 
                         } else {
                             numberOfTracksWithHitOnMissingLayerChannelPos.get(mapName).fill(chan);
-                            if(fillUPlots)numberOfTracksWithHitOnMissingLayerUPos.get(mapName).fill(intersectU);
-                            if(fillPPlots)numberOfTracksWithHitOnMissingLayerPPos.get(mapName).fill(trackP);
                             numberOfTracksWithHitOnMissingLayerChannelPos.get(nhotsModPairMapName).fill(chan);
-                            if(fillUPlots)numberOfTracksWithHitOnMissingLayerUPos.get(nhotsModPairMapName).fill(intersectU);
-                            if(fillPPlots)numberOfTracksWithHitOnMissingLayerPPos.get(nhotsModPairMapName).fill(trackP);
                             AllHitsnumberOfTracksWithHitOnMissingLayerChannelPos.get(allMapName).fill(chan);
-                            if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerUPos.get(allMapName).fill(intersectU);
-                            if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerPPos.get(allMapName).fill(trackP);                            
                             AllHitsnumberOfTracksWithHitOnMissingLayerChannelPos.get(allModPairMapName).fill(chan);
-                            if(fillUPlots)AllHitsnumberOfTracksWithHitOnMissingLayerUPos.get(allModPairMapName).fill(intersectU);
-                            if(fillPPlots)AllHitsnumberOfTracksWithHitOnMissingLayerPPos.get(allModPairMapName).fill(trackP);
+
+                            if (fillUPlots) {
+                                numberOfTracksWithHitOnMissingLayerUPos.get(mapName).fill(intersectU);
+                                numberOfTracksWithHitOnMissingLayerUPos.get(nhotsModPairMapName).fill(intersectU);
+                                AllHitsnumberOfTracksWithHitOnMissingLayerUPos.get(allMapName).fill(intersectU);
+                                AllHitsnumberOfTracksWithHitOnMissingLayerUPos.get(allModPairMapName).fill(intersectU);
+                            }
+                            if (fillPPlots) {
+                                numberOfTracksWithHitOnMissingLayerPPos.get(mapName).fill(trackP);
+                                numberOfTracksWithHitOnMissingLayerPPos.get(nhotsModPairMapName).fill(trackP);
+                                AllHitsnumberOfTracksWithHitOnMissingLayerPPos.get(allMapName).fill(trackP);
+                                AllHitsnumberOfTracksWithHitOnMissingLayerPPos.get(allModPairMapName).fill(trackP);
+                            }
+
                             AllHitsnumberOfTracksWithHitOnMissingLayerTanLPos.get(allMapName).fill(tanLambda);
                             AllHitsnumberOfTracksWithHitOnMissingLayerPhiPos.get(allMapName).fill(phi0);
-                            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(allMapName).fill(phi0,tanLambda);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(allMapName).fill(phi0, tanLambda);
                             AllHitsnumberOfTracksWithHitOnMissingLayerTanLPos.get(allModPairMapName).fill(tanLambda);
                             AllHitsnumberOfTracksWithHitOnMissingLayerPhiPos.get(allModPairMapName).fill(phi0);
-                            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(allModPairMapName).fill(phi0,tanLambda);
+                            AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(allModPairMapName).fill(phi0, tanLambda);
                             numberOfTracksWithHitOnMissingLayerTanLPos.get(mapName).fill(tanLambda);
                             numberOfTracksWithHitOnMissingLayerPhiPos.get(mapName).fill(phi0);
-                            numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(mapName).fill(phi0,tanLambda);                                        
+                            numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(mapName).fill(phi0, tanLambda);                                        
                             numberOfTracksWithHitOnMissingLayerTanLPos.get(nhotsModPairMapName).fill(tanLambda);
                             numberOfTracksWithHitOnMissingLayerPhiPos.get(nhotsModPairMapName).fill(phi0);
-                            numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(nhotsModPairMapName).fill(phi0,tanLambda);
-                            
-
+                            numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(nhotsModPairMapName).fill(phi0, tanLambda);
                         }
                     }
                 }
             }
             
-            for( Map.Entry<Integer,Integer> hole: holeLayerMap.entrySet()){                
-                layerHoles.get(ipMapName).fill(hole.getKey()+1,hole.getValue());
-                layerHoles.get(chMapName).fill(hole.getKey()+1,hole.getValue());
-                layerHolesNHits.get(nhitsmap).fill(hole.getKey()+1,hole.getValue());
+            for (Map.Entry<Integer, Integer> hole : holeLayerMap.entrySet()) {                
+                layerHoles.get(ipMapName).fill(hole.getKey()+1, hole.getValue());
+                layerHoles.get(chMapName).fill(hole.getKey()+1, hole.getValue());
+                layerHolesNHits.get(nhitsmap).fill(hole.getKey()+1, hole.getValue());
             }          
             nHoles.get(ipMapName).fill(nHolesCnt);
             nHolesNHits.get(nhitsmap).fill(nHolesCnt); 
-            if(fillPatternPlots){                                
-                int pat=getFrontLayersPattern(track); 
-                String pattern=getPatternString(pat); 
+            if (fillPatternPlots) {                                
+                int pat = getFrontLayersPattern(track); 
+                String pattern = getPatternString(pat); 
                 frontLayerPatterns.get(ipMapName).fill(pat); 
-                ipMapName=atIP+topOrBottom+pattern; 
+                ipMapName = atIP + topOrBottom+pattern; 
                 D0.get(ipMapName).fill(TStates.get(0).getD0());            
                 Z0.get(ipMapName).fill(TStates.get(0).getZ0());
                 Tanlambda.get(ipMapName).fill(TStates.get(0).getTanLambda());
                 Phi0.get(ipMapName).fill(TStates.get(0).getPhi());
                 Omega.get(ipMapName).fill(trackP);
-            //not fill the charge+front pattern separated plots...
-                ipMapName=atIP+topOrBottom+pattern+charge; 
+                //not fill the charge+front pattern separated plots...
+                ipMapName = atIP + topOrBottom + pattern + charge; 
                 D0.get(ipMapName).fill(TStates.get(0).getD0());            
                 Z0.get(ipMapName).fill(TStates.get(0).getZ0());
                 Tanlambda.get(ipMapName).fill(TStates.get(0).getTanLambda());
                 Phi0.get(ipMapName).fill(TStates.get(0).getPhi());
                 Omega.get(ipMapName).fill(trackP);
                 //all tracks just separated by charge
-                ipMapName=atIP+topOrBottom+charge; 
+                ipMapName = atIP + topOrBottom + charge; 
                 D0.get(ipMapName).fill(TStates.get(0).getD0());            
                 Z0.get(ipMapName).fill(TStates.get(0).getZ0());
                 Tanlambda.get(ipMapName).fill(TStates.get(0).getTanLambda());
@@ -1366,8 +1436,8 @@ public class SvtHitEfficiencyKalman extends Driver {
         }
     }
 
-    private Double[] flipInter(Double[] tmp){
-        Double[] thisguy={tmp[1],tmp[0],tmp[2]};
+    private Double[] flipInter(Double[] tmp) {
+        Double[] thisguy = {tmp[1], tmp[0], tmp[2]};
         return thisguy; 
     }
 
@@ -1438,10 +1508,10 @@ public class SvtHitEfficiencyKalman extends Driver {
             electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
             System.out.println("Charge Carrier is NULL");
         }
-        if (electrodes == null){
+        if (electrodes == null) {
             System.out.println("Electrodes are null???");
         }
-        if(debug)System.out.println("Transforming globalToLocal::  global x ="+ trkpos.x()+" y = "+trkpos.y()+" z ="+ trkpos.z());
+        if (debug)System.out.println("Transforming globalToLocal::  global x =" + trkpos.x() + " y = " + trkpos.y() + " z =" + trkpos.z());
         
         return electrodes.getGlobalToLocal().transformed(trkpos);
     }
@@ -1449,17 +1519,17 @@ public class SvtHitEfficiencyKalman extends Driver {
     // Returns channel number of a given position in the sensor frame
     private int getChan(Hep3Vector pos, HpsSiSensor sensor) {   
         SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
-        if(maxLayer>12 && sensor.getLayerNumber()<5){//thin sensors
-            int row=electrodes.getRowNumber(pos);
-            int col=electrodes.getColumnNumber(pos);
-            return electrodes.getCellID(row,col);
+        if (maxLayer>12 && sensor.getLayerNumber()<5) {//thin sensors
+            int row = electrodes.getRowNumber(pos);
+            int col = electrodes.getColumnNumber(pos);
+            return electrodes.getCellID(row, col);
         }else{
             return electrodes.getCellID(pos);            
         }
         //double readoutPitch = sensor.getReadoutStripPitch();
         //int nChan = sensor.getNumberOfChannels();
         //double height = readoutPitch * nChan;
-        //      if(sensor.getLayerNumber()<thinLayCutoff)
+        //      if (sensor.getLayerNumber()<thinLayCutoff)
         //    return (int)((height / 2 - pos.x()) / readoutPitch);
         //return (int) ((height / 2 - pos.x()) / readoutPitch);
     }
@@ -1473,41 +1543,42 @@ public class SvtHitEfficiencyKalman extends Driver {
     // slot/hole
     private HpsSiSensor getSensor(Track track, int layer) {
         layer = layer + 1;
-        if(debug)System.out.println("Getting sensor for layer = " + layer);
+        if (debug) System.out.println("Getting sensor for layer = " + layer);
         double tanLambda = track.getTrackStates().get(0).getTanLambda();
-        boolean trkIsTop=tanLambda > 0;
+        boolean trkIsTop = tanLambda > 0;
         for (HpsSiSensor sensor : sensors) {
-            if(sensor.getLayerNumber() != layer) 
+            if (sensor.getLayerNumber() != layer) 
                 continue;  // bail...wrong sensor layer
 
-            boolean sensorIsTop=sensor.isTopLayer();
-            if(trkIsTop != sensorIsTop)
+            boolean sensorIsTop = sensor.isTopLayer();
+            if (trkIsTop != sensorIsTop)
                 continue; // comparing top/bottom...bail
 
             if (layer < outerLayer && layer > 0) 
                 return sensor;//if we are in inner layers, we found sensor!
 
             //if we got here, must be in outer layers
-            boolean isTrackHole=isTrackHole(track,layer);  // this looks for a track state at either hole or slot...not foolproof!
-            boolean isSensorHole=sensor.getSide().matches("ELECTRON");
-            if(isTrackHole!=isSensorHole)
+            boolean isTrackHole = isTrackHole(track,layer);  // this looks for a track state at either hole or slot...not foolproof!
+            boolean isSensorHole = sensor.getSide().matches("ELECTRON");
+            if (isTrackHole != isSensorHole)
                 continue;  /// bail if track hole/slot don't match sensor
             return sensor; //if we get here, we found an outer sensor          
         }
-        if(debug)System.out.println("getSensor::  sensor not found!!!!");
+        if (debug) System.out.println("getSensor::  sensor not found!!!!");
         return null;  // we shouldn't ever get here!
     }
 
-  //Return the HpsSiSensor for a given top/bottom track, layer, axial/stereo, and slot/hole
+    //Return the HpsSiSensor for a given top/bottom track, layer, axial/stereo, and slot/hole
     private HpsSiSensor getSensor(Track track, int layer, boolean isAxial, boolean isHole) {
         double tanLambda = track.getTrackStates().get(0).getTanLambda();
         int outerLayer = 9;
-        boolean trkIsTop=tanLambda > 0;
+        //TODO unused variable
+        boolean trkIsTop = tanLambda > 0;
         for (HpsSiSensor sensor : sensors) {
             int senselayer = sensor.getLayerNumber();  //the "layer" input here has already been incremented so goes 1-14, just like the getLayerNumber() returns
             if (senselayer != layer)
                 continue;
-            boolean sensorIsTop=sensor.isTopLayer();
+            boolean sensorIsTop = sensor.isTopLayer();
             if ((tanLambda > 0 && !sensor.isTopLayer()) || (tanLambda < 0 && sensor.isTopLayer()))
                 continue;           
             if (layer < outerLayer && layer > 0)
@@ -1518,11 +1589,11 @@ public class SvtHitEfficiencyKalman extends Driver {
                 return sensor;
             }
         }
-        if(debug)System.out.println("getSensor PickEm:: this is just getting the top/bottom/axial/hole sensor...should never happen");
+        if (debug) System.out.println("getSensor PickEm:: this is just getting the top/bottom/axial/hole sensor...should never happen");
         return null;
     }
     
-
+    // TODO unused function
     private Matrix Hep3ToMatrix(Hep3Matrix mat) {
         int Nrows = mat.getNRows();
         int Ncolumns = mat.getNColumns();
@@ -1565,7 +1636,7 @@ public class SvtHitEfficiencyKalman extends Driver {
 
     private Pair<HpsSiSensor,Integer> getSensorChanInAcceptance(Track track, Double[] localPos, int layer) {
         HpsSiSensor sensor = getSensor(track, layer);
-        if(debug)System.out.println("getSensorChanInAcceptance: "+sensor.getName());  
+        if (debug) System.out.println("getSensorChanInAcceptance: " + sensor.getName());  
         double[] dumbthing = new double[]{localPos[0], localPos[1], localPos[2]};
         Hep3Vector locPosVec = new BasicHep3Vector(dumbthing);
         Integer chanInAcc = new Integer(this.getChan(locPosVec, sensor));
@@ -1580,14 +1651,15 @@ public class SvtHitEfficiencyKalman extends Driver {
     public Pair<Integer, Boolean> sensorContainsTrack(Hep3Vector localPos, HpsSiSensor sensor) {
         int nChan = sensor.getNumberOfChannels();
         int chan = getChan(localPos, sensor);
-        boolean inAcceptance=true; 
-        if(localPos.x()<-888)
-            inAcceptance=false;              
+        boolean inAcceptance = true; 
+        if (localPos.x()<-888)
+            inAcceptance = false;              
         return new Pair<>(chan, inAcceptance);
     }
 
     //Checks to see if track is in acceptance of sensor. Computes within sensor frame
     //Also return channel number of the position
+    // TODO unused function
     /*
     public Pair<Boolean, Pair<Integer, Hep3Vector>> sensorContainsTrack(Hep3Vector trackPosition, HpsSiSensor sensor) {
         Hep3Vector pos = globalToSensor(trackPosition, sensor);
@@ -1603,22 +1675,21 @@ public class SvtHitEfficiencyKalman extends Driver {
     }
     */
 
-    boolean layerHasHit(Track track, int layer){
-        layer=layer+1;
-        for (TrackerHit hit:  track.getTrackerHits()){
+    boolean layerHasHit(Track track, int layer) {
+        layer = layer+1;
+        for (TrackerHit hit : track.getTrackerHits()) {
             // Retrieve the sensor associated with one of the hits.  This will
             // be used to retrieve the layer number
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement();
-            if(sensor.getLayerNumber() == layer){
-                if(sensor.getLayerNumber()==1 && debug)
-                    System.out.println("Yup found hit for layer = "+layer);                
+            if (sensor.getLayerNumber() == layer) {
+                if (sensor.getLayerNumber()==1 && debug)
+                    System.out.println("Yup found hit for layer = " + layer);                
                 return true; 
             }
         }
         return false;
     }
 
-    
     //Check to see if track is hole side
     private boolean isTrackHole(Track track, int unusedLay) {
         boolean isTop = track.getTrackStates().get(0).getTanLambda() > 0;  
@@ -1628,40 +1699,40 @@ public class SvtHitEfficiencyKalman extends Driver {
         HelicalTrackFit htf = TrackUtils.getHTF(track.getTrackStates().get(0));        
         // extrapolate to hole sensor
         Hep3Vector trackHolePosGlobal = TrackStateUtils.getLocationAtSensor(htf, sensorHole, bfield);
-        if(trackHolePosGlobal==null){
+        if (trackHolePosGlobal==null) {
             System.out.println("isTrackHole::  trackHolePosGlobal is null ... setting isTrackHole=false");
             return false;
         }
         Hep3Vector trackHolePos = globalToSensor(trackHolePosGlobal, sensorHole);
-        if(debug)
-            System.out.println("isTrackHole::  global position at Hole:  x ="+trackHolePosGlobal.x()+
-                               "; y = "+trackHolePosGlobal.y()+
-                               "; z = "+trackHolePosGlobal.z());
-        if(debug)
-            System.out.println("isTrackHole::  local position at Hole:  x ="+trackHolePos.x()+
-                               "; y = "+trackHolePos.y()+
-                               "; z = "+trackHolePos.z());
+        if (debug)
+            System.out.println("isTrackHole::  global position at Hole:  x =" + trackHolePosGlobal.x() +
+                               "; y = " + trackHolePosGlobal.y() +
+                               "; z = " + trackHolePosGlobal.z());
+        if (debug)
+            System.out.println("isTrackHole::  local position at Hole:  x =" + trackHolePos.x() +
+                               "; y = " + trackHolePos.y() +
+                               "; z = " + trackHolePos.z());
         //    do slot sensor
         Hep3Vector trackSlotPosGlobal = TrackStateUtils.getLocationAtSensor(htf, sensorSlot, bfield);
-        if(trackSlotPosGlobal==null){
+        if (trackSlotPosGlobal==null) {
             System.out.println("isTrackHole::  trackSlotPosGlobal is null ... setting isTrackSlot=false");
             return true;
         }
         Hep3Vector trackSlotPos = globalToSensor(trackSlotPosGlobal, sensorSlot);
-        if(debug)
-            System.out.println("isTrackHole::  global position at Slot:  x ="+trackSlotPosGlobal.x()+
-                               "; y = "+trackSlotPosGlobal.y()+
-                               "; z = "+trackSlotPosGlobal.z());
+        if (debug)
+            System.out.println("isTrackHole::  global position at Slot:  x =" + trackSlotPosGlobal.x() +
+                               "; y = " + trackSlotPosGlobal.y() +
+                               "; z = " + trackSlotPosGlobal.z());
 
       
-        if(debug)
-            System.out.println("isTrackHole::  local position at Slot:  x ="+trackSlotPos.x()+
-                               "; y = "+trackSlotPos.y()+
-                               "; z = "+trackSlotPos.z()); 
-        double yHole=Math.abs(trackHolePos.y());
-        double ySlot=Math.abs(trackSlotPos.y());
+        if (debug)
+            System.out.println("isTrackHole::  local position at Slot:  x =" + trackSlotPos.x() +
+                               "; y = " + trackSlotPos.y() +
+                               "; z = " + trackSlotPos.z()); 
+        double yHole = Math.abs(trackHolePos.y());
+        double ySlot = Math.abs(trackSlotPos.y());
         
-        if(yHole<ySlot)
+        if (yHole<ySlot)
             return true;
         else
             return false; 
@@ -1671,15 +1742,16 @@ public class SvtHitEfficiencyKalman extends Driver {
         //    return true;  // it is indeed hole side
         
         //tState = TrackStateUtils.getTrackStateAtSensor(track, sensorSlot.getMillepedeId());
-        //if(tState!=null)
+        //if (tState!=null)
         //    return false; //it is slot side, not hole side 
         //whelp, no track state here...return false anyway
-        //           if(debug)System.out.println("isTrackHole::  neither slot nor hole had track state.  This shouldn't happen");
+        //           if (debug)System.out.println("isTrackHole::  neither slot nor hole had track state.  This shouldn't happen");
         //        return false; 
     }
 
     //Checks to see if track is within acceptance of both axial and stereo sensors at a given layer
     //Also returns channel number of the intersection
+    // TODO can this be removed?
     /*
     private boolean isTrackHole(Track track, TrackState tState, int layer, boolean axial, Hep3Vector p, FieldMap fieldMap) {
 
@@ -1735,11 +1807,10 @@ public class SvtHitEfficiencyKalman extends Driver {
         return length;
     }
 
-    
  // Returns the horizontal length of the sensor
     protected double getSensorWidth(HpsSiSensor sensor) {
         double length = 0;
-        double width = 0; 
+        double width = 0; // TODO unused variable
 
         // Get the faces normal to the sensor
         final List<Polygon3D> faces = ((Box) sensor.getGeometry().getLogicalVolume().getSolid())
@@ -1756,19 +1827,20 @@ public class SvtHitEfficiencyKalman extends Driver {
         return length;
     }
 
+    // TODO what is this?
     public void endOfData() {
         System.out.println("End of Data. Computing Hit Efficiencies");
 
         // skip this...not useful
-        if(1==1) {
+        if (1==1) {
             return; 
         }
 
        
     }
     ///
-    boolean hasSensorModulePairHit(Track trk, int layer){
-        int otherLayer=getSensorModulePairLayer(layer);
+    boolean hasSensorModulePairHit(Track trk, int layer) {
+        int otherLayer = getSensorModulePairLayer(layer);
         return layerHasHit(trk,otherLayer);
         
     }
@@ -1776,47 +1848,45 @@ public class SvtHitEfficiencyKalman extends Driver {
     //  as the given layer...eg.  0->1, 1->0, 6->7, etc...
     //  this starts with layer = 0
     //
-    int getSensorModulePairLayer(int layer){
-        if(layer%2 == 0)
+    int getSensorModulePairLayer (int layer) {
+        if (layer%2 == 0)
             return layer+1;
         else 
             return layer-1;                
         
     }
 
-
-    private int getFrontLayersPattern(Track trk){
+    private int getFrontLayersPattern(Track trk) {
         int pat=0;
         for (TrackerHit stripCluster : trk.getTrackerHits()) {
-            int lay=((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
-            if(lay==1)
+            int lay = ((HpsSiSensor) ((RawTrackerHit) stripCluster.getRawHits().get(0)).getDetectorElement()).getLayerNumber();
+            if (lay==1)
                 pat+=1000; 
-            if(lay==2)
+            if (lay==2)
                 pat+=100; 
-            if(lay==3)
+            if (lay==3)
                 pat+=10; 
-            if(lay==4)
+            if (lay==4)
                 pat+=1; 
         }
         return pat; 
     }    
 
-    private String getPatternString(int pat){       
-        String patString=String.format("%04d",pat);  
-        if(debug)System.out.println(patString); 
+    private String getPatternString(int pat) {       
+        String patString = String.format("%04d", pat);  
+        if (debug) System.out.println(patString); 
         return patString;        
     }
 
-
-    private List<String> patternStringList(){
-        Integer patInt=0;
-        List<String> patterns=new ArrayList<String>(); 
-        for(int l1=0;l1<2; l1++){
-            for(int l2=0;l2<2; l2++){
-                for(int l3=0;l3<2; l3++){
-                    for(int l4=0;l4<2; l4++){
-                        patInt=l1*1000+l2*100+l3*10+1*l4; 
-                        patterns.add(String.format("%04d",patInt));
+    private List<String> patternStringList() {
+        Integer patInt = 0;
+        List<String> patterns = new ArrayList<String>(); 
+        for(int l1=0; l1<2; l1++) {
+            for(int l2=0; l2<2; l2++) {
+                for(int l3=0; l3<2; l3++) {
+                    for(int l4=0; l4<2; l4++) {
+                        patInt = l1*1000 + l2*100 + l3*10 + 1*l4; 
+                        patterns.add(String.format("%04d", patInt));
                     }                    
                 }
             }
@@ -1825,7 +1895,5 @@ public class SvtHitEfficiencyKalman extends Driver {
     }
 
 }
-
-
 
 //  LocalWords:  ebeam

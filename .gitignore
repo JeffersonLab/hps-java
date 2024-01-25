@@ -51,3 +51,6 @@ target/
 
 # ignore user VS Code settings
 .vscode
+
+# ignore local user documentation
+html/

@@ -62,7 +62,7 @@ public class KalTrack {
     private double[] arcLength;
     private static LinearSolverDense<DMatrixRMaj> solver;
     static int[] nBadCov = {0, 0};
-    private boolean trimSites=false;
+    private boolean trimSites = false;
 
     KalTrack(int evtNumb, int tkID, ArrayList<MeasurementSite> SiteList, ArrayList<Double> yScat, ArrayList<Double> XLscat, KalmanParams kPar) {
         // System.out.format("KalTrack constructor chi2=%10.6f\n", chi2);
@@ -87,28 +87,28 @@ public class KalTrack {
         Collections.sort(SiteList, MeasurementSite.SiteComparatorUp);
         int firstSite = -1;
         int lastSite = 999;
-	if (trimSites){
-	    for (int idx = 0; idx < SiteList.size(); ++idx) {
-		firstSite = idx;
-		if (SiteList.get(idx).hitID >= 0) {
-		    break;
-		}
+	    if (trimSites) {
+            for (int idx = 0; idx < SiteList.size(); ++idx) {
+                firstSite = idx;
+                if (SiteList.get(idx).hitID >= 0) {
+                    break;
+                }
+	        }
+	        for (int idx = SiteList.size() - 1; idx >= 0; --idx) {
+		        lastSite = idx;
+		        if (SiteList.get(idx).hitID >= 0) {
+		            break;
+		        }
+	        }
+	    } else {
+            firstSite = 0;
+            lastSite = SiteList.size() - 1;
 	    }
-	    for (int idx = SiteList.size() - 1; idx >= 0; --idx) {
-		lastSite = idx;
-		if (SiteList.get(idx).hitID >= 0) {
-		    break;
-		}
-	    }
-	}else{
-	    firstSite=0;
-	    lastSite=SiteList.size() - 1;
-	}
-        if(debug)System.out.println("SiteList size for this track is :  "+SiteList.size());
+        if (debug) System.out.println("SiteList size for this track is :  " + SiteList.size());
         this.SiteList = new ArrayList<MeasurementSite>(SiteList.size());
         for (int idx = firstSite; idx <= lastSite; ++idx) {
             MeasurementSite site = SiteList.get(idx);
-            if(debug)System.out.println("site number = "+idx+"  Layer Number = "+site.m.Layer+" has hit? "+site.hitID);
+            if(debug) System.out.println("site number = " + idx + "  Layer Number = " + site.m.Layer + " has hit? " + site.hitID);
             if (site.aS == null && debug) {  // This will happen pretty often when keeping sites with no hits at ends of track
                 logger.log(Level.SEVERE, String.format("Event %d: site of track %d is missing smoothed state vector for layer %d detector %d", eventNumber, ID, site.m.Layer, site.m.detector));
                 logger.log(Level.WARNING, site.toString("bad site"));
@@ -166,6 +166,7 @@ public class KalTrack {
         if (nHits < 5) {  // This should never happen
             logger.log(Level.WARNING, "KalTrack error: not enough hits (" + nHits + ") on the candidate track (ID::" + ID + ") for event " + eventNumber);
             bad = true;
+            // TODO can this be removed?
             //for (MeasurementSite site : SiteList) logger.log(Level.FINE, site.toString("in KalTrack input list"));
             //logger.log(Level.FINE, String.format("KalTrack error in event %d: not enough hits on track %d: ",evtNumb,tkID));
             //String str="";
@@ -269,9 +270,8 @@ public class KalTrack {
         }
         Vec aStar = null;
         DMatrixRMaj Cstar = new DMatrixRMaj(5, 5);    
-        //        System.out.println(site.toString("foobar"));
+
         if (site.hitID >= 0 && site.m.hits.size()>0) {  // Use the inverse filter to remove the bias from the local hit
-            //            System.out.println("KalTrack:: hitID = " + site.hitID);
             double sigma = site.m.hits.get(site.hitID).sigma;
             aStar = site.aS.inverseFilter(site.H, sigma * sigma, Cstar);
         } else {                // Just use the local helix if there is no local hit
@@ -439,8 +439,8 @@ public class KalTrack {
         if (lyrMap.containsKey(layer)) {
             return unbiasedIntersect(lyrMap.get(layer),local);
         } else {
-            if(debug)System.out.println("KalTrack::unbiasedIntersect  lyrMap does not contain layer = "+layer+" lyrMap.size() = "+lyrMap.size());
-            return new Pair<Double[], Double>(new Double[]{-999.,-999.,-999.}, -999.);
+            if(debug)System.out.println("KalTrack::unbiasedIntersect  lyrMap does not contain layer = " + layer + " lyrMap.size() = " + lyrMap.size());
+            return new Pair<Double[], Double>(new Double[]{-999., -999., -999.}, -999.);
         }
     }
 

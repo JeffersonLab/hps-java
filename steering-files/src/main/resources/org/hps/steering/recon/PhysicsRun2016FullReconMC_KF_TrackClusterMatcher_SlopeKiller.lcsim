@@ -82,12 +82,12 @@
         </driver>-->
 
         <driver name="SlopeBasedTrackHitKiller" type="org.hps.recon.tracking.KalmanSlopeBasedTrackHitKiller">
-          <ratioFiles>EmGamma-L1HitEfficiencyResults-2016.txt</ratioFiles>
-          <scaleKillFactor>1.0</scaleKillFactor> 
-          <debug>true</debug>
-          <useSqrtKillFactor>true</useSqrtKillFactor>
-          <correctForDisplacement>false</correctForDisplacement>
-          <trackCollectionName>KalmanFullTracks</trackCollectionName>
+            <ratioFiles>EmGamma-L1HitEfficiencyResults-2016.txt</ratioFiles>
+            <scaleKillFactor>1.0</scaleKillFactor> 
+            <debug>true</debug>
+            <useSqrtKillFactor>true</useSqrtKillFactor>
+            <correctForDisplacement>false</correctForDisplacement>
+            <trackCollectionName>KalmanFullTracks</trackCollectionName>
         </driver>
 
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverterDriver">

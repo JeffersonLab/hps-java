@@ -34,29 +34,29 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>   
-      <driver name="SVTHitEfficiency" type="org.hps.recon.tracking.kalman.SvtHitEfficiencyKalman">
-        <maxLayer>12</maxLayer>
-        <useTrkTimeCut>false</useTrkTimeCut>
-        <trkTimeCut>10.0</trkTimeCut>
-        <trkTimeMean>15.0</trkTimeMean>
-	<debug>false</debug>
-      </driver>
+        <driver name="SVTHitEfficiency" type="org.hps.recon.tracking.kalman.SvtHitEfficiencyKalman">
+            <maxLayer>12</maxLayer>
+            <useTrkTimeCut>false</useTrkTimeCut>
+            <trkTimeCut>10.0</trkTimeCut>
+            <trkTimeMean>15.0</trkTimeMean>
+            <debug>false</debug>
+        </driver>
       
-      <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
+        <driver name="RfFitter" type="org.hps.evio.RfFitterDriver"/>       
         <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">          
-          <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles 
-          UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates 
-          UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices 
-          TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates 
-          BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices 
-          GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits 
-          HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  
-          RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  
-          SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations 
-          TrackResiduals TrackResidualsRelations OtherElectrons UnconstrainedVcCandidates UnconstrainedVcVertices
-	  KFTrackData KFTrackDataRelations KFGBLStripClusterData  KFGBLStripClusterDataRelations SVTShapeFitParameters UnconstrainedVcCandidates_KF UnconstrainedVcVertices_KF
-          KalmanFullTracks UnconstrainedV0Candidates_KF TargetConstrainedV0Candidates_KF BeamspotConstrainedV0Candidates_KF UnconstrainedV0Vertices_KF TargetConstrainedV0Vertices_KF BeamspotConstrainedV0Vertices_KF
-          </collectionNames>
+            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles 
+            UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates 
+            UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices 
+            TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates 
+            BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices 
+            GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits 
+            HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations  
+            RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  
+            SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations 
+            TrackResiduals TrackResidualsRelations OtherElectrons UnconstrainedVcCandidates UnconstrainedVcVertices
+            KFTrackData KFTrackDataRelations KFGBLStripClusterData  KFGBLStripClusterDataRelations SVTShapeFitParameters UnconstrainedVcCandidates_KF UnconstrainedVcVertices_KF
+            KalmanFullTracks UnconstrainedV0Candidates_KF TargetConstrainedV0Candidates_KF BeamspotConstrainedV0Candidates_KF UnconstrainedV0Vertices_KF TargetConstrainedV0Vertices_KF BeamspotConstrainedV0Vertices_KF
+            </collectionNames>
         </driver>
       
         <!-- Ecal reconstruction drivers -->
@@ -87,8 +87,8 @@
 
         <driver name="StripHitKiller" type="org.hps.recon.tracking.StripHitKiller">
 <!--          <ratioFiles>pass4b-KF-hps2016_L1b_axial_hole.txt pass4b-KF-hps2016_L1b_stereo_hole.txt pass4b-KF-hps2016_L1t_axial_hole.txt pass4b-KF-hps2016_L1t_stereo_hole.txt pass4b-KF-hps2016_L6b_axial_hole.txt pass4b-KF-hps2016_L6b_axial_slot.txt pass4b-KF-hps2016_L6b_stereo_hole.txt pass4b-KF-hps2016_L6b_stereo_slot.txt pass4b-KF-hps2016_L6t_axial_hole.txt pass4b-KF-hps2016_L6t_axial_slot.txt pass4b-KF-hps2016_L6t_stereo_hole.txt pass4b-KF-hps2016_L6t_stereo_slot.txt</ratioFiles>  -->
-          <ratioFiles>pass4b-KF-hps2016_L1b_axial_hole.txt pass4b-KF-hps2016_L1b_stereo_hole.txt pass4b-KF-hps2016_L1t_axial_hole.txt pass4b-KF-hps2016_L1t_stereo_hole.txt  pass4b-KF-hps2016_L2b_axial_hole.txt pass4b-KF-hps2016_L2b_stereo_hole.txt pass4b-KF-hps2016_L2t_axial_hole.txt pass4b-KF-hps2016_L2t_stereo_hole.txt</ratioFiles>
-	  <debug>false</debug>
+            <ratioFiles>pass4b-KF-hps2016_L1b_axial_hole.txt pass4b-KF-hps2016_L1b_stereo_hole.txt pass4b-KF-hps2016_L1t_axial_hole.txt pass4b-KF-hps2016_L1t_stereo_hole.txt  pass4b-KF-hps2016_L2b_axial_hole.txt pass4b-KF-hps2016_L2b_stereo_hole.txt pass4b-KF-hps2016_L2t_axial_hole.txt pass4b-KF-hps2016_L2t_stereo_hole.txt</ratioFiles>
+	        <debug>false</debug>
         </driver> 
         
         <!-- SVT reconstruction drivers -->

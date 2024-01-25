@@ -8,7 +8,7 @@ import org.lcsim.event.GenericObject;
 public class TrackIntersectData implements GenericObject {
     
     List<Double> intersects = new ArrayList<Double>();
-    List<Float>  sigmas    = new ArrayList<Float>();
+    List<Float> sigmas = new ArrayList<Float>();
     List<Integer> layers = new ArrayList<Integer>();
     
     /**
@@ -25,7 +25,7 @@ public class TrackIntersectData implements GenericObject {
     }
 
     /**
-     * 
+     *  TODO add comments
      */
     @Override
     public double getDoubleVal(int index) {
@@ -48,7 +48,6 @@ public class TrackIntersectData implements GenericObject {
         return layers.get(index);
     }
 
-
     public int getLayer(int index){
         return layers.get(index);
     }
@@ -58,9 +57,8 @@ public class TrackIntersectData implements GenericObject {
     }
 
     public Double[] getIntersect(int index) {        
-        return new Double[]{intersects.get(3*index),intersects.get(3*index+1),intersects.get(3*index+2)};
+        return new Double[]{intersects.get(3*index), intersects.get(3*index+1), intersects.get(3*index+2)};
     }
-
 
     /**
      * 
