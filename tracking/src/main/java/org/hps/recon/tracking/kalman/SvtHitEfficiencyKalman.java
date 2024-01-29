@@ -38,7 +38,6 @@ import org.hps.recon.tracking.TrackIntersectData;
 import hep.physics.matrix.SymmetricMatrix;
 import org.hps.recon.tracking.TrackStateUtils;
 
-
 import hep.aida.IAnalysisFactory;
 import hep.aida.IHistogram1D;
 import hep.aida.IHistogram2D;
@@ -148,87 +147,7 @@ public class SvtHitEfficiencyKalman extends Driver {
     Map<String, IHistogram1D> AllHitsnumberOfTracksWithHitOnMissingLayerPhiPos = new HashMap<String, IHistogram1D>();
     Map<String, IHistogram2D> AllHitsnumberOfTracksTanLVsPhiPos = new HashMap<String, IHistogram2D>();
     Map<String, IHistogram2D> AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos = new HashMap<String, IHistogram2D>();
-
-
-    /*
-    Map<String, IHistogram1D> numberOfTracksChannelCorrected = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyChannelCorrected = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> numberOfTracksUCorrected = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyUCorrected = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> numberOfTracksPCorrected = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyPCorrected = new HashMap<String, IHistogram1D>();
-
-    Map<String, IHistogram1D> numberOfTracksChannelCorrectedEle = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyChannelCorrectedEle = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> numberOfTracksUCorrectedEle = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyUCorrectedEle = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> numberOfTracksPCorrectedEle = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyPCorrectedEle = new HashMap<String, IHistogram1D>();
-    
-    Map<String, IHistogram1D> numberOfTracksChannelCorrectedPos = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyChannelCorrectedPos = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> numberOfTracksUCorrectedPos = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyUCorrectedPos = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> numberOfTracksPCorrectedPos = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyPCorrectedPos = new HashMap<String, IHistogram1D>();
-    
-    Map<String, IHistogram1D> TotalEff = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> TotalEffEle = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> TotalEffPos = new HashMap<String, IHistogram1D>();
-   
-    Map<String, IHistogram1D> TotalCorrectedEff = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> TotalCorrectedEffEle = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> TotalCorrectedEffPos = new HashMap<String, IHistogram1D>();
-   
-    Map<String, IHistogram1D> hitEfficiencyChannelerr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyUerr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyPerr = new HashMap<String, IHistogram1D>();
-    
-    Map<String, IHistogram1D> hitEfficiencyChannelCorrectederr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyUCorrectederr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyPCorrectederr = new HashMap<String, IHistogram1D>();
-    
-    Map<String, IHistogram1D> hitEfficiencyChannelEleerr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyUEleerr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyPEleerr = new HashMap<String, IHistogram1D>();
-    
-    Map<String, IHistogram1D> hitEfficiencyChannelCorrectedEleerr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyUCorrectedEleerr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyPCorrectedEleerr = new HashMap<String, IHistogram1D>();
-    
-    Map<String, IHistogram1D> hitEfficiencyChannelPoserr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyUPoserr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyPPoserr = new HashMap<String, IHistogram1D>();
-   
-    Map<String, IHistogram1D> hitEfficiencyChannelCorrectedPoserr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyUCorrectedPoserr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> hitEfficiencyPCorrectedPoserr = new HashMap<String, IHistogram1D>();
-   
-    Map<String, IHistogram1D> TotalEfferr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> TotalEffEleerr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> TotalEffPoserr = new HashMap<String, IHistogram1D>();
-   
-    Map<String, IHistogram1D> TotalCorrectedEfferr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> TotalCorrectedEffEleerr = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram1D> TotalCorrectedEffPoserr = new HashMap<String, IHistogram1D>();
-    
-    Map<String, IHistogram1D> errorU = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram2D> errorUvsU = new HashMap<String, IHistogram2D>();
-    Map<String, IHistogram2D> errorUvsV = new HashMap<String, IHistogram2D>();
-    Map<String, IHistogram2D> errorUvsP = new HashMap<String, IHistogram2D>();
-
-    Map<String, IHistogram1D> errorUEle = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram2D> errorUvsUEle = new HashMap<String, IHistogram2D>();
-    Map<String, IHistogram2D> errorUvsVEle = new HashMap<String, IHistogram2D>();
-    Map<String, IHistogram2D> errorUvsPEle = new HashMap<String, IHistogram2D>();
-
-    Map<String, IHistogram1D> errorUPos = new HashMap<String, IHistogram1D>();
-    Map<String, IHistogram2D> errorUvsUPos = new HashMap<String, IHistogram2D>();
-    Map<String, IHistogram2D> errorUvsVPos = new HashMap<String, IHistogram2D>();
-    Map<String, IHistogram2D> errorUvsPPos = new HashMap<String, IHistogram2D>();
-    */
-
-
+ 
     Map<String, IHistogram2D> tMinus7VsLayer = new HashMap<String, IHistogram2D>();
     Map<String, IHistogram2D> tMinus7VsLayerNHits = new HashMap<String, IHistogram2D>();
     Map<String, IHistogram2D> t0VsLayer = new HashMap<String, IHistogram2D>();
@@ -754,180 +673,6 @@ public class SvtHitEfficiencyKalman extends Driver {
                     numberOfTracksTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
                     numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Number of Tracks With Hit TanL vs Phi Pos " + sensorName, nBins2D, minPhi0, maxPhi0, nBins2D, minTLambda, maxTLambda));
                 }
-                
-                //hitEfficiencyPPos.put(mapName,histogramFactory.createHistogram1D(dirName + "HitEfficiency P Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-                /*
-                  numberOfTracksChannelCorrected.put(sensorName,
-                    histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Corrected " + sensorName,
-                            nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                            hitEfficiencyChannelCorrected.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected " + sensorName,
-                            nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                            numberOfTracksUCorrected.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "Number of Tracks U Corrected " + sensorName, nBins, -maxU, maxU));
-                            hitEfficiencyUCorrected.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName + "HitEfficiency U Corrected " + sensorName, nBins, -maxU, maxU));
-                            numberOfTracksPCorrected.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "Number of Tracks P Corrected " + sensorName, nBins, 0, 1.3 * ebeam));
-                            hitEfficiencyPCorrected.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "HitEfficiency P Corrected " + sensorName, nBins, 0, 1.3 * ebeam));
-                            
-                            numberOfTracksChannelCorrectedEle.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Corrected Ele " + sensorName,
-                            nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                            hitEfficiencyChannelCorrectedEle.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Ele " + sensorName,
-                            nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                            numberOfTracksUCorrectedEle.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "Number of Tracks U Corrected Ele " + sensorName, nBins, -maxU, maxU));
-                            hitEfficiencyUCorrectedEle.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "HitEfficiency U Corrected Ele " + sensorName, nBins, -maxU, maxU));
-                            numberOfTracksPCorrectedEle.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "Number of Tracks P Corrected Ele " + sensorName, nBins, 0, 1.3 * ebeam));
-                            hitEfficiencyPCorrectedEle.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "HitEfficiency P Corrected Ele " + sensorName, nBins, 0, 1.3 * ebeam));
-                            
-                            numberOfTracksChannelCorrectedPos.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName + "Number of Tracks Channel Corrected Pos " + sensorName,
-                            nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                            hitEfficiencyChannelCorrectedPos.put(sensorName,
-                            histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Pos " + sensorName,
-                            nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                            numberOfTracksUCorrectedPos.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "Number of Tracks U Corrected Pos " + sensorName, nBins, -maxU, maxU));
-                            hitEfficiencyUCorrectedPos.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "HitEfficiency U Corrected Pos " + sensorName, nBins, -maxU, maxU));
-                            numberOfTracksPCorrectedPos.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "Number of Tracks P Corrected Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-                            hitEfficiencyPCorrectedPos.put(sensorName, histogramFactory
-                            .createHistogram1D(dirName + "HitEfficiency P Corrected Pos " + sensorName, nBins, 0, 1.3 * ebeam));
-                */
-                /*
-                TotalEff.put(mapName, histogramFactory.createHistogram1D(dirName + "Total Eff " + sensorName, 1, 0, 1));
-                TotalEffEle.put(mapName, histogramFactory.createHistogram1D(dirName + "Total Eff Ele " + sensorName, 1, 0, 1));
-                TotalEffPos.put(mapName, histogramFactory.createHistogram1D(dirName + "Total Eff Pos " + sensorName, 1, 0, 1));
-                */
-                /*
-                  TotalCorrectedEff.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff " + sensorName, 1, 0, 1));
-                  TotalCorrectedEffEle.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Ele " + sensorName, 1, 0, 1));
-                  TotalCorrectedEffPos.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Pos " + sensorName, 1, 0, 1));
-                */
-                /*
-                hitEfficiencyChannelerr.put(mapName, histogramFactory.createHistogram1D(
-                                                                                           "HitEfficiency Channel Error " + sensorName, nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                hitEfficiencyUerr.put(mapName,
-                                      histogramFactory.createHistogram1D(dirName + "HitEfficiency U Error " + sensorName, nBins, -maxU, maxU));
-                hitEfficiencyPerr.put(mapName,
-                                      histogramFactory.createHistogram1D(dirName + "HitEfficiency P Error " + sensorName, nBins, 0, 1.3 * ebeam));
-                */
-                /*
-                  hitEfficiencyChannelCorrectederr.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Error " + sensorName,
-                  nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                  hitEfficiencyUCorrectederr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName + "HitEfficiency U Corrected Error " + sensorName, nBins, -maxU, maxU));
-                  hitEfficiencyPCorrectederr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName + "HitEfficiency P Corrected Error " + sensorName, nBins, 0, 1.3 * ebeam));
-                */
-                /*
-                hitEfficiencyChannelEleerr.put(mapName,
-                                               histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Ele Error " + sensorName,
-                                                                                  nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                hitEfficiencyUEleerr.put(mapName,
-                                         histogramFactory.createHistogram1D(dirName + "HitEfficiency U Ele Error " + sensorName, nBins, -maxU, maxU));
-                hitEfficiencyPEleerr.put(mapName, histogramFactory
-                                         .createHistogram1D(dirName + "HitEfficiency P Ele Error " + sensorName, nBins, 0, 1.3 * ebeam));
-                */
-                /*
-                  hitEfficiencyChannelCorrectedEleerr.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Ele Error " + sensorName,
-                  nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                  hitEfficiencyUCorrectedEleerr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName + "HitEfficiency U Corrected Ele Error " + sensorName, nBins, -maxU, maxU));
-                  hitEfficiencyPCorrectedEleerr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName + "HitEfficiency P Corrected Ele Error " + sensorName, nBins, 0, 1.3 * ebeam));
-                */
-                /*
-                hitEfficiencyChannelPoserr.put(mapName, histogramFactory.createHistogram1D(
-                                                                                              "HitEfficiency Channel Pos Error " + sensorName, nChan, -chanExtd, nChan + chanExtd));
-                hitEfficiencyUPoserr.put(mapName,
-                                         histogramFactory.createHistogram1D(dirName + "HitEfficiency U Pos Error " + sensorName, nBins, -maxU, maxU));
-                hitEfficiencyPPoserr.put(mapName, histogramFactory
-                                         .createHistogram1D(dirName + "HitEfficiency P Pos Error " + sensorName, nBins, 0, 1.3 * ebeam));
-                */
-                /*
-                  hitEfficiencyChannelCorrectedPoserr.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "HitEfficiency Channel Corrected Pos Error " + sensorName,
-                  nChan + 2 * chanExtd, -chanExtd, nChan + chanExtd));
-                  hitEfficiencyUCorrectedPoserr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName + "HitEfficiency U Corrected Pos Error " + sensorName, nBins, -maxU, maxU));
-                  hitEfficiencyPCorrectedPoserr.put(sensorName, histogramFactory
-                  .createHistogram1D(dirName + "HitEfficiency P Corrected Pos Error " + sensorName, nBins, 0, 1.3 * ebeam));
-                */
-                /*
-                TotalEfferr.put(mapName, histogramFactory.createHistogram1D(dirName + "Total Eff Error " + sensorName, 1, 0, 1));
-                TotalEffEleerr.put(mapName,
-                                   histogramFactory.createHistogram1D(dirName + "Total Eff Ele Error " + sensorName, 1, 0, 1));
-                TotalEffPoserr.put(mapName,
-                                   histogramFactory.createHistogram1D(dirName + "Total Eff Pos Error " + sensorName, 1, 0, 1));
-                */
-                /*
-                  TotalCorrectedEfferr.put(mapName,
-                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Error " + sensorName, 1, 0, 1));
-                  TotalCorrectedEffEleerr.put(mapName,
-                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Ele Error " + sensorName, 1, 0, 1));
-                  TotalCorrectedEffPoserr.put(mapName,
-                  histogramFactory.createHistogram1D(dirName + "Total Corrected Eff Pos Error " + sensorName, 1, 0, 1));
-                */
-                /*
-                errorU.put(mapName, histogramFactory.createHistogram1D(dirName + "Error U " + sensorName, nBins, 0, maxYerror));
-                errorUvsV.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs V " + sensorName, 2 * nBins, minV,
-                                                                             maxV, nBins, 0, maxYerror));
-                errorUvsU.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs U " + sensorName, 2 * nBins, -maxU,
-                                                                             maxU, nBins, 0, maxYerror));
-                errorUvsP.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs P " + sensorName, nBins, 0,
-                                                                             1.3 * ebeam, nBins, 0, maxYerror));
-                
-                errorUEle.put(mapName,
-                              histogramFactory.createHistogram1D(dirName + "Error U Electrons " + sensorName, nBins, 0, maxYerror));
-                errorUvsVEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs V Electrons " + sensorName,
-                                                                                2 * nBins, minV, maxV, nBins, 0, maxYerror));
-                errorUvsUEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs U Electrons " + sensorName,
-                                                                                2 * nBins, -maxU, maxU, nBins, 0, maxYerror));
-                errorUvsPEle.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs P Electrons " + sensorName,
-                                                                                nBins, 0, 1.3 * ebeam, nBins, 0, maxYerror));
-                
-                errorUPos.put(mapName,
-                              histogramFactory.createHistogram1D(dirName + "Error U Electrons " + sensorName, nBins, 0, maxYerror));
-                errorUvsVPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs V Positrons " + sensorName,
-                                                                                2 * nBins, minV, maxV, nBins, 0, maxYerror));
-                errorUvsUPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs U Positrons " + sensorName,
-                                                                                2 * nBins, -maxU, maxU, nBins, 0, maxYerror));
-                errorUvsPPos.put(mapName, histogramFactory.createHistogram2D(dirName + "Error U vs P Positrons " + sensorName,
-                                                                                nBins, 0, 1.3 * ebeam, nBins, 0, maxYerror));
-                */
-                /*
-                  D0.put(sensorName, histogramFactory.createHistogram1D(dirName + "D0 " + sensorName, nBins, minD0, maxD0));
-                  Z0.put(sensorName, histogramFactory.createHistogram1D(dirName + "Z0 " + sensorName, nBins, minZ0, maxZ0));
-                  Tanlambda.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "TanLambda " + sensorName, nBins, minTLambda, maxTLambda));
-                  Phi0.put(sensorName, histogramFactory.createHistogram1D(dirName + "Phi0 " + sensorName, nBins, minPhi00, maxPhi00));
-                  Omega.put(sensorName, histogramFactory.createHistogram1D(dirName + "Omega " + sensorName, nBins, minOmega, maxOmega));
-                  
-                  D0_err.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "D0 Error " + sensorName, nBins, minD0Err, maxD0Err));
-                  Z0_err.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "Z0 Error " + sensorName, nBins, minZ0Err, maxZ0Err));
-                  Tanlambda_err.put(sensorName, histogramFactory.createHistogram1D(dirName + "TanLambda Error " + sensorName, nBins,
-                  minTLambdaErr, maxTLambdaErr));
-                  Phi0_err.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "Phi0 Error " + sensorName, nBins, minPhi0Err, maxPhi0Err));
-                  Omega_err.put(sensorName,
-                  histogramFactory.createHistogram1D(dirName + "Omega Error " + sensorName, nBins, minOmegaErr, maxOmegaErr));
-                */
             }
         }
     }
@@ -1140,8 +885,6 @@ public class SvtHitEfficiencyKalman extends Driver {
 
                 //////////////////////////////////////////////////////////////////////////  done with  acceptance
                              
-                double weight = findWeight(intersectU, sigmaU, sensor);
-                
                 if (lyrHasHit)
                     hitLayerMap.put(hpsLayer, 1);
                 else
@@ -1190,12 +933,7 @@ public class SvtHitEfficiencyKalman extends Driver {
                     numberOfTracksTanL.get(nhotsModPairMapName).fill(tanLambda);
                     numberOfTracksPhi.get(nhotsModPairMapName).fill(phi0);
                     numberOfTracksTanLVsPhi.get(nhotsModPairMapName).fill(phi0, tanLambda);
-
-                    /*
-                      numberOfTracksChannelCorrected.get(mapName).fill(chan, weight);
-                      numberOfTracksUCorrected.get(mapName).fill(intersectU, weight);
-                      numberOfTracksPCorrected.get(mapName).fill(trackP, weight);
-                    */
+                  
                     // Fill electron histograms
                     if (q < 0) {
                         numberOfTracksChannelEle.get(mapName).fill(chan);
@@ -1230,11 +968,6 @@ public class SvtHitEfficiencyKalman extends Driver {
                         numberOfTracksPhiEle.get(nhotsModPairMapName).fill(phi0);
                         numberOfTracksTanLVsPhiEle.get(nhotsModPairMapName).fill(phi0, tanLambda);
 
-                    /*
-                          numberOfTracksChannelCorrectedEle.get(mapName).fill(chan, weight);
-                          numberOfTracksUCorrectedEle.get(mapName).fill(intersectU, weight);
-                          numberOfTracksPCorrectedEle.get(mapName).fill(trackP, weight);
-                        */
                     } // Fill positron histograms
                     else {
                         numberOfTracksChannelPos.get(mapName).fill(chan);
@@ -1266,33 +999,8 @@ public class SvtHitEfficiencyKalman extends Driver {
                         numberOfTracksTanLPos.get(nhotsModPairMapName).fill(tanLambda);
                         numberOfTracksPhiPos.get(nhotsModPairMapName).fill(phi0);
                         numberOfTracksTanLVsPhiPos.get(nhotsModPairMapName).fill(phi0, tanLambda);
-
-                        /*
-                          numberOfTracksChannelCorrectedPos.get(mapName).fill(chan, weight);
-                          numberOfTracksUCorrectedPos.get(mapName).fill(intersectU, weight);
-                          numberOfTracksPCorrectedPos.get(mapName).fill(trackP, weight);
-                        */
                     }
                     
-                    // Fill the error histos
-                    /*
-                      errorU.get(mapName).fill(sigmaU);
-                      errorUvsV.get(mapName).fill(intersect[1], sigmaU);
-                      errorUvsU.get(mapName).fill(intersectU, sigmaU);
-                      errorUvsP.get(mapName).fill(p.magnitude(), sigmaU);
-                      
-                      if (q < 0) {
-                      errorUEle.get(mapName).fill(sigmaU);
-                      errorUvsVEle.get(mapName).fill(intersect[1], sigmaU);
-                      errorUvsUEle.get(mapName).fill(intersectU, sigmaU);
-                      errorUvsPEle.get(mapName).fill(p.magnitude(), sigmaU);
-                      } else {
-                      errorUPos.get(mapName).fill(sigmaU);
-                      errorUvsVPos.get(mapName).fill(intersect[1], sigmaU);
-                      errorUvsUPos.get(mapName).fill(intersectU, sigmaU);
-                      errorUvsPPos.get(mapName).fill(p.magnitude(), sigmaU);
-                      }
-                    */
                     // If layer has a hit included in track, fill the numerator efficiency histograms
                     if (lyrHasHit) {
                         for (TrackerHit stripCluster : track.getTrackerHits()) {
@@ -1391,7 +1099,7 @@ public class SvtHitEfficiencyKalman extends Driver {
                             AllHitsnumberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(allModPairMapName).fill(phi0, tanLambda);
                             numberOfTracksWithHitOnMissingLayerTanLPos.get(mapName).fill(tanLambda);
                             numberOfTracksWithHitOnMissingLayerPhiPos.get(mapName).fill(phi0);
-                            numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(mapName).fill(phi0, tanLambda);                                        
+                            numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(mapName).fill(phi0, tanLambda); 
                             numberOfTracksWithHitOnMissingLayerTanLPos.get(nhotsModPairMapName).fill(tanLambda);
                             numberOfTracksWithHitOnMissingLayerPhiPos.get(nhotsModPairMapName).fill(phi0);
                             numberOfTracksWithHitOnMissingLayerTanLVsPhiPos.get(nhotsModPairMapName).fill(phi0, tanLambda);
@@ -1443,6 +1151,7 @@ public class SvtHitEfficiencyKalman extends Driver {
 
     // Computes weight based on the number of sigmas (u error) the track
     // extrapolates from the edge of the sensor
+    // MG:  this isn't use currently but leave for later
     private double findWeight(double y, double yErr, HpsSiSensor sensor) {
         double readoutPitch = sensor.getReadoutStripPitch();
         int nChan = sensor.getNumberOfChannels();
@@ -1525,13 +1234,7 @@ public class SvtHitEfficiencyKalman extends Driver {
             return electrodes.getCellID(row, col);
         }else{
             return electrodes.getCellID(pos);            
-        }
-        //double readoutPitch = sensor.getReadoutStripPitch();
-        //int nChan = sensor.getNumberOfChannels();
-        //double height = readoutPitch * nChan;
-        //      if (sensor.getLayerNumber()<thinLayCutoff)
-        //    return (int)((height / 2 - pos.x()) / readoutPitch);
-        //return (int) ((height / 2 - pos.x()) / readoutPitch);
+        }       
     }
 
     // Converts double array into Hep3Vector
@@ -1572,8 +1275,6 @@ public class SvtHitEfficiencyKalman extends Driver {
     private HpsSiSensor getSensor(Track track, int layer, boolean isAxial, boolean isHole) {
         double tanLambda = track.getTrackStates().get(0).getTanLambda();
         int outerLayer = 9;
-        //TODO unused variable
-        boolean trkIsTop = tanLambda > 0;
         for (HpsSiSensor sensor : sensors) {
             int senselayer = sensor.getLayerNumber();  //the "layer" input here has already been incremented so goes 1-14, just like the getLayerNumber() returns
             if (senselayer != layer)
@@ -1593,18 +1294,6 @@ public class SvtHitEfficiencyKalman extends Driver {
         return null;
     }
     
-    // TODO unused function
-    private Matrix Hep3ToMatrix(Hep3Matrix mat) {
-        int Nrows = mat.getNRows();
-        int Ncolumns = mat.getNColumns();
-        Matrix matrix = new Matrix(Nrows, Ncolumns);
-        for (int i = 0; i < Nrows; i++) {
-            for (int j = 0; j < Ncolumns; j++) {
-                matrix.set(i, j, mat.e(i, j));
-            }
-        }
-        return matrix;
-    }
 
     private int getUnusedSvtLayer(List<TrackerHit> stereoHits) {
         int[] svtLayer = new int[6];
@@ -1656,24 +1345,7 @@ public class SvtHitEfficiencyKalman extends Driver {
             inAcceptance = false;              
         return new Pair<>(chan, inAcceptance);
     }
-
-    //Checks to see if track is in acceptance of sensor. Computes within sensor frame
-    //Also return channel number of the position
-    // TODO unused function
-    /*
-    public Pair<Boolean, Pair<Integer, Hep3Vector>> sensorContainsTrack(Hep3Vector trackPosition, HpsSiSensor sensor) {
-        Hep3Vector pos = globalToSensor(trackPosition, sensor);
-        int nChan = sensor.getNumberOfChannels();
-        int chan = getChan(pos, sensor);
-        double width = getSensorLength(sensor);
-        Pair<Integer, Hep3Vector> pair = new Pair<>(chan, pos);
-        if (chan < -this.chanExtd || chan > (nChan + this.chanExtd))
-            return new Pair<>(false, pair);
-        if (Math.abs(pos.y()) > width / 2)
-            return new Pair<>(false, pair);
-        return new Pair<>(true, pair);
-    }
-    */
+   
 
     boolean layerHasHit(Track track, int layer) {
         layer = layer+1;
@@ -1735,58 +1407,9 @@ public class SvtHitEfficiencyKalman extends Driver {
         if (yHole<ySlot)
             return true;
         else
-            return false; 
-
-        //           TrackState tState = TrackStateUtils.getTrackStateAtSensor(track, sensorHole.getMillepedeId());
-        //if (tState != null)
-        //    return true;  // it is indeed hole side
-        
-        //tState = TrackStateUtils.getTrackStateAtSensor(track, sensorSlot.getMillepedeId());
-        //if (tState!=null)
-        //    return false; //it is slot side, not hole side 
-        //whelp, no track state here...return false anyway
-        //           if (debug)System.out.println("isTrackHole::  neither slot nor hole had track state.  This shouldn't happen");
-        //        return false; 
+            return false;       
     }
-
-    //Checks to see if track is within acceptance of both axial and stereo sensors at a given layer
-    //Also returns channel number of the intersection
-    // TODO can this be removed?
-    /*
-    private boolean isTrackHole(Track track, TrackState tState, int layer, boolean axial, Hep3Vector p, FieldMap fieldMap) {
-
-        HpsSiSensor axialSensorHole = getSensor(track, layer, true, true);
-        HpsSiSensor axialSensorSlot = getSensor(track, layer, true, false);
-        HpsSiSensor stereoSensorHole = getSensor(track, layer, false, true);
-        HpsSiSensor stereoSensorSlot = getSensor(track, layer, false, false);
-
-        HelicalTrackFit htf = TrackUtils.getHTF(tState);
-
-        Hep3Vector axialTrackHolePos = TrackStateUtils.getLocationAtSensor(htf, axialSensorHole, bfield);
-        Hep3Vector axialTrackSlotPos = TrackStateUtils.getLocationAtSensor(htf, axialSensorSlot, bfield);
-        Hep3Vector stereoTrackHolePos = TrackStateUtils.getLocationAtSensor(htf, stereoSensorHole, bfield);
-        Hep3Vector stereoTrackSlotPos = TrackStateUtils.getLocationAtSensor(htf, stereoSensorSlot, bfield);
-
-        Pair<Boolean, Pair<Integer, Hep3Vector>> axialHolePair = this.sensorContainsTrack(axialTrackHolePos, axialSensorHole);
-        Pair<Boolean, Pair<Integer, Hep3Vector>> axialSlotPair = this.sensorContainsTrack(axialTrackSlotPos, axialSensorSlot);
-        Pair<Boolean, Pair<Integer, Hep3Vector>> stereoHolePair = this.sensorContainsTrack(stereoTrackHolePos, stereoSensorHole);
-        Pair<Boolean, Pair<Integer, Hep3Vector>> stereoSlotPair = this.sensorContainsTrack(stereoTrackSlotPos, stereoSensorSlot);
-
-        if (axialHolePair.getFirst() && axial)
-            return new Pair<>(axialSensorHole, axialHolePair.getSecond());
-
-        if (axialSlotPair.getFirst() && axial)
-            return new Pair<>(axialSensorSlot, axialSlotPair.getSecond());
-
-        if (stereoHolePair.getFirst() && !axial)
-            return new Pair<>(stereoSensorHole, stereoHolePair.getSecond());
-
-        if (stereoSlotPair.getFirst() && !axial)
-            return new Pair<>(stereoSensorSlot, stereoSlotPair.getSecond());
-
-        return null;
-    }
-    */
+  
 
     // Returns the horizontal length of the sensor
     protected double getSensorLength(HpsSiSensor sensor) {
@@ -1810,7 +1433,6 @@ public class SvtHitEfficiencyKalman extends Driver {
  // Returns the horizontal length of the sensor
     protected double getSensorWidth(HpsSiSensor sensor) {
         double length = 0;
-        double width = 0; // TODO unused variable
 
         // Get the faces normal to the sensor
         final List<Polygon3D> faces = ((Box) sensor.getGeometry().getLogicalVolume().getSolid())
@@ -1827,7 +1449,6 @@ public class SvtHitEfficiencyKalman extends Driver {
         return length;
     }
 
-    // TODO what is this?
     public void endOfData() {
         System.out.println("End of Data. Computing Hit Efficiencies");
 

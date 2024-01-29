@@ -50,20 +50,14 @@ public class SlopeBasedTrackHitKiller extends Driver {
     private static final String SUBDETECTOR_NAME = "Tracker";
     private static Pattern layerPattern = Pattern.compile("L(\\d+)");
     private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
-    private String helicalTrackHitCollectionName = "HelicalTrackHits";
-    private final String rotatedTrackHitCollectionName = "RotatedHelicalTrackHits";
     private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
     private final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
     private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
-    //    private String trackCollectionName="MatchedTracks";
     private String trackCollectionName = "GBLTracks";
     private boolean _debug = false;
     private double _scaleKillFactor = 1.0;
     private List<TrackerHit> siClusters = new ArrayList<TrackerHit>();
     
-    private Map<TrackerHit, Boolean> _siClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
-    private Map<TrackerHit, Boolean> _finalSiClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
-
     private boolean _useSqrtKillFactor = true;
     private boolean _correctForDisplacement = true;
 
@@ -193,7 +187,6 @@ public class SlopeBasedTrackHitKiller extends Driver {
                 if (_debug)
                     System.out.println("ratio = " + ratio + "; killFactor = " + killFactor + "; random # = " + random);
                 if (random < killFactor) {    
-                    // TODO ask if commented out section needed               
                     tmpClusterList.remove(siCluster);
                 }
             }
@@ -204,8 +197,6 @@ public class SlopeBasedTrackHitKiller extends Driver {
             System.out.println("New Cluster List Has " + tmpClusterList.size() + "; old List had " + oldClusterListSize);
             System.out.println("");
         }
-        // TODO: flag not used
-        int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
         event.put(this.stripHitInputCollectionName, tmpClusterList, SiTrackerHitStrip1D.class, 0, toString());
         if (_debug)
             System.out.println("Clearing hit relational table caches");
@@ -377,7 +368,6 @@ public class SlopeBasedTrackHitKiller extends Driver {
         return (1 - z/d) * slp;
     }
 
-    // TODO compare to similar function in KalmanSlopeBasedTrackHitKiller
     private Map<Track,Double> getUniqueTracksFromV0List(List<ReconstructedParticle> unconstrainedV0List) {
         Map<Track,Double> trkmap = new HashMap<Track,Double>();
         for(ReconstructedParticle uncV0:unconstrainedV0List) {
