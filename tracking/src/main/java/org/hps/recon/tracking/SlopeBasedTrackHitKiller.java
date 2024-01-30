@@ -44,23 +44,23 @@ import org.lcsim.event.ReconstructedParticle;
 public class SlopeBasedTrackHitKiller extends Driver {
 
     Set<String> ratioFiles = new HashSet<String>();
-    private List<ModuleSlopeMap> _modulesToKill = new ArrayList<ModuleSlopeMap>();
+    List<ModuleSlopeMap> _modulesToKill = new ArrayList<ModuleSlopeMap>();
     //List of Sensors
-    private List<HpsSiSensor> sensors = null;
-    private static final String SUBDETECTOR_NAME = "Tracker";
-    private static Pattern layerPattern = Pattern.compile("L(\\d+)");
-    private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
-    private final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
-    private final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
-    private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
-    private String trackCollectionName = "GBLTracks";
-    private boolean _debug = false;
-    private double _scaleKillFactor = 1.0;
-    private List<TrackerHit> siClusters = new ArrayList<TrackerHit>();
+    List<HpsSiSensor> sensors = null;
+    static final String SUBDETECTOR_NAME = "Tracker";
+    static Pattern layerPattern = Pattern.compile("L(\\d+)");
+    String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+    final String helicalTrackHitRelationsCollectionName = "HelicalTrackHitRelations";
+    final String rotatedHelicalTrackHitRelationsCollectionName = "RotatedHelicalTrackHitRelations";
+    String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
+    String trackCollectionName = "GBLTracks";
+    boolean _debug = false;
+    double _scaleKillFactor = 1.0;
+    List<TrackerHit> siClusters = new ArrayList<TrackerHit>();
     
-    private boolean _useSqrtKillFactor = true;
-    private boolean _correctForDisplacement = true;
-
+    boolean _useSqrtKillFactor = true;
+    boolean _correctForDisplacement = true;
+    
     public void setRatioFiles(String[] ratioNames) {
         System.out.println("Setting ratio files!!!  " + ratioNames[0]);
         this.ratioFiles = new HashSet<String>(Arrays.asList(ratioNames));
@@ -216,7 +216,7 @@ public class SlopeBasedTrackHitKiller extends Driver {
     }
 
     //Return the HpsSiSensor for a given top/bottom track, layer, axial/stereo, and slot/hole
-    private HpsSiSensor getSensor(int layer, boolean isTop, boolean isAxial, boolean isHole) {
+    public HpsSiSensor getSensor(int layer, boolean isTop, boolean isAxial, boolean isHole) {
         for (HpsSiSensor sensor : sensors) {
             int senselayer = (sensor.getLayerNumber() + 1) / 2;
             if (senselayer != layer)
@@ -295,41 +295,11 @@ public class SlopeBasedTrackHitKiller extends Driver {
     
 
     //Converts double array into Hep3Vector
-    private Hep3Vector toHep3(double[] arr) {
+    public Hep3Vector toHep3(double[] arr) {
         return new BasicHep3Vector(arr[0], arr[1], arr[2]);
     }
     
-    private List<TrackerHit> getTrackHitsPerModule(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated, int layer) {
-        List<TrackerHit> lhits = new ArrayList<TrackerHit>();
-        List<TrackerHit> hitsontrack = TrackUtils.getStripHits(track, hitToStrips, hitToRotated);
-        //        System.out.println("hitsontrack size = " + hitsontrack.size());
-        for (TrackerHit hit: hitsontrack) {
-            int thislayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();            
-            int module = (thislayer-1) / 2 + 1;
-            //            System.out.println("this layer ="+thislayer+"; module ="+module);
-            if (module == layer && !(lhits.contains(hit))) {// if it's layer of interest and it's not in list yet
-                //                System.out.println("add hit to remove");
-                lhits.add(hit);
-            }            
-        }                
-        return lhits;
-    }
-    
-    private List<TrackerHit> getTrackHitsPerLayer(List<Track> tracks, RelationalTable hitToStrips, RelationalTable hitToRotated, int layer) {
-        List<TrackerHit> lhits = new ArrayList<TrackerHit>();
-        for(Track trk: tracks) {
-            List<TrackerHit> hitsontrack = TrackUtils.getStripHits(trk, hitToStrips, hitToRotated);
-            for (TrackerHit hit: hitsontrack) {
-                int thislayer = ((RawTrackerHit) hit.getRawHits().get(0)).getLayerNumber();
-                int module = (thislayer-1) / 2 + 1;
-                if (module == layer && !(lhits.contains(hit))) {// if it's layer of interest and it's not in list yet
-                    lhits.add(hit);
-                }
-            }
-        }                
-        return lhits;
-    }
-
+ 
     /*
      * mg...7/5/20...
      * the strips in the SiCluster list are type: org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D
@@ -338,16 +308,10 @@ public class SlopeBasedTrackHitKiller extends Driver {
      * ...just checking if the SiCluster TrackerHit "hit" is in the hitsontrack collection doesn't work..
      * that's why I go back to the raw hits and compare these lists.  
      */
-    private Track getTrackWithHit(List<Track> tracks, TrackerHit hit, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+    public Track getTrackWithHit(List<Track> tracks, TrackerHit hit, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         for(Track trk: tracks) {
             List<TrackerHit> hitsontrack = TrackUtils.getStripHits(trk,hitToStrips,hitToRotated);
-            /*
-              if (hitsontrack.contains(hit)) {
-                System.out.println("found a track with this hit "+hit.toString());
-                return trk;
-                } */
             for (TrackerHit hot: hitsontrack) {
-                //                System.out.println(hit.toString()+" "+hot.toString());
                 List<RawTrackerHit> rawTrkHits = (List<RawTrackerHit>)( hot.getRawHits());
                 List<RawTrackerHit> rawHitHits = (List<RawTrackerHit>)( hit.getRawHits());
                 if (rawHitHits.equals(rawTrkHits)) {
@@ -359,16 +323,16 @@ public class SlopeBasedTrackHitKiller extends Driver {
         }                
         return null;
     }
-    private int layerToModule(int layer) {
+    public int layerToModule(int layer) {
         return (layer-1)/2+1;
     }
     
-    private double correctSlope(double z,double slp) {
+    public double correctSlope(double z,double slp) {
         double d = 100;
         return (1 - z/d) * slp;
     }
 
-    private Map<Track,Double> getUniqueTracksFromV0List(List<ReconstructedParticle> unconstrainedV0List) {
+    public Map<Track,Double> getUniqueTracksFromV0List(List<ReconstructedParticle> unconstrainedV0List) {
         Map<Track,Double> trkmap = new HashMap<Track,Double>();
         for(ReconstructedParticle uncV0:unconstrainedV0List) {
             double vz = uncV0.getStartVertex().getPosition().z();
@@ -395,7 +359,7 @@ public class SlopeBasedTrackHitKiller extends Driver {
         return trkmap;
     }
 
-    private double adjustedSlopeFromMap(Map<Track,Double> trkmap, TrackerHit hit, RelationalTable hitToStrips, RelationalTable hitToRotated) {
+    public double adjustedSlopeFromMap(Map<Track,Double> trkmap, TrackerHit hit, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         
         for (Map.Entry<Track,Double> entry : trkmap.entrySet())  {
             Track trk = entry.getKey();
