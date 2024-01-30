@@ -15,6 +15,7 @@ import org.hps.conditions.database.DatabaseConditionsManager;
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackData;
+import org.hps.recon.tracking.TrackIntersectData;
 import org.hps.recon.tracking.TrackResidualsData;
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
@@ -94,14 +95,14 @@ public class KalmanPatRecDriver extends Driver {
     private double beamPositionY;
     private double beamSigmaY;
     private double lowPhThresh;                 // Threshold in residual ratio to prefer a low-ph hit over a high-ph hit
-    private double minSeedEnergy=-1.;           // Minimum energy of a hit for it to be used in a pattern recognition seed
+    private double minSeedEnergy = -1.;         // Minimum energy of a hit for it to be used in a pattern recognition seed
     private boolean useBeamPositionConditions;  // True to use beam position from database
     private boolean useFixedVertexZPosition;    // True to override the database just for the z beam position
     private Level logLevel = Level.WARNING;     // Set log level from steering
     private boolean addResiduals;               // If true add the hit-on-track residuals to the LCIO event
     private List<HpsSiSensor> sensors = null;   // List of tracker sensors
     
-    
+
     public String getOutputFullTrackCollectionName() {
         return outputFullTrackCollectionName;
     }
@@ -267,9 +268,9 @@ public class KalmanPatRecDriver extends Driver {
             beamPositionArr[0] = beamPositionCond.getPositionX();
             beamPositionArr[1] = beamPositionCond.getPositionY();
             beamPositionArr[2] = beamPositionCond.getPositionZ();
-            System.out.println("beamPosition[0]: "+beamPositionArr[0]);
-            System.out.println("beamPosition[1]: "+beamPositionArr[1]);
-            System.out.println("beamPosition[2]: "+beamPositionArr[2]);
+            System.out.println("beamPosition[0]: " + beamPositionArr[0]);
+            System.out.println("beamPosition[1]: " + beamPositionArr[1]);
+            System.out.println("beamPosition[2]: " + beamPositionArr[2]);
             if (useBeamPositionConditions) {
                 logger.config("Using Kalman beam position from the conditions database");
                 if (!useFixedVertexZPosition) kPar.setBeamSpotY(beamPositionCond.getPositionZ());  
@@ -307,7 +308,6 @@ public class KalmanPatRecDriver extends Driver {
     @Override
     public void process(EventHeader event) {
         int runNumber = event.getRunNumber();
-       
         KI.setRunNumber(runNumber);
                 
         List<Track> outputFullTracks = new ArrayList<Track>();
@@ -315,7 +315,9 @@ public class KalmanPatRecDriver extends Driver {
         //For additional track information
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
         List<LCRelation> trackDataRelations = new ArrayList<LCRelation>();
-        
+	//        List<KalTrack> kalTracks = new ArrayList<KalTrack>();
+	//	List<LCRelation> kalTracksRelations = new ArrayList<LCRelation>();
+
         //For GBL Refitting
         List<GBLStripClusterData> allClstrs = new ArrayList<GBLStripClusterData>();
         List<LCRelation> gblStripClusterDataRelations  =  new ArrayList<LCRelation>();
@@ -323,9 +325,18 @@ public class KalmanPatRecDriver extends Driver {
         //For hit-on-track residuals information
         List<TrackResidualsData> trackResiduals = new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations = new ArrayList<LCRelation>();
-       
-        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
-        
+	List<TrackIntersectData> trackIntersects = new ArrayList<TrackIntersectData>();
+	List<LCRelation> trackIntersectsRelations = new ArrayList<LCRelation>();
+ 
+	ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations,  trackIntersects, trackIntersectsRelations);
+ 
+
+	//        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
+        //mg debug why the track data relations (and others I think) are screwed
+	//        for (LCRelation tdRel: trackDataRelations){
+        //    System.out.println(tdRel.getFrom()+" ---> " +tdRel.getTo());
+	// }
+
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
         event.put("KFGBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
@@ -336,6 +347,8 @@ public class KalmanPatRecDriver extends Driver {
         if (addResiduals) {
             event.put("KFUnbiasRes", trackResiduals, TrackResidualsData.class,0);
             event.put("KFUnbiasResRelations",trackResidualsRelations, LCRelation.class,0);
+	        event.put("KFUnbiasInt", trackIntersects, TrackIntersectData.class, 0);
+	        event.put("KFUnbiasIntRelations", trackIntersectsRelations, LCRelation.class, 0);       
         }
 
         if (kPlot != null) {
@@ -367,7 +380,11 @@ public class KalmanPatRecDriver extends Driver {
         }
     }
 
-    private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks, List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations, List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations) {
+    private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks,
+                                                          List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, 
+                                                          List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations,
+                                                          List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations,
+                                                          List<TrackIntersectData> trackIntersects, List<LCRelation> trackIntersectsRelations) {
         
         int evtNumb = event.getEventNumber();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
@@ -390,7 +407,7 @@ public class KalmanPatRecDriver extends Driver {
         }
         if (runTime > maxTime) maxTime = runTime;
         nEvents++;
-        logger.log(Level.FINE,"KalmanPatRecDriver.process: run time for pattern recognition at event "+evtNumb+" is "+runTime+" milliseconds");
+        logger.log(Level.FINE,"KalmanPatRecDriver.process: run time for pattern recognition at event " + evtNumb + " is " + runTime + " milliseconds");
         
         //List<RawTrackerHit> rawhits = event.get(RawTrackerHit.class, "SVTRawTrackerHits");
         //if (rawhits == null) {
@@ -410,7 +427,7 @@ public class KalmanPatRecDriver extends Driver {
                 for (int ix=0; ix<5; ++ix) {
                     for (int iy=0; iy<5; ++iy) {
                         if (Double.isNaN(covar[ix][iy])) {
-                            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process event %d: NaN at %d %d in covariance for track %d",evtNumb,ix,iy,kTk.ID));
+                            logger.log(Level.FINE, String.format("KalmanPatRecDriver.process event %d: NaN at %d %d in covariance for track %d", evtNumb, ix, iy, kTk.ID));
                         }
                     }
                 }                
@@ -450,7 +467,7 @@ public class KalmanPatRecDriver extends Driver {
                 
                 //TODO: compute isolations
                 double qualityArray[] = new double[1];
-                qualityArray[0]= -1;
+                qualityArray[0] = -1;
                 
                 //Get the track momentum and convert it into detector frame and float values
                 Hep3Vector momentum = new BasicHep3Vector(KalmanTrackHPS.getTrackStates().get(0).getMomentum());
@@ -462,7 +479,7 @@ public class KalmanPatRecDriver extends Driver {
                 momentum_f[2] = (float) momentum.z();
 
                 //Get Bfield at origin
-                double origin_bFieldY = fm.getField((new BasicHep3Vector(0.0,0.0,0.0))).y();
+                double origin_bFieldY = fm.getField((new BasicHep3Vector(0.0, 0.0, 0.0))).y();
 
                 //Get Bfield at target
                 double target_bFieldY = -999.9;
@@ -478,19 +495,18 @@ public class KalmanPatRecDriver extends Driver {
                 {
                     Hep3Vector ecal_pos = new BasicHep3Vector(TrackUtils.getTrackStateAtECal(KalmanTrackHPS).getReferencePoint());
                     ecal_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(ecal_pos)).y();
-                }
+                }          
 
-                //Add the Track Data 
-                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY);
-                trackDataCollection.add(KFtrackData);
-                trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
-
-                //Add the TrackResiduas
-                
-                List<Integer> layers      = new ArrayList<Integer>();
-                List<Double> residuals    = new ArrayList<Double>();
-                List<Float> sigmas        = new ArrayList<Float>(); 
-                
+                //Add the TrackResiduals
+                List<Integer> layers    = new ArrayList<Integer>();
+                List<Double> residuals  = new ArrayList<Double>();
+                List<Float> sigmas      = new ArrayList<Float>(); 
+		        List<Integer> layersInt = new ArrayList<Integer>();
+		        List<Double>  intersect = new ArrayList<Double>();
+                List<Float>   sigmasInt = new ArrayList<Float>();
+                int uindex = 0;
+                int vindex = 1;
+                int windex = 2;
                 for (int ilay = 0; ilay<14; ilay++) {
                     Pair<Double,Double> res_and_sigma = kTk.unbiasedResidual(ilay);
                     if (res_and_sigma.getSecondElement() > -1.)  {
@@ -498,11 +514,27 @@ public class KalmanPatRecDriver extends Driver {
                         residuals.add(res_and_sigma.getFirstElement());
                         sigmas.add(res_and_sigma.getSecondElement().floatValue());
                     }
+		            Pair<Double[], Double> inter_and_sigma = kTk.unbiasedIntersect(ilay, true);
+                    layersInt.add(ilay);
+                    intersect.add(inter_and_sigma.getFirstElement()[uindex]);
+                    intersect.add(inter_and_sigma.getFirstElement()[vindex]);
+                    intersect.add(inter_and_sigma.getFirstElement()[windex]);
+                    sigmasInt.add(inter_and_sigma.getSecondElement().floatValue());                    
                 }//Loop on layers
                 
-                TrackResidualsData resData = new TrackResidualsData(trackerVolume,layers,residuals,sigmas);
+                //Add the Track Data 
+                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY);
+                trackDataCollection.add(KFtrackData);
+                trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
+
+                TrackResidualsData resData = new TrackResidualsData(trackerVolume, layers, residuals, sigmas);
                 trackResiduals.add(resData);
-                trackResidualsRelations.add(new BaseLCRelation(resData,KalmanTrackHPS));
+                trackResidualsRelations.add(new BaseLCRelation(resData, KalmanTrackHPS));
+		TrackIntersectData intersectData = new TrackIntersectData(trackerVolume, layersInt, intersect, sigmasInt);
+                trackIntersects.add(intersectData);
+                trackIntersectsRelations.add(new BaseLCRelation(intersectData, KalmanTrackHPS));
+
+
                 /*
                 if (KalmanTrackHPS.getTrackerHits().size() != residuals.size()) {
                     System.out.println("KalmanPatRecDriver::Residuals consistency check failed.");
@@ -628,14 +660,17 @@ public class KalmanPatRecDriver extends Driver {
     public void setNumStrategyIter1(int numStrategyIter1) {
         this.numStrategyIter1 = numStrategyIter1;
     }
+
     public void setMinSeedEnergy(double minSeedEnergy) {
         this.minSeedEnergy = minSeedEnergy;
         System.out.format("KalmanPatRecDriver: minimum seed energy from steering = %8.4f\n", minSeedEnergy);
     }
+
     public void setLowPhThresh(double lowPhThresh) {
         this.lowPhThresh = lowPhThresh;
         System.out.format("KalmanPatRecDriver: setting lowPhThresh from steering : %12.4f\n", lowPhThresh);
     }
+
     public void setSeedStrategy(String seedStrategy) {
         if (strategies == null) {
             strategies = new ArrayList<String>();
@@ -643,6 +678,7 @@ public class KalmanPatRecDriver extends Driver {
         strategies.add(seedStrategy);
         System.out.format("KalmanPatRecDriver: top and bottom strategy %s specified by steering.\n", seedStrategy);
     }
+
     public void setSeedStrategyTop(String seedStrategy) {
         if (strategiesTop == null) {
             strategiesTop = new ArrayList<String>();
@@ -650,6 +686,7 @@ public class KalmanPatRecDriver extends Driver {
         strategiesTop.add(seedStrategy);
         System.out.format("KalmanPatRecDriver: top strategy %s specified by steering.\n", seedStrategy);
     }
+
     public void setSeedStrategyBottom(String seedStrategy) {
         if (strategiesBot == null) {
             strategiesBot = new ArrayList<String>();
@@ -657,6 +694,7 @@ public class KalmanPatRecDriver extends Driver {
         strategiesBot.add(seedStrategy);
         System.out.format("KalmanPatRecDriver: bottom strategy %s specified by steering.\n", seedStrategy);
     }
+
     public void setLogLevel(String logLevel) {
         System.out.format("KalmanPatRecDriver: setting the logger level to %s\n", logLevel);
         this.logLevel = Level.parse(logLevel);

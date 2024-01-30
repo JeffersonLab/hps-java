@@ -1481,6 +1481,10 @@ public class TrackUtils {
         return new HelicalTrackHit(pos, hitcov, dedx, time, type, rhits, detname, layer, beflag);
     }
 
+    public static void clearCaches(){
+        hitToStripsCache = null;
+        hitToRotatedCache = null;
+    }
     private static Pair<EventHeader, RelationalTable> hitToStripsCache = null;
 
     public static RelationalTable getHitToStripsTable(EventHeader event, String HelicalTrackHitRelationsCollectionName) {
@@ -1514,22 +1518,18 @@ public class TrackUtils {
         //            System.out.println("getHitToRotatedTable:  getFirst()==event");
 
         if (hitToRotatedCache == null || hitToRotatedCache.getFirst() != event) {
-            //          System.out.println("getHitToRotatedTable:  making new table");
             RelationalTable hitToRotated = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
-            //List<LCRelation> rotaterelations = event.get(LCRelation.class, "RotatedHelicalTrackHitRelations");
             if (!event.hasCollection(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName)) {
                 return null;
             }
             List<LCRelation> rotaterelations = event.get(LCRelation.class, RotatedHelicalTrackHitRelationsCollectionName);
-            for (LCRelation relation : rotaterelations) {
-                if (relation != null && relation.getFrom() != null && relation.getTo() != null) //                   System.out.println("getHitToRotatedTable:  adding a relation to hitToRotated");
-                {
+            for (LCRelation relation : rotaterelations){
+                if (relation != null && relation.getFrom() != null && relation.getTo() != null){
                     hitToRotated.add(relation.getFrom(), relation.getTo());
                 }
             }
             hitToRotatedCache = new Pair<EventHeader, RelationalTable>(event, hitToRotated);
         }
-        //       System.out.println("getHitToRotatedTable: returning hitToRotatedCache with size = " + hitToRotatedCache.getSecond().size());
         return hitToRotatedCache.getSecond();
     }
 
@@ -1565,7 +1565,7 @@ public class TrackUtils {
         for (TrackerHit hit : track.getTrackerHits()) {
             hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
         }
-
+                
         return hits;
     }
 
