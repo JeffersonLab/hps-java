@@ -46,6 +46,8 @@ public class StripMaker {
     //Map<FittedRawTrackerHit, Integer> _strip_map = new HashMap<FittedRawTrackerHit, Integer>();
     Map< LCRelation, Integer > stripMap_ = new HashMap< LCRelation, Integer >(); 
 
+    double _doTimeError = 0.0;
+
     boolean _debug = false;
     private SiliconResolutionModel _res_model = new DefaultSiliconResolutionModel();
 
@@ -64,6 +66,10 @@ public class StripMaker {
     public StripMaker(SiSensorSim simulation, ClusteringAlgorithm algo) {
         _clustering = algo;
         _simulation = simulation;
+    }
+
+    public void setDoTimeError(double doTimeError){
+        _doTimeError = doTimeError;
     }
 
     public String getName() {
@@ -294,10 +300,14 @@ public class StripMaker {
 
             double signal = FittedRawTrackerHit.getAmp(hit);
             double time = FittedRawTrackerHit.getT0(hit);
-
-            time_sum += time * signal * signal;
-            signal_sum += signal * signal;
-
+            double tErr = FittedRawTrackerHit.getT0Err(hit);
+            if(_doTimeError==1.0){
+                time_sum += time/tErr;
+                signal_sum += 1.0/tErr;
+            }else{
+                time_sum += time * signal * signal;
+                signal_sum += signal * signal;       
+            }
         }
         return time_sum / signal_sum;
     }
