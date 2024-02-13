@@ -230,11 +230,11 @@
             <trackCollectionNames>GBLTracks</trackCollectionNames>
             <matcherTrackCollectionName>GBLTracks</matcherTrackCollectionName>
             <beamPositionX> -0.224 </beamPositionX>
-            <beamSigmaX> 0.125 </beamSigmaX>
+            <beamSigmaX> 0.275 </beamSigmaX>
             <beamPositionY> -0.08 </beamPositionY>
-            <beamSigmaY> 0.030 </beamSigmaY>
+            <beamSigmaY> 0.060 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
-            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
+            <trackClusterTimeOffset>36.8</trackClusterTimeOffset>
             <isMC>true</isMC>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
@@ -252,11 +252,11 @@
             <trackCollectionNames>GBLTracks</trackCollectionNames>
             <matcherTrackCollectionName>GBLTracks</matcherTrackCollectionName>
             <beamPositionX> -0.224 </beamPositionX>
-            <beamSigmaX> 0.125 </beamSigmaX>
+            <beamSigmaX> 0.275 </beamSigmaX>
             <beamPositionY> -0.08 </beamPositionY>
-            <beamSigmaY> 0.030 </beamSigmaY>
+            <beamSigmaY> 0.060 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
-            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
+            <trackClusterTimeOffset>36.8</trackClusterTimeOffset>
             <isMC>true</isMC>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
