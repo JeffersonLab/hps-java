@@ -8,9 +8,9 @@
     <groupId>org.hps</groupId>
     <artifactId>hps-java</artifactId>
     <relativePath>../pom.xml</relativePath>
-    <version>5.2.1-SNAPSHOT</version>
+    <version>5.2.2-SNAPSHOT</version>
   </parent>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.hps</groupId>
@@ -21,7 +21,7 @@
       <artifactId>hps-recon</artifactId>
     </dependency>
   </dependencies>
-  
+
   <!--
   <build>
     <plugins>

@@ -504,13 +504,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                 // If noise should be added, calculate a random value for
                 // the noise and add it to the truth energy deposition.
                 if(addNoise) {
-                    // Calculate a randomized noise value.
-                    double noiseSigma = Math.sqrt(Math.pow(getNoiseConditions(hitCellID) * getGainConditions(hitCellID) * EcalUtils.MeV, 2)
-                            + hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
-                    double noise = RandomGaussian.getGaussian(0, noiseSigma);
-                    
-                    // Increment the truth energy deposition by this amount.
-                    energyAmplitude += noise;
+                    energyAmplitude += getAmplitudeFluctuation(hit);
                 }
                 
                 // Simulate the pulse for each position in the preamp
@@ -530,6 +524,13 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                     // to a 12-bit ADC value where the maximum represents
                     // a value of maxVolt.
                     double currentValue = voltageBuffer.getValue(i) * ((Math.pow(2, nBit) - 1) / maxVolt);
+                    
+                    // If noise should be added, calculate a random value for
+                    // the noise and add it to the ADC value. 
+                    if(addNoise) {
+                        double sigma = getNoiseConditions(hitCellID);
+                        currentValue += RandomGaussian.getGaussian(0, sigma);
+                    }
                     
                     // An ADC value is not allowed to exceed 4095. If a
                     // larger value is observed, 4096 (overflow) is given
@@ -1025,6 +1026,16 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
      * @return Returns the timestamp flag as an <code>int</code>.
      */
     protected abstract int getTimestampFlag();
+    
+    /**
+     * Generate photoelectron/amplification noise for a pulse's amplitude.
+     * @param hit - The hit for which to generate a fluctuation.
+     * @return Returns a fluctuation in units GeV. 
+     */
+    protected double getAmplitudeFluctuation(CalorimeterHit hit) {
+        double sigma = Math.sqrt(hit.getRawEnergy() * EcalUtils.MeV / pePerMeV);
+        return RandomGaussian.getGaussian(0, sigma);
+    }
     
     @Override
     protected Collection<TriggeredLCIOData<?>> getOnTriggerData(double triggerTime) {

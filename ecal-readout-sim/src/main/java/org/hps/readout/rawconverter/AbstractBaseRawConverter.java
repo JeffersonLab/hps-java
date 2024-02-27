@@ -1,6 +1,7 @@
 package org.hps.readout.rawconverter;
 
 import org.hps.recon.ecal.EcalUtils;
+import org.hps.record.daqconfig.FADCConfig;
 import org.hps.record.daqconfig2019.FADCConfigEcal2019;
 import org.hps.record.daqconfig2019.FADCConfigHodo2019;
 import org.lcsim.geometry.Detector;
@@ -29,6 +30,11 @@ public abstract class AbstractBaseRawConverter {
      * window. This must be a multiple of 4 ns.
      */
     private int nsa = Integer.MIN_VALUE;
+    
+    /**
+     * The 2016 DAQ Ecal FADC parameters.
+     */
+    protected FADCConfig config2016 = null;
     
     /**
      * The 2019 DAQ Ecal FADC parameters.
@@ -111,6 +117,14 @@ public abstract class AbstractBaseRawConverter {
             throw new IllegalArgumentException("NSB must be a multiple of " + NS_PER_SAMPLE + "ns and non-negative.");
         }
         this.nsb = nsb;
+    }
+    
+    /**
+     * Sets 2016 DAQ Ecal FADC config
+     * @param config
+     */
+    public final void setFADCConfig2016(FADCConfig config) {
+        this.config2016 = config;
     }
     
     /**

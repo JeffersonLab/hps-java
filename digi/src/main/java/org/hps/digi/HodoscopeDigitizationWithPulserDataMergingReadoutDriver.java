@@ -77,6 +77,8 @@ public class HodoscopeDigitizationWithPulserDataMergingReadoutDriver extends Dig
         setNumberSamplesBefore(6);
         setPulseTimeParameter(4.0);
         setPhotoelectronsPerMeV(10.0);
+        
+        setIntegrationThreshold(12);
     }
     
     /**
@@ -106,7 +108,6 @@ public class HodoscopeDigitizationWithPulserDataMergingReadoutDriver extends Dig
                     // Get the FADC configuration.
                     config = daq.getHodoFADCConfig();
                     configStat = true;
-                    integrationThreshold = config.getThreshold((int)10);
                 }
             });
         }

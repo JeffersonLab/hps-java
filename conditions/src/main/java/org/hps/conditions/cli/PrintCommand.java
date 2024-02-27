@@ -164,7 +164,7 @@ final class PrintCommand extends AbstractCommand {
         for (final Object object : collection) {
             for (final String columnName : collection.getTableMetaData().getFieldNames()) {
                 if (!"collection_id".equals(columnName)) {
-                    buffer.append((String) ((ConditionsObject) object).getFieldValue(columnName));        
+                    buffer.append(((ConditionsObject) object).getFieldValue(columnName).toString());        
                     buffer.append(DELIMITER);
                 }
             }

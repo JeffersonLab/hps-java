@@ -1,0 +1,166 @@
+name: release
+
+permissions: write-all
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to use for release"
+        required: true
+        default: "master"
+      release_version:
+        description: "Release version"
+        required: true
+        default: "auto"
+      development_version:
+        description: "New development version"
+        required: true
+        default: "auto"
+      dry_run:
+        description: "Perform a dry run for testing"
+        required: false
+        type: boolean
+        default: false
+      skip_tests:
+        description: "Skip running the tests"
+        required: false
+        type: boolean
+        default: false
+      skip_javadoc:
+        description: "Skip javadoc generation"
+        required: false
+        type: boolean
+        default: true
+      quiet:
+        description: "Quiet output - only show errors"
+        required: false
+        type: boolean
+        default: false
+      generate_release_notes:
+        description: "Generate release notes"
+        required: false
+        type: boolean
+        default: true
+      deploy_site:
+        description: "Update the project website"
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      SSH_PRIVATE_KEY:
+        required: true
+      CI_DEPLOY_USERNAME:
+        required: true
+      CI_DEPLOY_PASSWORD:
+        required: true
+
+jobs:
+  # TODO: Add test here for a sanity check
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.maven_release_step.outputs.release_tag }}
+    steps:
+      - name: Check release version
+        if: inputs.release_version != 'auto' && inputs.development_version == 'auto'
+        run: |
+          echo "ERROR: Release version was provided but next development version was set to auto."
+          exit 1
+
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Create Maven args file
+        run: |
+          touch .maven_args
+          echo "MAVEN_ARGS_FILE=.maven_args" >> $GITHUB_ENV
+
+      - name: Set input release version
+        if: inputs.release_version != 'auto'
+        run: |
+          echo -n "-DreleaseVersion=${{ inputs.release_version }}" >> ${{ env.MAVEN_ARGS_FILE }}
+          echo "MAVEN_RELEASE_VERSION=${{ inputs.release_version }}" >> $GITHUB_ENV
+
+      - name: Set default input release version
+        if: inputs.release_version == 'auto'
+        run: echo "MAVEN_RELEASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed s/-SNAPSHOT//g)" >> $GITHUB_ENV
+
+      - name: Set input development version
+        if: inputs.development_version != 'auto'
+        run: |
+          if [[ "${{ inputs.development_version}}" != *-SNAPSHOT ]]
+          then
+            echo "ERROR: Development version must end with -SNAPSHOT." 
+            exit 1
+          fi
+          echo -n " -DdevelopmentVersion=${{ inputs.development_version }}" >> ${{ env.MAVEN_ARGS_FILE }}
+        shell: bash
+
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Get email
+        id: get_email
+        uses: evvanErb/get-github-email-by-username-action@v1.25
+        with:
+          github-username: ${{ github.actor }}
+
+      - name: Configure Git user
+        run: |
+          git config user.email "${{ steps.get_email.outputs.email }}"
+          git config user.name "${{ github.actor }}"
+          echo "Username: ${{ github.actor }}"
+          echo "Email: ${{ steps.get_email.outputs.email }}"
+
+      - name: Set Maven quiet
+        if: inputs.quiet
+        run: echo -n " -q" >> ${{ env.MAVEN_ARGS_FILE }}
+
+      - name: Set Maven arguments variable
+        run: |
+          echo "Extra Maven args: $(cat ${{ env.MAVEN_ARGS_FILE }})"
+          echo "MAVEN_ARGS=$(cat ${{ env.MAVEN_ARGS_FILE }})" >> $GITHUB_ENV
+
+      - name: Perform Maven release
+        id: maven_release_step
+        run: |
+          mvn release:prepare release:perform \
+            -DdryRun=${{ inputs.dry_run }} \
+            -DskipTests=${{ inputs.skip_tests }} \
+            -Darguments="-DskipTests=${{ inputs.skip_tests }} -Dmaven.javadoc.skip=${{ inputs.skip_javadoc }} \
+            -Dmaven.site.skip=true -Dmaven.site.deploy.skip=true -DgenerateReports=false" \
+            -B -e -s .maven_settings.xml \
+            ${{ env.MAVEN_ARGS }}
+          echo "release_tag=${{ github.event.repository.name }}-${{ env.MAVEN_RELEASE_VERSION }}" >> $GITHUB_OUTPUT
+        env:
+          CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
+          CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
+
+      - name: Make Github release
+        id: github_release
+        if: ${{ !inputs.dry_run }}
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.repository.name }}-${{ env.MAVEN_RELEASE_VERSION }}
+          name: ${{ github.event.repository.name }} ${{ env.MAVEN_RELEASE_VERSION }}
+          generate_release_notes: ${{ inputs.generate_release_notes }}
+          draft: false
+          prerelease: false
+          files: |
+            ./distribution/target/hps-distribution-${{ env.MAVEN_RELEASE_VERSION }}-bin.jar
+  site:
+    needs: release
+    if: ${{ !inputs.dry_run && inputs.deploy_site }}
+    uses: JeffersonLab/hps-java/.github/workflows/site.yml@master
+    with:
+      tag: ${{ needs.release.outputs.release_tag }}
+    secrets: inherit

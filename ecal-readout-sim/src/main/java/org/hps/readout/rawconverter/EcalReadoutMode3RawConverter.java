@@ -31,12 +31,14 @@ public class EcalReadoutMode3RawConverter extends AbstractMode3RawConverter {
     @Override
     protected double getGain(long cellID) {        
         if(configEcal != null) return configEcal.getGain(cellID);
+        else if(config2016 != null) return config2016.getGain(cellID);            
         else return findChannel(cellID).getGain().getGain();
     }
     
     @Override
     protected double getPedestal(long cellID) {        
         if(configEcal != null) return configEcal.getPedestal(cellID);
+        else if(config2016 != null) return config2016.getPedestal(cellID);        
         else return findChannel(cellID).getCalibration().getPedestal();
     }
     

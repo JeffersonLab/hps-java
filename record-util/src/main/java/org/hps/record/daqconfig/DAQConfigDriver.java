@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +45,15 @@ public class DAQConfigDriver extends Driver {
     private boolean firstEvent = true;
     private boolean readDataFiles = false;
     private File[] dataFiles = new File[3];
+    private InputStream[] inputFiles = new InputStream[3];
     private int[] crateNumber = { 46, 37, 39 };
+    
+    
+    /**
+     * Indicates whether the DAQ configuration is applied in the readout system.
+     */
+    private boolean daqConfigurationAppliedintoReadout = false;
+    private String daqVersion = null;
     
     /**
      * Verifies the parameter <code>filepath</code> for the data file
@@ -53,6 +63,35 @@ public class DAQConfigDriver extends Driver {
      */
     @Override
     public void startOfData() {
+        // Check whether to apply the DAQ configuration into the readout system.
+        if (daqConfigurationAppliedintoReadout) {
+            if(runNumber == -1) runNumber = this.getConditionsManager().getRun(); 
+            daqVersion = mapBetweenRunNumberDAQVersion(runNumber);
+            // Define the data file objects.
+            for (int i = 0; i < inputFiles.length; i++) {
+                inputFiles[i] = DAQConfigDriver.class.getResourceAsStream(daqVersion + "_" + crateNumber[i] + ".txt");
+            }
+            
+            // If this is the first event and data files are to be read,
+            // import the data files and generate the DAQ information.
+            // Get the data files in the form of a data array.
+            String[][] data;
+            try {
+                data = getInputFileArrays(inputFiles);
+            } catch (IOException e) {
+                throw new RuntimeException("An error occurred when processing the data files.");
+            }
+
+            // Instantiate an EvIO DAQ parser and feed it the data.
+            EvioDAQParser daqConfig = new EvioDAQParser();
+            for (int i = 0; i < inputFiles.length; i++) {
+                daqConfig.parse(crateNumber[i], runNumber, data[i]);
+            }
+
+            // Update the configuration manager.
+            ConfigurationManager.updateConfiguration(daqConfig);
+        }
+                       
         // Check whether to use stored data files or the EvIO data stream
         // as the source of the DAQ settings. Nothing needs to be done
         // in the latter case.
@@ -133,6 +172,45 @@ public class DAQConfigDriver extends Driver {
         
         // Note that it is no longer the first event.
         firstEvent = false;
+    }
+    
+    /**
+     * Converts DAQ configuration data files into an array of strings where each
+     * array entry represents a line in the configuration file. The first array
+     * index of the returned object corresponds to the file, and the second array
+     * index corresponds to the line.
+     * 
+     * @param dataFiles - An array of <code>File</code> objects pointing to the data
+     *                  files that are to be converted. These are expected to be
+     *                  plain text files.
+     * @return Returns a two-dimensional array of <code>String</code> objects where
+     *         the first array index corresponds to the object of the same index in
+     *         the <code>File</code> array and the second array index corresponds to
+     *         the lines in the file referenced by the <code>File</code> object.
+     * @throws IOException Occurs if there is an issue with accessing or reading the
+     *                     objects in the objects referred to by the files pointed
+     *                     to in the <code>dataFiles</code> array.
+     */
+    private static final String[][] getInputFileArrays(InputStream[] dataFiles) throws IOException {
+        // Create file readers to process the data files.
+        InputStreamReader[] fr = new InputStreamReader[dataFiles.length];
+        BufferedReader[] reader = new BufferedReader[dataFiles.length];
+        for (int i = 0; i < dataFiles.length; i++) {
+            fr[i] = new InputStreamReader(dataFiles[i]);
+            reader[i] = new BufferedReader(fr[i]);
+        }
+
+        // Convert the reader streams into line-delimited strings.
+        String[][] data = getDataFileArrays(reader);
+
+        // Close the readers.
+        for (int i = 0; i < dataFiles.length; i++) {
+            reader[i].close();
+            fr[i].close();
+        }
+
+        // Return the data array.
+        return data;
     }
     
     /**
@@ -251,5 +329,30 @@ public class DAQConfigDriver extends Driver {
      */
     public void setReadDataFiles(boolean state) {
         readDataFiles = state;
+    }
+    
+    /**
+     * Sets whether or not the DAQ configuration is applied into the readout system.
+     * 
+     * @param state - <code>true</code> indicates that the DAQ configuration is
+     * applied into the readout system, and <code>false</code> that it
+     * is not applied into the readout system.
+     */
+    public void setDaqConfigurationAppliedintoReadout(boolean state) {
+        daqConfigurationAppliedintoReadout = state;
+    }
+    
+    /**
+     * According to run number, a specified DAQ version name is returned.
+     * @param runNumber
+     * @return name of a DAQ configuration version
+     */
+    private String mapBetweenRunNumberDAQVersion(int runNumber) {
+        
+        // 2016 experiment
+        if(runNumber >= 7609 && runNumber <=7809)
+            return "2016_v7_200nA";                           
+        else return "2016_v8_200nA";
+        
     }
 }

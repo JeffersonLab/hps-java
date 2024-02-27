@@ -71,6 +71,8 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
         setNumberSamplesBefore(6);
         setPulseTimeParameter(4.0);
         setPhotoelectronsPerMeV(10.0);
+        
+        setIntegrationThreshold(12);
     }
     
     /**
@@ -81,7 +83,7 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
      * applied into the readout system, and <code>false</code> that it
      * is not applied into the readout system.
      */
-    public void setDaqConfigurationAppliedintoReadout(boolean state) {
+    public void setDaqConfigurationAppliedintoReadout(boolean state) {        
         // If the DAQ configuration should be read, attach a listener
         // to track when it updates.               
         if (state) {
@@ -99,7 +101,6 @@ public class HodoscopeDigitizationReadoutDriver extends DigitizationReadoutDrive
                     // Get the FADC configuration.
                     config = daq.getHodoFADCConfig();
                     configStat = true;
-                    integrationThreshold = config.getThreshold((int)10);
                 }
             });
         }

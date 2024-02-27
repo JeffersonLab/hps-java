@@ -73,7 +73,7 @@ public class FADCEcalReadoutDriver extends EcalReadoutDriver<RawCalorimeterHit> 
     private double fixedGain = -1;
     private boolean constantTriggerWindow = true;
     private boolean addNoise = true;
-    private double pePerMeV = 32.8;
+    private double pePerMeV = EcalUtils.photoelectronsPerMeV;
     private boolean use2014Gain = false;
     private PulseShape pulseShape = PulseShape.ThreePole;
 

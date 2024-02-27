@@ -260,7 +260,7 @@
             <beamPositionY> -0.08 </beamPositionY>
             <beamSigmaY> 0.030 </beamSigmaY>
             <beamPositionZ> -4.3 </beamPositionZ>
-            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
+            <trackClusterTimeOffset>36.8</trackClusterTimeOffset>
             <requireClustersForV0>false</requireClustersForV0>
             <isMC>true</isMC>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
@@ -304,7 +304,7 @@
             <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>5.0</maxVertexClusterDt>
             <maxMatchDt>10</maxMatchDt>
-            <trackClusterTimeOffset>44.8</trackClusterTimeOffset>
+            <trackClusterTimeOffset>36.8</trackClusterTimeOffset>
             <debug>false</debug>
             <makeMollerCols>false</makeMollerCols>
              <isMC>true</isMC>

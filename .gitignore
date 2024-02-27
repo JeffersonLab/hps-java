@@ -45,3 +45,12 @@ target/
 
 # editor swap files
 .*.swp
+
+# local Maven repository
+.m2repo
+
+# ignore user VS Code settings
+.vscode
+
+# ignore local user documentation
+html/
