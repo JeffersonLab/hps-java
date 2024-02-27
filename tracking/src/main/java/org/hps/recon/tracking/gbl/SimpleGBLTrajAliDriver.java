@@ -134,6 +134,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private boolean constrainedFit = false;
     private boolean constrainedBSFit = false;
     private boolean constrainedD0Fit = false;
+    private double   targetd0         = 0.2;
     private boolean constrainedZ0Fit = false;
     private boolean constrainedTanLFit = false;
     private boolean constrainedPhi0Fit = false;
@@ -143,6 +144,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double bsZ = -7.5;
     private double bsX = 0.0;
     private double bsY = 0.0;
+    private double sigmabsX = 0.05;
+    private double sigmabsY = 0.01;
     private int trackSide = -1;
     private boolean doCOMAlignment = false;
     private double momC     = 4.55;
@@ -214,6 +217,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
     public void setConstrainedFit (boolean val) {
         constrainedFit = val;
     }
+
+    public void setTargetd0 (double val) {
+        targetd0 = val;
+    }
     
     public void setConstrainedPhi0Fit (boolean val) {
         constrainedPhi0Fit = val;
@@ -234,6 +241,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
     }
     public void setBsY(double val) {
         bsY = val;
+    }
+    public void setSigmaBsX(double val) {
+        sigmabsX = val;
+    }
+    public void setSigmaBsY(double val) {
+        sigmabsY = val;
     }
 
     public void setSeedPrecision(double val) {
@@ -475,6 +488,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
         if (useParticles && !event.hasCollection(ReconstructedParticle.class, inputCollectionName)) {
             return;
         }
+
+
+        // Cluster Collection
+        List<Cluster> clusters = event.get(Cluster.class, "EcalClustersCorr");
         
         setupSensors(event);
         List<Track> tracks = new ArrayList<Track>(); 
@@ -529,7 +546,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
             TrackClusterPairs = GetClustersFromParticles(particles);
         }
-        
+
+
         //Loop over the tracks
         for (Track track : tracks) {
                                     
@@ -554,6 +572,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Get the track parameters
                 double[] trk_prms = track.getTrackParameters();
                 double tanLambda = trk_prms[BaseTrack.TANLAMBDA];
+                double phi       = trk_prms[BaseTrack.PHI];
                 
                 //Momentum cut: 3.8 - 5.2
                 Hep3Vector momentum = new BasicHep3Vector(track.getTrackStates().get(0).getMomentum());
@@ -572,6 +591,14 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 if (Math.abs(tanLambda) < minTanL || Math.abs(tanLambda) > maxTanL) {
                     continue;
                 }
+
+
+                if (phi < minPhi) {
+                    continue;
+                }
+
+                if (phi > maxPhi) 
+                    continue;
                 
                 //Align with tracks with at least 6 hits
                 if ((tanLambda > 0 && track.getTrackerHits().size() < actualHitCut) 
@@ -593,6 +620,19 @@ public class SimpleGBLTrajAliDriver extends Driver {
                         continue;
                 }
                 //System.out.println("DEBUG::Tom::Pass with " + track.getTrackerHits().size() + " hits");
+                
+                //Cluster cuts
+                
+                //FEE Clusters cuts
+                
+                if (clusterEnergyCutMin > 0 ) {
+                    if (clusters.size() != 1 )
+                        continue;
+                    
+                    if (clusters.get(0).getEnergy() < clusterEnergyCutMin )
+                        continue;
+                }
+                
             }
             
             
@@ -801,7 +841,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 double [] trk_prms = track.getTrackParameters();
                 //Bias the track 
                 double d0 = trk_prms[BaseTrack.D0];
-                double targetd0 = 0.;
                 //double d0bias = targetd0 - d0;
                
                 double d0bias = 0.;
@@ -925,14 +964,6 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 continue;
             }
             
-            if (writeMilleBinary) {
-                /*
-                System.out.println("DEBUG::Tom::Writing track with "
-                    + points_on_traj.size() + " hits to mille binary.");
-                 */
-                trajForMPII.milleOut(mille);
-            }
-            
             if (correctTrack) {                
 
                 //Form the FittedGblTrajectory for the unconstrained fit
@@ -944,6 +975,23 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 Collection<TrackerHit> hth = track.getTrackerHits();
                 List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
                 Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
+                
+
+                // Track refit failed
+                if (newTrack == null)
+                    continue;
+                
+                //To make sure that the track fit converged
+                if (writeMilleBinary) {
+                    /*
+                      System.out.println("DEBUG::Tom::Writing track with "
+                      + points_on_traj.size() + " hits to mille binary.");
+                    */
+                    trajForMPII.milleOut(mille);
+                }
+                
+                
+
                 Track gblTrk = newTrack.getFirst();
 
                 //System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");
@@ -1685,10 +1733,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
         vdir[2] = 0.;
         
         
-        //Hard coded uncertainties
+        //Uncertainties
         double[] bserror = new double[2];
-        bserror[0]=0.02;
-        bserror[1]=0.2;
+        bserror[0]=sigmabsY;
+        bserror[1]=sigmabsX;
         return GblUtils.gblMakeBsPoint(htf, center, udir, vdir, bserror);
     }
     
