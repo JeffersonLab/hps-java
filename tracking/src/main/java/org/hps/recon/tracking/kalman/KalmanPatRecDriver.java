@@ -493,7 +493,7 @@ public class KalmanPatRecDriver extends Driver {
                 double ecal_bFieldY = -999.9;
                 if (TrackUtils.getTrackStateAtECal(KalmanTrackHPS) != null)
                 {
-                    Hep3Vector ecal_pos = new BasicHep3Vector(TrackStateUtils.getTrackStateAtECal(KalmanTrackHPS).getReferencePoint());
+                    Hep3Vector ecal_pos = new BasicHep3Vector(TrackUtils.getTrackStateAtECal(KalmanTrackHPS).getReferencePoint());
                     ecal_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(ecal_pos)).y();
                 }          
 
