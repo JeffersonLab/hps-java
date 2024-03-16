@@ -14,6 +14,7 @@ import org.ejml.dense.row.MatrixFeatures_DDRM;
 import org.ejml.dense.fixed.CommonOps_DDF3;
 import org.hps.util.Pair;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.base.BaseTrackState;
 
 /**
  * Helix description for the Kalman filter
@@ -630,7 +631,7 @@ class HelixState implements Cloneable {
     // In the returned TrackState the reference point gets set to the point on the helix closest to the
     // original pivot point (e.g. the helix intersection with the plane of silicon).
     // The pivot of the returned TrackState is always the origin (0,0,0)
-    TrackState toTrackState(double alphaCenter, Plane pln, int loc) {
+    BaseTrackState toTrackState(double alphaCenter, Plane pln, int loc) {
         // See TrackState for the different choices for loc (e.g. TrackState.atOther)
         return KalmanInterface.toTrackState(this, pln, alphaCenter, loc);    
     }

@@ -323,7 +323,7 @@ public class KalmanInterface {
     }
 
     // Create an HPS TrackState from a Kalman HelixState at the location of a particular SiModule
-    public TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
+    public BaseTrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
         // Note that the helix parameters that get stored in the TrackState assume a B-field exactly oriented in the
         // z direction and a pivot point at the origin (0,0,0). The referencePoint of the TrackState is set to the
         // intersection point with the detector plane.
@@ -410,7 +410,7 @@ public class KalmanInterface {
         return KalmanInterface.getLCSimParams(finalHelixParams.v, alphaCenter);
     }
     
-    static TrackState toTrackState(HelixState helixState, Plane pln, double alphaCenter, int loc) {
+    static BaseTrackState toTrackState(HelixState helixState, Plane pln, double alphaCenter, int loc) {
         double [] covHPS = new double[15];
         double [] position = new double[3];
         double [] helixHPS = KalmanInterface.toHPShelix(helixState, pln, alphaCenter, covHPS, position);
@@ -562,7 +562,7 @@ public class KalmanInterface {
         double B = Bfield.mag();
         double[] newParams = getLCSimParams(globalParams, alphaCenter);
         double[] newCov = getLCSimCov(globalCov, alphaCenter).asPackedArray(true);
-        TrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, TrackState.AtIP);
+        BaseTrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, TrackState.AtIP);
         if (ts != null) {
             newTrack.getTrackStates().add(ts);                    
             newTrack.setTrackParameters(ts.getParameters(), B);
@@ -606,7 +606,11 @@ public class KalmanInterface {
                         
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true);
-                if (ts != null) newTrack.getTrackStates().add(ts);
+                if (ts != null){
+                    Hep3Vector momvec = TrackUtils.getMomentum(ts.getOmega(),ts.getPhi(),ts.getTanLambda(),B);
+                    ts.setMomentum(momvec.v());
+                    newTrack.getTrackStates().add(ts);
+                }
             }
         }
         

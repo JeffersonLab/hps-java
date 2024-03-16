@@ -687,6 +687,7 @@ public class TrackUtils {
         BaseTrackState bts = new BaseTrackState(params, bFieldY);
         bts.setReferencePoint(finalPos.v());
         bts.setLocation(TrackState.AtCalorimeter);
+        bts.setMomentum(momTrans.v());
         return bts;
     }
 
@@ -1771,6 +1772,7 @@ public class TrackUtils {
         HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(ts);
         double pathToStart = HelixUtils.PathToXPlane(helicalTrackFit, startPosition.z(), 0., 0).get(0);
         double bFieldY = fM.getField(new BasicHep3Vector(0, 0, 500)).y();
+        /// bFieldY = fM.getField(new BasicHep3Vector(startPosition.x(), startPosition.y(), startPosition.z())).y();
         double p = Math.abs(helicalTrackFit.p(bFieldY));
         Hep3Vector helixDirection = HelixUtils.Direction(helicalTrackFit, pathToStart);
         Hep3Vector p0Trans = CoordinateTransformations.transformVectorToDetector(VecOp.mult(p, helixDirection));
