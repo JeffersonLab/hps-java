@@ -482,6 +482,9 @@ public class KalmanPatRecDriver extends Driver {
                 //Get Bfield at origin
                 double origin_bFieldY = fm.getField((new BasicHep3Vector(0.0, 0.0, 0.0))).y();
 
+                //Get Bfield at SVT Center
+                double svtCenter_bFieldY = fm.getField((new BasicHep3Vector(0.0, 0.0, KI.SVTcenter))).y();
+
                 //Get Bfield at target
                 double target_bFieldY = -999.9;
                 if (TrackUtils.getTrackStateAtTarget(KalmanTrackHPS) != null)
@@ -496,22 +499,6 @@ public class KalmanPatRecDriver extends Driver {
                     Hep3Vector ecal_pos = new BasicHep3Vector(TrackUtils.getTrackStateAtECal(KalmanTrackHPS).getReferencePoint());
                     ecal_bFieldY = fm.getField(CoordinateTransformations.transformVectorToDetector(ecal_pos)).y();
                 }          
-
-		//Get Bfield at FirstHit
-		double firsthit_bFieldY = -999.9;
-		if (TrackStateUtils.getTrackStateAtFirst(KalmanTrackHPS) != null)
-		{
-                    Hep3Vector firsthit_pos = new BasicHep3Vector(TrackStateUtils.getTrackStateAtFirst(KalmanTrackHPS).getReferencePoint());
-                    firsthit_bFieldY = fm.getField(firsthit_pos).y();
-		}
-
-		//Get Bfield at LastHit
-		double lasthit_bFieldY = -999.9;
-		if (TrackStateUtils.getTrackStateAtLast(KalmanTrackHPS) != null)
-		{
-                    Hep3Vector lasthit_pos = new BasicHep3Vector(TrackStateUtils.getTrackStateAtLast(KalmanTrackHPS).getReferencePoint());
-                    lasthit_bFieldY = fm.getField(lasthit_pos).y();
-		}
 
                 //Add the TrackResiduals
                 List<Integer> layers    = new ArrayList<Integer>();
@@ -539,7 +526,7 @@ public class KalmanPatRecDriver extends Driver {
                 }//Loop on layers
                 
                 //Add the Track Data 
-                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY, (float) firsthit_bFieldY, (float) lasthit_bFieldY);
+                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY, (float) svtCenter_bFieldY);
                 trackDataCollection.add(KFtrackData);
                 trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
 
