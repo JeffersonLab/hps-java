@@ -18,7 +18,7 @@ public class TrackData implements GenericObject {
     public static final int L1_ISOLATION_INDEX = 0;
     public static final int L2_ISOLATION_INDEX = 1;
     public static final int N_ISOLATIONS = 14;  //Default
-    public static final int N_TRACK_PARAMS = 9;
+    public static final int N_TRACK_PARAMS = 8;
     public static final int TRACK_TIME_INDEX = 0;
     public static final int PX_INDEX = 1;
     public static final int PY_INDEX = 2;
@@ -26,8 +26,7 @@ public class TrackData implements GenericObject {
     public static final int ORIGIN_BFY_INDEX = 4; //BFieldY at Origin
     public static final int TARGET_BFY_INDEX = 5; //BFieldY at Target TrackState
     public static final int ECAL_BFY_INDEX = 6;   //BFieldY at ECal TrackState
-    public static final int FIRST_BFY_INDEX = 7;   //BFieldY at FirstHit TrackState
-    public static final int LAST_BFY_INDEX = 8;   //BFieldY at LastHit TrackState
+    public static final int SVTCENTER_BFY_INDEX = 7;   //BFieldY at SVT Center
     public static final int TRACK_VOLUME_INDEX = 0;
     public static final String TRACK_DATA_COLLECTION = "TrackData";
     public static final String TRACK_DATA_RELATION_COLLECTION = "TrackDataRelations";
@@ -101,10 +100,10 @@ public class TrackData implements GenericObject {
      * @param first_bfieldY   : value of BfieldY at FirstHit Track State
      * @param last_bfieldY   : value of BfieldY at LastHit Track State
      */
-    public TrackData(int trackVolume, float trackTime, double[] isolations, float[] momentum, float origin_bfieldY, float target_bfieldY, float ecal_bfieldY, float first_bfieldY, float last_bfieldY) {
+    public TrackData(int trackVolume, float trackTime, double[] isolations, float[] momentum, float origin_bfieldY, float target_bfieldY, float ecal_bfieldY, float svtCenter_bfieldY) {
 
         this.doubles = isolations;
-        this.floats = new float[]{trackTime,momentum[0],momentum[1],momentum[2],origin_bfieldY,target_bfieldY,ecal_bfieldY, first_bfieldY, last_bfieldY};
+        this.floats = new float[]{trackTime,momentum[0],momentum[1],momentum[2],origin_bfieldY,target_bfieldY,ecal_bfieldY, svtCenter_bfieldY};
         this.ints = new int[]{trackVolume};
     }
         
