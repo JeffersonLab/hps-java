@@ -1182,8 +1182,8 @@ public class TrackUtils {
     /**
      * Number of shared 3D hits between two tracks
      *
-     * @param track
-     * @param tracklist
+     * @param track1
+     * @param track2
      * @return number of 3D hits shared between two tracks
      */
     public static int numberOfSharedHits(Track track1, Track track2) {
@@ -1755,7 +1755,7 @@ public class TrackUtils {
      * @param startPositionX The position from which to start the extrapolation
      * from. The track will be extrapolated to this point using a constant
      * field.
-     * @param endPositionX The position to extrapolate the track to.
+     * @param endPosition The position to extrapolate the track to.
      * @param stepSize The step size determining how far a track will be
      * extrapolated after every iteration.
      * @param fieldMap The 3D field map

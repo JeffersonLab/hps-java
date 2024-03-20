@@ -24,6 +24,7 @@ import hep.physics.vec.VecOp;
 import org.apache.commons.math.util.FastMath;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
@@ -42,6 +43,8 @@ import org.lcsim.event.LCIOParameters.ParameterName;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
+import org.lcsim.fit.helicaltrack.HelicalTrackFit;
+import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
@@ -385,6 +388,7 @@ public class KalmanInterface {
         // Pivot transform to the final pivot at the origin
         Vec finalPivot = new Vec(0.,0.,0.);
         Vec finalHelixParams = HelixState.pivotTransform(finalPivot, helixParamsRotated, pivotGlobal, alphaCenter, 0.);
+        //Vec finalHelixParams = helixParamsRotated;  // Hack with PF to debug the phi0 not rotating issue.
         HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter);
         CommonOps_DDRM.multTransB(covRotated, F, tempM);
         CommonOps_DDRM.mult(F, tempM, covRotated);
@@ -607,8 +611,17 @@ public class KalmanInterface {
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true);
                 if (ts != null){
-                    Hep3Vector momvec = TrackUtils.getMomentum(ts.getOmega(),ts.getPhi(),ts.getTanLambda(),B);
-                    ts.setMomentum(momvec.v());
+                    HelicalTrackFit helicalTrackFit = TrackUtils.getHTF(ts);
+                    double pathToStart = HelixUtils.PathToXPlane(helicalTrackFit, site.m.p.X().v[1], 0., 0).get(0); //startPosition.z()
+                    double bFieldY = fM.getField(new BasicHep3Vector(0, 0, 500)).y();
+                    /// bFieldY = fM.getField(new BasicHep3Vector(startPosition.x(), startPosition.y(), startPosition.z())).y();
+                    double p = Math.abs(helicalTrackFit.p(bFieldY));
+                    Hep3Vector helixDirection = HelixUtils.Direction(helicalTrackFit, pathToStart);
+                    Hep3Vector p0Trans = CoordinateTransformations.transformVectorToDetector(VecOp.mult(p, helixDirection));
+
+//                    Hep3Vector momvec = TrackUtils.getMomentum(ts.getOmega(),ts.getPhi(),ts.getTanLambda(),B);
+                    ts.setMomentum(p0Trans.v());
+                    ts.setReferencePoint(p0Trans.v());
                     newTrack.getTrackStates().add(ts);
                 }
             }
