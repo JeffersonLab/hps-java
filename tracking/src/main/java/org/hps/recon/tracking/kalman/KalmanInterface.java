@@ -388,7 +388,6 @@ public class KalmanInterface {
         // Pivot transform to the final pivot at the origin
         Vec finalPivot = new Vec(0.,0.,0.);
         Vec finalHelixParams = HelixState.pivotTransform(finalPivot, helixParamsRotated, pivotGlobal, alphaCenter, 0.);
-        //Vec finalHelixParams = helixParamsRotated;  // Hack with PF to debug the phi0 not rotating issue.
         HelixState.makeF(finalHelixParams, F, helixParamsRotated, alphaCenter);
         CommonOps_DDRM.multTransB(covRotated, F, tempM);
         CommonOps_DDRM.mult(F, tempM, covRotated);
@@ -618,10 +617,11 @@ public class KalmanInterface {
                     double p = Math.abs(helicalTrackFit.p(bFieldY));
                     Hep3Vector helixDirection = HelixUtils.Direction(helicalTrackFit, pathToStart);
                     Hep3Vector p0Trans = CoordinateTransformations.transformVectorToDetector(VecOp.mult(p, helixDirection));
-
+                    if( loc == TrackState.AtLastHit) {
+                        newTrack.setReferencePoint(p0Trans.v());
+                    }
 //                    Hep3Vector momvec = TrackUtils.getMomentum(ts.getOmega(),ts.getPhi(),ts.getTanLambda(),B);
                     ts.setMomentum(p0Trans.v());
-                    ts.setReferencePoint(p0Trans.v());
                     newTrack.getTrackStates().add(ts);
                 }
             }
