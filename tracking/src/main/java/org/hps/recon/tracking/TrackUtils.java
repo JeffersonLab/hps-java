@@ -1779,7 +1779,7 @@ public class TrackUtils {
 
         double distance = distanceZ / VecOp.cosTheta(p0Trans);
         if (stepSize == 0) {
-            stepSize = distance / 100.0;
+            stepSize = distance / 1000.0;
         }
 
         double charge = -1.0 * Math.signum(getR(ts));
