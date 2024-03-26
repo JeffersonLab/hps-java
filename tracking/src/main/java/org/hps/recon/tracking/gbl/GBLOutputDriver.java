@@ -169,6 +169,18 @@ public class GBLOutputDriver extends Driver {
 
         bFieldMap = detector.getFieldMap();
 
+        if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) { 
+            
+            kinkFolder  = "/kf_kinks/";
+            epullFolder = "/kf_err_pulls/";
+            trkpFolder  = "/kf_trk_params/";
+            trkpDetailFolder = "/kf_trk_detail/";
+            resFolder = "/kf_res/";
+            hitFolder = "/kf_hit/";
+        }
+
+
+
         setupPlots();
     }
 
@@ -188,8 +200,9 @@ public class GBLOutputDriver extends Driver {
         if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) {
             TrackType = 1;
             //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
-        }
 
+        }
+        
         //System.out.println("Running on "+trackCollectionName);
 
         //RelationalTable trackMatchTable = null;
@@ -218,10 +231,10 @@ public class GBLOutputDriver extends Driver {
             
             //Remove tracks with less than 10 hits
             if ((TrackType == 0 && trk.getTrackerHits().size() < nHits) 
-                    || (TrackType == 1 && trk.getTrackerHits().size() < 2*nHits)) {
-                System.out.println("WARNING:: "+trk.getClass().getSimpleName()
-                        +" got to GBLOutputDriver with "+trk.getTrackerHits().size()+" hits"
-                        +" which is below the cut that should have been already applied.");
+                || (TrackType == 1 && trk.getTrackerHits().size() < 2*nHits)) {
+                //System.out.println("WARNING:: "+trk.getClass().getSimpleName()
+                //        +" got to GBLOutputDriver with "+trk.getTrackerHits().size()+" hits"
+                //        +" which is below the cut that should have been already applied.");
                 continue;
             }
 
