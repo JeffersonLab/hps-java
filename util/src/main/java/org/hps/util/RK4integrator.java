@@ -53,6 +53,8 @@ public class RK4integrator {
         Hep3Vector p = new BasicHep3Vector(p0.v());
 
         int nStep = (int) (s / h) + 1;
+        // System.out.printf("============ Start Track Extension, n= %4d ============\n\n",nStep);
+
         for (int step = 0; step < nStep; step++) {
 
             Pair<Hep3Vector, Hep3Vector> k1 = f(r, p);
@@ -78,8 +80,13 @@ public class RK4integrator {
             ptemp = VecOp.mult(h, ptemp);
             p = VecOp.add(p, ptemp);
 
+            //System.out.printf("%5d,",step);
+            //System.out.printf("%10.4f, %10.4f, %10.4f,", r.x(),r.y(),r.z());
+            //System.out.printf("%9.4f, %9.4f, %9.4f,", p.x(),p.y(),p.z());
+            //Hep3Vector field = fM.getField(r);
+            //System.out.printf("%10.4f, %10.4f, %10.4f\n",field.x(),field.y(),field.z());
         }
-
+        //System.out.printf("============ End Track Extension ============\n\n");
         return new Pair<Hep3Vector, Hep3Vector> (r,p);
     }
     

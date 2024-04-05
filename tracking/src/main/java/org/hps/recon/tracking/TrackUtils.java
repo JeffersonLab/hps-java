@@ -663,9 +663,9 @@ public class TrackUtils {
         if (4441 < runNumber && runNumber < 8100)
             zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
  
-        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, 800 ); // was BeamlineConstants.DIPOLE_EDGE_ENG_RUN
         Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
-        double distanceZ = zAtEcal - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
+        double distanceZ = zAtEcal - 800; // was BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
         double charge = -1.0 * Math.signum(getR(ts));
 
         org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
@@ -1779,7 +1779,7 @@ public class TrackUtils {
 
         double distance = distanceZ / VecOp.cosTheta(p0Trans);
         if (stepSize == 0) {
-            stepSize = distance / 1000.0;
+            stepSize = distance / 100.0;
         }
 
         double charge = -1.0 * Math.signum(getR(ts));
