@@ -84,7 +84,7 @@ public class KalmanInterface {
     private double[] beamPosition = null;
     
     private static final boolean debug = false;    
-    private static final double SVTcenter = 505.57;
+    static final double SVTcenter = 505.57;
     private static final double c = 2.99793e8; // Speed of light in m/s
     
     private int runNumber = 14168;
@@ -570,8 +570,14 @@ public class KalmanInterface {
         }
         
         // Add the hits to the track
+	int firstHit_idx = -1;
+	int lastHit_idx = -1;
+	int idx = -1;
         for (MeasurementSite site : kT.SiteList) {
+	    idx = idx + 1;
             if (site.hitID < 0) continue;
+	    if (firstHit_idx < 0) firstHit_idx = idx;
+	    lastHit_idx = idx;
             newTrack.addHit(getHpsHit(site.m.hits.get(site.hitID)));
         }
         //System.out.printf("PF::Debug::newTrack site size %d \n",newTrack.getTrackerHits().size());
@@ -586,9 +592,9 @@ public class KalmanInterface {
             //int lay = hssd.getMillepedeId();
             // System.out.printf("ssp id %d \n", hssd.getMillepedeId());
 
-            if (i == 0) {
+            if (i == firstHit_idx) {
                 loc = TrackState.AtFirstHit;
-            } else if (i == kT.SiteList.size() - 1) 
+            } else if (i == lastHit_idx) 
                 loc = TrackState.AtLastHit;
             
             /*
