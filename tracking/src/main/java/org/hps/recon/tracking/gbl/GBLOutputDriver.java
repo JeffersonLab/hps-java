@@ -306,10 +306,7 @@ public class GBLOutputDriver extends Driver {
                 //System.out.println("Event has "+GBLKinkData.DATA_RELATION_COLLECTION+" "+event.hasCollection(LCRelation.class, GBLKinkData.DATA_RELATION_COLLECTION));
             //}
             
-            
-            
-
-            //Track matchedTrack = (Track) trackMatchTable.from(trk);
+	    //Track matchedTrack = (Track) trackMatchTable.from(trk);
             Map<HpsSiSensor, TrackerHit> sensorHits = new HashMap<HpsSiSensor, TrackerHit>();
             Map<HpsSiSensor, Integer> sensorNums    = new HashMap<HpsSiSensor, Integer>();
             List<TrackerHit> hitsOnTrack = new ArrayList<TrackerHit>();
@@ -370,8 +367,7 @@ public class GBLOutputDriver extends Driver {
 	    
         }
     }
-
-
+    
     private void doEoPPlots(Track track, Cluster cluster) {
 
 	double energy = cluster.getEnergy();
@@ -1149,6 +1145,8 @@ public class GBLOutputDriver extends Driver {
         if (outputPlots != null) {
             try {
                 aidaGBL.saveAs(outputPlots);
+
+		/*
                 // remove all GBL histograms from heap after they have been written on output file
                 String[] type = aidaGBL.tree().listObjectNames("/",true);
                 for (int i=0; i<type.length; i++){
@@ -1161,7 +1159,7 @@ public class GBLOutputDriver extends Driver {
                         if (obj instanceof IBaseHistogram) aidaGBL.tree().rm(obj.name()) ;
                     }
                 }
-
+		*/
             } catch (IOException ex) {
                 Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE, null, ex);
             }
