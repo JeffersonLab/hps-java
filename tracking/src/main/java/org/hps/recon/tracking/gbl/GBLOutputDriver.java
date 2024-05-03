@@ -41,14 +41,22 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.FieldMap;
 
 
+// E/p plots
+import org.lcsim.event.Cluster;
+import org.lcsim.event.ReconstructedParticle;
+import org.lcsim.event.TrackState;
+//Fiducial cuts on the calorimeter cluster
+import org.hps.record.triggerbank.TriggerModule;
+
 /**
  * Make post-GBL plots needed for alignment.
  */
 public class GBLOutputDriver extends Driver {
     
-    private AIDA aidaGBL; // era public 
+    private AIDA aidaGBL; // era public
     private String outputPlots = "GBLplots_ali.root";
     private String trackCollectionName = "GBLTracks";
+    private String inputCollectionName = "FinalStateParticles_KF";
     private String trackResidualsRelColName = "TrackResidualsGBLRelations";
     private String dataRelationCollection = GBLKinkData.DATA_RELATION_COLLECTION;
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
@@ -61,7 +69,8 @@ public class GBLOutputDriver extends Driver {
     String trkpDetailFolder="/trk_detail/";
     String resFolder="/res/";
     String hitFolder="/hit/";
-    private boolean b_doGBLkinks     = true;
+    String eopFolder = "/EoP/";
+    private boolean b_doGBLkinks     = false;
     private boolean b_doGBLresiduals = true;
     private boolean b_doDetailPlots  = false;
 
@@ -74,7 +83,7 @@ public class GBLOutputDriver extends Driver {
 
     //Spacing between top and bottom in the 2D histos
     private int mod = 5;
-
+    
     private double minMom = 1.;
     private double maxMom = 6.;
 
@@ -85,8 +94,15 @@ public class GBLOutputDriver extends Driver {
     private double maxTanL = 999.9;
     
     private int nHits = 6;
+
+
+    private boolean useParticles = true;
     
 
+    public void setUseParticles(boolean val) {
+        useParticles = val;
+    }
+    
     public void setDataRelationCollection (String val) {
         dataRelationCollection = val;
     }
@@ -149,6 +165,10 @@ public class GBLOutputDriver extends Driver {
         trackCollectionName=val;
     }
 
+    public void setInputCollectionName(String val) {
+        inputCollectionName=val;
+    }
+
 
     @Override
     protected void detectorChanged(Detector detector) {
@@ -170,12 +190,38 @@ public class GBLOutputDriver extends Driver {
         bFieldMap = detector.getFieldMap();
 
         setupPlots();
+	setupEoPPlots();
     }
 
     @Override
     public void process(EventHeader event) {
-        List<Track> tracks = event.get(Track.class, trackCollectionName);
 
+
+	
+	// Track Collection
+	List<Track> tracks = new ArrayList<Track>();
+	
+	// Particle Collection
+	List<ReconstructedParticle> particles = null;
+	
+	// Create a mapping of matched Tracks to corresponding Clusters. 
+        HashMap<Track,Cluster> TrackClusterPairs = new HashMap<Track,Cluster>();
+	
+	if (!useParticles)
+	    tracks = event.get(Track.class,trackCollectionName);
+	else {
+	    particles = event.get(ReconstructedParticle.class, inputCollectionName);
+	    for (ReconstructedParticle particle : particles) {
+                if (particle.getTracks().isEmpty() || particle.getClusters().isEmpty())
+                    continue;
+		Track track = particle.getTracks().get(0);
+		Cluster cluster = particle.getClusters().get(0);
+		tracks.add(track);
+		TrackClusterPairs.put(track,cluster);
+            }
+	}
+	
+	
         /*
         System.out.print("GBLOutputDriver tracks (" + trackCollectionName + ") N hits: ");
         for (Track trk : tracks) {
@@ -225,17 +271,16 @@ public class GBLOutputDriver extends Driver {
                 continue;
             }
 
-
+	    
             //System.out.println("Track passed hits");
-            
-            Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
+	    Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
             
             if (momentum.magnitude() < minMom)
                 continue;
             
             if (momentum.magnitude() > maxMom)
                 continue;
-            
+	    
             //System.out.println("Track passed momentum");
             
             TrackState trackState = trk.getTrackStates().get(0);
@@ -261,10 +306,7 @@ public class GBLOutputDriver extends Driver {
                 //System.out.println("Event has "+GBLKinkData.DATA_RELATION_COLLECTION+" "+event.hasCollection(LCRelation.class, GBLKinkData.DATA_RELATION_COLLECTION));
             //}
             
-            
-            
-
-            //Track matchedTrack = (Track) trackMatchTable.from(trk);
+	    //Track matchedTrack = (Track) trackMatchTable.from(trk);
             Map<HpsSiSensor, TrackerHit> sensorHits = new HashMap<HpsSiSensor, TrackerHit>();
             Map<HpsSiSensor, Integer> sensorNums    = new HashMap<HpsSiSensor, Integer>();
             List<TrackerHit> hitsOnTrack = new ArrayList<TrackerHit>();
@@ -316,8 +358,77 @@ public class GBLOutputDriver extends Driver {
             //doMTresiduals(matchedTrack, sensorHits);
             if (b_doGBLkinks)
                 doGBLkinks(trk,gblKink, sensorNums);
+
+
+
+	    if (useParticles)
+		doEoPPlots(trk,TrackClusterPairs.get(trk));
+	    
+	    
         }
     }
+    
+    private void doEoPPlots(Track track, Cluster cluster) {
+
+	double energy = cluster.getEnergy();
+	double[] trk_prms = track.getTrackParameters();
+	double tanL = trk_prms[BaseTrack.TANLAMBDA];
+	double phi  = trk_prms[BaseTrack.PHI];
+	TrackState trackState = track.getTrackStates().get(0);
+	double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
+	double eop = energy / trackp;
+
+	String vol = tanL > 0 ? "top" : "bottom";
+
+	//Charge sign is flipped
+	String charge = track.getCharge() > 0 ? "ele" : "pos";
+
+	
+	aidaGBL.histogram1D(eopFolder+"Ecluster_"+vol).fill(energy);
+	aidaGBL.histogram1D(eopFolder+"EoP_"+vol).fill(eop);
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_"+vol).fill(phi,eop);
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_"+vol).fill(trackp,eop);
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_"+vol).fill(tanL,eop);
+
+
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_"+charge+"_"+vol).fill(trackp,eop);
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_"+charge+"_"+vol).fill(tanL,eop);
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol).fill(phi,eop);
+	
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda").fill(tanL,eop);
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_phi").fill(tanL,eop);
+	aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi").fill(tanL,
+								   phi,
+								   eop);
+
+	
+	if (TriggerModule.inFiducialRegion(cluster)) {
+	    
+	    aidaGBL.histogram1D(eopFolder+"Ecluster_"+vol+"_fid").fill(energy);
+	    aidaGBL.histogram1D(eopFolder+"EoP_"+vol+"_fid").fill(eop);
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_"+vol+"_fid").fill(phi,eop);
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_"+vol+"_fid").fill(trackp,eop);
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_"+vol+"_fid").fill(tanL,eop);
+	    
+
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP_"+charge+"_"+vol+"_fid").fill(trackp,eop);
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_"+charge+"_"+vol+"_fid").fill(tanL,eop);
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol+"_fid").fill(phi,eop);
+	    
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_fid").fill(tanL,eop);
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(tanL,eop);
+	    aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid").fill(tanL,
+									   phi,
+									   eop);
+
+	    
+	}
+	
+	
+    }
+
+    
+    
 
     private void doGBLkinks(Track trk, GenericObject kink, Map<HpsSiSensor, Integer> sensorNums) {
         
@@ -804,8 +915,58 @@ public class GBLOutputDriver extends Driver {
         
         return missingHits;
     }
+    
+    private void setupEoPPlots() {
+	
+        List<String> volumes = new ArrayList<String>();
+        volumes.add("_top");
+        volumes.add("_bottom");
+	
+        List<String> charges = new ArrayList<String>();
+        charges.add("");
+        charges.add("_ele");
+        charges.add("_pos");
+        
+        for (String vol : volumes) {
+	    
+            aidaGBL.histogram1D(eopFolder+"Ecluster"+vol,200,0,6);
+            aidaGBL.histogram1D(eopFolder+"EoP"+vol,200,0,2);
+            
+            double lmin = 0.;
+            double lmax = 0.08;
+            if (vol == "_bot") {
+                lmin = -0.08;
+                lmax = 0.;
+            }
+	    
+            for (String charge : charges) {
+                aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP"+charge+vol,200,0,6,200,0,2);
+                aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda"+charge+vol,200,lmin,lmax,200,0,2);
+                aidaGBL.histogram2D(eopFolder+"EoP_vs_phi"+charge+vol,200,-0.2,0.2,200,0,2);
+            }
+                        
+            aidaGBL.histogram1D(eopFolder+"Ecluster"+vol+"_fid",200,0,5);
+            aidaGBL.histogram1D(eopFolder+"EoP"+vol+"_fid",200,0,2);
+            aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP"+vol+"_fid",200,0,6,200,0,2);
+	    
+            for (String charge : charges) {
+                aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP"+charge+vol+"_fid",200,0,6,200,0,2);
+                aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda"+charge+vol+"_fid",200,0.01,0.08,200,0,2);
+                aidaGBL.histogram2D(eopFolder+"EoP_vs_phi"+charge+vol+"_fid",200,-0.2,0.2,200,0,2);
+            }
+        }
+        
+        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda",200,-0.1,0.1,200,0,2);
+        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi",200,-0.2,0.2,200,0,2);
+        aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi",200,-0.08,0.08,200,-0.2,0.2,200,0,2);
+	
+        aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_fid",200,-0.1,0.1,200,0,2);
+        aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_fid",200,-0.2,0.2,200,0,2);
+        aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid",200,-0.08,0.08,200,-0.2,0.2,200,0,2);
+	
+    }
 
-
+    
     private void setupPlots() {
         
 
@@ -984,6 +1145,8 @@ public class GBLOutputDriver extends Driver {
         if (outputPlots != null) {
             try {
                 aidaGBL.saveAs(outputPlots);
+
+		/*
                 // remove all GBL histograms from heap after they have been written on output file
                 String[] type = aidaGBL.tree().listObjectNames("/",true);
                 for (int i=0; i<type.length; i++){
@@ -996,7 +1159,7 @@ public class GBLOutputDriver extends Driver {
                         if (obj instanceof IBaseHistogram) aidaGBL.tree().rm(obj.name()) ;
                     }
                 }
-
+		*/
             } catch (IOException ex) {
                 Logger.getLogger(GBLOutputDriver.class.getName()).log(Level.SEVERE, null, ex);
             }
