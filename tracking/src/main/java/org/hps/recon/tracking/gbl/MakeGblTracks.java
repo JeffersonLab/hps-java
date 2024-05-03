@@ -108,8 +108,14 @@ public class MakeGblTracks {
         }
 
         // Set state at IP
-        Pair<double[], SymmetricMatrix> correctedHelixParams = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.IP, bfield);
-
+        Pair<double[], SymmetricMatrix> correctedHelixParams = null;
+        
+        // Bail on track if fails. 
+        try {
+            correctedHelixParams = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.IP, bfield);
+        } catch (Exception e) {
+        }
+        
         if (correctedHelixParams == null) {
             return null;
         }

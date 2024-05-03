@@ -189,6 +189,18 @@ public class GBLOutputDriver extends Driver {
 
         bFieldMap = detector.getFieldMap();
 
+        if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) { 
+            
+            kinkFolder  = "/kf_kinks/";
+            epullFolder = "/kf_err_pulls/";
+            trkpFolder  = "/kf_trk_params/";
+            trkpDetailFolder = "/kf_trk_detail/";
+            resFolder = "/kf_res/";
+            hitFolder = "/kf_hit/";
+        }
+
+
+
         setupPlots();
 	setupEoPPlots();
     }
@@ -234,8 +246,9 @@ public class GBLOutputDriver extends Driver {
         if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) {
             TrackType = 1;
             //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
-        }
 
+        }
+        
         //System.out.println("Running on "+trackCollectionName);
 
         //RelationalTable trackMatchTable = null;
@@ -264,10 +277,10 @@ public class GBLOutputDriver extends Driver {
             
             //Remove tracks with less than 10 hits
             if ((TrackType == 0 && trk.getTrackerHits().size() < nHits) 
-                    || (TrackType == 1 && trk.getTrackerHits().size() < 2*nHits)) {
-                System.out.println("WARNING:: "+trk.getClass().getSimpleName()
-                        +" got to GBLOutputDriver with "+trk.getTrackerHits().size()+" hits"
-                        +" which is below the cut that should have been already applied.");
+                || (TrackType == 1 && trk.getTrackerHits().size() < 2*nHits)) {
+                //System.out.println("WARNING:: "+trk.getClass().getSimpleName()
+                //        +" got to GBLOutputDriver with "+trk.getTrackerHits().size()+" hits"
+                //        +" which is below the cut that should have been already applied.");
                 continue;
             }
 
@@ -998,6 +1011,26 @@ public class GBLOutputDriver extends Driver {
         aidaGBL.profile1D(resFolder+"uresidual_GBL_mod_p",mod_2dplot_bins,-0.5,mod_2dplot_bins-0.5);
             
         
+        //Hits vs channel
+        int nch  = 400;
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL1b",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL2b",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL3b",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL4b",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL5b",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL6b",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL7b",nch,0,nch,nch,0,nch);
+        
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL1t",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL2t",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL3t",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL4t",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL5t",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL6t",nch,0,nch,nch,0,nch);
+        aidaGBL.histogram2D(resFolder+"Axial_vs_Stereo_channel_moduleL7t",nch,0,nch,nch,0,nch);
+            
+        
+
         for (SiSensor sensor : sensors) {
 
             HpsSiSensor sens = (HpsSiSensor) sensor.getGeometry().getDetectorElement();
@@ -1018,6 +1051,8 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_v_pred_" + sensor.getName(),300,-60.0,60.0,100,-0.1,0.1);
             aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_dT_hit_" + sensor.getName(),100,-10.0,10.0,100,-0.1,0.1);
             aidaGBL.histogram2D(resFolder+"uresidual_GBL_vs_dTs_hit_" + sensor.getName(),100,-5.0,5.0,100,-0.1,0.1);
+
+            
             aidaGBL.histogram1D(epullFolder+"breserror_GBL_" + sensor.getName(), nbins, 0.0, 0.1);
             aidaGBL.histogram1D(epullFolder+"ureserror_GBL_" + sensor.getName(), nbins, 0.0, 0.2);
             aidaGBL.histogram1D(epullFolder+"bres_pull_GBL_" + sensor.getName(), nbins, -5, 5);
