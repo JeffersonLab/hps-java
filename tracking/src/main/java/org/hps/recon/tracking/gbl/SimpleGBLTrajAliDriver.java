@@ -130,6 +130,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private List<AlignableDetectorElement>  Alignabledes = new ArrayList<AlignableDetectorElement>();
     private List<SiSensor> sensors = new ArrayList<SiSensor>();
     private boolean debugAlignmentDs = false;
+    private boolean debug_ = false;
     private boolean compositeAlign = false;
     private boolean constrainedFit = false;
     private boolean constrainedBSFit = false;
@@ -248,6 +249,9 @@ public class SimpleGBLTrajAliDriver extends Driver {
         debugAlignmentDs = val;
     }
 
+    public void setDebug(boolean val) {
+	debug_ = val;
+    }
 
     public void setEnableAlignmentCuts (boolean val) {
         enableAlignmentCuts = val;
@@ -500,10 +504,11 @@ public class SimpleGBLTrajAliDriver extends Driver {
         
         if (inputCollectionName.contains("Kalman") || inputCollectionName.contains("KF")) {
             TrackType = 1;
-            //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
-        }
+	}
 
-        //System.out.println("DEBUG::Tom::Deduced a track type of "+TrackType);
+	if (debug_) {
+	    System.out.println("DEBUG::Tom::Deduced a track type of "+TrackType);
+	}
 
         //If using Seed Tracker, get the hits from the event
         if (TrackType == 0) {

@@ -396,7 +396,7 @@ public class GBLOutputDriver extends Driver {
 	aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol).fill(phi,eop);
 	
 	aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda").fill(tanL,eop);
-	aidaGBL.histogram2D(eopFolder+"EoP_vs_phi").fill(tanL,eop);
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_phi").fill(phi,eop);
 	aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi").fill(tanL,
 								   phi,
 								   eop);
