@@ -295,9 +295,10 @@ public class GBLOutputDriver extends Driver {
 
             if (Math.abs(trackState.getPhi()) > maxPhi)
                 continue;
-            
-            //System.out.println("Track passed tanLambda");
-            
+	    
+	    //System.out.println("Track passed tanLambda");
+
+	    
             GenericObject gblKink = GBLKinkData.getKinkData(event, trk);
             
             //if (gblKink == null) {
@@ -416,7 +417,7 @@ public class GBLOutputDriver extends Driver {
 	    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol+"_fid").fill(phi,eop);
 	    
 	    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_fid").fill(tanL,eop);
-	    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(tanL,eop);
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(phi,eop);
 	    aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid").fill(tanL,
 									   phi,
 									   eop);
