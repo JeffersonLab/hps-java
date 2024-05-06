@@ -648,7 +648,7 @@ public class TrackUtils {
         if (4441 < runNumber && runNumber < 8100)
             zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
         
-        BaseTrackState bts = extrapolateTrackUsingFieldMap(track, BeamlineConstants.DIPOLE_EDGE_ENG_RUN, zAtEcal, 5.0, fieldMap);
+        BaseTrackState bts = extrapolateTrackUsingFieldMap(track, BeamlineConstants.ECAL_TRACK_EXTRAPOLATION_START_Z, zAtEcal, 5.0, fieldMap);
         bts.setLocation(TrackState.AtCalorimeter);
         return bts;
     }
@@ -663,9 +663,9 @@ public class TrackUtils {
         if (4441 < runNumber && runNumber < 8100)
             zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
  
-        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.ECAL_TRACK_EXTRAPOLATION_START_Z);
         Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
-        double distanceZ = zAtEcal - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
+        double distanceZ = zAtEcal - BeamlineConstants.ECAL_TRACK_EXTRAPOLATION_START_Z;
         double charge = -1.0 * Math.signum(getR(ts));
 
         org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
@@ -711,14 +711,14 @@ public class TrackUtils {
     }
 
     public static BaseTrackState getTrackExtrapAtHodoRK(TrackState ts, FieldMap fM, double stepSize, int hodoLayer) {
-        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
+        Hep3Vector startPos = extrapolateHelixToXPlane(ts, BeamlineConstants.ECAL_TRACK_EXTRAPOLATION_START_Z);
         Hep3Vector startPosTrans = CoordinateTransformations.transformVectorToDetector(startPos);
         double distZHodo = BeamlineConstants.HODO_L1_ZPOS;
         int hodoTrackStateIndex = 0;
         if (hodoLayer == 2) {
             distZHodo = BeamlineConstants.HODO_L2_ZPOS; //            hodoTrackStateIndex = 7;
         }
-        double distanceZ = distZHodo - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
+        double distanceZ = distZHodo - BeamlineConstants.ECAL_TRACK_EXTRAPOLATION_START_Z;
         double charge = -1.0 * Math.signum(getR(ts));
 
         org.hps.util.Pair<Hep3Vector, Hep3Vector> RKresults = extrapolateTrackUsingFieldMapRK(ts, startPosTrans, distanceZ, stepSize, fM);
@@ -851,9 +851,9 @@ public class TrackUtils {
 
         Hep3Vector trackPosition;
         double dz;
-        if (z >= BeamlineConstants.DIPOLE_EDGE_ENG_RUN) {
-            trackPosition = extrapolateHelixToXPlane(track, BeamlineConstants.DIPOLE_EDGE_ENG_RUN);
-            dz = z - BeamlineConstants.DIPOLE_EDGE_ENG_RUN;
+        if (z >= BeamlineConstants.ECAL_TRACK_EXTRAPOLATION_START_Z) {
+            trackPosition = extrapolateHelixToXPlane(track, BeamlineConstants.ECAL_TRACK_EXTRAPOLATION_START_Z);
+            dz = z - BeamlineConstants.ECAL_TRACK_EXTRAPOLATION_START_Z;
         } else if (z <= BeamlineConstants.DIPOLE_EDGELOW_TESTRUN) {
             trackPosition = extrapolateHelixToXPlane(track, BeamlineConstants.DIPOLE_EDGELOW_TESTRUN);
             dz = z - trackPosition.x();

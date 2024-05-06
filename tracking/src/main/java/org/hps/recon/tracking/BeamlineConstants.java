@@ -18,6 +18,8 @@ public final class BeamlineConstants {
 
     public static final double DIPOLE_EDGE_ENG_RUN = 457.2 + 1080 / 2;
 
+    public static final double ECAL_TRACK_EXTRAPOLATION_START_Z = 800; // Starting point for track extrapolation to ECAL -- MWH 2024/4/15
+
     public static final double HODO_L1_ZPOS = 1103.5; //extracted from detector element mg--7/17/2019
     public static final double HODO_L2_ZPOS = 1115.5; //extracted from detector element mg--7/17/2019
 
