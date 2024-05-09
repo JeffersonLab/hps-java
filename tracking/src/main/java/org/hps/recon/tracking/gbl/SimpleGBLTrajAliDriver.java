@@ -626,7 +626,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Cluster cuts
                 
                 //FEE Clusters cuts
-                
+		/*
                 if (clusterEnergyCutMin > 0 ) {
                     if (clusters.size() != 1 )
                         continue;
@@ -634,7 +634,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                     if (clusters.get(0).getEnergy() < clusterEnergyCutMin )
                         continue;
                 }
-                
+                */
             }
             
             
@@ -970,7 +970,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 
                 //System.out.println("Refitted track chi2 " + gblTrk.getChi2());
+		//Store the track and the relation
                 refittedTracks.add(gblTrk);
+		trackRelations.add(new BaseLCRelation(gblTrk,track));
+		
                 kinkDataCollection.add(newTrack.getSecond());
                 kinkDataRelations.add(new BaseLCRelation(newTrack.getSecond(), gblTrk));
             }
@@ -997,15 +1000,16 @@ public class SimpleGBLTrajAliDriver extends Driver {
             // Put the tracks back into the event and exit
             int flag = 1 << LCIOConstants.TRBIT_HITS;
             event.put(outputCollectionName, refittedTracks, Track.class, flag);
-            
+	    event.put(trackRelationCollectionName, trackRelations, LCRelation.class,0);
             
             if (computeGBLResiduals) {
                 event.put(trackResidualsColName,    trackResidualsCollection,  TrackResidualsData.class, 0);
                 event.put(trackResidualsRelColName, trackResidualsRelations, LCRelation.class, 0);
-            }
+            
             
             event.put(GBLKinkData.DATA_COLLECTION, kinkDataCollection, GBLKinkData.class, 0);
             event.put(GBLKinkData.DATA_RELATION_COLLECTION, kinkDataRelations, LCRelation.class, 0);
+	    }
 
         }
     }
