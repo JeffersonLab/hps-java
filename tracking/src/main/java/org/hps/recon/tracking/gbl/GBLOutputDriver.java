@@ -58,6 +58,7 @@ public class GBLOutputDriver extends Driver {
     private String trackCollectionName = "GBLTracks";
     private String inputCollectionName = "FinalStateParticles_KF";
     private String trackResidualsRelColName = "TrackResidualsGBLRelations";
+    private String trackRelationsColName = "GBLToKFRelations";
     private String dataRelationCollection = GBLKinkData.DATA_RELATION_COLLECTION;
     private List<HpsSiSensor> sensors = new ArrayList<HpsSiSensor>();
     private double bfield;
@@ -97,7 +98,11 @@ public class GBLOutputDriver extends Driver {
 
 
     private boolean useParticles = true;
-    
+
+
+    public void setDebug(boolean val) {
+	debug = val;
+    }
 
     public void setUseParticles(boolean val) {
         useParticles = val;
@@ -218,6 +223,27 @@ public class GBLOutputDriver extends Driver {
 	
 	// Create a mapping of matched Tracks to corresponding Clusters. 
         HashMap<Track,Cluster> TrackClusterPairs = new HashMap<Track,Cluster>();
+
+	int TrackType = 0;
+	if (!useParticles) {
+	    if (debug)
+		System.out.println("PF:: DEBUG :: NOT Using particles" + trackCollectionName);
+	    if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) {
+		TrackType = 1;
+	    }
+	}
+	else {
+	    if (debug)
+		System.out.println("PF:: DEBUG :: Using particles" + inputCollectionName);
+	    if (inputCollectionName.contains("Kalman") || inputCollectionName.contains("KF")) {
+		
+		TrackType = 1 ;
+	    }
+	
+	}
+        if (debug)
+	    System.out.println("PF:: DEBUG :: Track Type=" + TrackType);
+
 	
 	if (!useParticles)
 	    tracks = event.get(Track.class,trackCollectionName);
@@ -228,9 +254,37 @@ public class GBLOutputDriver extends Driver {
                     continue;
 		Track track = particle.getTracks().get(0);
 		Cluster cluster = particle.getClusters().get(0);
-		tracks.add(track);
-		TrackClusterPairs.put(track,cluster);
-            }
+		
+		// If track is a Kalman Track, get the GBL refitted track from the relations
+		if (TrackType==1) {
+		    RelationalTable trackRelationsTable = null;
+		    if (event.hasCollection(LCRelation.class, trackRelationsColName)) {
+			trackRelationsTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
+			List<LCRelation> trackRelation = event.get(LCRelation.class, trackRelationsColName);
+			for (LCRelation relation : trackRelation) {
+			    if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+				trackRelationsTable.add(relation.getFrom(), relation.getTo());
+			    }
+			}
+		    } // has the table
+
+		    Track gblTrack = (Track) trackRelationsTable.from(track);
+
+		    if (gblTrack == null) {
+			if (debug)
+			    System.out.println("ERROR RETRIEVING GBLTRACK!");
+			return;
+		    }
+		    tracks.add(gblTrack);
+		    TrackClusterPairs.put(gblTrack,cluster);
+		}// it's a kalman track
+		else {
+		    if (debug)
+			System.out.println("Particle not made with a kalman track. Adding track directly");
+		    tracks.add(track);
+		    TrackClusterPairs.put(track,cluster);
+		}
+	    }
 	}
 	
 	
@@ -241,15 +295,8 @@ public class GBLOutputDriver extends Driver {
         }
         System.out.println();
          */
-
-        int TrackType = 0;
-        if (trackCollectionName.contains("Kalman") || trackCollectionName.contains("KF")) {
-            TrackType = 1;
-            //System.out.println("PF:: DEBUG :: Found Kalman Tracks in the event");
-
-        }
-        
-        //System.out.println("Running on "+trackCollectionName);
+	
+	//System.out.println("Running on "+trackCollectionName);
 
         //RelationalTable trackMatchTable = null;
         //trackMatchTable = new BaseRelationalTable(RelationalTable.Mode.ONE_TO_ONE, RelationalTable.Weighting.UNWEIGHTED);
@@ -308,9 +355,10 @@ public class GBLOutputDriver extends Driver {
 
             if (Math.abs(trackState.getPhi()) > maxPhi)
                 continue;
-            
-            //System.out.println("Track passed tanLambda");
-            
+	    
+	    //System.out.println("Track passed tanLambda");
+
+	    
             GenericObject gblKink = GBLKinkData.getKinkData(event, trk);
             
             //if (gblKink == null) {
@@ -409,7 +457,7 @@ public class GBLOutputDriver extends Driver {
 	aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol).fill(phi,eop);
 	
 	aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda").fill(tanL,eop);
-	aidaGBL.histogram2D(eopFolder+"EoP_vs_phi").fill(tanL,eop);
+	aidaGBL.histogram2D(eopFolder+"EoP_vs_phi").fill(phi,eop);
 	aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi").fill(tanL,
 								   phi,
 								   eop);
@@ -429,10 +477,69 @@ public class GBLOutputDriver extends Driver {
 	    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol+"_fid").fill(phi,eop);
 	    
 	    aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda_fid").fill(tanL,eop);
-	    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(tanL,eop);
+	    aidaGBL.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(phi,eop);
 	    aidaGBL.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid").fill(tanL,
 									   phi,
 									   eop);
+
+	    
+	    
+	    // Cluster positions
+	    
+	    double clusterX  = cluster.getPosition()[0];
+	    double clusterY  = cluster.getPosition()[1];
+	    TrackState ts_ecal = TrackUtils.getTrackStateAtECal(track);
+	    
+	    if(ts_ecal == null){
+		return;
+	    }
+	    
+	    double[] ts_ecalPos = ts_ecal.getReferencePoint();
+	    double trkX = ts_ecalPos[1];
+	    double trkY = ts_ecalPos[2];
+	    
+	    aidaGBL.histogram1D(eopFolder+"Xcluster_"+vol+"_fid").fill(clusterX);
+	    aidaGBL.histogram1D(eopFolder+"Ycluster_"+vol+"_fid").fill(clusterY);
+	    
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resX_"+vol+"_fid").fill(trkX-clusterX);
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resY_"+vol+"_fid").fill(trkY-clusterY);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsX_"+vol+"_fid").fill(trkX,trkX-clusterX);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsY_"+vol+"_fid").fill(trkY,trkX-clusterX);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsX_"+vol+"_fid").fill(trkX,trkY-clusterY);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsY_"+vol+"_fid").fill(trkY,trkY-clusterY);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vstrkP_"+vol+"_fid").fill(trackp,trkY-clusterY);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vstrkP_"+vol+"_fid").fill(trackp,trkX-clusterX);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trkY_vs_tanL_"+vol+"_fid").fill(tanL,trkY);
+
+	    
+	    aidaGBL.histogram1D(eopFolder+"Xcluster_"+charge+"_"+vol+"_fid").fill(clusterX);
+	    aidaGBL.histogram1D(eopFolder+"Ycluster_"+charge+"_"+vol+"_fid").fill(clusterY);
+	    
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resX_"+charge+"_"+vol+"_fid").fill(trkX-clusterX);
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resY_"+charge+"_"+vol+"_fid").fill(trkY-clusterY);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsX_"+charge+"_"+vol+"_fid").fill(trkX,trkX-clusterX);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsY_"+charge+"_"+vol+"_fid").fill(trkY,trkX-clusterX);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsX_"+charge+"_"+vol+"_fid").fill(trkX,trkY-clusterY);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsY_"+charge+"_"+vol+"_fid").fill(trkY,trkY-clusterY);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vstrkP_"+charge+"_"+vol+"_fid").fill(trackp,trkY-clusterY);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vstrkP_"+charge+"_"+vol+"_fid").fill(trackp,trkX-clusterX);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trkY_vs_tanL_"+charge+"_"+vol+"_fid").fill(tanL,trkY);
+
+	    
+	    // 
+	    
+	    // As function of incident angle at ECAL, inclusive and in bin of momentum.
+	    
+	    
+
 
 	    
 	}
@@ -580,7 +687,9 @@ public class GBLOutputDriver extends Driver {
         //    FillGBLTrackPlot(trkpFolder+"p_MissingLastLayer",isTop,charge,trackp);
         
         
-        FillGBLTrackPlot(trkpFolder+"Chi2",isTop,charge,trk.getChi2());
+        
+	FillGBLTrackPlot(trkpFolder+"Chi2",isTop,charge,trk.getChi2());
+	FillGBLTrackPlot(trkpFolder+"Chi2oNDF",isTop,charge,trk.getChi2() / trk.getNDF());
         FillGBLTrackPlot(trkpFolder+"Chi2_vs_p",isTop,charge,trackp,trk.getChi2());
 
         // deduce multiplication factor for ST-started GBL tracks
@@ -595,7 +704,7 @@ public class GBLOutputDriver extends Driver {
 
         Hep3Vector beamspot = CoordinateTransformations.transformVectorToDetector(TrackUtils.extrapolateHelixToXPlane(trackState, 0));
         if (debug)
-            System.out.printf("beamspot %s transformed %s \n", beamspot.toString());
+            System.out.printf("beamspot %s transformed  \n", beamspot.toString());
         FillGBLTrackPlot(trkpFolder+"trk_extr_or_x",isTop,charge,beamspot.x());
         FillGBLTrackPlot(trkpFolder+"trk_extr_or_y",isTop,charge,beamspot.y());
         
@@ -770,15 +879,20 @@ public class GBLOutputDriver extends Driver {
                     trackResidualsTable.add(relation.getFrom(), relation.getTo());
                 }
             }
+	    if (debug)
+		System.out.println("Loaded track Residuals Table");
         } else {
-            //System.out.println("null TrackResidualsGBL Data Relations.");
+	    if (debug) {
+            System.out.println("null TrackResidualsGBL Data Relations.");
+	    }
             //Failed finding TrackResidualsGBL
             return;
         }
         
         GenericObject trackRes = (GenericObject) trackResidualsTable.from(trk);
         if (trackRes == null) {
-            //System.out.println("null TrackResidualsGBL Data.");
+	    if (debug)
+		System.out.println("null TrackResidualsGBL Data.");
             return;
         }
         
@@ -944,8 +1058,8 @@ public class GBLOutputDriver extends Driver {
 	    
             aidaGBL.histogram1D(eopFolder+"Ecluster"+vol,200,0,6);
             aidaGBL.histogram1D(eopFolder+"EoP"+vol,200,0,2);
-            
-            double lmin = 0.;
+
+	    double lmin = 0.;
             double lmax = 0.08;
             if (vol == "_bot") {
                 lmin = -0.08;
@@ -961,11 +1075,55 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram1D(eopFolder+"Ecluster"+vol+"_fid",200,0,5);
             aidaGBL.histogram1D(eopFolder+"EoP"+vol+"_fid",200,0,2);
             aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP"+vol+"_fid",200,0,6,200,0,2);
+
+
+	    double cxrange = 20;
+	    double cyrange = 20;
+	    double ecalX = 400;
+	    
+	    aidaGBL.histogram1D(eopFolder+"Xcluster"+vol+"_fid",200,-ecalX,ecalX);
+	    aidaGBL.histogram1D(eopFolder+"Ycluster"+vol+"_fid",200,-ecalX,ecalX);
+            aidaGBL.histogram1D(eopFolder+"trk_clu_resX"+vol+"_fid",200,-cxrange,cxrange);
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resY"+vol+"_fid",200,-cyrange,cyrange);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsX"+vol+"_fid",200,-ecalX,ecalX,200,-cxrange,cxrange);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsY"+vol+"_fid",200,-ecalX,ecalX,200,-cxrange,cxrange);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsX"+vol+"_fid",200,-ecalX,ecalX,200,-cyrange,cyrange);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsY"+vol+"_fid",200,-ecalX,ecalX,200,-cyrange,cyrange);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vstrkP"+vol+"_fid",100,0.,5,200,-cyrange,cyrange);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vstrkP"+vol+"_fid",100,0.,5,200,-cyrange,cyrange);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trkY_vs_tanL"+vol+"_fid",200,-0.2,0.2,200,-100,100);
+	    
 	    
             for (String charge : charges) {
                 aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP"+charge+vol+"_fid",200,0,6,200,0,2);
                 aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda"+charge+vol+"_fid",200,0.01,0.08,200,0,2);
                 aidaGBL.histogram2D(eopFolder+"EoP_vs_phi"+charge+vol+"_fid",200,-0.2,0.2,200,0,2);
+
+
+		
+		aidaGBL.histogram1D(eopFolder+"Xcluster"+charge+vol+"_fid",200,-ecalX,ecalX);
+		aidaGBL.histogram1D(eopFolder+"Ycluster"+charge+vol+"_fid",200,-ecalX,ecalX);
+		aidaGBL.histogram1D(eopFolder+"trk_clu_resX"+charge+vol+"_fid",200,-cxrange,cxrange);
+		aidaGBL.histogram1D(eopFolder+"trk_clu_resY"+charge+vol+"_fid",200,-cyrange,cyrange);
+		
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsX"+charge+vol+"_fid",200,-ecalX,ecalX,200,-cxrange,cxrange);
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsY"+charge+vol+"_fid",200,-ecalX,ecalX,200,-cxrange,cxrange);
+		
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsX"+charge+vol+"_fid",200,-ecalX,ecalX,200,-cyrange,cyrange);
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsY"+charge+vol+"_fid",200,-ecalX,ecalX,200,-cyrange,cyrange);
+		
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vstrkP"+charge+vol+"_fid",100,0.,5,200,-cyrange,cyrange);
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vstrkP"+charge+vol+"_fid",100,0.,5,200,-cyrange,cyrange);
+		
+		aidaGBL.histogram2D(eopFolder+"trkY_vs_tanL"+charge+vol+"_fid",200,-0.2,0.2,200,-100,100);
+		
+		
+		
+		
             }
         }
         
@@ -1120,6 +1278,7 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"p_slot"+vol+charge,nbins_p,0.,pmax);
                                 
                 aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t*2,0,200);
+		aidaGBL.histogram1D(trkpFolder+"Chi2oNDF"+vol+charge,nbins_t*2,0,50);
                 aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,15,0,15);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_x"+vol+charge,nbins_t,-3,3);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_y"+vol+charge,nbins_t,-3,3);
