@@ -1019,8 +1019,8 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram1D(eopFolder+"Ecluster"+vol,200,0,6);
             aidaGBL.histogram1D(eopFolder+"EoP"+vol,200,0,2);
 
-	    aidaGBL.histogram1D(eopFolder+"Xcluster_"+vol+"_fid",200,-100,100);
-	    aidaGBL.histogram1D(eopFolder+"Ycluster_"+vol+"_fid",200,-100,100);
+	    aidaGBL.histogram1D(eopFolder+"Xcluster"+vol+"_fid",200,-100,100);
+	    aidaGBL.histogram1D(eopFolder+"Ycluster"+vol+"_fid",200,-100,100);
             
             double lmin = 0.;
             double lmax = 0.08;
