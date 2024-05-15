@@ -51,6 +51,7 @@ import org.lcsim.event.RawTrackerHit;
 import org.lcsim.event.RelationalTable;
 import org.lcsim.event.Track;
 import org.lcsim.event.base.BaseTrack;
+import org.lcsim.event.base.BaseTrackState;
 
 //Fiducial cuts on the calorimeter cluster
 import org.hps.record.triggerbank.TriggerModule;
@@ -100,8 +101,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     private AIDA aidaGBL; 
     String derFolder = "/gbl_derivatives/";
-    String eopFolder = "/EoP/";
-    
+
     private String inputCollectionName = "MatchedTracks";
     private String outputCollectionName = "GBLTracks";
     private String trackRelationCollectionName = "MatchedToGBLTrackRelations";
@@ -444,19 +444,21 @@ public class SimpleGBLTrajAliDriver extends Driver {
         //Alignment Manager  - Get the composite structures.
         IDetectorElement detectorElement = detector.getDetectorElement();
         Alignabledes = detectorElement.findDescendants(AlignableDetectorElement.class);
-        
-        for (AlignableDetectorElement ade : Alignabledes) {
-            if (ade.getName().contains("alignable")) {
-                System.out.printf("Alignable Detector Elements informations: %s \n", ade.getName());
-                //System.out.printf(((AlignableDetectorElement)ade).getlocalToGlobal().toString()+"\n");
-                if (ade.getParent() != null) {
-                    System.out.printf("The parent is: %s\n", ade.getParent().getName());
-                }
-                else {
-                    System.out.printf("No parent. \n");
-                }
-            }
-        }
+
+	if (debug_) {
+	    for (AlignableDetectorElement ade : Alignabledes) {
+		if (ade.getName().contains("alignable")) {
+		    System.out.printf("Alignable Detector Elements informations: %s \n", ade.getName());
+		    //System.out.printf(((AlignableDetectorElement)ade).getlocalToGlobal().toString()+"\n");
+		    if (ade.getParent() != null) {
+			System.out.printf("The parent is: %s\n", ade.getParent().getName());
+		    }
+		    else {
+			System.out.printf("No parent. \n");
+		    }
+		}
+	    }
+	}
         
         // Get the sensors subcomponents // This should be only HpsSiSensors
         sensors = detectorElement.findDescendants(SiSensor.class);
@@ -464,7 +466,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
         if (!doCOMAlignment) {
 
             //Assign the mothers to the sensors
-            //TODO FIX this part. For the moment the mother of the sensors are chosen by string parsing. 
+            //TODO FIX this part. For the moment the mother of the sensors are chosen by string parsing.
+	    
             MakeAlignmentTree("alignable_fullmodule");
             
             //Dump the constrain file
@@ -478,6 +481,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     
     @Override
     protected void process(EventHeader event) {
+	int runNumber = event.getRunNumber();
 
         //Track collection
        
@@ -871,11 +875,18 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 Collection<TrackerHit> hth = track.getTrackerHits();
                 List<TrackerHit> allHthList = TrackUtils.sortHits(hth);
                 Pair<Track, GBLKinkData>  newTrack = MakeGblTracks.makeCorrectedTrack(fitTraj, TrackUtils.getHTF(track), allHthList, 0, bfield);
-                
 
-                // Track refit failed
+		// Track refit failed
                 if (newTrack == null)
                     continue;
+
+		
+		// Extrapolate to the ECAL and make a new trackState there.
+
+		Track gblTrk = newTrack.getFirst();
+		BaseTrackState ts_ecal = new BaseTrackState();
+		ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(gblTrk, bFieldMap, runNumber);
+		gblTrk.getTrackStates().add(ts_ecal);
                 
                 //To make sure that the track fit converged
                 if (writeMilleBinary) {
@@ -888,7 +899,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 
                 
 
-                Track gblTrk = newTrack.getFirst();
+                
 
                 //System.out.println("DEBUG::Tom::Correct GBL track has "+gblTrk.getTrackerHits().size()+" hits");
                 
@@ -1327,16 +1338,17 @@ public class SimpleGBLTrajAliDriver extends Driver {
         }//loop on sensors
         
         
-        
-        for (SiSensor sensor : sensors) {
-            if (((HpsSiSensor)sensor).getAdeMother() != null)
-                System.out.printf("DEBUG::PF::MakeAlignmentTree sensor %s has mother %s \n", sensor.getName(), ((HpsSiSensor)sensor).getAdeMother().getName());
-        }
-        
-        for (AlignableDetectorElement ade : Alignabledes) {
-            System.out.printf("DEBUG::PF::MakeAlignmentTree ade %s has children \n %s \n", ade.getName(), ade.getChildren().toString());
-            
-        }        
+        if (debug_) {
+	    for (SiSensor sensor : sensors) {
+		if (((HpsSiSensor)sensor).getAdeMother() != null)
+		    System.out.printf("DEBUG::PF::MakeAlignmentTree sensor %s has mother %s \n", sensor.getName(), ((HpsSiSensor)sensor).getAdeMother().getName());
+	    }
+	    
+	    for (AlignableDetectorElement ade : Alignabledes) {
+		System.out.printf("DEBUG::PF::MakeAlignmentTree ade %s has children \n %s \n", ade.getName(), ade.getChildren().toString());
+		
+	    }
+	}
     }
     
     //Matching by name

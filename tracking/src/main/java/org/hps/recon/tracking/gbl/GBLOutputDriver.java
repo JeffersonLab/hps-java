@@ -482,17 +482,57 @@ public class GBLOutputDriver extends Driver {
 									   phi,
 									   eop);
 
-
+	    
 	    
 	    // Cluster positions
 	    
 	    double clusterX  = cluster.getPosition()[0];
 	    double clusterY  = cluster.getPosition()[1];
+	    TrackState ts_ecal = TrackUtils.getTrackStateAtECal(track);
+	    
+	    if(ts_ecal == null){
+		return;
+	    }
+	    
+	    double[] ts_ecalPos = ts_ecal.getReferencePoint();
+	    double trkX = ts_ecalPos[1];
+	    double trkY = ts_ecalPos[2];
 	    
 	    aidaGBL.histogram1D(eopFolder+"Xcluster_"+vol+"_fid").fill(clusterX);
 	    aidaGBL.histogram1D(eopFolder+"Ycluster_"+vol+"_fid").fill(clusterY);
+	    
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resX_"+vol+"_fid").fill(trkX-clusterX);
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resY_"+vol+"_fid").fill(trkY-clusterY);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsX_"+vol+"_fid").fill(trkX,trkX-clusterX);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsY_"+vol+"_fid").fill(trkY,trkX-clusterX);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsX_"+vol+"_fid").fill(trkX,trkY-clusterY);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsY_"+vol+"_fid").fill(trkY,trkY-clusterY);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vstrkP_"+vol+"_fid").fill(trackp,trkY-clusterY);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vstrkP_"+vol+"_fid").fill(trackp,trkX-clusterX);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trkY_vs_tanL_"+vol+"_fid").fill(tanL,trkY);
 
 	    
+	    aidaGBL.histogram1D(eopFolder+"Xcluster_"+charge+"_"+vol+"_fid").fill(clusterX);
+	    aidaGBL.histogram1D(eopFolder+"Ycluster_"+charge+"_"+vol+"_fid").fill(clusterY);
+	    
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resX_"+charge+"_"+vol+"_fid").fill(trkX-clusterX);
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resY_"+charge+"_"+vol+"_fid").fill(trkY-clusterY);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsX_"+charge+"_"+vol+"_fid").fill(trkX,trkX-clusterX);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsY_"+charge+"_"+vol+"_fid").fill(trkY,trkX-clusterX);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsX_"+charge+"_"+vol+"_fid").fill(trkX,trkY-clusterY);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsY_"+charge+"_"+vol+"_fid").fill(trkY,trkY-clusterY);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vstrkP_"+charge+"_"+vol+"_fid").fill(trackp,trkY-clusterY);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vstrkP_"+charge+"_"+vol+"_fid").fill(trackp,trkX-clusterX);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trkY_vs_tanL_"+charge+"_"+vol+"_fid").fill(tanL,trkY);
+
 	    
 	    // 
 	    
@@ -1019,10 +1059,7 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram1D(eopFolder+"Ecluster"+vol,200,0,6);
             aidaGBL.histogram1D(eopFolder+"EoP"+vol,200,0,2);
 
-	    aidaGBL.histogram1D(eopFolder+"Xcluster_"+vol+"_fid",200,-100,100);
-	    aidaGBL.histogram1D(eopFolder+"Ycluster_"+vol+"_fid",200,-100,100);
-            
-            double lmin = 0.;
+	    double lmin = 0.;
             double lmax = 0.08;
             if (vol == "_bot") {
                 lmin = -0.08;
@@ -1038,15 +1075,54 @@ public class GBLOutputDriver extends Driver {
             aidaGBL.histogram1D(eopFolder+"Ecluster"+vol+"_fid",200,0,5);
             aidaGBL.histogram1D(eopFolder+"EoP"+vol+"_fid",200,0,2);
             aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP"+vol+"_fid",200,0,6,200,0,2);
+
+
+	    double cxrange = 20;
+	    double cyrange = 20;
+	    double ecalX = 400;
+	    
+	    aidaGBL.histogram1D(eopFolder+"Xcluster"+vol+"_fid",200,-ecalX,ecalX);
+	    aidaGBL.histogram1D(eopFolder+"Ycluster"+vol+"_fid",200,-ecalX,ecalX);
+            aidaGBL.histogram1D(eopFolder+"trk_clu_resX"+vol+"_fid",200,-cxrange,cxrange);
+	    aidaGBL.histogram1D(eopFolder+"trk_clu_resY"+vol+"_fid",200,-cyrange,cyrange);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsX"+vol+"_fid",200,-ecalX,ecalX,200,-cxrange,cxrange);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsY"+vol+"_fid",200,-ecalX,ecalX,200,-cxrange,cxrange);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsX"+vol+"_fid",200,-ecalX,ecalX,200,-cyrange,cyrange);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsY"+vol+"_fid",200,-ecalX,ecalX,200,-cyrange,cyrange);
+
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vstrkP"+vol+"_fid",100,0.,5,200,-cyrange,cyrange);
+	    aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vstrkP"+vol+"_fid",100,0.,5,200,-cyrange,cyrange);
+	    
+	    aidaGBL.histogram2D(eopFolder+"trkY_vs_tanL"+vol+"_fid",200,-0.2,0.2,200,-100,100);
+	    
 	    
             for (String charge : charges) {
                 aidaGBL.histogram2D(eopFolder+"EoP_vs_trackP"+charge+vol+"_fid",200,0,6,200,0,2);
                 aidaGBL.histogram2D(eopFolder+"EoP_vs_tanLambda"+charge+vol+"_fid",200,0.01,0.08,200,0,2);
                 aidaGBL.histogram2D(eopFolder+"EoP_vs_phi"+charge+vol+"_fid",200,-0.2,0.2,200,0,2);
 
-		
-		
 
+		
+		aidaGBL.histogram1D(eopFolder+"Xcluster"+charge+vol+"_fid",200,-ecalX,ecalX);
+		aidaGBL.histogram1D(eopFolder+"Ycluster"+charge+vol+"_fid",200,-ecalX,ecalX);
+		aidaGBL.histogram1D(eopFolder+"trk_clu_resX"+charge+vol+"_fid",200,-cxrange,cxrange);
+		aidaGBL.histogram1D(eopFolder+"trk_clu_resY"+charge+vol+"_fid",200,-cyrange,cyrange);
+		
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsX"+charge+vol+"_fid",200,-ecalX,ecalX,200,-cxrange,cxrange);
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vsY"+charge+vol+"_fid",200,-ecalX,ecalX,200,-cxrange,cxrange);
+		
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsX"+charge+vol+"_fid",200,-ecalX,ecalX,200,-cyrange,cyrange);
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vsY"+charge+vol+"_fid",200,-ecalX,ecalX,200,-cyrange,cyrange);
+		
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resY_vstrkP"+charge+vol+"_fid",100,0.,5,200,-cyrange,cyrange);
+		aidaGBL.histogram2D(eopFolder+"trk_clu_resX_vstrkP"+charge+vol+"_fid",100,0.,5,200,-cyrange,cyrange);
+		
+		aidaGBL.histogram2D(eopFolder+"trkY_vs_tanL"+charge+vol+"_fid",200,-0.2,0.2,200,-100,100);
+		
+		
+		
 		
             }
         }
@@ -1202,7 +1278,7 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"p_slot"+vol+charge,nbins_p,0.,pmax);
                                 
                 aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t*2,0,200);
-		aidaGBL.histogram1D(trkpFolder+"Chi2oNDF"+vol+charge,nbins_t*2,0,200);
+		aidaGBL.histogram1D(trkpFolder+"Chi2oNDF"+vol+charge,nbins_t*2,0,50);
                 aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,15,0,15);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_x"+vol+charge,nbins_t,-3,3);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_y"+vol+charge,nbins_t,-3,3);
