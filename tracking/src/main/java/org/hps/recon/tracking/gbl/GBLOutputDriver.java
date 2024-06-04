@@ -1338,6 +1338,13 @@ public class GBLOutputDriver extends Driver {
     public void endOfData() {
         if (outputPlots != null) {
             try {
+
+		// ...to debug, print the object na,es
+                String[] type = aidaGBL.tree().listObjectNames("/",true);
+                for (int i=0; i<type.length; i++)
+		    System.out.println(type[i]);
+		System.out.println("GBLOutputDriver:  saving outputPlots to "+outputPlots);
+
                 aidaGBL.saveAs(outputPlots);
 
 		/*

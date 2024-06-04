@@ -163,7 +163,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double posEoP = -1;
     private double eleEoP = -1;
     private boolean correctTrack = false;
-    
+    private boolean useCluEneConstraint = false;
 
     
     private GblTrajectoryMaker _gblTrajMaker;
@@ -394,6 +394,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
     public void setUseParticles(boolean val) {
         useParticles = val;
     }
+
+    public void setUseCluEneConstraint(boolean val){
+	useCluEneConstraint=val;
+    }
     
     @Override
     protected void startOfData() {
@@ -401,6 +405,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
             mille = new MilleBinaryJna(milleBinaryFileName);
     }
 
+    
     @Override
     protected void endOfData() {
         //Should be closed directly when destructor is called
@@ -542,7 +547,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         HashMap<Track,Cluster> TrackClusterPairs = null;
         
         //Get the tracks from the particles - redundant, just loop on the map
-
+	//NOTE:: if useParticles==true it will require tracks have a cluster match!
         if (useParticles) {
             for (ReconstructedParticle particle : particles) {
                 if (particle.getTracks().isEmpty() || particle.getClusters().isEmpty())
@@ -653,11 +658,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Should use the trackState at the last
                 TrackState trackState = track.getTrackStates().get(0);
                 double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
-                
-                //compute the correction
-                momC = em_cluster.getEnergy();
-                
+                //compute the correction if using cluster energy constraint
+                if(useCluEneConstraint)
+		    momC = em_cluster.getEnergy();
+
                 //Cluster energy cut
+		//NOTE:: setting energy cuts also requires cluster is in fiducial region
                 if (clusterEnergyCutMin > 0 || clusterEnergyCutMax < 999) {
                     if (!TriggerModule.inFiducialRegion(em_cluster))
                         continue;

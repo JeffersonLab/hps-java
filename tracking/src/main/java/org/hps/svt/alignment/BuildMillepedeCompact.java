@@ -225,8 +225,9 @@ public class BuildMillepedeCompact {
                                     }
 
                                 } else {
-                                    throw new RuntimeException("no element found for " + p.getId()
-                                            + " check format of compact file");
+                                    //throw new RuntimeException("no element found for " + p.getId()
+                                    //       + " check format of compact file");
+				    System.out.println("BuildMillepedeCompact:: no element found for "+p.getId()+"...skipping...");
                                 }
                             }
                         }
