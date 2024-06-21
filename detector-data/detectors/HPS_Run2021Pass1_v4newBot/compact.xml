@@ -1,0 +1,798 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lccdd xmlns:compact="http://www.lcsim.org/schemas/compact/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
+
+<info name="HPS_Run2021Pass1_v4newBot">
+    <comment>HPS detector for 2021 run with fieldmap,
+    Tracker at nominal opening angle, no SVT survey,
+    this detector uses the corrected fieldmap scaled for 3.74 GeV beam.
+    Includes L0 and Hodoscope.
+    ECAL with survey alignment for HPSEcal3 (global y/z translations).
+    This detector has the full hierarchical alignment structure
+    MG--4.1b:  has L5b stereo hole tu (21110) shifted by 120um to correct
+    the large residual observed...L5b axial hole is missing so using MPII
+    to align impossible (with ST+GBL...need to use KF-&gt;GBL)
+    MG--4.2b:  this iteration uses MPII alignment of the Axial tus + stereo RWs
+    for L6 and L7 and L5 slot (same as HPS_Run2021Pass1_v4.1b_tus_Axial_rws_Stereo_pc_fee)
+    MG--4.3b: same as HPS_Run2021Pass1_v4.2b_EoP_tridents_tu_Axial_rw_Stereo_L57, which
+    has L57 tus and rws based on EoP-constrained trident events
+    MG--4.3.1b detector is after MPII of L4 tus (both axial and stereo) and L5-7 axial tus, stereo rws
+    (except for L5 hole, which I think only has stereo and has tu varied) for unconstrained tridents~
+    MG -- 4.4b (this one) is after using PC FEEs with free L6 + L7 stereo tus;  corrects momentum scale
+    </comment>
+  </info>
+
+  <define>
+
+    <!-- world -->
+    <constant name="world_side" value="500.0*cm" />
+    <constant name="world_x" value="world_side" />
+    <constant name="world_y" value="world_side" />
+    <constant name="world_z" value="world_side" />
+
+    <!-- beam -->
+    <constant name="beam_angle" value="0.03052" /> <!--30.52 mrad-->
+
+    <!-- tracking region -->
+    <constant name="tracking_region_radius" value="200.0*cm" />
+    <constant name="tracking_region_min" value="5.0*cm" />
+    <constant name="tracking_region_zmax" value="136.8*cm" />
+
+    <!--  dipole magnet and  B-field -->
+    <constant name="dipoleMagnetPositionX" value="2.117*cm" />
+    <constant name="dipoleMagnetPositionZ" value="45.72*cm" />
+    <constant name="dipoleMagnetHeight" value="100*cm" />
+    <constant name="dipoleMagnetWidth" value="100*cm" />
+    <constant name="dipoleMagnetLength" value="108*cm" />
+    <constant name="constBFieldY" value="-1.08" /><!-- set for 4.5GeV running -->
+
+
+    <!-- ECAL crystal dimensions -->
+    <constant name="ecal_front" value="13.3/2*mm" />
+    <constant name="ecal_back" value="16/2*mm" />
+    <constant name="ecal_z" value="160/2*mm" />
+
+    <!-- ECal Z position -->
+    <!-- Old position without hodo :<constant name="ecal_dface" value="139.3*cm"/> -->
+    <constant name="ecal_dface" value="144.8*cm" /> <!-- plus 5.5 cm -->
+
+    <!-- ECal placement parameters for NEW ECAL -->
+    <constant name="beam_angle" value="0.03052" />
+    <constant name="ecal_front" value="13.3/2*mm" />
+    <constant name="ecal_back" value="16/2*mm" />
+    <constant name="ecal_z" value="160/2*mm" />
+    <!-- ECal Modules translation parameters -->
+    <constant name="top_tr_x" value="-0.71" />
+    <constant name="top_tr_y" value="2.725" />
+    <constant name="top_tr_z" value="4.9375" />
+    <constant name="bot_tr_x" value="-0.405" />
+    <constant name="bot_tr_y" value="-0.9125" />
+    <constant name="bot_tr_z" value="2.6225" />
+    <!-- ECal Modules rotation parameters(Rz(alpha)Ry(beta)Rx(gamma)) -->
+    <constant name="top_rot_alpha" value="0.00064964212772" />
+    <constant name="top_rot_beta" value="0.0" />
+    <constant name="top_rot_gamma" value="-0.00046882347412" />
+    <constant name="bot_rot_alpha" value="0.0005150274940439" />
+    <constant name="bot_rot_beta" value="0.0" />
+    <constant name="bot_rot_gamma" value="0.0013469727279283583" />
+
+    <!-- HODOSCOPE PARAMETERS -->
+    <!-- Hodoscope thickness -->
+    <constant name="hodoscopeXMin1" value="48-4.452" />
+    <constant name="hodoscopeXMin2" value="48" />
+    <constant name="hodoscopeThickness" value="10*mm" />
+    <constant name="hodoscopePixelHeight" value="59.225*mm" />
+
+    <!-- Distance between hodoscope and scoring planes -->
+    <constant name="hodoscopeScoreDisplacement" value="1.000" />
+    <constant name="hodoscopeZ" value="1098.5*mm" />
+
+
+    <!-- SVT PARAMETERS -->
+    <!-- SVT module dimensions -->
+    <constant name="moduleLength" value="100.0" />
+    <constant name="moduleWidth" value="40.34" />
+
+    <!-- SVT sensor dimensions -->
+    <constant name="sensorLength" value="98.33" />
+
+    <!--scoring plane thickness-->
+    <constant name="scoringThickness" value="0.001" />
+
+    <!--left and right edges of the electron gap for the ECal scoring plane, measured as distances from the BL edge of the flange-->
+    <constant name="electronGapLeftEdge" value="382.16+20*0.0166" />
+    <constant name="electronGapRightEdge" value="471.94+20*0.1511" />
+
+    <!-- Sensor width slightly less than 38.34 mm so sisim works. -->
+    <constant name="sensorWidth" value="38.3399" />
+    <constant name="zst" value="1" />
+    <constant name="SA1" value="0.1" />
+    <constant name="SA2" value="0.05" />
+    <constant name="PI" value="3.14159265359" />
+    <!-- positions derived from drawing assuming 1.35/1.2 degress open on top/bottom -->
+
+    <constant name="x_rot_top" value="0" />
+    <constant name="x_rot_bot" value="0" />
+
+    <!--  monkey with the rotations  -->
+    <constant name="x_rot_top_add" value="0.00" />  <!-- -ive means further closed -->
+    <constant name="x_rot_bot_add" value="0.00" /> <!-- +ive means further closed -->
+    <!--  distance from target to pivot...this is from an email schematic from Tim on may 12, 2012 -->
+    <constant name="pivot" value="791" />
+
+    <constant name="y_rot" value="beam_angle" />
+    <!--        <constant name="x_off" value = "-15.0"/> -->
+    <constant name="x_off" value="0.0" />
+
+    <!-- Positions of thin 15 cm planes -->
+    <constant name="y01t" value="150*sin(0.015)+sensorWidth/2" />
+    <constant name="y02t" value="150*sin(0.015)+sensorWidth/2" />
+    <constant name="y01b" value="-(150*sin(0.015)+sensorWidth/2)" />
+    <constant name="y02b" value="-(150*sin(0.015)+sensorWidth/2)" />
+
+    <constant name="z01t" value="0+142.5-3.685" />
+    <constant name="z02t" value="0+142.5+3.685" />
+    <constant name="z01b" value="0+157.5-3.685" />
+    <constant name="z02b" value="0+157.5+3.685" />
+
+  </define>
+
+  <materials>
+    <!-- Set the world material to vacuum. -->
+    <material name="WorldMaterial">
+      <D type="density" unit="g/cm3" value="0.0000000000000001" />
+      <fraction n="1.0" ref="Vacuum" />
+    </material>
+    <!-- Set tracking material to vacuum. -->
+    <material name="TrackingMaterial">
+      <D type="density" unit="g/cm3" value="0.0000000000000001" />
+      <fraction n="1.0" ref="Vacuum" />
+    </material>
+    <!-- ECal crystal material. -->
+    <material name="LeadTungstate">
+      <D value="8.28" unit="g/cm3" />
+      <composite n="1" ref="Pb" />
+      <composite n="1" ref="W" />
+      <composite n="4" ref="O" />
+    </material>
+    <!-- Hodoscope material. -->
+    <material name="EJ204_PlasticScintillator">
+      <D value="1.032" unit="g/cm3" />
+      <fraction n="0.523618" ref="H" />
+      <fraction n="0.476382" ref="C" />
+    </material>
+    <material name="TitaniumDioxide">
+      <D value="4.23" unit="g/cm3" />
+      <composite n="1" ref="Ti" />
+      <composite n="2" ref="O" />
+    </material>
+    <material name="Mylar">
+      <D value="1.4" unit="g/cm3" />
+      <fraction n="0.041958" ref="H" />
+      <fraction n="0.625017" ref="C" />
+      <fraction n="0.333025" ref="O" />
+    </material>
+    <material name="GenericFoam">
+      <D value="0.052" unit="g/cm3" />
+      <fraction n="0.5" ref="H" />
+      <fraction n="0.5" ref="C" />
+    </material>
+  </materials>
+
+
+  <display>
+    <vis name="ECALVis" r="0.8" g="0.5" b="0.1" />
+    <vis name="HodoscopeVis" alpha="1.0" r="0.0" g="0.33725490196" b="0.50980392156" drawingStyle="solid" visible="true" />
+    <vis name="ChamberVis" alpha="1.0" r="1.0" g="0.0" b="1.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="SvtBoxVis" alpha="1.0" r="1.0" g="1.0" b="0.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="SensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="wireframe" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="ActiveSensorVis" alpha="1.0" r="1.0" g="0.0" b="0.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="CarbonFiberVis" alpha="1.0" r="0.88" g="0.88" b="0.88" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="KaptonVis" alpha="1.0" r="0.91" g="0.77" b="0.06" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="HybridVis" alpha="1.0" r="0.0" g="1.0" b="0" drawingStyle="solid" lineStyle="unbroken" showDaughters="true" visible="true" />
+    <vis name="HalfModuleVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="wireframe" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="ColdBlockVis" alpha="1.0" r="0.75" g="0.73" b="0.75" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="ModuleVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="wireframe" lineStyle="dotted" showDaughters="true" visible="true" />
+    <vis name="SupportPlateVis" alpha="1.0" r="0.45" g="0.45" b="0.45" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="SupportVolumeVis" alpha="1.0" r="0.75" g="0.73" b="0.75" drawingStyle="wireframe" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="BasePlateVis" alpha="1.0" r="0.35" g="0.35" b="0.35" drawingStyle="solid" lineStyle="dashed" showDaughters="true" visible="true" />
+    <vis name="LayerVis" alpha="0.0" r="0.0" g="0.0" b="1.0" drawingStyle="wireframe" showDaughters="true" visible="false" />
+    <vis name="ComponentVis" alpha="0.0" r="0.0" g="0.2" b="0.4" drawingStyle="solid" showDaughters="false" visible="false" />
+    <vis name="BeamPlaneVis" alpha="1.0" r="1.0" g="1.0" b="1.0" drawingStyle="solid" lineStyle="unbroken" showDaughters="false" visible="true" />
+  </display>
+
+  <detectors>
+
+    <detector id="1" name="Tracker" type="HPSTracker2019" readout="TrackerHits">
+
+      <millepede_constants>
+
+        <!-- top half-module translations -->
+        <millepede_constant name="11101" value="0.0 + 0.014799 + 0.008569 - -0.065199 - -0.037883 - 0.01 - 0.003 - 0.0014381" />
+        <millepede_constant name="11102" value="0.0 + 0.036097 + 0.008870 - -0.054012 - -0.027420 - -0.008920 - 0.007 - 0.003 + 0.036135" />
+        <millepede_constant name="11103" value="0.0 + -0.020397 + 0.006024 - -0.036267 - -0.028236 - 0.01 + 0.005 - 0.0018328" />
+        <millepede_constant name="11104" value="0.0 + 0.045729 + 0.006918 - -0.036733 - -0.019597 - -0.002183 + 0.031768" />
+        <millepede_constant name="11105" value="0.0 + 0.007688 + 0.005676 - -0.012362 - 0.0012941" />
+        <millepede_constant name="11106" value="0.0 + -0.010664 + -0.001609 - 0.006721 - 0.005305 - -0.001660 - 0.001480 - 0.020 - 0.015 - 0.021062" />
+        <millepede_constant name="11107" value="0.0 + 0.004072 + 0.003523 - 0.007062 - -0.003817 - 0.001975 - 0.003762 - 0.030 - 0.02 + 0.005 + 0.005 - 0.01 - 0.0024815" />
+        <millepede_constant name="11108" value="0.0 + -0.000794 + 0.000946 - -0.003989 - 0.015239" />
+        <millepede_constant name="11109" value="0.0 - 0.018517 - 0.003440 - -0.005945 - 0.038002 - -0.031681 + 0.016925 + 0.010743 + 0.0053184" />
+        <millepede_constant name="11110" value="0.0 - -0.002565 - -0.005478 - 0.035065 - 0.016357 - 0.006881 - -0.006770 - -0.000414 - 0.007 + 0.007 + 0.005 + 0.01 - 0.016272 - 0.003394 - 0.035070 - 0.014843 - 0.003355 + 0.01 + 0.005 - 0.013350 - -0.038048 - 0.013055 - 0.000808 - 0.000077 - -0.019605 - 0.018048 + 0.00047104 - 0.0055166 - 0.0081167 - 0.03 - -0.026741 - 0.015078 - 0.000109" />
+        <millepede_constant name="11111" value="0.0 - -0.027900 - -0.007513 - 0.012648 - -0.043451 - -0.065284 - 0.015027 - 0.00084103 + 0.0076761" />
+        <millepede_constant name="11112" value="0.035655 - -0.014005 - -0.039993 - -0.011733 - -0.007860 - 0.035467 + 0.100 - 0.024782 - 0.022333 - -0.044758 - 0.051211 - 0.006091 - 0.01 - 0.005 + 0.002 - 0.003 - 0.043504 - -0.078576 - -0.014604 - -0.002392 - 0.136530 - -0.028722 - 0.030263 - 0.016835 + 0.0060848 - 0.0099931 + 0.04 - 0.017431 - 0.014042" />
+        <millepede_constant name="11113" value="0.0 - 0.048022 - 0.008019 - 0.026847 - -0.087271 + 0.017826 + 0.008824 + 0.0003947" />
+        <millepede_constant name="11114" value="0.0 - -0.010339 - 0.024258 - 0.011054 - 0.007932 - -0.059523 - 0.05 + 0.03 + 0.02 + 0.005 + 0.01 + 0.01 + 0.01 + 0.025 - 0.008013 - 0.003514 - 0.123270 - 0.026882 - 0.004377 + 0.01 + 0.01 + 0.01 - 0.024533 - -0.026879 - 0.019210 - 0.000367 - 0.000016 - 0.028655 - 0.048132 + 0.013389 + 0.0011991 - 0.010969 - 0.08 - -0.086253 - 0.004012 - -0.003290" />
+        <millepede_constant name="11115" value="0.0 - -0.037736 - 0.001172 - -0.124470 - 0.083991 - 0.013958 - 0.0038902 + 0.0018964" />
+        <millepede_constant name="11116" value="0.0 - -0.010376 - -0.045688 - -0.004289 - -0.008223 - 0.000515 - 0.023764 - -0.170300 - 0.165900 - 0.026027 + 0.03 + 0.003 - 0.124620 - -0.096263 - 0.005989 - 0.001142 - -0.041266 - -0.054556 - 0.0035508 - 0.0021635 + 0.004936 + 0.0018096 + 0.08 - 0.056620 - 0.038607" />
+        <millepede_constant name="11117" value="0.0 - 0.089312 - 0.015816 + 0.003 - 0.018062 - -0.185950 + 0.020869 + 0.0084183 - 0.0034965" />
+        <millepede_constant name="11118" value="0.008210 - -0.015812 - -0.066323 - -0.027323 - 0.006333 - -0.080147 + 0.03 + 0.01 + 0.01 + 0.02 + 0.045 - -0.008958 - 0.001975 - 0.246890 - 0.002482 - 0.001309 - -0.010665 - -0.018083 - 0.027693 - -0.000635 - -0.000105 - 0.108960 - 0.095626 + 0.01019 - 0.0011847 - 0.025824 - 0.13 - -0.149190 - -0.021692 - -0.006100" /> <!-- HERE -->
+        <millepede_constant name="11119" value="0.0 - -0.079247 - 0.008245 - -0.238820 - 0.289240 - 0.017466 - 0.0036988 + 0.0028869" />
+        <millepede_constant name="11120" value="-0.065534 - -0.043456 - -0.023106 - 0.036114 - 0.039496 - -0.005295 - 0.037244 - 0.054889 - -0.330230 - 0.312240 - 0.053709 + 0.02 + 0.01 + 0.005 + 0.005 - 0.239110 - -0.196730 - 0.004699 - 0.001197 - -0.164800 - -0.103970 - 0.018876 - 0.0076196 + 0.0032268 + 0.013304 + 0.14 - 0.135790 - 0.059548" />
+        <millepede_constant name="11121" value="0.0" />
+        <millepede_constant name="11122" value="0.0" />
+
+        <millepede_constant name="11201" value="0.0" />
+        <millepede_constant name="11202" value="0.0" />
+        <millepede_constant name="11203" value="0.0" />
+        <millepede_constant name="11204" value="0.0" />
+        <millepede_constant name="11205" value="0.0" />
+        <millepede_constant name="11206" value="0.0" />
+        <millepede_constant name="11207" value="0.0" />
+        <millepede_constant name="11208" value="0.0" />
+        <millepede_constant name="11209" value="0.0" />
+        <millepede_constant name="11210" value="0.0" />
+        <millepede_constant name="11211" value="0.0" />
+        <millepede_constant name="11212" value="0.0" />
+        <millepede_constant name="11213" value="0.0" />
+        <millepede_constant name="11214" value="0.0" />
+        <millepede_constant name="11215" value="0.0" />
+        <millepede_constant name="11216" value="0.0" />
+        <millepede_constant name="11217" value="0.0" />
+        <millepede_constant name="11218" value="0.0" />
+        <millepede_constant name="11219" value="0.0" />
+        <millepede_constant name="11220" value="0.0" />
+        <millepede_constant name="11221" value="0.0" />
+        <millepede_constant name="11222" value="0.0" />
+
+        <millepede_constant name="11301" value="0.0" />
+        <millepede_constant name="11302" value="0.0" />
+        <millepede_constant name="11303" value="0.0" />
+        <millepede_constant name="11304" value="0.0" />
+        <millepede_constant name="11305" value="0.0" />
+        <millepede_constant name="11306" value="0.0" />
+        <millepede_constant name="11307" value="0.0" />
+        <millepede_constant name="11308" value="0.0" />
+        <millepede_constant name="11309" value="0.0" />
+        <millepede_constant name="11310" value="0.0" />
+        <millepede_constant name="11311" value="0.0" />
+        <millepede_constant name="11312" value="0.0" />
+        <millepede_constant name="11313" value="0.0" />
+        <millepede_constant name="11314" value="0.0" />
+        <millepede_constant name="11315" value="0.0" />
+        <millepede_constant name="11316" value="0.0" />
+        <millepede_constant name="11317" value="0.0" />
+        <millepede_constant name="11318" value="0.0" />
+        <millepede_constant name="11319" value="0.0" />
+        <millepede_constant name="11320" value="0.0" />
+        <millepede_constant name="11321" value="0.0" />
+        <millepede_constant name="11322" value="0.0" />
+
+        <!-- top half-module rotations -->
+
+        <millepede_constant name="12101" value="0.0" />
+        <millepede_constant name="12102" value="0.0" />
+        <millepede_constant name="12103" value="0.0" />
+        <millepede_constant name="12104" value="0.0" />
+        <millepede_constant name="12105" value="0.0" />
+        <millepede_constant name="12106" value="0.0" />
+        <millepede_constant name="12107" value="0.0" />
+        <millepede_constant name="12108" value="0.0" />
+        <millepede_constant name="12109" value="0.0" />
+        <millepede_constant name="12110" value="0.0" />
+        <millepede_constant name="12111" value="0.0" />
+        <millepede_constant name="12112" value="0.0" />
+        <millepede_constant name="12113" value="0.0" />
+        <millepede_constant name="12114" value="0.0" />
+        <millepede_constant name="12115" value="0.0" />
+        <millepede_constant name="12116" value="0.0" />
+        <millepede_constant name="12117" value="0.0" />
+        <millepede_constant name="12118" value="0.0" />
+        <millepede_constant name="12119" value="0.0" />
+        <millepede_constant name="12120" value="0.0" />
+        <millepede_constant name="12121" value="0.0" />
+        <millepede_constant name="12122" value="0.0" />
+
+        <millepede_constant name="12201" value="0.0" />
+        <millepede_constant name="12202" value="0.0" />
+        <millepede_constant name="12203" value="0.0" />
+        <millepede_constant name="12204" value="0.0" />
+        <millepede_constant name="12205" value="0.0" />
+        <millepede_constant name="12206" value="0.0" />
+        <millepede_constant name="12207" value="0.0" />
+        <millepede_constant name="12208" value="0.0" />
+        <millepede_constant name="12209" value="0.0" />
+        <millepede_constant name="12210" value="0.0" />
+        <millepede_constant name="12211" value="0.0" />
+        <millepede_constant name="12212" value="0.0" />
+        <millepede_constant name="12213" value="0.0" />
+        <millepede_constant name="12214" value="0.0" />
+        <millepede_constant name="12215" value="0.0" />
+        <millepede_constant name="12216" value="0.0" />
+        <millepede_constant name="12217" value="0.0" />
+        <millepede_constant name="12218" value="0.0" />
+        <millepede_constant name="12219" value="0.0" />
+        <millepede_constant name="12220" value="0.0" />
+        <millepede_constant name="12221" value="0.0" />
+        <millepede_constant name="12222" value="0.0" />
+
+        <millepede_constant name="12301" value="0.0 + 0.0055854" />
+        <millepede_constant name="12302" value="0.0 + 0.0061504" />
+        <millepede_constant name="12303" value="0.0 + 0.0017271" />
+        <millepede_constant name="12304" value="0.0 + 0.0016709" />
+        <millepede_constant name="12305" value="0.0 + 0.00046952" />
+        <millepede_constant name="12306" value="0.0 + 0.0011175" />
+        <millepede_constant name="12307" value="0.0 + 9.6745e-05" />
+        <millepede_constant name="12308" value="0.0 + 0.0006032" />
+        <millepede_constant name="12309" value="0.0 - 0.000205 + 0.000202 + 0.00023332 + 0.00025687 + 0.00023456" />
+        <millepede_constant name="12310" value="0.0 - 0.000113 + 0.000793 - 0.00022817 - 0.00026283 - 0.00019613 + 0.000487 + -0.000560 + -0.000027" />
+        <millepede_constant name="12311" value="0.0 - -0.000219 + 0.002355 + 0.00019683 + 0.00022042 + 0.00029374" />
+        <millepede_constant name="12312" value="0.0 - -0.000665 + -0.003668 - 0.00067594 - 0.00045992 - 0.00037355 + -0.000285" />
+        <millepede_constant name="12313" value="0.0 + -0.001213 + 0.00040006 + 0.00021844 + 9.5495e-05" />
+        <millepede_constant name="12314" value="0.0 + 0.001614 + 0.00047541 + 7.1821e-05 - 5.958e-06 + 0.000702 + -0.001169 + -0.000065" />
+        <millepede_constant name="12315" value="0.0 + 0.003976 + 4.2598e-05 + 6.0712e-05 + 9.3708e-05" />
+        <millepede_constant name="12316" value="0.0 + -0.003284 - 0.0001636 - 7.7831e-05 - 0.00020023 + 0.001 + -0.000735" />
+        <millepede_constant name="12317" value="0.0 + -0.001738 + 0.00032526 + 8.4699e-05 - 5.7014e-05" />
+        <millepede_constant name="12318" value="0.0 + 0.000933 + 0.00096051 + 0.00028644 + 0.00014221 + 0.001138 + -0.001915 + -0.000053" />
+        <millepede_constant name="12319" value="0.0 + 0.004628 + 1.6677e-05 - 1.0539e-05 - 1.0588e-05" />
+        <millepede_constant name="12320" value="0.0 + -0.004674 - 0.00053665 - 2.7684e-05 - 0.00013439 + 0.002 - 0.001 + -0.000803" />
+        <millepede_constant name="12321" value="0.0" />
+        <millepede_constant name="12322" value="0.0" />
+
+        <!-- bottom half-module translations -->
+
+        <millepede_constant name="21101" value="0.0 - 0.107190 - 0.005866 - 0.060341 - 0.003872 - 0.017511 + 0.019738" />
+        <millepede_constant name="21102" value="0.0 - 0.059475 - 0.027066 - 0.000800 - 0.0090431" />
+        <millepede_constant name="21103" value="0.0 - 0.079522 - -0.001877 - 0.042242 - 0.003328 - 0.014614 + 0.036688" />
+        <millepede_constant name="21104" value="0.0 - 0.047102 - -0.004770 - -0.002447 - 0.008206" />
+        <millepede_constant name="21105" value="0.0 - -0.014915 - 0.013450 - -0.026219 - -0.009611 + 0.005 + 0.015814 - 0.069827" />
+        <millepede_constant name="21106" value="0.0 - 0.031471 - -0.000722 - 0.005506" />
+        <millepede_constant name="21107" value="0.0 - -0.029044 - 0.008449 - -0.018252 - -0.012929 + 0.010 + 0.012935 - 0.104555-0.000225" />
+        <millepede_constant name="21108" value="0.0 - 0.006131 - 0.0049114 + 0.000191" />
+        <millepede_constant name="21109" value="0.0 + 0.0 + 0.0 - 0.087071" />
+        <millepede_constant name="21110" value="0.0 + 0.026186 + 0.019742 + 0.012417 - -0.010041+0.120-0.005214-0.008952" />
+        <millepede_constant name="21111" value="-0.0203 - -0.042235 - 0.034795 - -0.044844 - -0.000811 - 0.001150 - 0.007410 - -0.037481 - 0.046508 - 0.006683 + 0.007 - 0.035346 - -0.025149 - -0.020406 + 0.0046747 + 0.004216 - 0.0030001 + 0.0044249 + 0.087418" />
+        <millepede_constant name="21112" value="-0.082 - 0.050569 - 0.004122 - -0.035304 - 0.036576 + 0.00066719 - 0.0051174 - 0.0065101-0.004051+0.007368+0.004355" />
+        <millepede_constant name="21113" value="0.0 - -0.104520 - 0.106240 - 0.001598 - 0.002801 - -0.000999 - -0.042308 - 0.134950 - 0.025829 + 0.025718 + 0.010281 - 0.0013336 - 0.119147 + 0.025606" />
+        <millepede_constant name="21114" value="0.0 - -0.113090 - -0.003659 - 0.042258 - -0.142120 + 0.00065608 - 0.00088581 - 0.0055346-0.003217-0.009138-0.023332" />
+        <millepede_constant name="21115" value="0.0 - 0.101260 - -0.113530 - -0.000371 - -0.003598 - -0.005391 - -0.092678 - 0.097442 - 0.016330 + 0.010 - 0.007 - 0.094864 - -0.152070 - -0.036997 - 0.024304 - 0.0056281 - 0.0035387 + 0.00032667 + 0.125907 + -0.008282" />
+        <millepede_constant name="21116" value="0.0 - 0.119860 - 0.008016 - -0.094750 - 0.177580 + 0.0062927 + 0.00022742 - 0.0011258+0.011536+0.005980+0.001598" />
+        <millepede_constant name="21117" value="0.0 - -0.070300 - -0.183510 - 0.210600 - 0.003086 - 0.007767 - 0.002723 + 0.002 - -0.067666 - 0.249320 - 0.049407 + 0.043858 + 0.0079151 - 0.011357 - 0.148453 + 0.041488" />
+        <millepede_constant name="21118" value="0.0 - -0.221920 - -0.013386 - 0.067585 - -0.290160 - 0.0041105 - 0.0045927 - 0.0081255- 0.012513-0.009700-0.030214" />
+        <millepede_constant name="21119" value="0.0 - 0.032623 - 0.172330 - -0.215950 - -0.002618 - -0.005793 - -0.008341 - -0.185020 - 0.187560 - 0.032886 - 0.01 - 0.218070 - -0.329270 - -0.081435 - 0.067751 - 0.012531 - 0.0042564 + 0.0027376 + 0.167588 + -0.014516" />
+        <millepede_constant name="21120" value="0.0 - 0.230800 - 0.012574 - 0.01 - -0.217800 - 0.365860 + 0.010588 + 0.0051806 + 0.003517+0.035242+0.007240-0.003568" />
+        <millepede_constant name="21121" value="0.0" />
+        <millepede_constant name="21122" value="0.0" />
+
+        <millepede_constant name="21201" value="0.0" />
+        <millepede_constant name="21202" value="0.0" />
+        <millepede_constant name="21203" value="0.0" />
+        <millepede_constant name="21204" value="0.0" />
+        <millepede_constant name="21205" value="0.0" />
+        <millepede_constant name="21206" value="0.0" />
+        <millepede_constant name="21207" value="0.0" />
+        <millepede_constant name="21208" value="0.0" />
+        <millepede_constant name="21209" value="0.0" />
+        <millepede_constant name="21210" value="0.0" />
+        <millepede_constant name="21211" value="0.0" />
+        <millepede_constant name="21212" value="0.0" />
+        <millepede_constant name="21213" value="0.0" />
+        <millepede_constant name="21214" value="0.0" />
+        <millepede_constant name="21215" value="0.0" />
+        <millepede_constant name="21216" value="0.0" />
+        <millepede_constant name="21217" value="0.0" />
+        <millepede_constant name="21218" value="0.0" />
+        <millepede_constant name="21219" value="0.0" />
+        <millepede_constant name="21220" value="0.0" />
+        <millepede_constant name="21221" value="0.0" />
+        <millepede_constant name="21222" value="0.0" />
+
+        <millepede_constant name="21301" value="0.0" />
+        <millepede_constant name="21302" value="0.0" />
+        <millepede_constant name="21303" value="0.0" />
+        <millepede_constant name="21304" value="0.0" />
+        <millepede_constant name="21305" value="0.0" />
+        <millepede_constant name="21306" value="0.0" />
+        <millepede_constant name="21307" value="0.0" />
+        <millepede_constant name="21308" value="0.0" />
+        <millepede_constant name="21309" value="0.0" />
+        <millepede_constant name="21310" value="0.0" />
+        <millepede_constant name="21311" value="0.0" />
+        <millepede_constant name="21312" value="0.0" />
+        <millepede_constant name="21313" value="0.0" />
+        <millepede_constant name="21314" value="0.0" />
+        <millepede_constant name="21315" value="0.0" />
+        <millepede_constant name="21316" value="0.0" />
+        <millepede_constant name="21317" value="0.0" />
+        <millepede_constant name="21318" value="0.0" />
+        <millepede_constant name="21319" value="0.0" />
+        <millepede_constant name="21320" value="0.0" />
+        <millepede_constant name="21321" value="0.0" />
+        <millepede_constant name="21322" value="0.0" />
+
+        <!-- bottom half-module rotations -->
+
+        <millepede_constant name="22101" value="0.0" />
+        <millepede_constant name="22102" value="0.0" />
+        <millepede_constant name="22103" value="0.0" />
+        <millepede_constant name="22104" value="0.0" />
+        <millepede_constant name="22105" value="0.0" />
+        <millepede_constant name="22106" value="0.0" />
+        <millepede_constant name="22107" value="0.0" />
+        <millepede_constant name="22108" value="0.0" />
+        <millepede_constant name="22109" value="0.0" />
+        <millepede_constant name="22110" value="0.0" />
+        <millepede_constant name="22111" value="0.0" />
+        <millepede_constant name="22112" value="0.0" />
+        <millepede_constant name="22113" value="0.0" />
+        <millepede_constant name="22114" value="0.0" />
+        <millepede_constant name="22115" value="0.0" />
+        <millepede_constant name="22116" value="0.0" />
+        <millepede_constant name="22117" value="0.0" />
+        <millepede_constant name="22118" value="0.0" />
+        <millepede_constant name="22119" value="0.0" />
+        <millepede_constant name="22120" value="0.0" />
+        <millepede_constant name="22121" value="0.0" />
+        <millepede_constant name="22122" value="0.0" />
+
+        <millepede_constant name="22201" value="0.0" />
+        <millepede_constant name="22202" value="0.0" />
+        <millepede_constant name="22203" value="0.0" />
+        <millepede_constant name="22204" value="0.0" />
+        <millepede_constant name="22205" value="0.0" />
+        <millepede_constant name="22206" value="0.0" />
+        <millepede_constant name="22207" value="0.0" />
+        <millepede_constant name="22208" value="0.0" />
+        <millepede_constant name="22209" value="0.0" />
+        <millepede_constant name="22210" value="0.0" />
+        <millepede_constant name="22211" value="0.0" />
+        <millepede_constant name="22212" value="0.0" />
+        <millepede_constant name="22213" value="0.0" />
+        <millepede_constant name="22214" value="0.0" />
+        <millepede_constant name="22215" value="0.0" />
+        <millepede_constant name="22216" value="0.0" />
+        <millepede_constant name="22217" value="0.0" />
+        <millepede_constant name="22218" value="0.0" />
+        <millepede_constant name="22219" value="0.0" />
+        <millepede_constant name="22220" value="0.0" />
+        <millepede_constant name="22221" value="0.0" />
+        <millepede_constant name="22222" value="0.0" />
+
+        <millepede_constant name="22301" value="0.0 + -0.011634 + 0.0055856" />
+        <millepede_constant name="22302" value="0.0 + 0.008585 - 0.0016928" />
+        <millepede_constant name="22303" value="0.0 + -0.005113 + 0.0028568" />
+        <millepede_constant name="22304" value="0.0 + 0.001496 - 0.00036524" />
+        <millepede_constant name="22305" value="0.0 + 0.00090941" />
+        <millepede_constant name="22306" value="0.0 - 0.00031023" />
+        <millepede_constant name="22307" value="0.0 + 0.00041982" />
+        <millepede_constant name="22308" value="0.0 - 0.00025093" />
+        <millepede_constant name="22309" value="0.0 - 0.0 - 0.0" />
+        <millepede_constant name="22310" value="0.0 + 0.00052164 + 0.00031274 + 0.00014991" />
+        <millepede_constant name="22311" value="0.0 + -0.000782 + 0.0003103 + 0.00016237 + 0.00013541+0.000053+0.000108-0.000087" />
+        <millepede_constant name="22312" value="0.0 + 0.001015 - 0.00015299 - 0.00022187 - 0.00023229" />
+        <millepede_constant name="22313" value="0.0 + 0.000359 + 0.00036208 + 0.00023152 + 1.5954e-05-0.000712+0.000101+0.000010" />
+        <millepede_constant name="22314" value="0.0 + -0.001675 + 0.00050199 + 0.00024989 + 5.3956e-05" />
+        <millepede_constant name="22315" value="0.0 + -0.001699 - 1.2695e-05 - 3.5793e-05 - 2.7882e-05+0.000524-0.000143-0.000257" />
+        <millepede_constant name="22316" value="0.0 + 0.002011 - 0.00021652 - 0.0001927 - 0.00018334" />
+        <millepede_constant name="22317" value="0.0 + 0.001003 + 0.0009687 + 0.00048195 + 7.7284e-05-0.001716+0.000313+0.000032" />
+        <millepede_constant name="22318" value="0.0 + -0.002004 + 0.00083295 + 0.00023911 - 3.0523e-05" />
+        <millepede_constant name="22319" value="0.0 + -0.002691 - 0.00038513 - 0.00033708 - 0.00027153+0.000938-0.000231-0.000461" />
+        <millepede_constant name="22320" value="0.0 + 0.002836 - 0.00015235 - 8.583e-05 - 5.2313e-05" />
+        <millepede_constant name="22321" value="0.0" />
+        <millepede_constant name="22322" value="0.0" />
+
+        <!-- top support front translations -->
+        <millepede_constant name="11180" value="0.0" />     <!-- + opening global X-->
+        <millepede_constant name="11280" value="0.0" />     <!-- + opening global Z-->
+        <millepede_constant name="11380" value="0.0 + 0.053047 + 0.003127 + -0.000388" />     <!-- + opening global Y-->
+
+        <!-- top support front tilt angles -->
+
+        <millepede_constant name="12180" value="0.0 + -0.000344 + -0.000040 + -0.000008" /> <!-- + means opening-->
+        <millepede_constant name="12280" value="0.0" />
+        <millepede_constant name="12380" value="0.0" />
+
+
+        <!-- top support back translations -->
+        <millepede_constant name="11190" value="0.0" />     <!-- + opening global X-->
+        <millepede_constant name="11290" value="0.0" />     <!-- + opening global Z-->
+        <millepede_constant name="11390" value="0.0" />     <!-- + opening global Y-->
+
+        <!-- top support back tilt angles -->
+
+        <millepede_constant name="12190" value="0.0" /> <!-- + means opening-->
+        <millepede_constant name="12290" value="0.0" />
+        <millepede_constant name="12390" value="0.0" />
+
+
+        <!-- L1Top Module translations and angles -->
+        <millepede_constant name="11161" value="0.0 + 0.029119 - -0.051153 - 0.038288" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11261" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11361" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12161" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12261" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12361" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21161" value="0.0 + -0.142600 + -0.071162 - 0.086198 - 0.023561" /> <!-- u -->
+        <millepede_constant name="21261" value="0.0" /> <!-- v -->
+        <millepede_constant name="21361" value="0.0" /> <!-- w -->
+        <millepede_constant name="22161" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22261" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22361" value="0.0" /> <!-- rw -->
+
+        <!-- L2 Top/Bottom translations and angles -->
+        <millepede_constant name="11162" value="0.0 + -0.022437 - -0.057777 - 0.027096" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11262" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11362" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12162" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12262" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12362" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21162" value="0.0 + -0.055978 + -0.025022 - 0.087956 - 0.031777" /> <!-- u -->
+        <millepede_constant name="21262" value="0.0" /> <!-- v -->
+        <millepede_constant name="21362" value="0.0" /> <!-- w -->
+        <millepede_constant name="22162" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22262" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22362" value="0.0" /> <!-- rw -->
+
+        <!-- L3 Top/Bottom translations and angles -->
+        <millepede_constant name="11163" value="0.0 + 0.000678 - -0.059459 - 0.012216 - 0.006668 - 0.002504 + -0.7" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11263" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11363" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12163" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12263" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12363" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21163" value="0.0 + -0.046884 + -0.010228 - 0.075913 - 0.001767 - 0.023862 + -0.7" /> <!-- u -->
+        <millepede_constant name="21263" value="0.0" /> <!-- v -->
+        <millepede_constant name="21363" value="0.0" /> <!-- w -->
+        <millepede_constant name="22163" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22263" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22363" value="0.0" /> <!-- rw -->
+
+        <!-- L4 Top/Bottom translations and angles -->
+        <millepede_constant name="11164" value="0.0 + -0.007361 - -0.033468 - -0.017968 - -0.013564 - 0.001690 + -0.7" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11264" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11364" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12164" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12264" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12364" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21164" value="0.0 + -0.033974 + -0.006749 - 0.051528 - -0.004088 - 0.021074 - 0.001095 + -0.7" /> <!-- u -->
+        <millepede_constant name="21264" value="0.0" /> <!-- v -->
+        <millepede_constant name="21364" value="0.0" /> <!-- w -->
+        <millepede_constant name="22164" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22264" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22364" value="0.0" /> <!-- rw -->
+
+        <!-- L5 Top/Bottom translations and angles -->
+        <millepede_constant name="11165" value="0.0 + -0.012164 + -0.023549 + -0.014627 - 0.026703 - 0.019354" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11265" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11365" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12165" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12265" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12365" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21165" value="0.0 - 0.003495 - 0.002521" /> <!-- u -->
+        <millepede_constant name="21265" value="0.0" /> <!-- v -->
+        <millepede_constant name="21365" value="0.0" /> <!-- w -->
+        <millepede_constant name="22165" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22265" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22365" value="0.0" /> <!-- rw -->
+
+
+        <!-- L6 Top/Bottom translations and angles -->
+        <millepede_constant name="11166" value="0.0 + 0.005920 + -0.013856 + -0.014981 - 0.040980 - 0.065628" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11266" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11366" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12166" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12266" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12366" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21166" value="0.0 - 0.073334 - -0.049061" /> <!-- u -->
+        <millepede_constant name="21266" value="0.0" /> <!-- v -->
+        <millepede_constant name="21366" value="0.0" /> <!-- w -->
+        <millepede_constant name="22166" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22266" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22366" value="0.0" /> <!-- rw -->
+
+
+        <!-- L7 Top/Bottom translations and angles -->
+        <millepede_constant name="11167" value="0.0 + 0.006245 + 0.002274 + -0.004196 - 0.045815 - 0.110880" /> <!-- u  -> global Y   -->
+        <millepede_constant name="11267" value="0.0" /> <!-- v  -> X+svtAngle -->
+        <millepede_constant name="11367" value="0.0" /> <!-- w  -> Z+svtAngle -->
+        <millepede_constant name="12167" value="0.0" /> <!-- ru -->
+        <millepede_constant name="12267" value="0.0" /> <!-- rv -->
+        <millepede_constant name="12367" value="0.0" /> <!-- rw -->
+
+        <millepede_constant name="21167" value="0.0 - 0.167470 - -0.108140" /> <!-- u -->
+        <millepede_constant name="21267" value="0.0" /> <!-- v -->
+        <millepede_constant name="21367" value="0.0" /> <!-- w -->
+        <millepede_constant name="22167" value="0.0" /> <!-- ru -->
+        <millepede_constant name="22267" value="0.0" /> <!-- rv -->
+        <millepede_constant name="22367" value="0.0" /> <!-- rw -->
+
+
+        <!-- bottom support translations -->
+        <millepede_constant name="21180" value="0.0" />     <!-- + opening global X-->
+        <millepede_constant name="21280" value="0.0" />     <!-- + opening global Z-->
+        <millepede_constant name="21380" value="0.0 + 0.008289 + 0.019158 + -0.022454" />     <!-- + opening global Y-->
+
+        <!-- bottom support tilt angles -->
+        <millepede_constant name="22180" value="0.0 + -0.000836 + -0.000460 + -0.000100" />  <!-- - means opening -->
+        <millepede_constant name="22280" value="0.0" />
+        <millepede_constant name="22380" value="0.0" />
+
+
+        <!-- bottom support back translations -->
+        <millepede_constant name="21190" value="0.0" />
+        <millepede_constant name="21290" value="0.0" />
+        <millepede_constant name="21390" value="0.0" />
+
+        <!-- bottom support back tilt angles -->
+
+        <millepede_constant name="22190" value="0.0" />
+        <millepede_constant name="22290" value="0.0" />
+        <millepede_constant name="22390" value="0.0" />
+
+
+      </millepede_constants>
+    </detector>
+
+
+
+    <detector id="29" name="ECalScoring" type="HPSTracker2" readout="TrackerHitsECal" insideTrackingVolume="false">
+      <comment>Scoring plane after ECal flange for calibration studies</comment>
+      <module name="BeamLeft">
+        <box x="electronGapLeftEdge" y="457.2/2-17" />
+        <module_component thickness="scoringThickness" material="Vacuum" sensitive="true" />
+      </module>
+      <module name="ElectronGap">
+        <box x="electronGapRightEdge-electronGapLeftEdge" y="(457.2-64.66)/2" />
+        <module_component thickness="scoringThickness" material="Vacuum" sensitive="true" />
+      </module>
+      <module name="BeamRight">
+        <box x="768.35-electronGapRightEdge" y="457.2/2-14" />
+        <module_component thickness="scoringThickness" material="Vacuum" sensitive="true" />
+      </module>
+      <layer id="1"><!--top-->
+        <module_placement name="BeamLeft" id="0" x="(768.35-electronGapLeftEdge)/2+21.17" y="(457.2/2+17)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-PI/2" />
+        <module_placement name="ElectronGap" id="0" x="768.35/2-electronGapRightEdge+(electronGapRightEdge-electronGapLeftEdge)/2+21.17" y="(457.2/2+64.66/2)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-PI/2" />
+        <module_placement name="BeamRight" id="0" x="-1*electronGapRightEdge/2+21.17" y="(457.2/2+14)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-PI/2" />
+      </layer>
+      <layer id="2"><!--bottom-->
+        <module_placement name="BeamLeft" id="0" x="(768.35-electronGapLeftEdge)/2+21.17" y="-1*(457.2/2+17)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-3*PI/2" />
+        <module_placement name="ElectronGap" id="0" x="768.35/2-electronGapRightEdge+(electronGapRightEdge-electronGapLeftEdge)/2+21.17" y="-1*(457.2/2+64.66/2)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-3*PI/2" />
+        <module_placement name="BeamRight" id="0" x="-1*electronGapRightEdge/2+21.17" y="-1*(457.2/2+14)/2" z="1373+70+scoringThickness" rx="0" ry="0" rz="-3*PI/2" />
+      </layer>
+    </detector>
+
+    <detector id="30" name="Hodoscope" type="Hodoscope_v1" readout="HodoscopeHits" insideTrackingVolume="true" vis="HodoscopeVis">
+      <!--
+	  It is mandatory to define hodoscope crystal materials!
+      -->
+      <scintillator_material value="Polystyrene" />
+      <cover_material value="TitaniumDioxide" />
+      <reflector_material value="Mylar" />
+      <buffer_material value="Carbon" />
+
+      <!--
+	  These variables allow the hodoscope to be shifted
+	  without modification of the code. These variables do
+	  NOT need to be specified. If they are not declared,
+	  the nominal value will used instead. Note that any
+	  combination of these variables can be declared or
+	  excluded freely.
+      -->
+      <layer1_top_x value="44.56*mm" />
+      <layer1_top_y value="14.2*mm" />
+      <layer1_top_z value="hodoscopeZ" />
+      <layer1_bot_x value="44.56*mm" />
+      <layer1_bot_y value="14.2*mm" />
+      <layer1_bot_z value="hodoscopeZ" />
+
+      <layer2_top_x value="47.9*mm" />
+      <layer2_top_y value="14.2*mm" />
+      <layer2_bot_x value="47.9*mm" />
+      <layer2_bot_y value="14.2*mm" />
+
+      <scintillator_depth value="9.5*mm" />
+      <scintillator_depth_height value="59.9*mm" />
+      <cover_depth value="0.25*mm" />
+      <reflector_depth value="0.05*mm" />
+
+      <buffer_depth value="2*mm" />
+      <buffer_width value="187.64*mm" />
+      <buffer_x value="39.0*mm" />
+
+      <!--
+	  Defines the hodoscope pixel widths and count. One
+	  pixel will be added to the specified hodoscope layer
+	  for each entry in the list below. The pixel will be
+	  of the specified width in millimeters. Note that the
+	  top and bottom parts of the hodoscope will use the
+	  same set of widths. It is not necessary to define
+	  these arguments.
+      -->
+      <scintillator_width_layer1 value="15.7,34.1,44,44,44" />
+      <scintillator_width_layer2 value="19,44,44,44,30.8" />
+    </detector>
+
+
+    <!--  OLDER ECAL -->
+    <detector id="13" name="Ecal" type="HPSEcal3" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
+      <comment>The crystal ECal</comment>
+      <material name="LeadTungstate" />
+      <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
+      <layout beamgapBottom="21.4*mm" beamgapTop="22.3*mm" nx="46" ny="5" dface="ecal_dface">
+        <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
+        <top dx="(ecal_dface-50)*tan(beam_angle)" dy="0." dz="0." />
+        <bottom dx="(ecal_dface-50)*tan(beam_angle)" dy="0." dz="0." />
+      </layout>
+    </detector>
+  </detectors>
+  <!-- New adjustable ECAL -->
+  <!--
+      <detector id="13" name="Ecal" type="HPSEcal4" insideTrackingVolume="false" readout="EcalHits" vis="ECALVis">
+      <comment>The crystal ECal</comment>
+      <material name="LeadTungstate" />
+      <dimensions x1="ecal_front" y1="ecal_front" x2="ecal_back" y2="ecal_back" z="ecal_z" />
+      <translations top_tr_x="top_tr_x" top_tr_y="top_tr_y" top_tr_z="top_tr_z" bot_tr_x="bot_tr_x" bot_tr_y="bot_tr_y" bot_tr_z="bot_tr_z" />
+      <rotations top_rot_alpha="top_rot_alpha" top_rot_beta="top_rot_beta" top_rot_gamma="top_rot_gamma" bot_rot_alpha="bot_rot_alpha" bot_rot_beta="bot_rot_beta" bot_rot_gamma="bot_rot_gamma" />
+      <layout beamgap="20.0*mm" nx="46" ny="5" dface="ecal_dface">
+      <remove ixmin="-10" ixmax="-2" iymin="-1" iymax="1" />
+      <top dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+      <bottom dx="ecal_dface*tan(beam_angle)" dy="0." dz="0."/>
+      </layout>
+      </detector>
+  -->
+
+  <readouts>
+    <readout name="TrackerHits">
+      <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+    </readout>
+    <readout name="TrackerHitsFieldDef">
+      <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+      <processor type="ScoringTrackerHitProcessor" />
+    </readout>
+    <readout name="TrackerHitsECal">
+      <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+      <processor type="ScoringTrackerHitProcessor" />
+    </readout>
+    <readout name="HodoscopeHits">
+      <id>system:6,barrel:3,layer:4,ix:4,iy:-3,hole:-3</id>
+    </readout>
+    <readout name="HodoscopeForeHits">
+      <id>system:6,barrel:3,layer:4,module:12,sensor:1,side:32:-2,strip:12</id>
+      <processor type="ScoringTrackerHitProcessor" />
+    </readout>
+    <readout name="EcalHits">
+      <segmentation type="GridXYZ" gridSizeX="0.0" gridSizeY="0.0" gridSizeZ="0.0" />
+      <id>system:6,layer:2,ix:-8,iy:-6</id>
+    </readout>
+
+  </readouts>
+
+  <fields>
+    <field type="FieldMap3D" name="HPSDipoleFieldMap3D" filename="fieldmap/334acm3_8kg_corrected_unfolded_scaled_1.07326.dat" url="https://github.com/JeffersonLab/hps-fieldmaps/raw/master/334acm3_8kg_corrected_unfolded_scaled_1.07326.tar.gz" xoffset="2.117*cm" yoffset="0.0*cm" zoffset="45.72*cm" />
+  </fields>
+
+  <!--
+       <fields>
+       <field type="BoxDipole" name="AnalyzingDipole" x="dipoleMagnetPositionX" y="0*cm" z="dipoleMagnetPositionZ" dx="dipoleMagnetWidth/2.0" dy="dipoleMagnetHeight/2.0" dz="dipoleMagnetLength/2.0" bx="0.0" by="constBFieldY" bz="0.0" />
+       </fields>
+  -->
+  <includes>
+    <gdmlFile file="gdml/ecal_vacuum_flange_complete_v3.gdml" />
+    <gdmlFile file="gdml/hps_hodoscope_assembly.gdml" />
+    <gdmlFile file="gdml/svt_chamber_v2.gdml" />
+  </includes>
+</lccdd>
