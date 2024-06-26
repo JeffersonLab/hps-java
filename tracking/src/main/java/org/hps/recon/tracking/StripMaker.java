@@ -46,6 +46,8 @@ public class StripMaker {
     //Map<FittedRawTrackerHit, Integer> _strip_map = new HashMap<FittedRawTrackerHit, Integer>();
     Map< LCRelation, Integer > stripMap_ = new HashMap< LCRelation, Integer >(); 
 
+    double _doTimeError = 0.0;
+
     boolean _debug = false;
     private SiliconResolutionModel _res_model = new DefaultSiliconResolutionModel();
 
@@ -64,6 +66,10 @@ public class StripMaker {
     public StripMaker(SiSensorSim simulation, ClusteringAlgorithm algo) {
         _clustering = algo;
         _simulation = simulation;
+    }
+
+    public void setDoTimeError(double doTimeError){
+        _doTimeError = doTimeError;
     }
 
     public String getName() {
@@ -176,8 +182,20 @@ public class StripMaker {
         List<SiTrackerHit> hits = new ArrayList<SiTrackerHit>();
 
         // Make a pixel hit from this cluster
-        for (List<LCRelation> cluster : cluster_list)
-
+        for (List<LCRelation> cluster : cluster_list){
+	    /*if(cluster.size()>=2){
+	    	for(int P=0;P<cluster.size();P++){
+		    RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(cluster.get(P)); 
+                    SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
+	    	    IIdentifier id = rawHit.getIdentifier();
+            	    int channel_number = sid_helper.getElectrodeValue(id);
+		    double amp1=FittedRawTrackerHit.getAmp(cluster.get(P)); 
+		    System.out.println("The hit at ");
+		    System.out.println(channel_number);
+		    System.out.println(amp1);
+		}
+		System.out.print("\n\n");
+	    }*/
             // Make a TrackerHit from the cluster if it meets max cluster size requirement
             if (cluster.size() <= _max_cluster_nstrips) {
                 SiTrackerHitStrip1D hit = makeTrackerHit(cluster, electrodes);
@@ -186,6 +204,7 @@ public class StripMaker {
                 hits.add(hit);
                 sensor.getReadout().addHit(hit);
             }
+	}
         if (_debug)
             System.out.println(this.getClass().getSimpleName() + "::makeHits : Returning " + hits.size() + " hits ");
         return hits;
@@ -211,8 +230,26 @@ public class StripMaker {
         double energy = getEnergy(cluster);
         TrackerHitType type = new TrackerHitType(TrackerHitType.CoordinateSystem.GLOBAL, TrackerHitType.MeasurementType.STRIP_1D);
         List<RawTrackerHit> rth_cluster = new ArrayList<RawTrackerHit>();
-        for (LCRelation bth : cluster)
+        for (LCRelation bth : cluster){
             rth_cluster.add(FittedRawTrackerHit.getRawTrackerHit(bth)); 
+    	    RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(bth); 
+            SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
+	    IIdentifier id = rawHit.getIdentifier();
+            int channel_number = sid_helper.getElectrodeValue(id);
+	    double amp1=FittedRawTrackerHit.getAmp(bth); 
+	    System.out.println("The hit at ");
+	    System.out.println(channel_number);
+	    System.out.println(amp1);
+	}
+	/*for(int P=0;P<rth_cluster.size();P++){
+	    RawTrackerHit helper = rth_cluster.get(P);
+	    IIdentifier id = helper.getIdentifier();
+            int strip = _sid_helper.getElectrodeValue(id);
+	    System.out.println("The hits in the last step are ");
+	    System.out.println(strip);
+	    FittedRawTrackerHit.getAmp(P);
+	    System.out.print("\n\n");
+	}*/
         SiTrackerHitStrip1D hit = new SiTrackerHitStrip1D(position, covariance, energy, time, rth_cluster, type);
         if (_debug)
             System.out.println(this.getClass().getSimpleName() + " SiTrackerHitStrip1D created at " + position + "(" + hit.getPositionAsVector().toString() + ")" + " E " + energy + " time " + time);
@@ -294,10 +331,14 @@ public class StripMaker {
 
             double signal = FittedRawTrackerHit.getAmp(hit);
             double time = FittedRawTrackerHit.getT0(hit);
-
-            time_sum += time * signal * signal;
-            signal_sum += signal * signal;
-
+            double tErr = FittedRawTrackerHit.getT0Err(hit);
+            if(_doTimeError==1.0){
+                time_sum += time/tErr;
+                signal_sum += 1.0/tErr;
+            }else{
+                time_sum += time * signal * signal;
+                signal_sum += signal * signal;       
+            }
         }
         return time_sum / signal_sum;
     }
