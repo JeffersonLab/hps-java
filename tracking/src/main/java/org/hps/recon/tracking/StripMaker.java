@@ -183,19 +183,6 @@ public class StripMaker {
 
         // Make a pixel hit from this cluster
         for (List<LCRelation> cluster : cluster_list){
-	    /*if(cluster.size()>=2){
-	    	for(int P=0;P<cluster.size();P++){
-		    RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(cluster.get(P)); 
-                    SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
-	    	    IIdentifier id = rawHit.getIdentifier();
-            	    int channel_number = sid_helper.getElectrodeValue(id);
-		    double amp1=FittedRawTrackerHit.getAmp(cluster.get(P)); 
-		    System.out.println("The hit at ");
-		    System.out.println(channel_number);
-		    System.out.println(amp1);
-		}
-		System.out.print("\n\n");
-	    }*/
             // Make a TrackerHit from the cluster if it meets max cluster size requirement
             if (cluster.size() <= _max_cluster_nstrips) {
                 SiTrackerHitStrip1D hit = makeTrackerHit(cluster, electrodes);
@@ -241,15 +228,6 @@ public class StripMaker {
 	    System.out.println(channel_number);
 	    System.out.println(amp1);
 	}
-	/*for(int P=0;P<rth_cluster.size();P++){
-	    RawTrackerHit helper = rth_cluster.get(P);
-	    IIdentifier id = helper.getIdentifier();
-            int strip = _sid_helper.getElectrodeValue(id);
-	    System.out.println("The hits in the last step are ");
-	    System.out.println(strip);
-	    FittedRawTrackerHit.getAmp(P);
-	    System.out.print("\n\n");
-	}*/
         SiTrackerHitStrip1D hit = new SiTrackerHitStrip1D(position, covariance, energy, time, rth_cluster, type);
         if (_debug)
             System.out.println(this.getClass().getSimpleName() + " SiTrackerHitStrip1D created at " + position + "(" + hit.getPositionAsVector().toString() + ")" + " E " + energy + " time " + time);
