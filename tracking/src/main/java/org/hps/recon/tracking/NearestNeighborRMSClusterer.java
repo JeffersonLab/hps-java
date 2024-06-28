@@ -179,12 +179,10 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
                 noiseRMS += ((HpsSiSensor) rawHit.getDetectorElement()).getNoise(channel_number, sampleN);
             }
             noiseRMS = noiseRMS/HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES;
-            //Put a 2 here
             // Mark this hit as available for clustering if it is above the neighbor threshold
             if (signal / noiseRMS >= _neighbor_threshold && passChisqCut(fittedHit)) {
                 clusterableSet.add(channel_number);
             }
-            // PUT A 2 HERE
             // Add this hit to the list of seeds if it is above the seed threshold
             if (signal / noiseRMS >= _seed_threshold && passTimingCut(fittedHit) && passChisqCut(fittedHit)) {
                 cluster_seeds.add(channel_number);
@@ -215,11 +213,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             // Add the seed channel to the unchecked list and mark it as unavailable for clustering
             unchecked.addLast(seed_channel);
             clusterableSet.remove(seed_channel);
-
-	    /*
-	    //Cods Used to Remove Vs
-	    boolean nonincreasing=true;
-	    boolean nondecreasing=false;*/
 
             // Check the neighbors of channels added to the cluster
             while (unchecked.size() > 0) {
@@ -284,20 +277,13 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             if (cluster.size() > 0 && cluster_signal / Math.sqrt(cluster_noise_squared) > _cluster_threshold) {
 		if(!(_doVSplit)||cluster.size()<=2){cluster_list.add(cluster);}
 		else{
-		    //System.out.println("I am now printing out the original cluster ");
 	    	    for(int j=0;j<cluster.size();j++){
 			RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(cluster.get(j)); 
                 	SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
 	    		IIdentifier id = rawHit.getIdentifier();
             		int channel_number = sid_helper.getElectrodeValue(id);
-    			//System.out.print("Strip Number: ");
-			//System.out.println(channel_number);
-    			//System.out.print("Amplitude: ");
-			//System.out.println(FittedRawTrackerHit.getAmp(cluster.get(j)));
-			//System.out.print("\n");
 		    }
 		    ArrayList<List<LCRelation>> vloc = hasV(cluster);
-		    //System.out.println("I am now printing out all the splitted clusters ");	    
 		    for(int i=0;i<vloc.size();i++){
 		        List<LCRelation> holder = vloc.get(i);
 			for(int j=0;j<holder.size();j++){
@@ -305,11 +291,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
                 	    SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
 	    		    IIdentifier id = rawHit.getIdentifier();
             		    int channel_number = sid_helper.getElectrodeValue(id);
-    			    //System.out.print("Strip Number: ");
-			    //System.out.println(channel_number);
-    			    //System.out.print("Amplitude: ");
-			    //System.out.println(FittedRawTrackerHit.getAmp(holder.get(j)));
-			    //System.out.print("\n");
 			}
 			if(isSig(vloc.get(i))){
 		    	    cluster_list.add(vloc.get(i));
@@ -428,50 +409,21 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             	    int channel_number = sid_helper.getElectrodeValue(id);
 		    if(channel_number==maxChan){
 		    	amp1=FittedRawTrackerHit.getAmp(cluster.get(III)); 
-		    	//System.out.println("I did this channel array index and number ");
-			//System.out.println(III);
-			//System.out.println(maxChan);
 			tokeep=III;
 		    }
 		    if(channel_number==oneback){ 
 		    	amp2=FittedRawTrackerHit.getAmp(cluster.get(III)); 
-			//System.out.println("I did this channel array index and number ");
-			//System.out.println(III);
-			//System.out.println(oneback);
 		    }
 		    if(channel_number==twoback){
-		    	//System.out.println("I did this channel array index and number ");
-			//System.out.println(III);
-			//System.out.println(twoback);
 			amp3=FittedRawTrackerHit.getAmp(cluster.get(III)); 
 		    }
 		}
 		if((amp1>amp2)&&(amp3>amp2)){
-		    System.out.println("I couldn't add something to the end in these strips");
-		    System.out.print(twoback);
-		    System.out.print(" ");
-		    System.out.println(amp3);
-		    System.out.print(oneback);
-		    System.out.print(" ");
-		    System.out.println(amp2);
-		    System.out.print(maxChan);
-		    System.out.print(" ");
-		    System.out.println(amp1);
 	            List<LCRelation> clusterend = new ArrayList<LCRelation>();
 		    clusterend.add(cluster.get(tokeep));
 		    clusters.add(clusterend);
 		}
 		else{
-		    System.out.println("I could add something to the end in these strips");
-		    System.out.print(twoback);
-		    System.out.print(" ");
-		    System.out.println(amp3);
-		    System.out.print(oneback);
-		    System.out.print(" ");
-		    System.out.println(amp2);
-		    System.out.print(maxChan);
-		    System.out.print(" ");
-		    System.out.println(amp1);
 		    clusterS.add(cluster.get(tokeep));
 		}
 	    }
