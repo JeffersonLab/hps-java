@@ -19,8 +19,6 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
     }
 
     public ShaperPileupFitAlgorithm(double threshold,int DT) {
-        //System.out.print("Statement in Constructor");
-        //System.out.print(threshold);
         refitThreshold = threshold;
         doOldDT = DT;
     }
@@ -33,15 +31,11 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
 
     //===> public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, HPSSVTCalibrationConstants.ChannelConstants constants) {
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, PulseShape shape) {
-        //System.out.print(refitThreshold);
-        //===> Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth, constants);
         Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth, shape);
         double singlePulseChiProb = fittedPulses.iterator().next().getChiProb();
-        //double time1 = fittedPulses.iterator().next().getT0();
         totalFits++;
         if (singlePulseChiProb < refitThreshold) {
             refitAttempts++;
-            //===> Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth, constants);
             Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth, shape);
             ShapeFitParameters Hello = doublePulse.iterator().next();
             double doublePulseChiProb = Hello.getChiProb();
