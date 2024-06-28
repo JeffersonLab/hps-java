@@ -294,7 +294,8 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
     //WILL RETURN THE LIST OF SPLIT CLUSTERS, THOUGH NOT CHECKED BY SIGNIFICANCE
     private ArrayList<List<LCRelation>> hasV(List<LCRelation> cluster){
    	ArrayList<Integer> vloc = new ArrayList<Integer>();
-	int minChan=1000000;int maxChan=-1;
+	int minChan=1000000;
+	int maxChan=-1;
 	//CHANNELS AREN'T ORDERED PROPERLY, SO YOU HAVE TO ORDER THEM
 	for(int I=0;I<cluster.size();I++){
 	    RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(cluster.get(I)); 
