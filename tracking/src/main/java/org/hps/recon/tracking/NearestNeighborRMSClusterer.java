@@ -277,21 +277,8 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             if (cluster.size() > 0 && cluster_signal / Math.sqrt(cluster_noise_squared) > _cluster_threshold) {
 		if(!(_doVSplit)||cluster.size()<=2){cluster_list.add(cluster);}
 		else{
-	    	    for(int j=0;j<cluster.size();j++){
-			RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(cluster.get(j)); 
-                	SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
-	    		IIdentifier id = rawHit.getIdentifier();
-            		int channel_number = sid_helper.getElectrodeValue(id);
-		    }
 		    ArrayList<List<LCRelation>> vloc = hasV(cluster);
 		    for(int i=0;i<vloc.size();i++){
-		        List<LCRelation> holder = vloc.get(i);
-			for(int j=0;j<holder.size();j++){
-			    RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(holder.get(j)); 
-                	    SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
-	    		    IIdentifier id = rawHit.getIdentifier();
-            		    int channel_number = sid_helper.getElectrodeValue(id);
-			}
 			if(isSig(vloc.get(i))){
 		    	    cluster_list.add(vloc.get(i));
 		    	}
@@ -323,7 +310,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 	}
 	//Now that you have the min and max channel, you can do a scan of the triplets
 	vloc.add(minChan);
-	//System.out.println("I am splitting the clusters; here are the dips I've identified");
 	for(int I=minChan;I<=maxChan-2;I++){
             double amp1=-10000.0;
 	    double amp2=1000000.0;
@@ -349,28 +335,8 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 	    }
 	    if((amp1>amp2)&&(amp3>amp2)){
 	    	vloc.add(chan2);
-		//HERE I AM EDITING THE VALUE OF THE HIT
-		//int FitN = FittedRawTrackerHit.getFitN(cluster.get(index2));	
-		//double t1 = FittedRawTrackerHit.getT0(cluster.get(index2));	
-		//if((FitN==1)||(math.abs(rawHit.getT0(0))<math.abs(rawHit.getT0(1)))){
-		//rawHit.setAmp(0)=rawHit.getAmp(0)/2.0;
-		//}else{
-		//rawHit.setAmp(1)=rawHit.getAmp(1)/2.0;
-		//}
 		ShapeFitParameters param = (ShapeFitParameters)(FittedRawTrackerHit.getShapeFitParameters(cluster.get(index2)));
 		param.setAmp(FittedRawTrackerHit.getAmp(cluster.get(index2))/2.0);
-		System.out.println("I found a dip");
-		System.out.print(I+2);
-		System.out.print(" ");
-		System.out.println(amp3);
-		System.out.print(I+1);
-		System.out.print(" ");
-		System.out.println(amp2);
-		System.out.print(I);
-		System.out.print(" ");
-		System.out.println(amp1);
-		//System.out.println("The channel of the dip is ");
-		//System.out.println(chan2);
 	    }
 	}
 	//DIP SEEMS VERIFIED
@@ -378,9 +344,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 	ArrayList<List<LCRelation>> clusters = new ArrayList<List<LCRelation>>();
 	for(int I=0;I<vloc.size()-1;I++){
 	    List<LCRelation> clusterS = new ArrayList<LCRelation>();
-	    //boolean hasSeed=false;
-	    //System.out.print("I am now making a cluster which starts at strip ");
-	    //System.out.println(vloc.get(I));
 	    for(int II=vloc.get(I);II<vloc.get(I+1);II++){
 	    	for(int III=0;III<cluster.size();III++){
 		    RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(cluster.get(III)); 
@@ -388,8 +351,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 	    	    IIdentifier id = rawHit.getIdentifier();
             	    int channel_number = sid_helper.getElectrodeValue(id);
 		    if(channel_number==II){
-			System.out.print("This cluster contains strip ");
-			System.out.println(channel_number);
 		    	clusterS.add(cluster.get(III));
 		    }
 		}
@@ -427,7 +388,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 		    clusterS.add(cluster.get(tokeep));
 		}
 	    }
-	    System.out.print("\n\n");
 	    clusters.add(clusterS);
 	}
 	if(clusters.size()==0){
