@@ -497,54 +497,9 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             }
             return neighbors;
         }
-        //return null;
     }
 
     public boolean isValidCell(int cell) {
         return (cell >= 0 && cell < HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR);
     }
 }
-
-		//Splitting Cluster
-		
-		/*   int clusStart=0;
-		    while(clusStart<cluster.size()-3){
-			List<LCRelation> clusterS = new ArrayList<LCRelation>();
-			clusterS.add(cluster.get(clusStart));
-			clusterS.add(cluster.get(clusStart+1));
-			LCRelation hit1 = cluster.get(clusStart);
-			LCRelation hit2 = cluster.get(clusStart+1);
-			int monotonic = 0;
-			
-			if(FittedRawTrackerHit.getAmp(hit1)<FittedRawTrackerHit.getAmp(hit2)){monotonic = 1;}else{monotonic = -1;}
-			//Boolean To Determine If You Ought To Cut The Cluster
-			boolean CUT=false;
-			//Boolean To Determine If You Are Past Inversion
-			boolean PastInversion=false;
-			int clusTemp=clusStart+1;
-			for(int X=2;X<cluster.size()-clusStart;X++){
-			    LCRelation hitthis = cluster.get(clusStart+X-1);
-		   	    LCRelation hitnext = cluster.get(clusStart+X);
-			    boolean condition = ((monotonic==-1)&&(FittedRawTrackerHit.getAmp(hitthis)<=FittedRawTrackerHit.getAmp(hitnext)));
-			    condition = condition||((monotonic==1)&&(FittedRawTrackerHit.getAmp(hitthis)>=FittedRawTrackerHit.getAmp(hitnext)));
-			    if(condition){PastInversion=true;}
-			    if(PastInversion){
-			    	CUT = ((monotonic==-1)&&(FittedRawTrackerHit.getAmp(hitthis)>=FittedRawTrackerHit.getAmp(hitnext)));
-			    	CUT = CUT||((monotonic==1)&&(FittedRawTrackerHit.getAmp(hitthis)<=FittedRawTrackerHit.getAmp(hitnext)));
-			    }
-			    if(!CUT){
-			    	clusterS.add(cluster.get(clusStart+X));
-			    	clusTemp+=1;
-			    }else{break;}	
-			}
-			cluster_list.add(clusterS);
-			clusStart=clusTemp;
-		    }
-		    if(clusStart>=cluster.size()-3){
-		    	List<LCRelation> clusterS = new ArrayList<LCRelation>();
-			for(int X=0;X<cluster.size()-clusStart;X++){
-				clusterS.add(cluster.get(clusStart+X));
-			}
-			cluster_list.add(clusterS);
-		    }*/
-
