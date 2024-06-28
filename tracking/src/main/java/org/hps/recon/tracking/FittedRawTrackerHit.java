@@ -49,12 +49,6 @@ public class FittedRawTrackerHit extends BaseLCRelation {
         return ShapeFitParameters.getT0Err(getShapeFitParameters(rel));
     }
 
-    //PUTTING ONE SETTER FUNCTION HERE
-    //public static void setAmp(LCRelation rel) {
-    //    return ShapeFitParameters.getT0Err(getShapeFitParameters(rel));
-    //}
-
-
     /**
      * Get the fit chi2 probability. 
      *
