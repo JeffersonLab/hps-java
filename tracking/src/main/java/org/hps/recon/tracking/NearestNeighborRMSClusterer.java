@@ -174,7 +174,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             // Get the signal from the readout chip
             double signal = FittedRawTrackerHit.getAmp(fittedHit); 
             double noiseRMS = 0;
-            //((HpsSiSensor) rawHit.getDetectorElement()).isBadChannel(strip)
             for(int sampleN = 0; sampleN < HPSSVTConstants.TOTAL_NUMBER_OF_SAMPLES; sampleN++){
                 noiseRMS += ((HpsSiSensor) rawHit.getDetectorElement()).getNoise(channel_number, sampleN);
             }
@@ -255,7 +254,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 
                     LCRelation neighbor_hit = channel_to_hit.get(channel);
                     if(_doTimeError==1.0){
-                        //ADD NEIGHBORSIGMA AS CONFIGURABLE PARAMETER
                         if (Math.abs(FittedRawTrackerHit.getT0(neighbor_hit) - cluster_weighted_time / time_signal)/FittedRawTrackerHit.getT0Err(neighbor_hit) > _neighborDeltaTSigma) {
                             continue;
                         }
@@ -340,7 +338,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 		param.setAmp(FittedRawTrackerHit.getAmp(cluster.get(index2))/2.0);
 	    }
 	}
-	//DIP SEEMS VERIFIED
 	vloc.add(maxChan);
 	ArrayList<List<LCRelation>> clusters = new ArrayList<List<LCRelation>>();
 	for(int I=0;I<vloc.size()-1;I++){
