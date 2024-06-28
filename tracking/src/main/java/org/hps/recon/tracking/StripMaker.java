@@ -224,9 +224,6 @@ public class StripMaker {
 	    IIdentifier id = rawHit.getIdentifier();
             int channel_number = sid_helper.getElectrodeValue(id);
 	    double amp1=FittedRawTrackerHit.getAmp(bth); 
-	    System.out.println("The hit at ");
-	    System.out.println(channel_number);
-	    System.out.println(amp1);
 	}
         SiTrackerHitStrip1D hit = new SiTrackerHitStrip1D(position, covariance, energy, time, rth_cluster, type);
         if (_debug)
