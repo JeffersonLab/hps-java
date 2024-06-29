@@ -342,7 +342,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 	ArrayList<List<LCRelation>> clusters = new ArrayList<List<LCRelation>>();
 	for(int I=0;I<vloc.size()-1;I++){
 	    List<LCRelation> clusterS = new ArrayList<LCRelation>();
-	    for(int II=vloc.get(I);II<vloc.get(I+1);II++){
+	    for(int II=vloc.get(I);II<=vloc.get(I+1);II++){
 	    	for(int III=0;III<cluster.size();III++){
 		    RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(cluster.get(III)); 
                     SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
@@ -351,39 +351,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 		    if(channel_number==II){
 		    	clusterS.add(cluster.get(III));
 		    }
-		}
-	    }
-	    //Adding the boundary strip
-	    if(I==vloc.size()-2){
-		int twoback=maxChan-2;
-		int oneback=maxChan-1;
-		int tokeep=-1;
-		double amp1=-1.0;
-		double amp2=-1.0;
-		double amp3=-1.0;
-		for(int III=0;III<cluster.size();III++){
-		    RawTrackerHit rawHit = FittedRawTrackerHit.getRawTrackerHit(cluster.get(III)); 
-                    SiTrackerIdentifierHelper sid_helper = (SiTrackerIdentifierHelper) rawHit.getIdentifierHelper();
-	    	    IIdentifier id = rawHit.getIdentifier();
-            	    int channel_number = sid_helper.getElectrodeValue(id);
-		    if(channel_number==maxChan){
-		    	amp1=FittedRawTrackerHit.getAmp(cluster.get(III)); 
-			tokeep=III;
-		    }
-		    if(channel_number==oneback){ 
-		    	amp2=FittedRawTrackerHit.getAmp(cluster.get(III)); 
-		    }
-		    if(channel_number==twoback){
-			amp3=FittedRawTrackerHit.getAmp(cluster.get(III)); 
-		    }
-		}
-		if((amp1>amp2)&&(amp3>amp2)){
-	            List<LCRelation> clusterend = new ArrayList<LCRelation>();
-		    clusterend.add(cluster.get(tokeep));
-		    clusters.add(clusterend);
-		}
-		else{
-		    clusterS.add(cluster.get(tokeep));
 		}
 	    }
 	    clusters.add(clusterS);
