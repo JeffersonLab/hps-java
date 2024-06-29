@@ -60,6 +60,9 @@ public class RawTrackerHitFitterDriver extends Driver {
     private double trigTimeScale = 43.0;//  the mean time of the trigger...changes with run period!!!  43.0 is for 2015 Eng. Run
     private double trigTimeOffset = 14.0;
     private double tsCorrectionScale = 240;
+    private double chiSqrThresh = .5;
+
+    private int doOldDT = 1;
 
     private boolean isFirstEvent=true;
 
@@ -70,6 +73,14 @@ public class RawTrackerHitFitterDriver extends Driver {
      *
      * @param useTruthTime
      */
+    public void setChiSqrThresh(double chiSqrThresh){
+        this.chiSqrThresh = chiSqrThresh;
+    }
+
+    public void setDoOldDT(int doOldDT){
+        this.doOldDT = doOldDT;
+    }
+
     public void setUseTruthTime(boolean useTruthTime) {
         this.useTruthTime = useTruthTime;
     }
@@ -132,9 +143,9 @@ public class RawTrackerHitFitterDriver extends Driver {
         else if (fitAlgorithm.equals("Linear"))
             fitter = new ShaperLinearFitAlgorithm(1);
         else if (fitAlgorithm.equals("PileupAlways"))
-            fitter = new ShaperPileupFitAlgorithm(1.0);
+            fitter = new ShaperPileupFitAlgorithm(1.0,this.doOldDT);
         else if (fitAlgorithm.equals("Pileup"))
-            fitter = new ShaperPileupFitAlgorithm();
+            fitter = new ShaperPileupFitAlgorithm(this.chiSqrThresh,this.doOldDT);
         else
             throw new RuntimeException("Unrecognized fitAlgorithm: " + fitAlgorithm);
     }
