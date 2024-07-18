@@ -340,6 +340,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
 	}
 	vloc.add(maxChan);
 	ArrayList<List<LCRelation>> clusters = new ArrayList<List<LCRelation>>();
+	//System.out.println("Start of New Clustering");
 	for(int I=0;I<vloc.size()-1;I++){
 	    List<LCRelation> clusterS = new ArrayList<LCRelation>();
 	    for(int II=vloc.get(I);II<=vloc.get(I+1);II++){
@@ -350,9 +351,11 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             	    int channel_number = sid_helper.getElectrodeValue(id);
 		    if(channel_number==II){
 		    	clusterS.add(cluster.get(III));
+			//System.out.println(channel_number);
 		    }
 		}
 	    }
+	    //System.out.print("\n\n");
 	    clusters.add(clusterS);
 	}
 	if(clusters.size()==0){
