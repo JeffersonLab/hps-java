@@ -92,8 +92,8 @@
             <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-	    <chisqrThresh>.75</chisqrThresh>
-    	    <doOldDT>0</doOldDT>	    
+	    <chiSqrThresh>.5</chiSqrThresh>
+    	    <doOldDT>1</doOldDT>	    
 	    <fitAlgorithm>Pileup</fitAlgorithm>
             <fitTimeMinimizer>Migrad</fitTimeMinimizer>
             <useTimestamps>false</useTimestamps>
