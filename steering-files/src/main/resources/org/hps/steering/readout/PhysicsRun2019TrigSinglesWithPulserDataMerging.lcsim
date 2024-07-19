@@ -35,7 +35,8 @@
 
        
         <!-- Trigger Simulation -->
-        <driver name="SinglesTrigger"/>
+        <driver name="SinglesTrigger2"/>
+        <driver name="SinglesTrigger3"/>
 
 	<driver name="SvtDigitizationWithPulserDataMergingDriver"/>
 
@@ -395,7 +396,7 @@
 	</driver>  
 
         
-        <driver name="SinglesTrigger" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
+        <driver name="SinglesTrigger3" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
             <inputCollectionNameEcal>EcalClustersGTP</inputCollectionNameEcal>
 
             <inputCollectionNameHodo>HodoscopePatterns</inputCollectionNameHodo>
@@ -404,6 +405,20 @@
             
             <!-- Units of 2 ns beam bunches. -->
             <deadTime>15</deadTime>            
+
+        </driver>
+
+        <driver name="SinglesTrigger2" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
+            <inputCollectionNameEcal>EcalClustersGTP</inputCollectionNameEcal>
+
+            <inputCollectionNameHodo>HodoscopePatterns</inputCollectionNameHodo>
+
+            <triggerType>singles2</triggerType>
+
+            <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>
+
+            <!-- Units of 2 ns beam bunches. -->
+            <deadTime>15</deadTime>
 
         </driver>
                     
