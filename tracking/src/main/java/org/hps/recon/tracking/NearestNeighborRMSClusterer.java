@@ -157,7 +157,9 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             IIdentifier id = rawHit.getIdentifier();
             int channel_number = sid_helper.getElectrodeValue(id);
 
-            if(((HpsSiSensor) rawHit.getDetectorElement()).isBadChannel(channel_number)){continue;}
+            if(_doDeadFix){
+	    	if(((HpsSiSensor) rawHit.getDetectorElement()).isBadChannel(channel_number)){continue;}
+	    }
 
             // Check for duplicate RawTrackerHits or channel numbers
             if (channel_to_hit.containsKey(channel_number)) {
