@@ -275,7 +275,6 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
             // Finished with this cluster, check cluster threshold and add it to the list of
             // clusters
             if (cluster.size() > 0 && cluster_signal / Math.sqrt(cluster_noise_squared) > _cluster_threshold) {
-		//if(!_doVSplit){System.out.println("VSplit is OFF");}else{System.out.println("VSplit is ON");}
 		if(!(_doVSplit)||cluster.size()<=2){cluster_list.add(cluster);}
 		else{
 		    ArrayList<List<LCRelation>> vloc = hasV(cluster);
