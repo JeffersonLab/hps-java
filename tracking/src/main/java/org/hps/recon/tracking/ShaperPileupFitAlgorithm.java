@@ -37,9 +37,9 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
         if (singlePulseChiProb < refitThreshold) {
             refitAttempts++;
             Collection<ShapeFitParameters> doublePulse = twoPulseFitter.fitShape(rth, shape);
-            ShapeFitParameters Hello = doublePulse.iterator().next();
-            double doublePulseChiProb = Hello.getChiProb();
-            double time1 = Hello.getT0();
+            ShapeFitParameters doubleParam = doublePulse.iterator().next();
+            double doublePulseChiProb = doubleParam.getChiProb();
+            double time1 = doubleParam.getT0();
             double time2 = fittedPulses.iterator().next().getT0();
             if (doublePulseChiProb > singlePulseChiProb) {
                 if(((time2-time1)*(time2-time1)>40.0)||(doOldDT==1)){
