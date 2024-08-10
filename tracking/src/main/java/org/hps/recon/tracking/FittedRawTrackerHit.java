@@ -26,6 +26,9 @@ public class FittedRawTrackerHit extends BaseLCRelation {
     public double getAmp() {
         return getShapeFitParameters().getAmp();
     }
+    public double getT0Err() {
+        return getShapeFitParameters().getT0Err();
+    }
 
     public static RawTrackerHit getRawTrackerHit(LCRelation rel) {
         return (RawTrackerHit) rel.getFrom();
@@ -41,6 +44,9 @@ public class FittedRawTrackerHit extends BaseLCRelation {
 
     public static double getAmp(LCRelation rel) {
         return ShapeFitParameters.getAmp(getShapeFitParameters(rel));
+    }
+    public static double getT0Err(LCRelation rel) {
+        return ShapeFitParameters.getT0Err(getShapeFitParameters(rel));
     }
 
     /**

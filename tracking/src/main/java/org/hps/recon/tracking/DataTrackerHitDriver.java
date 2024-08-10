@@ -30,9 +30,13 @@ public class DataTrackerHitDriver extends Driver {
     private double meanTime = 0.0;
     private double timeWindow = 72.0;
     private double neighborDeltaT = 24.0;
+    private double neighborDeltaTSigma = 3.0; 
+    private double doTimeError = 0.0;
     private int clusterMaxSize = 10;
     private int clusterCentralStripAveragingThreshold = 4;
-    
+    private boolean doDeadFix = false;
+    private boolean doVSplit = false;
+
     // Clustering errors by number of TrackerHits.
     private static final double clusterErrorMultiplier = 1.0;
     private double oneClusterErr = clusterErrorMultiplier / Math.sqrt(12.);
@@ -74,12 +78,24 @@ public class DataTrackerHitDriver extends Driver {
         this.clusterSeedThreshold = clusterSeedThreshold;
     }
 
+    public void setDoTimeError(double doTimeError) {
+        this.doTimeError = doTimeError;
+    }
+
     public void setClusterNeighborThreshold(double clusterNeighborThreshold) {
         this.clusterNeighborThreshold = clusterNeighborThreshold;
     }
 
     public void setClusterThreshold(double clusterThreshold) {
         this.clusterThreshold = clusterThreshold;
+    }
+
+    public void setDoDeadFix(boolean doDeadFix) {
+        this.doDeadFix = doDeadFix;
+    }
+
+    public void setDoVSplit(boolean doVSplit) {
+    	this.doVSplit = doVSplit;
     }
 
     public void setMeanTime(double meanTime) {
@@ -93,6 +109,11 @@ public class DataTrackerHitDriver extends Driver {
     public void setNeighborDeltaT(double neighborDeltaT) {
         this.neighborDeltaT = neighborDeltaT;
     }
+
+    public void setNeighborDeltaTSigma(double neighborDeltaTSigma) {
+        this.neighborDeltaTSigma = neighborDeltaTSigma;
+    }
+
 
     public void setClusterMaxSize(int clusterMaxSize) {
         this.clusterMaxSize = clusterMaxSize;
@@ -160,11 +181,16 @@ public class DataTrackerHitDriver extends Driver {
         stripClusteringAlgo.setMeanTime(meanTime);
         stripClusteringAlgo.setTimeWindow(timeWindow);
         stripClusteringAlgo.setNeighborDeltaT(neighborDeltaT);
+        stripClusteringAlgo.setNeighborDeltaTSigma(neighborDeltaTSigma);
+        stripClusteringAlgo.setDoTimeError(doTimeError);
+    	stripClusteringAlgo.setDoDeadFix(doDeadFix);
+	stripClusteringAlgo.setDoVSplit(doVSplit);
 
         stripClusterer = new StripMaker(stripSim, stripClusteringAlgo);
         stripClusterer.setMaxClusterSize(clusterMaxSize);
         stripClusterer.setCentralStripAveragingThreshold(clusterCentralStripAveragingThreshold);
         stripClusterer.setDebug(debug);
+        stripClusterer.setDoTimeError(doTimeError);
 
         // Set the cluster errors.
         DefaultSiliconResolutionModel model = new DefaultSiliconResolutionModel();
