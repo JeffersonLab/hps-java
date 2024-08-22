@@ -1,6 +1,6 @@
 <lccdd xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/compact/1.0/compact.xsd">
     
-    <info name="HPS-PhysicsRun2016-Pass2_misaligned_rwPt00005_tuPt01">
+    <info name="HPS-PhysicsRun2016-Pass2_misaligned_RwPt00005_TuPt01">
         <comment>
 		This detector has been artifically misaligned based off of HPS-PhysicsRun2016-Pass2.
 		The misalignments are sampled from gaussian distributed numbers with

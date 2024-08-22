@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcdd xmlns:lcdd="http://www.lcsim.org/schemas/lcdd/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcdd/1.0/lcdd.xsd">
   <header>
-    <detector name="HPS-PhysicsRun2016-Pass2_misaligned_rwPt00005_tuPt01" />
-    <generator name="lcsim" version="1.0" file="/sdf/home/s/sgaiser/src/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Pass2_misaligned_rwPt00005_tuPt01/compact.xml" checksum="4117433292" />
+    <detector name="HPS-PhysicsRun2016-Pass2_misaligned_RwPt00005_TuPt01" />
+    <generator name="lcsim" version="1.0" file="/sdf/home/s/sgaiser/src/hps-java/detector-data/detectors/HPS-PhysicsRun2016-Pass2_misaligned_RwPt00005_TuPt01/compact.xml" checksum="1582475146" />
     <author name="NONE" />
     <comment>This detector has been artifically misaligned based off of HPS-PhysicsRun2016-Pass2. The misalignments are sampled from gaussian distributed numbers with - mu = 0, sigma = 10um for Tu (translations along u axis) - mu = 0, sigma = 0.5mrad for Rw (rotation around w axis) These values have been added to the alignment constants for the respective movement.</comment>
   </header>
