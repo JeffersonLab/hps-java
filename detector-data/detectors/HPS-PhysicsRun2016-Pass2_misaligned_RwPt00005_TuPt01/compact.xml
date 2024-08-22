@@ -5,7 +5,7 @@
 		This detector has been artifically misaligned based off of HPS-PhysicsRun2016-Pass2.
 		The misalignments are sampled from gaussian distributed numbers with
 		   - mu = 0, sigma = 10um for Tu (translations along u axis)
-		   - mu = 0, sigma = 0.5mrad for Rw (rotation around w axis)
+		   - mu = 0, sigma = 0.05mrad for Rw (rotation around w axis)
 		These values have been added to the alignment constants for the respective movement.
         </comment>
     </info>
