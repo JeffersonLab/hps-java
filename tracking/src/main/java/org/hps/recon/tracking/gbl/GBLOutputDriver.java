@@ -1278,7 +1278,7 @@ public class GBLOutputDriver extends Driver {
                 aidaGBL.histogram1D(trkpFolder+"p_slot"+vol+charge,nbins_p,0.,pmax);
                                 
                 aidaGBL.histogram1D(trkpFolder+"Chi2"+vol+charge,nbins_t*2,0,200);
-		aidaGBL.histogram1D(trkpFolder+"Chi2oNDF"+vol+charge,nbins_t*2,0,50);
+		aidaGBL.histogram1D(trkpFolder+"Chi2oNDF"+vol+charge,nbins_t*2,0,20);
                 aidaGBL.histogram1D(trkpFolder+"nHits"+vol+charge,15,0,15);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_x"+vol+charge,nbins_t,-3,3);
                 aidaGBL.histogram1D(trkpFolder+"trk_extr_or_y"+vol+charge,nbins_t,-3,3);
@@ -1338,6 +1338,13 @@ public class GBLOutputDriver extends Driver {
     public void endOfData() {
         if (outputPlots != null) {
             try {
+
+		// ...to debug, print the object na,es
+                String[] type = aidaGBL.tree().listObjectNames("/",true);
+                for (int i=0; i<type.length; i++)
+		    System.out.println(type[i]);
+		System.out.println("GBLOutputDriver:  saving outputPlots to "+outputPlots);
+
                 aidaGBL.saveAs(outputPlots);
 
 		/*

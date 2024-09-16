@@ -1285,6 +1285,18 @@ public class Matrix implements Cloneable, java.io.Serializable {
         return tmp.toString();
     }
 
+    
+    public boolean hasNaNs(){
+	for (int i = 0; i < m; ++i) {	    
+            for (int j = 0; j < n; ++j) {
+                if( Double.isNaN(A[i][j]))
+		    return true;
+            }
+        }
+	return false;
+    }
+
+
     // /**
     // * Read a matrix from a stream. The format is the same the print method, so
     // * printed matrices can be read back in (provided they were printed using US
@@ -1432,6 +1444,7 @@ public class Matrix implements Cloneable, java.io.Serializable {
         }
         return v;
     }
+
 
     // public void setToIdentity()
     // {

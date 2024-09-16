@@ -163,7 +163,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
     private double posEoP = -1;
     private double eleEoP = -1;
     private boolean correctTrack = false;
-    
+    private boolean useCluEneConstraint = false;
 
     
     private GblTrajectoryMaker _gblTrajMaker;
@@ -394,6 +394,10 @@ public class SimpleGBLTrajAliDriver extends Driver {
     public void setUseParticles(boolean val) {
         useParticles = val;
     }
+
+    public void setUseCluEneConstraint(boolean val){
+	useCluEneConstraint=val;
+    }
     
     @Override
     protected void startOfData() {
@@ -401,6 +405,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
             mille = new MilleBinaryJna(milleBinaryFileName);
     }
 
+    
     @Override
     protected void endOfData() {
         //Should be closed directly when destructor is called
@@ -542,7 +547,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         HashMap<Track,Cluster> TrackClusterPairs = null;
         
         //Get the tracks from the particles - redundant, just loop on the map
-
+	//NOTE:: if useParticles==true it will require tracks have a cluster match!
         if (useParticles) {
             for (ReconstructedParticle particle : particles) {
                 if (particle.getTracks().isEmpty() || particle.getClusters().isEmpty())
@@ -653,11 +658,12 @@ public class SimpleGBLTrajAliDriver extends Driver {
                 //Should use the trackState at the last
                 TrackState trackState = track.getTrackStates().get(0);
                 double trackp = new BasicHep3Vector(trackState.getMomentum()).magnitude();
-                
-                //compute the correction
-                momC = em_cluster.getEnergy();
-                
+                //compute the correction if using cluster energy constraint
+                if(useCluEneConstraint)
+		    momC = em_cluster.getEnergy();
+
                 //Cluster energy cut
+		//NOTE:: setting energy cuts also requires cluster is in fiducial region
                 if (clusterEnergyCutMin > 0 || clusterEnergyCutMax < 999) {
                     if (!TriggerModule.inFiducialRegion(em_cluster))
                         continue;
@@ -772,10 +778,13 @@ public class SimpleGBLTrajAliDriver extends Driver {
             
             List<GBLStripClusterData> trackGblStripClusterData  = computeGBLStripClusterData(track,TrackType,
                                                                                              temp,gblStripClusterDataRelations,event);
-            
-            //Printout the Cluster Data: 
-            
-            
+
+	    if(trackGblStripClusterData == null){
+		System.out.println("SimpleGBLTrajAliDriver::trackGblStripClusterData is null, skipping track");
+		continue;
+	    }
+	    
+            //Printout the Cluster Data:                         
             if (debugAlignmentDs) {
                 for (GBLStripClusterData strip : trackGblStripClusterData)   {
                     System.out.format("SimpleGBLTrajAliDriver: TrackType="+TrackType);
@@ -809,17 +818,25 @@ public class SimpleGBLTrajAliDriver extends Driver {
             if (compositeAlign) {
                 
                 //For the moment I form the global derivatives here, but in principle I should create them when I run the trajectory creator.
-                
+                boolean isGood=true;
                 for ( GblPointJna gblpoint : points_on_traj) {
-                    
-                    
-                    if (!doCOMAlignment)
-                        ComputeStructureDerivatives(gblpoint);
-                    else
-                        ComputeCOMDerivatives(gblpoint);
-                    
-                }//point loop
-                
+                    if (!doCOMAlignment){
+                        isGood=ComputeStructureDerivatives(gblpoint);
+			if(!isGood){
+			    System.out.println("SimpleGBLTrajAli::ComputeStructureDerivatives globals derivatives probably have NaN");
+			    break; 
+			}
+		    }
+                    else{
+                        isGood=ComputeCOMDerivatives(gblpoint);
+			if(!isGood){
+			    System.out.println("SimpleGBLTrajAli::ComputeCOMDerivatives globals derivatives probably have NaN");
+			    break; 
+			}
+		    }
+		}//point loop
+		if(!isGood)
+		    continue;  //skip Track if global derivatives are whack
             }// composite Alignment
                 
             //Make a gblTrajectory with the points with all the composite derivatives + seed and write the record
@@ -1606,15 +1623,16 @@ public class SimpleGBLTrajAliDriver extends Driver {
     };
 
 
-    private void ComputeCOMDerivatives(GblPointJna gblpoint) {
+    private boolean ComputeCOMDerivatives(GblPointJna gblpoint) {
         if (gblpoint.getNumMeasurements() == 0)
-            return;
+            return true;
 
         List<Integer> labels = new ArrayList<Integer>();
         Matrix g_ders = gblpoint.getGlobalLabelsAndDerivatives(labels);
-        
+        if(g_ders.hasNaNs())
+	    return false;
         if (labels.size() < 1) 
-            return;
+            return true;
 
         //The MPII ID + Volume is used to get the correct composite structure
         // 1 for top  2 for bottom
@@ -1662,7 +1680,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
                             
         if (alignable_sensor == null)  {
             System.out.println("Alignable Sensor " + mysensor.getName()+"_AV   Not found in the alignment tree");
-            return;
+            return true;
         }
         
         //if (debugAlignmentDs) {
@@ -1729,7 +1747,7 @@ public class SimpleGBLTrajAliDriver extends Driver {
         }
                             
         gblpoint.addGlobals(all_labels,allDer);
-                            
+	return true;
                             
     }
     
@@ -1755,15 +1773,17 @@ public class SimpleGBLTrajAliDriver extends Driver {
 
 
     //This will compute and add to the buffers the derivatives 
-    private void ComputeStructureDerivatives(GblPointJna gblpoint) {
+    private boolean ComputeStructureDerivatives(GblPointJna gblpoint) {
         if (gblpoint.getNumMeasurements() == 0)
-            return;
+            return true;
         
         List<Integer> labels = new ArrayList<Integer>();
         Matrix g_ders = gblpoint.getGlobalLabelsAndDerivatives(labels);
-        
+        if(g_ders.hasNaNs())
+	    return false;
+
         if (labels.size() < 1) 
-            return;
+            return true;
         
         //The MPII ID + Volume is used to get the correct composite structure
         // 1 for top  2 for bottom
@@ -1877,7 +1897,8 @@ public class SimpleGBLTrajAliDriver extends Driver {
         }
         
         gblpoint.addGlobals(all_labels,allDer);
+	
+    return true;
     }
-    
 }
 
