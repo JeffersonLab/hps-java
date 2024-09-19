@@ -698,7 +698,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             // Generate a candidate vertex and particle.
             BilliorVertex vtxFit = fitVertex(constraint, topElectron, botElectron);
             ReconstructedParticle candidate = makeReconstructedParticle(topElectron, botElectron, vtxFit);
-            if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP() || candidate.getMomentum().magnitude() < cuts.getMinMollerP()) {
+            if (candidate.getMomentum().magnitude() > cuts.getMaxMollerP() || candidate.getMomentum().magnitude() < cuts.getMinMollerP()) {
                 continue;
             }
             if (candidate.getStartVertex().getProbability() < cuts.getMinMollerChisqProb()) {
