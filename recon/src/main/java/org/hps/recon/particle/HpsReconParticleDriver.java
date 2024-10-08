@@ -347,6 +347,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
         super.process(event);
 
+        int n_moller = unconstrainedMollerCandidates.size();
+
         if (makeMollerCols) {
             event.put(unconstrainedMollerCandidatesColName, unconstrainedMollerCandidates, ReconstructedParticle.class, 0);
             event.put(beamConMollerCandidatesColName, beamConMollerCandidates, ReconstructedParticle.class, 0);
@@ -432,9 +434,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             }
         }
 
-        if (topElectrons.size() > 1 || botElectrons.size() > 1) {
-            return;
-        }
+//        if (topElectrons.size() > 1 || botElectrons.size() > 1) {
+//            return;
+//        }
 
         // Iterate over the collection of electrons and create e-e- pairs 
         for (ReconstructedParticle topElectron : topElectrons) {
@@ -444,9 +446,38 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                     continue;
                 }
 
+                if (topElectron.getTracks().size() != 1) continue;
+                if (botElectron.getTracks().size() != 1) continue;
+
+
+                Track top_track = topElectron.getTracks().get(0);
+                Track bot_track = botElectron.getTracks().get(0);
+
+                List<TrackerHit> top_hits = top_track.getTrackerHits();
+                List<TrackerHit> bot_hits = bot_track.getTrackerHits();
+
+                double top_ave_time=0;
+                for(TrackerHit h: top_hits){
+                    double time = h.getTime();
+                    top_ave_time += time;
+                }
+                top_ave_time = top_ave_time / top_hits.size();
+
+                double bot_ave_time=0;
+                for(TrackerHit h: bot_hits){
+                    double time = h.getTime();
+                    bot_ave_time += time;
+                }
+                bot_ave_time = bot_ave_time / bot_hits.size();
+
+                if( Math.abs(top_ave_time - bot_ave_time) > 10. ) continue;
+
                 // Only vertex two particles if at least one strategy found both tracks. Take out this check once we reduce the number of tracks.
-                //if ((topElectron.getType() & botElectron.getType() & 0x1f) == 0)
-                //    continue;
+                int top_type = topElectron.getType();
+                int bot_type = botElectron.getType();
+
+                if ((topElectron.getType() & botElectron.getType() & 0x1f) == 0)
+                    continue;
                 // Make Moller candidates
                 this.makeMollerCandidates(topElectron, botElectron);
             }
