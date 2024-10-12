@@ -455,23 +455,27 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
                 List<TrackerHit> top_hits = top_track.getTrackerHits();
                 List<TrackerHit> bot_hits = bot_track.getTrackerHits();
-
-                double top_ave_time=0;
-                for(TrackerHit h: top_hits){
-                    double time = h.getTime();
-                    top_ave_time += time;
-                }
-                top_ave_time = top_ave_time / top_hits.size();
-
-                double bot_ave_time=0;
-                for(TrackerHit h: bot_hits){
-                    double time = h.getTime();
-                    bot_ave_time += time;
-                }
-                bot_ave_time = bot_ave_time / bot_hits.size();
-
-                if( Math.abs(top_ave_time - bot_ave_time) > 10. ) continue;
-
+//
+//   We can check the track times of the electrons here to only use electrons that are within
+//   10ns (Should become a configurable parameter).
+//   Or we can use all possible combinations if we comment out the following code.
+//
+//                double top_ave_time=0;
+//                for(TrackerHit h: top_hits){
+//                    double time = h.getTime();
+//                    top_ave_time += time;
+//                }
+//                top_ave_time = top_ave_time / top_hits.size();
+//
+//                double bot_ave_time=0;
+//                for(TrackerHit h: bot_hits){
+//                    double time = h.getTime();
+//                    bot_ave_time += time;
+//                }
+//                bot_ave_time = bot_ave_time / bot_hits.size();
+//
+//                if( Math.abs(top_ave_time - bot_ave_time) > 10. ) continue;
+//
                 // Only vertex two particles if at least one strategy found both tracks. Take out this check once we reduce the number of tracks.
                 int top_type = topElectron.getType();
                 int bot_type = botElectron.getType();
