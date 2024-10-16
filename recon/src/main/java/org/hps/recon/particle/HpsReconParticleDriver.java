@@ -433,7 +433,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 botElectrons.add(electron);
             }
         }
-
+//
 //        if (topElectrons.size() > 1 || botElectrons.size() > 1) {
 //            return;
 //        }
