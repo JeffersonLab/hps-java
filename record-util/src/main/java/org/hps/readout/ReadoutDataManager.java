@@ -105,7 +105,21 @@ public class ReadoutDataManager extends Driver {
      * performed.
      */
     private static double triggerDelay = 0.0;
-    
+   /**
+     * sets the time passed between LCIO events.   
+     * Used for running MC without putting bunches
+     * between "signal" events. 
+     * For running of MC-generated beam, set this to 1
+     * For pulser-data overlay, set to 250 
+     * (250*2ns = 500ns empty time)
+     */        
+    private static int effectiveBunches = 1; 
+    /**
+     * set buffer time to 0
+     * used for pulser-data overlay MC readout. 
+     * set to false for MC-generated beam
+     */
+    private static boolean zeroBuffer = false;    
     /**
      * Collection parameters for the dummy trigger bank object.
      */
@@ -192,6 +206,8 @@ public class ReadoutDataManager extends Driver {
         // An extra 150 ns of data is retained as a safety, just in
         // case some driver needs to look unusually far back.
         bufferTotal = totalNeededDisplacement;
+        if(zeroBuffer)
+            bufferTotal = 0.0;
     }
     
     @Override
@@ -211,7 +227,6 @@ public class ReadoutDataManager extends Driver {
         if(!triggerQueue.isEmpty()) {
             // Check the earliest possible trigger write time.
             boolean isWritable = getCurrentTime() >= triggerQueue.peek().getTriggerTime() + bufferTotal;
-            
             // If all collections are available to be written, the
             // event should be output.
             if(isWritable) {                               
@@ -430,7 +445,7 @@ public class ReadoutDataManager extends Driver {
         }
         
         // Increment the current time.
-        currentTime += BEAM_BUNCH_SIZE;
+        currentTime += effectiveBunches*BEAM_BUNCH_SIZE;
     }
     
     /**
@@ -1181,4 +1196,24 @@ public class ReadoutDataManager extends Driver {
     public static final void setReadoutWindow(int nanoseconds) {
         readoutWindow = nanoseconds;
     }
+    /**
+     * sets the time passed between LCIO events.   
+     * Used for running MC without putting bunches
+     * between "signal" events. 
+     * For running of MC-generated beam, set this to 1
+     * For pulser-data overlay, set to 250 
+     * (250*2ns = 500ns empty time)
+     */    
+    public static final void setEffectiveBunches(int value){
+        effectiveBunches=value;
+    }
+    /**
+     * if true set buffer time to 0
+     * used for pulser-data overlay MC readout. 
+     * set to false for MC-generated beam
+     */
+    public static final void setZeroBuffer(boolean zero){
+        zeroBuffer=zero;
+    }
+    
 }

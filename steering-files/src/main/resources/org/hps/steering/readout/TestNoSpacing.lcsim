@@ -435,8 +435,10 @@
 
 
         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
-            <readoutWindow>200</readoutWindow>
-            <outputFile>${outputFile}.slcio</outputFile>
+	  <effectiveBunches>250</effectiveBunches>
+	  <zeroBuffer>true</zeroBuffer>
+          <readoutWindow>200</readoutWindow>
+          <outputFile>${outputFile}.slcio</outputFile>
         </driver>
 
 <!--	<driver name="InsertEmptyBunches" type="org.hps.digi.nospacing.EmptyEventsDriver"/> -->
