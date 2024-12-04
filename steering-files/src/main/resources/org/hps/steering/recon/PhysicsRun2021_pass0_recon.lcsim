@@ -119,7 +119,7 @@
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <requireClustersForV0>false</requireClustersForV0>
             <beamPositionX>0.0</beamPositionX>
-            <beamSigmaX>0.05</beamSigmaX>
+            <beamSigmaX>0.300</beamSigmaX>
             <beamPositionY>0.0</beamPositionY>
             <beamSigmaY>0.020</beamSigmaY>
             <beamPositionZ>0.0</beamPositionZ>
