@@ -8,8 +8,10 @@
     <execute>
 
         <driver name="EventMarkerDriver"/>
-        <driver name="PreCleanupDriver"/> 
         <driver name="EventFlagFilter"/>
+
+        <!--RF driver-->	
+        <driver name="RfFitter"/>	
 
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRunningPedestal"/> 
@@ -34,10 +36,6 @@
 
     </execute>    
     <drivers>    
-	    
-        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
-            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles UnconstrainedMollerCandidates UnconstrainedMollerVertices UnconstrainedV0Candidates UnconstrainedV0Vertices TargetConstrainedMollerCandidates TargetConstrainedMollerVertices TargetConstrainedV0Candidates TargetConstrainedV0Vertices BeamspotConstrainedMollerCandidates BeamspotConstrainedMollerVertices BeamspotConstrainedV0Candidates BeamspotConstrainedV0Vertices GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D TrackData TrackDataRelations TrackResiduals TrackResidualsRelations</collectionNames> 
-        </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
