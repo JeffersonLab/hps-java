@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      Steering file for running 2019 Reconstruction on readout data (LCIO or EVIO)
-      created:  9/08/21
-      @author PF <pbutti@slac.stanford.edu>
+      Steering file for pass-0 2021 reconstruction on readout EVIO data 
+      created:  12/04/2024
+      https://jira.slac.stanford.edu/browse/HPSANA-48
+      @author Matthew Gignac <mgignac@slac.stanford.edu>
+      
     -->
     <execute>
 
