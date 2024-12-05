@@ -127,6 +127,9 @@ public class ReadoutDataManager extends Driver {
     
     private static final String nl = String.format("%n");
     private static final Logger logger = Logger.getLogger(ReadoutDataManager.class.getSimpleName());
+
+    private static boolean debug=false;
+
     
     @Override
     public void startOfData() {
@@ -225,8 +228,13 @@ public class ReadoutDataManager extends Driver {
     public void process(EventHeader event) {
         // Check the trigger queue.
         if(!triggerQueue.isEmpty()) {
-            // Check the earliest possible trigger write time.
+	    if(debug)System.out.println(this.getClass().getName()+" found a trigger @ "+triggerQueue.peek().getTriggerTime()+"; current time is "+ getCurrentTime());
+            // Check the earliest possible trigger write time.	    
             boolean isWritable = getCurrentTime() >= triggerQueue.peek().getTriggerTime() + bufferTotal;
+	    if(debug && !isWritable)
+		System.out.println(this.getClass().getName()+":: can't write this trigger yet because "+getCurrentTime()+" < "+(triggerQueue.peek().getTriggerTime() + bufferTotal));
+														       
+	    
             // If all collections are available to be written, the
             // event should be output.
             if(isWritable) {                               
@@ -250,8 +258,16 @@ public class ReadoutDataManager extends Driver {
                         if(!triggerQueue.isEmpty()) nextTrigger = triggerQueue.peek();
                     }                   
                 }
-                
                 triggers++;
+		double roughTimeOfEvent=getCurrentTime();
+		if(effectiveBunches==1){ //we are doing spaced simulation
+		    //342ns is the typical time to do readout/triggering...subtract this off to compare to spaced
+		    if(debug)
+			System.out.println(getClass().getName()+":: subtracting 342ns to spaced event to get rough time");
+		    roughTimeOfEvent=roughTimeOfEvent-342.0;  
+		}
+                if(debug)
+		    System.out.println(getClass().getName()+":: found trigger number = "+triggers+" at  current time = "+roughTimeOfEvent);
                 
                 // Make a new LCSim event.
                 int triggerEventNumber = event.getEventNumber() - ((int) Math.floor((getCurrentTime() - trigger.getTriggerTime()) / 2.0));
@@ -426,7 +442,9 @@ public class ReadoutDataManager extends Driver {
                 for(TriggeredLCIOData<?> triggerData : triggeredDataMap.values()) {
                     storeCollection(triggerData, lcsimEvent);
                 }
-                
+                if(debug)
+		    System.out.println(getClass().getName()+":: writing event!!!");
+
                 // Write the event to the output file.
                 try { outputWriter.write(lcsimEvent); }
                 catch(IOException e) {
@@ -443,8 +461,11 @@ public class ReadoutDataManager extends Driver {
                 data.getData().removeFirst();
             }
         }
-        
-        // Increment the current time.
+        if(debug){
+	    System.out.println("ReadoutDataManager:: end of event with current time = "+currentTime);
+	    System.out.println("#####################    END     #################################");
+	}
+	// Increment the current time.
         currentTime += effectiveBunches*BEAM_BUNCH_SIZE;
     }
     
@@ -480,7 +501,17 @@ public class ReadoutDataManager extends Driver {
             throw new IllegalArgumentException("Error: Saw data type \"" + dataType.getSimpleName() + "\" but expected data type \""
                     + collectionData.getCollectionParameters().getObjectType().getSimpleName() + "\" instead.");
         }
-        
+	//mg debug
+	/*	
+	if(debug && Double.isNaN(dataTime)){
+	    System.out.println("ReadoutDataDriver:: addData no time given.  "+ dataType.getName()+":  currentTime = "+currentTime+"; global displacement = "+(collectionData.getCollectionParameters().getGlobalTimeDisplacement())); 
+	    System.out.println("ReadoutDataDriver:: addData setting time to  = "+(currentTime - collectionData.getCollectionParameters().getGlobalTimeDisplacement())); 
+	} else {
+	    System.out.println("ReadoutDataDriver:: addData time provided; setting time to  = "+dataTime); 
+	}
+	*/
+	//
+	
         // If the data is empty, then there is no need to add it to
         // the buffer.
         if(!data.isEmpty()) {
@@ -998,15 +1029,19 @@ public class ReadoutDataManager extends Driver {
         // Throw an alert if the earliest requested time precedes the
         // earliest buffered time, and similarly for the latest time.
         LinkedList<TimedList<?>> dataLists = collectionData.getData();
-        
+        //System.out.println("ReadoutDataManager::getDataList  number in dataLists of objectType:  "+objectType.getName()+" = "+dataLists.size());
         // Iterate through the data and collect all entries that have
         // an associated truth time within the given time range. The
         // lower bound is inclusive, the upper bound is exclusive.
         List<T> outputList = new ArrayList<T>();
         for(TimedList<?> dataList : dataLists) {
+	    //	    if(debug)
+	    //	System.out.println("ReadoutDataManager::getDataList dataList found at time = "+dataList.getTime()+" looking in time window ["+startTime+"--"+endTime+"]");
             if(dataList.getTime() >= startTime && dataList.getTime() < endTime) {
                 // Add the items from the list to the output list.
                 for(Object o : dataList) {
+		    //if(debug)
+		    //	System.out.println("ReadoutDataManager:: dataList of type "+o.getClass().getName()+" found in the time window ["+startTime+"--"+endTime+"]");
                     if(objectType.isAssignableFrom(o.getClass())) {
                         outputList.add(objectType.cast(o));
                     } else {
@@ -1214,6 +1249,10 @@ public class ReadoutDataManager extends Driver {
      */
     public static final void setZeroBuffer(boolean zero){
         zeroBuffer=zero;
+    }
+
+    public static final void setDebug(boolean value){
+	debug=value;
     }
     
 }

@@ -56,10 +56,11 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
     
     // readout period time offset in ns
     private double readoutOffset = 0.0;
-    private double readoutLatency = 280.0;
+    private double readoutLatency = 248.0;
     private double pileupCutoff = 300.0;
     private String readout = "TrackerHits";
     private double timeOffset = 30.0;
+    private double triggerOffset = 256.0;
     private boolean noPileup = false;
     private boolean addNoise = true;
     
@@ -196,6 +197,16 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
     }
     
     /**
+     * Set offset of SVT and trigger; 
+     * this should be 0 for no-spacing
+     * and 256 for the spaced MC
+     * @param offset - the trigger offset to use
+     */
+    public void setTriggerOffset(double offset) {
+        this.triggerOffset = offset;
+    }
+    
+    /**
      * Sets whether to use manually defined timing conditions, or if
      * they should be loaded from the conditions database.
      * @param useTimingConditions - <code>true</code> uses the values
@@ -263,7 +274,7 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
         if(useTimingConditions) {
             SvtTimingConstants timingConstants = DatabaseConditionsManager.getInstance().getCachedConditions(SvtTimingConstants.SvtTimingConstantsCollection.class, "svt_timing_constants").getCachedData().get(0);
             readoutOffset = 4 * (timingConstants.getOffsetPhase() + 3);
-            readoutLatency = 248.0 + timingConstants.getOffsetTime();
+	    readoutLatency = readoutLatency + timingConstants.getOffsetTime();	    
         }
     }
     
@@ -292,6 +303,8 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                 if(pulserHitQueues[channel] == null) {
                     pulserHitQueues[channel] = new PriorityQueue<StripHit>();
                 }
+		if(debug)
+		    System.out.println(this.getClass().getName()+":: adding pulser-data strip hit for channel = "+channel+" at time = "+pulserHit.time);
                 pulserHitQueues[channel].add(pulserHit);
             }
             
@@ -306,7 +319,10 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                 if(hitQueues[channel] == null) {
                     hitQueues[channel] = new PriorityQueue<StripHit>();
                 }
-                hitQueues[channel].add(stripHit);
+		if(debug)
+		    System.out.println(this.getClass().getName()+":: adding simulated strip hit for channel = "+channel+" at time = "+stripHit.time);
+				     
+		hitQueues[channel].add(stripHit);
             }
             
             // Hits older than a certain time frame should no longer
@@ -628,9 +644,15 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
         List<SimTrackerHit> truthHits = new ArrayList<SimTrackerHit>();
         List<LCRelation> trueHitRelations = new ArrayList<LCRelation>();      
         // Calculate time of first sample
-        double firstSample = Math.floor(((triggerTime + 256) - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL)
+        double firstSample = Math.floor(((triggerTime + triggerOffset) - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL)
                 * HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
-        
+	if(debug){
+	    System.out.println(this.getClass().getName()+":: trigger time = "+triggerTime+
+			       "; trigger offset = "+triggerOffset+"; readout latency = "+readoutLatency+
+			       "; readout offset = "+readoutOffset); 
+			       
+	    System.out.println(this.getClass().getName()+":: svt first sample time for trigger = "+firstSample);
+	}
         List<StripHit> processedHits = new ArrayList<StripHit>();
         
         for(SiSensor sensor : sensors) {
@@ -693,11 +715,19 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                         // across all size samples.
                         StringBuffer signalBuffer = new StringBuffer("\t\t\t\tSample Pulse       :: [");
                         for(int sampleN = 0; sampleN < 6; sampleN++) {
+			    //add the time offset to this. 
+			    //                            double sampleTime = firstSample + sampleN * HPSSVTConstants.SAMPLING_INTERVAL-timeOffset;
                             double sampleTime = firstSample + sampleN * HPSSVTConstants.SAMPLING_INTERVAL;
                             shape.setParameters(channel, (HpsSiSensor) sensor);
                             double signalAtTime = hit.amplitude * shape.getAmplitudePeakNorm(sampleTime - hit.time);
-                            totalContrib += signalAtTime;
+			   
+			    totalContrib += signalAtTime;
                             signal[sampleN] += signalAtTime;
+			    if(debug){
+				System.out.println(this.getClass().getName()+":: making pulse:  sample time = "
+						   +sampleTime+"; hit time = "+hit.time);
+				System.out.println(this.getClass().getName()+":: signal from pulse @ time() = "+signalAtTime+"; total ADC = "+signal[sampleN]);
+			    }
                             meanNoise += ((HpsSiSensor) sensor).getNoise(channel, sampleN);
                             
                             signalBuffer.append(signalAtTime + " (" + sampleTime + ")");
@@ -736,6 +766,8 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                 // be passed through to readout.
                 if(readoutCuts(hit)) {
                     // Add the hit to the readout hits collection.
+		    if(debug)
+			System.out.println(this.getClass().getName()+":: adding svt hit to triggered event"); 
                     hits.add(hit);
                     // Associate the truth hits with the raw hit and
                     // add them to the truth hits collection.

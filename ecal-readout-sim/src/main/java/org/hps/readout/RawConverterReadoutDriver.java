@@ -48,7 +48,9 @@ public abstract class RawConverterReadoutDriver extends ReadoutDriver {
      * conditions database should be skipped when producing hits.
      */
     protected boolean skipBadChannels = false;
-    
+      
+    private double checkAheadTime = 4.0; 
+
     protected RawConverterReadoutDriver(String defaultInputCollectionName, String defaultOutputCollectionName) {
         inputCollectionName = defaultInputCollectionName;
         outputCollectionName = defaultOutputCollectionName;
@@ -71,14 +73,20 @@ public abstract class RawConverterReadoutDriver extends ReadoutDriver {
     public final void process(EventHeader event) {
         // Check the data management driver to determine whether the
         // input collection is available or not.
-        if(!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + 4.0)) {
+	if(doNoSpacing)
+	    localTime=ReadoutDataManager.getCurrentTime(); // just overwrite local time on every event
+        if(!doNoSpacing&&!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + checkAheadTime)) {
+	    if(debug)System.out.println("Skipping RawConverterReadout because collection = "+inputCollectionName+"  doesn't exist at "+(localTime+ checkAheadTime));
             return;
         }
         
         // Get all of the raw hits in the current clock-cycle.
-        Collection<RawCalorimeterHit> rawHits = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, RawCalorimeterHit.class);
+        Collection<RawCalorimeterHit> rawHits = ReadoutDataManager.getData(localTime, localTime + checkAheadTime, inputCollectionName, RawCalorimeterHit.class);
         
-        // Increment the local time.
+
+	if(debug)System.out.println(this.getClass().getName()+":: collection = "+inputCollectionName+"  has "+rawHits.size()+" found between time = "+localTime+" and "+(localTime+checkAheadTime));
+
+	// Increment the local time.
         localTime += 4.0;
         
         // Pass the raw hits to the raw converter to obtain proper
@@ -96,11 +104,11 @@ public abstract class RawConverterReadoutDriver extends ReadoutDriver {
             if(skipBadChannels && isBadChannel(newHit.getCellID())) {
                 continue;
             }
-            
+	    if(debug)System.out.println(this.getClass().getName()+"::  made newHit with time = "+newHit.getTime());
             // Add the new hit.
             newHits.add(newHit);
         }
-        
+	if(debug)System.out.println(this.getClass().getName()+":: outputting collection = "+outputCollectionName+" with size = "+newHits.size());
         // Add the calorimeter hit collection to the data manager.
         ReadoutDataManager.addData(outputCollectionName, newHits, CalorimeterHit.class);
     }
@@ -245,5 +253,13 @@ public abstract class RawConverterReadoutDriver extends ReadoutDriver {
      */
     public void setReadoutWindow(int window) {
         getConverter().setWindowSamples(window);
+    }
+    /**
+     * Sets the amount of time (+ ns) to check for  possible 
+     * seed clusters. 
+     * @param value - time in ns
+     */
+    public void setCheckAheadTime(double value) {
+        checkAheadTime = value;
     }
 }
