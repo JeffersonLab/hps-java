@@ -141,18 +141,31 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
         // Check that clusters are available for the trigger.
         Collection<Cluster> clusters = null;
         Collection<HodoscopePattern> hodoPatterns = null;
-        ArrayList<HodoscopePattern> hodoPatternList = null;
-        if(ReadoutDataManager.checkCollectionStatus(inputCollectionNameEcal, localTime) && ReadoutDataManager.checkCollectionStatus(inputCollectionNameHodo, localTime)) {
-            clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameEcal, Cluster.class);
-            hodoPatterns = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameHodo, HodoscopePattern.class);
-            
-            localTime += 4.0;
-            
-            if(clusters.size() == 0 || hodoPatterns.size() == 0) return;
-                       
-            hodoPatternList = new ArrayList<>(hodoPatterns);
-            
-        } else { return; }
+        ArrayList<HodoscopePattern> hodoPatternList = new ArrayList<>();
+        
+        if(triggerType.equals("singles3")) {
+            if(ReadoutDataManager.checkCollectionStatus(inputCollectionNameEcal, localTime) && ReadoutDataManager.checkCollectionStatus(inputCollectionNameHodo, localTime)) {
+                clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameEcal, Cluster.class);
+                hodoPatterns = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameHodo, HodoscopePattern.class);
+                
+                localTime += 4.0;
+                
+                if(clusters.size() == 0 || hodoPatterns.size() == 0) return;
+                           
+                hodoPatternList.addAll(hodoPatterns);
+                
+            } else { return; }
+        }
+        else {
+            if(ReadoutDataManager.checkCollectionStatus(inputCollectionNameEcal, localTime)) {
+                clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameEcal, Cluster.class);
+                
+                localTime += 4.0;
+                
+                if(clusters.size() == 0) return;
+                
+            } else { return; }
+        }
         
         // Track whether or not a trigger was seen.
         boolean triggered = false;
