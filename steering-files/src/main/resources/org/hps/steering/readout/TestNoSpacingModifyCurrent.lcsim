@@ -77,7 +77,8 @@
           -->
         <driver name="EcalHitsInputDriver" type="org.hps.readout.SimCalorimeterHitReadoutDriver">
             <collectionName>EcalHits</collectionName>
-            
+            <debug>false</debug>
+
             <!-- Units of ns. -->
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
@@ -95,7 +96,8 @@
 
         <driver name="HodoscopeHitsOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
             <collectionName>HodoscopeHits</collectionName>
-            
+            <debug>false</debug>
+
             <!-- Units of ns. -->
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
@@ -182,14 +184,14 @@
 <!--            <addNoise>true</addNoise> -->
             <addNoise>false</addNoise>
             <doNoSpacing>true</doNoSpacing>
-	    <debug>false</debug>
+	    <debug>true</debug>
             <!-- 
                  Readout offset is not the same as the old system - it measures
                  amount of samples that are included before the trigger time in
                  the ADC readout window. The old version can be converted by
                  selecting a readout window equal to (readoutLatency - 64).
               -->
-            <readoutOffset>56</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+            <readoutOffset>55</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
             
             <!--
                 The digitization driver produces as output a list of ADC values
@@ -275,7 +277,7 @@
             <persistent>true</persistent>
 	    <checkAheadTime>192.</checkAheadTime>
 	    <doNoSpacing>true</doNoSpacing>
-	    <debug>true</debug>
+	    <debug>false</debug>
         </driver>
 
         <!--
@@ -349,7 +351,7 @@
                 level. Otherwise, this should be left off.
             -->
             <writeTriggerPathTruth>false</writeTriggerPathTruth>
-	    <debug>true</debug>
+	    <debug>false</debug>
 	    <debugEnergyThresh>0.0001</debugEnergyThresh>
         </driver>
 
@@ -364,7 +366,7 @@
 			-->
 			<inputCollectionName>HodoscopeRawHits</inputCollectionName>
 			<outputCollectionName>HodoscopeCorrectedHits</outputCollectionName>
-			<debug>true</debug>
+			<debug>false</debug>
             <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>   		
 
 	    <!--  
@@ -386,7 +388,7 @@
 	    <checkAheadTime>192.</checkAheadTime>
 	    <doNoSpacing>true</doNoSpacing>
             <persistent>false</persistent>
-	    <debug>true</debug>
+	    <debug>false</debug>
 	    
 	    
         </driver>
@@ -410,7 +412,7 @@
 	  
 	  <persistent>false</persistent>
 	  <doNoSpacing>true</doNoSpacing>
-	  <debug>true</debug>
+<!--	  <debug>true</debug> -->
 	</driver>  
 
         
@@ -424,7 +426,7 @@
           <!-- Units of 2 ns beam bunches. -->
           <deadTime>0</deadTime>            
           <doNoSpacing>true</doNoSpacing>
-	  <debug>true</debug>
+<!--	  <debug>true</debug> -->
 
         </driver>
 
@@ -440,7 +442,7 @@
             <!-- Units of 2 ns beam bunches. -->
             <deadTime>0</deadTime>
             <doNoSpacing>true</doNoSpacing>
-	    <debug>true</debug>
+<!--	    <debug>true</debug> -->
 
         </driver>
                     
@@ -453,7 +455,7 @@
 <!--          <addNoise>true</addNoise>	   -->
           <addNoise>false</addNoise>	  
 	  <readoutLatency>20.0</readoutLatency>
-	  <triggerOffset>0.0</triggerOffset> 
+	  <triggerOffset>24.0</triggerOffset> 
         </driver>
 
 
@@ -462,7 +464,7 @@
           <zeroBuffer>true</zeroBuffer>
           <readoutWindow>200</readoutWindow>
           <outputFile>${outputFile}.slcio</outputFile>
-	  <debug>true</debug>
+	  <debug>false</debug>
         </driver>
       
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />

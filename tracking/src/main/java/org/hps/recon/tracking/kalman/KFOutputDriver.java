@@ -81,6 +81,7 @@ public class KFOutputDriver extends Driver {
     private boolean b_doKFresiduals = true;
     private boolean b_doDetailPlots  = false;
     private boolean b_doRawHitPlots = true;
+    private boolean b_doAllRawHitPlots = true;
     //The field map for extrapolation
     private FieldMap bFieldMap;
 
@@ -271,7 +272,19 @@ public class KFOutputDriver extends Driver {
 		TrackClusterPairs.put(track,cluster);
 	    }
 	}	    
-
+	//plot all raw hits 
+	if(b_doAllRawHitPlots){
+	    for (LCRelation fittedHit : _fittedHits) {
+		RawTrackerHit rth=FittedRawTrackerHit.getRawTrackerHit(fittedHit);
+		HpsSiSensor sensor = (HpsSiSensor) rth.getDetectorElement();
+		double t0 = FittedRawTrackerHit.getT0(fittedHit);
+		double amplitude = FittedRawTrackerHit.getAmp(fittedHit);
+		double chi2Prob = ShapeFitParameters.getChiProb(FittedRawTrackerHit.getShapeFitParameters(fittedHit));
+		aidaKF.histogram1D(hitFolder+"all_raw_hit_t0_"+sensor.getName()).fill(t0);
+		aidaKF.histogram1D(hitFolder+"all_raw_hit_amplitude_"+sensor.getName()).fill(amplitude);
+		aidaKF.histogram1D(hitFolder+"all_raw_hit_chisq_"+sensor.getName()).fill(chi2Prob);
+	    }
+	}
 	int nTracks=tracks.size();
 	if(debug)
 	    System.out.println(this.getClass()+":: found "+nTracks + " tracks");
@@ -323,6 +336,9 @@ public class KFOutputDriver extends Driver {
 	    for (TrackerHit hit : trk.getTrackerHits()) {
 		HpsSiSensor sensor = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement());
 		if (sensor != null) {
+		    //		    System.out.println(this.getClass().getName()+":: hit on layer = "+((RawTrackerHit) hit.getRawHits().get(0)).getLayer()+"  has time = "+hit.getTime());
+		    int stripLayer = ((HpsSiSensor) ((RawTrackerHit) hit.getRawHits().get(0)).getDetectorElement()).getLayerNumber();   
+		    //		    System.out.println(this.getClass().getName()+":: hit on layer = "+stripLayer+"  has time = "+hit.getTime());
 		    sensorHits.put(sensor, hit);
 		}
 		
@@ -330,6 +346,7 @@ public class KFOutputDriver extends Driver {
 		    System.out.printf("TrackerHit null sensor %s \n", hit.toString());
 	    }
             _trkTimeSigma=getTrackTime(sensorHits);
+	    //	    System.out.println(this.getClass().getName()+":: track time = "+_trkTimeSigma.getFirstElement());
             doBasicKFtrack(trk,sensorHits);
             if (b_doKFresiduals) 
                 doKFresiduals(trk, sensorHits,event);
@@ -693,7 +710,8 @@ public class KFOutputDriver extends Driver {
 		}
 	    }
         }
-        if (b_doDetailPlots) {
+
+	if (b_doDetailPlots) {
             int ibins = 15;
             double start= -12;
             double end = -5;
@@ -988,7 +1006,7 @@ public class KFOutputDriver extends Driver {
             for (String charge : charges) {
 
 		  //put the trk-cluster time in trkpFolder
-		aidaKF.histogram1D(trkpFolder+"trk-cluTime"+charge+vol,100,-20,20);
+		aidaKF.histogram1D(trkpFolder+"trk-cluTime"+charge+vol,100,-75,75);
 		
                 aidaKF.histogram2D(eopFolder+"EoP_vs_trackP"+charge+vol+"_fid",200,0,6,200,0,2);
                 aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda"+charge+vol+"_fid",200,0.01,0.08,200,0,2);
@@ -1118,7 +1136,9 @@ public class KFOutputDriver extends Driver {
 	    aidaKF.histogram1D(hitFolder+"raw_hit_amplitude_"+sensor.getName(),200, 0.0, 4000.0);
 	    aidaKF.histogram1D(hitFolder+"raw_hit_chisq_"+sensor.getName(),200, 0.0, 2.0);
 	    
-
+	    aidaKF.histogram1D(hitFolder+"all_raw_hit_t0_"+sensor.getName(),200, -100, 100.0);
+	    aidaKF.histogram1D(hitFolder+"all_raw_hit_amplitude_"+sensor.getName(),200, 0.0, 4000.0);
+	    aidaKF.histogram1D(hitFolder+"all_raw_hit_chisq_"+sensor.getName(),200, 0.0, 2.0);
 	    
             xmax = 0.0006;
             if(l==1){
@@ -1167,7 +1187,7 @@ public class KFOutputDriver extends Driver {
                 aidaKF.histogram1D(trkpFolder+"z0"+vol+charge,nbins_t,-1.3,1.3);
                 aidaKF.histogram1D(trkpFolder+"phi"+vol+charge,nbins_t,-0.06,0.06);
                 aidaKF.histogram1D(trkpFolder+"tanLambda"+vol+charge,nbins_t,-0.2,0.2);
-                aidaKF.histogram1D(trkpFolder+"trkTime"+vol+charge,nbins_t,-20,20);
+                aidaKF.histogram1D(trkpFolder+"trkTime"+vol+charge,nbins_t,-75,75);
                 aidaKF.histogram1D(trkpFolder+"trkTimeSD"+vol+charge,nbins_t,0,10);
 
                 aidaKF.histogram1D(trkpFolder+"p"+vol+charge,nbins_p,0.,pmax);

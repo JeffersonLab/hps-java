@@ -80,9 +80,11 @@
             <fitAlgorithm>Pileup</fitAlgorithm>
             <fitTimeMinimizer>Migrad</fitTimeMinimizer>
             <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
-            <useTimestamps>false</useTimestamps>     
+            <useTimestamps>true</useTimestamps>     
             <!--offset to get times centered at 0 after timestamp correction-->                 
-            <!--<tsCorrectionScale>121</tsCorrectionScale>-->    
+	    <!-- set to 0 for unspaced; ~112 for spaced -->
+<!--	    <tsCorrectionScale>0</tsCorrectionScale>  -->
+            <tsCorrectionScale>114</tsCorrectionScale> 
             <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
             <correctTimeOffset>true</correctTimeOffset>   
             <!--per sensor shift...set false becasue it's not in readout sim-->       
@@ -92,7 +94,7 @@
             <!--time of flight corrections-->              
             <subtractTOF>true</subtractTOF>     
             <!--set this false for MC, true for data-->              
-            <subtractTriggerTime>true</subtractTriggerTime>           
+            <subtractTriggerTime>false</subtractTriggerTime>           
             <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
             <correctChanT0>true</correctChanT0>          
             <isMC>true</isMC>
