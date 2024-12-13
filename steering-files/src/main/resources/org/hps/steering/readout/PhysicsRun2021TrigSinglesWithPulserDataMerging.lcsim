@@ -2,7 +2,7 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @Readout steering file with Moller/single1 trigger for 2021 MC.
+      @Readout steering file with single2 and single3 triggers for 2021 MC with pulser data as background.
       @author <a href="mailto:caot@jlab.org">Tongtong Cao</a>
     -->
     <execute>
@@ -35,7 +35,8 @@
 
        
         <!-- Trigger Simulation -->
-        <driver name="SinglesTrigger1"/>
+        <driver name="SinglesTrigger2"/>
+        <driver name="SinglesTrigger3"/>
 
 	<driver name="SvtDigitizationWithPulserDataMergingDriver"/>
 
@@ -392,14 +393,27 @@
             <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>   
 
 			<persistent>false</persistent>
-	</driver>          
+	</driver>  
 
-        <driver name="SinglesTrigger1" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
+        
+        <driver name="SinglesTrigger3" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
             <inputCollectionNameEcal>EcalClustersGTP</inputCollectionNameEcal>
 
             <inputCollectionNameHodo>HodoscopePatterns</inputCollectionNameHodo>
 
-            <triggerType>singles1</triggerType>
+            <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>   
+            
+            <!-- Units of 2 ns beam bunches. -->
+            <deadTime>15</deadTime>            
+
+        </driver>
+
+        <driver name="SinglesTrigger2" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
+            <inputCollectionNameEcal>EcalClustersGTP</inputCollectionNameEcal>
+
+            <inputCollectionNameHodo>HodoscopePatterns</inputCollectionNameHodo>
+
+            <triggerType>singles2</triggerType>
 
             <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>
 
