@@ -99,6 +99,15 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
      * This is calculated automatically.
      */
     private double localTimeDisplacement = 0;
+
+    /**
+     * The amount of time (ns) to check ahead/behind
+     * for ecal clusters.  
+     * This can be large for no-spacing running (like 192)
+     * but should be 4.0 for spaced running
+     */
+    
+    private double checkAheadTime = 4.0; 
     
     // ==============================================================
     // ==== Driver Parameters =======================================
@@ -185,19 +194,23 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
     
     @Override
     public void process(EventHeader event) {        
-        // Check the data management driver to determine whether the
+
+	if(doNoSpacing)
+	    localTime=ReadoutDataManager.getCurrentTime(); // just overwrite local time on every event
+	// Check the data management driver to determine whether the
         // input collection is available or not.
-        if(!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + temporalWindow + 4.0)) {
-            return;
+        if(!doNoSpacing&&!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + temporalWindow + checkAheadTime)) {
+	    if(debug)System.out.println("Skipping GTP Readout with because collection doesn't exist at "+(localTime+temporalWindow + checkAheadTime));
+	    return;
         }
         
         // Get the hits that occur during the present clock-cycle, as
         // well as the hits that occur in the verification window
         // both before and after the current clock-cycle.
         // TODO: Simplify this?
-        Collection<CalorimeterHit> seedCandidates = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionName, CalorimeterHit.class);
+        Collection<CalorimeterHit> seedCandidates = ReadoutDataManager.getData(localTime, localTime + checkAheadTime, inputCollectionName, CalorimeterHit.class);
         Collection<CalorimeterHit> foreHits = ReadoutDataManager.getData(localTime - temporalWindow, localTime, inputCollectionName, CalorimeterHit.class);
-        Collection<CalorimeterHit> postHits = ReadoutDataManager.getData(localTime + 4.0, localTime + temporalWindow + 4.0, inputCollectionName, CalorimeterHit.class);
+        Collection<CalorimeterHit> postHits = ReadoutDataManager.getData(localTime + checkAheadTime, localTime + temporalWindow + checkAheadTime, inputCollectionName, CalorimeterHit.class);
         
         // Increment the local time.
         localTime += 4.0;
@@ -208,16 +221,22 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
         allHits.addAll(foreHits);
         allHits.addAll(seedCandidates);
         allHits.addAll(postHits);
-        
+	if(debug){
+	    System.out.println(this.getClass().getName()+"::  "+inputCollectionName+":: local time = "+localTime+
+			       "   temporalWindow = "+temporalWindow+"   checkAheadTime = "+checkAheadTime);   
+	    System.out.println(this.getClass().getName()+"::  "+inputCollectionName+":: current time = "+ReadoutDataManager.getCurrentTime()+" number of seeds = "+seedCandidates.size()+"; all hits = "+allHits.size());
+	}
         // Store newly created clusters.
         List<Cluster> gtpClusters = new ArrayList<Cluster>();
         
         // Iterate over all seed hit candidates.
         seedLoop:
         for(CalorimeterHit seedCandidate : seedCandidates) {
+	    if(debug)System.out.println(this.getClass().getName()+":: looping through seeds:  seed energy = "+seedCandidate.getRawEnergy());
             // A seed candidate must meet a minimum energy cut to be
             // considered for clustering.
             if(seedCandidate.getRawEnergy() < seedEnergyThreshold) {
+		if(debug)System.out.println(this.getClass().getName()+":: failed seed energy:  threshold = "+seedEnergyThreshold);
                 continue seedLoop;
             }
             
@@ -254,7 +273,8 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
             // cluster should be formed.
             gtpClusters.add(createBasicCluster(seedCandidate, clusterHits));
         }
-        
+
+	if(debug)System.out.println(this.getClass().getName()+":: adding gtpClusters to data manager size = "+gtpClusters.size());
         // Pass the clusters to the data management driver.
         ReadoutDataManager.addData(outputCollectionName, gtpClusters, Cluster.class);
     }
@@ -336,7 +356,10 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
     
     @Override
     protected double getTimeDisplacement() {
-        return localTimeDisplacement;
+	if(doNoSpacing)
+	    return 0;
+	else
+	    return localTimeDisplacement;
     }
 
     @Override
@@ -384,5 +407,13 @@ public class GTPClusterReadoutDriver extends ReadoutDriver {
      */
     public void setSeedEnergyThreshold(double value) {
         seedEnergyThreshold = value;
-    }    
+    }
+  /**
+     * Sets the amount of time (+/-ns) to check for  possible 
+     * seed clusters. 
+     * @param value - time in ns
+     */
+    public void setCheckAheadTime(double value) {
+        checkAheadTime = value;
+    }   
 }
