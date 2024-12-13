@@ -142,38 +142,34 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
 	//	System.out.println(this.getClass().getName()+"::  starting trigger determination");
         Collection<Cluster> clusters = null;
         Collection<HodoscopePattern> hodoPatterns = null;
-        ArrayList<HodoscopePattern> hodoPatternList = null;
+        ArrayList<HodoscopePattern> hodoPatternList = new ArrayList<>();
 	if(doNoSpacing)
 	    localTime=ReadoutDataManager.getCurrentTime(); // just overwrite local time on every event
 
-	if(ReadoutDataManager.checkCollectionStatus(inputCollectionNameEcal, localTime) && ReadoutDataManager.checkCollectionStatus(inputCollectionNameHodo, localTime)) {
-	    if(debug)	    System.out.println(this.getClass().getName()+":: checkCollectionStatus worked.  Getting collection in time window = ["+localTime+","+(localTime+4.0)+"]");
-            clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameEcal, Cluster.class);
-            hodoPatterns = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameHodo, HodoscopePattern.class);
-	     if(debug) System.out.println(this.getClass().getName()+":: checkCollectionStatus worked Ecal size = "+clusters.size()+"  Hodo size = "+ hodoPatterns.size());
-            
-            localTime += 4.0;
-            //this is backwards of what I wanted, but whatever...
-	    //	    if(doNoSpacing&&(clusters.size() == 0 || hodoPatterns.size() == 0)) return;
-	    //  if(!doNoSpacing&&(clusters.size() == 0 && hodoPatterns.size() == 0)) return;  
-	    //	    if(doNoSpacing&&(clusters.size() == 0 || hodoPatterns.size() == 0)) return;
-
-	    //just quit if 0 clusters.  
-	    //	    if(clusters.size() == 0)
-	    //	return; 
-	    /*
-	     *  I feel like this should be "and" as one of 
-	     *  the triggers doesn't require hodo, right?
-	     */
-	    //this is the cut that's in master
-	    if(clusters.size() == 0 || hodoPatterns.size() == 0) return;
-            hodoPatternList = new ArrayList<>(hodoPatterns);
-            
-        } else {
-	    if(debug)System.out.println(this.getClass().getName()+":: checkCollectionStatus did not find one of Ecal or Hodo at time = "+localTime);
-	    return;
-	}
-        
+        if(triggerType.equals("singles3")) {
+            if(ReadoutDataManager.checkCollectionStatus(inputCollectionNameEcal, localTime) && ReadoutDataManager.checkCollectionStatus(inputCollectionNameHodo, localTime)) {
+                clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameEcal, Cluster.class);
+                hodoPatterns = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameHodo, HodoscopePattern.class);
+                
+                localTime += 4.0;
+                
+                if(clusters.size() == 0 || hodoPatterns.size() == 0) return;
+                           
+                hodoPatternList.addAll(hodoPatterns);
+                
+            } else { return; }
+        }
+        else {
+            if(ReadoutDataManager.checkCollectionStatus(inputCollectionNameEcal, localTime)) {
+                clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameEcal, Cluster.class);
+                
+                localTime += 4.0;
+                
+                if(clusters.size() == 0) return;
+                
+            } else { return; }
+        }
+	
         // Track whether or not a trigger was seen.
         boolean triggered = false;
         
@@ -195,7 +191,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             // not available during readout, so crystal indices must
             // be obtained directly from the calorimeter geometry.
             java.awt.Point ixy = ecal.getCellIndices(cluster.getCalorimeterHits().get(0).getCellID());
-	    System.out.println(this.getClass().getName()+
+	    if(debug)System.out.println(this.getClass().getName()+
 			       "::  looping over clusters; number of hits = "+TriggerModule2019.getClusterHitCount(cluster)
 			       +"   seed energy value = " + TriggerModule2019.getValueClusterSeedEnergy(cluster)
 			       +"   total energy of cluster = "+ TriggerModule2019.getValueClusterTotalEnergy(cluster));
@@ -222,7 +218,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
                 continue;
             }
 
-	    System.out.println(this.getClass().getName()+":: made it past basic cluster cuts");
+	    if(debug)System.out.println(this.getClass().getName()+":: made it past basic cluster cuts");
             
             // In the setup calorimeter geometry, range of X coordinates is [-23, -1] and [1, 23]. 
             // The hardware uses cluster X coordinates [-22,0] and [1,23].
@@ -237,13 +233,13 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
 		    if(debug)System.out.println(this.getClass().getName()+"::  did not satisfy cluster x cut (low)");
                     continue;
                 }
-		System.out.println(this.getClass().getName()+":: made it past xMin cut ");
+		if(debug)System.out.println(this.getClass().getName()+":: made it past xMin cut ");
                 // XMin cut has been applied.
                 if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_PDE_EN) && !triggerModule.clusterPDECut(cluster, clusterX)) {
 		    if(debug)System.out.println(this.getClass().getName()+"::  did not satisfy cluster PDE cut");
                     continue;                
                 }
-		System.out.println(this.getClass().getName()+":: made it past PDE cut ");
+		if(debug)System.out.println(this.getClass().getName()+":: made it past PDE cut ");
 				
             }
             
@@ -254,7 +250,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
 		    if(debug)System.out.println(this.getClass().getName()+"::  did not satisfy cluster-hodo matching cut");
 		    continue;
 		}
-		System.out.println(this.getClass().getName()+":: made it past cluster-hodo matching cut ");
+		if(debug)System.out.println(this.getClass().getName()+":: made it past cluster-hodo matching cut ");
 
 	    }
 	    if(debug)System.out.println(this.getClass().getName()+":: made it through all non-moller cuts");
