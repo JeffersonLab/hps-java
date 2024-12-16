@@ -142,9 +142,36 @@
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
-          <!-- <doDebugPlots>true</doDebugPlots> --> 
-          <seedCompThr>0.05</seedCompThr>
-          <verbose>false</verbose>
+	    <numPatRecIteration> 3 </numPatRecIteration>
+            <numKalmanIteration> 1 </numKalmanIteration>
+            <maxPtInverse> 8.757651 </maxPtInverse>
+            <maxDZero> 38.0487 </maxDZero>
+            <maxZZero> 3.98915 </maxZZero>
+            <maxChiTwo> 11.777395 </maxChiTwo>
+            <minHits> 0  </minHits>
+            <minStereo> 3  </minStereo>
+            <maxSharedHits> 3 </maxSharedHits>
+            <maxTimeRange> 39.95028 </maxTimeRange>
+            <maxTanLambda> 8.186345 </maxTanLambda>
+            <maxResidual> 13.71568 </maxResidual>
+            <maxChiTwoInc> 13.52662 </maxChiTwoInc>
+            <minChiTwoIncBad> 7.00678 </minChiTwoIncBad>
+            <maxResidShare> 13.967129 </maxResidShare>
+            <maxChiTwoIncShare> 9.771546584 </maxChiTwoIncShare>
+            <mxChiTwoVtx> 1.7652935 </mxChiTwoVtx>
+            <numEvtPlots> 5 </numEvtPlots>
+            <doDebugPlots> false </doDebugPlots>
+            <siHitsLimit> 466 </siHitsLimit>
+            <seedCompThr> .725912 </seedCompThr>
+            <!--numStrategyIter1></numStrategyIter1 tthe mxChi2Vtx was 1.0-->
+            <beamPositionZ> 0.0 </beamPositionZ>
+            <beamSigmaZ> 0.02 </beamSigmaZ>
+            <beamPositionX> 0.0 </beamPositionX>
+            <beamSigmaX> 0.05 </beamSigmaX>
+            <beamPositionY> 0.0 </beamPositionY>
+            <beamSigmaY> 1.0 </beamSigmaY>
+            <lowPhThresh> 7.204329 </lowPhThresh>
+            <verbose> false </verbose>
         </driver>
         <driver name="TrackTruthMatching_KF" type="org.hps.analysis.MC.TrackToMCParticleRelationsDriver">
             <trackCollectionName>KalmanFullTracks</trackCollectionName>
