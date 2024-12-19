@@ -31,13 +31,16 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import hep.physics.matrix.SymmetricMatrix;
+import org.lcsim.event.LCRelation;
 
 /**
  *
  * @author mgraham created 9/20/24
  * This driver will randomize the position of strip clusters
  * within a specified gaussian sigma. 
- *
+ * 11/17/24
+ * add in cluster time smearing as well.  
+ * 
  * Strip collection:  
  * "StripClusterer_SiTrackerHitStrip1D" (default)
  * Important Settables:  
@@ -46,10 +49,10 @@ import hep.physics.matrix.SymmetricMatrix;
  * mg...right now, I smear all hits in all layers by the same amount
  * independent of nHits.  
  */
-public class StripHitSmearer extends Driver {
+public class RawHitTimeSmearer extends Driver {
 
 
-    String smearPositionFile="foobar";
+    String smearTimeFile="foobar";
     //IMPORTANT...the layer, top/bottom/stereo/axial/slot/hole are derived from these names!!!
     Set<String> smearTheseSensors = new HashSet<String>();
     // I may eventually want this, so keep it here
@@ -59,29 +62,26 @@ public class StripHitSmearer extends Driver {
     private static final String SUBDETECTOR_NAME = "Tracker";
     private static Pattern layerPattern = Pattern.compile("L(\\d+)(t|b)");
     private static Pattern allPattern = Pattern.compile("L(\\all)");
-    private String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
+    private Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
+    private String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
     private boolean _debug = false;
 
     Random r=new Random();    
 
     ///
 
-    private List<TrackerHit> siClusters = new ArrayList<TrackerHit>();
-
-    //    private Map<TrackerHit, Boolean> _siClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
-    //private    Map<TrackerHit, Boolean> _finalSiClustersAcceptMap = new HashMap<TrackerHit, Boolean>();
 
 
-    public void setSmearPositionFile(String smearFile){
-	System.out.println("Setting SVT sensor position smearing file = "+smearFile);
-	this.smearPositionFile=smearFile;
+    public void setSmearTimeFile(String smearFile){
+	System.out.println("Setting SVT sensor time smearing file = "+smearFile);
+	this.smearTimeFile=smearFile;
     }
-    
+
     public void setDebug(boolean debug) {
         this._debug = debug;
     }
 
-    public StripHitSmearer() {
+    public RawHitTimeSmearer() {
     }
 
     @Override
@@ -94,22 +94,21 @@ public class StripHitSmearer extends Driver {
         if (sensors.size() == 0)
             throw new RuntimeException(this.getClass().getName()+"::  No sensors were found in this detector.");
 	if(_debug)
-	    System.out.println(this.getClass().getName()+":: Reading in position smearing file = "+this.smearPositionFile); 
-	Map<String,Double> mapOfSmearingPosition=readSmearingFile(this.smearPositionFile);        
-	if (mapOfSmearingPosition.size()==0)
+	    System.out.println(this.getClass().getName()+"::  Reading in time smearing file = "+this.smearTimeFile); 
+	Map<String,Double> mapOfSmearingTime=readSmearingFile(this.smearTimeFile);        
+	if (mapOfSmearingTime.size()==0)
             throw new RuntimeException(this.getClass().getName()+"::  No sensors to smear???");
 	    
 	for (HpsSiSensor sensor:  sensors){
-	    double smearingPosition=-666.;
-	    if(mapOfSmearingPosition.containsKey(sensor.getName())){
+	    double smearingTime=-666.;
+	    if(mapOfSmearingTime.containsKey(sensor.getName())){
 		// found a sensor to smear...set up the object
 		if(_debug)
-		    System.out.println(this.getClass().getName()+":: adding "+sensor.getName()+" with sigma = "+mapOfSmearingPosition.get(sensor.getName()));
-		smearingPosition=mapOfSmearingPosition.get(sensor.getName());
-		//		_sensorsToSmear.add(new SensorToSmear(sensor,mapOfSmearingPosition.get(sensor.getName())));		
+		    System.out.println(this.getClass().getName()+":: adding "+sensor.getName()+" with sigma time = "+mapOfSmearingTime.get(sensor.getName()));
+		smearingTime=mapOfSmearingTime.get(sensor.getName());
 	    }
-	    if(smearingPosition>0)
-		_sensorsToSmear.add(new SensorToSmear(sensor,smearingPosition));
+	    if(smearingTime>0)
+		_sensorsToSmear.add(new SensorToSmear(sensor, smearingTime));
 	}
 	if(_debug)
 	    System.out.println(this.getClass().getName()+":: will smear cluster hits on "+_sensorsToSmear.size()+" sensors");
@@ -118,70 +117,27 @@ public class StripHitSmearer extends Driver {
 
     @Override
     public void process(EventHeader event) {
-        List<TrackerHit> smearedSiClusters=new ArrayList<TrackerHit>();
-        if (event.hasItem(stripHitInputCollectionName))
-            siClusters = (List<TrackerHit>) event.get(stripHitInputCollectionName);
-        else {
-            System.out.println("StripHitSmearer::process No Input Collection Found?? " + stripHitInputCollectionName);
-            return;
-        }
-        if (_debug)
-            System.out.println("Number of SiClusters Found = " + siClusters.size());
-        int oldClusterListSize = siClusters.size();
-        for (TrackerHit siCluster : siClusters) {  // Looping over all clusters
-            boolean smearedHit = false;
-	    // get the sensor object of the cluster
-            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) siCluster.getRawHits().get(0)).getDetectorElement();			
-	    Hep3Vector newPos=toHep3(siCluster.getPosition());//set the "new" variables to the original cluster position
-            for (SensorToSmear sensorToSmear : _sensorsToSmear)
-		//get the sensorToSmear object in order to look up smearing size
-                if (sensorToSmear.matchSensor(sensor)) {  
-		    if(sensorToSmear.getSmearPositionSigma()>0){
-			//get the local u position
-			Hep3Vector pos = globalToSensor(toHep3(siCluster.getPosition()), sensor);
-			
-			//this gives the amount to move the cluster based on the sigma assigned to the sensor 
-			double smearAmount=sensorToSmear.getRandomPositionSmear();
-			double uPosNew=pos.x()+smearAmount;
-			//get the new global position
-		        newPos=sensorToGlobal(toHep3(new double[]{uPosNew,pos.y(),pos.z()}),sensor);
-			//make a copy of cluster and set the new position
-			//			SiTrackerHitStrip1D smearedTrackerHit=new SiTrackerHitStrip1D(newPos, new SymmetricMatrix(3,siCluster.getCovMatrix(),true),
-			//siCluster.getdEdx(),siCluster.getTime(),(List<RawTrackerHit>)siCluster.getRawHits(),TrackerHitType.decoded(siCluster.getType()));
-			
-			if (_debug)
-			    System.out.println("Smearing this hit Layer = " + sensor.getName()					  
-					       +" smearPositionSigma= " + sensorToSmear.getSmearPositionSigma()
-					       + "  old u = " + pos.x()
-					       + "  new u = " + uPosNew
-					       + "  amount smeared = " + smearAmount); 
-			if(_debug){
-			    System.out.println("original  position = "+toHep3(siCluster.getPosition()).toString());
-			    System.out.println("global og position = "+pos.toString());
-			}		   
-			// set the new position
-			//			smearedTrackerHit.setPosition(new double[]{newPos.x(),newPos.y(),newPos.z()});
-			
-			// add the smeared hit to list and mark it
-			//			smearedSiClusters.add(smearedTrackerHit);
-			smearedHit=true;
-		    }		  
+	// get the sensor object of the cluster
+	for (SensorToSmear sensorToSmear : _sensorsToSmear){
+	    if(sensorToSmear.getSmearTimeSigma()>0){
+		HpsSiSensor sensor=(HpsSiSensor)sensorToSmear.getSensor();
+		List< LCRelation > fittedHits = sensor.getReadout().getHits(LCRelation.class);
+		for (LCRelation fittedHit : fittedHits) {
+		    RawTrackerHit rth=FittedRawTrackerHit.getRawTrackerHit(fittedHit);
+		    double oldTime=FittedRawTrackerHit.getT0(fittedHit);
+		    double smearAmount=sensorToSmear.getRandomTimeSmear();
+		    double newTime=oldTime+smearAmount;
+		    ((FittedRawTrackerHit)fittedHit).getShapeFitParameters().setT0(newTime);
+		    if (_debug)
+			System.out.println("Smearing this hit Layer = " + sensor.getName()					  
+					   +" smearTimeSigma= " + sensorToSmear.getSmearTimeSigma()
+					   + "  fitted hit time = " + FittedRawTrackerHit.getT0(fittedHit)
+					   + "  old time = " + oldTime
+					   + "  new time = " + newTime
+					   + "  amount smeared = " + smearAmount); 
 		}
-	    //make a smeared hit...even if the sensor hit was not smeared, use newPos/newTime since they were filled with original pos/time above
-	    SiTrackerHitStrip1D smearedTrackerHit=
-		new SiTrackerHitStrip1D(newPos, new SymmetricMatrix(3,siCluster.getCovMatrix(),true),
-					siCluster.getdEdx(),siCluster.getTime(),(List<RawTrackerHit>)siCluster.getRawHits(),
-					TrackerHitType.decoded(siCluster.getType()));
-	    
-	    smearedSiClusters.add(smearedTrackerHit);
-	    
-        }
-
-        if (_debug)System.out.println("New Cluster List Has " + smearedSiClusters.size() + "; old List had " + oldClusterListSize);
-        // TODO flag not used
-        int flag = LCIOUtil.bitSet(0, 31, true); // Turn on 64-bit cell ID.        
-        event.remove(this.stripHitInputCollectionName);
-        event.put(this.stripHitInputCollectionName, smearedSiClusters, SiTrackerHitStrip1D.class, 0, toString());
+	    }
+	}
     }
 
     @Override
@@ -215,44 +171,30 @@ public class StripHitSmearer extends Driver {
 
         int _layer = 1;
         HpsSiSensor _sensor = null;
-        double _smearPositionSigma = -666.0; // units of this is mm
         double _smearTimeSigma = -666.0; // units of this is ns
 
-        public SensorToSmear(HpsSiSensor sensor, double smearPos,double smearTime) {
-	    _smearPositionSigma=smearPos;
+        public SensorToSmear(HpsSiSensor sensor, double smearTime) {
 	    _smearTimeSigma=smearTime;
             _sensor = sensor;
         }
-	public SensorToSmear(HpsSiSensor sensor, double smearPos) {
-	    _smearPositionSigma=smearPos;
-            _sensor = sensor;
-        }
-        void setSmearPositionSigma(double smear) {
-            this._smearPositionSigma=smear;
-        }
-	
+
         void setSmearTimeSigma(double smear) {
             this._smearTimeSigma=smear;
         }
 	
-        double getSmearPositionSigma() {
-            return this._smearPositionSigma;
-        }
 	       
         double getSmearTimeSigma() {
             return this._smearTimeSigma;
         }
 	       
+	HpsSiSensor getSensor(){
+	    return _sensor;
+	}
+	
         boolean matchSensor(HpsSiSensor sensor) {
             return _sensor == sensor;
         }
 
-	double getRandomPositionSmear(){
-	    if(this._smearPositionSigma>0)		
-		return r.nextGaussian()*this._smearPositionSigma;
-	    else
-		return 0.0;
-	}
 	double getRandomTimeSmear(){
 	    if(this._smearTimeSigma>0)		
 		return r.nextGaussian()*this._smearTimeSigma;
