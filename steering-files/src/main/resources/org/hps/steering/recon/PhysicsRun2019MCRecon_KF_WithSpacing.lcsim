@@ -36,8 +36,6 @@
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
-            <hitEnergyThreshold>0.030</hitEnergyThreshold>
-            <minTime>-5.0</minTime>
         </driver>
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
@@ -126,8 +124,7 @@
             <beamSigmaY> 0.02 </beamSigmaY>
             <beamPositionZ> 0.0 </beamPositionZ>
             <trackClusterTimeOffset>25</trackClusterTimeOffset>
-<!--            <maxMatchDt>40</maxMatchDt> -->
-	    <maxMatchDt>1000</maxMatchDt>
+            <maxMatchDt>40</maxMatchDt>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
             <maxVertexClusterDt>40.0</maxVertexClusterDt>
@@ -138,7 +135,14 @@
             <applyClusterCorrections>true</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>  
 	    <isMC>true</isMC>
-	    <debug>false</debug>	    
+	    <debug>false</debug>
+	    <makeMollerCols>true</makeMollerCols>
+            <unconstrainedMollerCandidatesColName>UnconstrainedMollerCandidates_KF</unconstrainedMollerCandidatesColName>
+            <unconstrainedMollerVerticesColName>UnconstrainedMollerVertices_KF</unconstrainedMollerVerticesColName>
+            <beamConMollerCandidatesColName>BeamspotConstrainedMollerCandidates_KF</beamConMollerCandidatesColName>
+            <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
+            <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
+            <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>	    
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
