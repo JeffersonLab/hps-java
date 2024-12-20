@@ -15,7 +15,7 @@
   </organization>
 
   <properties>
-    <javaVersion>1.8</javaVersion>
+    <javaVersion>21</javaVersion>
     <skipSite>false</skipSite>
     <skipPlugin>true</skipPlugin>
     <skipCheckstyle>true</skipCheckstyle>
