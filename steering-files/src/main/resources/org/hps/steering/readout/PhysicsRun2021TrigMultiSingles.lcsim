@@ -2,7 +2,7 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @Readout steering file with pairs trigger for 2019 MC.
+      @Readout steering file with single2 and single3 triggers for 2021 MC.
       @author <a href="mailto:caot@jlab.org">Tongtong Cao</a>
     -->
     <execute>
