@@ -149,20 +149,20 @@
 	    <numPatRecIteration> 3 </numPatRecIteration>
             <numKalmanIteration> 1 </numKalmanIteration>
             <maxPtInverse> 8.757651 </maxPtInverse>
-            <maxDZero> 38.0487 </maxDZero>
-            <maxZZero> 3.98915 </maxZZero>
-            <maxChiTwo> 11.777395 </maxChiTwo>
+            <maxD0> 38.0487 </maxD0>
+            <maxZ0> 3.98915 </maxZ0>
+            <maxChi2> 11.777395 </maxChi2>
             <minHits> 0  </minHits>
             <minStereo> 3  </minStereo>
             <maxSharedHits> 3 </maxSharedHits>
             <maxTimeRange> 39.95028 </maxTimeRange>
             <maxTanLambda> 8.186345 </maxTanLambda>
             <maxResidual> 13.71568 </maxResidual>
-            <maxChiTwoInc> 13.52662 </maxChiTwoInc>
-            <minChiTwoIncBad> 7.00678 </minChiTwoIncBad>
+            <maxChi2Inc> 13.52662 </maxChi2Inc>
+            <minChi2IncBad> 7.00678 </minChi2IncBad>
             <maxResidShare> 13.967129 </maxResidShare>
-            <maxChiTwoIncShare> 9.771546584 </maxChiTwoIncShare>
-            <mxChiTwoVtx> 1.7652935 </mxChiTwoVtx>
+            <maxChi2IncShare> 9.771546584 </maxChi2IncShare>
+            <mxChi2Vtx> 1.7652935 </mxChi2Vtx>
             <numEvtPlots> 5 </numEvtPlots>
             <doDebugPlots> false </doDebugPlots>
             <siHitsLimit> 466 </siHitsLimit>
