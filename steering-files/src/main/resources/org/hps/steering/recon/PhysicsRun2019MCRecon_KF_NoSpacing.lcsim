@@ -28,7 +28,7 @@
     </execute>    
     <drivers>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
-            <eventInterval>10</eventInterval>
+            <eventInterval>1000</eventInterval>
         </driver>
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver"/>
@@ -64,7 +64,9 @@
         </driver>
         <!-- Fit the six raw samples and extract the amplitude and t0. --> 
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <fitAlgorithm>Pileup</fitAlgorithm>
+	    <chiSqrThresh>.5</chiSqrThresh>
+	    <doOldDT>1</doOldDT>
+	    <fitAlgorithm>Pileup</fitAlgorithm>
             <fitTimeMinimizer>Migrad</fitTimeMinimizer>
             <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
             <useTimestamps>true</useTimestamps>     
@@ -91,7 +93,16 @@
              nearest neighbor algorithm. 
         --> 
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-            <neighborDeltaT>50</neighborDeltaT>
+	    <neighborDeltaT>24.0</neighborDeltaT>
+            <neighborDeltaTSigma>3.0</neighborDeltaTSigma>
+            <saveMonsterEvents>false</saveMonsterEvents>
+            <thresholdMonsterEvents>400</thresholdMonsterEvents>
+            <clusterSeedThreshold>4.0</clusterSeedThreshold>
+            <doTimeError>1.0</doTimeError>
+            <clusterNeighborThreshold>3.0</clusterNeighborThreshold>
+            <clusterThreshold>3.0</clusterThreshold>
+            <doDeadFix>true</doDeadFix>
+            <doVSplit>true</doVSplit>
 	    <debug>false</debug>
         </driver>
     
@@ -109,25 +120,64 @@
             <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
             <otherElectronsColName>OtherElectrons_KF</otherElectronsColName>
             <beamPositionX> 0  </beamPositionX>
-            <beamSigmaX> 0.05 </beamSigmaX>
+            <beamSigmaX> 0.3 </beamSigmaX>
             <beamPositionY> 0 </beamPositionY>
             <beamSigmaY> 0.02 </beamSigmaY>
             <beamPositionZ> 0.0 </beamPositionZ>
-            <trackClusterTimeOffset>28</trackClusterTimeOffset>
-            <maxMatchDt>1000</maxMatchDt>
+            <trackClusterTimeOffset>25</trackClusterTimeOffset>
+            <maxMatchDt>40</maxMatchDt>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
-            <maxElectronP>7.0</maxElectronP>
+	    <maxVertexClusterDt>40.0</maxVertexClusterDt>
+	    <maxElectronP>7.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
-            <requireClustersForV0>false</requireClustersForV0>
-            <applyClusterCorrections>true</applyClusterCorrections>
+	    <requireClustersForV0>false</requireClustersForV0>
+	    <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
+	    <applyClusterCorrections>true</applyClusterCorrections>
+	    <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
 	    <isMC>true</isMC>
-	    <debug>false</debug>	    
+	    <debug>false</debug>
+	    <makeMollerCols>true</makeMollerCols> 
+	    <unconstrainedMollerCandidatesColName>UnconstrainedMollerCandidates_KF</unconstrainedMollerCandidatesColName>
+            <unconstrainedMollerVerticesColName>UnconstrainedMollerVertices_KF</unconstrainedMollerVerticesColName>
+            <beamConMollerCandidatesColName>BeamspotConstrainedMollerCandidates_KF</beamConMollerCandidatesColName>
+            <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
+            <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
+            <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
           <!-- <doDebugPlots>true</doDebugPlots> --> 
-          <verbose>true</verbose>
+	    <numPatRecIteration> 3 </numPatRecIteration>
+            <numKalmanIteration> 1 </numKalmanIteration>
+            <maxPtInverse> 8.757651 </maxPtInverse>
+            <maxDZero> 38.0487 </maxDZero>
+            <maxZZero> 3.98915 </maxZZero>
+            <maxChiTwo> 11.777395 </maxChiTwo>
+            <minHits> 0  </minHits>
+            <minStereo> 3  </minStereo>
+            <maxSharedHits> 3 </maxSharedHits>
+            <maxTimeRange> 39.95028 </maxTimeRange>
+            <maxTanLambda> 8.186345 </maxTanLambda>
+            <maxResidual> 13.71568 </maxResidual>
+            <maxChiTwoInc> 13.52662 </maxChiTwoInc>
+            <minChiTwoIncBad> 7.00678 </minChiTwoIncBad>
+            <maxResidShare> 13.967129 </maxResidShare>
+            <maxChiTwoIncShare> 9.771546584 </maxChiTwoIncShare>
+            <mxChiTwoVtx> 1.7652935 </mxChiTwoVtx>
+            <numEvtPlots> 5 </numEvtPlots>
+            <doDebugPlots> false </doDebugPlots>
+            <siHitsLimit> 466 </siHitsLimit>
+            <seedCompThr> .725912 </seedCompThr>
+            <!--numStrategyIter1></numStrategyIter1 tthe mxChi2Vtx was 1.0-->
+            <beamPositionZ> 0.0 </beamPositionZ>
+            <beamSigmaZ> 0.02 </beamSigmaZ>
+            <beamPositionX> 0.0 </beamPositionX>
+            <beamSigmaX> 0.05 </beamSigmaX>
+            <beamPositionY> 0.0 </beamPositionY>
+            <beamSigmaY> 1.0 </beamSigmaY>
+            <lowPhThresh> 7.204329 </lowPhThresh>
+            <verbose>false</verbose>
         </driver>
         <driver name="TrackTruthMatching_KF" type="org.hps.analysis.MC.TrackToMCParticleRelationsDriver">
             <trackCollectionName>KalmanFullTracks</trackCollectionName>
