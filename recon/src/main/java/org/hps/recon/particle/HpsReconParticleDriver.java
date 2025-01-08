@@ -431,15 +431,17 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                 botElectrons.add(electron);
             }
         }
-
-        if (topElectrons.size() > 1 || botElectrons.size() > 1) {
-            return;
-        }
+// ---- This requirement is too strict, and cuts out a lot of events.
+//      It can cut *all* moller events if both KF and GBL are used.
+//
+//        if (topElectrons.size() > 1 || botElectrons.size() > 1) {
+//            return;
+//        }
 
         // Iterate over the collection of electrons and create e-e- pairs 
         for (ReconstructedParticle topElectron : topElectrons) {
             for (ReconstructedParticle botElectron : botElectrons) {
-                // Don't vertex a GBL track with a SeedTrack.
+                // Don't vertex a GBL track with a SeedTrack or KF track.
                 if (TrackType.isGBL(topElectron.getType()) != TrackType.isGBL(botElectron.getType())) {
                     continue;
                 }
@@ -698,7 +700,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             // Generate a candidate vertex and particle.
             BilliorVertex vtxFit = fitVertex(constraint, topElectron, botElectron);
             ReconstructedParticle candidate = makeReconstructedParticle(topElectron, botElectron, vtxFit);
-            if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP() || candidate.getMomentum().magnitude() < cuts.getMinMollerP()) {
+            if (candidate.getMomentum().magnitude() > cuts.getMaxMollerP() || candidate.getMomentum().magnitude() < cuts.getMinMollerP()) {
                 continue;
             }
             if (candidate.getStartVertex().getProbability() < cuts.getMinMollerChisqProb()) {
