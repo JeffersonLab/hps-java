@@ -20,8 +20,9 @@
 
         <driver name="KalmanPatRecDriver"/> 
         <driver name="TrackTruthMatching_KF" />
-        <driver name="ReconParticleDriver_Kalman" />
-	<driver name="KFOutputDriver"/>
+	<driver name="ReconParticleDriver_Kalman" />
+	<!-- KFOutputDriver uses too much memory to run during production -->
+	<!--<driver name="KFOutputDriver"/>-->
 
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
