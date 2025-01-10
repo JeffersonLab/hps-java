@@ -380,9 +380,9 @@ public class KFOutputDriver extends Driver {
 	
 	aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda").fill(tanL,eop);
 	aidaKF.histogram2D(eopFolder+"EoP_vs_phi").fill(phi,eop);
-	aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi").fill(tanL,
-								   phi,
-								   eop);
+	//	aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi").fill(tanL,
+	//							   phi,
+	//							   eop);
 
 	
 	if (TriggerModule.inFiducialRegion(cluster)) {
@@ -400,9 +400,9 @@ public class KFOutputDriver extends Driver {
 	    
 	    aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_fid").fill(tanL,eop);
 	    aidaKF.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(phi,eop);
-	    aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid").fill(tanL,
-									   phi,
-									   eop);
+	    //	    aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid").fill(tanL,
+	    //phi,
+	    //eop);
 
 	    
 	    
@@ -534,10 +534,12 @@ public class KFOutputDriver extends Driver {
         aidaKF.histogram2D(str+isTop+charge).fill(valX,valY);
     }
 
+    /*
     private void FillKFTrackPlot(String str, String isTop, String charge, double valX, double valY, double valZ) {
         aidaKF.histogram3D(str+isTop).fill(valX,valY,valZ);
         aidaKF.histogram3D(str+isTop+charge).fill(valX,valY,valZ);
     }
+    */
     
 
 
@@ -598,7 +600,7 @@ public class KFOutputDriver extends Driver {
         //Momentum maps
         FillKFTrackPlot(trkpFolder+"p_vs_phi",isTop,charge,trackState.getPhi(),trackp);
         FillKFTrackPlot(trkpFolder+"p_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackp);
-        FillKFTrackPlot(trkpFolder+"p_vs_phi_tanLambda",isTop,charge,trackState.getPhi(),trackState.getTanLambda(),trackp);
+	//        FillKFTrackPlot(trkpFolder+"p_vs_phi_tanLambda",isTop,charge,trackState.getPhi(),trackState.getTanLambda(),trackp);
         
         double tanLambda = trackState.getTanLambda();
         double cosLambda = 1. / (Math.sqrt(1+tanLambda*tanLambda));
@@ -1034,11 +1036,11 @@ public class KFOutputDriver extends Driver {
         
         aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda",200,-0.1,0.1,200,0,2);
         aidaKF.histogram2D(eopFolder+"EoP_vs_phi",200,-0.2,0.2,200,0,2);
-        aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi",200,-0.08,0.08,200,-0.2,0.2,200,0,2);
+	//        aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi",200,-0.08,0.08,200,-0.2,0.2,200,0,2);
 	
         aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_fid",200,-0.1,0.1,200,0,2);
         aidaKF.histogram2D(eopFolder+"EoP_vs_phi_fid",200,-0.2,0.2,200,0,2);
-        aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid",200,-0.08,0.08,200,-0.2,0.2,200,0,2);
+	//        aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid",200,-0.08,0.08,200,-0.2,0.2,200,0,2);
 	
     }
 
@@ -1226,7 +1228,7 @@ public class KFOutputDriver extends Driver {
                 aidaKF.histogram2D(trkpFolder+"p_Missing1Hit"+vol+charge,8,0,8,nbins_p,0.0,pmax);
                 aidaKF.histogram2D(trkpFolder+"p_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
                 aidaKF.histogram2D(trkpFolder+"p_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
-                aidaKF.histogram3D(trkpFolder+"p_vs_phi_tanLambda"+vol+charge, 50,-0.3,0.3,50,-0.2,0.2,100,0.,pmax);
+		//                aidaKF.histogram3D(trkpFolder+"p_vs_phi_tanLambda"+vol+charge, 50,-0.3,0.3,50,-0.2,0.2,100,0.,pmax);
 
                 aidaKF.histogram2D(trkpFolder+"pT_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
                 aidaKF.histogram2D(trkpFolder+"pT_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
