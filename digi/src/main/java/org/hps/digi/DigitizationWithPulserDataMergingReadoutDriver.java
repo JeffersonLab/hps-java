@@ -65,7 +65,8 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
     // ==============================================================
     // ==== LCIO Collections ========================================
     // ==============================================================
-    
+    private double debugEnergyThresh=0.25; //only print debug for hits>500 MeV
+
     /**
      * Specifies the name of the subdetector geometry object.
      */
@@ -168,7 +169,9 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
      * Specifies whether readout path truth information should be
      * included in the driver output.
      */
-    private boolean writeTruth = false;
+    private boolean writeTruth = false;   
+
+    private List<Long> debugCellIDWithHits=new ArrayList<Long>();
     
     // ==============================================================
     // ==== Driver Parameters =======================================
@@ -394,16 +397,23 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
         // Get current raw hits in pulser data.
         Collection<RawTrackerHit> rawHits = ReadoutDataManager.getData(ReadoutDataManager.getCurrentTime(), ReadoutDataManager.getCurrentTime() + 2.0,
                 PulserDataCollectionName, RawTrackerHit.class);        
-        
+	if(debug)System.out.println("DigiReadout:: "+truthHitCollectionName +" local time = "+ReadoutDataManager.getCurrentTime()+" number of hits = "+hits.size());
+
         // Once an overlaid event is input, reset adcBufferMap to ensure that other overlaid events do not affect the current event. 
         if(hits.size()!=0 || rawHits.size()!=0) {
-            // Get the set of all possible channel IDs.
+            // Get the set of all possible channel IDs.	   
             Set<Long> cells = getChannelIDs();
-            
+            if(debug)System.out.println(this.getClass().getName()+":: resetting adc buffers at time = "+ReadoutDataManager.getCurrentTime());
             // Reset adcBufferMap.
             for(Long cellID : cells)
                 adcBufferMap.get(cellID).setAll((int) Math.round(getPedestalConditions(cellID)));
-        }
+	    debugCellIDWithHits.clear();
+	    //if we are in no-spacing mode, just clear everything
+	    if(doNoSpacing){
+		resetBuffers();
+		channelIntegrationSumMap.clear();
+	    }
+	}
         
         /* To merge MC data with pulser data, three different cases are handled separately.
          * Case 1: If pulser data does not have a channel in MC data, directly buffer samples
@@ -432,9 +442,11 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
         // The hash map is used to check if MC data has a channel that is also in pulser data.
         Map<Long,Integer> hitCellIDMap = new HashMap<Long,Integer>(hits.size());
         for(SimCalorimeterHit hit : hits) {
-            // Store the truth data.
+	    // Store the truth data.
             Long hitCellID = hit.getCellID(); // For Ecal, cell ID is geometry ID; For hodo, cell ID is channel ID after hodoscope preprocessing
-            
+            if(debug)
+		System.out.println(this.getClass().getName()+":: process:: sim hit energy = "+hit.getRawEnergy()+" on cell = "+hitCellID); 
+			    
             ObjectRingBuffer<SimCalorimeterHit> hitBuffer = truthBufferMap.get(hitCellID);
             hitBuffer.addToCell(0, hit);
             
@@ -499,7 +511,18 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
             
             // Get the truth hit energy deposition.
             double energyAmplitude = hit.getRawEnergy();
-            
+	    if(energyAmplitude>debugEnergyThresh && debug){
+                System.out.println(this.getClass().getName()+":: process:: Putting sim hits in  adcBuffer cellID = "+hitCellID);
+                System.out.println(this.getClass().getName()+":: process:: adding hits to adcBuffer cellID = "+hitCellID); 
+                
+                System.out.println(this.getClass().getName()+":: process::  ReadoutDataManager Time  = "+ReadoutDataManager.getCurrentTime());
+                System.out.println(this.getClass().getName()+":: process::  hit time  = "+hit.getTime());
+                System.out.println(this.getClass().getName()+":: process::  readouttime()  = "+readoutTime());  
+               
+                System.out.println(this.getClass().getName()+":: process::  truth energy  = "+energyAmplitude);
+		debugCellIDWithHits.add(hitCellID);
+            }
+
             if(hitCellIDMap.get(hitCellID) == 1) {                
                 // If noise should be added, calculate a random value for
                 // the noise and add it to the truth energy deposition.
@@ -531,14 +554,20 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                         double sigma = getNoiseConditions(hitCellID);
                         currentValue += RandomGaussian.getGaussian(0, sigma);
                     }
-                    
+		    
                     // An ADC value is not allowed to exceed 4095. If a
                     // larger value is observed, 4096 (overflow) is given
                     // instead. (This corresponds to >2 Volts.)
                     int digitizedValue = Math.min((int) Math.round(pedestal + currentValue), (int) Math.pow(2, nBit));
-
+		    if(energyAmplitude>debugEnergyThresh&&debug)
+			System.out.println(this.getClass().getName()+":: process: writing digitized value for sample = "+i
+                                           +"  post-noise current value = "+currentValue
+					   +"; digitized value = "+digitizedValue);
+		    
                     // Write this value to the ADC buffer.
                     adcBuffer.setValue(i, digitizedValue);
+		    //
+		    
                 } 
             }
             
@@ -602,12 +631,24 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
         // contain any newly integrated hits and perform integration.
         List<RawCalorimeterHit> newHits = null;
         List<LCRelation> newTruthRelations = null;
-        while(ReadoutDataManager.getCurrentTime() - readoutTime() + ReadoutDataManager.getBeamBunchSize() >= READOUT_PERIOD) {
-            if(newHits == null) { newHits = new ArrayList<RawCalorimeterHit>(); }
-            if(newTruthRelations == null) { newTruthRelations = new ArrayList<LCRelation>(); }
-            readHits(newHits, newTruthRelations);
-            readoutCounter++;
-        }
+
+	if(doNoSpacing){
+	    if(newHits == null) { newHits = new ArrayList<RawCalorimeterHit>(); }
+	    if(newTruthRelations == null) { newTruthRelations = new ArrayList<LCRelation>(); }
+	    readoutCounter=0;
+	    for(int i = 0; i < pulserDataWindow; i++){
+		//		System.out.println(this.getClass().getName()+"::  looping over pulse data window   readoutCounter = "+readoutCounter);
+		readHits(newHits, newTruthRelations);	
+		readoutCounter++;
+	    }
+	}else{	    
+	    while(ReadoutDataManager.getCurrentTime() - readoutTime() + ReadoutDataManager.getBeamBunchSize() >= READOUT_PERIOD) {
+		if(newHits == null) { newHits = new ArrayList<RawCalorimeterHit>(); }
+		if(newTruthRelations == null) { newTruthRelations = new ArrayList<LCRelation>(); }
+		readHits(newHits, newTruthRelations);
+		readoutCounter++;
+	    }
+	}
     }
     
     // TODO: Document this.
@@ -624,11 +665,17 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
             // Store the pedestal subtracted value so that it may
             // be checked against the integration threshold.
             int pedestalSubtractedValue = adcBuffer.getValue() - pedestal;
-            
+	    if(pedestalSubtractedValue > integrationThreshold && debug){
+                System.out.println(this.getClass().getName()+":: readHits:: Looping over adcBufferMap cellID = "+cellID);
+                System.out.println(this.getClass().getName()+":: readHits:: ped subtracted ADC counts  = "+pedestalSubtractedValue);
+	    }
+
             // Get the total ADC value that has been integrated
             // on this channel.
             Integer sum = channelIntegrationSumMap.get(cellID);
-            
+	    if(pedestalSubtractedValue >integrationThreshold && debug)
+                System.out.println(this.getClass().getName()+":: readHits:: sum  = "+sum);
+
             // If any readout hits exist on this channel, add the
             // current ADC values to them.
             
@@ -641,7 +688,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                 // events (4 ns). This will indicate when the
                 // integration started and, in turn, should end.
                 channelIntegrationTimeMap.put(cellID, readoutCounter);
-                
+                if(debug)System.out.println(this.getClass().getName()+":: readHits::  Found a hit above threshold = "+cellID);
                 // Integrate the ADC values for a number of
                 // samples defined by NSB and threshold
                 // crossing sample. 
@@ -649,7 +696,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                 for(int i = 0; i <= numSamplesBefore; i++) {
                     sumBefore += adcBuffer.getValue(-(numSamplesBefore - i));
                 }
-                
+		if(debug)System.out.println(this.getClass().getName()+":: readHits::  sum before this sample = "+sumBefore);
                 // This will represent the total integral sum at
                 // the current point in time. Store it in the sum
                 // buffer so that it may be incremented later as
@@ -680,13 +727,16 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
             // If the integration sum is defined, then pulse
             // integration is ongoing.
             if(sum != null) {
-                // Three cases are treated separataly
+                if(debug)System.out.println(this.getClass().getName()+":: readHits::  integration is ongoing..."+cellID+" count = "+readoutCounter);
+		// Three cases are treated separataly
                 // Case 1: CHANNEL_INTEGRATION_DEADTIME > numSamplesAfter
                 // Case 2: CHANNEL_INTEGRATION_DEADTIME == numSamplesAfter 
                 // Case 3: CHANNEL_INTEGRATION_DEADTIME < numSamplesAfter
                 if(CHANNEL_INTEGRATION_DEADTIME > numSamplesAfter) { // Case 1
                     //Continue integration until NSA, the threshold-crossing sample has been added before.
-                    if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 >= readoutCounter) { 
+                    if(debug)System.out.println(this.getClass().getName()+":: readHits::case 1:    channel deadtime > numSamplesAfter  "+cellID+" count = "+readoutCounter);
+		    if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 >= readoutCounter) { 
+			if(debug)System.out.println(this.getClass().getName()+":: readHits::case 1:   integration + numSamplesAfter - 1>= readoutCounter  "+cellID+" count = "+readoutCounter);
                         channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
 
                         // Add the new ADC sample.
@@ -703,7 +753,8 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                     // to data manager.
                     else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 == readoutCounter - 1) {//At NSA + 1, hit is added into data manager
                         // Add a new calorimeter hit.
-                        RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
+			if(debug)System.out.println(this.getClass().getName()+":: readHits::  case 1:  reached NSA + 1; adding new hit "+cellID+" count = "+readoutCounter);
+			RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
                                 64 * channelIntegrationTimeMap.get(cellID));
                         newHits.add(newHit);
                         // Cycle-clock for events is 2 ns, while cycle-clock for samples is 4 ns                        
@@ -727,8 +778,10 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                 } // Case 1 ends
                 else if(CHANNEL_INTEGRATION_DEADTIME == numSamplesAfter){ // Case 2
                     // Continue integration until NSA, the threshold-crossing sample has been added before.
+		    if(debug)System.out.println(this.getClass().getName()+":: readHits::case 2:    channel deadtime == numSamplesAfter  "+cellID+" count = "+readoutCounter);
                     if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 >= readoutCounter) {
                         channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
+			if(debug)System.out.println(this.getClass().getName()+":: readHits::Case2:  integration + numSamplesAfter - 1>= readoutCounter  "+cellID+" count = "+readoutCounter);
 
                         // Add the new ADC sample.
                         channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
@@ -743,6 +796,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                     // to data manager.
                     else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 == readoutCounter - 1) {//At NSA + 1, hit is added into data manager
                         // Add a new calorimeter hit.
+			if(debug)System.out.println(this.getClass().getName()+":: readHits::  case 2:  reached NSA + 1; adding new hit "+cellID+" count = "+readoutCounter);
                         RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
                                 64 * channelIntegrationTimeMap.get(cellID));
                         newHits.add(newHit);
@@ -761,8 +815,10 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                     }
                 } // Case 2 ends
                 else { // Case 3
+		    if(debug)System.out.println(this.getClass().getName()+":: readHits::case 3:    channel deadtime < numSamplesAfter  "+cellID+" count = "+readoutCounter);
                     if (channelIntegrationTimeMap.get(cellID) + CHANNEL_INTEGRATION_DEADTIME - 1 >= readoutCounter) {
-                        // Continue integration until CHANNEL_INTEGRATION_DEADTIME
+			if(debug)System.out.println(this.getClass().getName()+":: readHits::Case3:  integration + DEADTIME - 1>= readoutCounter  "+cellID+" count = "+readoutCounter);
+			// Continue integration until CHANNEL_INTEGRATION_DEADTIME
                         channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
 
                         // Add the new ADC sample.
@@ -779,9 +835,12 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                             flagStartNewIntegration.put(cellID, true);                           
                     }  
                     else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 >= readoutCounter) {
+			if(debug)System.out.println(this.getClass().getName()+":: readHits::Case3:  integration + numSamplesAfter - 1>= readoutCounter  "+cellID+" count = "+readoutCounter);
                         if(flagStartNewIntegration.get(cellID) == true) { // Flag for previous sample is true
+			    if(debug)System.out.println(this.getClass().getName()+":: readHits::Case3: flagStartNewIntegration = true "+cellID+" count = "+readoutCounter);
                             if(pedestalSubtractedValue <= integrationThreshold) { // If sample is less than threshold, then do not start new integration
                                 channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
+				if(debug)System.out.println(this.getClass().getName()+":: readHits::Case3: too small...don't start new integration "+cellID+" count = "+readoutCounter);
 
                                 // Add the new ADC sample.
                                 channelIntegrationSumMap.put(cellID, sum + adcBuffer.getValue(0));
@@ -794,6 +853,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                             }
                             else { // if sample is larger than threshold, a hit is added into data manager and start new integration
                                 // Add a new calorimeter hit.
+				if(debug)System.out.println(this.getClass().getName()+":: readHits::  case 3:  new hit starting, storing old hit; adding new hit "+cellID+" count = "+readoutCounter);
                                 RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
                                         64 * channelIntegrationTimeMap.get(cellID));
                                 newHits.add(newHit);
@@ -850,6 +910,7 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                             }                                                          
                         }
                         else { // Flag for previous sample is false
+			    if(debug)System.out.println(this.getClass().getName()+":: readHits::Case3: flagStartNewIntegration = false "+cellID+" count = "+readoutCounter);
                             channelIntegrationADCMap.get(cellID).add(adcBuffer.getValue(0));
 
                             // Add the new ADC sample.
@@ -865,8 +926,9 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                         }  
                     }
                     else if (channelIntegrationTimeMap.get(cellID) + numSamplesAfter - 1 == readoutCounter - 1) {//If reach NSA + 1, hit is added into data manager, and flag is set as false
-                        // Add a new calorimeter hit.
-                        RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
+			if(debug)System.out.println(this.getClass().getName()+":: readHits::  case 3:  reached NSA + 1; adding new hit "+cellID+" count = "+readoutCounter);
+			// Add a new calorimeter hit.
+			 RawCalorimeterHit newHit = new BaseRawCalorimeterHit(cellID, sum,
                                 64 * channelIntegrationTimeMap.get(cellID));
                         newHits.add(newHit);
                         integrationTime = channelIntegrationTimeMap.get(cellID) * 4 + 2;
@@ -905,9 +967,21 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
         
         // Write the trigger path output data to the readout data
         // manager. Truth data is optional.
-        
-    
+
+	//if running no-spacing, set the time to current time+readout
+	//I'm just replacing integration time here to make it easier
+	//note...I have no idea how using integration time works
+	//in the "spacing" readout.  It's in local units, but the lookup
+	//in GTPClusters is in global??? I'm missing something
+	
+	if(doNoSpacing)
+	    integrationTime=readoutTime()+readoutCounter * READOUT_PERIOD;
+	
+	if(debug && newHits.size()>0)
+	    System.out.println("DigiReadout:: "+ outputHitCollectionName+" time = "+integrationTime+" adding trigger hits = "+newHits.size());
         ReadoutDataManager.addData(outputHitCollectionName, integrationTime, newHits, RawCalorimeterHit.class);
+	if(doNoSpacing)
+	    newHits.clear();
         if(writeTriggerTruth) {
             ReadoutDataManager.addData(triggerTruthRelationsCollectionName, integrationTime, newTruthRelations, LCRelation.class);
         }
@@ -1046,7 +1120,8 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
         } else {
             collectionsList = new ArrayList<TriggeredLCIOData<?>>(2);
         }
-        
+	if(debug)
+	    System.out.println(this.getClass().getName()+":: got a trigger at time = "+triggerTime);
         // Readout drivers need to produce readout timestamps to
         // specify when they occurred in terms of simulation time.
         // The readout timestamp for the subdetector data should be
@@ -1080,6 +1155,9 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
             List<RawTrackerHit> readoutHits = null;
             if(mode == 1) { readoutHits = getMode1Hits(triggerTime); }
             else { readoutHits = getMode3Hits(triggerTime); }
+	    if(debug)
+		System.out.println(this.getClass().getName()+":: number of readoutHits = "+readoutHits.size());
+
             TriggeredLCIOData<RawTrackerHit> readoutData = new TriggeredLCIOData<RawTrackerHit>(mode13HitCollectionParams);
             readoutData.getData().addAll(readoutHits);
             collectionsList.add(readoutData);
@@ -1159,7 +1237,10 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
     
     @Override
     protected double getTimeDisplacement() {
-        return localTimeOffset;
+	if(doNoSpacing)
+	    return 0; 
+        else
+	    return localTimeOffset;
     }
     
     @Override
@@ -1272,7 +1353,8 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
                 // Check that there is a threshold-crossing at some
                 // point in the ADC buffer.
                 if(adcValues[i] > getPedestalConditions(cellID) + integrationThreshold) {
-                    isAboveThreshold = true;
+                    if(debug)System.out.println(this.getClass().getName()+":: found an adc value above threshold for cellID = "+cellID);
+		    isAboveThreshold = true;
                     break;
                 }
             }
@@ -1389,14 +1471,23 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
         // Calculate the offset between the current position and the
         // trigger time.
         int readoutLatency = getReadoutLatency(triggerTime);
-        
         // Get the ADC pipeline.
         IntegerRingBuffer pipeline = adcBufferMap.get(cellID);
-        
+	if(debug  && debugCellIDWithHits.contains(cellID)){
+	    System.out.println(this.getClass().getName()+":: getting triggered adc values with latency = "+readoutLatency+" for cellID = "+cellID); 
+	    /*
+	    for(int k=0; k<PIPELINE_LENGTH; k++){
+		System.out.println(this.getClass().getName()+":: adc value["+k+"] index is "+k+" value = "+ pipeline.getValue(k).intValue());
+	    }
+	    */
+	}
+	    
         // Extract the ADC values for the requested channel.
         short[] adcValues = new short[readoutWindow];
         for(int i = 0; i < readoutWindow; i++) {
             adcValues[i] = (short) pipeline.getValue(-(readoutLatency - i - 1)).intValue();
+	    if(debug&& debugCellIDWithHits.contains(cellID))
+	    	System.out.println(this.getClass().getName()+":: adc value["+i+"] index is "+(-(readoutLatency - i - 1))+" value = "+adcValues[i]); 
         }
         
         // Return the result.
@@ -1518,7 +1609,10 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
      * @return Returns the local time for this driver.
      */
     private double readoutTime() {
-        return readoutCounter * READOUT_PERIOD;
+	if(doNoSpacing)  // just return current time from RDM
+	    return  ReadoutDataManager.getCurrentTime();
+	else //keep track of local time (readoutCounter doesn't get reset at new event)
+	    return readoutCounter * READOUT_PERIOD;
     }
     
     /**
@@ -1791,7 +1885,11 @@ public abstract class DigitizationWithPulserDataMergingReadoutDriver<D extends S
     public void setWriteTruth(boolean state) {
         writeTruth = state;
     }
-    
+
+    public void setDebugEnergyThresh(double value){
+	debugEnergyThresh=value;
+    }
+      
     /**
      * Enumerable <code>PulseShape</code> defines the allowed types
      * of pulses that may be used to emulate the subdetector response
