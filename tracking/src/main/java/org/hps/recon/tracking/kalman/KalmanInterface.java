@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
+import java.lang.reflect.Array;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -568,20 +570,28 @@ public class KalmanInterface {
             newTrack.setTrackParameters(ts.getParameters(), B);
             newTrack.setCovarianceMatrix(new SymmetricMatrix(5, ts.getCovMatrix(), true));
         }
-        
         // Add the hits to the track
 	int firstHit_idx = -1;
 	int lastHit_idx = -1;
 	int idx = -1;
+
+	int hitPattern[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
         for (MeasurementSite site : kT.SiteList) {
 	    idx = idx + 1;
             if (site.hitID < 0) continue;
 	    if (firstHit_idx < 0) firstHit_idx = idx;
 	    lastHit_idx = idx;
-            newTrack.addHit(getHpsHit(site.m.hits.get(site.hitID)));
+
+	    TrackerHit ht = this.getHpsHit(site.m.hits.get(site.hitID));
+	    List<RawTrackerHit> rawHits = ht.getRawHits();
+	    for (RawTrackerHit rawHit : rawHits) {
+              HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
+	      Array.set(hitPattern,sensor.getLayerNumber()-1,1);
+	    }
+            newTrack.addHit(ht);
         }
-        //System.out.printf("PF::Debug::newTrack site size %d \n",newTrack.getTrackerHits().size());
-        
+
         // Get the track states at each layer
         for (int i = 0; i < kT.SiteList.size(); i++) {
             MeasurementSite site = kT.SiteList.get(i);
@@ -634,8 +644,9 @@ public class KalmanInterface {
         newTrack.setChisq(kT.chi2);
         newTrack.setNDF(newTrack.getTrackerHits().size() - 5);
         newTrack.setTrackType(BaseTrack.TrackType.Y_FIELD.ordinal());
+        newTrack.setSubdetectorHitNumbers(hitPattern);	
         newTrack.setFitSuccess(true);
-        
+	
         return newTrack;
     }
 
