@@ -589,7 +589,7 @@ public class KalmanInterface {
               HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
 	      Array.set(hitPattern,sensor.getLayerNumber()-1,1);
 	    }
-            newTrack.addHit(getHpsHit(site.m.hits.get(site.hitID)));
+            newTrack.addHit(ht);
         }
 
         // Get the track states at each layer
