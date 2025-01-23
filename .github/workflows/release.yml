@@ -103,10 +103,10 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Set up JDK 1.8
+      - name: Set up JDK 21
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 21
 
       - name: Get email
         id: get_email
