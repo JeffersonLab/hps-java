@@ -20,8 +20,9 @@
 
         <driver name="KalmanPatRecDriver"/> 
         <driver name="TrackTruthMatching_KF" />
-        <driver name="ReconParticleDriver_Kalman" />
-	<driver name="KFOutputDriver"/>
+	<driver name="ReconParticleDriver_Kalman" />
+	<!-- KFOutputDriver uses too much memory to run during production -->
+	<!--<driver name="KFOutputDriver"/>-->
 
         <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
@@ -36,8 +37,6 @@
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
-            <hitEnergyThreshold>0.030</hitEnergyThreshold>
-            <minTime>-5.0</minTime>
         </driver>
         <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
             <inputCollectionName>EcalClusters</inputCollectionName>
@@ -60,50 +59,50 @@
         <!-- SVT reconstruction drivers -->
         <!-- Driver used to associate raw tracker hits to corresponding sensor. -->
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
-            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+          <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
         <!-- Fit the six raw samples and extract the amplitude and t0. --> 
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-	    <chiSqrThresh>.5</chiSqrThresh>
-	    <doOldDT>1</doOldDT>
-	    <fitAlgorithm>Pileup</fitAlgorithm>
-            <fitTimeMinimizer>Migrad</fitTimeMinimizer>
-            <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
-            <useTimestamps>true</useTimestamps>     
-            <!--offset to get times centered at 0 after timestamp correction-->                 
-	    <!-- set to 0 for unspaced; ~112 for spaced -->
-	    <tsCorrectionScale>0</tsCorrectionScale> 
-            <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
-            <correctTimeOffset>true</correctTimeOffset>   
-            <!--per sensor shift...set false becasue it's not in readout sim-->       
-            <correctT0Shift>true</correctT0Shift>      
-            <!--use truth time for MC???  typically not used-->             
-            <useTruthTime>false</useTruthTime>    
-            <!--time of flight corrections-->              
-            <subtractTOF>true</subtractTOF>     
-            <!--set this false for MC, true for data-->              
-            <subtractTriggerTime>false</subtractTriggerTime>           
-            <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
-            <correctChanT0>true</correctChanT0>          
-            <isMC>true</isMC>
-            <debug>false</debug>
+          <chiSqrThresh>.5</chiSqrThresh>
+          <doOldDT>1</doOldDT>
+	  <fitAlgorithm>Pileup</fitAlgorithm>
+          <fitTimeMinimizer>Migrad</fitTimeMinimizer>
+          <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
+          <useTimestamps>true</useTimestamps>     
+          <!--offset to get times centered at 0 after timestamp correction-->                 
+	  <!-- set to 0 for unspaced; ~112 for spaced -->
+	  <tsCorrectionScale>120</tsCorrectionScale>
+          <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
+          <correctTimeOffset>true</correctTimeOffset>   
+          <!--per sensor shift...set false becasue it's not in readout sim-->       
+          <correctT0Shift>true</correctT0Shift>      
+          <!--use truth time for MC???  typically not used-->             
+          <useTruthTime>false</useTruthTime>    
+          <!--time of flight corrections-->              
+          <subtractTOF>true</subtractTOF>     
+          <!--set this false for MC, true for data-->              
+          <subtractTriggerTime>false</subtractTriggerTime>           
+          <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
+          <correctChanT0>false</correctChanT0>          
+          <isMC>true</isMC>
+          <debug>false</debug>
         </driver>
         <!-- 
              Use the fitted raw tracker hits and create 1D clusters using a 
              nearest neighbor algorithm. 
         --> 
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-	    <neighborDeltaT>24.0</neighborDeltaT>
+             <neighborDeltaT>24.0</neighborDeltaT>
             <neighborDeltaTSigma>3.0</neighborDeltaTSigma>
             <saveMonsterEvents>false</saveMonsterEvents>
             <thresholdMonsterEvents>400</thresholdMonsterEvents>
             <clusterSeedThreshold>4.0</clusterSeedThreshold>
-            <doTimeError>1.0</doTimeError>
+            <doTimeError>1.0</doTimeError> 
             <clusterNeighborThreshold>3.0</clusterNeighborThreshold>
-            <clusterThreshold>3.0</clusterThreshold>
+            <clusterThreshold>3.0</clusterThreshold> 
             <doDeadFix>true</doDeadFix>
             <doVSplit>true</doVSplit>
-	    <debug>false</debug>
+            <debug>false</debug>
         </driver>
     
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
@@ -119,35 +118,35 @@
             <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
             <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
             <otherElectronsColName>OtherElectrons_KF</otherElectronsColName>
-            <beamPositionX> 0  </beamPositionX>
+	    <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>		       
+            <beamPositionX> 0.0  </beamPositionX>
             <beamSigmaX> 0.3 </beamSigmaX>
-            <beamPositionY> 0 </beamPositionY>
+            <beamPositionY> 0.0 </beamPositionY>
             <beamSigmaY> 0.02 </beamSigmaY>
             <beamPositionZ> 0.0 </beamPositionZ>
             <trackClusterTimeOffset>25</trackClusterTimeOffset>
             <maxMatchDt>40</maxMatchDt>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <minVertexChisqProb> 0.0 </minVertexChisqProb>
-	    <maxVertexClusterDt>40.0</maxVertexClusterDt>
+            <maxVertexClusterDt>40.0</maxVertexClusterDt>
 	    <maxElectronP>7.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
-	    <requireClustersForV0>false</requireClustersForV0>
+            <requireClustersForV0>false</requireClustersForV0>
 	    <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
-	    <applyClusterCorrections>true</applyClusterCorrections>
-	    <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
+            <applyClusterCorrections>true</applyClusterCorrections>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>  
 	    <isMC>true</isMC>
 	    <debug>false</debug>
-	    <makeMollerCols>true</makeMollerCols> 
-	    <unconstrainedMollerCandidatesColName>UnconstrainedMollerCandidates_KF</unconstrainedMollerCandidatesColName>
+	    <makeMollerCols>true</makeMollerCols>
+            <unconstrainedMollerCandidatesColName>UnconstrainedMollerCandidates_KF</unconstrainedMollerCandidatesColName>
             <unconstrainedMollerVerticesColName>UnconstrainedMollerVertices_KF</unconstrainedMollerVerticesColName>
             <beamConMollerCandidatesColName>BeamspotConstrainedMollerCandidates_KF</beamConMollerCandidatesColName>
             <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
             <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
-            <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>
+            <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>	    
         </driver>         
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
-          <!-- <doDebugPlots>true</doDebugPlots> --> 
 	    <numPatRecIteration> 3 </numPatRecIteration>
             <numKalmanIteration> 1 </numKalmanIteration>
             <maxPtInverse> 8.757651 </maxPtInverse>
@@ -177,7 +176,7 @@
             <beamPositionY> 0.0 </beamPositionY>
             <beamSigmaY> 1.0 </beamSigmaY>
             <lowPhThresh> 7.204329 </lowPhThresh>
-            <verbose>false</verbose>
+            <verbose> false </verbose>
         </driver>
         <driver name="TrackTruthMatching_KF" type="org.hps.analysis.MC.TrackToMCParticleRelationsDriver">
             <trackCollectionName>KalmanFullTracks</trackCollectionName>

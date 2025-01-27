@@ -510,21 +510,24 @@ public class KalmanPatRecDriver extends Driver {
                 int uindex = 0;
                 int vindex = 1;
                 int windex = 2;
-                for (int ilay = 0; ilay<14; ilay++) {
-                    Pair<Double,Double> res_and_sigma = kTk.unbiasedResidual(ilay);
+		//...loop over clusters and save millipedID to residuals
+                for (GBLStripClusterData clstr : clstrs) {
+                    Pair<Double,Double> res_and_sigma = kTk.unbiasedResidualMillipede(clstr.getId());
                     if (res_and_sigma.getSecondElement() > -1.)  {
-                        layers.add(ilay);
+                        layers.add(clstr.getId());
                         residuals.add(res_and_sigma.getFirstElement());
                         sigmas.add(res_and_sigma.getSecondElement().floatValue());
                     }
-		            Pair<Double[], Double> inter_and_sigma = kTk.unbiasedIntersect(ilay, true);
+                }//Loop on clusters
+                for (int ilay = 0; ilay<14; ilay++) {
+		    Pair<Double[], Double> inter_and_sigma = kTk.unbiasedIntersect(ilay, true);
                     layersInt.add(ilay);
                     intersect.add(inter_and_sigma.getFirstElement()[uindex]);
                     intersect.add(inter_and_sigma.getFirstElement()[vindex]);
                     intersect.add(inter_and_sigma.getFirstElement()[windex]);
                     sigmasInt.add(inter_and_sigma.getSecondElement().floatValue());                    
                 }//Loop on layers
-                
+  
                 //Add the Track Data 
                 TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY, (float) svtCenter_bFieldY);
                 trackDataCollection.add(KFtrackData);
