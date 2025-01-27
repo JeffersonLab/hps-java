@@ -139,10 +139,13 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
     @Override
     public void process(EventHeader event) {                
         // Check that clusters are available for the trigger.
+	//	System.out.println(this.getClass().getName()+"::  starting trigger determination");
         Collection<Cluster> clusters = null;
         Collection<HodoscopePattern> hodoPatterns = null;
         ArrayList<HodoscopePattern> hodoPatternList = new ArrayList<>();
-        
+	if(doNoSpacing)
+	    localTime=ReadoutDataManager.getCurrentTime(); // just overwrite local time on every event
+
         if(triggerType.equals("singles3")) {
             if(ReadoutDataManager.checkCollectionStatus(inputCollectionNameEcal, localTime) && ReadoutDataManager.checkCollectionStatus(inputCollectionNameHodo, localTime)) {
                 clusters = ReadoutDataManager.getData(localTime, localTime + 4.0, inputCollectionNameEcal, Cluster.class);
@@ -166,14 +169,17 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
                 
             } else { return; }
         }
-        
+	
         // Track whether or not a trigger was seen.
         boolean triggered = false;
         
         // There is no need to perform the trigger cuts if the
         // trigger is in dead time, as no trigger may be issued
         // regardless of the outcome.
-        if(isInDeadTime()) { return; }
+        if(isInDeadTime()) {
+	    if(debug)System.out.println(this.getClass().getName()+":: trigger is in dead-time!!!");
+	    return;
+	}
         
         // Record top/bot status for singles triggers
         List<String> topBot = new ArrayList();
@@ -185,7 +191,10 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             // not available during readout, so crystal indices must
             // be obtained directly from the calorimeter geometry.
             java.awt.Point ixy = ecal.getCellIndices(cluster.getCalorimeterHits().get(0).getCellID());
-            
+	    if(debug)System.out.println(this.getClass().getName()+
+			       "::  looping over clusters; number of hits = "+TriggerModule2019.getClusterHitCount(cluster)
+			       +"   seed energy value = " + TriggerModule2019.getValueClusterSeedEnergy(cluster)
+			       +"   total energy of cluster = "+ TriggerModule2019.getValueClusterTotalEnergy(cluster));
             // Populate the uncut plots.
             clusterSeedEnergy[NO_CUTS].fill(TriggerModule2019.getValueClusterSeedEnergy(cluster));
             clusterTotalEnergy[NO_CUTS].fill(TriggerModule2019.getValueClusterTotalEnergy(cluster));
@@ -194,17 +203,22 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             
             // Perform the hit count cut.
             if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_HIT_COUNT_LOW_EN) && !triggerModule.clusterHitCountCut(cluster)) {
+		if(debug)System.out.println(this.getClass().getName()+"::  did not satisfy cluster hit cout (low)");
                 continue;
             }            
             
             // Perform the cluster energy cut.
             if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_TOTAL_ENERGY_LOW_EN) && !triggerModule.clusterTotalEnergyCutLow(cluster)) {
+		if(debug)System.out.println(this.getClass().getName()+"::  did not satisfy cluster energy cut (low)");
                 continue;
             }
             
             if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_TOTAL_ENERGY_HIGH_EN) && !triggerModule.clusterTotalEnergyCutHigh(cluster)) {
+		if(debug)System.out.println(this.getClass().getName()+"::  did not satisfy cluster energy cout (high)");
                 continue;
             }
+
+	    if(debug)System.out.println(this.getClass().getName()+":: made it past basic cluster cuts");
             
             // In the setup calorimeter geometry, range of X coordinates is [-23, -1] and [1, 23]. 
             // The hardware uses cluster X coordinates [-22,0] and [1,23].
@@ -216,19 +230,30 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             // XMin is at least 0.
             if(!triggerModule.getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN)) {
                 if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_XMIN_EN) && !triggerModule.clusterXMinCut(clusterX)) {
+		    if(debug)System.out.println(this.getClass().getName()+"::  did not satisfy cluster x cut (low)");
                     continue;
                 }
-                
+		if(debug)System.out.println(this.getClass().getName()+":: made it past xMin cut ");
                 // XMin cut has been applied.
                 if(triggerModule.getCutEn(TriggerModule2019.CLUSTER_PDE_EN) && !triggerModule.clusterPDECut(cluster, clusterX)) {
+		    if(debug)System.out.println(this.getClass().getName()+"::  did not satisfy cluster PDE cut");
                     continue;                
-                } 
+                }
+		if(debug)System.out.println(this.getClass().getName()+":: made it past PDE cut ");
+				
             }
             
-            if(triggerModule.getCutEn(TriggerModule2019.SINGLES_L1L2ECAL_MATCHING_EN) && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList)) {
-                continue;
-            }
-            
+	    //            if(triggerModule.getCutEn(TriggerModule2019.SINGLES_L1L2ECAL_MATCHING_EN) && !triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList)) {
+	    //put in check for hodoscope pattern collection size here
+	    if(triggerModule.getCutEn(TriggerModule2019.SINGLES_L1L2ECAL_MATCHING_EN) && hodoPatterns.size()>0){
+		if(!triggerModule.geometryMatchingCut(clusterX, ixy.y, hodoPatternList)) {
+		    if(debug)System.out.println(this.getClass().getName()+"::  did not satisfy cluster-hodo matching cut");
+		    continue;
+		}
+		if(debug)System.out.println(this.getClass().getName()+":: made it past cluster-hodo matching cut ");
+
+	    }
+	    if(debug)System.out.println(this.getClass().getName()+":: made it through all non-moller cuts");
             //For 2021 update, Moller triggers
             if(triggerModule.getCutEn(TriggerModule2019.SINGLES_MOLLERMODE_EN)) {
                 if(triggerModule.getCutEn(TriggerModule2019.SINGLES_XYMINMAX_EN) && !triggerModule.clusterXMinCut(clusterX)) {
@@ -249,7 +274,9 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
             }
             // Note that a trigger occurred.
             triggered = true;
-            
+	    if(debug)
+		if(debug)System.out.println(this.getClass().getName()+"::  found a trigger!");
+
             if(ixy.y > 0) topBot.add(TOP);
             else topBot.add(BOT);
             
@@ -261,6 +288,7 @@ public class SinglesTrigger2019ReadoutDriver extends TriggerDriver {
         }
         
         if(triggered) {
+	    if(debug)System.out.println(this.getClass().getName()+"::   sending trigger!!!");
             boolean topStat = false;
             boolean botStat = false;            
             if(topBot.contains(TOP)) topStat = true;

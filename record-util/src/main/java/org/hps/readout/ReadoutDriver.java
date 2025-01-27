@@ -120,7 +120,13 @@ public abstract class ReadoutDriver extends Driver {
      * this collection data should be written.
      */
     private double readoutWindowBefore = Double.NaN;
-    
+    /** 
+     * Boolean to chose no-spacing readout mode.
+     * Should be false for MC generated beam background
+     */
+    public boolean doNoSpacing = false;
+
+    public boolean debug=false; 
     /**
      * Instantiates the readout driver.
      */
@@ -271,5 +277,17 @@ public abstract class ReadoutDriver extends Driver {
      */
     public void setReadoutWindowBefore(double value) throws UnsupportedOperationException {
         readoutWindowBefore = value;
+    }
+    /**
+     * Sets do-no-spacing readout mode
+     * used for unspaced signal events
+     * @param value - true/false do no spacing
+     */
+    public void setDoNoSpacing(boolean value) {
+        doNoSpacing = value;
+    }
+
+    public void setDebug(boolean value){
+	debug=value;
     }
 }
