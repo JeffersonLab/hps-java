@@ -87,6 +87,7 @@ public class KalmanPatRecDriver extends Driver {
     private double mxChi2Vtx;          // Maximum chi^2 for 5-hit tracks with a vertex constraint
     private int numEvtPlots;           // Number of event displays to plot (gnuplot files)
     private boolean doDebugPlots;      // Whether to make all the debugging histograms 
+    private boolean doForLayer;        // Does the track residuals and kinks per layer, not millipede id
     private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
                                        // (protection against monster events) 
     private double seedCompThr;        // Threshold for seedTrack helix parameters compatibility
@@ -141,6 +142,10 @@ public class KalmanPatRecDriver extends Driver {
 
     public void setAddResiduals(boolean input) {
         addResiduals = input;
+    }
+
+    public void setDoForLayer(boolean input) {
+        doForLayer = input;
     }
 
     public void setTargetPosition(double target_pos){
@@ -534,8 +539,12 @@ public class KalmanPatRecDriver extends Driver {
                 for (GBLStripClusterData clstr: clstrs) {
                     Pair<Double,Double> res_and_sigma = kTk.unbiasedResidualMillipede(clstr.getId());
                     if (res_and_sigma.getSecondElement() > -1.)  {
-                        layers.add(clstr.getId());
-                        residuals.add(res_and_sigma.getFirstElement());
+                        int i = clstr.getId();
+			if(doForLayer){
+				i = kTk.millToLay(i);
+			}
+			layers.add(i);
+			residuals.add(res_and_sigma.getFirstElement());
                         sigmas.add(res_and_sigma.getSecondElement().floatValue());
                     }
 		}
@@ -565,10 +574,15 @@ public class KalmanPatRecDriver extends Driver {
 		layers = new ArrayList<Integer>();
 		List<Double> Xkinks = new ArrayList<Double>();
 		List<Double> Zkinks  = new ArrayList<Double>();
-	 	for(int i = 0; i<14; i++){
+	 	for(GBLStripClusterData clstr: clstrs){
+			int milliID = clstr.getId();
+			int i = milliID;
+			if(doForLayer){
+				i = kTk.millToLay(i);
+			}
 			layers.add(i);
-			Xkinks.add(kTk.scatX(i));
-			Zkinks.add(kTk.scatZ(i));	
+			Xkinks.add(kTk.scatXMillipede(i));
+			Zkinks.add(kTk.scatZMillipede(i));	
 		}
                 TrackResidualsData kinkXData = new TrackResidualsData(trackerVolume,layers,Xkinks,sigmas);
 		trackXKinks.add(kinkXData);
