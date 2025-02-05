@@ -17,7 +17,6 @@ import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackIntersectData;
 import org.hps.recon.tracking.TrackResidualsData;
-//import org.hps.recon.tracking.KFKinkData;
 
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
@@ -621,13 +620,13 @@ public class KalmanPatRecDriver extends Driver {
     public void setMaxPtInverse(double maxPtInverse) {
         this.maxPtInverse = maxPtInverse;
     }
-    public void setMaxDZero(double maxD0) {
+    public void setMaxD0(double maxD0) {
         this.maxD0 = maxD0;
     }
-    public void setMaxZZero(double maxZ0) {
+    public void setMaxZ0(double maxZ0) {
         this.maxZ0 = maxZ0;
     }
-    public void setMaxChiTwo(double maxChi2) {
+    public void setMaxChi2(double maxChi2) {
         this.maxChi2 = maxChi2;
     }
     public void setMinHits(int minHits) {
@@ -648,19 +647,19 @@ public class KalmanPatRecDriver extends Driver {
     public void setMaxResidual(double maxResidual) {
         this.maxResidual = maxResidual;
     }
-    public void setMaxChiTwoInc(double maxChi2Inc) {
+    public void setMaxChi2Inc(double maxChi2Inc) {
         this.maxChi2Inc = maxChi2Inc;
     }
-    public void setMinChiTwoIncBad(double minChi2IncBad) {
+    public void setMinChi2IncBad(double minChi2IncBad) {
         this.minChi2IncBad = minChi2IncBad;
     }
-    public void setMxChiTwoVtx(double mxChi2Vtx) {
+    public void setMxChi2Vtx(double mxChi2Vtx) {
         this.mxChi2Vtx = mxChi2Vtx;
     }
     public void setMaxResidShare(double maxResidShare) {
         this.maxResidShare = maxResidShare;
     }
-    public void setMaxChiTwoIncShare(double maxChi2IncShare) {
+    public void setMaxChi2IncShare(double maxChi2IncShare) {
         this.maxChi2IncShare = maxChi2IncShare;
     }
     public void setNumEvtPlots(int numEvtPlots) {
