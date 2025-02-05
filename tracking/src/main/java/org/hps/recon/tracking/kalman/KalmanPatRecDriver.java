@@ -17,6 +17,8 @@ import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackIntersectData;
 import org.hps.recon.tracking.TrackResidualsData;
+//import org.hps.recon.tracking.KFKinkData;
+
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
 import org.hps.recon.tracking.MaterialSupervisor.SiStripPlane;
 import org.hps.recon.tracking.gbl.GBLStripClusterData;
@@ -85,6 +87,7 @@ public class KalmanPatRecDriver extends Driver {
     private double mxChi2Vtx;          // Maximum chi^2 for 5-hit tracks with a vertex constraint
     private int numEvtPlots;           // Number of event displays to plot (gnuplot files)
     private boolean doDebugPlots;      // Whether to make all the debugging histograms 
+    private boolean doForLayer;        // Does the track residuals and kinks per layer, not millipede id
     private int siHitsLimit;           // Maximum number of SiClusters in one event allowed for KF pattern reco 
                                        // (protection against monster events) 
     private double seedCompThr;        // Threshold for seedTrack helix parameters compatibility
@@ -100,6 +103,7 @@ public class KalmanPatRecDriver extends Driver {
     private boolean useBeamPositionConditions;  // True to use beam position from database
     private boolean useFixedVertexZPosition;    // True to override the database just for the z beam position
     private Level logLevel = Level.WARNING;     // Set log level from steering
+    private boolean addKinks;
     private boolean addResiduals;               // If true add the hit-on-track residuals to the LCIO event
     private List<HpsSiSensor> sensors = null;   // List of tracker sensors
     
@@ -132,8 +136,16 @@ public class KalmanPatRecDriver extends Driver {
         siHitsLimit = input;
     }            
 
+    public void setAddKinks(boolean input) {
+        addKinks = input;
+    }
+
     public void setAddResiduals(boolean input) {
         addResiduals = input;
+    }
+
+    public void setDoForLayer(boolean input) {
+        doForLayer = input;
     }
 
     public void setTargetPosition(double target_pos){
@@ -322,16 +334,21 @@ public class KalmanPatRecDriver extends Driver {
         //For GBL Refitting
         List<GBLStripClusterData> allClstrs = new ArrayList<GBLStripClusterData>();
         List<LCRelation> gblStripClusterDataRelations  =  new ArrayList<LCRelation>();
-        
+       
+	//For layer by layer X and Z Kinks
+	List<TrackResidualsData> trackXKinks = new ArrayList<TrackResidualsData>();	
+        List<LCRelation> trackXKinksRelations = new ArrayList<LCRelation>();
+	List<TrackResidualsData> trackZKinks = new ArrayList<TrackResidualsData>();	
+        List<LCRelation> trackZKinksRelations = new ArrayList<LCRelation>();
+
         //For hit-on-track residuals information
         List<TrackResidualsData> trackResiduals = new ArrayList<TrackResidualsData>();
         List<LCRelation> trackResidualsRelations = new ArrayList<LCRelation>();
 	List<TrackIntersectData> trackIntersects = new ArrayList<TrackIntersectData>();
 	List<LCRelation> trackIntersectsRelations = new ArrayList<LCRelation>();
  
-	ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations,  trackIntersects, trackIntersectsRelations);
+	ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations,trackXKinks,trackXKinksRelations,trackZKinks,trackZKinksRelations,trackResiduals, trackResidualsRelations, trackIntersects, trackIntersectsRelations);
  
-
 	//        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
         //mg debug why the track data relations (and others I think) are screwed
 	//        for (LCRelation tdRel: trackDataRelations){
@@ -344,12 +361,19 @@ public class KalmanPatRecDriver extends Driver {
         event.put("KFGBLStripClusterDataRelations", gblStripClusterDataRelations, LCRelation.class, flag);
         event.put("KFTrackData",trackDataCollection, TrackData.class,0);
         event.put("KFTrackDataRelations",trackDataRelations,LCRelation.class,0);
-        
+       
+	if (addKinks) {
+	    event.put("KFXKink", trackXKinks, TrackResidualsData.class,0);
+	    event.put("KFXKinkRelations", trackXKinksRelations,LCRelation.class,0);
+	    event.put("KFZKink", trackZKinks, TrackResidualsData.class,0);
+	    event.put("KFZKinkRelations", trackZKinksRelations,LCRelation.class,0);
+	}
+
         if (addResiduals) {
             event.put("KFUnbiasRes", trackResiduals, TrackResidualsData.class,0);
             event.put("KFUnbiasResRelations",trackResidualsRelations, LCRelation.class,0);
-	        event.put("KFUnbiasInt", trackIntersects, TrackIntersectData.class, 0);
-	        event.put("KFUnbiasIntRelations", trackIntersectsRelations, LCRelation.class, 0);       
+	    event.put("KFUnbiasInt", trackIntersects, TrackIntersectData.class, 0);
+	    event.put("KFUnbiasIntRelations", trackIntersectsRelations, LCRelation.class, 0);       
         }
 
         if (kPlot != null) {
@@ -384,6 +408,8 @@ public class KalmanPatRecDriver extends Driver {
     private ArrayList<KalTrack>[] prepareTrackCollections(EventHeader event, List<Track> outputFullTracks,
                                                           List<TrackData> trackDataCollection, List<LCRelation> trackDataRelations, 
                                                           List<GBLStripClusterData> allClstrs, List<LCRelation> gblStripClusterDataRelations,
+							  List<TrackResidualsData> trackXKinks, List<LCRelation> trackXKinksRelations,
+							  List<TrackResidualsData> trackZKinks, List<LCRelation> trackZKinksRelations,
                                                           List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations,
                                                           List<TrackIntersectData> trackIntersects, List<LCRelation> trackIntersectsRelations) {
         
@@ -502,24 +528,27 @@ public class KalmanPatRecDriver extends Driver {
 
                 //Add the TrackResiduals
                 List<Integer> layers    = new ArrayList<Integer>();
-                List<Double> residuals  = new ArrayList<Double>();
+		List<Double> residuals  = new ArrayList<Double>();
                 List<Float> sigmas      = new ArrayList<Float>(); 
-		        List<Integer> layersInt = new ArrayList<Integer>();
-		        List<Double>  intersect = new ArrayList<Double>();
+		List<Integer> layersInt = new ArrayList<Integer>();
+		List<Double>  intersect = new ArrayList<Double>();
                 List<Float>   sigmasInt = new ArrayList<Float>();
                 int uindex = 0;
                 int vindex = 1;
                 int windex = 2;
-		//...loop over clusters and save millipedID to residuals
-                for (GBLStripClusterData clstr : clstrs) {
+                for (GBLStripClusterData clstr: clstrs) {
                     Pair<Double,Double> res_and_sigma = kTk.unbiasedResidualMillipede(clstr.getId());
                     if (res_and_sigma.getSecondElement() > -1.)  {
-                        layers.add(clstr.getId());
-                        residuals.add(res_and_sigma.getFirstElement());
+                        int i = clstr.getId();
+			if(doForLayer){
+				i = kTk.millToLay(i);
+			}
+			layers.add(i);
+			residuals.add(res_and_sigma.getFirstElement());
                         sigmas.add(res_and_sigma.getSecondElement().floatValue());
                     }
-                }//Loop on clusters
-                for (int ilay = 0; ilay<14; ilay++) {
+		}
+		for(int ilay = 0;ilay<14;ilay++){
 		    Pair<Double[], Double> inter_and_sigma = kTk.unbiasedIntersect(ilay, true);
                     layersInt.add(ilay);
                     intersect.add(inter_and_sigma.getFirstElement()[uindex]);
@@ -527,7 +556,7 @@ public class KalmanPatRecDriver extends Driver {
                     intersect.add(inter_and_sigma.getFirstElement()[windex]);
                     sigmasInt.add(inter_and_sigma.getSecondElement().floatValue());                    
                 }//Loop on layers
-  
+                
                 //Add the Track Data 
                 TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY, (float) svtCenter_bFieldY);
                 trackDataCollection.add(KFtrackData);
@@ -541,7 +570,27 @@ public class KalmanPatRecDriver extends Driver {
                 trackIntersectsRelations.add(new BaseLCRelation(intersectData, KalmanTrackHPS));
 
 
-                /*
+		//Add the Kinks
+		layers = new ArrayList<Integer>();
+		List<Double> Xkinks = new ArrayList<Double>();
+		List<Double> Zkinks  = new ArrayList<Double>();
+	 	for(GBLStripClusterData clstr: clstrs){
+			int milliID = clstr.getId();
+			int i = milliID;
+			if(doForLayer){
+				i = kTk.millToLay(i);
+			}
+			layers.add(i);
+			Xkinks.add(kTk.scatXMillipede(i));
+			Zkinks.add(kTk.scatZMillipede(i));	
+		}
+                TrackResidualsData kinkXData = new TrackResidualsData(trackerVolume,layers,Xkinks,sigmas);
+		trackXKinks.add(kinkXData);
+		trackXKinksRelations.add(new BaseLCRelation(kinkXData, KalmanTrackHPS));
+                TrackResidualsData kinkZData = new TrackResidualsData(trackerVolume,layers,Zkinks,sigmas);
+		trackZKinks.add(kinkZData);
+		trackZKinksRelations.add(new BaseLCRelation(kinkZData, KalmanTrackHPS));
+		/*
                 if (KalmanTrackHPS.getTrackerHits().size() != residuals.size()) {
                     System.out.println("KalmanPatRecDriver::Residuals consistency check failed.");
                     System.out.printf("Track has %d hits while I have %d residuals \n", KalmanTrackHPS.getTrackerHits().size(), residuals.size());

@@ -35,6 +35,7 @@ public class KalTrack {
     private Map<MeasurementSite, Vec> interceptMomVects;
     Map<Integer, MeasurementSite> millipedeMap;
     Map<Integer, MeasurementSite> lyrMap;
+    Map<Integer, Integer> laymilli;
     public int eventNumber;
     public boolean bad;
     HelixState helixAtOrigin;
@@ -314,6 +315,48 @@ public class KalTrack {
         millipedeMap = new HashMap<Integer, MeasurementSite>(nHits);
         for (MeasurementSite site : SiteList) {
             millipedeMap.put(site.m.millipedeID, site);
+        }
+    }
+
+    private void makeLayMilli(){
+    	laymilli = new HashMap<Integer, Integer>(14);
+	for (MeasurementSite site : SiteList){
+	    laymilli.put(site.m.millipedeID,site.m.Layer);
+	}
+    }
+
+    public int millToLay(int millipedeID){
+    	if (laymilli == null) {
+            makeLayMilli();
+        }
+        if (millipedeMap.containsKey(millipedeID)) {
+            return laymilli.get(millipedeID);
+        } else {
+            return -1;
+        } 
+    }
+
+    // Does the scatX for Millipede
+    public double scatXMillipede(int millipedeID){
+    	if (laymilli == null) {
+            makeLayMilli();
+        }
+        if (laymilli.containsKey(millipedeID)) {
+            return scatX(laymilli.get(millipedeID));
+        } else {
+            return -1000.0;
+        }
+    }
+
+    // Does the scatZ for Millipede
+    public double scatZMillipede(int millipedeID){
+    	if (laymilli == null) {
+            makeLayMilli();
+        }
+        if (laymilli.containsKey(millipedeID)) {
+            return scatZ(laymilli.get(millipedeID));
+        } else {
+            return -1000.0;
         }
     }
 
