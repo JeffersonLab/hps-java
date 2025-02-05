@@ -169,7 +169,7 @@
         </driver>  
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-                <ignoreCollections>FPGAData HelicalTrackHitRelations HelicalTrackHits HelicalTrackMCRelations KFGBLStripClusterData KFGBLStripClusterDataRelations ReadoutTimestamps RotatedHelicalTrackHitRelations RotatedHelicalTrackHits RotatedHelicalTrackMCRelations SVTFittedRawTrackerHits SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D SVTRawTrackerHits FADCGenericHits HodoReadoutHits HodoCalHits EcalReadoutHits EcalUncalHits HodoGenericClusters</ignoreCollections>
+                <ignoreCollections>FPGAData HelicalTrackHitRelations HelicalTrackHits HelicalTrackMCRelations KFGBLStripClusterData KFGBLStripClusterDataRelations ReadoutTimestamps RotatedHelicalTrackHitRelations RotatedHelicalTrackHits RotatedHelicalTrackMCRelations SVTFittedRawTrackerHits SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D SVTRawTrackerHits FADCGenericHits HodoReadoutHits HodoCalHits EcalReadoutHits EcalUncalHits HodoGenericClusters VTPBank EcalClusters</ignoreCollections>
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>       
     </drivers>
