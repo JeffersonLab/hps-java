@@ -112,7 +112,7 @@
 <!--            <maxResidual> 13.71568 </maxResidual>   -->
             <maxChi2Inc> 13.52662 </maxChi2Inc>
             <minChi2IncBad> 7.00678 </minChi2IncBad>
-            <maxResidShare> 13.967129 </maxResidShare>
+<!--            <maxResidShare> 13.967129 </maxResidShare>   -->
             <maxChi2IncShare> 9.771546584 </maxChi2IncShare>
             <mxChi2Vtx> 1.7652935 </mxChi2Vtx>
             <numEvtPlots> 5 </numEvtPlots>
