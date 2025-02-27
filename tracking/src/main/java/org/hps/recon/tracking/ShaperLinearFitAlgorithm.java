@@ -141,15 +141,16 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         double chisq = evaluateMinimum(min);
 
         ArrayList<ShapeFitParameters> fits = new ArrayList<ShapeFitParameters>();
-
+        double[] mults={.74,.71,.65,.684,1.04,1.08,1.04,1.01,.703,.98,.96,1.05,1.02,1.0};
         for (int i = 0; i < nPulses; i++) {
             ShapeFitParameters fit = new ShapeFitParameters();
             fit.setAmp(amplitudes[i]);
             fit.setAmpErr(amplitudeErrors[i]);
             if (fitPedestal) {
-                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses - 1, chisq));
+                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses - 1, chisq/mults[sensor.getLayerNumber()-1]));
+                //Note that the empirically determined number here may be different because we would have a different number of dof. The thing I have sets fitPedestal to false
             } else {
-                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses, chisq));
+                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses, chisq/mults[sensor.getLayerNumber()-1]));
             }
 
             fit.setT0(min.userState().value(i));
