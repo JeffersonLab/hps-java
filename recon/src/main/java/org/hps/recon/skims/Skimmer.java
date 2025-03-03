@@ -21,26 +21,19 @@ abstract class Skimmer{
     private File outputFile;
     private int nprocessed = 0;
     private int npassed = 0;
+    
     abstract boolean passSelection(EventHeader event);
+    abstract void setParameters(String parsFileName);    
 
+    //methods below are taken from lcsim LCIODriver and shouldn't need to be touched
     public Skimmer(String file) {
         this(addFileExtension(file), null);
     }
-    //methods below are taken from lcsim LCIODriver and shouldn't need to be touched
-    void writeEvent(EventHeader event){
-	try {
-            writer.write(event);
-        } catch (IOException x) {
-            throw new RuntimeException("Error writing LCIO file", x);
-        }
-    }
-    
-    //this is taken from lcsim LCIODriver
+
     public Skimmer(String file, Collection<String> listIgnore) {
         this(new File(addFileExtension(file)), listIgnore);
     }
 
-    //this is taken from lcsim LCIODriver
     public Skimmer(File file, Collection<String> listIgnore) {
         this.outputFile = file;
         if (listIgnore != null) {
@@ -51,7 +44,15 @@ abstract class Skimmer{
 
     public Skimmer(){
     }
-    
+
+    void writeEvent(EventHeader event){
+	try {
+            writer.write(event);
+        } catch (IOException x) {
+            throw new RuntimeException("Error writing LCIO file", x);
+        }
+    }
+        
     public void setOutputFilePath(String filePath) {
         outputFile = new File(addFileExtension(filePath));
     }
@@ -72,8 +73,6 @@ abstract class Skimmer{
         listKeep.add(writeOnlyCollection);
     }
 
-    
-    //this is taken from lcsim LCIODriver
     private void setupWriter() {
         // Cleanup existing writer.
         if (writer != null) {
@@ -115,5 +114,17 @@ abstract class Skimmer{
 
     public void incrementEventPassed() {
         npassed++;
+    }
+    
+    public int getNProcessed(){	
+	return nprocessed; 
+    }
+    
+    public int getNPassed(){	
+	return npassed; 
+    }
+
+    public double getPassFraction(){
+	return ((double)npassed)/nprocessed;
     }
 }

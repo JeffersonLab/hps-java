@@ -21,6 +21,10 @@ public class FEESkimmer extends Skimmer {
 	
 	return pass; 
     }
+    @Override
+    public void setParameters(String parsFileName){
+	return;
+    }
 
     
     public FEESkimmer(String file) {

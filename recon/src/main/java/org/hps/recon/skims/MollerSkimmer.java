@@ -23,6 +23,11 @@ public class MollerSkimmer extends Skimmer {
     }
 
     
+    @Override
+    public void setParameters(String parsFileName){
+	return;
+    }
+
     public MollerSkimmer(String file) {
 	super(file, null); 
 	//        this(super.addFileExtension(file), null);

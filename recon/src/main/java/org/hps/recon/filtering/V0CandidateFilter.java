@@ -21,12 +21,13 @@ import org.lcsim.geometry.Detector;
 public class V0CandidateFilter extends EventReconFilter {
 
     private String _V0CandidateCollectionName = "UnconstrainedV0Candidates";
-    private double _clusterTimingCut = 20.0;
+    private double _clusterTimingCut = 20.0; // only used if _tight is true
     private double v0Chi2Cut = 100.0;
     private double trackChi2Cut = 80.0;
     private double trackDtCut = 20.0;
     private double trackPMax = 0.9;
     private double v0PMax = 1.4;
+    private int    nHitsMin=10; 
 
     private boolean _tight = false;
     private boolean _keepEpicsDataEvents = false;
@@ -57,13 +58,19 @@ public class V0CandidateFilter extends EventReconFilter {
             ReconstructedParticle electron = v0.getParticles().get(ReconParticleDriver.ELECTRON);
             ReconstructedParticle positron = v0.getParticles().get(ReconParticleDriver.POSITRON);
 
-            if (!TrackType.isGBL(v0.getType())) { // we only care about GBL vertices
+	    //            if (!TrackType.isGBL(v0.getType())) { // we only care about GBL vertices
+	    //                continue;
+            //}
+	    
+	    if (v0.getStartVertex().getChi2() > v0Chi2Cut) {
                 continue;
             }
-            if (v0.getStartVertex().getChi2() > v0Chi2Cut) {
-                continue;
-            }
-            if (electron.getTracks().get(0).getChi2() > trackChi2Cut
+
+	    if(electron.getTracks().get(0).getTrackerHits().size()<nHitsMin
+	       || positron.getTracks().get(0).getTrackerHits().size()<nHitsMin){
+		continue;
+	    }
+	    if (electron.getTracks().get(0).getChi2() > trackChi2Cut
                     || positron.getTracks().get(0).getChi2() > trackChi2Cut) {
                 continue;
             }
@@ -180,7 +187,11 @@ public class V0CandidateFilter extends EventReconFilter {
     public void setKeepEpicsDataEvents(boolean b) {
         _keepEpicsDataEvents = b;
     }
-
+    
+    public void setNHitsMin(int m){
+	nHitsMin=m; 
+    }
+    
     protected void detectorChanged(Detector detector) {
         super.detectorChanged(detector);
     }

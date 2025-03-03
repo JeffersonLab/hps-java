@@ -30,6 +30,11 @@ public class MultiSkimDriver extends Driver {
     private String threeBodyOutputFile="threeBodySkim"; 
     private String FEEOutputFile="FEESkim"; 
     private String mollerOutputFile="mollerSkim"; 
+    
+    private String v0ParamFile="default"; 
+    private String threeBodyParamFile="default";
+    private String FEEParamFile="default"; 
+    private String mollerParamFile="default"; 
 
     private Skimmer v0Skimmer; 
     private Skimmer threeBodySkimmer; 
@@ -45,9 +50,9 @@ public class MultiSkimDriver extends Driver {
     
     public void endOfData() {
         System.out.println(this.getClass().getSimpleName() + " Summary: ");
-        System.out.println("events processed = " + nprocessed);
-        System.out.println("events passed    = " + npassed);
-        System.out.println("       rejection = " + ((double) npassed) / nprocessed);
+        System.out.println("V0 skim events processed = " + v0Skimmer.getNProcessed());
+        System.out.println("events passed            = " + v0Skimmer.getNPassed());
+        System.out.println("       pass efficiency   = " + v0Skimmer.getPassFraction());
 
     }
 
@@ -105,6 +110,16 @@ public class MultiSkimDriver extends Driver {
     public void setV0OutputFile(String outputFile){
 	this.v0OutputFile=outputFile; 
     }
+    public void setThreeBodyOutputFile(String outputFile){
+	this.threeBodyOutputFile=outputFile; 
+    }
+    
+    public void setFEEOutputFile(String outputFile){
+	this.FEEOutputFile=outputFile; 
+    }
+    public void setMollerOutputFile(String outputFile){
+	this.mollerOutputFile=outputFile; 
+    }
     
     @Override
     protected void detectorChanged(Detector detector) {
@@ -119,16 +134,52 @@ public class MultiSkimDriver extends Driver {
 	
 	//set up skims
 	if(skimV0)
-	    v0Skimmer=new V0Skimmer(ouputDir+"/"+v0OutputFile); 
+	    v0Skimmer=setupSkimmer("v0",v0OutputFile, v0ParamFile);	
 	if(skimThreeBody)
-	    threeBodySkimmer=new ThreeBodySkimmer(ouputDir+"/"+threeBodyOutputFile); 
+	    threeBodySkimmer=setupSkimmer("ThreeBody",threeBodyOutputFile, threeBodyParamFile);	
 	if(skimFEE)
-	    FEESkimmer=new FEESkimmer(ouputDir+"/"+FEEOutputFile); 
+	    FEESkimmer=setupSkimmer("FEE",FEEOutputFile, FEEParamFile);	
 	if(skimMoller)
-	    mollerSkimmer=new MollerSkimmer(ouputDir+"/"+mollerOutputFile); 
-
+	    mollerSkimmer=setupSkimmer("Moller",mollerOutputFile, mollerParamFile);	
     }
 
+
+    private Skimmer setupSkimmer(String evtType, String outputFile, String paramFile){
+	Skimmer skm;
+	if(evtType.equals("v0"))
+	    skm=new V0Skimmer(ouputDir+"/"+outputFile);
+	else if(evtType.equals("ThreeBody"))
+	    skm=new ThreeBodySkimmer(ouputDir+"/"+outputFile);
+	else if(evtType.equals("FEE"))
+	    skm=new FEESkimmer(ouputDir+"/"+outputFile);
+	else if(evtType.equals("Moller"))
+	    skm=new MollerSkimmer(ouputDir+"/"+outputFile);
+	else{
+	    System.out.println(this.getClass().getName()+":: in setupSkimmer:  invalid evtTrype = "+evtType);
+	    return null; 
+	}
+	if(!paramFile.equals("default"))
+	    skm.setParameters(paramFile); 
+	return skm;
+
+	
+    }
+    
+    public void setV0ParamFile(String pFile){
+	this.v0ParamFile=pFile;
+    }
+    public void setThreeBodyParamFile(String pFile){
+	this.threeBodyParamFile=pFile;
+    }
+
+    public void setFEEParamFile(String pFile){
+	  this.FEEParamFile=pFile;
+    }
+
+    public void setMollerParamFile(String pFile){
+	this.mollerParamFile=pFile;
+    }
+    
     public void setSkimV0(boolean doSkim){
 	this.skimV0=doSkim; 
     }

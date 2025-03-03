@@ -22,6 +22,10 @@ public class ThreeBodySkimmer extends Skimmer {
 	return pass; 
     }
 
+    @Override
+    public void setParameters(String parsFileName){
+	return;
+    }
     
     public ThreeBodySkimmer(String file) {
 	super(file, null); 
