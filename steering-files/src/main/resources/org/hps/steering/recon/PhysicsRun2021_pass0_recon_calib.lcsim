@@ -98,36 +98,38 @@
 	    <debug>false</debug>
         </driver>
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
-	    <numPatRecIteration> 3 </numPatRecIteration>
-            <numKalmanIteration> 1 </numKalmanIteration>
-            <maxPtInverse> 8.757651 </maxPtInverse>
-            <maxD0> 38.0487 </maxD0>
-            <maxZ0> 3.98915 </maxZ0>
-            <maxChi2> 11.777395 </maxChi2>
-            <minHits> 0  </minHits>
-            <minStereo> 3  </minStereo>
-            <maxSharedHits> 3 </maxSharedHits>
-            <maxTimeRange> 39.95028 </maxTimeRange>
-            <maxTanLambda> 8.186345 </maxTanLambda>
-<!--            <maxResidual> 13.71568 </maxResidual> --> 
-            <maxChi2Inc> 13.52662 </maxChi2Inc>
-            <minChi2IncBad> 7.00678 </minChi2IncBad>
-<!--            <maxResidShare> 13.967129 </maxResidShare> -->
-            <maxChi2IncShare> 9.771546584 </maxChi2IncShare>
-            <mxChi2Vtx> 1.7652935 </mxChi2Vtx>
-            <numEvtPlots> 5 </numEvtPlots>
-            <doDebugPlots> false </doDebugPlots>
-            <siHitsLimit> 466 </siHitsLimit>
-            <seedCompThr> .725912 </seedCompThr>
-            <!--numStrategyIter1></numStrategyIter1 tthe mxChi2Vtx was 1.0-->
-            <beamPositionZ> 0.0 </beamPositionZ>
-            <beamSigmaZ> 0.02 </beamSigmaZ>
-            <beamPositionX> 0.0 </beamPositionX>
-            <beamSigmaX> 0.05 </beamSigmaX>
-            <beamPositionY> 0.0 </beamPositionY>
-            <beamSigmaY> 1.0 </beamSigmaY>
-            <lowPhThresh> 7.204329 </lowPhThresh>
-            <verbose> false </verbose>
+	  <addResiduals>true</addResiduals>
+	  <addKinks>true</addKinks>
+	  <numPatRecIteration> 3 </numPatRecIteration>
+          <numKalmanIteration> 1 </numKalmanIteration>
+          <maxPtInverse> 8.757651 </maxPtInverse>
+          <maxD0> 38.0487 </maxD0>
+          <maxZ0> 3.98915 </maxZ0>
+          <maxChi2> 11.777395 </maxChi2>
+          <minHits> 0  </minHits>
+          <minStereo> 3  </minStereo>
+          <maxSharedHits> 3 </maxSharedHits>
+          <maxTimeRange> 39.95028 </maxTimeRange>
+          <maxTanLambda> 8.186345 </maxTanLambda>
+	  <!--            <maxResidual> 13.71568 </maxResidual> --> 
+          <maxChi2Inc> 13.52662 </maxChi2Inc>
+          <minChi2IncBad> 7.00678 </minChi2IncBad>
+	  <!--            <maxResidShare> 13.967129 </maxResidShare> -->
+          <maxChi2IncShare> 9.771546584 </maxChi2IncShare>
+          <mxChi2Vtx> 1.7652935 </mxChi2Vtx>
+          <numEvtPlots> 5 </numEvtPlots>
+          <doDebugPlots> false </doDebugPlots>
+          <siHitsLimit> 466 </siHitsLimit>
+          <seedCompThr> .725912 </seedCompThr>
+          <!--numStrategyIter1></numStrategyIter1 tthe mxChi2Vtx was 1.0-->
+          <beamPositionZ> 0.0 </beamPositionZ>
+          <beamSigmaZ> 0.02 </beamSigmaZ>
+          <beamPositionX> 0.0 </beamPositionX>
+          <beamSigmaX> 0.05 </beamSigmaX>
+          <beamPositionY> 0.0 </beamPositionY>
+          <beamSigmaY> 1.0 </beamSigmaY>
+          <lowPhThresh> 7.204329 </lowPhThresh>
+          <verbose> false </verbose>
         </driver>
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
