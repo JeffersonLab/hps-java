@@ -5,9 +5,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    registries:
-      - clas12maven
-      - jhep
     ignore:
       - dependency-name: "org.jlab:groot" # since version numbers are not in order
   - package-ecosystem: "github-actions"
