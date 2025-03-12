@@ -15,12 +15,18 @@ import org.lcsim.event.RawTrackerHit;
 public class ShaperAnalyticFitAlgorithm implements ShaperFitAlgorithm {
 
     private boolean debug = false;
+    private int runNum = 1000000;
     public String fitTimeMinimizer;
 
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
 
+    @Override
+    public void setRunNum(int RunNum){
+        this.runNum=RunNum;
+    }
+    
     @Override
     public void setFitTimeMinimizer(String fitTimeMinimizer) {
         this.fitTimeMinimizer = fitTimeMinimizer;
