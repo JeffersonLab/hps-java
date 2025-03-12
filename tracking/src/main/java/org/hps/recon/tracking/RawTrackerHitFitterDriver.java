@@ -239,6 +239,7 @@ public class RawTrackerHitFitterDriver extends Driver {
             int strip = hit.getIdentifierFieldValue("strip");
             HpsSiSensor sensor = (HpsSiSensor) hit.getDetectorElement();
             //===> ChannelConstants constants = HPSSVTCalibrationConstants.getChannelConstants((SiSensor) hit.getDetectorElement(), strip);
+            fitter.setRunNum(event.getRunNumber());
             for (ShapeFitParameters fit : fitter.fitShape(hit, shape)) {
 
                 if (correctTimeOffset) {
