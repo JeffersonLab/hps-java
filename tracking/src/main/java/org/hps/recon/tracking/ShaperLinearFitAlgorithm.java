@@ -211,11 +211,12 @@ public class ShaperLinearFitAlgorithm implements ShaperFitAlgorithm, FCNBase {
         for (int i = 0; i < nPulses; i++) {
             ShapeFitParameters fit = new ShapeFitParameters();
             fit.setAmp(amplitudes[i]);
-            fit.setAmpErr(amplitudeErrors[i]);
+            fit.setAmpErr(amplitudeErrors[i]/mults[holder][sensor.getLayerNumber()-1]);
+            //Note IF WE CHOOSE TO DO FIT PEDESTAL, THESE WILL NEED TO BE FIXED!!!
             if (fitPedestal) {
-                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses - 1, chisq));
+                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses - 1, chisq/mults[holder][sensor.getLayerNumber()-1]));
             } else {
-                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses, chisq));
+                fit.setChiProb(Gamma.regularizedGammaQ(samples.length - 2 * nPulses, chisq/mults[holder][sensor.getLayerNumber()-1]));
             }
 
             fit.setT0(min.userState().value(i));
