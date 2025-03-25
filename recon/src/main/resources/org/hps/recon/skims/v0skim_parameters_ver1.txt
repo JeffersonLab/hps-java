@@ -6,4 +6,4 @@ trackDtCut			  20.0
 trackPMax			  4.5
 v0PMax				  4.5
 reqClusterMatch			  false
-clusterTimingCut                  20.0
+posClusterEnergy                  0.2

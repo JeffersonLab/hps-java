@@ -127,4 +127,8 @@ abstract class Skimmer{
     public double getPassFraction(){
 	return ((double)npassed)/nprocessed;
     }
+
+    public void setListIgnore(Set<String> ignore){
+	this.listIgnore=ignore; 
+    }
 }

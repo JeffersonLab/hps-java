@@ -4,6 +4,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.List; 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 
@@ -14,6 +17,7 @@ import org.lcsim.geometry.Detector;
 public class MultiSkimDriver extends Driver {
 
     private static final Logger LOGGER = Logger.getLogger(MultiSkimDriver.class.getPackage().getName());
+    private Set<String> listIgnore = new HashSet<String>();
 
     //if this is true, an event will be written to each stream that it passes
     //if false, it will only go into the first stream it passes... so the ordering of the skim list matters.  
@@ -24,7 +28,6 @@ public class MultiSkimDriver extends Driver {
     private boolean skimFEE=false;
     private boolean skimMoller=false;
 
-    private String ouputDir="skimData"; 
 
     private String v0OutputFile="v0Skim"; 
     private String threeBodyOutputFile="threeBodySkim"; 
@@ -46,14 +49,17 @@ public class MultiSkimDriver extends Driver {
     private int nprocessed = 0;
     private int npassed = 0;
     List<Skimmer> writeSkimList=new ArrayList<Skimmer>(); 
-
     
     public void endOfData() {
         System.out.println(this.getClass().getSimpleName() + " Summary: ");
-        System.out.println("V0 skim events processed = " + v0Skimmer.getNProcessed());
-        System.out.println("events passed            = " + v0Skimmer.getNPassed());
-        System.out.println("       pass efficiency   = " + v0Skimmer.getPassFraction());
-
+	if(skimV0){
+	    
+	    System.out.println("V0 skim events processed = " + v0Skimmer.getNProcessed());
+	    System.out.println("events passed            = " + v0Skimmer.getNPassed());
+	    System.out.println("       pass efficiency   = " + v0Skimmer.getPassFraction());
+	    System.out.println("Total number of V0s processed = "+((V0Skimmer)v0Skimmer).getTotalV0s()); 
+	    System.out.println("Total number of V0s passing skim = "+((V0Skimmer)v0Skimmer).getTotalV0sPassing()); 
+	}
     }
 
     @Override
@@ -147,19 +153,21 @@ public class MultiSkimDriver extends Driver {
     private Skimmer setupSkimmer(String evtType, String outputFile, String paramFile){
 	Skimmer skm;
 	if(evtType.equals("v0"))
-	    skm=new V0Skimmer(ouputDir+"/"+outputFile);
+	    skm=new V0Skimmer(outputFile);
 	else if(evtType.equals("ThreeBody"))
-	    skm=new ThreeBodySkimmer(ouputDir+"/"+outputFile);
+	    skm=new ThreeBodySkimmer(outputFile);
 	else if(evtType.equals("FEE"))
-	    skm=new FEESkimmer(ouputDir+"/"+outputFile);
+	    skm=new FEESkimmer(outputFile);
 	else if(evtType.equals("Moller"))
-	    skm=new MollerSkimmer(ouputDir+"/"+outputFile);
+	    skm=new MollerSkimmer(outputFile);
 	else{
 	    System.out.println(this.getClass().getName()+":: in setupSkimmer:  invalid evtTrype = "+evtType);
 	    return null; 
 	}
 	if(!paramFile.equals("default"))
-	    skm.setParameters(paramFile); 
+	    skm.setParameters(paramFile);
+	if(listIgnore.size()>0)
+	    skm.setListIgnore(listIgnore); 
 	return skm;
 
 	
@@ -192,6 +200,9 @@ public class MultiSkimDriver extends Driver {
     }
      public void setSkimMoller(boolean doSkim){
 	this.skimMoller=doSkim; 
-    }
-
+     }
+     public void setIgnoreCollections(String[] ignoreCollections) {
+	 listIgnore.addAll(Arrays.asList(ignoreCollections));
+     }
+     
 }

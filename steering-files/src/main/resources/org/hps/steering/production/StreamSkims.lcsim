@@ -18,25 +18,19 @@
         <driver name="StripEvent"
                 type="org.hps.recon.skims.MultiSkimDriver">
 	  <skimV0>true</skimV0>
-	  <skimThreeBody>true</skimThreeBody>
-	  <skimFEE>true</skimFEE>
-	  <skimMoller>true</skimMoller>
-<!--		<clusterTimingCut>66666</clusterTimingCut>
-		<v0CandidateCollectionName>UnconstrainedV0Candidates_KF</v0CandidateCollectionName>
-		<trackPMax>666.0</trackPMax>
-		<v0PMax>6666.0</v0PMax>
-		<trackDtCut>1000</trackDtCut>
-		<nHitsMin>10</nHitsMin>
-		<v0Chi2Cut>6666.0</v0Chi2Cut>		
-		<trackChi2Cut>6666.0</trackChi2Cut> -->
+	  <skimThreeBody>false</skimThreeBody>
+	  <skimFEE>false</skimFEE>
+	  <skimMoller>false</skimMoller>
+	  <v0ParamFile>v0skim_parameters_ver1.txt</v0ParamFile>  
+	  <v0OutputFile>${outputFile}.slcio</v0OutputFile>
  </driver>
 <!--	<driver name="StripEvent" type="org.hps.recon.filtering.ThreeProngECalFilter">
 	</driver>	
 -->
         <!-- Driver to write output slcio file -->
-        <driver name="Writer"
+<!--        <driver name="Writer"
                 type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
-        </driver>
+        </driver> -->
     </drivers>
 </lcsim>
