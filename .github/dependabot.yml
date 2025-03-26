@@ -5,8 +5,6 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    ignore:
-      - dependency-name: "org.jlab:groot" # since version numbers are not in order
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
