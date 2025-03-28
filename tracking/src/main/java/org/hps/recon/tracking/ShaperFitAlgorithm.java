@@ -11,5 +11,7 @@ public interface ShaperFitAlgorithm {
 
     public void setDebug(boolean debug);
 
+    public void setRunNum(int runNum);
+    
     public void setFitTimeMinimizer(String fitTimeMinimizer);
 }
