@@ -28,8 +28,8 @@ public class TrackData implements GenericObject {
     public static final int ECAL_BFY_INDEX = 6;   //BFieldY at ECal TrackState
     public static final int SVTCENTER_BFY_INDEX = 7;   //BFieldY at SVT Center
     public static final int TRACK_VOLUME_INDEX = 0;
-    public static final String TRACK_DATA_COLLECTION = "TrackData";
-    public static final String TRACK_DATA_RELATION_COLLECTION = "TrackDataRelations";
+    public static final String TRACK_DATA_COLLECTION = "KFTrackData";
+    public static final String TRACK_DATA_RELATION_COLLECTION = "KFTrackDataRelations";
 
     private final double[] doubles;
     private final float[] floats;

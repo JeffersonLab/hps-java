@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" 
+       xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <control>
+        <printDriverStatistics>true</printDriverStatistics>
+    </control>
+    <execute>
+<!--        <driver name="EventFlagFilter"/> -->
+        <driver name="StripEvent"/>
+<!--        <driver name="Writer"/>  -->
+    </execute>
+    <drivers>
+        <!-- Driver to reject "bad" events -->
+        <driver name="EventFlagFilter" 
+                type="org.hps.recon.filtering.EventFlagFilter">
+        </driver>
+        <!-- Driver to strip events -->
+        <driver name="StripEvent"
+                type="org.hps.recon.skims.MultiSkimDriver">
+	  <skimV0>true</skimV0>
+	  <skimThreeBody>false</skimThreeBody>
+	  <skimFEE>false</skimFEE>
+	  <skimMoller>false</skimMoller>
+	  <v0ParamFile>v0skim_parameters_ver1.txt</v0ParamFile>  
+	  <v0OutputFile>${outputFile}.slcio</v0OutputFile>
+ </driver>
+<!--	<driver name="StripEvent" type="org.hps.recon.filtering.ThreeProngECalFilter">
+	</driver>	
+-->
+        <!-- Driver to write output slcio file -->
+<!--        <driver name="Writer"
+                type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver> -->
+    </drivers>
+</lcsim>

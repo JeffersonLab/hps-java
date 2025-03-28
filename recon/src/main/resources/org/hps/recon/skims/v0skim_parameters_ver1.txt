@@ -1,0 +1,9 @@
+V0CandidateCollectionName	  UnconstrainedV0Candidates_KF
+trackChi2Cut			  80.0
+nHitsMin			  9
+v0Chi2Cut			  30.0
+trackDtCut			  20.0
+trackPMax			  4.5
+v0PMax				  4.5
+reqClusterMatch			  false
+posClusterEnergy                  0.2
