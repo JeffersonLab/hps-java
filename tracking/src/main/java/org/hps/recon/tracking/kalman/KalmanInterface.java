@@ -48,6 +48,25 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.geometry.IDDecoder;
 import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
+import org.hps.recon.tracking.FittedRawTrackerHit;
+import org.hps.recon.tracking.ShaperFitAlgorithm;
+import org.hps.recon.tracking.ShaperPileupFitAlgorithm;
+import org.hps.recon.tracking.PulseShape;
+import org.hps.recon.tracking.ShapeFitParameters;
+
+import org.hps.conditions.database.DatabaseConditionsManager;
+import org.hps.conditions.svt.SvtSyncStatus.SvtSyncStatusCollection;
+import org.hps.conditions.svt.SvtTimingConstants;
+import org.hps.readout.ecal.ReadoutTimestamp;
+import org.hps.readout.svt.HPSSVTConstants;
+import org.hps.recon.ecal.cluster.TriggerTime;
+import org.lcsim.detector.tracker.silicon.HpsSiSensor;
+import org.lcsim.event.EventHeader;
+import org.lcsim.event.RawTrackerHit;
+import org.lcsim.geometry.Detector;
+import org.lcsim.lcio.LCIOConstants;
+import org.lcsim.recon.cat.util.Const;
+import org.lcsim.util.Driver;
 
 /**
  *  This class provides an interface between hps-java and the Kalman Filter fitting and pattern recognition code.
@@ -1058,7 +1077,24 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, xStrip, du, time, localHit.getdEdx()*1000000.);
+		List<RawTrackerHit> rawhits =  hit.getRawHits();
+                ShaperFitAlgorithm fitter = new ShaperPileupFitAlgorithm(.5,1);
+                PulseShape shape = new PulseShape.FourPole();
+                fitter.setRunNum(event.getRunNumber());
+                double Variance=0.0;
+                for(RawTrackerHit rth: rawhits){
+                        double Min = 10000;
+                        for(ShapeFitParameters fit : fitter.fitShape(rth, shape)){
+                                if(fit.getT0Err()<Min){
+                                        Min=fit.getT0Err();
+                                }
+                        }
+                        if(module.Layer>1){
+                                Variance+=1/(Min*Min);
+                        }
+                }
+                Variance=1.0/Variance;
+                Measurement m = new Measurement(umeas, xStrip, du, time, localHit.getdEdx()*1000000.,Variance);
                 module.addMeasurement(m);
                 hitMap.put(m, hit);
                 hitsFilled++;
@@ -1159,7 +1195,7 @@ public class KalmanInterface {
                     globalX.print("globalX");
                     globalY.print("globalY");
                 }
-                Measurement m = new Measurement(umeas, xStrip, du, 0., hit.getdEdx()*1000000.);
+                Measurement m = new Measurement(umeas, xStrip, du, 0., hit.getdEdx()*1000000.,1.0);
 
                 KalHit hitPair = new KalHit(mod,m);
                 trackHitsKalman.add(hitPair);

@@ -10,6 +10,7 @@ class Measurement { //
     double x; // X of the center of the strip in the detector frame
     double sigma; // Measurement uncertainty
     double time;  // Time of the hit in ns
+    double timeErr; // Standard deviation of time measurement.
     double energy; // Energy deposited in the silicon
     double vTrue; // MC truth measurement value
     Vec rGlobal; // Global MC truth
@@ -21,6 +22,19 @@ class Measurement { //
         x = xStrip;
         sigma = resolution;
         time = t;
+        energy = E;
+        tracks = new ArrayList<KalTrack>();
+        vTrue = 0.;
+        rGlobal = null;
+        tksMC = null;
+    }
+    
+    Measurement(double value, double xStrip, double resolution, double t, double E, double terr) {
+        v = value;
+        x = xStrip;
+        sigma = resolution;
+        time = t;
+        timeErr = terr;
         energy = E;
         tracks = new ArrayList<KalTrack>();
         vTrue = 0.;
