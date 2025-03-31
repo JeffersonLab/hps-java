@@ -28,6 +28,19 @@ class Measurement { //
         tksMC = null;
     }
     
+    Measurement(double value, double xStrip, double resolution, double t, double E, double terr) {
+        v = value;
+        x = xStrip;
+        sigma = resolution;
+        time = t;
+        timeErr = terr;
+        energy = E;
+        tracks = new ArrayList<KalTrack>();
+        vTrue = 0.;
+        rGlobal = null;
+        tksMC = null;
+    }
+    
     Measurement(double value, double xStrip, double resolution, double t, double E, Vec rGlobal, double vTrue) {
         v = value;
         x = xStrip;
