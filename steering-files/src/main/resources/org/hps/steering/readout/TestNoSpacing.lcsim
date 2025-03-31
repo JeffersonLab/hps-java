@@ -2,7 +2,7 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @Readout steering file with 2019 single2 and single3 triggers for 2019 MC with pulser data as background.
+      @Readout steering file with pairs trigger for 2019 MC.
       @author <a href="mailto:caot@jlab.org">Tongtong Cao</a>
     -->
     <execute>
@@ -13,7 +13,7 @@
         <!-- SLiC Data Input Drivers -->
         <driver name="EcalHitsInputDriver"/>
         <driver name="MCParticleInputDriver"/>
-        <driver name="HodoscopeHitsOutputDriver"/>
+        <driver name="HodoscopeHitsOutputDriver"/> 
         <driver name="TrackerHitsSVTOutputDriver"/>
 
         <!-- Pulser Data Input Drivers -->
@@ -26,7 +26,7 @@
         <driver name="HodoscopePreprocessingDriver"/>
         <driver name="HodoscopeDigitizationWithPulserDataMergingDriver"/>
         <driver name="HodoscopeRawConverterDriver"/>
-	<driver name="HodoscopePatternDriver"/>
+	<driver name="HodoscopePatternDriver"/> 
 
         <!-- Calorimeter Readout Simulation Drivers -->
         <driver name="EcalDigitizationWithPulserDataMergingDriver"/>  
@@ -41,9 +41,11 @@
 	<driver name="SvtDigitizationWithPulserDataMergingDriver"/>
 
          <!-- LCIO Output and Data Management Driver -->
-        <driver name="ReadoutManagerDriver"/>
+         <driver name="ReadoutManagerDriver"/>	 
 
-        <driver name="CleanupDriver" />
+<!--	 <driver name="InsertEmptyBunches"/> -->
+<!--	 <driver name="InsertEmptyBunchesReadout"/> -->
+         <driver name="CleanupDriver" />
     </execute> 
     
     <drivers>
@@ -166,7 +168,7 @@
              same collection name as the input truth data. If a truth handler
              driver also outputs data into this collection, the two will merge.
           -->
-        <driver name="EcalDigitizationWithPulserDataMergingDriver" type="org.hps.digi.EcalDigitizationWithPulserDataMergingReadoutDriver">
+        <driver name="EcalDigitizationWithPulserDataMergingDriver" type="org.hps.digi.nospacing.EcalDigiWithPulseNoSpacingReadoutDriver">
             <!-- LCIO Collection Names -->
             <inputHitCollectionName>EcalHits</inputHitCollectionName>
             <inputPulserDataCollectionName>PulserDataEcalReadoutHits</inputPulserDataCollectionName>
@@ -180,15 +182,15 @@
             <!-- Driver Parameters -->
             <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
             <addNoise>true</addNoise>
-            <debug>false</debug>
+            
             <!-- 
                  Readout offset is not the same as the old system - it measures
                  amount of samples that are included before the trigger time in
                  the ADC readout window. The old version can be converted by
                  selecting a readout window equal to (readoutLatency - 64).
               -->
-            <readoutOffset>10</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
-            
+            <readoutOffset>48</readoutOffset>              <!-- Units of 4 ns clock-cycles. -->
+<!--            <readoutOffset>0</readoutOffset>   --> 
             <!--
                 The digitization driver produces as output a list of ADC values
                 within a specified window, in emulation of Mode-1 data. This
@@ -221,7 +223,7 @@
              since the clusterer will automatically output the hits which appear in
              GTP clusters if cluster output is enabled.
           -->
-        <driver name="EcalRawConverterDriver" type="org.hps.readout.ecal.updated.EcalRawConverterReadoutDriver">
+        <driver name="EcalRawConverterDriver" type="org.hps.digi.nospacing.EcalRawConverterNoSpacingReadoutDriver">
 		    <!--
 				Define the LCIO collection names. The input collection should
 				come from the digitization driver.
@@ -256,7 +258,7 @@
              also output all of the hits contained in each cluster into the
              output file as well.
           -->
-        <driver name="GTPReadoutDriver" type="org.hps.readout.ecal.updated.GTPClusterReadoutDriver">
+        <driver name="GTPReadoutDriver" type="org.hps.digi.nospacing.GTPClusterNoSpacingReadoutDriver">
 
             <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>             
             
@@ -293,7 +295,7 @@
              The hodoscope digitization driver works identically to the
              calorimeter digitization driver, except for the hodoscope.
           -->
-        <driver name="HodoscopeDigitizationWithPulserDataMergingDriver" type="org.hps.digi.HodoscopeDigitizationWithPulserDataMergingReadoutDriver">
+        <driver name="HodoscopeDigitizationWithPulserDataMergingDriver" type="org.hps.digi.nospacing.HodoscopeDigiWithPulseNoSpacingReadoutDriver">
             <!-- LCIO Collection Names -->
             <inputHitCollectionName>HodoscopePreprocessedHits</inputHitCollectionName>
             <inputPulserDataCollectionName>PulserDataHodoReadoutHits</inputPulserDataCollectionName>
@@ -314,8 +316,8 @@
                  the ADC readout window. The old version can be converted by
                  selecting a readout window equal to (readoutLatency - 64).
               -->
-            <readoutOffset>10</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
-
+            <!-- <readoutOffset>10</readoutOffset>  -->             <!-- Units of 4 ns clock-cycles. -->
+            <readoutOffset>32</readoutOffset>              <!-- Units of 4 ns clock-cycles. -->
 	    <!--Factor for gain conversion from self-defined unit/ADC to
 	    MeV/ADC. -->            
 	    <factorGainConversion>0.000833333</factorGainConversion>
@@ -346,7 +348,7 @@
              The hodoscope raw converter functions as per the calorimeter raw
              converter driver.
           -->
-        <driver name="HodoscopeRawConverterDriver" type="org.hps.readout.hodoscope.HodoscopeRawConverterReadoutDriver">
+        <driver name="HodoscopeRawConverterDriver" type="org.hps.digi.nospacing.HodoscopeRawConverterNoSpacingReadoutDriver">
 		    <!--
 				Define the LCIO collection names. The input collection should
 				come from the digitization driver.
@@ -382,21 +384,21 @@
 	    Order of pattern list: top layer 1, top layer 2, bot layer
 	    1, bot layer 2
           -->
-        <driver name="HodoscopePatternDriver" type="org.hps.readout.hodoscope.HodoscopePatternReadoutDriver">
-	  <!--
-	      Define the LCIO collection names. The input collection should
-	      come from the digitization driver.
-	  -->
-	  <inputCollectionName>HodoscopeCorrectedHits</inputCollectionName>
-	  <outputCollectionName>HodoscopePatterns</outputCollectionName>
+        <driver name="HodoscopePatternDriver" type="org.hps.digi.nospacing.HodoscopePatternNoSpacingDriver">
+		    <!--
+				Define the LCIO collection names. The input collection should
+				come from the digitization driver.
+			-->
+			<inputCollectionName>HodoscopeCorrectedHits</inputCollectionName>
+			<outputCollectionName>HodoscopePatterns</outputCollectionName>
 
             <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>   
-	    <timeEarlierThanEcal>4.0</timeEarlierThanEcal> 
-	    <persistent>false</persistent>
+
+			<persistent>false</persistent>
 	</driver>  
 
         
-        <driver name="SinglesTrigger3" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
+        <driver name="SinglesTrigger3" type="org.hps.digi.nospacing.SinglesTrigger2019NoSpacingReadoutDriver">
             <inputCollectionNameEcal>EcalClustersGTP</inputCollectionNameEcal>
 
             <inputCollectionNameHodo>HodoscopePatterns</inputCollectionNameHodo>
@@ -408,7 +410,7 @@
 
         </driver>
 
-        <driver name="SinglesTrigger2" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
+        <driver name="SinglesTrigger2" type="org.hps.digi.nospacing.SinglesTrigger2019NoSpacingReadoutDriver">
             <inputCollectionNameEcal>EcalClustersGTP</inputCollectionNameEcal>
 
             <inputCollectionNameHodo>HodoscopePatterns</inputCollectionNameHodo>
@@ -423,19 +425,25 @@
         </driver>
                     
 
-        <driver name="SvtDigitizationWithPulserDataMergingDriver" type="org.hps.digi.SvtDigitizationWithPulserDataMergingReadoutDriver">
+        <driver name="SvtDigitizationWithPulserDataMergingDriver" type="org.hps.digi.nospacing.SvtDigiWithPulserNoSpacingReadoutDriver">
           <pulserDataCollectionName>PulserDataSVTRawTrackerHits</pulserDataCollectionName>
             <enablePileupCut>false</enablePileupCut>
             <useTimingConditions>true</useTimingConditions>
+	    <readoutLatency>0.0</readoutLatency>
             <addNoise>true</addNoise>
         </driver>
 
 
         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
-            <readoutWindow>200</readoutWindow>
-            <outputFile>${outputFile}.slcio</outputFile>
+	  <effectiveBunches>250</effectiveBunches>
+	  <zeroBuffer>true</zeroBuffer>
+          <readoutWindow>200</readoutWindow>
+          <outputFile>${outputFile}.slcio</outputFile>
         </driver>
-      
+
+<!--	<driver name="InsertEmptyBunches" type="org.hps.digi.nospacing.EmptyEventsDriver"/> -->
+<!--	<driver name="InsertEmptyBunchesReadout" type="org.hps.digi.nospacing.EmptyEventsReadoutDriver"/> -->
+	
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />
     </drivers>
 </lcsim>
