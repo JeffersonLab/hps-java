@@ -10,6 +10,7 @@ class Measurement { //
     double x; // X of the center of the strip in the detector frame
     double sigma; // Measurement uncertainty
     double time;  // Time of the hit in ns
+    double timeErr; // Standard deviation of time measurement.
     double energy; // Energy deposited in the silicon
     double vTrue; // MC truth measurement value
     Vec rGlobal; // Global MC truth
