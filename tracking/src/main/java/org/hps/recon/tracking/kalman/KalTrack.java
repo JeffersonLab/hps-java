@@ -19,6 +19,8 @@ import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
 import org.ejml.interfaces.linsol.LinearSolverDense;
 import org.hps.util.Pair;
 
+import org.lcsim.event.TrackerHit;
+
 /**
  * Track followed and fitted by the Kalman filter
  */
@@ -138,6 +140,7 @@ public class KalTrack {
         Cp = null;
         // Fill the maps
         time = 0.;
+	double terr = 0.0;
         tMin = 9.9e9;
         tMax = -9.9e9;
         this.chi2 = 0.;
@@ -150,7 +153,9 @@ public class KalTrack {
                 continue;
             }
             nHits++;
-            time += site.m.hits.get(site.hitID).time;
+	    double hTV = site.m.hits.get(site.hitID).timeErr;
+            time += site.m.hits.get(site.hitID).time/hTV;
+	    terr += 1.0/hTV;
             tMin = Math.min(tMin, site.m.hits.get(site.hitID).time);
             tMax = Math.max(tMax, site.m.hits.get(site.hitID).time);
             this.chi2 += site.chi2inc;
@@ -158,7 +163,7 @@ public class KalTrack {
                 System.out.format("  Layer %d, chi^2 increment=%10.5f, a=%s\n", site.m.Layer, site.chi2inc, site.aS.helix.a.toString());
             }
         }
-        time = time / (double) nHits;
+        time = time / terr;
         reducedChi2 = chi2 / (double) nHits;
         lyrMap = null;
         millipedeMap = null;
