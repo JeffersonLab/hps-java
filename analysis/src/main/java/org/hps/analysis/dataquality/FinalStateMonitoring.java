@@ -41,8 +41,6 @@ public class FinalStateMonitoring extends DataQualityMonitor {
 
     private static Logger LOGGER = Logger.getLogger(FinalStateMonitoring.class.getPackage().getName());
 
-    String finalStateParticlesColName = "FinalStateParticles";
-
     String[] fpQuantNames = {"nEle_per_Event", "nPos_per_Event", "nPhoton_per_Event", "nUnAssociatedTracks_per_Event",
         "avg_delX_at_ECal", "avg_delY_at_ECal", "avg_E_Over_P", "avg_mom_beam_elec", "sig_mom_beam_elec"};
     // some counters
@@ -92,22 +90,20 @@ public class FinalStateMonitoring extends DataQualityMonitor {
     /* number of unassocaited tracks/event */
     IHistogram1D nUnAssTracksHisto;
 
-    public void setFinalStateParticlesColName(String fsp) {
-        this.finalStateParticlesColName = fsp;
-    }
-
     @Override
     protected void detectorChanged(Detector detector) {
         super.detectorChanged(detector);
         double maxFactor = 1.5;
         double feeMomentumCut = 0.75; // this number, multiplied by the beam energy, is the actual cut
-        beamEnergy = 4.5;
-        System.out.println("Using beamEnergy = " + beamEnergy);
+	System.out.println(this.getClass().getName()+":: setting beamEnergy = "+beamEnergy);
         LOGGER.info("Setting up the plotter");
         aida.tree().cd("/");
         String trkType = "SeedTrack/";
         if (isGBL)
             trkType = "GBLTrack/";
+	if (isKF)
+	    trkType = "KFTrack/";
+
 
         /* Final State Particle Quantities */
  /* plot electron & positron momentum separately */
@@ -247,12 +243,6 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 if (fsCluster == null)
                     throw new RuntimeException("isPhoton==true but no cluster found: should never happen");
                 double ene = fsPart.getEnergy();
-                // TODO: mg-May 14, 2014....I would like to do this!!!!
-                // double xpos = fsCluster.getPositionAtShowerMax(false)[0];// false-->assume a photon instead of
-                // electron from calculating shower depth
-                // double ypos = fsCluster.getPositionAtShowerMax(false)[1];
-                // but I can't because ReconParticles don't know about HPSEcalClusters, and casting it as one doesn't
-                // seem to work
                 Hep3Vector clusterPosition = new BasicHep3Vector(fsCluster.getPosition());
                 double xpos = clusterPosition.x();
                 double ypos = clusterPosition.y();
@@ -271,9 +261,9 @@ public class FinalStateMonitoring extends DataQualityMonitor {
                 double ene = fsPart.getEnergy();
                 double eOverP = ene / mom.magnitude();
                 Hep3Vector clusterPosition = new BasicHep3Vector(fsCluster.getPosition());// this gets position at
-                // shower max assuming it's an
-                // electron/positron
-                Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(fsTrack, clusterPosition.z());
+		//get this from stored track state...don't do extrapolation by hand (commented out below)
+		Hep3Vector trackPosAtEcal=new BasicHep3Vector(TrackUtils.getTrackStateAtECal(fsTrack).getReferencePoint()); 
+		//                Hep3Vector trackPosAtEcal = TrackUtils.extrapolateTrack(fsTrack, clusterPosition.z());
                 double dx = trackPosAtEcal.x() - clusterPosition.x();// remember track vs detector coords
                 double dy = trackPosAtEcal.y() - clusterPosition.y();// remember track vs detector coords
 

@@ -48,13 +48,21 @@ public class DataQualityMonitor extends Driver {
     protected boolean debug = false;
     protected boolean outputPlots = false;
     protected String outputPlotDir = "DQMOutputPlots/";
-
+    //define all of the collection strings here so the the variable names are all consistent
+    //makes it easier to do steering for multiple drivers. 
+    protected String finalStateParticlesColName = "FinalStateParticles";
+    protected String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
+    protected String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
+    protected String targetConV0CandidatesColName = "TargetConstrainedV0Candidates";
+    
     @Override
     protected void detectorChanged(Detector detector) {
         BeamEnergyCollection beamEnergyCollection = this.getConditionsManager()
                 .getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
-        if (beamEnergy == null && beamEnergyCollection != null && beamEnergyCollection.size() != 0)
+        if (beamEnergy == null && beamEnergyCollection != null && beamEnergyCollection.size() != 0){
             beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+	    System.out.println(this.getClass().getName()+":: setting beamEnergy = "+beamEnergy); 
+	}
         else {
             LOGGER.log(Level.WARNING, "warning:  beam energy not found.  Using a 6.6 GeV as the default energy");
             beamEnergy = 6.6;
@@ -63,15 +71,35 @@ public class DataQualityMonitor extends Driver {
         is2019Run = DatabaseConditionsManager.isPhys2019Run(this.getConditionsManager().getRun());
     }
 
+    public void setFinalStateParticlesColName(String fspColName){
+	finalStateParticlesColName=fspColName;
+    }
+
+    public void setUnconstrainedV0CandidatesColName(String ucV0ColName){
+	unconstrainedV0CandidatesColName=ucV0ColName; 
+    }
+
+    public void setBeamConV0CandidatesColName(String bscV0ColName){
+       beamConV0CandidatesColName=bscV0ColName; 	
+    }
+
+    public void setTargetConV0CandidatesColName(String tcV0ColName){
+	targetConV0CandidatesColName=tcV0ColName; 
+    }
+
     String triggerType = "all";// allowed types are "" (blank) or "all", singles0, singles1, pairs0,pairs1
     public boolean isGBL = false;
-
+    public boolean isKF = false;
+    
     public void setTriggerType(String type) {
         this.triggerType = type;
     }
 
     public void setIsGBL(boolean isgbl) {
         this.isGBL = isgbl;
+    }
+    public void setIsKF(boolean iskf) {
+        this.isKF = iskf;
     }
 
     public void setRecoVersion(String recoVersion) {
