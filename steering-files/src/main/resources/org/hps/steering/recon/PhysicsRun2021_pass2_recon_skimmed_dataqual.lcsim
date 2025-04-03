@@ -30,11 +30,21 @@
         <driver name="TrackerHitDriver"/>
         <driver name="KalmanPatRecDriver"/>
         <driver name="ReconParticleDriver_Kalman" /> 
-        
+
+        <!--  DQM   -->
+        <!-- Following are optional Analysis Drivers  -->        
+        <driver name="EcalMonitoring"/>  
+        <driver name="SVTMonitoring"/>
+        <driver name="TrackingMonitoring"/>  
+        <driver name="FinalStateMonitoring"/>          
+        <driver name="V0Monitoring"/>          
+        <driver name="TridentMonitoring"/>
+	
         <!-- Event filtering --> 
         <driver name="StripEvent"/>
 
         <driver name="LCIOWriter"/>
+	<driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
 
     </execute>    
@@ -176,7 +186,46 @@
 	    <skimMoller>false</skimMoller>
 	    <v0ParamFile>v0skim_parameters_ver1.txt</v0ParamFile>  
 	    <v0OutputFile>${outputFile}_v0skim.slcio</v0OutputFile>
-         </driver>
+        </driver>
+
+
+	<driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">         
+            <triggerType>all</triggerType>
+            <clusterCollectionName>EcalClustersCorr</clusterCollectionName>
+            <fillHitPlots>false</fillHitPlots>
+        </driver>
+        <driver name="SVTMonitoring" type="org.hps.analysis.dataquality.SvtMonitoring">         
+            <triggerType>all</triggerType>
+        </driver>      
+        <driver name="TrackingMonitoring" type="org.hps.analysis.dataquality.KFTrackingMonitoring">
+            <triggerType>all</triggerType>
+            <trackCollectionName>KalmanFullTracks</trackCollectionName>
+        </driver>     
+        <driver name="FinalStateMonitoring" type="org.hps.analysis.dataquality.FinalStateMonitoring">
+	  <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+	  <triggerType>all</triggerType>
+          <isKF>true</isKF>
+        </driver>
+        <driver name="V0Monitoring" type="org.hps.analysis.dataquality.V0Monitoring">
+          <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+	  <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+          <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+          <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+	  <triggerType>all</triggerType>	  
+          <isKF>true</isKF>
+        </driver>
+        <driver name="TridentMonitoring" type="org.hps.analysis.dataquality.TridentMonitoring">
+          <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+	  <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+          <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+          <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+	  <triggerType>all</triggerType>
+          <isKF>true</isKF>
+        </driver>
+	<driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}_data_quality_plots.root</outputFileName>
+        </driver>
+	
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
                 <ignoreCollections>FPGAData HelicalTrackHitRelations HelicalTrackHits HelicalTrackMCRelations KFGBLStripClusterData KFGBLStripClusterDataRelations ReadoutTimestamps RotatedHelicalTrackHitRelations RotatedHelicalTrackHits RotatedHelicalTrackMCRelations SVTFittedRawTrackerHits SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D SVTRawTrackerHits FADCGenericHits HodoReadoutHits HodoCalHits EcalReadoutHits EcalUncalHits HodoGenericClusters VTPBank EcalClusters</ignoreCollections>
