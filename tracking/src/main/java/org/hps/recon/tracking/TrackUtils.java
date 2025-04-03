@@ -1539,18 +1539,26 @@ public class TrackUtils {
 
     public static double getTrackTime(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         double meanTime = 0;
-        List<TrackerHit> stripHits = getStripHits(track, hitToStrips, hitToRotated);
+	List<TrackerHit> stripHits=new ArrayList<TrackerHit>();
+	//	if(hitToStrips == null || hitToRotated == null)
+	//    stripHits= track.getTrackerHits();
+	//else
+	stripHits = getStripHits(track, hitToStrips, hitToRotated);
+
         for (TrackerHit hit : stripHits) {
             meanTime += hit.getTime();
         }
         meanTime /= stripHits.size();
         return meanTime;
-    }
+    }   
 
     public static double getTrackTimeSD(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
         double meanTime = getTrackTime(track, hitToStrips, hitToRotated);
-        List<TrackerHit> stripHits = getStripHits(track, hitToStrips, hitToRotated);
-
+	List<TrackerHit> stripHits=new ArrayList<TrackerHit>();
+	//	if(hitToStrips == null || hitToRotated == null)
+	//    stripHits= track.getTrackerHits();
+	//else
+	stripHits = getStripHits(track, hitToStrips, hitToRotated);
         double sdTime = 0;
         for (TrackerHit hit : stripHits) {
             sdTime += Math.pow(meanTime - hit.getTime(), 2);
@@ -1561,13 +1569,17 @@ public class TrackUtils {
     }
 
     public static List<TrackerHit> getStripHits(Track track, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-        List<TrackerHit> hits = new ArrayList<TrackerHit>();
-        for (TrackerHit hit : track.getTrackerHits()) {
-            hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
-        }
+	List<TrackerHit> hits = new ArrayList<TrackerHit>();
+	if(hitToStrips == null || hitToRotated == null)
+	    hits=track.getTrackerHits(); 
+	else
+	    for (TrackerHit hit : track.getTrackerHits())
+		hits.addAll(hitToStrips.allFrom(hitToRotated.from(hit)));
+	    
                 
         return hits;
     }
+
 
     public static List<TrackerHit> sortHits(Collection<TrackerHit> hits) {
         List<TrackerHit> hitList = new ArrayList<TrackerHit>(hits);
@@ -1593,14 +1605,20 @@ public class TrackUtils {
      * @return
      */
     public static int numberOfSharedStrips(Track track1, Track track2, RelationalTable hitToStrips, RelationalTable hitToRotated) {
-        Set<TrackerHit> track1hits = new HashSet<TrackerHit>(getStripHits(track1, hitToStrips, hitToRotated));
-        int nShared = 0;
-        for (TrackerHit hit : track2.getTrackerHits()) {
-            for (TrackerHit hts : (Set<TrackerHit>) hitToStrips.allFrom(hitToRotated.from(hit))) {
-                if (track1hits.contains(hts)) {
-                    nShared++;
-                }
-            }
+        Set<TrackerHit> track1hits =null;
+        Set<TrackerHit> track2hits =null;
+	//	if(hitToStrips == null || hitToRotated == null){  //this is a kalman track
+	//    track1hits = new HashSet<TrackerHit>(track1.getTrackerHits());
+	//    track2hits = new HashSet<TrackerHit>(track2.getTrackerHits());
+	//} else {
+	track1hits=new HashSet<TrackerHit>(getStripHits(track1, hitToStrips, hitToRotated));
+	track2hits=new HashSet<TrackerHit>(getStripHits(track2, hitToStrips, hitToRotated));
+	    //}
+	int nShared = 0;
+        for (TrackerHit hit : track2hits) {           
+	    if (track1hits.contains(hit)) {
+		nShared++;
+	    }	    
         }
         return nShared;
     }
@@ -1622,7 +1640,7 @@ public class TrackUtils {
             return true;
         }
     }
-
+  
     public static int getLayer(TrackerHit strip) {
         if (strip == null) {
             System.out.println("Strip is null?????");

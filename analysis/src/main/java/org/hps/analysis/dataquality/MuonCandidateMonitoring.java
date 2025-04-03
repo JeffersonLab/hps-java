@@ -27,10 +27,6 @@ public class MuonCandidateMonitoring extends DataQualityMonitor {
 
     private static Logger LOGGER = Logger.getLogger(V0Monitoring.class.getPackage().getName());
 
-    private String finalStateParticlesColName = "FinalStateParticles";
-    private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
-    private String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
-    private String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
     private String clusterCollectionName = "EcalClustersCorr";
 
     private int nRecoEvents = 0;

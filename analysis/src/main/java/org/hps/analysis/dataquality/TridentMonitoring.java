@@ -86,11 +86,7 @@ public class TridentMonitoring extends DataQualityMonitor {
     private static final int TRIDENT = 0;
     private static final int VERTEX = 1;
 
-    private final String finalStateParticlesColName = "FinalStateParticles";
-    private final String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
-    // private final String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
-    // private final String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
-    // private final String trackListName = "MatchedTracks";
+   
     private final String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy",
         "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
 
@@ -219,14 +215,15 @@ public class TridentMonitoring extends DataQualityMonitor {
     private final IHistogram2D[][] cutVertexZVsMass = new IHistogram2D[Cut.nCuts][2];
 
     private final double plotsMinMass = 0.01;
-    private final double plotsMaxMass = 0.1;
+    private final double plotsMaxMass = 0.3;
 
     // clean up event first
-    private final int nTrkMax = 5;
-    private final int nPosMax = 1;
+    private final int nTrkMax = 10;
+    private final int nPosMax = 5;
 
     private final double maxChi2SeedTrack = 7.0;
     private double maxChi2GBLTrack = 100.0;
+    private double maxChi2KFTrack = 100.0;
     private double maxUnconVertChi2 = 100.0;
     private double maxBsconVertChi2 = 1000.0; // disable by default
 
@@ -251,12 +248,12 @@ public class TridentMonitoring extends DataQualityMonitor {
     private double v0BsconVxCut = 20.0; // disable by default
 
     // track quality cuts
-    private final double beamPCut = 1.0;
+    private final double beamPCut = 1.0;//times the beam energy
     private final double minPCut = 0.1;
     // private double trkPyMax = 0.2;
     // private double trkPxMax = 0.2;
     private final double radCut = 0.6;
-    private final double trkTimeDiff = 10.0;
+    private final double trkTimeDiff = 20.0;
     private final double clusterTimeDiffCut = 5.0;
 
     private double l1IsoMin = 0.250;
@@ -328,7 +325,7 @@ public class TridentMonitoring extends DataQualityMonitor {
     protected void detectorChanged(Detector detector) {
         super.detectorChanged(detector);
         /* tab */
-        LOGGER.info("TridendMonitoring::detectorChanged  Setting up the plotter");
+        LOGGER.info("TridentMonitoring::detectorChanged  Setting up the plotter");
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
         beamEnergy = 4.5;
         aida.tree().cd("/");
@@ -689,7 +686,7 @@ public class TridentMonitoring extends DataQualityMonitor {
                 stdDev += Math.pow(time - mean, 2);
             stdDev /= (hitTimes.size() - 1);
             stdDev = Math.sqrt(stdDev);
-
+	    /*
             Double[] eleIso = TrackUtils.getIsolations(eleTrack, hitToStrips, hitToRotated);
             Double[] posIso = TrackUtils.getIsolations(posTrack, hitToStrips, hitToRotated);
             double minPositiveIso = 9999;
@@ -734,7 +731,7 @@ public class TridentMonitoring extends DataQualityMonitor {
                 }
 
             double minIso = Math.min(Math.abs(minPositiveIso), Math.abs(minNegativeIso));
-
+	    */
             double tEle = TrackUtils.getTrackTime(eleTrack, hitToStrips, hitToRotated);
             double tPos = TrackUtils.getTrackTime(posTrack, hitToStrips, hitToRotated);
 
@@ -770,8 +767,10 @@ public class TridentMonitoring extends DataQualityMonitor {
             // start applying cuts
             EnumSet<Cut> bits = EnumSet.noneOf(Cut.class);
 //            System.out.println("Starting to apply cuts");
+//            boolean trackQualityCut = Math.max(electron.getTracks().get(0).getChi2(), positron.getTracks().get(0)
+//                    .getChi2()) < (isGBL ? maxChi2GBLTrack : maxChi2SeedTrack);
             boolean trackQualityCut = Math.max(electron.getTracks().get(0).getChi2(), positron.getTracks().get(0)
-                    .getChi2()) < (isGBL ? maxChi2GBLTrack : maxChi2SeedTrack);
+					       .getChi2()) <  maxChi2KFTrack;
 //            System.out.println("Track quality cuts: " + trackQualityCut);
             if (trackQualityCut)
                 bits.add(Cut.TRK_QUALITY);
@@ -837,11 +836,13 @@ public class TridentMonitoring extends DataQualityMonitor {
 //            System.out.println("frontHitsCut: "+frontHitsCut);
             if (frontHitsCut)
                 bits.add(Cut.FRONT_HITS);
-            boolean isoCut = minIso > l1IsoMin;
+	    //            boolean isoCut = minIso > l1IsoMin;
 //            System.out.println("isoCut: "+isoCut);
-            if (!frontHitsCut || isoCut) // diagnostic plots look better if failing the front hits cut makes you pass
+//            if (!frontHitsCut || isoCut) // diagnostic plots look better if failing the front hits cut makes you pass
 //                // this one
-                bits.add(Cut.ISOLATION);
+	    boolean isoCut=true;
+	    if(isoCut)
+		bits.add(Cut.ISOLATION);
             for (Cut cut : Cut.values())
                 if (bits.contains(cut)) {
 //                    if (cut.ordinal() == Cut.firstVertexingCut)// if we get here, we've passed all non-vertexing cuts
@@ -858,10 +859,10 @@ public class TridentMonitoring extends DataQualityMonitor {
 //                            && uncV0.getMomentum().magnitude() > radCut * beamEnergy)
                     if (1 == 1)
                         switch (cut) {
-                            case ISOLATION:
-                                l1Iso.fill(minIso);
-                                zVsL1Iso.fill(minIso, v0Vtx.z());
-                                break;
+			    //                            case ISOLATION:
+                            //    l1Iso.fill(minIso);
+                            //    zVsL1Iso.fill(minIso, v0Vtx.z());
+                            //    break;
                             case EVENT_QUALITY:
                                 eventTrkCount.fill(ntrk);
                                 eventPosCount.fill(npos);
@@ -1072,14 +1073,14 @@ public class TridentMonitoring extends DataQualityMonitor {
     @Override
     // TODO: Change from System.out to use logger instead.
     public void printDQMData() {
-        System.out.println("TridendMonitoring::printDQMData");
+        System.out.println("TridentMonitoring::printDQMData");
         for (Entry<String, Double> entry : monitoredQuantityMap.entrySet())
             System.out.println(entry.getKey() + " = " + entry.getValue());
         System.out.println("*******************************");
 
-        System.out.println("TridendMonitoring::Tridend Selection Summary: " + (isGBL ? "GBLTrack" : "SeedTrack"));
+        System.out.println("TridentMonitoring::Trident Selection Summary: " + (isGBL ? "GBLTrack" : (isKF ? "KalmanTrack" : "SeedTrack")));
 
-        System.out.println("\t\t\tTridend Selection Summary");
+        System.out.println("\t\t\tTrident Selection Summary");
         System.out
                 .println("******************************************************************************************");
         System.out.println(String.format("Number of      V0:\t%8.0f\t%8.6f\t%8.6f\t%8.6f\n", nRecoV0,
