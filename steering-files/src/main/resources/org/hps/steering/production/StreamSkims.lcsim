@@ -17,6 +17,7 @@
         <!-- Driver to strip events -->
         <driver name="StripEvent"
                 type="org.hps.recon.skims.MultiSkimDriver">
+	  <ignoreCollections>FPGAData HelicalTrackHitRelations HelicalTrackHits HelicalTrackMCRelations KFGBLStripClusterData KFGBLStripClusterDataRelations ReadoutTimestamps RotatedHelicalTrackHitRelations RotatedHelicalTrackHits RotatedHelicalTrackMCRelations SVTFittedRawTrackerHits SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D SVTRawTrackerHits FADCGenericHits HodoReadoutHits HodoCalHits EcalReadoutHits EcalUncalHits HodoGenericClusters VTPBank EcalClusters</ignoreCollections>
 	  <skimV0>true</skimV0>
 	  <skimThreeBody>false</skimThreeBody>
 	  <skimFEE>false</skimFEE>

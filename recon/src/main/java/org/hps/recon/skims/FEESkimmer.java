@@ -1,5 +1,7 @@
 package org.hps.recon.skims;
 
+import java.util.Set; 
+
 import org.lcsim.event.EventHeader;
 
 
@@ -31,5 +33,7 @@ public class FEESkimmer extends Skimmer {
 	super(file, null); 
 	//        this(super.addFileExtension(file), null);
     }
-
+    public FEESkimmer(String file, Set<String> ignore) {
+	super(file, ignore); 
+    }
 }

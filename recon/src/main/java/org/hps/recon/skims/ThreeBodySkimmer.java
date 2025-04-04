@@ -1,5 +1,7 @@
 package org.hps.recon.skims;
 
+import java.util.Set; 
+
 import org.lcsim.event.EventHeader;
 
 
@@ -30,5 +32,7 @@ public class ThreeBodySkimmer extends Skimmer {
     public ThreeBodySkimmer(String file) {
 	super(file, null); 
     }
-
+    public ThreeBodySkimmer(String file, Set<String> ignore) {
+	super(file, ignore); 
+    }
 }

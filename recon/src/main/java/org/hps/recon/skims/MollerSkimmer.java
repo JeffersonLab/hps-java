@@ -1,5 +1,7 @@
 package org.hps.recon.skims;
 
+import java.util.Set; 
+
 import org.lcsim.event.EventHeader;
 
 
@@ -32,5 +34,7 @@ public class MollerSkimmer extends Skimmer {
 	super(file, null); 
 	//        this(super.addFileExtension(file), null);
     }
-
+    public MollerSkimmer(String file, Set<String> ignore) {
+	super(file, ignore); 
+    }
 }

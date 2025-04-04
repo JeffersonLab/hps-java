@@ -17,7 +17,7 @@ import org.lcsim.geometry.Detector;
 public class MultiSkimDriver extends Driver {
 
     private static final Logger LOGGER = Logger.getLogger(MultiSkimDriver.class.getPackage().getName());
-    private Set<String> listIgnore = new HashSet<String>();
+    private Set<String> ignoreCollections = new HashSet<String>();
 
     //if this is true, an event will be written to each stream that it passes
     //if false, it will only go into the first stream it passes... so the ordering of the skim list matters.  
@@ -153,21 +153,19 @@ public class MultiSkimDriver extends Driver {
     private Skimmer setupSkimmer(String evtType, String outputFile, String paramFile){
 	Skimmer skm;
 	if(evtType.equals("v0"))
-	    skm=new V0Skimmer(outputFile);
+	    skm=new V0Skimmer(outputFile,ignoreCollections);
 	else if(evtType.equals("ThreeBody"))
-	    skm=new ThreeBodySkimmer(outputFile);
+	    skm=new ThreeBodySkimmer(outputFile,ignoreCollections);
 	else if(evtType.equals("FEE"))
-	    skm=new FEESkimmer(outputFile);
+	    skm=new FEESkimmer(outputFile,ignoreCollections);
 	else if(evtType.equals("Moller"))
-	    skm=new MollerSkimmer(outputFile);
+	    skm=new MollerSkimmer(outputFile,ignoreCollections);
 	else{
 	    System.out.println(this.getClass().getName()+":: in setupSkimmer:  invalid evtTrype = "+evtType);
 	    return null; 
 	}
 	if(!paramFile.equals("default"))
 	    skm.setParameters(paramFile);
-	if(listIgnore.size()>0)
-	    skm.setListIgnore(listIgnore); 
 	return skm;
 
 	
@@ -201,8 +199,8 @@ public class MultiSkimDriver extends Driver {
      public void setSkimMoller(boolean doSkim){
 	this.skimMoller=doSkim; 
      }
-     public void setIgnoreCollections(String[] ignoreCollections) {
-	 listIgnore.addAll(Arrays.asList(ignoreCollections));
+     public void setIgnoreCollections(String[] ignore) {
+	 ignoreCollections.addAll(Arrays.asList(ignore));
      }
      
 }
