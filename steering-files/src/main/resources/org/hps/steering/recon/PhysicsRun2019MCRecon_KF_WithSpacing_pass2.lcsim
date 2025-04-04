@@ -169,7 +169,7 @@
             <siHitsLimit> 466 </siHitsLimit>
             <seedCompThr> .725912 </seedCompThr>
             <!--numStrategyIter1></numStrategyIter1 tthe mxChi2Vtx was 1.0-->
-            <beamPositionZ> 0.0 </beamPositionZ>
+            <beamPositionZ> 0.9 </beamPositionZ>
             <beamSigmaZ> 0.02 </beamSigmaZ>
             <beamPositionX> 0.0 </beamPositionX>
             <beamSigmaX> 0.05 </beamSigmaX>
@@ -192,7 +192,7 @@
 	<driver name="KFOutputDriver" type="org.hps.recon.tracking.kalman.KFOutputDriver">
           <outputPlotsFilename>${outputFile}.root</outputPlotsFilename>
           <debug>false</debug>
-          <bsZ>0.0</bsZ>
+          <bsZ>0.9</bsZ>
           <!--<trackCollectionName>GBLTracks</trackCollectionName> --> 
           <trackCollectionName>KalmanFullTracks</trackCollectionName>
           <minMom>0.1</minMom>
