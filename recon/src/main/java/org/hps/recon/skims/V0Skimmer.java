@@ -2,6 +2,7 @@ package org.hps.recon.skims;
 import static java.lang.Math.abs;
 
 import java.util.List;
+import java.util.Set; 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -138,6 +139,9 @@ public class V0Skimmer extends Skimmer {
       
     public V0Skimmer(String file) {
 	super(file, null); 
+    }
+    public V0Skimmer(String file, Set<String> ignore) {
+	super(file, ignore); 
     }
 
     @Override
