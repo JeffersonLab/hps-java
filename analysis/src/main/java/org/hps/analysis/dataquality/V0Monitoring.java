@@ -41,10 +41,7 @@ public class V0Monitoring extends DataQualityMonitor {
 
     private static Logger LOGGER = Logger.getLogger(V0Monitoring.class.getPackage().getName());
 
-    private String finalStateParticlesColName = "FinalStateParticles";
-    private String unconstrainedV0CandidatesColName = "UnconstrainedV0Candidates";
-    private String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
-    private String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
+   
     private String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy", "avg_BSCon_Vz",
         "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
     // some counters
@@ -162,12 +159,7 @@ public class V0Monitoring extends DataQualityMonitor {
     @Override
     protected void detectorChanged(Detector detector) {
         super.detectorChanged(detector);
-                
-        BeamEnergyCollection beamEnergyCollection = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
-        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
-        
-        System.out.println("Using beamEnergy = " + beamEnergy);
-        
+                     
         feeMomentumCut = 0.75 * beamEnergy; // GeV
 
         v0ESumMinCut = 0.8 * beamEnergy;
@@ -178,6 +170,8 @@ public class V0Monitoring extends DataQualityMonitor {
         molPSumMax = 1.25 * beamEnergy;
         beambeamCut = 0.80 * beamEnergy;
 
+	double maxChi2=100.0;
+	
         beamAxisRotation.setActiveEuler(Math.PI / 2, -0.0305, -Math.PI / 2);
 
         LOGGER.info("Setting up the plotter");
@@ -186,6 +180,9 @@ public class V0Monitoring extends DataQualityMonitor {
         String trkType = "SeedTrack/";
         if (isGBL)
             trkType = "GBLTrack/";
+
+        if (isKF)
+            trkType = "KFTrack/";
 
         double maxMass = .1 * beamEnergy;
         double maxMassMoller = .1 * Math.sqrt(beamEnergy);
@@ -202,13 +199,13 @@ public class V0Monitoring extends DataQualityMonitor {
         unconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
                 + "Vz (mm)", 50, -50, 50);
         unconESum = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
-                + "ESum (GeV)", 50, 0.1 * beamEnergy, v0ESumMaxCut);
+                + "PSum (GeV)", 50, 0.1 * beamEnergy, v0ESumMaxCut);
         unconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
                 + "Chi2", 25, 0, 25);
         unconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName + "/"
                 + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
         unconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + unconstrainedV0CandidatesColName
-                + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
+                + "/" + "Chi2 vs. total track chi2", 50, 0, maxChi2, 50, 0, maxChi2);
         /* beamspot constrained */
         bsconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/"
                 + "Mass (GeV)", 100, 0, maxMass);
@@ -221,28 +218,28 @@ public class V0Monitoring extends DataQualityMonitor {
         bsconESum = aida.histogram1D(
                 plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "ESum (GeV)", 50, 0.1 * beamEnergy, v0ESumMaxCut);
         bsconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/" + "Chi2",
-                25, 0, 25);
+                50, 0, maxChi2);
         bsconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/"
-                + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
+                + "Vz vs. Chi2", 50, 0, maxChi2, 50, -50, 50);
         bsconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + beamConV0CandidatesColName + "/"
-                + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
+                + "Chi2 vs. total track chi2", 50, 0, maxChi2, 50, 0, maxChi2);
         /* target constrained */
-        tarconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+        tarconMass = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetConV0CandidatesColName + "/"
                 + "Mass (GeV)", 100, 0, maxMass);
-        tarconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+        tarconVx = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetConV0CandidatesColName + "/"
                 + "Vx (mm)", 50, -1, 1);
-        tarconVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+        tarconVy = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetConV0CandidatesColName + "/"
                 + "Vy (mm)", 50, -1, 1);
-        tarconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+        tarconVz = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetConV0CandidatesColName + "/"
                 + "Vz (mm)", 50, -10, 10);
-        tarconESum = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
+        tarconESum = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetConV0CandidatesColName + "/"
                 + "ESum (GeV)", 50, 0.1 * beamEnergy, v0ESumMaxCut);
-        tarconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
-                + "Chi2", 25, 0, 25);
-        tarconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName + "/"
-                + "Vz vs. Chi2", 25, 0, 25, 50, -50, 50);
-        tarconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetV0ConCandidatesColName
-                + "/" + "Chi2 vs. total track chi2", 50, 0, 50, 50, 0, 25);
+        tarconChi2 = aida.histogram1D(plotDir + trkType + triggerType + "/" + targetConV0CandidatesColName + "/"
+                + "Chi2", 50, 0, maxChi2);
+        tarconVzVsChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetConV0CandidatesColName + "/"
+                + "Vz vs. Chi2", 50, 0, maxChi2, 50, -50, 50);
+        tarconChi2VsTrkChi2 = aida.histogram2D(plotDir + trkType + triggerType + "/" + targetConV0CandidatesColName
+                + "/" + "Chi2 vs. total track chi2", 50, 0, maxChi2, 50, 0, maxChi2);
 
         nV0 = aida
                 .histogram1D(plotDir + trkType + triggerType + "/" + xtra + "/" + "Number of V0 per event", 10, 0, 10);
@@ -380,8 +377,8 @@ public class V0Monitoring extends DataQualityMonitor {
             throw new IllegalArgumentException("Collection missing: " + unconstrainedV0CandidatesColName);
         if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName))
             throw new IllegalArgumentException("Collection missing: " + beamConV0CandidatesColName);
-        if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName))
-            throw new IllegalArgumentException("Collection missing: " + targetV0ConCandidatesColName);
+        if (!event.hasCollection(ReconstructedParticle.class, targetConV0CandidatesColName))
+            throw new IllegalArgumentException("Collection missing: " + targetConV0CandidatesColName);
 
         // check to see if this event is from the correct trigger (or "all");
         if (!matchTrigger(event))
@@ -405,7 +402,7 @@ public class V0Monitoring extends DataQualityMonitor {
             unconVx.fill(vtxPosRot.x());
             unconVy.fill(vtxPosRot.y());
             unconVz.fill(vtxPosRot.z());
-            unconESum.fill(uncV0.getEnergy());
+            unconESum.fill(uncV0.getMomentum().magnitude());
             unconMass.fill(uncV0.getMass());
             unconChi2.fill(uncVert.getChi2());
             unconVzVsChi2.fill(uncVert.getChi2(), vtxPosRot.z());
@@ -453,6 +450,7 @@ public class V0Monitoring extends DataQualityMonitor {
                         Math.max(uncV0.getParticles().get(0).getTracks().get(0).getChi2(), uncV0.getParticles().get(1)
                                 .getTracks().get(0).getChi2()), uncVert.getPosition().z());
 
+		/*
                 Double[] eleIso = TrackUtils.getIsolations(ele.getTracks().get(0), hitToStrips, hitToRotated);
                 Double[] posIso = TrackUtils.getIsolations(pos.getTracks().get(0), hitToStrips, hitToRotated);
                 if (eleIso[0] != null && posIso[0] != null) {
@@ -461,7 +459,7 @@ public class V0Monitoring extends DataQualityMonitor {
                     double minL1Iso = Math.min(eleL1Iso, posL1Iso);
                     VtxZVsL1Iso.fill(minL1Iso, uncVert.getPosition().z());
                 }
-
+		*/
                 double pe = ele.getMomentum().magnitude();
                 double pp = pos.getMomentum().magnitude();
                 Hep3Vector pEleRot = VecOp.mult(beamAxisRotation, ele.getMomentum());
@@ -504,7 +502,7 @@ public class V0Monitoring extends DataQualityMonitor {
             bsconVx.fill(vtxPosRot.x());
             bsconVy.fill(vtxPosRot.y());
             bsconVz.fill(vtxPosRot.z());
-            bsconESum.fill(bsV0.getEnergy());
+            bsconESum.fill(bsV0.getMomentum().magnitude());
             bsconMass.fill(bsV0.getMass());
             bsconChi2.fill(bsVert.getChi2());
             bsconVzVsChi2.fill(bsVert.getChi2(), vtxPosRot.z());
@@ -519,7 +517,7 @@ public class V0Monitoring extends DataQualityMonitor {
         }
         nV0.fill(v0Count);
         List<ReconstructedParticle> targetConstrainedV0List = event.get(ReconstructedParticle.class,
-                targetV0ConCandidatesColName);
+                targetConV0CandidatesColName);
         for (ReconstructedParticle tarV0 : targetConstrainedV0List) {
 
             if (isGBL != TrackType.isGBL(tarV0.getType()))
@@ -530,7 +528,7 @@ public class V0Monitoring extends DataQualityMonitor {
             tarconVx.fill(vtxPosRot.x());
             tarconVy.fill(vtxPosRot.y());
             tarconVz.fill(vtxPosRot.z());
-            tarconESum.fill(tarV0.getEnergy());
+            tarconESum.fill(tarV0.getMomentum().magnitude());
             tarconMass.fill(tarV0.getMass());
             tarconChi2.fill(tarVert.getChi2());
             tarconVzVsChi2.fill(tarVert.getChi2(), vtxPosRot.z());
@@ -597,6 +595,7 @@ public class V0Monitoring extends DataQualityMonitor {
             }
 
             // look at "Moller" events (if that's what they really are
+	    /*
             if (ele1.getMomentum().magnitude() + ele2.getMomentum().magnitude() > molPSumMin
                     && ele1.getMomentum().magnitude() + ele2.getMomentum().magnitude() < molPSumMax
                     && (p1.magnitude() < beambeamCut && p2.magnitude() < beambeamCut)) {
@@ -647,6 +646,7 @@ public class V0Monitoring extends DataQualityMonitor {
                 pEleVsthetaMoller.fill(p2.magnitude(), theta2);
                 thetaEleVsthetaMoller.fill(theta1, theta2);
             }
+	    */
         }
     }
 

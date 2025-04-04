@@ -30,7 +30,7 @@ public class NearestNeighborRMSClusterer implements ClusteringAlgorithm {
     private double _timeWindow = 48; 
     private double _neighborDeltaT = Double.POSITIVE_INFINITY;
     private double _neighborDeltaTSigma = Double.POSITIVE_INFINITY;
-    private final double _minChiProb = Gamma.regularizedGammaQ(4, 20);
+    private final double _minChiProb = .01;//Gamma.regularizedGammaQ(4, 20);
     private double _doTimeError = 0.0;
     private boolean _doDeadFix = false;
     private boolean _doVSplit = false;

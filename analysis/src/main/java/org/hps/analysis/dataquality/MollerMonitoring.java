@@ -75,11 +75,6 @@ public class MollerMonitoring extends DataQualityMonitor {
     // "Isolation"};
     // private int firstVertexingCut = 0;
 
-    private final String finalStateParticlesColName = "FinalStateParticles";
-    private final String unconstrainedV0CandidatesColName = "UnconstrainedMollerCandidates";
-    // private final String beamConV0CandidatesColName = "BeamspotConstrainedV0Candidates";
-    // private final String targetV0ConCandidatesColName = "TargetConstrainedV0Candidates";
-    // private final String trackListName = "MatchedTracks";
     private final String[] fpQuantNames = {"nV0_per_Event", "avg_BSCon_mass", "avg_BSCon_Vx", "avg_BSCon_Vy",
             "avg_BSCon_Vz", "sig_BSCon_Vx", "sig_BSCon_Vy", "sig_BSCon_Vz", "avg_BSCon_Chi2"};
 
@@ -355,13 +350,6 @@ public class MollerMonitoring extends DataQualityMonitor {
         if (!event.hasCollection(ReconstructedParticle.class, unconstrainedV0CandidatesColName)) {
             return;
         }
-        // if (!event.hasCollection(ReconstructedParticle.class, beamConV0CandidatesColName)) {
-        // return;
-        // }
-        // if (!event.hasCollection(ReconstructedParticle.class, targetV0ConCandidatesColName)) {
-        // return;
-        // }
-
         // check to see if this event is from the correct trigger (or "all");
         if (!matchTrigger(event)) {
             return;

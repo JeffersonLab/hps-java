@@ -14,6 +14,7 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
     private int refitAttempts = 0;
     private int refitsAccepted = 0;
     private int doOldDT = 1;
+    private int runNum = 1000000;
     
     public ShaperPileupFitAlgorithm() {
     }
@@ -28,7 +29,10 @@ public class ShaperPileupFitAlgorithm implements ShaperFitAlgorithm {
         this.onePulseFitter.setFitTimeMinimizer(fitTimeMinimizer);
         this.twoPulseFitter.setFitTimeMinimizer(fitTimeMinimizer);
     }
-
+    @Override
+    public void setRunNum(int RunNum){
+        this.runNum=RunNum;
+    }
     //===> public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, HPSSVTCalibrationConstants.ChannelConstants constants) {
     public Collection<ShapeFitParameters> fitShape(RawTrackerHit rth, PulseShape shape) {
         Collection<ShapeFitParameters> fittedPulses = onePulseFitter.fitShape(rth, shape);

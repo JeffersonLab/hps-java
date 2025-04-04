@@ -12,6 +12,7 @@ public class DumbShaperFit implements ShaperFitAlgorithm {
 
     private boolean debug = false;
     private String fitTimeMinimizer = "Simplex";
+    private int runNum = 1000000;
 
     public DumbShaperFit() {
     }
@@ -20,6 +21,10 @@ public class DumbShaperFit implements ShaperFitAlgorithm {
         this.debug = debug;
     }
 
+    @Override
+    public void setRunNum(int RunNum){
+        this.runNum=RunNum;
+    }
     @Override
     public void setFitTimeMinimizer(String fitTimeMinimizer) {
         this.fitTimeMinimizer = fitTimeMinimizer;
