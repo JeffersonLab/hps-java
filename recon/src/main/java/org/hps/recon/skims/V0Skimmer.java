@@ -73,7 +73,7 @@ public class V0Skimmer extends Skimmer {
 		if(_debug)System.out.println(this.getClass().getName()+"::  failed nHitsMin "+electron.getTracks().get(0).getTrackerHits().size()+"  "+positron.getTracks().get(0).getTrackerHits().size()+" nHitsMin = "+_nHitsMin);
                 continue;
             }
-            if ((electron.getTracks().get(0).getChi2()/electron.getTracks().getNDF(0).ndf()) > _trackChi2Cut
+            if ((electron.getTracks().get(0).getChi2()/electron.getTracks().getNDF(0)) > _trackChi2Cut
                     || (positron.getTracks().get(0).getChi2()/positron.getTracks().get(0).getNDF()) > _trackChi2Cut) {
 		if(_debug)System.out.println(this.getClass().getName()+"::  failed track chi2");
                 continue;
