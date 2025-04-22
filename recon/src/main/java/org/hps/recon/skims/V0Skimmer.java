@@ -28,7 +28,7 @@ public class V0Skimmer extends Skimmer {
     //private double _clusterTimingCut = 20.0; // only used if _tight is true
     private double _posClusterEnergy =  0.2; //GeV
     private double _v0Chi2Cut = 100.0;
-    private double _trackChi2Cut = 80.0;
+    private double _trackChi2Cut = 30.0;
     private double _trackDtCut = 20.0; // the 2-track time difference
     private double _trackPMax = 4.5; //GeV
     private double _elePMax = 9999; //GeV
