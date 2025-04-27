@@ -364,7 +364,7 @@ public class RawTrackerHitFitterDriver extends Driver {
         }
 
         //ok, overwrite the run string for some individual funny runs
-        if(runNumber==10687 || runNumber==10711||runNumber==10713||runNumber==10714){
+        if(runNumber==10687 || runNumber==10711||runNumber==10713||runNumber==10714||runNumber==14210||runNumber==14232){
             runString=Integer.toString(runNumber);
         }
 
