@@ -2,7 +2,7 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
        xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @Readout steering file with 2019 single2 and single3 triggers for 2019 MC with pulser data as background.
+      @Readout steering file with pairs trigger for 2019 MC.
       @author <a href="mailto:caot@jlab.org">Tongtong Cao</a>
     -->
     <execute>
@@ -77,7 +77,8 @@
           -->
         <driver name="EcalHitsInputDriver" type="org.hps.readout.SimCalorimeterHitReadoutDriver">
             <collectionName>EcalHits</collectionName>
-            
+            <debug>false</debug>
+
             <!-- Units of ns. -->
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
@@ -95,7 +96,8 @@
 
         <driver name="HodoscopeHitsOutputDriver" type="org.hps.readout.SimTrackerHitReadoutDriver">
             <collectionName>HodoscopeHits</collectionName>
-            
+            <debug>false</debug>
+
             <!-- Units of ns. -->
             <readoutWindowBefore>8.0</readoutWindowBefore>
             <readoutWindowAfter>32.0</readoutWindowAfter>
@@ -179,15 +181,17 @@
             
             <!-- Driver Parameters -->
             <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
-            <addNoise>true</addNoise>
-            <debug>false</debug>
+<!--            <addNoise>true</addNoise> -->
+            <addNoise>false</addNoise>
+            <doNoSpacing>true</doNoSpacing>
+	    <debug>true</debug>
             <!-- 
                  Readout offset is not the same as the old system - it measures
                  amount of samples that are included before the trigger time in
                  the ADC readout window. The old version can be converted by
                  selecting a readout window equal to (readoutLatency - 64).
               -->
-            <readoutOffset>10</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+            <readoutOffset>55</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
             
             <!--
                 The digitization driver produces as output a list of ADC values
@@ -238,7 +242,10 @@
                 clusters will automatically be included if GTP clusters are
                 persisted.
             -->
+	    <checkAheadTime>192.</checkAheadTime>
+	    <doNoSpacing>true</doNoSpacing>
             <persistent>false</persistent>
+	    <debug>false</debug>
         </driver>
         
         <!--
@@ -259,7 +266,7 @@
         <driver name="GTPReadoutDriver" type="org.hps.readout.ecal.updated.GTPClusterReadoutDriver">
 
             <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>             
-            
+            <clusterWindow>48</clusterWindow> <!--  times 4ns  --> 
             <!--
                 Specifies whether GTP clusters should be persisted in the
                 output LCIO data. This should generally be false for production
@@ -268,6 +275,9 @@
                 after readout.
             -->
             <persistent>true</persistent>
+	    <checkAheadTime>192.</checkAheadTime>
+	    <doNoSpacing>true</doNoSpacing>
+	    <debug>false</debug>
         </driver>
 
         <!--
@@ -307,6 +317,7 @@
             <!-- Driver Parameters -->
             <mode>1</mode>                                  <!-- Allowed values: 1, 3, or 7. -->
             <addNoise>false</addNoise>
+            <doNoSpacing>true</doNoSpacing>
             
             <!-- 
                  Readout offset is not the same as the old system - it measures
@@ -314,7 +325,7 @@
                  the ADC readout window. The old version can be converted by
                  selecting a readout window equal to (readoutLatency - 64).
               -->
-            <readoutOffset>10</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
+            <readoutOffset>4</readoutOffset>               <!-- Units of 4 ns clock-cycles. -->
 
 	    <!--Factor for gain conversion from self-defined unit/ADC to
 	    MeV/ADC. -->            
@@ -340,6 +351,8 @@
                 level. Otherwise, this should be left off.
             -->
             <writeTriggerPathTruth>false</writeTriggerPathTruth>
+	    <debug>false</debug>
+	    <debugEnergyThresh>0.0001</debugEnergyThresh>
         </driver>
 
         <!--
@@ -353,7 +366,7 @@
 			-->
 			<inputCollectionName>HodoscopeRawHits</inputCollectionName>
 			<outputCollectionName>HodoscopeCorrectedHits</outputCollectionName>
-
+			<debug>false</debug>
             <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>   		
 
 	    <!--  
@@ -372,7 +385,12 @@
                 clusters will automatically be included if GTP clusters are
                 persisted.
             -->
+	    <checkAheadTime>192.</checkAheadTime>
+	    <doNoSpacing>true</doNoSpacing>
             <persistent>false</persistent>
+	    <debug>false</debug>
+	    
+	    
         </driver>
 
         <!--
@@ -389,22 +407,26 @@
 	  -->
 	  <inputCollectionName>HodoscopeCorrectedHits</inputCollectionName>
 	  <outputCollectionName>HodoscopePatterns</outputCollectionName>
-
-            <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>   
-	    <timeEarlierThanEcal>4.0</timeEarlierThanEcal> 
-	    <persistent>false</persistent>
+	  
+          <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>   
+	  
+	  <persistent>false</persistent>
+	  <doNoSpacing>true</doNoSpacing>
+<!--	  <debug>true</debug> -->
 	</driver>  
 
         
         <driver name="SinglesTrigger3" type="org.hps.readout.trigger2019.SinglesTrigger2019ReadoutDriver">
-            <inputCollectionNameEcal>EcalClustersGTP</inputCollectionNameEcal>
-
-            <inputCollectionNameHodo>HodoscopePatterns</inputCollectionNameHodo>
-
-            <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>   
-            
-            <!-- Units of 2 ns beam bunches. -->
-            <deadTime>15</deadTime>            
+          <inputCollectionNameEcal>EcalClustersGTP</inputCollectionNameEcal>
+	  
+          <inputCollectionNameHodo>HodoscopePatterns</inputCollectionNameHodo>
+	  
+          <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>   
+          
+          <!-- Units of 2 ns beam bunches. -->
+          <deadTime>0</deadTime>            
+          <doNoSpacing>true</doNoSpacing>
+<!--	  <debug>true</debug> -->
 
         </driver>
 
@@ -418,22 +440,31 @@
             <daqConfigurationAppliedintoReadout>true</daqConfigurationAppliedintoReadout>
 
             <!-- Units of 2 ns beam bunches. -->
-            <deadTime>15</deadTime>
+            <deadTime>0</deadTime>
+            <doNoSpacing>true</doNoSpacing>
+<!--	    <debug>true</debug> -->
 
         </driver>
                     
 
         <driver name="SvtDigitizationWithPulserDataMergingDriver" type="org.hps.digi.SvtDigitizationWithPulserDataMergingReadoutDriver">
           <pulserDataCollectionName>PulserDataSVTRawTrackerHits</pulserDataCollectionName>
-            <enablePileupCut>false</enablePileupCut>
-            <useTimingConditions>true</useTimingConditions>
-            <addNoise>true</addNoise>
+          <enablePileupCut>false</enablePileupCut>
+          <useTimingConditions>true</useTimingConditions>
+	  <debug>false</debug>
+<!--          <addNoise>true</addNoise>	   -->
+          <addNoise>false</addNoise>	  
+	  <readoutLatency>20.0</readoutLatency>
+	  <triggerOffset>24.0</triggerOffset> 
         </driver>
 
 
-        <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
-            <readoutWindow>200</readoutWindow>
-            <outputFile>${outputFile}.slcio</outputFile>
+         <driver name="ReadoutManagerDriver" type="org.hps.readout.ReadoutDataManager">
+          <effectiveBunches>250</effectiveBunches>
+          <zeroBuffer>true</zeroBuffer>
+          <readoutWindow>200</readoutWindow>
+          <outputFile>${outputFile}.slcio</outputFile>
+	  <debug>false</debug>
         </driver>
       
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver" />

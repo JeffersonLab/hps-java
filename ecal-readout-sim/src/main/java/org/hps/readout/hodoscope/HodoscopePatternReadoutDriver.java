@@ -145,11 +145,14 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
     }
 
     @Override
-    public void process(EventHeader event) {
-                             
+    public void process(EventHeader event) {	
+	if(doNoSpacing)
+	    localTime=ReadoutDataManager.getCurrentTime(); // just overwrite local time on every event
+	
         // Check the data management driver to determine whether the
         // input collection is available or not.
-        if (!ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + localTimeDisplacement)) {
+        if (!doNoSpacing && !ReadoutDataManager.checkCollectionStatus(inputCollectionName, localTime + localTimeDisplacement)) {
+	    if(debug)System.out.println(this.getClass().getName()+":: "+inputCollectionName+" doesn't exist at time = "+(localTime + localTimeDisplacement));
             return;
         }
 
@@ -162,7 +165,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
         Collection<CalorimeterHit> fadcHits = ReadoutDataManager.getData(
                 localTime - (persistentTime - timeEarlierThanEcal), localTime + timeEarlierThanEcal + 4.0,
                 inputCollectionName, CalorimeterHit.class);
-
+	if(debug)System.out.println(this.getClass().getName()+"::  number of fadcHits found = "+fadcHits.size());
         // Increment the local time.
         localTime += 4.0;
 
@@ -279,6 +282,7 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
         }
         
         // At leaset there is a hodo tilt/cluster hit in any layer, then the pattern list is added into data manager
+	if(flag == true && debug) if(debug)System.out.println(this.getClass().getName()+":: outputting "+outputCollectionName+" with size = "+hodoPatterns.size());
         if(flag == true) ReadoutDataManager.addData(outputCollectionName, hodoPatterns, HodoscopePattern.class);
     }
 
@@ -345,7 +349,10 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
 
     @Override
     protected double getTimeDisplacement() {
-        return localTimeDisplacement;
+	if(doNoSpacing)
+	    return 0;
+	else
+	    return localTimeDisplacement;
     }
 
     @Override
@@ -421,4 +428,5 @@ public class HodoscopePatternReadoutDriver extends ReadoutDriver {
     public void setGainFactor(double gainFactor) {
         this.gainFactor = gainFactor;
     }
+    
 }
