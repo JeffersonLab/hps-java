@@ -20,7 +20,7 @@ import org.ejml.interfaces.linsol.LinearSolverDense;
 import org.hps.util.Pair;
 
 import org.lcsim.event.TrackerHit;
-
+import java.lang.Math;
 /**
  * Track followed and fitted by the Kalman filter
  */
@@ -709,6 +709,39 @@ public class KalTrack {
             return 0.;
         }
         return arcLength[0];
+    }
+
+    public HelixState getHelixAtPlane(Plane xPlane){
+	HelixState helixAtPlane = null; 
+	MeasurementSite closeSite = null;
+	double delY = 66666.; // y-kalman == z-global
+	double planeY = xPlane.X().v[1];
+        for (MeasurementSite site : SiteList) {
+            SiModule m = site.m;
+	    // we want closest site to the requested xPlane
+	    if (Math.abs(planeY-m.p.X().v[1])<delY){
+		delY =Math.abs(planeY- m.p.X().v[1]);
+		closeSite = site;
+	    }
+        }
+
+	if(closeSite==null){
+	    System.out.println(this.getClass().getName()+"::getHelixAtPlane:  Couldn't find a site???");
+	}else{
+	    if(debug){
+		System.out.println(this.getClass().getName()+"::getHelixAtPlane:");
+		closeSite.print("closest measurement site");
+	    }		    
+	}
+	double[] arcL = new double[1];
+	helixAtPlane = closeSite.aS.helix.propagateRungeKutta(xPlane, yScat, XLscat, closeSite.m.Bfield, arcL);
+        if (debug) {
+            System.out.format("KalTrack::getHelixAtPlane: arc length to the first measurement = %9.4f\n", arcL[0]);
+        }
+	/*        if (covNaN()) {
+            return false;
+	    }*/	
+	return helixAtPlane; 
     }
 
     // Runge Kutta propagation of the helix to the origin

@@ -67,7 +67,7 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
-
+import org.hps.recon.tracking.BeamlineConstants; 
 /**
  *  This class provides an interface between hps-java and the Kalman Filter fitting and pattern recognition code.
  *  It can be used to refit the hits on an existing hps track, or it can be used to drive the pattern recognition.
@@ -107,7 +107,7 @@ public class KalmanInterface {
     private static final boolean debug = false;    
     static final double SVTcenter = 505.57;
     private static final double c = 2.99793e8; // Speed of light in m/s
-    
+    static double conFac= 1.0e12 / c;
     private int runNumber = 14168;
     
     public void setRunNumber(int runNumber){
@@ -254,7 +254,6 @@ public class KalmanInterface {
         kPat = new KalmanPatRecHPS(kPar);
         
         Vec centerB = KalmanInterface.getField(new Vec(0., SVTcenter, 0.), fM);
-        double conFac = 1.0e12 / c;
         alphaCenter = conFac/ centerB.mag();
     }
     
@@ -344,7 +343,8 @@ public class KalmanInterface {
     }
 
     // Create an HPS TrackState from a Kalman HelixState at the location of a particular SiModule
-    public TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
+    //    public TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed) {
+    public TrackState createTrackState(MeasurementSite ms, int loc, boolean useSmoothed, boolean pivotAtIntercept) {
         // Note that the helix parameters that get stored in the TrackState assume a B-field exactly oriented in the
         // z direction and a pivot point at the origin (0,0,0). The referencePoint of the TrackState is set to the
         // intersection point with the detector plane.
@@ -357,14 +357,26 @@ public class KalmanInterface {
             sv = ms.aF;
         }
 
-        return sv.helix.toTrackState(alphaCenter, ms.m.p, loc);
+	//        return sv.helix.toTrackState(alphaCenter, ms.m.p, loc);
+        return sv.helix.toTrackState(alphaCenter, ms.m.p, loc,pivotAtIntercept);
     }
 
+    public double[][] getCovarianceFromHelix(HelixState helix) {
+        double[][] M = new double[5][5];
+	
+        for (int i = 0; i < 5; ++i) {
+            for (int j = 0; j < 5; ++j) {
+		M[i][j] = helix.C.unsafe_get(i, j);
+            }
+        }
+        return M;
+    }
+    
     // Transform a Kalman helix to an HPS helix rotated to the global frame and with the pivot at the origin
     // Provide covHPS with 15 elements to get the covariance as well
     // Provide 3-vector position to get the location in HPS global coordinates of the original helix pivot
-    static double [] toHPShelix(HelixState helixState, Plane pln, double alphaCenter, double [] covHPS, double[] position) {
-        final boolean debug = false;
+    static double [] toHPShelix(HelixState helixState, Plane pln, double alphaCenter, double [] covHPS, double[] position, boolean pivotAtIntercept) {
+        final boolean debug = true;
         double phiInt = helixState.planeIntersect(pln);
         if (Double.isNaN(phiInt)) {
             Logger logger = Logger.getLogger(KalmanInterface.class.getName());
@@ -431,12 +443,15 @@ public class KalmanInterface {
         return KalmanInterface.getLCSimParams(finalHelixParams.v, alphaCenter);
     }
     
-    static TrackState toTrackState(HelixState helixState, Plane pln, double alphaCenter, int loc) {
+    //    static TrackState toTrackState(HelixState helixState, Plane pln, double alphaCenter, int loc) {
+    static TrackState toTrackState(HelixState helixState, Plane pln, double alpha, int loc, boolean pivotAtIntercept) {
         double [] covHPS = new double[15];
         double [] position = new double[3];
-        double [] helixHPS = KalmanInterface.toHPShelix(helixState, pln, alphaCenter, covHPS, position);
-                
-        return new BaseTrackState( helixHPS, covHPS, position, loc); 
+        double [] helixHPS = KalmanInterface.toHPShelix(helixState, pln, alpha, covHPS, position, pivotAtIntercept);
+	//position is filled in toHPShelix and used at hte reference in the track state
+	//        return new BaseTrackState( helixHPS, covHPS, position, loc);
+	double bLocal=conFac/alpha; 
+        return new BaseTrackState( helixHPS,  position, covHPS, loc, bLocal); 
     }
     
     public void printGBLStripClusterData(GBLStripClusterData clstr) {
@@ -575,19 +590,26 @@ public class KalmanInterface {
         // and make this trackstate's params the overall track params
         DMatrixRMaj globalCov = new DMatrixRMaj(kT.originCovariance());
         double[] globalParams = kT.originHelixParms();
+	Vec origin=kT.helixAtOrigin.origin;
         // To get the LCSIM curvature parameter, we want the curvature at the center of the SVT (more-or-less the
         // center of the magnet), so we need to use the magnetic field there to convert from 1/pt to curvature.
         // Field at the origin  => For 2016 this is ~ 0.430612 T
         // In the center of SVT => For 2016 this is ~ 0.52340 T
-        Vec Bfield = KalmanInterface.getField(new Vec(0., SVTcenter ,0.), kT.SiteList.get(0).m.Bfield);
+	//        Vec Bfield = KalmanInterface.getField(new Vec(0., SVTcenter ,0.), kT.SiteList.get(0).m.Bfield);
+        Vec Bfield = KalmanInterface.getField(origin , kT.SiteList.get(0).m.Bfield);
         double B = Bfield.mag();
-        double[] newParams = getLCSimParams(globalParams, alphaCenter);
-        double[] newCov = getLCSimCov(globalCov, alphaCenter).asPackedArray(true);
-        TrackState ts = new BaseTrackState(newParams, newCov, new double[]{0., 0., 0.}, TrackState.AtIP);
+	double alpha = conFac/ B;
+	//        double[] newParams = getLCSimParams(globalParams, alphaCenter);
+	double[] newParams = getLCSimParams(globalParams, alpha);
+	//        double[] newCov = getLCSimCov(globalCov, alphaCenter).asPackedArray(true);
+        double[] newCov = getLCSimCov(globalCov, alpha).asPackedArray(true);
+	double[] refD=new double[]{origin.v[0],origin.v[2],-origin.v[1]};
+        TrackState ts = new BaseTrackState(newParams, refD,newCov,  TrackState.AtIP);
         if (ts != null) {
             newTrack.getTrackStates().add(ts);                    
             newTrack.setTrackParameters(ts.getParameters(), B);
             newTrack.setCovarianceMatrix(new SymmetricMatrix(5, ts.getCovMatrix(), true));
+	    System.out.println("Track state at perigee :    " +ts.toString());
         }
         // Add the hits to the track
 	int firstHit_idx = -1;
@@ -640,15 +662,56 @@ public class KalmanInterface {
             */
                         
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
-                ts = createTrackState(site, loc, true);
+		//                ts = createTrackState(site, loc, true);
+                ts = createTrackState(site, loc, true,true);
                 if (ts != null) newTrack.getTrackStates().add(ts);
+		System.out.println(ts.toString());
             }
         }
-        
+
+	double zAtEcal = BeamlineConstants.ECAL_FACE;
+        if (4441 < runNumber && runNumber < 8100)
+            zAtEcal = BeamlineConstants.ECAL_FACE_ENGINEERING_RUNS;
+	Vec ecalFace=new Vec(0.,zAtEcal,0.); 
+	Plane ecalPlane = new Plane(ecalFace, new Vec(0., 1., 0.));
+	HelixState helixAtEcal=kT.getHelixAtPlane(ecalPlane);
+
+
+	// this is how createTrackState (above) goes from measurement to TrackState
+	// from the measurements.  It calls toHPShelix.
+	// the helix state here must already be propagated
+	/* helix.toTrackState(alphaCenter, ms.m.p, loc); */  
+
+	//	DMatrixRMaj ecalCov = new DMatrixRMaj(kT.ecalCovariance());
+	DMatrixRMaj ecalCov = new DMatrixRMaj(getCovarianceFromHelix(helixAtEcal));
+	//	double[] ecalParams = kT.ecalHelixParms();
+	double[] ecalParams = helixAtEcal.a.v.clone();
+	Vec  BfieldAtEcal = KalmanInterface.getField(helixAtEcal.origin, kT.SiteList.get(0).m.Bfield);
+	if(debug)System.out.println(this.getClass().getName()+":: helixAtOrigin origin position = "+helixAtEcal.origin.toString());
+        double BAtEcal = BfieldAtEcal.mag();
+        double alphaAtEcal = conFac/ BAtEcal;
+	if(debug)System.out.println(this.getClass().getName()+":: B = "+BAtEcal+"    alpha= "+alphaAtEcal);
+
+	TrackState ts_toTrackState=helixAtEcal.toTrackState(alphaAtEcal, ecalPlane, TrackState.AtCalorimeter, true);
+	
+	
+        double[] ecalLCSimParams = getLCSimParams(ecalParams, alphaAtEcal);
+        double[] ecalLCSimCov = getLCSimCov(ecalCov, alphaAtEcal).asPackedArray(true);
+	double[] refAtEcal = {helixAtEcal.origin.v[0],-helixAtEcal.origin.v[2],helixAtEcal.origin.v[1]};
+	TrackState ts_ecal_helix = new BaseTrackState(ecalLCSimParams,refAtEcal, ecalLCSimCov,  TrackState.AtCalorimeter, BAtEcal);
+	if(debug)System.out.println(this.getClass().getName()+":: Uncorrected track state:  curvature = "+ts_ecal_helix.getOmega()
+			   +"  bField = "+ts_ecal_helix.getBLocal()+"  momentum z = "+ts_ecal_helix.getMomentum()[0]);
+	System.out.println("Helix at ECal from kT.getHelixAtPlane and by hand conversions ");
+	System.out.println(ts_ecal_helix.toString());
+	newTrack.getTrackStates().add(ts_ecal_helix);
+
+	System.out.println("Helix at ECal from helix.toTrackState");
+	System.out.println(ts_toTrackState.toString());
+	
         // Extrapolate to the ECAL and make a new trackState there.
-        BaseTrackState ts_ecal = new BaseTrackState();
-        ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
-        newTrack.getTrackStates().add(ts_ecal);
+	//        BaseTrackState ts_ecal = new BaseTrackState();
+        //ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
+
 
         // Extrapolate to Target and make a new trackState there.
         BaseTrackState ts_target = new BaseTrackState();

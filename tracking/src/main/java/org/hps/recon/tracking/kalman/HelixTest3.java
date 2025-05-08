@@ -762,7 +762,7 @@ class HelixTest3 { // Program for testing the Kalman fitting code
                 else if (kF.sites.indexOf(site) == kF.sites.size()-1) {
                     loc = TrackState.AtLastHit;
                 }
-                TrackState ts = KI.createTrackState(site, loc, true);    
+                TrackState ts = KI.createTrackState(site, loc, true,true);    
                 states.add(ts);
             }
             TrackState lastState = null;

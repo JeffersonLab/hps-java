@@ -527,7 +527,9 @@ public class KalmanDriverHPS extends Driver {
                     System.out.format("     Null track state at sensor for this sensor\n");
                 continue;
             }
-            double[] mom = ((BaseTrackState) (tsAtSensor)).computeMomentum(bField);
+	    //MG--5/8/25  computeMomentum doesn't return bfield anymore...use getMomentum()
+	    //            double[] mom = ((BaseTrackState) (tsAtSensor)).computeMomentum(bField);
+            double[] mom = ((BaseTrackState) (tsAtSensor)).getMomentum();
             double[] momTransformed = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(mom)).v();
             Hep3Vector loc = TrackStateUtils.getLocationAtSensor(tsAtSensor, sensor, bField);
             if (loc == null)
