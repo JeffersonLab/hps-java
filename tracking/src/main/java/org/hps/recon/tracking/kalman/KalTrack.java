@@ -710,8 +710,8 @@ public class KalTrack {
         }
         return arcLength[0];
     }
-
-    public HelixState getHelixAtPlane(Plane xPlane){
+  
+    public HelixState getHelixAtPlane(Plane xPlane, boolean pivotAtIntersect){
 	HelixState helixAtPlane = null; 
 	MeasurementSite closeSite = null;
 	double delY = 66666.; // y-kalman == z-global
@@ -734,7 +734,7 @@ public class KalTrack {
 	    }		    
 	}
 	double[] arcL = new double[1];
-	helixAtPlane = closeSite.aS.helix.propagateRungeKutta(xPlane, yScat, XLscat, closeSite.m.Bfield, arcL);
+	helixAtPlane = closeSite.aS.helix.propagateRungeKutta(xPlane, yScat, XLscat, closeSite.m.Bfield, arcL, pivotAtIntersect);
         if (debug) {
             System.out.format("KalTrack::getHelixAtPlane: arc length to the first measurement = %9.4f\n", arcL[0]);
         }
@@ -1672,5 +1672,9 @@ public class KalTrack {
     @Override
     public int hashCode() {
         return nHits + 100 * ID;
+    }
+
+    public KalmanParams getKalPars(){
+	return kPar; 
     }
 }

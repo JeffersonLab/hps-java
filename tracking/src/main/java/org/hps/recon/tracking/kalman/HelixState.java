@@ -337,7 +337,7 @@ class HelixState implements Cloneable {
         // return value = helix state at the new pivot. These helix parameters are valid in the B-field coordinate system with
         //                origin at the pivot point and z axis in the direction of the B-field at the pivot.
         
-        final boolean debug = true;
+        final boolean debug = false;
         
         // Take the B-field reference frame to be at the position X of the plane. The returned helix will be in this frame.
         Vec B = KalmanInterface.getField(pln.X(), fM);
