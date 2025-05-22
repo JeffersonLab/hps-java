@@ -78,9 +78,9 @@ public class KFOutputDriver extends Driver {
     String hitFolder="/hit/";
     String eopFolder = "/EoP/";
     //    private boolean b_doKFkinks     = false;
-    private boolean b_doKFresiduals = true;
+    private boolean b_doKFresiduals = false;
     private boolean b_doDetailPlots  = false;
-    private boolean b_doRawHitPlots = true;
+    private boolean b_doRawHitPlots = false;
     private boolean b_doBig2DPlots = false;
     //The field map for extrapolation
     private FieldMap bFieldMap;
@@ -270,7 +270,9 @@ public class KFOutputDriver extends Driver {
                 if (particle.getTracks().isEmpty() || particle.getClusters().isEmpty())
                     continue;
 		Track track = particle.getTracks().get(0);
-		Cluster cluster = particle.getClusters().get(0);		
+		Cluster cluster = particle.getClusters().get(0);
+		if(debug)
+		    System.out.println(this.getClass().getName()+":: adding track and cluster to lists"); 
 		tracks.add(track);
 		TrackClusterPairs.put(track,cluster);
 	    }
@@ -284,7 +286,8 @@ public class KFOutputDriver extends Driver {
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
         
         for (Track trk : tracks) {
-	    	  
+	    if(debug) System.out.println(this.getClass().getName()+"::  track chi2 = "+trk.getChi2());
+	    if(debug) System.out.println(this.getClass().getName()+"::  track nHits = "+trk.getTrackerHits().size());
             if (trk.getChi2() > chi2Cut)
                 continue;
 
@@ -294,8 +297,11 @@ public class KFOutputDriver extends Driver {
 
 	    if(debug)
 		System.out.println("Track passed hits d0 = "+trk.getTrackStates().get(0).getD0());
-	    
-	    Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
+
+	    if(debug)System.out.println(this.getClass().getName()+":: local B field = "+trk.getTrackStates().get(0).getBLocal()); 
+	    //	    ((BaseTrackState)trk.getTrackStates().get(0)).computeMomentum(trk.getTrackStates().get(0).getBLocal()); 
+	    Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());	    
+	    if(debug) System.out.println(this.getClass().getName()+"::  track momentum = "+momentum.magnitude()); 
             if (momentum.magnitude() < minMom)
                 continue;
             
@@ -337,7 +343,7 @@ public class KFOutputDriver extends Driver {
 		    System.out.printf("TrackerHit null sensor %s \n", hit.toString());
 	    }
             _trkTimeSigma=getTrackTime(sensorHits);
-            doBasicKFtrack(trk,sensorHits);
+	    doBasicKFtrack(trk,sensorHits);
             if (b_doKFresiduals) 
                 doKFresiduals(trk, sensorHits,event);
             
