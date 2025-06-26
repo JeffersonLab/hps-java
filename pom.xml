@@ -82,6 +82,11 @@
       <url>https://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</url>
     </repository>
     <repository>
+      <id>github</id>
+      <name>GitHub JeffersonLab Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/jeffersonlab/hps-lcsim</url>
+    </repository>
+    <repository>
       <id>jlab-coda-repo-public</id>
       <name>CODA</name>
       <url>https://coda.jlab.org/maven/</url>
