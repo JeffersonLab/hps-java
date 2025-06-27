@@ -242,7 +242,7 @@ public class KalmanKinkFit {
             return nothing;
         }
         MeasurementSite site = innerTrack.sites.get(innerTrack.initialSite);
-        return KalmanInterface.toHPShelix(site.aS.helix, site.m.p, KI.alphaCenter, null, null);
+        return KalmanInterface.toHPShelix(site.aS.helix, site.m.p, KI.alphaCenter, null, null,false);
     }
     public double [] outerHelix() {   // returns a helix with pivot at the origin, in HPS format
         if (outerTrack == null) {
@@ -250,7 +250,7 @@ public class KalmanKinkFit {
             return nothing;
         }
         MeasurementSite site = outerTrack.sites.get(outerTrack.initialSite);
-        return KalmanInterface.toHPShelix(site.aS.helix, site.m.p, KI.alphaCenter, null, null);
+        return KalmanInterface.toHPShelix(site.aS.helix, site.m.p, KI.alphaCenter, null, null,false);
     }
     public double [] innerMomentum() {
         if (innerP == null) {
