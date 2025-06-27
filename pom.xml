@@ -22,7 +22,7 @@
     <lcsimVersion>4.4.0</lcsimVersion>
     <etVersion>14.1</etVersion>
     <evioVersion>4.4.6</evioVersion>
-    <junitVersion>4.13.1</junitVersion>
+    <junitVersion>4.13.2</junitVersion>
     <project.scm.id>github</project.scm.id>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
