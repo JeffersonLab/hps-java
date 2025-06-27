@@ -19,4 +19,4 @@ jobs:
 
       - name: Build and run tests
         run: |
-          mvn -B install -T4
+          mvn -B install #-T4
