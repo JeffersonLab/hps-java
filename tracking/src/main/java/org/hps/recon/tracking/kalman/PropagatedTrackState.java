@@ -209,7 +209,7 @@ public class PropagatedTrackState {
         }
         
         // Finally turn the HelixState into an HPS TrackState        
-        trackState = newHelixState.toTrackState(alphaCenter, destinationPlane, TrackState.AtOther);
+        trackState = newHelixState.toTrackState(alphaCenter, destinationPlane, TrackState.AtOther,false);
         if (debug) printTrackState(trackState,"final");
     }
     

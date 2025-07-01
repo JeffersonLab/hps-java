@@ -147,7 +147,7 @@ public class StarterAnalysisDriver extends Driver {
 
         for (Track track : tracklist) {   //remember, these tracks are in the lcsim tracking frame!     
             BaseTrackState ts = (BaseTrackState) track.getTrackStates().get(0);
-            ts.computeMomentum(bfield);
+            ts.computeMomentum();
             tkanalList.add(new LCIOTrackAnalysis(track, hittomc, hittostrip, hittorotated));
         }
         return tkanalList;
