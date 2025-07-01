@@ -16,7 +16,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 21
+          server-id: github
 
       - name: Build and run tests
         run: |
           mvn -B install #-T4
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
