@@ -214,9 +214,9 @@ public final class TrackTweakDriver extends Driver {
 
             // Extrapolate the tweaked track to the face of the Ecal and get the
             // track state
-            TrackState stateIP = TrackUtils.getTrackStateAtLocation(track, TrackState.AtIP);
+            TrackState stateIP = TrackUtils.getTrackStateAtLocation(track, TrackState.AtPerigee);
             if (stateIP == null) {
-                throw new RuntimeException("IP track state for GBL track was not found");
+                throw new RuntimeException("Perigee track state for GBL track was not found");
             }
             TrackState stateEcalIP = TrackUtils.extrapolateTrackUsingFieldMap(stateIP, extStartPos, ecalPosition, stepSize, bFieldMap);
 

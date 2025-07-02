@@ -1439,7 +1439,7 @@ public class KalmanInterface {
             TrackState ts1 = null;
             for (TrackState state : tkr.getTrackStates()) {
                 //System.out.format("Track state %d: location=%d\n", tkr.getTrackStates().indexOf(state), state.getLocation());
-                if (state.getLocation() == TrackState.AtIP) {
+                if (state.getLocation() == TrackState.AtPerigee) {
                     ts1 = state;
                     break;
                 }
@@ -1661,7 +1661,7 @@ public class KalmanInterface {
             printWriter3.format("$tkr%d << EOD\n", tracksGBL.indexOf(tkr));
             for (TrackState state : tkr.getTrackStates()) {
                 int loc = state.getLocation();
-                if (loc != state.AtIP && loc != state.AtCalorimeter && loc != state.AtOther && loc != state.AtVertex) {
+                if (loc != state.AtPerigee && loc != state.AtCalorimeter && loc != state.AtOther && loc != state.AtVertex) {
                     double [] pnt = state.getReferencePoint();
                     printWriter3.format(" %10.6f %10.6f %10.6f\n", pnt[0], pnt[2], -pnt[1]);
                 }

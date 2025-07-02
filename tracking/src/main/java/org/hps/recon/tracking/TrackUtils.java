@@ -1750,18 +1750,18 @@ public class TrackUtils {
      * .
      */
     public static BaseTrackState extrapolateTrackUsingFieldMap(Track track, double startPositionX, double endPositionX, double stepSize, FieldMap fieldMap) {
-        TrackState stateAtIP = null;
+        TrackState stateAtPerigee = null;
         for (TrackState state : track.getTrackStates()) {
-            if (state.getLocation() == TrackState.AtIP) {
-                stateAtIP = state;
+            if (state.getLocation() == TrackState.AtPerigee) {
+                stateAtPerigee = state;
             }
         }
-        if (stateAtIP == null) {
-            throw new RuntimeException("No track state at IP was found so this function shouldn't be used.");
+        if (stateAtPerigee == null) {
+            throw new RuntimeException("No track state at Perigee was found so this function shouldn't be used.");
         }
 
         // Extrapolate this track state
-        return extrapolateTrackUsingFieldMap(stateAtIP, startPositionX, endPositionX, stepSize, fieldMap);
+        return extrapolateTrackUsingFieldMap(stateAtPerigee, startPositionX, endPositionX, stepSize, fieldMap);
     }
 
     /**

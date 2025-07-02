@@ -515,7 +515,13 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // HPS Y => TRACK Z
         // HPS Z => TRACK X
 	//first get the field @ perigee reference from the first tracks state (doesn't matter which one)
-	double bLocal=(electron.getTracks().get(0)).getTrackStates().get(TrackState.AtPerigee).getBLocal(); 
+	double bLocal=(electron.getTracks().get(0)).getTrackStates().get(TrackState.AtPerigee).getBLocal();
+
+	// if we are using GBL tracks (trackType=0), set bLocal to bField (i.e. at SVT center)
+	if(trackType==0)
+	    bLocal=bField;
+
+	//set up vertexer with field
         BilliorVertexer vtxFitter = new BilliorVertexer(bLocal);
         // TODO: The beam size should come from the conditions database.
         vtxFitter.setBeamSize(beamSize);

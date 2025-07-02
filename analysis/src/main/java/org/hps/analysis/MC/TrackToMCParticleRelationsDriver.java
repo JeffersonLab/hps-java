@@ -137,7 +137,7 @@ public class TrackToMCParticleRelationsDriver extends Driver {
                     truth_trk.getTrackStates().clear();
                     double[] ref = new double[] { 0., 0., 0. };
                     SymmetricMatrix cov = new SymmetricMatrix(5);
-                    TrackState stateIP = new BaseTrackState(mcp_htf.parameters(),ref,cov.asPackedArray(true),TrackState.AtIP,bfield);
+                    TrackState stateIP = new BaseTrackState(mcp_htf.parameters(),ref,cov.asPackedArray(true),TrackState.AtPerigee,bfield);
                     truth_trk.getTrackStates().add(stateIP);
                     truth_trk.setChisq(-1);
                     truth_trk.setNDF(-1);
