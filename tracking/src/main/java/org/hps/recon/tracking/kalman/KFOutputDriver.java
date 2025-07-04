@@ -78,9 +78,10 @@ public class KFOutputDriver extends Driver {
     String hitFolder="/hit/";
     String eopFolder = "/EoP/";
     //    private boolean b_doKFkinks     = false;
-    private boolean b_doKFresiduals = true;
+    private boolean b_doKFresiduals = false;
     private boolean b_doDetailPlots  = false;
-    private boolean b_doRawHitPlots = true;
+    private boolean b_doRawHitPlots = false;
+    private boolean b_doBig2DPlots = false;
     //The field map for extrapolation
     private FieldMap bFieldMap;
 
@@ -263,10 +264,15 @@ public class KFOutputDriver extends Driver {
 	    particles = event.get(ReconstructedParticle.class, inputCollectionName);
 	    for (ReconstructedParticle particle : particles) {
 		//this requires track cluster match
+		if(debug)
+		    System.out.println(this.getClass().getName()+":: from ReconParticle found "+particle.getTracks().size()+" tracks and "+
+				       particle.getClusters().size()+" clusters "); 
                 if (particle.getTracks().isEmpty() || particle.getClusters().isEmpty())
                     continue;
 		Track track = particle.getTracks().get(0);
-		Cluster cluster = particle.getClusters().get(0);		
+		Cluster cluster = particle.getClusters().get(0);
+		if(debug)
+		    System.out.println(this.getClass().getName()+":: adding track and cluster to lists"); 
 		tracks.add(track);
 		TrackClusterPairs.put(track,cluster);
 	    }
@@ -280,7 +286,8 @@ public class KFOutputDriver extends Driver {
         RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
         
         for (Track trk : tracks) {
-	    	  
+	    if(debug) System.out.println(this.getClass().getName()+"::  track chi2 = "+trk.getChi2());
+	    if(debug) System.out.println(this.getClass().getName()+"::  track nHits = "+trk.getTrackerHits().size());
             if (trk.getChi2() > chi2Cut)
                 continue;
 
@@ -290,8 +297,11 @@ public class KFOutputDriver extends Driver {
 
 	    if(debug)
 		System.out.println("Track passed hits d0 = "+trk.getTrackStates().get(0).getD0());
-	    
-	    Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());
+
+	    if(debug)System.out.println(this.getClass().getName()+":: local B field = "+trk.getTrackStates().get(0).getBLocal()); 
+	    //	    ((BaseTrackState)trk.getTrackStates().get(0)).computeMomentum(trk.getTrackStates().get(0).getBLocal()); 
+	    Hep3Vector momentum = new BasicHep3Vector(trk.getTrackStates().get(0).getMomentum());	    
+	    if(debug) System.out.println(this.getClass().getName()+"::  track momentum = "+momentum.magnitude()); 
             if (momentum.magnitude() < minMom)
                 continue;
             
@@ -333,13 +343,10 @@ public class KFOutputDriver extends Driver {
 		    System.out.printf("TrackerHit null sensor %s \n", hit.toString());
 	    }
             _trkTimeSigma=getTrackTime(sensorHits);
-            doBasicKFtrack(trk,sensorHits);
+	    doBasicKFtrack(trk,sensorHits);
             if (b_doKFresiduals) 
                 doKFresiduals(trk, sensorHits,event);
             
-	    //            if (b_doGBLkinks)
-	    //     doGBLkinks(trk,gblKink, sensorNums);
-
 	    if (useParticles)
 		doEoPPlots(trk,TrackClusterPairs.get(trk));
 	    
@@ -372,15 +379,15 @@ public class KFOutputDriver extends Driver {
 	double trkCluTime=trackTime-cluster.getCalorimeterHits().get(0).getTime()-timeOffset;
 	aidaKF.histogram1D(trkpFolder+"trk-cluTime_"+charge+"_"+vol).fill(trkCluTime);
 	aidaKF.histogram1D(trkpFolder+"trk-cluTime_"+vol).fill(trkCluTime);
-		    
-
-	aidaKF.histogram2D(eopFolder+"EoP_vs_trackP_"+charge+"_"+vol).fill(trackp,eop);
-	aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_"+charge+"_"+vol).fill(tanL,eop);
-	aidaKF.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol).fill(phi,eop);
 	
-	aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda").fill(tanL,eop);
-	aidaKF.histogram2D(eopFolder+"EoP_vs_phi").fill(phi,eop);
-	//	aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi").fill(tanL,
+	    aidaKF.histogram2D(eopFolder+"EoP_vs_trackP_"+charge+"_"+vol).fill(trackp,eop);
+	    aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_"+charge+"_"+vol).fill(tanL,eop);
+	    aidaKF.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol).fill(phi,eop);
+	    
+	    aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda").fill(tanL,eop);
+	    aidaKF.histogram2D(eopFolder+"EoP_vs_phi").fill(phi,eop);
+
+	    //	aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi").fill(tanL,
 	//							   phi,
 	//							   eop);
 
@@ -389,17 +396,19 @@ public class KFOutputDriver extends Driver {
 	    
 	    aidaKF.histogram1D(eopFolder+"Ecluster_"+vol+"_fid").fill(energy);
 	    aidaKF.histogram1D(eopFolder+"EoP_"+vol+"_fid").fill(eop);
-	    aidaKF.histogram2D(eopFolder+"EoP_vs_phi_"+vol+"_fid").fill(phi,eop);
-	    aidaKF.histogram2D(eopFolder+"EoP_vs_trackP_"+vol+"_fid").fill(trackp,eop);
-	    aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_"+vol+"_fid").fill(tanL,eop);
+	    if(b_doBig2DPlots){
+		aidaKF.histogram2D(eopFolder+"EoP_vs_phi_"+vol+"_fid").fill(phi,eop);
+		aidaKF.histogram2D(eopFolder+"EoP_vs_trackP_"+vol+"_fid").fill(trackp,eop);
+		aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_"+vol+"_fid").fill(tanL,eop);
 	    
 
-	    aidaKF.histogram2D(eopFolder+"EoP_vs_trackP_"+charge+"_"+vol+"_fid").fill(trackp,eop);
-	    aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_"+charge+"_"+vol+"_fid").fill(tanL,eop);
-	    aidaKF.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol+"_fid").fill(phi,eop);
-	    
-	    aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_fid").fill(tanL,eop);
-	    aidaKF.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(phi,eop);
+		aidaKF.histogram2D(eopFolder+"EoP_vs_trackP_"+charge+"_"+vol+"_fid").fill(trackp,eop);
+		aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_"+charge+"_"+vol+"_fid").fill(tanL,eop);
+		aidaKF.histogram2D(eopFolder+"EoP_vs_phi_"+charge+"_"+vol+"_fid").fill(phi,eop);
+		
+		aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda_fid").fill(tanL,eop);
+		aidaKF.histogram2D(eopFolder+"EoP_vs_phi_fid").fill(phi,eop);
+	    }
 	    //	    aidaKF.histogram3D(eopFolder+"EoP_vs_tanLambda_phi_fid").fill(tanL,
 	    //phi,
 	    //eop);
@@ -425,36 +434,32 @@ public class KFOutputDriver extends Driver {
 	    
 	    aidaKF.histogram1D(eopFolder+"trk_clu_resX_"+vol+"_fid").fill(trkX-clusterX);
 	    aidaKF.histogram1D(eopFolder+"trk_clu_resY_"+vol+"_fid").fill(trkY-clusterY);
-
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resX_vsX_"+vol+"_fid").fill(trkX,trkX-clusterX);
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resX_vsY_"+vol+"_fid").fill(trkY,trkX-clusterX);
 	    
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resY_vsX_"+vol+"_fid").fill(trkX,trkY-clusterY);
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resY_vsY_"+vol+"_fid").fill(trkY,trkY-clusterY);
-
+	    
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resY_vstrkP_"+vol+"_fid").fill(trackp,trkY-clusterY);
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resX_vstrkP_"+vol+"_fid").fill(trackp,trkX-clusterX);
 	    
 	    aidaKF.histogram2D(eopFolder+"trkY_vs_tanL_"+vol+"_fid").fill(tanL,trkY);
-
 	    
 	    aidaKF.histogram1D(eopFolder+"Xcluster_"+charge+"_"+vol+"_fid").fill(clusterX);
 	    aidaKF.histogram1D(eopFolder+"Ycluster_"+charge+"_"+vol+"_fid").fill(clusterY);
 	    
 	    aidaKF.histogram1D(eopFolder+"trk_clu_resX_"+charge+"_"+vol+"_fid").fill(trkX-clusterX);
 	    aidaKF.histogram1D(eopFolder+"trk_clu_resY_"+charge+"_"+vol+"_fid").fill(trkY-clusterY);
-
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resX_vsX_"+charge+"_"+vol+"_fid").fill(trkX,trkX-clusterX);
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resX_vsY_"+charge+"_"+vol+"_fid").fill(trkY,trkX-clusterX);
 	    
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resY_vsX_"+charge+"_"+vol+"_fid").fill(trkX,trkY-clusterY);
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resY_vsY_"+charge+"_"+vol+"_fid").fill(trkY,trkY-clusterY);
-
+		
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resY_vstrkP_"+charge+"_"+vol+"_fid").fill(trackp,trkY-clusterY);
 	    aidaKF.histogram2D(eopFolder+"trk_clu_resX_vstrkP_"+charge+"_"+vol+"_fid").fill(trackp,trkX-clusterX);
-	    
+		
 	    aidaKF.histogram2D(eopFolder+"trkY_vs_tanL_"+charge+"_"+vol+"_fid").fill(tanL,trkY);
-
 	    
 	    // 
 	    
@@ -530,8 +535,10 @@ public class KFOutputDriver extends Driver {
     }
 
     private void FillKFTrackPlot(String str, String isTop, String charge, double valX, double valY) {
-        aidaKF.histogram2D(str+isTop).fill(valX,valY);
-        aidaKF.histogram2D(str+isTop+charge).fill(valX,valY);
+	if(b_doBig2DPlots){
+	    aidaKF.histogram2D(str+isTop).fill(valX,valY);
+	    aidaKF.histogram2D(str+isTop+charge).fill(valX,valY);
+	}
     }
 
     /*
@@ -662,21 +669,22 @@ public class KFOutputDriver extends Driver {
         FillKFTrackPlot(trkpFolder+"phi_vs_bs_extrap",isTop,charge,helixParametersAtBS[BaseTrack.PHI]);
         
         //TH2D - Filling
-        FillKFTrackPlot(trkpFolder+"d0_vs_phi",isTop,charge,trackState.getPhi(),trackState.getD0());
-        FillKFTrackPlot(trkpFolder+"d0_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getD0());
-        FillKFTrackPlot(trkpFolder+"d0_vs_p",isTop,charge,trackp,trackState.getD0());
-        
-        //Ill defined - should be defined wrt bsX and bsY
-        FillKFTrackPlot(trkpFolder+"d0bs_vs_p",isTop,charge,trackp,helixParametersAtBS[BaseTrack.D0]);
-        
-        FillKFTrackPlot(trkpFolder+"z0_vs_p",isTop,charge,trackp,trackState.getZ0()); 
-        FillKFTrackPlot(trkpFolder+"z0bs_vs_p",isTop,charge,trackp,ts_bs.getZ0()); 
-        
-        //Interesting plot to get a sense where z-vtx is. 
-        //If z0 is referenced to the right BS z location, the slope of <z0> vs tanLambda is 0
-        FillKFTrackPlot(trkpFolder+"z0_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getZ0());
-        FillKFTrackPlot(trkpFolder+"z0bs_vs_tanLambda",isTop,charge,trackState.getTanLambda(),ts_bs.getZ0());
-
+	if(b_doBig2DPlots){
+	    FillKFTrackPlot(trkpFolder+"d0_vs_phi",isTop,charge,trackState.getPhi(),trackState.getD0());
+	    FillKFTrackPlot(trkpFolder+"d0_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getD0());
+	    FillKFTrackPlot(trkpFolder+"d0_vs_p",isTop,charge,trackp,trackState.getD0());
+	    
+	    //Ill defined - should be defined wrt bsX and bsY
+	    FillKFTrackPlot(trkpFolder+"d0bs_vs_p",isTop,charge,trackp,helixParametersAtBS[BaseTrack.D0]);
+	    
+	    FillKFTrackPlot(trkpFolder+"z0_vs_p",isTop,charge,trackp,trackState.getZ0()); 
+	    FillKFTrackPlot(trkpFolder+"z0bs_vs_p",isTop,charge,trackp,ts_bs.getZ0()); 
+	    
+	    //Interesting plot to get a sense where z-vtx is. 
+	    //If z0 is referenced to the right BS z location, the slope of <z0> vs tanLambda is 0
+	    FillKFTrackPlot(trkpFolder+"z0_vs_tanLambda",isTop,charge,trackState.getTanLambda(),trackState.getZ0());
+	    FillKFTrackPlot(trkpFolder+"z0bs_vs_tanLambda",isTop,charge,trackState.getTanLambda(),ts_bs.getZ0());
+	}
 
 	if(b_doRawHitPlots){
 	    	    
@@ -746,8 +754,10 @@ public class KFOutputDriver extends Driver {
             // after the transformation x and y in the sensor frame are reversed
             // This plot is ill defined.
             
-            aidaKF.histogram2D(hitFolder+"hit_u_vs_v_sensor_frame_" + sensor.getName()).fill(hitTrackPosSensor.y(), hitTrackPosSensor.x());
-            //aidaKF.histogram2D("hit_u_vs_v_sensor_frame_" + sensor.getName()).fill(hitPos.y(), hitPos.x());
+	    if(b_doBig2DPlots){
+		aidaKF.histogram2D(hitFolder+"hit_u_vs_v_sensor_frame_" + sensor.getName()).fill(hitTrackPosSensor.y(), hitTrackPosSensor.x());
+	    }
+	    //aidaKF.histogram2D("hit_u_vs_v_sensor_frame_" + sensor.getName()).fill(hitPos.y(), hitPos.x());
             //aidaKF.histogram2D("hit y vs x lab-frame " + sensor.getName()).fill(hitPos.y(), hitPos.x());
             
             
@@ -760,23 +770,28 @@ public class KFOutputDriver extends Driver {
             extrapPosSensor = new BasicHep3Vector(extrapPos.v());
             trans.transform(extrapPosSensor);
             //aidaKF.histogram2D("residual after KF vs u predicted " + sensor.getName()).fill(extrapPosSensor.x(), res);
-            aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_sensor_frame_" + sensor.getName()).fill(extrapPosSensor.y(), extrapPosSensor.x());
-            // select track charge
-            if(trk.getCharge()>0) {
-                aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_pos_sensor_frame_" + sensor.getName()).fill(extrapPosSensor.y(), extrapPosSensor.x());
-            }else if(trk.getCharge()<0) {
-                aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_neg_sensor_frame_" + sensor.getName()).fill(extrapPosSensor.y(), extrapPosSensor.x());
-            }
-            
+	    if(b_doBig2DPlots){
+		aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_sensor_frame_" + sensor.getName()).fill(extrapPosSensor.y(), extrapPosSensor.x());
+	    }
+		// select track charge
+	    if(b_doBig2DPlots){
+		if(trk.getCharge()>0) {
+		    aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_pos_sensor_frame_" + sensor.getName()).fill(extrapPosSensor.y(), extrapPosSensor.x());
+		}else if(trk.getCharge()<0) {
+		    aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_neg_sensor_frame_" + sensor.getName()).fill(extrapPosSensor.y(), extrapPosSensor.x());
+		}
+	    }
             // post-KF residual
             Hep3Vector hitPos = new BasicHep3Vector(sensorHits.get(sensor).getPosition());
             Hep3Vector hitPosSensor = new BasicHep3Vector(hitPos.v());
             trans.transform(hitPosSensor);
             Hep3Vector resSensor = VecOp.sub(hitPosSensor, extrapPosSensor);
-            aidaKF.histogram2D(resFolder+"residual_after_KF_vs_v_predicted_" + sensor.getName()).fill(extrapPosSensor.y(), resSensor.x());
-            aidaKF.histogram2D(resFolder+"residual_after_KF_vs_u_hit_" + sensor.getName()).fill(hitPosSensor.x(), resSensor.x());
-            aidaKF.histogram1D(resFolder+"residual_after_KF_" + sensor.getName()).fill(resSensor.x());
-
+	    if(b_doBig2DPlots){
+		aidaKF.histogram2D(resFolder+"residual_after_KF_vs_v_predicted_" + sensor.getName()).fill(extrapPosSensor.y(), resSensor.x());
+		aidaKF.histogram2D(resFolder+"residual_after_KF_vs_u_hit_" + sensor.getName()).fill(hitPosSensor.x(), resSensor.x());
+	    }
+	    aidaKF.histogram1D(resFolder+"residual_after_KF_" + sensor.getName()).fill(resSensor.x());
+		
 
 
             if (debug) {
@@ -888,12 +903,13 @@ public class KFOutputDriver extends Driver {
                 int spacing = 0;
                 if (vol == "_bottom")
                     spacing = sensors.size()/2 + mod;
-                
-                aidaKF.histogram2D(resFolder+"uresidual_KF_mod").fill(trackRes.getIntVal(i_hit)+spacing,trackRes.getDoubleVal(i_hit));
-                aidaKF.profile1D(resFolder+"uresidual_KF_mod_p").fill(trackRes.getIntVal(i_hit)+spacing,trackRes.getDoubleVal(i_hit));
-                aidaKF.histogram1D(resFolder+"uresidual_KF_" + sensorName).fill(trackRes.getDoubleVal(i_hit));
-                aidaKF.histogram2D(resFolder+"uresidual_KF_vs_u_hit_" + sensorName).fill(hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
-                aidaKF.histogram2D(resFolder+"uresidual_KF_vs_v_pred_" + sensorName).fill(extrapPosSensor.y(),trackRes.getDoubleVal(i_hit));
+		if(b_doBig2DPlots){                
+		    aidaKF.histogram2D(resFolder+"uresidual_KF_mod").fill(trackRes.getIntVal(i_hit)+spacing,trackRes.getDoubleVal(i_hit));
+		    aidaKF.histogram2D(resFolder+"uresidual_KF_vs_u_hit_" + sensorName).fill(hitPosSensorG.x(),trackRes.getDoubleVal(i_hit));
+		    aidaKF.histogram2D(resFolder+"uresidual_KF_vs_v_pred_" + sensorName).fill(extrapPosSensor.y(),trackRes.getDoubleVal(i_hit));
+		}	
+		aidaKF.histogram1D(resFolder+"uresidual_KF_" + sensorName).fill(trackRes.getDoubleVal(i_hit));
+		aidaKF.profile1D(resFolder+"uresidual_KF_mod_p").fill(trackRes.getIntVal(i_hit)+spacing,trackRes.getDoubleVal(i_hit));
                 aidaKF.histogram1D(epullFolder+"ureserror_KF_" + sensorName).fill(trackRes.getFloatVal(i_hit));
                 aidaKF.histogram1D(epullFolder+"ures_pull_KF_" + sensorName).fill(trackRes.getDoubleVal(i_hit) / Math.sqrt(trackRes.getFloatVal(i_hit)));
                 
@@ -904,10 +920,10 @@ public class KFOutputDriver extends Driver {
                 
                 double dT_hit_track  =  hitTime - trackTime;
                 double dT_hit_sigma  = (hitTime - trackTime) / trackTimeSD;
-                
-                aidaKF.histogram2D(resFolder+"uresidual_KF_vs_dT_hit_"+sensorName).fill(dT_hit_track,trackRes.getDoubleVal(i_hit));
-                aidaKF.histogram2D(resFolder+"uresidual_KF_vs_dTs_hit_"+sensorName).fill(dT_hit_sigma,trackRes.getDoubleVal(i_hit));
-                
+		if(b_doBig2DPlots){ 
+		    aidaKF.histogram2D(resFolder+"uresidual_KF_vs_dT_hit_"+sensorName).fill(dT_hit_track,trackRes.getDoubleVal(i_hit));
+		    aidaKF.histogram2D(resFolder+"uresidual_KF_vs_dTs_hit_"+sensorName).fill(dT_hit_sigma,trackRes.getDoubleVal(i_hit));
+		}                
                 
 
 
@@ -973,7 +989,7 @@ public class KFOutputDriver extends Driver {
                 aidaKF.histogram2D(eopFolder+"EoP_vs_trackP"+charge+vol,200,0,6,200,0,2);
                 aidaKF.histogram2D(eopFolder+"EoP_vs_tanLambda"+charge+vol,200,lmin,lmax,200,0,2);
                 aidaKF.histogram2D(eopFolder+"EoP_vs_phi"+charge+vol,200,-0.2,0.2,200,0,2);
-            }
+	    }
                         
             aidaKF.histogram1D(eopFolder+"Ecluster"+vol+"_fid",200,0,5);
             aidaKF.histogram1D(eopFolder+"EoP"+vol+"_fid",200,0,2);
@@ -1072,7 +1088,9 @@ public class KFOutputDriver extends Driver {
         
 	//        aidaKF.histogram2D(resFolder+"bresidual_KF_mod",mod_2dplot_bins,-0.5,mod_2dplot_bins-0.5, nbins, -xmax,xmax);
 	//        aidaKF.profile1D(resFolder+"bresidual_KF_mod_p",mod_2dplot_bins,-0.5,mod_2dplot_bins-0.5);
-        aidaKF.histogram2D(resFolder+"uresidual_KF_mod",mod_2dplot_bins,-0.5,mod_2dplot_bins-0.5, 400, -0.4,0.4);
+	if(b_doBig2DPlots){
+	    aidaKF.histogram2D(resFolder+"uresidual_KF_mod",mod_2dplot_bins,-0.5,mod_2dplot_bins-0.5, 400, -0.4,0.4);
+	}
         aidaKF.profile1D(resFolder+"uresidual_KF_mod_p",mod_2dplot_bins,-0.5,mod_2dplot_bins-0.5);
             
         
@@ -1113,24 +1131,25 @@ public class KFOutputDriver extends Driver {
             aidaKF.histogram1D(resFolder+"residual_after_KF_" + sensor.getName(),  nbins, -xmax, xmax);
 	    //            aidaKF.histogram1D(resFolder+"bresidual_KF_" + sensor.getName(), nbins, -xmax, xmax);
             aidaKF.histogram1D(resFolder+"uresidual_KF_" + sensor.getName(), nbins, -xmax, xmax);
-            aidaKF.histogram2D(resFolder+"uresidual_KF_vs_u_hit_" + sensor.getName(),100,-20.0,20.0,100,-0.1,0.1);
-            aidaKF.histogram2D(resFolder+"uresidual_KF_vs_v_pred_" + sensor.getName(),300,-60.0,60.0,100,-0.1,0.1);
-            aidaKF.histogram2D(resFolder+"uresidual_KF_vs_dT_hit_" + sensor.getName(),100,-10.0,10.0,100,-0.1,0.1);
-            aidaKF.histogram2D(resFolder+"uresidual_KF_vs_dTs_hit_" + sensor.getName(),100,-5.0,5.0,100,-0.1,0.1);
-
+	    if(b_doBig2DPlots){
+		aidaKF.histogram2D(resFolder+"uresidual_KF_vs_u_hit_" + sensor.getName(),100,-20.0,20.0,100,-0.1,0.1);
+		aidaKF.histogram2D(resFolder+"uresidual_KF_vs_v_pred_" + sensor.getName(),300,-60.0,60.0,100,-0.1,0.1);
+		aidaKF.histogram2D(resFolder+"uresidual_KF_vs_dT_hit_" + sensor.getName(),100,-10.0,10.0,100,-0.1,0.1);
+		aidaKF.histogram2D(resFolder+"uresidual_KF_vs_dTs_hit_" + sensor.getName(),100,-5.0,5.0,100,-0.1,0.1);
+	    }
             
 	    //            aidaKF.histogram1D(epullFolder+"breserror_KF_" + sensor.getName(), nbins, 0.0, 0.1);
             aidaKF.histogram1D(epullFolder+"ureserror_KF_" + sensor.getName(), nbins, 0.0, 0.2);
 	    //            aidaKF.histogram1D(epullFolder+"bres_pull_KF_" + sensor.getName(), nbins, -5, 5);
             aidaKF.histogram1D(epullFolder+"ures_pull_KF_" + sensor.getName(), nbins, -5, 5);
-            
-            aidaKF.histogram2D(resFolder+"residual_after_KF_vs_u_hit_" + sensor.getName(), 100, -20.0, 20.0, 100, -0.04, 0.04);
-            aidaKF.histogram2D(resFolder+"residual_after_KF_vs_v_predicted_" + sensor.getName(), 100, -55.0, 55.0, 100, -0.04, 0.04);
-            aidaKF.histogram2D(hitFolder+"hit_u_vs_v_sensor_frame_" + sensor.getName(), 300, -60.0, 60.0, 300, -25, 25);
-            aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
-            aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_pos_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
-            aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_neg_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
-
+	    if(b_doBig2DPlots){
+		aidaKF.histogram2D(resFolder+"residual_after_KF_vs_u_hit_" + sensor.getName(), 100, -20.0, 20.0, 100, -0.04, 0.04);
+		aidaKF.histogram2D(resFolder+"residual_after_KF_vs_v_predicted_" + sensor.getName(), 100, -55.0, 55.0, 100, -0.04, 0.04);
+		aidaKF.histogram2D(hitFolder+"hit_u_vs_v_sensor_frame_" + sensor.getName(), 300, -60.0, 60.0, 300, -25, 25);
+		aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
+		aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_pos_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
+		aidaKF.histogram2D(hitFolder+"predicted_u_vs_v_neg_sensor_frame_" + sensor.getName(), 100, -60, 60, 100, -25, 25);
+	    }
 	    aidaKF.histogram1D(hitFolder+"raw_hit_t0_"+sensor.getName(),200, -100, 100.0);
 	    aidaKF.histogram1D(hitFolder+"raw_hit_amplitude_"+sensor.getName(),200, 0.0, 4000.0);
 	    aidaKF.histogram1D(hitFolder+"raw_hit_chisq_"+sensor.getName(),200, 0.0, 2.0);
@@ -1214,25 +1233,26 @@ public class KFOutputDriver extends Driver {
                 
                 //TH2Ds
                 
-                aidaKF.histogram2D(trkpFolder+"d0_vs_phi"+vol+charge,nbins_t,-0.3,0.3,nbins_t,-5.0,5.0);
-                aidaKF.histogram2D(trkpFolder+"Chi2_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t*2,0,200);
-                //aidaKF.histogram2D("d0_vs_phi_bs"+vol+charge,nbins_t,-5.0,5.0,nbins_t,-0.3,0.3);
-                aidaKF.histogram2D(trkpFolder+"d0_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_t,-5.0,5.0);
-                aidaKF.histogram2D(trkpFolder+"d0_vs_p"+vol+charge,  nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
-                aidaKF.histogram2D(trkpFolder+"d0bs_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
-                aidaKF.histogram2D(trkpFolder+"z0_vs_p"+vol+charge,  nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
-                aidaKF.histogram2D(trkpFolder+"z0bs_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t,-z0bsmax,z0bsmax);
-                aidaKF.histogram2D(trkpFolder+"z0_vs_tanLambda"+vol+charge,  nbins_t,-0.1,0.1,nbins_t,-z0max,z0max);
-                aidaKF.histogram2D(trkpFolder+"z0bs_vs_tanLambda"+vol+charge,nbins_t,-0.1,0.1,nbins_t,-z0bsmax,z0bsmax);
-
-                aidaKF.histogram2D(trkpFolder+"p_Missing1Hit"+vol+charge,8,0,8,nbins_p,0.0,pmax);
-                aidaKF.histogram2D(trkpFolder+"p_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
-                aidaKF.histogram2D(trkpFolder+"p_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
-		//                aidaKF.histogram3D(trkpFolder+"p_vs_phi_tanLambda"+vol+charge, 50,-0.3,0.3,50,-0.2,0.2,100,0.,pmax);
-
-                aidaKF.histogram2D(trkpFolder+"pT_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
-                aidaKF.histogram2D(trkpFolder+"pT_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
-                                
+		if(b_doBig2DPlots){
+		    aidaKF.histogram2D(trkpFolder+"d0_vs_phi"+vol+charge,nbins_t,-0.3,0.3,nbins_t,-5.0,5.0);
+		    aidaKF.histogram2D(trkpFolder+"Chi2_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t*2,0,200);
+		    //aidaKF.histogram2D("d0_vs_phi_bs"+vol+charge,nbins_t,-5.0,5.0,nbins_t,-0.3,0.3);
+		    aidaKF.histogram2D(trkpFolder+"d0_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_t,-5.0,5.0);
+		    aidaKF.histogram2D(trkpFolder+"d0_vs_p"+vol+charge,  nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
+		    aidaKF.histogram2D(trkpFolder+"d0bs_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
+		    aidaKF.histogram2D(trkpFolder+"z0_vs_p"+vol+charge,  nbins_p,0.0,pmax,nbins_t,-5.0,5.0);
+		    aidaKF.histogram2D(trkpFolder+"z0bs_vs_p"+vol+charge,nbins_p,0.0,pmax,nbins_t,-z0bsmax,z0bsmax);
+		    aidaKF.histogram2D(trkpFolder+"z0_vs_tanLambda"+vol+charge,  nbins_t,-0.1,0.1,nbins_t,-z0max,z0max);
+		    aidaKF.histogram2D(trkpFolder+"z0bs_vs_tanLambda"+vol+charge,nbins_t,-0.1,0.1,nbins_t,-z0bsmax,z0bsmax);
+		    
+		    aidaKF.histogram2D(trkpFolder+"p_Missing1Hit"+vol+charge,8,0,8,nbins_p,0.0,pmax);
+		    aidaKF.histogram2D(trkpFolder+"p_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
+		    aidaKF.histogram2D(trkpFolder+"p_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
+		    //                aidaKF.histogram3D(trkpFolder+"p_vs_phi_tanLambda"+vol+charge, 50,-0.3,0.3,50,-0.2,0.2,100,0.,pmax);
+		    
+		    aidaKF.histogram2D(trkpFolder+"pT_vs_phi"+vol+charge,   nbins_t,-0.3,0.3, nbins_p,0.,pmax);
+		    aidaKF.histogram2D(trkpFolder+"pT_vs_tanLambda"+vol+charge,nbins_t,-0.2,0.2,nbins_p,0.,pmax);
+		}                
 
                 
                 if (b_doDetailPlots) { 
