@@ -154,10 +154,6 @@ public abstract class ReconParticleDriver extends Driver {
      */
     protected String matcherTrackCollectionName = "GBLTracks";
     /**
-     * track type:  Kalman = 1; GBL = 0  obtained from matcherTrackCollectionName
-     */
-    protected int trackType = 0; 
-    /**
      * Track Cluster Algorithm set to Kalman or GBL Tracks
      */
     private String trackClusterMatcherAlgo = "TrackClusterMatcherNSigma";
@@ -450,10 +446,6 @@ public abstract class ReconParticleDriver extends Driver {
         matcher.setTrackCollectionName(matcherTrackCollectionName);
         matcher.enablePlots(enableTrackClusterMatchPlots);
 
-	//set the track type; default is 0 (GBL)
-	if(matcherTrackCollectionName.contains("Kalman") || matcherTrackCollectionName.contains("KF"))
-	    trackType=1;
-	
         // Set the magnetic field parameters to the appropriate values.
         Hep3Vector ip = new BasicHep3Vector(0., 0., 500.0);
         bField = detector.getFieldMap().getField(ip).y();
