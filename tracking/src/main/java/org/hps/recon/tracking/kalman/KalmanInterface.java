@@ -730,16 +730,14 @@ public class KalmanInterface {
 	
 	Vec targetFace=origin; 
 	Plane targetPlane = new Plane(targetFace, new Vec(0., 1., 0.));
-	targetFace.print("target face");
 	HelixState helixAtTarget=kT.getHelixAtPlane(targetPlane,saveTrackStateAtIntercept);  // this propagates (via RK) the helix to the plane
-	helixAtTarget.origin.print("helixAtTarget.origin");
 	Vec  BfieldAtTarget = KalmanInterface.getField(helixAtTarget.origin, kT.SiteList.get(0).m.Bfield);
        	if(debug)System.out.println(this.getClass().getName()+":: helixAtOrigin origin position @ target = "+helixAtTarget.origin.toString());
         double BAtTarget = BfieldAtTarget.mag();
         double alphaAtTarget = conFac/ BAtTarget;
 	TrackState ts_target=helixAtTarget.toTrackState(alphaAtTarget, targetPlane, TrackState.AtTarget, saveTrackStateAtIntercept);
-	System.out.println("Helix at Target from helix.toTrackState");
-	System.out.println(ts_target.toString()); 
+	if(debug)System.out.println("Helix at Target from helix.toTrackState");
+	if(debug)System.out.println(ts_target.toString()); 
 	newTrack.getTrackStates().add(ts_target);
         // Extrapolate to Target and make a new trackState there.
 	/*
