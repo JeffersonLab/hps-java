@@ -518,7 +518,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 	double bLocal=(electron.getTracks().get(0)).getTrackStates().get(TrackState.AtPerigee).getBLocal();
 
 	// if we are using GBL tracks (trackType=0), set bLocal to bField (i.e. at SVT center)
-	if(TrackType.isGBL(electron.getType()))
+	if(trackType==0)
 	    bLocal=bField;
 
 	//set up vertexer with field
