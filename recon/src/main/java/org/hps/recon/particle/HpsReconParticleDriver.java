@@ -16,6 +16,7 @@ import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
 import org.hps.record.StandardCuts;
+import org.hps.recon.tracking.TrackStateUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -515,13 +516,15 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         // HPS Y => TRACK Z
         // HPS Z => TRACK X
 	//first get the field @ perigee reference from the first tracks state (doesn't matter which one)
-	double bLocal=(electron.getTracks().get(0)).getTrackStates().get(TrackState.AtPerigee).getBLocal();
-
+	//	double bLocal=(electron.getTracks().get(0)).getTrackStates().get(TrackState.AtPerigee).getBLocal();
+	double bLocal=TrackStateUtils.getTrackStatesAtLocation(electron.getTracks().get(0),TrackState.AtPerigee).get(0).getBLocal();
+	//	System.out.println("For Vertexer:  "+TrackStateUtils.getTrackStatesAtLocation(electron.getTracks().get(0),TrackState.AtPerigee).get(0).toString());
 	// if we are using GBL tracks (trackType=0), set bLocal to bField (i.e. at SVT center)
 	if(trackType==0)
 	    bLocal=bField;
 
 	//set up vertexer with field
+	//	System.out.println("track type = "+trackType+"; setting vertex field = "+bLocal); 
         BilliorVertexer vtxFitter = new BilliorVertexer(bLocal);
         // TODO: The beam size should come from the conditions database.
         vtxFitter.setBeamSize(beamSize);
@@ -888,7 +891,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         double[] newRef = {vtxPos.z(), vtxPos.x(), 0.0};//the  TrackUtils.getParametersAtNewRefPoint method only shifts in xy tracking frame
         List<BilliorTrack> newTrks = new ArrayList<BilliorTrack>();
         for (ReconstructedParticle part : particles) {
-            BaseTrackState oldTS = (BaseTrackState) part.getTracks().get(0).getTrackStates().get(TrackState.AtPerigee);
+	    BaseTrackState oldTS=(BaseTrackState)TrackStateUtils.getTrackStatesAtLocation(part.getTracks().get(0),TrackState.AtPerigee).get(0);
+	    //	    BaseTrackState oldTS = (BaseTrackState) part.getTracks().get(0).getTrackStates().get(TrackState.AtPerigee);
             double[] newParams = TrackUtils.getParametersAtNewRefPoint(newRef, oldTS);
             SymmetricMatrix newCov = TrackUtils.getCovarianceAtNewRefPoint(newRef, oldTS.getReferencePoint(), oldTS.getParameters(), new SymmetricMatrix(5, oldTS.getCovMatrix(), true));
             //mg...I don't like this re-casting, but toBilliorTrack only takes Track as input
