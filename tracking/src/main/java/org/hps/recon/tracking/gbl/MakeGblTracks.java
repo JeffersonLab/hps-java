@@ -123,9 +123,14 @@ public class MakeGblTracks {
 
         trk.setTrackParameters(correctedHelixParams.getFirst(), bfield);// hack to set the track charge
         trk.getTrackStates().clear();
-        TrackState stateIP = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtIP, bfield);
-        trk.getTrackStates().add(stateIP);
 
+	// Set the track state to AtPerigee to agree with new track state location definitions as of hps-lcsim version 4.5.0
+        TrackState statePerigee = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtPerigee, bfield);
+        trk.getTrackStates().add(statePerigee);
+	//also add state at the IP for backward compatibility, but it's the same as the perigee for gbl tracks 
+	TrackState stateIP = new BaseTrackState(correctedHelixParams.getFirst(), ref, correctedHelixParams.getSecond().asPackedArray(true), TrackState.AtIP, bfield);
+	trk.getTrackStates().add(stateIP);
+	
         if (!storeTrackStates) {
             // just store last state
             Pair<double[], SymmetricMatrix> correctedHelixParamsLast = fittedGblTrajectory.getCorrectedPerigeeParameters(helicalTrackFit, FittedGblTrajectory.GBLPOINT.LAST, bfield);
