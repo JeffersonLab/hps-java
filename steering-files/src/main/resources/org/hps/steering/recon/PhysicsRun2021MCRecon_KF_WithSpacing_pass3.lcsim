@@ -168,12 +168,12 @@
             <siHitsLimit> 466 </siHitsLimit>
             <seedCompThr> .725912 </seedCompThr>
             <!--numStrategyIter1></numStrategyIter1 tthe mxChi2Vtx was 1.0-->
-            <beamPositionZ> 0.9 </beamPositionZ>
-            <beamSigmaZ> 0.02 </beamSigmaZ>
+            <beamPositionZ> -0.5 </beamPositionZ>
+            <beamSigmaZ> 0.5 </beamSigmaZ>
             <beamPositionX> 0.0 </beamPositionX>
-            <beamSigmaX> 0.05 </beamSigmaX>
+            <beamSigmaX> 0.3 </beamSigmaX>
             <beamPositionY> 0.0 </beamPositionY>
-            <beamSigmaY> 1.0 </beamSigmaY>
+            <beamSigmaY> 0.02 </beamSigmaY>
             <lowPhThresh> 7.204329 </lowPhThresh>
             <verbose> false </verbose>
         </driver>
