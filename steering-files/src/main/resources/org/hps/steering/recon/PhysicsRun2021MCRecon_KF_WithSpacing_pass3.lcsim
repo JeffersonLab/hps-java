@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
-      @brief Steering file that will be used for the reconstruction of 2019 MC. 
-      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
+      @brief Steering file that will be used for the reconstruction of 2021 MC production with v8 alignment. 
     -->
     <execute>
         <driver name="EventMarkerDriver"/>
