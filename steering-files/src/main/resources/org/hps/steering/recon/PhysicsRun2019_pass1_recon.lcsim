@@ -41,7 +41,7 @@
         <driver name="TridentMonitoring"/>
 	
         <!-- Event filtering --> 
-        <driver name="StripEvent"/>
+        <!--<driver name="StripEvent"/> -->
 
         <driver name="LCIOWriter"/>
 	<driver name="AidaSaveDriver"/>
