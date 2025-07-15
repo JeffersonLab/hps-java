@@ -851,7 +851,7 @@ class KalmanPatRecPlots {
                 }
                 List<TrackState> stLst = tkrGBL.getTrackStates();
                 for (TrackState st : stLst) {
-                    if (st.getLocation() == TrackState.AtIP) {
+                    if (st.getLocation() == TrackState.AtPerigee) {
                         double d0 = st.getParameter(0);
                         aida.histogram1D("GBL d0").fill(d0);
                         double z0 = st.getParameter(3);

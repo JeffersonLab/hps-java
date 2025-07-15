@@ -322,9 +322,11 @@ class HelixState implements Cloneable {
 
         return new Vec(5, aP);
     }
-    
+    HelixState propagateRungeKutta(Plane pln, ArrayList<Double> yScat, ArrayList<Double> XL, org.lcsim.geometry.FieldMap fM, double [] arcLength){
+	return propagateRungeKutta(pln, yScat, XL, fM, arcLength, false); 
+    }
     // Propagate a helix by Runge-Kutta integration to an arbitrary plane
-    HelixState propagateRungeKutta(Plane pln, ArrayList<Double> yScat, ArrayList<Double> XL, org.lcsim.geometry.FieldMap fM, double [] arcLength) {
+    HelixState propagateRungeKutta(Plane pln, ArrayList<Double> yScat, ArrayList<Double> XL, org.lcsim.geometry.FieldMap fM, double [] arcLength, boolean pivotAtIntersect) {
         // pln   = plane to where the extrapolation is taking place in global coordinates.  
         //         The origin of pln will be the new helix pivot point in global coordinates and the origin of the B-field system.
         // yScat = input array of y values where scattering in silicon will take place. Only those between the start and finish points
@@ -393,6 +395,7 @@ class HelixState implements Cloneable {
             helixAtTarget.print("helix with pivot at final plane");
             pln.X().print("origin of final field system in global system");
             Rot.print("rotation matrix from global to final field system");
+	    System.out.println("Return parameters with pivot at the intersection:: "+pivotAtIntersect); 
         }
 
         // The covariance matrix is transformed assuming a sequence of pivot transforms (not Runge Kutta)
@@ -407,14 +410,18 @@ class HelixState implements Cloneable {
             System.out.println("    Errors: ");
             for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", FastMath.sqrt(C.get(i,i))); }
             System.out.println("\n");
-            newCovariance.print("transformed covariance");
+            newCovariance.print();
             System.out.println("    Errors: ");
             for (int i = 0; i < 5; ++i) { System.out.format(" %10.7f", FastMath.sqrt(newCovariance.get(i,i))); }
             System.out.println("\n");
         }
-        
-        HelixState newHelixState = new HelixState(helixAtTarget, new Vec(0.,0.,0.), pln.X(), newCovariance, Bmag, tB);
-        newHelixState.xPlaneRK = xPlane;
+        HelixState newHelixState=null; 
+	if(pivotAtIntersect)
+	    newHelixState = new HelixState(helixAtIntersect, new Vec(0.,0.,0.), xPlane, newCovariance, Bmag, tB);
+	else
+	    newHelixState = new HelixState(helixAtTarget, new Vec(0.,0.,0.), pln.X(), newCovariance, Bmag, tB);
+	
+	newHelixState.xPlaneRK = xPlane;
         return newHelixState;
     }
 
@@ -630,9 +637,10 @@ class HelixState implements Cloneable {
     // In the returned TrackState the reference point gets set to the point on the helix closest to the
     // original pivot point (e.g. the helix intersection with the plane of silicon).
     // The pivot of the returned TrackState is always the origin (0,0,0)
-    TrackState toTrackState(double alphaCenter, Plane pln, int loc) {
+    TrackState toTrackState(double alphaCenter, Plane pln, int loc, boolean pivotAtIntercept) {
+	//    TrackState toTrackState(double alphaCenter, Plane pln, int loc) {
         // See TrackState for the different choices for loc (e.g. TrackState.atOther)
-        return KalmanInterface.toTrackState(this, pln, alphaCenter, loc);    
+        return KalmanInterface.toTrackState(this, pln, alphaCenter, loc,  pivotAtIntercept);    
     }
      
     // Transform a helix from one pivot to another through a non-uniform B field in several steps

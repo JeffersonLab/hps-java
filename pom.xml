@@ -19,7 +19,7 @@
     <skipSite>false</skipSite>
     <skipPlugin>true</skipPlugin>
     <skipCheckstyle>true</skipCheckstyle>
-    <lcsimVersion>4.4.0</lcsimVersion>
+    <lcsimVersion>4.5.0</lcsimVersion>
     <etVersion>14.1</etVersion>
     <evioVersion>4.4.6</evioVersion>
     <junitVersion>4.13.1</junitVersion>

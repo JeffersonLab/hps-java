@@ -16,6 +16,7 @@ import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
 import org.hps.record.StandardCuts;
+import org.hps.recon.tracking.TrackStateUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.RawTrackerHit;
@@ -509,12 +510,22 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         BilliorTrack electronBTrack = toBilliorTrack(electron.getTracks().get(0));
         BilliorTrack positronBTrack = toBilliorTrack(positron.getTracks().get(0));
 
-        // Create a vertex fitter from the magnetic field.
+	// Create a vertex fitter from the magnetic field.
         // Note that the vertexing code uses the tracking frame coordinates
         // HPS X => TRACK Y
         // HPS Y => TRACK Z
         // HPS Z => TRACK X
-        BilliorVertexer vtxFitter = new BilliorVertexer(bField);
+	//first get the field @ perigee reference from the first tracks state (doesn't matter which one)
+	//	double bLocal=(electron.getTracks().get(0)).getTrackStates().get(TrackState.AtPerigee).getBLocal();
+	double bLocal=TrackStateUtils.getTrackStatesAtLocation(electron.getTracks().get(0),TrackState.AtPerigee).get(0).getBLocal();
+	//	System.out.println("For Vertexer:  "+TrackStateUtils.getTrackStatesAtLocation(electron.getTracks().get(0),TrackState.AtPerigee).get(0).toString());
+	// if we are using GBL tracks (trackType=0), set bLocal to bField (i.e. at SVT center)
+	if(trackType==0)
+	    bLocal=bField;
+
+	//set up vertexer with field
+	//	System.out.println("track type = "+trackType+"; setting vertex field = "+bLocal); 
+        BilliorVertexer vtxFitter = new BilliorVertexer(bLocal);
         // TODO: The beam size should come from the conditions database.
         vtxFitter.setBeamSize(beamSize);
         vtxFitter.setBeamPosition(beamPositionToUse);
@@ -880,11 +891,13 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         double[] newRef = {vtxPos.z(), vtxPos.x(), 0.0};//the  TrackUtils.getParametersAtNewRefPoint method only shifts in xy tracking frame
         List<BilliorTrack> newTrks = new ArrayList<BilliorTrack>();
         for (ReconstructedParticle part : particles) {
-            BaseTrackState oldTS = (BaseTrackState) part.getTracks().get(0).getTrackStates().get(0);
+	    BaseTrackState oldTS=(BaseTrackState)TrackStateUtils.getTrackStatesAtLocation(part.getTracks().get(0),TrackState.AtPerigee).get(0);
+	    //	    BaseTrackState oldTS = (BaseTrackState) part.getTracks().get(0).getTrackStates().get(TrackState.AtPerigee);
             double[] newParams = TrackUtils.getParametersAtNewRefPoint(newRef, oldTS);
             SymmetricMatrix newCov = TrackUtils.getCovarianceAtNewRefPoint(newRef, oldTS.getReferencePoint(), oldTS.getParameters(), new SymmetricMatrix(5, oldTS.getCovMatrix(), true));
             //mg...I don't like this re-casting, but toBilliorTrack only takes Track as input
-            BaseTrackState newTS = new BaseTrackState(newParams, newRef, newCov.asPackedArray(true), TrackState.AtIP, bField);
+	    //make the state with bfield = field at original z-position because TrackUtils.getParametersAtNewRefPoint does not change curvature!
+            BaseTrackState newTS = new BaseTrackState(newParams, newRef, newCov.asPackedArray(true), TrackState.AtPerigee, oldTS.getBLocal());
             BilliorTrack electronBTrackShift = this.toBilliorTrack(newTS);
             newTrks.add(electronBTrackShift);
         }

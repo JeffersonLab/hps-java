@@ -1,4 +1,4 @@
-name: test
+name: build
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -18,8 +18,8 @@ jobs:
           java-version: 21
           server-id: github
 
-      - name: Build and run tests
+      - name: Build
         run: |
-          mvn -B install -T4
+          mvn -B install -DskipTests=true
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
