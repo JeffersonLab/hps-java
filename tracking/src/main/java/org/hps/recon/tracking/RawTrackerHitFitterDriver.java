@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -297,8 +298,8 @@ public class RawTrackerHitFitterDriver extends Driver {
                     Long evtPhaseL=(event.getTimeStamp() % 24)/4;
                     Integer evtPhase=evtPhaseL.intValue();
                     Pair<String,Integer> evtPair=new Pair(simpleName,evtPhase);
-                    Double calConstant=sensorPhaseCalibConstants.get(evtPair);
-                    //                    System.out.println("shifting t0 by "+calConstant); 
+                    Double calConstant = Optional.ofNullable(sensorPhaseCalibConstants.get(evtPair)).orElse(0.0);
+                    //System.out.println("shifting t0 by "+calConstant); 
                     fit.setT0(fit.getT0()-calConstant);
                 }
 
