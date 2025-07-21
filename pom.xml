@@ -41,12 +41,12 @@
     <repository>
       <id>lcsim-repo-releases</id>
       <name>LCSIM Releases maven repository</name>
-      <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-releases/</url>
+      <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-hps-maven2-releases/</url>
     </repository>
     <snapshotRepository>
       <id>lcsim-repo-snapshots</id>
       <name>LCSIM Snapshots maven repository</name>
-      <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-maven2-snapshot/</url>
+      <url>https://srs.slac.stanford.edu/nexus/content/repositories/lcsim-hps-maven2-snapshot/</url>
     </snapshotRepository>
     <site>
       <id>github</id>
@@ -79,6 +79,11 @@
     <repository>
       <id>lcsim-repo-public</id>
       <name>LCSim</name>
+      <url>https://srs.slac.stanford.edu/nexus/content/groups/lcsim-hps-maven2-public/</url>
+    </repository>
+    <repository>
+      <id>jfreechart</id>
+      <name>jfreechart</name>
       <url>https://srs.slac.stanford.edu/nexus/content/groups/lcsim-maven2-public/</url>
     </repository>
     <repository>
