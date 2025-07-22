@@ -43,7 +43,7 @@
         <!-- Event filtering --> 
         <driver name="StripEvent"/>
 
-        <driver name="LCIOWriter"/>
+        <!--<driver name="LCIOWriter"/>-->
 	<driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
 
