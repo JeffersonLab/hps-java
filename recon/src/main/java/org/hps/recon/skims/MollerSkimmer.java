@@ -24,8 +24,8 @@ import org.lcsim.event.Vertex;
 
 public class MollerSkimmer extends Skimmer {
     //default parameters...ok for 2021 run
-    private String _V0CandidateCollectionName = "UnconstrainedV0Candidates_KF";
-    private String _V0VertexCollectionName = "UnconstrainedV0Vertices_KF";
+    private String _V0CandidateCollectionName = "UnconstrainedMollerCandidates_KF";
+    private String _V0VertexCollectionName = "UnconstrainedMollerVertices_KF";
     //private double _clusterTimingCut = 20.0; // only used if _tight is true
     private double _posClusterEnergy =  0.2; //GeV
     private double _v0Chi2Cut = 100.0;
@@ -37,10 +37,12 @@ public class MollerSkimmer extends Skimmer {
     private int    _nHitsMin=9;
     private boolean _reqClusterMatch=false; 
     private boolean _debug=true;    
-    private int totalV0s=0; 
-    private int totalV0sPassing=0; 
+    private int totalMollers=0; 
+    private int totalMollersPassing=0; 
+
     @Override
     public boolean passSelection(EventHeader event){
+
 	if(_debug)
 	    System.out.println(this.getClass().getName()+":: in pass selection"); 
 	incrementEventProcessed();
@@ -57,8 +59,8 @@ public class MollerSkimmer extends Skimmer {
 	if(V0Candidates.size() != V0Vertexes.size())
 	    System.out.println(this.getClass().getName()+":: Number of Vertexes = "+V0Vertexes.size()+
 			       "; number of candidates = "+V0Candidates.size());
-        int nV0 = 0; // number of good V0
-	totalV0s += V0Candidates.size();
+        int nMollers = 0; // number of good V0
+	totalMollers += V0Candidates.size();
         for (ReconstructedParticle v0 : V0Candidates) {
             ReconstructedParticle eleTop = v0.getParticles().get(ReconParticleDriver.MOLLER_TOP);
             ReconstructedParticle eleBot = v0.getParticles().get(ReconParticleDriver.MOLLER_BOT);
@@ -104,29 +106,11 @@ public class MollerSkimmer extends Skimmer {
 		if(_debug)System.out.println(this.getClass().getName()+"::  failed track dt");
                 continue;
             }
-            if (_reqClusterMatch) { // requires cluster matches and cluster time cut
-		//                if (eleTop.getClusters().isEmpty() || eleBot.getClusters().isEmpty()) {
-                //    continue;
-                //}
-                if (eleBot.getClusters().isEmpty()) {
-                    continue;
-                }
-                // calorimeter cluster timing cut
-                // first CalorimeterHit in the list is the seed crystal
-                //double t1 = ClusterUtilities.getSeedHitTime(eleTop.getClusters().get(0));
-                //double t2 = ClusterUtilities.getSeedHitTime(eleBot.getClusters().get(0));
-
-                //if (abs(t1 - t2) > _clusterTimingCut) {
-                //    continue;
-                //}
-		if(eleBot.getClusters().get(0).getEnergy()<_posClusterEnergy)
-		    continue; 
-            }
-            nV0++;
-	    totalV0sPassing++; 
+            nMollers++;
+	    totalMollersPassing++; 
         }
 
-	if (nV0>0){
+	if (nMollers>0){
 	    incrementEventPassed();
 	    return true;
 	} else
@@ -193,12 +177,12 @@ public class MollerSkimmer extends Skimmer {
 	    System.out.println(this.getClass().getName()+":: couldn't find "+parName+"!");  
     }
 
-    public int getTotalV0sPassing(){
-	return totalV0sPassing; 
+    public int getTotalMollersPassing(){
+	return totalMollersPassing; 
     }
     
-    public int getTotalV0s(){
-	return totalV0s; 
+    public int getTotalMollers(){
+	return totalMollers; 
     }
     
     //    public void setClusterTimeCut(double cutVal){
