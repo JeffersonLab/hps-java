@@ -23,20 +23,13 @@ import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Vertex;
 
 public class MollerSkimmer extends Skimmer {
-    //default parameters...ok for 2021 run
-    private String _V0CandidateCollectionName = "UnconstrainedMollerCandidates_KF";
-    private String _V0VertexCollectionName = "UnconstrainedMollerVertices_KF";
-    //private double _clusterTimingCut = 20.0; // only used if _tight is true
-    private double _posClusterEnergy =  0.2; //GeV
-    private double _v0Chi2Cut = 100.0;
+    private String _MollerCandidateCollectionName = "UnconstrainedMollerCandidates_KF";
+    private String _MollerVertexCollectionName = "UnconstrainedMollerVertices_KF";
+    private double _vtxChi2Cut = 100.0;
     private double _trackChi2Cut = 30.0;
-    private double _trackDtCut = 20.0; // the 2-track time difference
-    private double _trackPMax = 4.5; //GeV
-    private double _elePMax = 9999; //GeV
-    private double _v0PMax =  4.5;   //GeV
+    private double _trackDtCut = 20.0; 
     private int    _nHitsMin=9;
-    private boolean _reqClusterMatch=false; 
-    private boolean _debug=true;    
+    private boolean _debug=false;    
     private int totalMollers=0; 
     private int totalMollersPassing=0; 
 
@@ -47,25 +40,28 @@ public class MollerSkimmer extends Skimmer {
 	    System.out.println(this.getClass().getName()+":: in pass selection"); 
 	incrementEventProcessed();
 	
-	if (!event.hasCollection(ReconstructedParticle.class, _V0CandidateCollectionName)) {
+	if (!event.hasCollection(ReconstructedParticle.class, _MollerCandidateCollectionName)) {
 	     return false; 
         }	
-	if (!event.hasCollection(Vertex.class, _V0VertexCollectionName)) {
+	if (!event.hasCollection(Vertex.class, _MollerVertexCollectionName)) {
 	     return false; 
         }
 
-        List<ReconstructedParticle> V0Candidates = event.get(ReconstructedParticle.class, _V0CandidateCollectionName);
-	List<Vertex> V0Vertexes= event.get(Vertex.class, _V0VertexCollectionName);
+        List<ReconstructedParticle> V0Candidates = event.get(ReconstructedParticle.class, _MollerCandidateCollectionName);
+	List<Vertex> V0Vertexes= event.get(Vertex.class, _MollerVertexCollectionName);
+
 	if(V0Candidates.size() != V0Vertexes.size())
 	    System.out.println(this.getClass().getName()+":: Number of Vertexes = "+V0Vertexes.size()+
 			       "; number of candidates = "+V0Candidates.size());
-        int nMollers = 0; // number of good V0
+
+        int nMollers = 0; 
 	totalMollers += V0Candidates.size();
         for (ReconstructedParticle v0 : V0Candidates) {
+
             ReconstructedParticle eleTop = v0.getParticles().get(ReconParticleDriver.MOLLER_TOP);
             ReconstructedParticle eleBot = v0.getParticles().get(ReconParticleDriver.MOLLER_BOT);
 
-            if (v0.getStartVertex().getChi2() > _v0Chi2Cut) {
+            if (v0.getStartVertex().getChi2() > _vtxChi2Cut) {
 		if(_debug)System.out.println(this.getClass().getName()+"::  failed vertex chi2");
                 continue;
             }
@@ -80,26 +76,6 @@ public class MollerSkimmer extends Skimmer {
                 continue;
             }
 	   	    
-	    float[] elePTD={TrackData.getTrackData(event, eleTop.getTracks().get(0)).getFloatVal(1),
-		    TrackData.getTrackData(event, eleTop.getTracks().get(0)).getFloatVal(2),
-		    TrackData.getTrackData(event, eleTop.getTracks().get(0)).getFloatVal(3)}; 
-	    float[] posPTD={TrackData.getTrackData(event, eleBot.getTracks().get(0)).getFloatVal(1),
-		    TrackData.getTrackData(event, eleBot.getTracks().get(0)).getFloatVal(2),
-		    TrackData.getTrackData(event, eleBot.getTracks().get(0)).getFloatVal(3)}; 
-	    double elePMag =  (new BasicHep3Vector(elePTD)).magnitude();
-	    double posPMag =  (new BasicHep3Vector(posPTD)).magnitude();
-	    if (elePMag > _trackPMax || posPMag > _trackPMax) {
-		if(_debug)System.out.println(this.getClass().getName()+"::  failed track momentum");
-		continue;
-	    }
-	    if(eleTop.getMomentum().magnitude() > _elePMax){
-		if(_debug)System.out.println(this.getClass().getName()+"::  failed eleTop momentum");
-		continue; 
-	    }
-	    if ((elePMag+posPMag) > _v0PMax) {
-		if(_debug)System.out.println(this.getClass().getName()+"::  failed v0 momentum");
-                continue;
-            }
             double eleTime = TrackData.getTrackTime(TrackData.getTrackData(event, eleTop.getTracks().get(0)));
             double posTime = TrackData.getTrackTime(TrackData.getTrackData(event, eleBot.getTracks().get(0)));
             if (Math.abs(eleTime - posTime) > _trackDtCut) {
@@ -130,7 +106,7 @@ public class MollerSkimmer extends Skimmer {
 	String infilePreResDir = "/org/hps/recon/skims/"; 
 	String infile=infilePreResDir+parsFileName; 
         InputStream inParamStream = this.getClass().getResourceAsStream(infile);
-        System.out.println(this.getClass().getName()+"::  reading in per-sensor per-phase calibs from "+infile);
+        System.out.println(this.getClass().getName()+"::  reading in Moller skimming cuts from "+infile);
         BufferedReader reader = new BufferedReader(new InputStreamReader(inParamStream));
         String line;
         String delims = "[ ]+";// this will split strings between one or more spaces
@@ -151,28 +127,16 @@ public class MollerSkimmer extends Skimmer {
 
 
     private void putParam(String parName, String var){
-	if(parName.equals("V0CandidateCollectionName"))
-	    _V0CandidateCollectionName=var;
-	//	else if(parName.equals("clusterTimingCut"))
-	//	    _clusterTimingCut=Double.parseDouble(var); 
-	else if(parName.equals("v0Chi2Cut"))
-	    _v0Chi2Cut=Double.parseDouble(var);
+	if(parName.equals("MollerCandidateCollectionName"))
+	    _MollerCandidateCollectionName=var;
+	else if(parName.equals("vtxChi2Cut"))
+	    _vtxChi2Cut=Double.parseDouble(var);
 	else if(parName.equals("trackChi2Cut"))
 	    _trackChi2Cut=Double.parseDouble(var);
 	else if(parName.equals("trackDtCut"))
 	    _trackDtCut=Double.parseDouble(var);
-	else if(parName.equals("trackPMax"))
-	    _trackPMax=Double.parseDouble(var);
-	else if(parName.equals("elePMax"))
-	    _elePMax=Double.parseDouble(var);
-	else if(parName.equals("v0PMax"))
-	    _v0PMax=Double.parseDouble(var);
 	else if(parName.equals("nHitsMin"))
 	    _nHitsMin=Integer.parseInt(var);
-	else if(parName.equals("reqClusterMatch"))
-	    _reqClusterMatch=Boolean.parseBoolean(var);
-	else if(parName.equals("posClusterEnergy"))
-	    _posClusterEnergy=Double.parseDouble(var);
 	else
 	    System.out.println(this.getClass().getName()+":: couldn't find "+parName+"!");  
     }
@@ -185,23 +149,14 @@ public class MollerSkimmer extends Skimmer {
 	return totalMollers; 
     }
     
-    //    public void setClusterTimeCut(double cutVal){
-    //	this._clusterTimingCut=cutVal; 
-    //    }
-    public void setV0Chi2Cut(double cutVal){
-	this._v0Chi2Cut=cutVal; 
+    public void setVtxChi2Cut(double cutVal){
+	this._vtxChi2Cut=cutVal; 
     }
     public void setTrackChi2Cut(double cutVal){
 	this._trackChi2Cut=cutVal; 
     }
     public void setTrackDtCut(double cutVal){
 	this._trackDtCut=cutVal; 
-    }
-    public void setTrackPMax(double cutVal){
-	this._trackPMax=cutVal; 
-    }
-    public void setV0PMax(double cutVal){
-	this._v0PMax=cutVal; 
     }
     public void setNHitsMin(int cutVal){
 	this._nHitsMin=cutVal; 
