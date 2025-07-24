@@ -149,7 +149,7 @@ public class V0Skimmer extends Skimmer {
 	String infilePreResDir = "/org/hps/recon/skims/"; 
 	String infile=infilePreResDir+parsFileName; 
         InputStream inParamStream = this.getClass().getResourceAsStream(infile);
-        System.out.println(this.getClass().getName()+"::  reading in per-sensor per-phase calibs from "+infile);
+        System.out.println(this.getClass().getName()+"::  reading in V0 skimming cuts from "+infile);
         BufferedReader reader = new BufferedReader(new InputStreamReader(inParamStream));
         String line;
         String delims = "[ ]+";// this will split strings between one or more spaces

@@ -51,15 +51,25 @@ public class MultiSkimDriver extends Driver {
     List<Skimmer> writeSkimList=new ArrayList<Skimmer>(); 
     
     public void endOfData() {
+
         System.out.println(this.getClass().getSimpleName() + " Summary: ");
+
 	if(skimV0){
-	    
 	    System.out.println("V0 skim events processed = " + v0Skimmer.getNProcessed());
-	    System.out.println("events passed            = " + v0Skimmer.getNPassed());
-	    System.out.println("       pass efficiency   = " + v0Skimmer.getPassFraction());
+	    System.out.println("Events passed            = " + v0Skimmer.getNPassed());
+	    System.out.println("       Pass efficiency   = " + v0Skimmer.getPassFraction());
 	    System.out.println("Total number of V0s processed = "+((V0Skimmer)v0Skimmer).getTotalV0s()); 
 	    System.out.println("Total number of V0s passing skim = "+((V0Skimmer)v0Skimmer).getTotalV0sPassing()); 
 	}
+
+        if(skimMoller){
+            System.out.println("Moller skim events processed = " + mollerSkimmer.getNProcessed());
+            System.out.println("Events passed            = " + mollerSkimmer.getNPassed());
+            System.out.println("       Pass efficiency   = " + mollerSkimmer.getPassFraction());
+            System.out.println("Total number of Mollers processed = "+((MollerSkimmer)mollerSkimmer).getTotalMollers());
+            System.out.println("Total number of Mollers passing skim = "+((MollerSkimmer)mollerSkimmer).getTotalMollersPassing());
+        }
+
     }
 
     @Override

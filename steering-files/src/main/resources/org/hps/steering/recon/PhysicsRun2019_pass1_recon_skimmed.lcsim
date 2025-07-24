@@ -43,7 +43,7 @@
         <!-- Event filtering --> 
         <driver name="StripEvent"/>
 
-        <!--<driver name="LCIOWriter"/>-->
+        <driver name="LCIOWriter"/>
 	<driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
 
@@ -183,11 +183,13 @@
         </driver>  
         <driver name="StripEvent" type="org.hps.recon.skims.MultiSkimDriver">
 	    <skimV0>true</skimV0>
-	    <skimThreeBody>false</skimThreeBody>
-	    <skimFEE>false</skimFEE>
-	    <skimMoller>false</skimMoller>
 	    <v0ParamFile>v0skim_parameters_2019_ver0.txt</v0ParamFile>  
 	    <v0OutputFile>${outputFile}_v0skim.slcio</v0OutputFile>
+            <skimMoller>true</skimMoller>
+            <mollerParamFile>mollerskim_parameters_2019_ver0.txt</mollerParamFile>
+            <mollerOutputFile>${outputFile}_mollerskim.slcio</mollerOutputFile>
+            <skimThreeBody>false</skimThreeBody>
+            <skimFEE>false</skimFEE>
         </driver>
 
 

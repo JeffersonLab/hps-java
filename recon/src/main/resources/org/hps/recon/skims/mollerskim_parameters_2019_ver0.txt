@@ -1,0 +1,5 @@
+MollerCandidateCollectionName	  UnconstrainedMollerCandidates_KF
+trackChi2Cut			  30.0
+nHitsMin			  6
+vtxChi2Cut			  30.0
+trackDtCut			  20.0
