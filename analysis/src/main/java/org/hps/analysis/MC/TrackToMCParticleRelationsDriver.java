@@ -167,7 +167,9 @@ public class TrackToMCParticleRelationsDriver extends Driver {
                     }
                 }//mcp not null
                 else {
-                    System.out.printf("PF::FakeTrack");
+                    if( debug ){
+                      System.out.printf("TrackToMCParticleRelationsDriver::WARNING Track does not have truth hits associated to it! Either fake, or from pulser overlay.");
+                    }
                 }
             } //ttm not null
             else {
