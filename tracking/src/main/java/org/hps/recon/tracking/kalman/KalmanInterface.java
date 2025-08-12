@@ -1039,6 +1039,15 @@ public class KalmanInterface {
         // Get the collection of 1D hits
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
         List<TrackerHit> striphits = event.get(TrackerHit.class, stripHitInputCollectionName);
+
+        // LCRelations
+        String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
+        List<LCRelation>  _fittedHits = event.get(LCRelation.class, fittedHitsCollectionName);
+
+        Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
+        for (LCRelation fittedHit : _fittedHits) { 
+            fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
+        }
         
         if (striphits.size() > maxHits) maxHits = striphits.size(); 
         if (striphits.size() > 200) nBigEvents++;
@@ -1175,18 +1184,15 @@ public class KalmanInterface {
                 fitter.setRunNum(event.getRunNumber());
                 double Variance=0.0;
                 for(RawTrackerHit rth: rawhits){
-                        double Min = 10000;
-                        for(ShapeFitParameters fit : fitter.fitShape(rth, shape)){
-                                if(fit.getT0Err()<Min){
-                                        Min=fit.getT0Err();
-                                }
-                        }
-                        if(module.Layer>1){
-                                Variance+=1/(Min*Min);
-                        }
+                        double t0err = FittedRawTrackerHit.getT0Err(fittedRawTrackerHitMap.get(rth));
+                        Variance+=1.0/(t0err*t0err);
+                         // Why were we ignoring Layer 0...?
+                        // if(module.Layer>1){
+                        //        Variance+=1/(Min*Min);
+                        // }
                 }
                 Variance=1.0/Variance;
-                Measurement m = new Measurement(umeas, xStrip, du, time, localHit.getdEdx()*1000000.,Variance);
+                Measurement m = new Measurement(umeas, xStrip, du, time, localHit.getdEdx()*1000000.0,Variance);
                 module.addMeasurement(m);
                 hitMap.put(m, hit);
                 hitsFilled++;
