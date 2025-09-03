@@ -58,6 +58,7 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
     private double readoutOffset = 0.0;
     private double readoutLatency = 280.0;
     private double pileupCutoff = 300.0;
+    private double simHitTimeOffset=0.0;
     private String readout = "TrackerHits";
     private double timeOffset = 30.0;
     private boolean noPileup = false;
@@ -193,6 +194,16 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
      */
     public void setReadoutLatency(double readoutLatency) {
         this.readoutLatency = readoutLatency;
+    }
+
+    
+    /**
+     * Set the time offset for the SimTrackerHit
+     * inside the APV25 window
+     * @param simHitTimeOffset - The offset to use
+     */
+    public void setSimHitTimeOffset(double simHitTimeOffset) {
+        this.simHitTimeOffset = simHitTimeOffset;
     }
     
     /**
@@ -473,7 +484,7 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                         // SimTrackerHit.
                         double time = 0.0;
                         for(SimTrackerHit hit : simHits) {
-                            time += hit.getTime();
+                            time += hit.getTime()+simHitTimeOffset;
                         }
                         time /= simHits.size();
                         time += ReadoutDataManager.getCurrentTime();
@@ -628,6 +639,7 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
         List<SimTrackerHit> truthHits = new ArrayList<SimTrackerHit>();
         List<LCRelation> trueHitRelations = new ArrayList<LCRelation>();      
         // Calculate time of first sample
+
         double firstSample = Math.floor(((triggerTime + 256) - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL)
                 * HPSSVTConstants.SAMPLING_INTERVAL + readoutOffset;
         
