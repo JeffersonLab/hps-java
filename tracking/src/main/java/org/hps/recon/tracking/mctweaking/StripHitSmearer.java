@@ -31,6 +31,10 @@ import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
 import org.lcsim.util.Driver;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import hep.physics.matrix.SymmetricMatrix;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.event.SimTrackerHit;
 
 /**
  *
@@ -101,6 +105,7 @@ public class StripHitSmearer extends Driver {
 	    
 	for (HpsSiSensor sensor:  sensors){
 	    double smearingPosition=-666.;
+        System.out.println("Sensor Name: " + sensor.getName());
 	    if(mapOfSmearingPosition.containsKey(sensor.getName())){
 		// found a sensor to smear...set up the object
 		if(_debug)
@@ -128,7 +133,30 @@ public class StripHitSmearer extends Driver {
         if (_debug)
             System.out.println("Number of SiClusters Found = " + siClusters.size());
         int oldClusterListSize = siClusters.size();
+
+        RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+            for (LCRelation relation : trueHitRelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                rawtomc.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        }
         for (TrackerHit siCluster : siClusters) {  // Looping over all clusters
+
+            boolean isMC = true;
+            // Check if hits in cluster have matching MC particle
+            List<RawTrackerHit> rawHits = siCluster.getRawHits();
+            int total_simhits = 0;
+            for (RawTrackerHit rth:rawHits) {
+                Set<SimTrackerHit> simhits = rawtomc.allFrom(rth);
+                //System.out.println("MC LENGTH: " + simhits.size());
+                if (simhits.size() > 0) total_simhits++;
+            }
+            if (total_simhits == 0) {isMC = false;}
+
+
             boolean smearedHit = false;
 	    // get the sensor object of the cluster
             HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) siCluster.getRawHits().get(0)).getDetectorElement();			
@@ -136,7 +164,7 @@ public class StripHitSmearer extends Driver {
             for (SensorToSmear sensorToSmear : _sensorsToSmear)
 		//get the sensorToSmear object in order to look up smearing size
                 if (sensorToSmear.matchSensor(sensor)) {  
-		    if(sensorToSmear.getSmearPositionSigma()>0){
+		    if((sensorToSmear.getSmearPositionSigma()>0) & (isMC)){
 			//get the local u position
 			Hep3Vector pos = globalToSensor(toHep3(siCluster.getPosition()), sensor);
 			
@@ -144,7 +172,7 @@ public class StripHitSmearer extends Driver {
 			double smearAmount=sensorToSmear.getRandomPositionSmear();
 			double uPosNew=pos.x()+smearAmount;
 			//get the new global position
-		        newPos=sensorToGlobal(toHep3(new double[]{uPosNew,pos.y(),pos.z()}),sensor);
+		        if (isMC) {newPos=sensorToGlobal(toHep3(new double[]{uPosNew,pos.y(),pos.z()}),sensor);}
 			//make a copy of cluster and set the new position
 			//			SiTrackerHitStrip1D smearedTrackerHit=new SiTrackerHitStrip1D(newPos, new SymmetricMatrix(3,siCluster.getCovMatrix(),true),
 			//siCluster.getdEdx(),siCluster.getTime(),(List<RawTrackerHit>)siCluster.getRawHits(),TrackerHitType.decoded(siCluster.getType()));
@@ -154,7 +182,8 @@ public class StripHitSmearer extends Driver {
 					       +" smearPositionSigma= " + sensorToSmear.getSmearPositionSigma()
 					       + "  old u = " + pos.x()
 					       + "  new u = " + uPosNew
-					       + "  amount smeared = " + smearAmount); 
+					       + "  amount smeared = " + smearAmount
+                            + "  Smeared?? = " + isMC); 
 			if(_debug){
 			    System.out.println("original  position = "+toHep3(siCluster.getPosition()).toString());
 			    System.out.println("global og position = "+pos.toString());

@@ -32,6 +32,10 @@ import org.lcsim.util.Driver;
 import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
 import hep.physics.matrix.SymmetricMatrix;
 import org.lcsim.event.LCRelation;
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.event.SimTrackerHit;
+
 
 /**
  *
@@ -117,6 +121,17 @@ public class RawHitTimeSmearer extends Driver {
 
     @Override
     public void process(EventHeader event) {
+
+    RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+    if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+        List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+        for (LCRelation relation : trueHitRelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                rawtomc.add(relation.getFrom(), relation.getTo());
+                }
+            }
+    }
+    //else {System.out.println("NO TRUTH!!!!");	}
 	// get the sensor object of the cluster
 	for (SensorToSmear sensorToSmear : _sensorsToSmear){
 	    if(sensorToSmear.getSmearTimeSigma()>0){
@@ -124,6 +139,10 @@ public class RawHitTimeSmearer extends Driver {
 		List< LCRelation > fittedHits = sensor.getReadout().getHits(LCRelation.class);
 		for (LCRelation fittedHit : fittedHits) {
 		    RawTrackerHit rth=FittedRawTrackerHit.getRawTrackerHit(fittedHit);
+            Set<SimTrackerHit> simhits = rawtomc.allFrom(rth);
+            if (simhits.size() == 0) continue;
+            //System.out.println("MC LENGTH: " + simhits.size());
+
 		    double oldTime=FittedRawTrackerHit.getT0(fittedHit);
 		    double smearAmount=sensorToSmear.getRandomTimeSmear();
 		    double newTime=oldTime+smearAmount;
