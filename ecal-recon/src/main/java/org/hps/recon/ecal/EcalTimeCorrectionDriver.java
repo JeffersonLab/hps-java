@@ -30,6 +30,7 @@ public class EcalTimeCorrectionDriver extends Driver {
     private boolean mode3 = false;
     private boolean useFit = true;
     private boolean useTimeWalkCondition = true;
+    private double additionalShift = 0.0;
 
     private EcalConditions ecalConditions = null;
 
@@ -39,6 +40,10 @@ public class EcalTimeCorrectionDriver extends Driver {
 
     public void setUseFit(boolean useFit) {
         this.useFit = useFit;
+    }
+
+    public void setAdditionalShift(double additionalShift) {
+        this.additionalShift = additionalShift;
     }
 
     public void setUseTimeWalkCondition(boolean useTimeWalkCondition) {
@@ -110,6 +115,7 @@ public class EcalTimeCorrectionDriver extends Driver {
 
             // Apply overall time offset
             time -= findChannel(hit.getCellID()).getTimeShift().getTimeShift();
+	    time += additionalShift;
 
             newHits.add(CalorimeterHitUtilities.create(energy, time, hit.getCellID()));
         }

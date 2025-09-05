@@ -32,7 +32,9 @@
         </driver>
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver"/>
-        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver">
+	    <additionalShift>13.3</additionalShift>
+	</driver>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
