@@ -115,7 +115,7 @@ public class EcalTimeCorrectionDriver extends Driver {
 
             // Apply overall time offset
             time -= findChannel(hit.getCellID()).getTimeShift().getTimeShift();
-	    time += additionalShift;
+    	    time += additionalShift;
 
             newHits.add(CalorimeterHitUtilities.create(energy, time, hit.getCellID()));
         }
