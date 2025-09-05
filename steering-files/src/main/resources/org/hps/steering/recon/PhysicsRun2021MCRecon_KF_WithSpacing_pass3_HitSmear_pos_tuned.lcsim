@@ -47,7 +47,9 @@
         </driver>
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver"/>
-        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver">
+            <additionalShift>13.3</additionalShift>
+        </driver>        
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
@@ -85,7 +87,7 @@
           <useTimestamps>true</useTimestamps>     
           <!--offset to get times centered at 0 after timestamp correction-->                 
 	  <!-- set to 0 for unspaced; ~112 for spaced -->
-	  <tsCorrectionScale>120</tsCorrectionScale>
+	  <tsCorrectionScale>165</tsCorrectionScale>
           <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
           <correctTimeOffset>true</correctTimeOffset>   
           <!--per sensor shift...set false becasue it's not in readout sim-->       
