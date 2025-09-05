@@ -133,6 +133,10 @@ public class TrackData implements GenericObject {
         floats[PZ_INDEX] = momentum[2];
     }
 
+    public void setTrackTime(float time) {
+        floats[TRACK_TIME_INDEX] = time;
+    }
+
     /**
      * @return The track time
      */
