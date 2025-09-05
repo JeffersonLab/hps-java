@@ -43,7 +43,7 @@
         </driver>
         <driver name="StripHitKiller" type="org.hps.recon.tracking.StripHitKiller">
             <ratioFiles> run14464_L1b_axial_hole.txt run14464_L1b_stereo_hole.txt run14464_L1t_axial_hole.txt run14464_L1t_stereo_hole.txt  run14464_L2b_axial_hole.txt run14464_L2b_stereo_hole.txt run14464_L2t_axial_hole.txt run14464_L2t_stereo_hole.txt</ratioFiles>
-	        <debug>true</debug>
+	        <debug>false</debug>
         </driver> 
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>

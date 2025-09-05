@@ -5,7 +5,7 @@
     -->
     <execute>
         <driver name="EventMarkerDriver"/>
-        <!--<driver name="PreCleanupDriver"/>-->
+        <!-- <driver name="PreCleanupDriver"/>--> 
 
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRawConverter" />
@@ -13,39 +13,37 @@
         <driver name="ReconClusterer" />
         <driver name="CopyCluster" />
         <driver name="HodoRunningPedestal"/>
-        <driver name="HodoRawConverter"/> 
+        <driver name="HodoRawConverter"/>
         <!-- SVT hit reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
-        <driver name="TrackerHitDriver"/>
-        <driver name="StripHitKiller"/> 
 
+        <driver name="RawHitTimeSmearer"/>
+
+        <driver name="TrackerHitDriver"/>
+
+        <driver name="StripHitSmearer"/>
 
         <driver name="KalmanPatRecDriver"/> 
+        <driver name="TrackTimeSmearer"/> 
+
         <driver name="TrackTruthMatching_KF" />
 	    <driver name="ReconParticleDriver_Kalman" />
-        <!-- <driver name="SVTHitEfficiency"/> -->
 
-
-	    <!-- KFOutputDriver uses too much memory to run during production -->
-	    <!--<driver name="KFOutputDriver"/>-->
+	<!-- KFOutputDriver uses too much memory to run during production -->
+	<!--<driver name="KFOutputDriver"/>-->
 
         <driver name="LCIOWriter"/>
-        <!-- <driver name="AidaSaveDriver"/> -->
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>
-        <driver name="SVTHitEfficiency" type="org.hps.recon.tracking.kalman.SvtHitEfficiencyKalman">
+            <driver name="SVTHitEfficiency" type="org.hps.recon.tracking.kalman.SvtHitEfficiencyKalman">
             <maxLayer>14</maxLayer>
             <useTrkTimeCut>false</useTrkTimeCut>
              <!--<trkTimeCut>10.0</trkTimeCut> -->
             <!-- <trkTimeMean>15.0</trkTimeMean> -->
 	        <debug>false</debug>
         </driver>
-        <driver name="StripHitKiller" type="org.hps.recon.tracking.StripHitKiller">
-            <ratioFiles>run14232_L1b_axial_hole.txt run14232_L1b_stereo_hole.txt run14232_L1t_axial_hole.txt run14232_L1t_stereo_hole.txt  run14232_L2b_axial_hole.txt run14232_L2b_stereo_hole.txt run14232_L2t_axial_hole.txt run14232_L2t_stereo_hole.txt</ratioFiles>
-	        <debug>false</debug>
-        </driver> 
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
         </driver>
@@ -165,7 +163,22 @@
             <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
             <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
             <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>	    
-        </driver>         
+        </driver>     
+        <driver name="RawHitTimeSmearer" type="org.hps.recon.tracking.RawHitTimeSmearer">
+            <smearTimeFile>timeSmearing-2nsL4L7-4nsL1L3.txt</smearTimeFile>
+	        <debug>false</debug>
+        </driver>   
+
+        <driver name="StripHitSmearer" type="org.hps.recon.tracking.StripHitSmearer">
+            <smearPositionFile>posSmearing-0pt005mm-0pt008mm-2021.txt</smearPositionFile>
+	        <debug>false</debug>
+        </driver>     
+
+        <driver name="TrackTimeSmearer" type="org.hps.recon.tracking.TrackTimeSmearer">
+	        <debug>false</debug>
+            <smearBottom>1.5</smearBottom>
+            <smearTop>1.5</smearTop>
+        </driver> 
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
 	        <addResiduals>true</addResiduals>
@@ -215,17 +228,17 @@
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
 
-	<driver name="KFOutputDriver" type="org.hps.recon.tracking.kalman.KFOutputDriver">
-          <outputPlotsFilename>${outputFile}.root</outputPlotsFilename>
+        <driver name="KFOutputDriver" type="org.hps.recon.tracking.kalman.KFOutputDriver">
+          <outputPlotsFilename>${outputFile}_KF.root</outputPlotsFilename>
           <debug>false</debug>
-          <bsZ>0.9</bsZ>
+          <bsZ>0.0</bsZ>
           <!--<trackCollectionName>GBLTracks</trackCollectionName> --> 
           <trackCollectionName>KalmanFullTracks</trackCollectionName>
-          <minMom>0.1</minMom>
-          <maxMom>4.8</maxMom>
+          <minMom>-10</minMom>
+          <maxMom>10</maxMom>
           <chi2Cut>9999</chi2Cut>
           <doKFresiduals>true</doKFresiduals>
-          <useParticles>true</useParticles>
+          <useParticles>false</useParticles>
         </driver>
 
 
