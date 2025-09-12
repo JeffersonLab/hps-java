@@ -427,6 +427,7 @@
           <pulserDataCollectionName>PulserDataSVTRawTrackerHits</pulserDataCollectionName>
             <enablePileupCut>false</enablePileupCut>
             <useTimingConditions>true</useTimingConditions>
+			<simHitTimeOffset>-10</simHitTimeOffset>
             <addNoise>true</addNoise>
         </driver>
 
