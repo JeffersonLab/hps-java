@@ -152,7 +152,8 @@
             <maxD0> 38.0487 </maxD0>
             <maxZ0> 3.98915 </maxZ0>
             <maxChi2> 11.777395 </maxChi2>
-            <minHits> 0  </minHits>
+	    <minHitsTopIter1> 10 </minHitsTopIter1> 
+            <minHitsBotIter1> 9 </minHitsBotIter1>
             <minStereo> 3  </minStereo>
             <maxSharedHits> 3 </maxSharedHits>
             <maxTimeRange> 39.95028 </maxTimeRange>
