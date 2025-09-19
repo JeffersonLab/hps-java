@@ -415,8 +415,8 @@ public class TrackTruthRelationsDriver extends Driver {
 
 	    String[] misTagList={"good_L1L2","bad_L1L2","bad_L1Only","bad_L2Only"};
 	    String[] trkVarList={"_momentum","_tanlambda","_phi0","_time","_d0","_z0","_C"};
-	    Double[] varMinList={0.,-tanLMax,-phi0Max,-60.,-d0Max,-z0Max,-curveMax};
-	    Double[] varMaxList={pMax,tanLMax,phi0Max,60.,d0Max,z0Max,curveMax};
+	    Double[] varMinList={0.,-tanLMax,-phi0Max,-60.,-d0Max*2,-z0Max*2,-curveMax};
+	    Double[] varMaxList={pMax,tanLMax,phi0Max,60.,d0Max*2,z0Max*2,curveMax};
 	    for(String misTag: misTagList){
 		int iv=0; 
 		for(String trkVar: trkVarList){
@@ -790,23 +790,24 @@ public class TrackTruthRelationsDriver extends Driver {
 			    for(Integer layer : mcpLayers){
 				plots1D.get(chTag+"_real_track_mcp_all_hit_layers").fill(layer);				
 			    }
-
-			    String misTag="good_L1L2";
-			    if(wrongL1 && wrongL2)
-				misTag="bad_L1L2";
-			    else if(wrongL1)
-				misTag="bad_L1Only";
-			    else if(wrongL2)
-				misTag="bad_L2Only";
+			    if(tt.getLayersOnTrack().contains(1)
+			       && tt.getLayersOnTrack().contains(2)){
+				String misTag="good_L1L2";
+				if(wrongL1 && wrongL2)
+				    misTag="bad_L1L2";
+				else if(wrongL1)
+				    misTag="bad_L1Only";
+				else if(wrongL2)
+				    misTag="bad_L2Only";
 			    
-			    plots1D.get(chTag+"_real_trackable_track_"+misTag+"_momentum").fill(trackPmag);
-			    plots1D.get(chTag+"_real_trackable_track_"+misTag+"_tanlambda").fill(tanlambda);
-			    plots1D.get(chTag+"_real_trackable_track_"+misTag+"_phi0").fill(track_phi);
-			    plots1D.get(chTag+"_real_trackable_track_"+misTag+"_time").fill(track_time);
-			    plots1D.get(chTag+"_real_trackable_track_"+misTag+"_d0").fill(track_d0);
-			    plots1D.get(chTag+"_real_trackable_track_"+misTag+"_z0").fill(track_z0);
-			    plots1D.get(chTag+"_real_trackable_track_"+misTag+"_C").fill(track_C);
-
+				plots1D.get(chTag+"_real_trackable_track_"+misTag+"_momentum").fill(trackPmag);
+				plots1D.get(chTag+"_real_trackable_track_"+misTag+"_tanlambda").fill(tanlambda);
+				plots1D.get(chTag+"_real_trackable_track_"+misTag+"_phi0").fill(track_phi);
+				plots1D.get(chTag+"_real_trackable_track_"+misTag+"_time").fill(track_time);
+				plots1D.get(chTag+"_real_trackable_track_"+misTag+"_d0").fill(track_d0);
+				plots1D.get(chTag+"_real_trackable_track_"+misTag+"_z0").fill(track_z0);
+				plots1D.get(chTag+"_real_trackable_track_"+misTag+"_C").fill(track_C);
+			    }
 
 			    if(nHits >= 12)
 				plots1D.get(chTag+"_real_track_nhits_gteq_12_mcp_momentum").fill(mcp.getMomentum().magnitude());
