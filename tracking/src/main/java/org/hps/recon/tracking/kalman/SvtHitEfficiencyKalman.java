@@ -785,7 +785,7 @@ public class SvtHitEfficiencyKalman extends Driver {
             holeLayerMap.clear();
             hitLayerMap.clear();
 
-            for (int l = 0; l < trkInts.getNInt()-1; l++) {
+            for (int l = 0; l < maxLayer; l++) {
                 int layer = trkInts.getLayer(l);  //this is in Kalman layers, so ok
                 Double[] interTmp = trkInts.getIntersect(l);
                 Double[] intersect = flipInter(interTmp);
@@ -840,6 +840,9 @@ public class SvtHitEfficiencyKalman extends Driver {
                 String nhotsModPairMapName = sensorName + "-" + hot + "-" + modPairString;
                 // Compute the channel where the track extrapolates to in each sensor
                 int chan = sensorChanAccPair.getSecondElement();
+
+                //System.out.println("Svt Hit Efficiency :: " + event.getEventNumber() + " " + sensor.getMillepedeId() + " " + chan);
+
 
                 ////////////////////////////////////////////////////////////////////////////////////////////
                 //  check if track is within sensor acceptance 
@@ -1372,7 +1375,7 @@ public class SvtHitEfficiencyKalman extends Driver {
         // extrapolate to hole sensor
         Hep3Vector trackHolePosGlobal = TrackStateUtils.getLocationAtSensor(htf, sensorHole, bfield);
         if (trackHolePosGlobal==null) {
-            System.out.println("isTrackHole::  trackHolePosGlobal is null ... setting isTrackHole=false");
+            if (debug) System.out.println("isTrackHole::  trackHolePosGlobal is null ... setting isTrackHole=false");
             return false;
         }
         Hep3Vector trackHolePos = globalToSensor(trackHolePosGlobal, sensorHole);
@@ -1387,7 +1390,7 @@ public class SvtHitEfficiencyKalman extends Driver {
         //    do slot sensor
         Hep3Vector trackSlotPosGlobal = TrackStateUtils.getLocationAtSensor(htf, sensorSlot, bfield);
         if (trackSlotPosGlobal==null) {
-            System.out.println("isTrackHole::  trackSlotPosGlobal is null ... setting isTrackSlot=false");
+            if (debug) System.out.println("isTrackHole::  trackSlotPosGlobal is null ... setting isTrackSlot=false");
             return true;
         }
         Hep3Vector trackSlotPos = globalToSensor(trackSlotPosGlobal, sensorSlot);

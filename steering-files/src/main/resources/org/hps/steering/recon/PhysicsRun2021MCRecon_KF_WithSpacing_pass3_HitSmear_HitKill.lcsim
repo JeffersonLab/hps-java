@@ -5,6 +5,8 @@
     -->
     <execute>
         <driver name="EventMarkerDriver"/>
+        <!-- <driver name="PreCleanupDriver"/>--> 
+
         <!-- Ecal reconstruction drivers -->        
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
@@ -15,11 +17,19 @@
         <!-- SVT hit reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
+
+        <driver name="RawHitTimeSmearer"/>
         <driver name="TrackerHitDriver"/>
+        <driver name="StripHitKiller"/>
+
+        <driver name="StripHitSmearer"/>
 
         <driver name="KalmanPatRecDriver"/> 
+        <driver name="TrackTimeSmearer"/> 
+
         <driver name="TrackTruthMatching_KF" />
-	<driver name="ReconParticleDriver_Kalman" />
+	    <driver name="ReconParticleDriver_Kalman" />
+
 	<!-- KFOutputDriver uses too much memory to run during production -->
 	<!--<driver name="KFOutputDriver"/>-->
 
@@ -27,14 +37,24 @@
         <driver name="CleanupDriver"/>
     </execute>    
     <drivers>
+            <driver name="SVTHitEfficiency" type="org.hps.recon.tracking.kalman.SvtHitEfficiencyKalman">
+            <maxLayer>14</maxLayer>
+            <useTrkTimeCut>false</useTrkTimeCut>
+             <!--<trkTimeCut>10.0</trkTimeCut> -->
+            <!-- <trkTimeMean>15.0</trkTimeMean> -->
+	        <debug>false</debug>
+        </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
+        </driver>
+         <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
+            <collectionNames>  EcalCalHits EcalClusters EcalClustersCorr KalmanFullTracks FinalStateParticles_KF UnconstrainedMollerCandidates_KF UnconstrainedMollerVertices_KF UnconstrainedV0Candidates_KF UnconstrainedV0Vertices_KF TargetConstrainedMollerCandidates_KF TargetConstrainedMollerVertices_KF TargetConstrainedV0Candidates_KF TargetConstrainedV0Vertices_KF BeamspotConstrainedMollerCandidates_KF BeamspotConstrainedMollerVertices_KF BeamspotConstrainedV0Candidates_KF BeamspotConstrainedV0Vertices_KF GBLKinkData GBLKinkDataRelations MatchedToGBLTrackRelations HelicalTrackHits HelicalTrackHitRelations MatchedTracks GBLTracks MatchedToGBLTrackRelations PartialTracks RotatedHelicalTrackHits RotatedHelicalTrackHitRelations SVTFittedRawTrackerHits  SVTShapeFitParameters StripClusterer_SiTrackerHitStrip1D KFTrackData KFTrackDataRelations KFUnbiasRes KFUnbiasResRelations</collectionNames>
         </driver>
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver"/>
         <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver">
-	        <additionalShift>13.3</additionalShift>
-	    </driver>
+            <additionalShift>13.3</additionalShift>
+        </driver>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
@@ -51,49 +71,49 @@
             <isMC>true</isMC>
         </driver>
         <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
-            <useRunningPedestal>true</useRunningPedestal>
+           <useRunningPedestal>true</useRunningPedestal>
             <inputCollectionName>HodoscopeReadoutHits</inputCollectionName>
-            <tETAllChannels>8</tETAllChannels>
-            <logLevel>CONFIG</logLevel>
+           <tETAllChannels>8</tETAllChannels>
+           <logLevel>CONFIG</logLevel>
             <isMC>true</isMC>
         </driver>
         <!-- SVT reconstruction drivers -->
         <!-- Driver used to associate raw tracker hits to corresponding sensor. -->
         <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
-            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+          <readoutCollections>SVTRawTrackerHits</readoutCollections>
         </driver>
         <!-- Fit the six raw samples and extract the amplitude and t0. --> 
         <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
-            <chiSqrThresh>.5</chiSqrThresh>
-            <doOldDT>1</doOldDT>
-	        <fitAlgorithm>Pileup</fitAlgorithm>
-            <fitTimeMinimizer>Migrad</fitTimeMinimizer>
-            <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
-            <useTimestamps>true</useTimestamps>     
-            <!--offset to get times centered at 0 after timestamp correction-->                 
-	        <!-- set to 0 for unspaced; ~112 for spaced -->
-	        <tsCorrectionScale>165</tsCorrectionScale>
-            <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
-            <correctTimeOffset>true</correctTimeOffset>   
-            <!--per sensor shift...set false becasue it's not in readout sim-->       
-            <correctT0Shift>true</correctT0Shift>      
-            <!--use truth time for MC???  typically not used-->             
-            <useTruthTime>false</useTruthTime>    
-            <!--time of flight corrections-->              
-            <subtractTOF>true</subtractTOF>     
-            <!--set this false for MC, true for data-->              
-            <subtractTriggerTime>false</subtractTriggerTime>           
-            <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
-            <correctChanT0>false</correctChanT0>          
-            <isMC>true</isMC>
-            <debug>false</debug>
+          <chiSqrThresh>.5</chiSqrThresh>
+          <doOldDT>1</doOldDT>
+	  <fitAlgorithm>Pileup</fitAlgorithm>
+          <fitTimeMinimizer>Migrad</fitTimeMinimizer>
+          <!--use this to correct for trigger time in MC instead of subtractTriggerTime-->   
+          <useTimestamps>true</useTimestamps>     
+          <!--offset to get times centered at 0 after timestamp correction-->                 
+	  <!-- set to 0 for unspaced; ~112 for spaced -->
+	<tsCorrectionScale>165</tsCorrectionScale>
+          <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
+          <correctTimeOffset>true</correctTimeOffset>   
+          <!--per sensor shift...set false becasue it's not in readout sim-->       
+          <correctT0Shift>true</correctT0Shift>      
+          <!--use truth time for MC???  typically not used-->             
+          <useTruthTime>false</useTruthTime>    
+          <!--time of flight corrections-->              
+          <subtractTOF>true</subtractTOF>     
+          <!--set this false for MC, true for data-->              
+          <subtractTriggerTime>false</subtractTriggerTime>           
+          <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
+          <correctChanT0>false</correctChanT0>          
+          <isMC>true</isMC>
+          <debug>false</debug>
         </driver>
         <!-- 
              Use the fitted raw tracker hits and create 1D clusters using a 
              nearest neighbor algorithm. 
         --> 
         <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
-            <neighborDeltaT>24.0</neighborDeltaT>
+             <neighborDeltaT>24.0</neighborDeltaT>
             <neighborDeltaTSigma>3.0</neighborDeltaTSigma>
             <saveMonsterEvents>false</saveMonsterEvents>
             <thresholdMonsterEvents>400</thresholdMonsterEvents>
@@ -145,17 +165,38 @@
             <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
             <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
             <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>	    
-        </driver>         
+        </driver>     
+        <driver name="RawHitTimeSmearer" type="org.hps.recon.tracking.RawHitTimeSmearer">
+            <smearTimeFile>timeSmearing-2nsL4L7-4nsL1L3.txt</smearTimeFile>
+	        <debug>false</debug>
+        </driver>  
+
+        <driver name="StripHitKiller" type="org.hps.recon.tracking.StripHitKiller">
+            <ratioFiles>run14232_L1b_axial_hole.txt run14232_L1b_stereo_hole.txt run14232_L1t_axial_hole.txt run14232_L1t_stereo_hole.txt  run14232_L2b_axial_hole.txt run14232_L2b_stereo_hole.txt run14232_L2t_axial_hole.txt run14232_L2t_stereo_hole.txt</ratioFiles>
+	        <debug>false</debug>
+        </driver> 
+
+        <driver name="StripHitSmearer" type="org.hps.recon.tracking.StripHitSmearer">
+            <smearPositionFile>posSmearing-0pt005mm-0pt008mm-2021.txt</smearPositionFile>
+	        <debug>false</debug>
+        </driver>     
+
+        <driver name="TrackTimeSmearer" type="org.hps.recon.tracking.TrackTimeSmearer">
+	        <debug>false</debug>
+            <smearBottom>1.5</smearBottom>
+            <smearTop>1.5</smearTop>
+        </driver> 
         <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
-	    <numPatRecIteration> 3 </numPatRecIteration>
+	        <addResiduals>true</addResiduals>
+	        <addKinks>true</addKinks>
+            <numPatRecIteration> 3 </numPatRecIteration>
             <numKalmanIteration> 1 </numKalmanIteration>
             <maxPtInverse> 8.757651 </maxPtInverse>
             <maxD0> 38.0487 </maxD0>
             <maxZ0> 3.98915 </maxZ0>
             <maxChi2> 11.777395 </maxChi2>
-	    <minHitsTopIter1> 10 </minHitsTopIter1> 
-            <minHitsBotIter1> 9 </minHitsBotIter1>
+            <minHits> 0  </minHits>
             <minStereo> 3  </minStereo>
             <maxSharedHits> 3 </maxSharedHits>
             <maxTimeRange> 39.95028 </maxTimeRange>
@@ -185,23 +226,26 @@
             <kalmanTracks>true</kalmanTracks>
             <debug>false</debug>
         </driver>
+        <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
+            <outputFileName>${outputFile}_hit_eff.root</outputFileName>
+        </driver>
       
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
 
-	<driver name="KFOutputDriver" type="org.hps.recon.tracking.kalman.KFOutputDriver">
-          <outputPlotsFilename>${outputFile}.root</outputPlotsFilename>
+        <driver name="KFOutputDriver" type="org.hps.recon.tracking.kalman.KFOutputDriver">
+          <outputPlotsFilename>${outputFile}_KF.root</outputPlotsFilename>
           <debug>false</debug>
-          <bsZ>0.9</bsZ>
+          <bsZ>0.0</bsZ>
           <!--<trackCollectionName>GBLTracks</trackCollectionName> --> 
           <trackCollectionName>KalmanFullTracks</trackCollectionName>
-          <minMom>0.1</minMom>
-          <maxMom>4.8</maxMom>
+          <minMom>-10</minMom>
+          <maxMom>10</maxMom>
           <chi2Cut>9999</chi2Cut>
           <doKFresiduals>true</doKFresiduals>
-          <useParticles>true</useParticles>
+          <useParticles>false</useParticles>
         </driver>
 
 
