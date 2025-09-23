@@ -717,6 +717,14 @@ class MeasurementSite {
         }
     }
 
+    public boolean isInSensor(Double[] rLocal){
+	double tol = kPar.edgeTolerance; // Tolerance on the check, in mm
+	//	double tol=0.0; 
+	if (rLocal[0] < m.xExtent[0] - tol || rLocal[0] > m.xExtent[1] + tol) return false;
+	if (rLocal[1] < m.yExtent[0] - tol || rLocal[1] > m.yExtent[1] + tol) return false;
+	return true;
+    }
+
     // Comparator functions for sorting measurement sites by layer number
     static Comparator<MeasurementSite> SiteComparatorUp = new Comparator<MeasurementSite>() {
         public int compare(MeasurementSite s1, MeasurementSite s2) {

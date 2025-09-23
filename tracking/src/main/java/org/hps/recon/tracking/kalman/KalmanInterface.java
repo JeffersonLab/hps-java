@@ -101,6 +101,7 @@ public class KalmanInterface {
     private int nBigEvents;
     private int eventNumber;
     private static double target_pos = -999.9;
+    private static boolean addTrackStateAtTarget = false;
     private double[] beamPosition = null;
     
     private static final boolean debug = false;    
@@ -651,11 +652,32 @@ public class KalmanInterface {
             MeasurementSite site = kT.SiteList.get(i);
             ts = null;
             int loc = TrackState.AtOther;
+	    //add holes to hitpattern
+	    boolean isTrkHole=kT.isTrackHole(site);
+	    if(isTrkHole){
+		Array.set(hitPattern,site.m.Layer,-1);
+	    }
+            //HpsSiSensor hssd = (HpsSiSensor) moduleMap.get(site.m).getSensor();
+            //int lay = hssd.getMillepedeId();
+            // System.out.printf("ssp id %d \n", hssd.getMillepedeId());
 
             if (i == firstHit_idx) {
                 loc = TrackState.AtFirstHit;
             } else if (i == lastHit_idx) 
-                loc = TrackState.AtLastHit;                      
+                loc = TrackState.AtLastHit;
+            
+            /*
+              //DO Not att the missing layer track states yet.
+            if (storeTrackStates) {
+                for (int k = 1; k < lay - prevID; k++) {
+                    // uses new lcsim constructor
+                    BaseTrackState dummy = new BaseTrackState(dummyCounter);
+                    newTrack.getTrackStates().add(dummy);
+                    dummyCounter--;
+                }
+                prevID = lay;
+            }
+            */
                         
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true, saveTrackStateAtIntercept);
@@ -676,6 +698,24 @@ public class KalmanInterface {
         double BAtEcal = BfieldAtEcal.mag();
         double alphaAtEcal = conFac/ BAtEcal;
 
+	/*
+	
+	DMatrixRMaj ecalCov = new DMatrixRMaj(getCovarianceFromHelix(helixAtEcal));
+	double[] ecalParams = helixAtEcal.a.v.clone();
+        double[] ecalLCSimParams = getLCSimParams(ecalParams, alphaAtEcal);
+        double[] ecalLCSimCov = getLCSimCov(ecalCov, alphaAtEcal).asPackedArray(true);
+	double[] refAtEcal = localKalToHps(helixAtEcal.origin); 
+	if(debug)System.out.println(this.getClass().getName()+"::  reference to TrackState @ ecal = "+
+			   +refAtEcal[0]+", "+refAtEcal[1]+","+ refAtEcal[2]);
+	TrackState ts_ecal_helix = new BaseTrackState(ecalLCSimParams,refAtEcal, ecalLCSimCov,  TrackState.AtCalorimeter, BAtEcal);
+	if(debug)System.out.println(this.getClass().getName()+":: Uncorrected track state:  curvature = "+ts_ecal_helix.getOmega()
+			   +"  bField = "+ts_ecal_helix.getBLocal()+"  momentum z = "+ts_ecal_helix.getMomentum()[0]);
+	System.out.println("Helix at ECal from kT.getHelixAtPlane and by hand conversions ");
+	System.out.println(ts_ecal_helix.toString());
+	*/
+	//newTrack.getTrackStates().add(ts_ecal_helix);
+	
+
 	// this is how createTrackState (above) goes from measurement to TrackState
 	// from the measurements.  It calls toHPShelix.
 	// the helix state here must already be propagated
@@ -683,7 +723,15 @@ public class KalmanInterface {
 
 	TrackState ts_ecal=helixAtEcal.toTrackState(alphaAtEcal, ecalPlane, TrackState.AtCalorimeter, saveTrackStateAtIntercept);
 	newTrack.getTrackStates().add(ts_ecal);
-
+	//if(debug)System.out.println("Helix at ECal from helix.toTrackState");
+	//	if(debug)System.out.println(ts_toTrackState.toString()); 
+	//	System.out.println("Helix at ECal from helix.toTrackState");
+	//	System.out.println(ts_toTrackState.toString()); 
+	
+        // Extrapolate to the ECAL and make a new trackState there.
+	//BaseTrackState ts_ecal = new BaseTrackState();
+        //ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
+	
 	Vec targetFace=origin; 
 	Plane targetPlane = new Plane(targetFace, new Vec(0., 1., 0.));
 	HelixState helixAtTarget=kT.getHelixAtPlane(targetPlane,saveTrackStateAtIntercept);  // this propagates (via RK) the helix to the plane
@@ -695,6 +743,16 @@ public class KalmanInterface {
 	if(debug)System.out.println("Helix at Target from helix.toTrackState");
 	if(debug)System.out.println(ts_target.toString()); 
 	newTrack.getTrackStates().add(ts_target);
+        // Extrapolate to Target and make a new trackState there.
+	/*
+        BaseTrackState ts_target = new BaseTrackState();
+        if (target_pos != -999.9 && addTrackStateAtTarget){
+            ts_target = TrackUtils.getTrackExtrapAtTargetRK(newTrack, target_pos, beamPosition, fM, 0);
+            if (ts_target != null){
+                newTrack.getTrackStates().add(ts_target);
+            }
+        }
+	*/
         
         // other track properties
         newTrack.setChisq(kT.chi2);

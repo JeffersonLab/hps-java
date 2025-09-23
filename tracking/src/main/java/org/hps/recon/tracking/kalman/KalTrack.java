@@ -295,27 +295,49 @@ public class KalTrack {
             Vec intPnt = HelixState.atPhi(site.aS.helix.X0, aStar, phiInt, site.aS.helix.alpha);
             // Transform the intersection back into the global coordinates
             Vec globalInt = site.aS.helix.toGlobal(intPnt);
+	    //	    System.out.println("KalTrack::unbiasedIntersect  global x = "+globalInt.v[0]+
+	    //	       "  y = "+globalInt.v[1]+
+	    //		       "  z = "+globalInt.v[2]);
+	    
             if (!local) {
-                new Pair<>(new Double[]{globalInt.v[0], globalInt.v[1], globalInt.v[2]}, 999); //I didn't include global variance since I'm lazy
+		new Pair<>(new Double[]{globalInt.v[0], globalInt.v[1], globalInt.v[2]}, 999); //I didn't include global variance since I'm lazy
             }            // Transform the intersection point to the local sensor system
             Vec localInt = site.m.toLocal(globalInt);
             CommonOps_DDRM.mult(Cstar, site.H, tempV);
             Double varUmeas = CommonOps_DDRM.dot(site.H, tempV);
             return new Pair<>(new Double[]{localInt.v[0], localInt.v[1], localInt.v[2]}, varUmeas);
         } else {
-            if(debug)System.out.println("no phi-interect with this layer found!");
+            if(debug)System.out.println("KalTrack::unbiasedIntersect  no phi-interect with this layer found!");
         }
 
         return new Pair<>(new Double[]{666., 666., 666.}, 666.);
     }
 
+    public boolean isTrackHole(int layer){
+	if (lyrMap == null) {
+            makeLyrMap();
+        }
+        if (lyrMap.containsKey(layer)) {
+	    MeasurementSite ms=lyrMap.get(layer);
+	    return isTrackHole(ms);
+	}else{
+	    return false;
+	}	
+    }
+    public boolean isTrackHole(MeasurementSite ms){
+	if(ms.hitID >=0 && ms.m.hits.size()>0)
+	    return false; //track has a hit in this layer
+	Pair<Double[], Double> lInt=unbiasedIntersect(ms,true);
+	boolean trkInSensor=ms.isInSensor(lInt.getFirstElement());
+	return trkInSensor;
+    }
     private void makeLyrMap() {
         lyrMap = new HashMap<Integer, MeasurementSite>(nHits);
         for (MeasurementSite site : SiteList) {
             lyrMap.put(site.m.Layer, site);
         }
     }
-
+ 
     private void makeMillipedeMap() {
         millipedeMap = new HashMap<Integer, MeasurementSite>(nHits);
         for (MeasurementSite site : SiteList) {
@@ -512,7 +534,9 @@ public class KalTrack {
 
                 CommonOps_DDRM.mult(Cstar, site.H, tempV);
                 varResid = sigma * sigma + CommonOps_DDRM.dot(site.H, tempV);
-            }
+            }else{
+		System.out.println("KalTrack::unbiasedResidual  phiInt is NaN");
+	    }
         }
         return new Pair<Double, Double>(resid, varResid);
     }
@@ -908,26 +932,7 @@ public class KalTrack {
         Vec v = helixAtOrigin.toLocal(new Vec(3, vtx));
         SquareMatrix Cov = helixAtOrigin.Rot.rotate(new SquareMatrix(3, vtxCov));
         Vec X0 = helixAtOrigin.X0;
-        double phi = phiDOCA(helixAtOrigin.a, v, X0, alpha);
-        /*        if (debug) {  // Test the DOCA algorithm
-            Vec rDoca = HelixState.atPhi(X0, helixAtOrigin.a, phi, alpha);
-            System.out.format("originConstraint: phi of DOCA=%10.5e\n", phi);
-            rDoca.print("  DOCA point");
-            double doca = rDoca.dif(v).mag();
-            System.out.format("      Minimum doca=%10.7f\n", doca);
-            for (double p=phi-0.0001; p<phi+0.0001; p += 0.000001) {
-                rDoca = HelixState.atPhi(X0, helixAtOrigin.a, p, alpha);
-                doca = rDoca.dif(v).mag();
-                System.out.format("   phi=%10.5e, doca=%10.7f\n", p,doca);
-            }
-            
-            double delPhi = 0.00001;
-            double f = fDOCA(phi, helixAtOrigin.a, v, X0, alpha);
-            double df1 = fDOCA(phi + delPhi, helixAtOrigin.a, v, X0, alpha) - f;
-            double deriv = dfDOCAdPhi(phi, helixAtOrigin.a, v, X0, alpha);
-            double df2 = deriv * delPhi;
-            System.out.format("Test of fDOCA derivative: df exact = %11.7f; df from derivative = %11.7f\n", df1, df2);
-        }*/
+        double phi = phiDOCA(helixAtOrigin.a, v, X0, alpha);      
         double[][] H = buildH(helixAtOrigin.a, v, X0, phi, alpha);
         Vec pntDOCA = HelixState.atPhi(X0, helixAtOrigin.a, phi, alpha);
         if (debug) {
