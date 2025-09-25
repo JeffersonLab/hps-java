@@ -76,7 +76,6 @@ class MeasurementSite {
         }
         return str;
     }
-
     MeasurementSite(int thisSite, SiModule data, KalmanParams kPar) {
         this.thisSite = thisSite;
         this.kPar = kPar;
@@ -718,11 +717,10 @@ class MeasurementSite {
     }
 
     public boolean isInSensor(Double[] rLocal){
-	double tol = kPar.edgeTolerance; // Tolerance on the check, in mm
-	//	double tol=0.0; 
-	if (rLocal[0] < m.xExtent[0] - tol || rLocal[0] > m.xExtent[1] + tol) return false;
-	if (rLocal[1] < m.yExtent[0] - tol || rLocal[1] > m.yExtent[1] + tol) return false;
-	return true;
+        double tol = kPar.edgeTolerance; // Tolerance on the check, in mm
+        if (rLocal[0] < m.xExtent[0] - tol || rLocal[0] > m.xExtent[1] + tol) return false;
+        if (rLocal[1] < m.yExtent[0] - tol || rLocal[1] > m.yExtent[1] + tol) return false;
+        return true;
     }
 
     // Comparator functions for sorting measurement sites by layer number
