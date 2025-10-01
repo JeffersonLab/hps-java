@@ -22,9 +22,10 @@ class Measurement { //
         x = xStrip;
         sigma = resolution;
         time = t;
+        timeErr=666.;
         energy = E;
         tracks = new ArrayList<KalTrack>();
-        vTrue = 0.;
+        vTrue = 0.;        
         rGlobal = null;
         tksMC = null;
     }
@@ -34,7 +35,11 @@ class Measurement { //
         x = xStrip;
         sigma = resolution;
         time = t;
-        timeErr = terr;
+        //make sure error is a number
+        if(Double.isNaN(terr))
+            timeErr=666.;
+        else
+            timeErr = terr;
         energy = E;
         tracks = new ArrayList<KalTrack>();
         vTrue = 0.;
