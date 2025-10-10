@@ -139,6 +139,11 @@ public class KalmanInterface {
     public TrackerHit getHpsHit(Measurement km) {
         return hitMap.get(km);
     }
+
+    // Get the HPS tracker hit corresponding to a Kalman hit
+    public TrackerHit addHpsHit(Measurement km, TrackerHit hit) {
+        return hitMap.put(km, hit);
+    }
     
     // Get the HPS sensor that corresponds to a Kalman SiModule
     public HpsSiSensor getHpsSensor(SiModule kalmanSiMod) {
@@ -637,13 +642,20 @@ public class KalmanInterface {
             if (site.hitID < 0) continue;
 	    if (firstHit_idx < 0) firstHit_idx = idx;
 	    lastHit_idx = idx;
+        if(debug) System.out.println("Site Hits?? " + site.m.hits.size());
+        if(debug) System.out.println("Site HitID?? " + site.hitID);
+
 
 	    TrackerHit ht = this.getHpsHit(site.m.hits.get(site.hitID));
+        if(debug)System.out.println("KI:: meas " +  site.m.hits.get(site.hitID));
+        if(debug)System.out.println("KI:: TrackerHit " +  ht);
+        if(debug) System.out.println("KI:: Does Hit Exist?? " + ht.getPosition()[0] + " " + ht.getPosition()[1] + " " + ht.getPosition()[2]);
 	    List<RawTrackerHit> rawHits = ht.getRawHits();
 	    for (RawTrackerHit rawHit : rawHits) {
               HpsSiSensor sensor = (HpsSiSensor) rawHit.getDetectorElement();
-	      Array.set(hitPattern,sensor.getLayerNumber()-1,1);
+	          Array.set(hitPattern,sensor.getLayerNumber()-1,1);
 	    }
+            if(debug)System.out.println("Added Hit to Track!");
             newTrack.addHit(ht);
         }
 
@@ -678,7 +690,7 @@ public class KalmanInterface {
             if (loc == TrackState.AtFirstHit || loc == TrackState.AtLastHit || storeTrackStates) {
                 ts = createTrackState(site, loc, true, saveTrackStateAtIntercept);
                 if (ts != null) newTrack.getTrackStates().add(ts);
-		if(debug)System.out.println(ts.toString());
+		if(debug && (ts != null))System.out.println(ts.toString());
             }
         }
 

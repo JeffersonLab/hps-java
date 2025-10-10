@@ -5,6 +5,18 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Random; 
+import org.apache.commons.math.util.FastMath;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+
+
 
 import hep.physics.vec.Hep3Vector;
 import hep.physics.vec.BasicHep3Vector;
@@ -35,6 +47,21 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.util.Driver;
 import org.lcsim.util.aida.AIDA;
+
+import org.lcsim.detector.tracker.silicon.SiSensorElectrodes;
+import org.lcsim.detector.tracker.silicon.ChargeCarrier;
+import org.lcsim.fit.helicaltrack.HelicalTrackFit;
+
+import org.lcsim.event.RelationalTable;
+import org.lcsim.event.base.BaseRelationalTable;
+import org.lcsim.event.SimTrackerHit;
+import org.lcsim.event.RawTrackerHit;
+
+import org.lcsim.recon.tracking.digitization.sisim.SiTrackerHitStrip1D;
+import org.lcsim.recon.tracking.digitization.sisim.TrackerHitType;
+import hep.physics.matrix.SymmetricMatrix;
+
+
 
 import org.lcsim.geometry.IDDecoder;
 
@@ -107,6 +134,12 @@ public class KalmanPatRecDriver extends Driver {
     private boolean addResiduals;               // If true add the hit-on-track residuals to the LCIO event
     private List<HpsSiSensor> sensors = null;   // List of tracker sensors
     
+    private boolean smearHits;
+    private String smearingFile;
+    private Map<Integer, Double> smearMap;
+    // Bfield
+    protected static double bfield;
+
 
     public String getOutputFullTrackCollectionName() {
         return outputFullTrackCollectionName;
@@ -117,6 +150,7 @@ public class KalmanPatRecDriver extends Driver {
     }
 
     public void setVerbose(boolean input) {
+        System.out.println("Setting verbose = " +input);
         verbose = input;
     }
 
@@ -155,6 +189,16 @@ public class KalmanPatRecDriver extends Driver {
     public void setAddTrackStateAtTarget(boolean input){
         this.addTrackStateAtTarget = input;
     }
+
+    public void setSmearingFile(String file) {
+        System.out.println("Setting SVT sensor position nhits smearing file = " +file);
+        this.smearingFile = file;
+    }
+
+    public void setSmearHits(boolean input) {
+        System.out.println("Setting SVT sensor hit smearing = " +input);
+        this.smearHits = input;
+    }
     
     @Override
     public void detectorChanged(Detector det) {
@@ -163,7 +207,7 @@ public class KalmanPatRecDriver extends Driver {
             logger.setLevel(logLevel);
             //LogManager.getLogManager().getLogger(Logger.GLOBAL_LOGGER_NAME).setLevel(logLevel);
         }
-        verbose = (logger.getLevel()==Level.FINE);
+        //verbose = (logger.getLevel()==Level.FINE);
         System.out.format("KalmanPatRecDriver: entering detectorChanged, logger level = %s\n", logger.getLevel().getName());
         executionTime = 0.;
         interfaceTime = 0.;
@@ -316,6 +360,28 @@ public class KalmanPatRecDriver extends Driver {
         if (doDebugPlots) {
             kPlot = new KalmanPatRecPlots(verbose, KI, decoder, numEvtPlots, fm);
         }
+
+        // Here we read in the hit-based smearing file
+        if (smearHits) {
+            smearMap = new HashMap<>();
+
+            try (BufferedReader br = new BufferedReader(new FileReader(smearingFile))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    line = line.trim();
+                    System.out.println(line);
+
+                    if (line.isEmpty() || line.startsWith("#")) continue;
+                    String[] parts = line.split("\\s+");
+                    System.out.println(parts[0]);
+                    int hits = Integer.parseInt(parts[0]);
+                    double smear = Double.parseDouble(parts[1]);
+                    smearMap.put(hits, smear);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -324,6 +390,8 @@ public class KalmanPatRecDriver extends Driver {
         KI.setRunNumber(runNumber);
                 
         List<Track> outputFullTracks = new ArrayList<Track>();
+        List<TrackerHit> smearedTrackHits=new ArrayList<TrackerHit>();
+
         
         //For additional track information
         List<TrackData> trackDataCollection = new ArrayList<TrackData>();
@@ -347,7 +415,7 @@ public class KalmanPatRecDriver extends Driver {
 	List<TrackIntersectData> trackIntersects = new ArrayList<TrackIntersectData>();
 	List<LCRelation> trackIntersectsRelations = new ArrayList<LCRelation>();
  
-	ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations,trackXKinks,trackXKinksRelations,trackZKinks,trackZKinksRelations,trackResiduals, trackResidualsRelations, trackIntersects, trackIntersectsRelations);
+	ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations,trackXKinks,trackXKinksRelations,trackZKinks,trackZKinksRelations,trackResiduals, trackResidualsRelations, trackIntersects, trackIntersectsRelations, smearedTrackHits);
  
 	//        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
         //mg debug why the track data relations (and others I think) are screwed
@@ -357,6 +425,7 @@ public class KalmanPatRecDriver extends Driver {
 
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
+        event.put("KFSmearedHitsonTrack", smearedTrackHits, SiTrackerHitStrip1D.class, 0, toString());
         event.put("KFGBLStripClusterData", allClstrs, GBLStripClusterData.class, flag);
         event.put("KFGBLStripClusterDataRelations", gblStripClusterDataRelations, LCRelation.class, flag);
         event.put("KFTrackData",trackDataCollection, TrackData.class,0);
@@ -411,7 +480,7 @@ public class KalmanPatRecDriver extends Driver {
 							  List<TrackResidualsData> trackXKinks, List<LCRelation> trackXKinksRelations,
 							  List<TrackResidualsData> trackZKinks, List<LCRelation> trackZKinksRelations,
                                                           List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations,
-                                                          List<TrackIntersectData> trackIntersects, List<LCRelation> trackIntersectsRelations) {
+                                                          List<TrackIntersectData> trackIntersects, List<LCRelation> trackIntersectsRelations, List<TrackerHit> smearedTrackHits) {
         
         int evtNumb = event.getEventNumber();
         String stripHitInputCollectionName = "StripClusterer_SiTrackerHitStrip1D";
@@ -419,6 +488,17 @@ public class KalmanPatRecDriver extends Driver {
             System.out.format("KalmanPatRecDriver.process:" + stripHitInputCollectionName + " does not exist; skipping event %d\n", evtNumb);
             return null;
         }
+
+        RelationalTable rawtomc = new BaseRelationalTable(RelationalTable.Mode.MANY_TO_MANY, RelationalTable.Weighting.UNWEIGHTED);
+        if (event.hasCollection(LCRelation.class, "SVTTrueHitRelations")) {
+            List<LCRelation> trueHitRelations = event.get(LCRelation.class, "SVTTrueHitRelations");
+            for (LCRelation relation : trueHitRelations) {
+            if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                rawtomc.add(relation.getFrom(), relation.getTo());
+                }
+            }
+        }
+        Random r = new Random();
         
         long startTime = System.nanoTime();
         ArrayList<KalTrack>[] kPatList = KI.KalmanPatRec(event, decoder);
@@ -459,10 +539,141 @@ public class KalmanPatRecDriver extends Driver {
                     }
                 }                
                 nKalTracks++;
+
+                // Here we do the hit-smearing
+                KalTrack smearedTrack = null;
+                if (smearHits) {
+                    Map<HpsSiSensor, ArrayList<TrackerHit>> hitsMap = new HashMap<HpsSiSensor, ArrayList<TrackerHit>>();
+                    int trackHits = kTk.nHits;
+                    Double smearingValue = smearMap.get(trackHits);
+                    ArrayList<SiModule> modList = new ArrayList<SiModule>();
+                    ArrayList<Integer> hits = new ArrayList<Integer>();
+
+                    if (verbose) { kTk.print("Before Smearing"); }
+
+                    // Looping over all of the SI modules.
+                    for (int i = 0; i < kTk.SiteList.size(); i++) {
+                        MeasurementSite site = kTk.SiteList.get(i);
+                        SiModule mod = site.m;
+                        int hitID = site.hitID;
+
+                        Measurement measOnTrack = null;
+                        if (hitID >= 0) {
+                            measOnTrack = site.m.hits.get(site.hitID);
+                        }
+
+                        //if (measOnTrack != null) {
+                        //    System.out.println("Found hit on track in layer " + mod.Layer);
+                        //}
+                        //else {
+                        //    System.out.println("No hits in layer " + mod.Layer);
+                        //}
+                        
+                        // If there is a hit on track in the module, smear it
+                        if (measOnTrack != null) {
+                            boolean isMC = true;
+                            TrackerHit ht = KI.getHpsHit(measOnTrack);
+                            List<RawTrackerHit> rawHits = ht.getRawHits();
+
+                            // Determining if the hit was an MC hit
+                            int total_simhits = 0;
+	                        for (RawTrackerHit rawHit : rawHits) {
+                                Set<SimTrackerHit> simhits = rawtomc.allFrom(rawHit);
+                                if (simhits.size() == 0) total_simhits++;
+	                        } 
+                            if (total_simhits == 0) {isMC = false;}
+
+
+                            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) ht.getRawHits().get(0)).getDetectorElement();
+                            Hep3Vector newPos=toHep3(ht.getPosition());   
+
+                            // Smearing the hit
+                            if((smearingValue > 0) & (isMC)){
+                                Hep3Vector pos = globalToSensor(toHep3(ht.getPosition()), sensor);
+                                double smearAmount = r.nextGaussian() * smearingValue;
+			                    double uPosNew = pos.x() + smearAmount;
+			                    //get the new global position
+		                        if (isMC) {newPos = sensorToGlobal(toHep3(new double[]{uPosNew,pos.y(),pos.z()}),sensor);}
+                            }
+
+                            // Defining the new smeared hit object
+                            SiTrackerHitStrip1D smearedTrackerHit=
+		                            new SiTrackerHitStrip1D(newPos, new SymmetricMatrix(3,ht.getCovMatrix(),true),
+					                ht.getdEdx(),ht.getTime(),(List<RawTrackerHit>)ht.getRawHits(),
+					                TrackerHitType.decoded(ht.getType()));
+
+                            // Defining the new smeared measurement
+                            SiTrackerHitStrip1D localHit = smearedTrackerHit.getTransformedHit(TrackerHitType.CoordinateSystem.SENSOR);
+                            double [] lpos = localHit.getPosition();
+                            double umeas = lpos[0];
+                            double du = FastMath.sqrt(localHit.getCovarianceAsMatrix().diagonal(0));
+                            double time = localHit.getTime(); 
+                            double xStrip = -lpos[1]; 
+                            Measurement newMeas = new Measurement(umeas, xStrip, du, time, localHit.getdEdx()*1000000.0,measOnTrack.timeErr);
+                            newMeas.vTrue = measOnTrack.vTrue;
+                            newMeas.rGlobal = measOnTrack.rGlobal;
+                            for (KalTrack trk: measOnTrack.tracks) {
+                                newMeas.tracks.add(trk);
+                            }
+
+                            
+                            // Next, need to define the new SiModule. 
+                            SiModule newModule = new SiModule(mod.Layer, mod.p, mod.isStereo, 1, 1, mod.split, mod.thickness,
+                                                                mod.Bfield, mod.detector, mod.millipedeID, mod.topBottom);
+                            newModule.xExtent = mod.xExtent;
+                            newModule.yExtent = mod.yExtent;
+                            newModule.addMeasurement(newMeas);
+                            modList.add(newModule);
+
+                            // Filling in the hitMap information
+                            //KI.clearInterface();
+                            KI.addHpsHit(newMeas, (TrackerHit)smearedTrackerHit);
+                            //System.out.println("newMeas " +  newMeas);
+                            //System.out.println("SmearedTrackerHit " +  smearedTrackerHit);
+                            //System.out.println("Does Hit Exist?? " + smearedTrackerHit.getPosition()[0] + " " + smearedTrackerHit.getPosition()[1] + " " + smearedTrackerHit.getPosition()[2]);
+                            smearedTrackHits.add(smearedTrackerHit);
+                            //KalHit hitPair = new KalHit(newModule, newMeas);
+                            //KI.trackHitsKalman.add(hitPair);
+                        }
+                    }
+
+                    HelixState hx = null;
+                    for (MeasurementSite site : kTk.SiteList) {
+                        if (site.hitID >= 0) {
+                            if (site.aS != null) {
+                                hx = site.aS.helix;
+                                break;
+                            }
+                        }
+                    }
+                    DMatrixRMaj cov = hx.C.copy();
+                    CommonOps_DDRM.scale(2000., cov);
+                    KalmanTrackFit2 kft2 = new KalmanTrackFit2(event.getEventNumber(), modList, null, 0, 2, hx.X0, hx.a, cov, KI.kPar, KI.fM);
+                    smearedTrack = kft2.tkr;
+                    if (smearedTrack != null) {
+                        smearedTrack.ID = kTk.ID;
+                        kTk = smearedTrack;
+                    }
+                    if (verbose) { kTk.print("After Smearing");}
+                }
+                
+
+               
+
+
                 
                 //Here is where the tracks to be persisted are formed
                 Track KalmanTrackHPS = KI.createTrack(kTk, true);
-                if (KalmanTrackHPS == null) continue;
+                if (KalmanTrackHPS == null) {
+                //    System.out.println("NULL TRACK!!");
+                    continue;
+                }
+                //List<TrackerHit> all_hits = KalmanTrackHPS.getTrackerHits();
+                //System.out.println("Checking Hits! " + all_hits.size());
+                //for (TrackerHit hit: all_hits) {
+                //     System.out.println("Checking Hits! " + hit);
+                //}
+                
                 
                 //pT cut 
                 //double [] hParams_check = kTk.originHelixParms();
@@ -554,7 +765,7 @@ public class KalmanPatRecDriver extends Driver {
                     intersect.add(inter_and_sigma.getFirstElement()[uindex]);
                     intersect.add(inter_and_sigma.getFirstElement()[vindex]);
                     intersect.add(inter_and_sigma.getFirstElement()[windex]);
-                    sigmasInt.add(inter_and_sigma.getSecondElement().floatValue());                    
+                    sigmasInt.add(inter_and_sigma.getSecondElement().floatValue()); 
                 }//Loop on layers
                 
                 //Add the Track Data 
@@ -607,6 +818,31 @@ public class KalmanPatRecDriver extends Driver {
         interfaceTime += runTime;
         
         return kPatList;
+    }
+
+       //Converts double array into Hep3Vector
+    private Hep3Vector toHep3(double[] arr) {
+        return new BasicHep3Vector(arr[0], arr[1], arr[2]);
+    }
+
+        //Converts position into sensor frame
+    private Hep3Vector globalToSensor(Hep3Vector hitpos, HpsSiSensor sensor) {
+        SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
+        if (electrodes == null) {
+            electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
+            System.out.println("Charge Carrier is NULL");
+        }
+        return electrodes.getGlobalToLocal().transformed(hitpos);
+    }
+
+    //Converts position from local (sensor) to global frame
+    private Hep3Vector sensorToGlobal(Hep3Vector hitpos, HpsSiSensor sensor) {
+        SiSensorElectrodes electrodes = sensor.getReadoutElectrodes(ChargeCarrier.HOLE);
+        if (electrodes == null) {
+            electrodes = sensor.getReadoutElectrodes(ChargeCarrier.ELECTRON);
+            System.out.println("Charge Carrier is NULL");
+        }
+        return electrodes.getLocalToGlobal().transformed(hitpos);
     }
 
     @Override
