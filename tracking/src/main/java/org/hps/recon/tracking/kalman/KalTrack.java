@@ -156,8 +156,10 @@ public class KalTrack {
 	    double hTV = site.m.hits.get(site.hitID).timeErr;
             time += site.m.hits.get(site.hitID).time/hTV;
 	    terr += 1.0/hTV;
-            tMin = Math.min(tMin, site.m.hits.get(site.hitID).time);
-            tMax = Math.max(tMax, site.m.hits.get(site.hitID).time);
+            if(site.m.Layer>kPar.maxInnerLayer){
+                tMin = Math.min(tMin, site.m.hits.get(site.hitID).time);
+                tMax = Math.max(tMax, site.m.hits.get(site.hitID).time);
+            }
             this.chi2 += site.chi2inc;
             if (debug) {
                 System.out.format("  Layer %d, chi^2 increment=%10.5f, a=%s\n", site.m.Layer, site.chi2inc, site.aS.helix.a.toString());
@@ -1303,8 +1305,10 @@ public class KalTrack {
         if (addedHit != null) {
             addedHit.tracks.add(this);
             Measurement newHit = site.m.hits.get(site.hitID);
-            tMin = Math.min(tMin, newHit.time);
-            tMax = Math.max(tMax, newHit.time);
+            if(site.m.Layer>kPar.maxInnerLayer){
+                tMin = Math.min(tMin, newHit.time);
+                tMax = Math.max(tMax, newHit.time);
+            }
             exchange = true;
             nHits++;
             if (debug) {
@@ -1378,7 +1382,11 @@ public class KalTrack {
                 }
                 for (SiModule module : moduleList.get(lyr)) {
                     MeasurementSite newSite = new MeasurementSite(lyr, module, kPar);
-                    double[] tRange = {tMax - mxTdif, tMin + mxTdif};
+                    
+                    double maxDif=kPar.mxTdif;
+                    if(newSite.m.Layer<=kPar.maxInnerLayer)
+                        maxDif=kPar.mxTdifIn; 
+                    double[] tRange = {tMax - maxDif, tMin + maxDif};
                     int rF = newSite.makePrediction(siteFrom.aF, siteFrom.m, -1, false, true, false, tRange, 0, verbose);
                     if (rF == 1) {
                         if (debug) {
@@ -1398,11 +1406,13 @@ public class KalTrack {
                                     numAdded++;
                                     nHits++;
                                     siteFrom = newSite;
-                                    double hitTime = newSite.m.hits.get(newSite.hitID).time;
-                                    if (hitTime > tMax) {
-                                        tMax = hitTime;
-                                    } else if (hitTime < tMin) {
-                                        tMin = hitTime;
+                                    if(newSite.m.Layer>kPar.maxInnerLayer){
+                                        double hitTime = newSite.m.hits.get(newSite.hitID).time;
+                                        if (hitTime > tMax) {
+                                            tMax = hitTime;
+                                        } else if (hitTime < tMin) {
+                                            tMin = hitTime;
+                                        }
                                     }
                                     break;
                                 }

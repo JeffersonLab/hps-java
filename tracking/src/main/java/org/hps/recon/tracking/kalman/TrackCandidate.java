@@ -55,8 +55,10 @@ class TrackCandidate {
             seedLyrs.add(hit.module.Layer);
             hits.add(hit);
             if (hit.hit.tracks.size() > 0) nTaken++;
-            tMin = Math.min(tMin, hit.hit.time);
-            tMax = Math.max(tMax, hit.hit.time);
+            if(hit.module.Layer>kPar.maxInnerLayer){
+                tMin = Math.min(tMin, hit.hit.time);
+                tMax = Math.max(tMax, hit.hit.time);
+            }
         }
         sites = new ArrayList<MeasurementSite>(12);
         good = true;
@@ -203,7 +205,7 @@ class TrackCandidate {
         } else {
             if (hit.hit.tracks.size() > 1) nTaken--;
         }
-        if (hit.hit.time <= tMin || hit.hit.time >= tMax) {
+        if ((hit.hit.time <= tMin || hit.hit.time >= tMax)&&mod.Layer>kPar.maxInnerLayer) {
             tMin = tMax;
             tMax = tMin;
             for (KalHit ht : hits) {
@@ -262,7 +264,10 @@ class TrackCandidate {
     
                 boolean allowSharing = nTaken < kPar.mxShared;
                 boolean checkBounds = false;
-                double [] tRange = {tMax - kPar.mxTdif, tMin + kPar.mxTdif}; 
+                double maxDif=kPar.mxTdif;
+                if(currentSite.m.Layer<=kPar.maxInnerLayer)
+                    maxDif=kPar.mxTdifIn; 
+                double [] tRange = {tMax - maxDif, tMin + maxDif}; 
                 int rF = currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, 0);
                 if (rF < 0) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction at layer %d for event %d!\n",currentSite.m.Layer,eventNumber);
@@ -275,8 +280,10 @@ class TrackCandidate {
                     return false;
                 } else if (rF == 1) {
                     if (currentSite.m.hits.get(currentSite.hitID).tracks.size() > 0) nTaken++;
-                    tMin = Math.min(tMin, currentSite.m.hits.get(currentSite.hitID).time);
-                    tMax = Math.max(tMax, currentSite.m.hits.get(currentSite.hitID).time);
+                    if (currentSite.m.Layer>kPar.maxInnerLayer){
+                        tMin = Math.min(tMin, currentSite.m.hits.get(currentSite.hitID).time);
+                        tMax = Math.max(tMax, currentSite.m.hits.get(currentSite.hitID).time);
+                    }
                 }
                 if (verbose) System.out.format("  After prediction to layer %d detector %d, hit=%d, helix=%s\n",
                         currentSite.m.Layer, currentSite.m.detector, currentSite.hitID, currentSite.aP.helix.a.toString());

@@ -1,6 +1,7 @@
 package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -62,7 +63,6 @@ class KalmanPatRecHPS {
     private static long startTime;
     static int [] nBadCov = {0, 0};
     private ArrayList<TrackCandidate> candidateList;
-
     KalmanPatRecHPS(KalmanParams kPar) {
         startTime = (long)0.;
         this.kPar = kPar;     
@@ -282,16 +282,20 @@ class KalmanPatRecHPS {
                                         hitList.add(lyrHits.get(list[i]).get(idx[i]));
                                     }
                                     // Cut on the seed timing
+                                    /*   remove this and do more complicated check on time range
                                     double tmin = 1.e10;
                                     double tmax = -1.e10;
                                     for (KalHit ht : hitList) {
                                         tmin = Math.min(tmin, ht.hit.time);
                                         tmax = Math.max(tmax, ht.hit.time);
-                                    }
+                                    }                                    
                                     if (tmax - tmin > kPar.mxTdif) {
+                                    */
+                                    boolean timeRangeIsGood=checkTimeRange(hitList);
+                                    if(!timeRangeIsGood){
                                         if (debug) {
-                                            System.out.format("KalmanPatRecHPS: skipping seed %d %d %d %d %d with tdif=%8.2f\n Hits:  ", 
-                                                    idx[0], idx[1], idx[2], idx[3], idx[4], tmax-tmin);
+                                            //                                            System.out.format("KalmanPatRecHPS: skipping seed %d %d %d %d %d with tdif=%8.2f\n Hits:  ", 
+                                            //idx[0], idx[1], idx[2], idx[3], idx[4], tmax-tmin);
                                             for (KalHit ht : hitList) ht.print("short");
                                             System.out.format("\n");
                                         }
@@ -1130,7 +1134,10 @@ class KalmanPatRecHPS {
                                 }
                                 if (site.chi2inc > kPar.mxChi2double) {
                                     if (!site.smoothed) logger.log(Level.WARNING,String.format("OOPS, why isn't this site smoothed at layer %d?",site.m.Layer));
-                                    if (tkr.removeHit(site, kPar.mxChi2Inc, kPar.mxTdif)) {
+                                    double maxDif=kPar.mxTdif;
+                                    if(site.m.Layer<=kPar.maxInnerLayer)
+                                        maxDif=kPar.mxTdifIn;                                    
+                                    if (tkr.removeHit(site, kPar.mxChi2Inc, maxDif)) {
                                         if (debug) {
                                             System.out.format("KalmanPatRecHPS: added a hit after removing one for Track %d, Layer %d\n",tkr.ID, module.Layer);
                                         }
@@ -1525,14 +1532,21 @@ class KalmanPatRecHPS {
                 }
                 newSite = new MeasurementSite(lyr, m, kPar);
                 int rF;
-                double [] tRange = {tkrCandidate.tMax - kPar.mxTdif, tkrCandidate.tMin + kPar.mxTdif}; 
+                double maxDif=kPar.mxTdif;
+                if(newSite.m.Layer<=kPar.maxInnerLayer)
+                    maxDif=kPar.mxTdifIn; 
+                double [] tRange = {tkrCandidate.tMax - maxDif, tkrCandidate.tMin + maxDif}; 
+                //                double [] tRange = {tkrCandidate.tMax - kPar.mxTdif, tkrCandidate.tMin + kPar.mxTdif}; 
                 if (prevSite == null) { // For first layer use the initializer state vector               
                     boolean checkBounds = imod < moduleList.get(lyr).size() - 1;  // Note: boundary check is not made on last module of the layer
                     rF = newSite.makePrediction(sI, null, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, checkBounds, tRange, trial);
                     if (rF > 0) {
                         if (m.hits.get(newSite.hitID).tracks.size() > 0) tkrCandidate.nTaken++;
-                        tkrCandidate.tMin = Math.min(tkrCandidate.tMin, m.hits.get(newSite.hitID).time);
-                        tkrCandidate.tMax = Math.max(tkrCandidate.tMax, m.hits.get(newSite.hitID).time);
+                        //only use the outer layers for the tMin & tMax
+                        if(newSite.m.Layer>kPar.maxInnerLayer){
+                            tkrCandidate.tMin = Math.min(tkrCandidate.tMin, m.hits.get(newSite.hitID).time);
+                            tkrCandidate.tMax = Math.max(tkrCandidate.tMax, m.hits.get(newSite.hitID).time);
+                        }
                     } else if (rF < 0) {
                         if (rF == -2) {  // This really shouldn't happen at the initial site
                             if (debug) System.out.format("KalmanPatRecHPS.filterTrack: not within detector boundary on layer %d detector %d!!\n",
@@ -1555,9 +1569,11 @@ class KalmanPatRecHPS {
                     rF = newSite.makePrediction(prevSite.aF, prevSite.m, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, checkBounds, tRange, trial);
                     if (rF > 0) {
                         if (m.hits.get(newSite.hitID).tracks.size() > 0) tkrCandidate.nTaken++;
-                        tkrCandidate.tMin = Math.min(tkrCandidate.tMin, m.hits.get(newSite.hitID).time);
-                        tkrCandidate.tMax = Math.max(tkrCandidate.tMax, m.hits.get(newSite.hitID).time);
-                    } else if (rF < 0) {
+                        if(newSite.m.Layer>kPar.maxInnerLayer){
+                            tkrCandidate.tMin = Math.min(tkrCandidate.tMin, m.hits.get(newSite.hitID).time);
+                            tkrCandidate.tMax = Math.max(tkrCandidate.tMax, m.hits.get(newSite.hitID).time);
+                        }
+                        } else if (rF < 0) {
                         if (rF == -2) {
                             if (debug) System.out.format("KalmanPatRecHPS.filterTrack: not within detector boundary on layer %d detector %d\n",
                                     newSite.m.Layer, newSite.m.detector);
@@ -1789,4 +1805,35 @@ class KalmanPatRecHPS {
         }
         return false;
     }
+
+    private boolean checkTimeRange(List<KalHit> hitsOnTrk){
+        double maxDiffOuter=kPar.mxTdif;
+        double maxDiffInner=kPar.mxTdifIn;
+        List<Double> innerTimes=new ArrayList<Double>();
+        double minTime=1e9;
+        double maxTime=-1e9;
+        for(KalHit kHit:hitsOnTrk){
+            int layer=kHit.module.Layer;
+            double hitTime=kHit.hit.time;
+            if(layer<=kPar.maxInnerLayer){
+                innerTimes.add(hitTime);
+                continue;
+            }
+            if(hitTime<minTime)
+                minTime=hitTime;
+            if(hitTime>maxTime)
+                maxTime=hitTime;            
+        }
+        //check outer range
+        if(Math.abs(maxTime-minTime)>maxDiffOuter)
+            return false;
+        //check inner hits
+        for(double inTime : innerTimes){
+            if(Math.abs(inTime-maxTime)>maxDiffInner ||
+               Math.abs(inTime-minTime)>maxDiffInner)
+                return false;
+        }        
+        //if we made it this far, we are all good.
+        return true;             
+    }    
 }

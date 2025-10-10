@@ -30,6 +30,7 @@ public class KalmanParams {
     int [] minStereo;
     int minAxial;
     double mxTdif;
+    double mxTdifIn;
     double lowPhThresh;
     double seedCompThr;           // Compatibility threshold for seedTracks helix parameters;
     ArrayList<int[]> [] lyrList;
@@ -38,7 +39,8 @@ public class KalmanParams {
     double [] minSeedE;
     double edgeTolerance;
     static final int numLayers = 14;
-    
+    int maxInnerLayer;
+
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
     private String [] tb;
     private Logger logger;
@@ -74,7 +76,8 @@ public class KalmanParams {
         System.out.format("  Maximum residual, in units of detector resolution, for a hit to be shared: %8.2f\n", mxResidShare);
         System.out.format("  Maximum chi^2 increment to keep a shared hit: %8.2f\n", mxChi2double);
         System.out.format("  Maximum number of shared hits on a track: %d\n",  mxShared);
-        System.out.format("  Maximum time difference among the hits on a track: %8.2f ns\n", mxTdif);
+        System.out.format("  Maximum time difference among the outer layer hits on a track: %8.2f ns\n", mxTdif);
+        System.out.format("  Maximum time difference among the inner(<2) layer hits on a track: %8.2f ns\n", mxTdifIn);
         System.out.format("  Threshold to remove redundant seeds (-1 to disable): %8.2f\n", seedCompThr);
         System.out.format("  Maximum chi^2 for 5-hit tracks with a vertex constraint: %8.2f\n", mxChi2Vtx);
         System.out.format("  Default origin to use for vertex constraints:\n");
@@ -149,10 +152,14 @@ public class KalmanParams {
         minStereo[1] = 3;   // Minimum number of stereo hits
         minAxial = 2;       // Minimum number of axial hits
         mxShared = 2;       // Maximum number of shared hits
-        mxTdif = 30.;       // Maximum time difference of hits in a track
+        mxTdif = 30.;       // Maximum time difference of outer hits in a track
+        mxTdifIn = 40.;       // Maximum time difference of inner hits in a track
         firstLayer = 0;     // First layer in the tracking system (2 for pre-2019 data)
         lowPhThresh = 0.25; // Residual improvement ratio necessary to use a low-ph hit instead of high-ph
         seedCompThr = 0.05;  // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
+        maxInnerLayer=1;//sensors 0 & 1
+
+
         
         // Load the default search strategies
         // Index 0 is for the bottom tracker (+z), 1 for the top (-z)
@@ -396,6 +403,11 @@ public class KalmanParams {
     public void setMaxTimeRange(double mxT) {
         logger.log(Level.CONFIG,String.format("Setting the maximum time range for hits on a track to %8.2f ns.", mxT));
         mxTdif = mxT;
+    }
+
+    public void setMaxTimeRangeInner(double mxT) {
+        logger.log(Level.CONFIG,String.format("Setting the maximum time range for inner layer hits on a track to %8.2f ns.", mxT));
+        mxTdifIn = mxT;
     }
 
     public void setSeedCompThr(double seedComp_Thr) {      

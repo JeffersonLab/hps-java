@@ -77,7 +77,8 @@ public class KalmanPatRecDriver extends Driver {
     private int minHits;               // Minimum number of hits on a track
     private int minStereo;             // Minimum number of stereo hits on a track
     private int maxSharedHits;         // Maximum number of hits on a track that are shared with another track
-    private double maxTimeRange;       // Maximum time range in ns spanned by all the hits on a track
+    private double maxTimeRange;       // Maximum time range in ns spanned by all outer hits on a track
+    private double maxTimeRangeInner;  // Maximum time range in ns spanned by all layer<2 hits on a track compared to all hits
     private double maxTanLambda;       // Maximum tan(lambda) for a track seed
     private double maxResidual;        // Maximum residual in units of SSD resolution to add a hit to a track candidate
     private double maxChi2Inc;         // Maximum increment in chi^2 to add a hit to an already completed track
@@ -224,6 +225,7 @@ public class KalmanPatRecDriver extends Driver {
         if (minStereo != 0) kPar.setMinStereo(minStereo);
         if (maxSharedHits != 0) kPar.setMaxShared(maxSharedHits);
         if (maxTimeRange != 0.0) kPar.setMaxTimeRange(maxTimeRange);
+        if (maxTimeRangeInner != 0.0) kPar.setMaxTimeRangeInner(maxTimeRangeInner);
         if (maxTanLambda != 0.0) kPar.setMaxTanL(maxTanLambda);
         if (maxResidual != 0.0) kPar.setMxResid(maxResidual);
         if (maxChi2Inc != 0.0) kPar.setMxChi2Inc(maxChi2Inc);
@@ -657,6 +659,9 @@ public class KalmanPatRecDriver extends Driver {
     }
     public void setMaxTimeRange(double maxTimeRange) {
         this.maxTimeRange = maxTimeRange;
+    }
+    public void setMaxTimeRangeInner(double maxTimeRange) {
+        this.maxTimeRangeInner = maxTimeRange;
     }
     public void setMaxTanLambda(double maxTanLambda) {
         this.maxTanLambda = maxTanLambda;
