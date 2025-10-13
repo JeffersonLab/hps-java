@@ -652,7 +652,11 @@ public class KalmanInterface {
             MeasurementSite site = kT.SiteList.get(i);
             ts = null;
             int loc = TrackState.AtOther;
-
+	    //add holes to hitpattern
+	    boolean isTrkHole=kT.isTrackHole(site);
+	    if(isTrkHole){
+		Array.set(hitPattern,site.m.Layer,-1);
+	    }
             //HpsSiSensor hssd = (HpsSiSensor) moduleMap.get(site.m).getSensor();
             //int lay = hssd.getMillepedeId();
             // System.out.printf("ssp id %d \n", hssd.getMillepedeId());
