@@ -74,7 +74,11 @@ public class KalmanPatRecDriver extends Driver {
     private double maxD0;              // Maximum dRho (or D0) at the target plane for a seed and the final track
     private double maxZ0;              // Maximum dz (or Z0) at the target plane for a seed and the final track
     private double maxChi2;            // Maximum Kalman chi^2 per hit for a track candidate
-    private int minHits;               // Minimum number of hits on a track
+    // private int minHits;               // Minimum number of hits on a track
+    private int minHitsTopIter1;               // Minimum number of hits on a track--top, first iteration
+    private int minHitsTopIter2;               // Minimum number of hits on a track--top, second iteration
+    private int minHitsBotIter1;               // Minimum number of hits on a track--bottom, first iteration
+    private int minHitsBotIter2;               // Minimum number of hits on a track--bottom, second iteration
     private int minStereo;             // Minimum number of stereo hits on a track
     private int maxSharedHits;         // Maximum number of hits on a track that are shared with another track
     private double maxTimeRange;       // Maximum time range in ns spanned by all the hits on a track
@@ -220,7 +224,11 @@ public class KalmanPatRecDriver extends Driver {
         if (maxD0 != 0.0) kPar.setMaxdRho(maxD0);
         if (maxZ0 != 0.0) kPar.setMaxdZ(maxZ0);
         if (maxChi2 != 0.0) kPar.setMaxChi2(maxChi2);
-        if (minHits != 0) kPar.setMinHits(minHits);
+	//        if (minHits != 0) kPar.setMinHits(minHits);
+        if (minHitsTopIter1 != 0) kPar.setMinHitsTopIter1(minHitsTopIter1);
+        if (minHitsTopIter2 != 0) kPar.setMinHitsTopIter2(minHitsTopIter2);
+        if (minHitsBotIter1 != 0) kPar.setMinHitsBotIter1(minHitsBotIter1);
+        if (minHitsBotIter2 != 0) kPar.setMinHitsBotIter2(minHitsBotIter2);
         if (minStereo != 0) kPar.setMinStereo(minStereo);
         if (maxSharedHits != 0) kPar.setMaxShared(maxSharedHits);
         if (maxTimeRange != 0.0) kPar.setMaxTimeRange(maxTimeRange);
@@ -646,9 +654,23 @@ public class KalmanPatRecDriver extends Driver {
     public void setMaxChi2(double maxChi2) {
         this.maxChi2 = maxChi2;
     }
-    public void setMinHits(int minHits) {
-        this.minHits = minHits;
+    // public void setMinHits(int minHits) {
+    //     this.minHits = minHits;
+    // }
+    public void setMinHitsTopIter1(int minHits) {
+	System.out.println("setting minHitsTopIter1 to"+minHits);
+        this.minHitsTopIter1 = minHits;
     }
+    public void setMinHitsTopIter2(int minHits) {
+        this.minHitsTopIter2 = minHits;
+    }
+    public void setMinHitsBotIter1(int minHits) {
+      	System.out.println("setting minHitsBotIter1 to"+minHits);
+	this.minHitsBotIter1 = minHits;
+    }
+    public void setMinHitsBotIter2(int minHits) {
+        this.minHitsBotIter2 = minHits;
+    } 
     public void setMinStereo(int minStereo) {
         this.minStereo = minStereo;
     }

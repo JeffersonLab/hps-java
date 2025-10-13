@@ -13,7 +13,6 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.SimTrackerHit;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackerHit;
-
 import hep.physics.vec.BasicHep3Vector;
 
 public class TrackTruthMatcher {
@@ -29,7 +28,8 @@ public class TrackTruthMatcher {
     private Map<Integer, Set<MCParticle>> _mcpsOnLayerMap = new HashMap<Integer, Set<MCParticle>>();
     private Set<Integer> _layersOnTrack = new HashSet<Integer>();
     private Map<RawTrackerHit, List<MCParticle>> _stripHitsToMCPsMap = new HashMap<RawTrackerHit, List<MCParticle>>();
-
+    private int _totalLayers=14;
+    
     public TrackTruthMatcher(Track track, RelationalTable rawtomc){
         doAnalysis(track, rawtomc);
     }
@@ -118,7 +118,26 @@ public class TrackTruthMatcher {
     public List<MCParticle> getMCPsOnRawTrackerHit(RawTrackerHit rawhit){
         return this._stripHitsToMCPsMap.get(rawhit);
     }
- 
+
+    // getGoodHitLayers and getCorrectlyMissingLayers
+    // give layers where tracking is doing the "right thing"
+    // ...following the MC particle track
+    public Set<Integer> getGoodHitLayers(){
+        return getLayerHitsForAllMCPs().get(this._mcp);
+    }
+
+    public Set<Integer> getCorrectlyMissingLayers(List<SimTrackerHit> simHits){
+	Set<Integer> correctMissingLayers = new HashSet<Integer>();
+	Set<Integer> trackLayers = getLayersOnTrack();
+	Set<Integer> mcpLayers= getLayersHitByMCP(this._mcp, simHits);	
+	for(Integer i=1; i<=_totalLayers; i++){
+	    if(!trackLayers.contains(i) && !mcpLayers.contains(i))
+		correctMissingLayers.add(i);
+	}
+	return correctMissingLayers;
+    }
+    
+    //getBadLayerHits, combination of "wrongHit" and "noMCP" ... see below
     public Set<Integer> getBadHitLayers(){
         Set<Integer> badLayers = new HashSet<Integer>();
         Set<Integer> trackLayers = getLayersOnTrack();
@@ -130,10 +149,56 @@ public class TrackTruthMatcher {
         }
         return badLayers;
     }
-
-    public Set<Integer> getGoodHitLayers(){
-        return getLayerHitsForAllMCPs().get(this._mcp);
+    
+    //two ways to get a "bad" hit on track:
+    //getWrongHitLayers:  MC particle left hit on the layer but we picked a different one
+    //getNonMCPHitLayers:  no MC particle hit on layer but we found a hit anyway    
+    public Set<Integer> getWrongHitLayers(List<SimTrackerHit> simHits){
+	Set<Integer> wrongLayers = new HashSet<Integer>();
+	Set<Integer> trackLayers = getLayersOnTrack();
+	Set<Integer> goodLayers = getGoodHitLayers(); //this checks if the hit on track is from main mcp
+	Set<Integer> mcpLayers= getLayersHitByMCP(this._mcp, simHits);
+	for(Integer i=1; i<=_totalLayers; i++){
+	    if(trackLayers.contains(i) && !goodLayers.contains(i) && mcpLayers.contains(i))
+		wrongLayers.add(i);
+	}
+	return wrongLayers;
     }
+
+    public Set<Integer> getNonMCPHitLayers(List<SimTrackerHit> simHits){
+	Set<Integer> extraLayers = new HashSet<Integer>();
+	Set<Integer> trackLayers = getLayersOnTrack();
+	Set<Integer> goodLayers = getGoodHitLayers(); //this checks if the hit on track is from main mcp
+	Set<Integer> mcpLayers= getLayersHitByMCP(this._mcp, simHits);
+	//regarding (!goodLayers.contains(i) && !mcpLayers.contains(i))):	
+	//if the mcp hit isn't in a layer, it also can't be in goodLayers
+	//but keep it this way just to make obvious 
+	for(Integer i=1; i<=_totalLayers; i++){
+	    if(trackLayers.contains(i) && !goodLayers.contains(i) && !mcpLayers.contains(i))
+		extraLayers.add(i);
+	}
+	return extraLayers;
+    }
+
+    //getMissedHitLayers account for layers we have an MC particle hit, but no hit on track
+    //this doesn't show up in either "goodLayers" or "badLayers" because that loops over hits-on-track
+    public Set<Integer> getMissedHitLayers(List<SimTrackerHit> simHits){
+	Set<Integer> missedLayers = new HashSet<Integer>();
+	Set<Integer> trackLayers = getLayersOnTrack();
+	Set<Integer> goodLayers = getGoodHitLayers(); //this checks if the hit on track is from main mcp
+	Set<Integer> mcpLayers= getLayersHitByMCP(this._mcp, simHits);
+	for(Integer i=1; i<=_totalLayers; i++){
+	    if(!trackLayers.contains(i) && mcpLayers.contains(i))
+		missedLayers.add(i);
+	}
+	return missedLayers;
+    }
+
+    
+    public Set<Integer> getMCPHitLayers(List<SimTrackerHit> simHits){
+	return getLayersHitByMCP(this._mcp, simHits);
+    }
+
 
     public void getMCPsOnTrack(Track track, RelationalTable rawtomc){
 
@@ -260,6 +325,20 @@ public class TrackTruthMatcher {
 
         return mcpList;
     }
+
+    public Set<Integer> getLayersHitByMCP(MCParticle mcp, List<SimTrackerHit> simhits){
+	Set<Integer> layerhitsMap = new HashSet<Integer>();
+	for(SimTrackerHit simhit : simhits){
+	    MCParticle simhitmcp = simhit.getMCParticle();
+	    if(simhitmcp == mcp){
+		int layer = simhit.getLayer();
+		if(!layerhitsMap.contains(layer))
+		    layerhitsMap.add(layer); 	       
+	    }
+	}		
+	return  layerhitsMap;
+    }
+    
 }
 
 

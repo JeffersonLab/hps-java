@@ -18,7 +18,9 @@ public class KalmanParams {
     double[] dzMax;
     double[] chi2mx1; 
     int minHits0;
-    int[] minHits1; 
+    //    int[] minHits1;
+    int[] minHitsTop; //separate minHits for top/bottom...minHits1 can go away
+    int[] minHitsBot; 
     double mxChi2Inc; 
     double minChi2IncBad;
     double mxChi2Vtx;
@@ -65,7 +67,9 @@ public class KalmanParams {
         System.out.format("  Maximum dz at target plane for seeds: %8.2f, %8.2f (mm)\n", dzMax[0], dzMax[1]);
         System.out.format("  Maximum chi^2/hit for a good track: %8.2f, %8.2f\n", chi2mx1[0], chi2mx1[1]);
         System.out.format("  Minimum number of hits in the initial outward filtering: %d\n", minHits0);
-        System.out.format("  Minimum number of hits for a good track: %d, %d\n", minHits1[0], minHits1[1]);
+	//        System.out.format("  Minimum number of hits for a good track: %d, %d\n", minHits1[0], minHits1[1]);
+        System.out.format("  Minimum number of hits for a good track in Top: %d, %d\n", minHitsTop[0], minHitsTop[1]);
+        System.out.format("  Minimum number of hits for a good track in Bottom: %d, %d\n", minHitsBot[0], minHitsBot[1]);
         System.out.format("  Minimum number of stereo hits: %d %d\n", minStereo[0], minStereo[1]);
         System.out.format("  Minimum number of axial hits: %d\n",  minAxial);
         System.out.format("  Maximum chi^2 increment to add a hit to a track, or minimum to remove a hit: %8.2f\n", mxChi2Inc);
@@ -108,7 +112,9 @@ public class KalmanParams {
         dRhoMax = new double[mxTrials];
         dzMax = new double[mxTrials];
         chi2mx1 = new double[mxTrials];
-        minHits1 = new int[mxTrials];
+	//        minHits1 = new int[mxTrials];
+        minHitsTop = new int[mxTrials];
+        minHitsBot = new int[mxTrials];
         mxResid = new double[mxTrials];
         minStereo = new int[mxTrials];  
         
@@ -137,8 +143,12 @@ public class KalmanParams {
         chi2mx1[1] = 32.0;  
         mxChi2Vtx = 1.0;    // Maximum chi**2 for 5-hit tracks with vertex constraint
         minHits0 = 5;       // Minimum number of hits in the initial outward filtering (including 5 from the seed)
-        minHits1[0] = 7;    // Minimum number of hits for a good track
-        minHits1[1] = 6;
+	//        minHits1[0] = 7;    // Minimum number of hits for a good track
+	//        minHits1[1] = 6;
+        minHitsTop[0] = 7;    // Minimum number of hits for a good track in Top
+        minHitsTop[1] = 6;
+        minHitsBot[0] = 7;    // Minimum number of hits for a good track in Bottom
+        minHitsBot[1] = 6;
         mxChi2Inc = 10.;     // Maximum increment to the chi^2 to add a hit to a completed track 
         minChi2IncBad = 10.; // Threshold for removing a bad hit from a track candidate
         mxResid[0] = 50.;   // Maximum residual, in units of detector resolution, for picking up a hit
@@ -368,14 +378,67 @@ public class KalmanParams {
         mxChi2Vtx = xMx;
     }
     
-    public void setMinHits(int minH) {
+    // public void setMinHits(int minH) {
+    //     if (minH < 5) {
+    //         logger.log(Level.WARNING,String.format("Minimum number of hits = %d not allowed.", minH));
+    //         return;
+    //     }
+    //     logger.log(Level.CONFIG,String.format("Setting the minimum number of hits to %d.", minH));
+    //     minHits1[1] = minH;
+    //     minHits1[0] = Math.max(minHits1[0], minH+1);
+    // }
+    // public void setMinHits1(int minH) {
+    //     if (minH < 5) {
+    //         logger.log(Level.WARNING,String.format("Minimum number of hits = %d not allowed.", minH));
+    //         return;
+    //     }
+    //     logger.log(Level.CONFIG,String.format("Setting the minimum number of hits for first iteration to %d.", minH));
+    //     minHits1[0] = minH;
+    // }
+
+    //  public void setMinHits2(int minH) {
+    //     if (minH < 5) {
+    //         logger.log(Level.WARNING,String.format("Minimum number of hits = %d not allowed.", minH));
+    //         return;
+    //     }
+    //     logger.log(Level.CONFIG,String.format("Setting the minimum number of hits for second iteration to %d.", minH));
+    //     minHits1[1] = minH;
+    // }
+
+    public void setMinHitsTopIter1(int minH) {
         if (minH < 5) {
             logger.log(Level.WARNING,String.format("Minimum number of hits = %d not allowed.", minH));
             return;
         }
-        logger.log(Level.CONFIG,String.format("Setting the minimum number of hits to %d.", minH));
-        minHits1[1] = minH;
-        minHits1[0] = Math.max(minHits1[0], minH+1);
+        logger.log(Level.CONFIG,String.format("Setting the minimum number of hits for top: first iteration to %d.", minH));
+        minHitsTop[0] = minH;
+    }
+
+     public void setMinHitsTopIter2(int minH) {
+        if (minH < 5) {
+            logger.log(Level.WARNING,String.format("Minimum number of hits = %d not allowed.", minH));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the minimum number of hits for top:  second iteration to %d.", minH));
+        minHitsTop[1] = minH;
+    }
+
+    public void setMinHitsBotIter1(int minH) {
+        if (minH < 5) {
+            logger.log(Level.WARNING,String.format("Minimum number of hits = %d not allowed.", minH));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the minimum number of hits for bot: first iteration to %d.", minH));
+        minHitsBot[0] = minH;
+    }
+
+     public void setMinHitsBotIter2(int minH) {
+        if (minH < 5) {
+            logger.log(Level.WARNING,String.format("Minimum number of hits = %d not allowed.", minH));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the minimum number of hits for bot:  second iteration to %d.", minH));
+        minHitsBot[1] = minH;
     }
     
     public void setMinStereo(int minS) {

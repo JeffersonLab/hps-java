@@ -61,7 +61,7 @@ class KalmanPatRecHPS {
     private Plane p0;
     private static long startTime;
     static int [] nBadCov = {0, 0};
-    private ArrayList<TrackCandidate> candidateList;
+    private ArrayList<TrackCandidate> candidateList;  
 
     KalmanPatRecHPS(KalmanParams kPar) {
         startTime = (long)0.;
@@ -202,8 +202,12 @@ class KalmanPatRecHPS {
                 }
             }
             candidateList.clear();
+	    int minHits1=kPar.minHitsBot[trial];
+	    if(topBottom == 1)  //it's the top, so get minHitsTop
+		minHits1=kPar.minHitsTop[trial];
+	    
             for (int iList = 0; iList<kPar.lyrList[topBottom].size(); ++iList) {
-                if (trial == 0 && iList > kPar.maxListIter1) break;
+                if (trial == 0 && iList > kPar.maxListIter1) break;	
                 int[] list = kPar.lyrList[topBottom].get(iList);
                 int nLyrs = list.length;
                 int middleLyr = 2;
@@ -571,10 +575,10 @@ class KalmanPatRecHPS {
                     }
                     candidateList.add(candidateTrack); // Save the candidate in this list 
 
-                    if (candidateTrack.hits.size() < kPar.minHits1[trial]) {
+                    if (candidateTrack.hits.size() < minHits1) {
                         if (debug) {
                             System.out.format("KalmanPatRecHPS: Filtering of %d to layer 0 has too few hits, %d<%d. Skip to the next seed.\n",
-                                    candidateTrack.ID, candidateTrack.hits.size(), kPar.minHits1[trial]);
+                                    candidateTrack.ID, candidateTrack.hits.size(), minHits1);
                         }
                         candidateTrack.good = false;
                         continue seedLoop;
@@ -686,7 +690,7 @@ class KalmanPatRecHPS {
                     }                   
                     
                     // Check if the track can be improved by removing hits
-                    if (removeBadHits(candidateTrack, trial)) {
+                    if (removeBadHits(candidateTrack, minHits1, trial)) {
                         if (debug) System.out.format("KalmanPatRecHPS: Refit candidate track %d after removing a hit.\n", candidateTrack.ID);
                         if (candidateTrack.reFit()) {
                             if (debug) candidateTrack.print("after refitting and smoothing", false);
@@ -819,6 +823,7 @@ class KalmanPatRecHPS {
                             }
                         }
                     }
+		   
                     
                     // Here we have a good track candidate. Mark the hits in KalHit as used by this candidate.
                     if (candidateList.contains(candidateTrack)) {
@@ -891,11 +896,14 @@ class KalmanPatRecHPS {
                     }
                     if (resurrect) {
                         if (debug) {
-                            System.out.format("    # hits=%d vs %d, # stereo=%d vs %d, # axial=%d vs %d, helix=%s\n", 
-                                    tkr.numHits(), kPar.minHits1[trial], tkr.numStereo(), kPar.minStereo[trial], tkr.numHits()-tkr.numStereo(), 
-                                    kPar.minAxial, tkr.sites.get(0).aS.helix.a.toString());                          
+			    if(tkr.sites.get(0).aS != null)
+				System.out.format(" resurrecting?   # hits=%d vs %d, # stereo=%d vs %d, # axial=%d vs %d, helix=%s\n", 
+						  tkr.numHits(), minHits1, tkr.numStereo(), kPar.minStereo[trial], tkr.numHits()-tkr.numStereo(), 
+						  kPar.minAxial, tkr.sites.get(0).aS.helix.a.toString());                          
+			    else
+				System.out.println("     resurrecting?   state at 0 = null ?????");
                         }
-                        if (tkr.numHits() >= kPar.minHits1[trial] && tkr.numStereo() >= kPar.minStereo[trial]) {
+                        if (tkr.numHits() >= minHits1 && tkr.numStereo() >= kPar.minStereo[trial]) {
                             int nAxial = tkr.numHits() - tkr.numStereo();
                             if (nAxial >= kPar.minAxial) {
                                 StateVector aS0 = tkr.sites.get(0).aS;
@@ -1179,6 +1187,11 @@ class KalmanPatRecHPS {
                 //}                
                 if (m.hits.get(site.hitID).tracks.size()>1) nShared++;
             }
+	    
+	    int minHitsFinal=kPar.minHitsBot[KalmanParams.mxTrials - 1];
+	    if (topBottom==1)
+		minHitsFinal=kPar.minHitsTop[KalmanParams.mxTrials - 1];
+
             boolean removeIt = false;
             if (nStereo < kPar.minStereo[1]) {
                 if (debug) System.out.format("KalmanPatRecHPS: removing KalTrack %d for %d stereo hits\n", tkr.ID,nStereo);
@@ -1186,7 +1199,7 @@ class KalmanPatRecHPS {
             } else if (nAxial < kPar.minAxial) {
                 if (debug) System.out.format("KalmanPatRecHPS: removing KalTrack %d for %d axial hits\n", tkr.ID,nAxial);
                 removeIt = true;
-            } else if (nAxial + nStereo < kPar.minHits1[KalmanParams.mxTrials - 1]) {
+            } else if (nAxial + nStereo < minHitsFinal) {
                 if (debug) System.out.format("KalmanPatRecHPS: removing KalTrack %d for %d hits\n", tkr.ID,nStereo+nAxial);
                 removeIt = true;
             } else if (nAxial + nStereo - nShared < kPar.minHits0) {
@@ -1375,10 +1388,10 @@ class KalmanPatRecHPS {
     }
     
     // Remove the worst hit from lousy track candidates
-    private boolean removeBadHits(TrackCandidate tkr, int trial) {
+    private boolean removeBadHits(TrackCandidate tkr, int minHits, int trial) {
         
         if (tkr.chi2s/(double) tkr.hits.size() < kPar.chi2mx1[trial]) return false;
-        if (tkr.hits.size() <= kPar.minHits1[trial]) return false;
+        if (tkr.hits.size() <= minHits) return false;
         
         double mxChi2 = 0.;
         int idxBad = -1;

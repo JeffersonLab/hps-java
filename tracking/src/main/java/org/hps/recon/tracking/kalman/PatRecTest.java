@@ -51,7 +51,7 @@ class PatRecTest {
         // Set pattern recognition parameters
         KalmanParams kPar = new KalmanParams();
         kPar.setIterations(2);
-        kPar.setMinHits(5);
+	//        kPar.setMinHits(5);
         KalmanPatRecHPS patRec = new KalmanPatRecHPS(kPar);
         
         // Definition of the magnetic field
