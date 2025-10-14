@@ -157,11 +157,11 @@
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <requireClustersForV0>false</requireClustersForV0>
-            <beamPositionX>0.180</beamPositionX>
-            <beamSigmaX>0.350</beamSigmaX>
-            <beamPositionY>0.100</beamPositionY>
-            <beamSigmaY>0.100</beamSigmaY>
-            <beamPositionZ>0.900</beamPositionZ>
+            <beamPositionX>0.100</beamPositionX>
+            <beamSigmaX>0.075</beamSigmaX>
+            <beamPositionY>0.06</beamPositionY>
+            <beamSigmaY>0.075</beamSigmaY>
+            <beamPositionZ>-0.5</beamPositionZ>
             <maxElectronP>7.0</maxElectronP>
             <maxVertexP>7.0</maxVertexP>
             <minVertexChisqProb>0.0</minVertexChisqProb>
