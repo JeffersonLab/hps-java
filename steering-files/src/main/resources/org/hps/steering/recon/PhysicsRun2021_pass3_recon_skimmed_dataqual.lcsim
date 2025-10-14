@@ -43,7 +43,7 @@
         <!-- Event filtering --> 
         <driver name="StripEvent"/>
 
-        <driver name="LCIOWriter"/>
+        <!--<driver name="LCIOWriter"/>-->
 	<driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
 
@@ -134,13 +134,11 @@
             <doDebugPlots> false </doDebugPlots>
             <siHitsLimit> 219 </siHitsLimit>
             <seedCompThr> 0.3473319986601534 </seedCompThr>
-            <!--numStrategyIter1></numStrategyIter1 tthe mxChi2Vtx was 1.0-->
-            <beamPositionZ> 0.0 </beamPositionZ>
-            <beamSigmaZ> 0.02 </beamSigmaZ>
-            <beamPositionX> 0.0 </beamPositionX>
-            <beamSigmaX> 0.05 </beamSigmaX>
-            <beamPositionY> 0.0 </beamPositionY>
-            <beamSigmaY> 1.0 </beamSigmaY>
+            <beamPositionX>0.100</beamPositionX>
+            <beamSigmaX>0.075</beamSigmaX>
+            <beamPositionY>0.06</beamPositionY>
+            <beamSigmaY>0.045</beamSigmaY>
+            <beamPositionZ>-0.5</beamPositionZ>
             <lowPhThresh>  7.197594353612735 </lowPhThresh>
             <verbose> false </verbose>
         </driver>
@@ -189,7 +187,6 @@
 	    <skimMoller>false</skimMoller>
 	    <v0ParamFile>v0skim_parameters_ver1.txt</v0ParamFile>  
 	    <v0OutputFile>${outputFile}_v0skim.slcio</v0OutputFile>
-            <ignoreCollections>FPGAData HelicalTrackHitRelations HelicalTrackHits HelicalTrackMCRelations KFGBLStripClusterData KFGBLStripClusterDataRelations ReadoutTimestamps RotatedHelicalTrackHitRelations RotatedHelicalTrackHits RotatedHelicalTrackMCRelations SVTFittedRawTrackerHits SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D SVTRawTrackerHits FADCGenericHits HodoReadoutHits HodoCalHits EcalReadoutHits EcalUncalHits HodoGenericClusters VTPBank EcalClusters</ignoreCollections>
         </driver>
 	<driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">         
             <triggerType>all</triggerType>
@@ -230,7 +227,6 @@
 	
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-                <ignoreCollections>FPGAData HelicalTrackHitRelations HelicalTrackHits HelicalTrackMCRelations KFGBLStripClusterData KFGBLStripClusterDataRelations ReadoutTimestamps RotatedHelicalTrackHitRelations RotatedHelicalTrackHits RotatedHelicalTrackMCRelations SVTFittedRawTrackerHits SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D SVTRawTrackerHits FADCGenericHits HodoReadoutHits HodoCalHits EcalReadoutHits EcalUncalHits HodoGenericClusters VTPBank EcalClusters</ignoreCollections>
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>       
     </drivers>
