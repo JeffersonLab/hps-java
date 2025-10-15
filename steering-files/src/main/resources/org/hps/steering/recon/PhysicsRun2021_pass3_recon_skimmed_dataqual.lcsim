@@ -116,14 +116,14 @@
             <maxDZero> 39.249197341740356 </maxDZero>
             <maxZZero> 8.37847994612359 </maxZZero>
             <maxChiTwo> 11.546843987796496 </maxChiTwo>
-            <minHitsTopIter1> 9.666392728805324 </minHitsTopIter1>
-            <minHitsBotIter1> 10.653567653399532 </minHitsBotIter1>
-            <minHitsTopIter2> 8.31536222058671 </minHitsTopIter2>
-            <minHitsBotIter2> 8.36373922922518 </minHitsBotIter2>
+            <minHitsTopIter1> 9 </minHitsTopIter1>
+            <minHitsBotIter1> 10 </minHitsBotIter1>
+            <minHitsTopIter2> 8 </minHitsTopIter2>
+            <minHitsBotIter2> 8 </minHitsBotIter2>
             <minStereo> 2  </minStereo>
             <maxSharedHits> 0 </maxSharedHits>
-            <maxTimeRange> 39.7900414452215 </maxTimeRange>
-            <maxTanLambda> 4.9769217912110575 </maxTanLambda>
+            <maxTimeRange> 40.0 </maxTimeRange>
+            <maxTanLambda> 5.0 </maxTanLambda>
             <maxResidual> 57.03015190053787 </maxResidual>
             <maxChiTwoInc> 12.320066328390354 </maxChiTwoInc>
             <minChiTwoIncBad> 9.206482863412027 </minChiTwoIncBad>
