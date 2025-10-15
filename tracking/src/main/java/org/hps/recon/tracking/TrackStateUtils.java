@@ -19,6 +19,25 @@ import org.lcsim.fit.helicaltrack.HelixUtils;
  */
 public class TrackStateUtils {
 
+
+    public static TrackState getTrackStateAtTarget(Track track){
+
+        for(TrackState ts: track.getTrackStates()){
+            if(ts.getLocation() == TrackState.AtTarget)
+                return ts;
+        }        
+        return null;
+    }
+
+    public static TrackState getTrackStateAtPerigee(Track track){
+        
+        for(TrackState ts: track.getTrackStates()){
+            if(ts.getLocation() == TrackState.AtPerigee)
+                return ts;
+        }        
+        return null;
+    }
+
     public static TrackState getTrackStateAtLayer(Track track, List<HpsSiSensor> sensors, int layer) {
         TrackState atIP = getTrackStateAtIP(track);
 

@@ -101,7 +101,7 @@ public class KalmanInterface {
     private int nBigEvents;
     private int eventNumber;
     private static double target_pos = -999.9;
-    private static boolean addTrackStateAtTarget = false;
+    private static boolean addTrackStateAtTarget = true;
     private double[] beamPosition = null;
     
     private static final boolean debug = false;    
@@ -698,41 +698,10 @@ public class KalmanInterface {
         double BAtEcal = BfieldAtEcal.mag();
         double alphaAtEcal = conFac/ BAtEcal;
 
-	/*
-	
-	DMatrixRMaj ecalCov = new DMatrixRMaj(getCovarianceFromHelix(helixAtEcal));
-	double[] ecalParams = helixAtEcal.a.v.clone();
-        double[] ecalLCSimParams = getLCSimParams(ecalParams, alphaAtEcal);
-        double[] ecalLCSimCov = getLCSimCov(ecalCov, alphaAtEcal).asPackedArray(true);
-	double[] refAtEcal = localKalToHps(helixAtEcal.origin); 
-	if(debug)System.out.println(this.getClass().getName()+"::  reference to TrackState @ ecal = "+
-			   +refAtEcal[0]+", "+refAtEcal[1]+","+ refAtEcal[2]);
-	TrackState ts_ecal_helix = new BaseTrackState(ecalLCSimParams,refAtEcal, ecalLCSimCov,  TrackState.AtCalorimeter, BAtEcal);
-	if(debug)System.out.println(this.getClass().getName()+":: Uncorrected track state:  curvature = "+ts_ecal_helix.getOmega()
-			   +"  bField = "+ts_ecal_helix.getBLocal()+"  momentum z = "+ts_ecal_helix.getMomentum()[0]);
-	System.out.println("Helix at ECal from kT.getHelixAtPlane and by hand conversions ");
-	System.out.println(ts_ecal_helix.toString());
-	*/
-	//newTrack.getTrackStates().add(ts_ecal_helix);
-	
-
-	// this is how createTrackState (above) goes from measurement to TrackState
-	// from the measurements.  It calls toHPShelix.
-	// the helix state here must already be propagated
-	//	helix.toTrackState(alphaCenter, ms.m.p, loc); 
-
 	TrackState ts_ecal=helixAtEcal.toTrackState(alphaAtEcal, ecalPlane, TrackState.AtCalorimeter, saveTrackStateAtIntercept);
 	newTrack.getTrackStates().add(ts_ecal);
-	//if(debug)System.out.println("Helix at ECal from helix.toTrackState");
-	//	if(debug)System.out.println(ts_toTrackState.toString()); 
-	//	System.out.println("Helix at ECal from helix.toTrackState");
-	//	System.out.println(ts_toTrackState.toString()); 
 	
-        // Extrapolate to the ECAL and make a new trackState there.
-	//BaseTrackState ts_ecal = new BaseTrackState();
-        //ts_ecal = TrackUtils.getTrackExtrapAtEcalRK(newTrack, fM, runNumber);
-	
-	Vec targetFace=origin; 
+        Vec targetFace=new Vec(kPar.beamSpot[0], kPar.beamSpot[1], kPar.beamSpot[2]);
 	Plane targetPlane = new Plane(targetFace, new Vec(0., 1., 0.));
 	HelixState helixAtTarget=kT.getHelixAtPlane(targetPlane,saveTrackStateAtIntercept);  // this propagates (via RK) the helix to the plane
 	Vec  BfieldAtTarget = KalmanInterface.getField(helixAtTarget.origin, kT.SiteList.get(0).m.Bfield);
