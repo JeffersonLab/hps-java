@@ -1,6 +1,6 @@
 V0CandidateCollectionName	  UnconstrainedV0Candidates_KF
 trackChi2Cut			  30.0
-nHitsMin			  9
+nHitsMin			  8
 v0Chi2Cut			  30.0
 trackDtCut			  20.0
 trackPMax			  4.5
