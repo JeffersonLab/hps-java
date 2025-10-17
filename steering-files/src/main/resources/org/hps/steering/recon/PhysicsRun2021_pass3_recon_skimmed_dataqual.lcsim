@@ -117,7 +117,7 @@
             <maxZ0> 8.37847994612359 </maxZ0>
             <maxChi2> 11.546843987796496 </maxChi2>
             <minHitsTopIter1> 9 </minHitsTopIter1>
-            <minHitsBotIter1> 10 </minHitsBotIter1>
+            <minHitsBotIter1> 9 </minHitsBotIter1>
             <minHitsTopIter2> 8 </minHitsTopIter2>
             <minHitsBotIter2> 8 </minHitsBotIter2>
             <minStereo> 2  </minStereo>
@@ -132,7 +132,7 @@
             <mxChi2Vtx> 5.508828061070076 </mxChi2Vtx>
             <numEvtPlots> 5 </numEvtPlots>
             <doDebugPlots> false </doDebugPlots>
-            <siHitsLimit> 500 </siHitsLimit>
+            <siHitsLimit> 400 </siHitsLimit>
             <seedCompThr> 0.3473319986601534 </seedCompThr>
             <beamPositionX>0.100</beamPositionX>
             <beamSigmaX>0.055</beamSigmaX>
