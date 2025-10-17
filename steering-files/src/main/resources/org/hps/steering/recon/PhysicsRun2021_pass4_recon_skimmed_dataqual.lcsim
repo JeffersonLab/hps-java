@@ -110,6 +110,8 @@
 	    <debug>false</debug>
         </driver>
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+            <addResiduals>true</addResiduals>
+            <addKinks>true</addKinks>
             <numPatRecIteration> 2 </numPatRecIteration>
             <numKalmanIteration> 1 </numKalmanIteration>
             <maxPtInverse> 8.881915381218574 </maxPtInverse>
