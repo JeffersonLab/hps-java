@@ -110,8 +110,8 @@
 	    <debug>false</debug>
         </driver>
         <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
-            <numPatRecIteration> 7 </numPatRecIteration>
-            <numKalmanIteration> 0 </numKalmanIteration>
+            <numPatRecIteration> 2 </numPatRecIteration>
+            <numKalmanIteration> 1 </numKalmanIteration>
             <maxPtInverse> 8.881915381218574 </maxPtInverse>
             <maxD0> 39.249197341740356 </maxD0>
             <maxZ0> 8.37847994612359 </maxZ0>
@@ -120,8 +120,8 @@
             <minHitsBotIter1> 9 </minHitsBotIter1>
             <minHitsTopIter2> 8 </minHitsTopIter2>
             <minHitsBotIter2> 8 </minHitsBotIter2>
-            <minStereo> 2  </minStereo>
-            <maxSharedHits> 0 </maxSharedHits>
+            <minStereo> 3  </minStereo>
+            <maxSharedHits> 2 </maxSharedHits>
             <maxTimeRange> 40.0 </maxTimeRange>
             <maxTanLambda> 5.0 </maxTanLambda>
             <maxResidual> 57.03015190053787 </maxResidual>
