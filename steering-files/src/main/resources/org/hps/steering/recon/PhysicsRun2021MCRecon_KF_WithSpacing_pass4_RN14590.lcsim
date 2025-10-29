@@ -121,7 +121,7 @@
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>		       
             <beamPositionX> 0.0 </beamPositionX>
             <beamSigmaX> 0.055 </beamSigmaX>
-            <beamPositionY> 0.0 </beamPositionY>
+            <beamPositionY> 0.12 </beamPositionY>
             <beamSigmaY> 0.045 </beamSigmaY>
             <beamPositionZ> -0.5 </beamPositionZ>
             <trackClusterTimeOffset>40</trackClusterTimeOffset>
@@ -172,7 +172,7 @@
             <seedCompThr> 0.3473319986601534 </seedCompThr>
             <beamPositionX> 0.0 </beamPositionX>
             <beamSigmaX> 0.055 </beamSigmaX>
-            <beamPositionY> 0.0 </beamPositionY>
+            <beamPositionY> 0.12 </beamPositionY>
             <beamSigmaY> 0.045 </beamSigmaY>
             <beamPositionZ> -0.5 </beamPositionZ>
             <lowPhThresh> 7.197594353612735 </lowPhThresh>
