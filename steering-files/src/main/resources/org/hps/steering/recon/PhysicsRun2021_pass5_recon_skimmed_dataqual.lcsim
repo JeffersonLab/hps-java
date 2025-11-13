@@ -157,7 +157,6 @@
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <useBeamPositionConditions>true</useBeamPositionConditions>
-            <useFixedVertexZPosition>true</useFixedVertexZPosition>
             <requireClustersForV0>false</requireClustersForV0>
             <beamSigmaX>0.055</beamSigmaX>
             <beamSigmaY>0.045</beamSigmaY>
