@@ -17,7 +17,7 @@ import org.hps.recon.tracking.MaterialSupervisor;
 import org.hps.recon.tracking.TrackData;
 import org.hps.recon.tracking.TrackIntersectData;
 import org.hps.recon.tracking.TrackResidualsData;
-import org.hps.recon.tracking.TrackIsolationData;
+//import org.hps.recon.tracking.TrackIsolationData;
 //import org.hps.recon.tracking.KFKinkData;
 
 import org.hps.recon.tracking.MaterialSupervisor.ScatteringDetectorVolume;
@@ -110,7 +110,7 @@ public class KalmanPatRecDriver extends Driver {
     private Level logLevel = Level.WARNING;     // Set log level from steering
     private boolean addKinks;
     private boolean addResiduals;               // If true add the hit-on-track residuals to the LCIO event
-    private boolean addIsolations;               // If true add the hit-on-track isolations to the LCI0 even
+    //    private boolean addIsolations;               // If true add the hit-on-track isolations to the LCI0 even
     private List<HpsSiSensor> sensors = null;   // List of tracker sensors
     
 
@@ -150,9 +150,11 @@ public class KalmanPatRecDriver extends Driver {
         addResiduals = input;
     }
 
+    /*
     public void setAddIsolations(boolean input) {
         addIsolations = input;
     }
+    */
 
     public void setDoForLayer(boolean input) {
         doForLayer = input;
@@ -360,15 +362,10 @@ public class KalmanPatRecDriver extends Driver {
         List<LCRelation> trackResidualsRelations = new ArrayList<LCRelation>();
 	List<TrackIntersectData> trackIntersects = new ArrayList<TrackIntersectData>();
 	List<LCRelation> trackIntersectsRelations = new ArrayList<LCRelation>();
-        List<TrackIsolationData> trackIsos = new ArrayList<TrackIsolationData>();
-	List<LCRelation> trackIsosRelations = new ArrayList<LCRelation>();
-	ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations,trackXKinks,trackXKinksRelations,trackZKinks,trackZKinksRelations,trackResiduals, trackResidualsRelations, trackIntersects, trackIntersectsRelations, trackIsos, trackIsosRelations);
- 
-	//        ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations, trackResiduals, trackResidualsRelations);
-        //mg debug why the track data relations (and others I think) are screwed
-	//        for (LCRelation tdRel: trackDataRelations){
-        //    System.out.println(tdRel.getFrom()+" ---> " +tdRel.getTo());
-	// }
+        //        List<TrackIsolationData> trackIsos = new ArrayList<TrackIsolationData>();
+	//List<LCRelation> trackIsosRelations = new ArrayList<LCRelation>();
+	//ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations,trackXKinks,trackXKinksRelations,trackZKinks,trackZKinksRelations,trackResiduals, trackResidualsRelations, trackIntersects, trackIntersectsRelations, trackIsos, trackIsosRelations);
+	ArrayList<KalTrack>[] kPatList = prepareTrackCollections(event, outputFullTracks, trackDataCollection, trackDataRelations, allClstrs, gblStripClusterDataRelations,trackXKinks,trackXKinksRelations,trackZKinks,trackZKinksRelations,trackResiduals, trackResidualsRelations, trackIntersects, trackIntersectsRelations);
 
         int flag = 1 << LCIOConstants.TRBIT_HITS;
         event.put(outputFullTrackCollectionName, outputFullTracks, Track.class, flag);
@@ -391,10 +388,10 @@ public class KalmanPatRecDriver extends Driver {
 	    event.put("KFUnbiasIntRelations", trackIntersectsRelations, LCRelation.class, 0);       
         }
 
-        if (addIsolations) {
-            event.put("KFIsolations", trackIsos, TrackIsolationData.class, 0);
-	    event.put("KFIsolationsRelations", trackIsosRelations, LCRelation.class, 0);     
-        }
+        //        if (addIsolations) {
+        //            event.put("KFIsolations", trackIsos, TrackIsolationData.class, 0);
+        //event.put("KFIsolationsRelations", trackIsosRelations, LCRelation.class, 0);     
+        //}
         
         if (kPlot != null) {
             long startTime = System.nanoTime();
@@ -431,8 +428,8 @@ public class KalmanPatRecDriver extends Driver {
 							  List<TrackResidualsData> trackXKinks, List<LCRelation> trackXKinksRelations,
 							  List<TrackResidualsData> trackZKinks, List<LCRelation> trackZKinksRelations,
                                                           List<TrackResidualsData> trackResiduals, List<LCRelation> trackResidualsRelations,
-                                                          List<TrackIntersectData> trackIntersects, List<LCRelation> trackIntersectsRelations,
-                                                          List<TrackIsolationData> trackIsolations, List<LCRelation> trackIsolationsRelations
+                                                          List<TrackIntersectData> trackIntersects, List<LCRelation> trackIntersectsRelations
+                                                          //                                                          List<TrackIsolationData> trackIsolations, List<LCRelation> trackIsolationsRelations
                                                           ) {
         
         int evtNumb = event.getEventNumber();
@@ -514,9 +511,6 @@ public class KalmanPatRecDriver extends Driver {
                 //if tanLamda<0 set bottom
                 if (KalmanTrackHPS.getTrackStates().get(0).getTanLambda() < 0) trackerVolume = 1;
                 
-                //TODO: compute isolations
-                double qualityArray[] = new double[1];
-                qualityArray[0] = -1;
                 
                 //Get the track momentum and convert it into detector frame and float values
                 Hep3Vector momentum = new BasicHep3Vector(KalmanTrackHPS.getTrackStates().get(0).getMomentum());
@@ -576,7 +570,7 @@ public class KalmanPatRecDriver extends Driver {
                 List<Integer> layersIso = new ArrayList<Integer>();
 		List<Double>  iso = new ArrayList<Double>();
                 List<Float>   isot0 = new ArrayList<Float>();
-                
+                double[] isolationsArray=new double[14];
 		for(int ilay = 0;ilay<14;ilay++){
 		    Pair<Double[], Double> inter_and_sigma = kTk.unbiasedIntersect(ilay, true);
                     layersInt.add(ilay);
@@ -586,13 +580,14 @@ public class KalmanPatRecDriver extends Driver {
                     sigmasInt.add(inter_and_sigma.getSecondElement().floatValue());
                     //get isolations
                     Pair<Double,Double> isolation=kTk.getIsoAndT0(ilay);
-                    layersIso.add(ilay);
-                    iso.add(isolation.getFirstElement());
-                    isot0.add(isolation.getSecondElement().floatValue());
+                    //                    layersIso.add(ilay);
+                    //                    iso.add(isolation.getFirstElement());
+                    //  isot0.add(isolation.getSecondElement().floatValue());
+                    isolationsArray[ilay]=isolation.getFirstElement();
                 }//Loop on layers
                 
                 //Add the Track Data 
-                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), qualityArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY, (float) svtCenter_bFieldY);
+                TrackData KFtrackData = new TrackData(trackerVolume, (float) kTk.getTime(), isolationsArray, momentum_f, (float) origin_bFieldY, (float) target_bFieldY, (float) ecal_bFieldY, (float) svtCenter_bFieldY);
                 trackDataCollection.add(KFtrackData);
                 trackDataRelations.add(new BaseLCRelation(KFtrackData, KalmanTrackHPS));
 
@@ -602,10 +597,11 @@ public class KalmanPatRecDriver extends Driver {
 		TrackIntersectData intersectData = new TrackIntersectData(trackerVolume, layersInt, intersect, sigmasInt);
                 trackIntersects.add(intersectData);
                 trackIntersectsRelations.add(new BaseLCRelation(intersectData, KalmanTrackHPS));
+                /*
 		TrackIsolationData isoData = new TrackIsolationData(trackerVolume, layersIso,iso, isot0);
                 trackIsolations.add(isoData);
                 trackIsolationsRelations.add(new BaseLCRelation(isoData, KalmanTrackHPS));
-
+                */
 
 		//Add the Kinks
 		layers = new ArrayList<Integer>();
@@ -627,13 +623,6 @@ public class KalmanPatRecDriver extends Driver {
                 TrackResidualsData kinkZData = new TrackResidualsData(trackerVolume,layers,Zkinks,sigmas);
 		trackZKinks.add(kinkZData);
 		trackZKinksRelations.add(new BaseLCRelation(kinkZData, KalmanTrackHPS));
-		/*
-                if (KalmanTrackHPS.getTrackerHits().size() != residuals.size()) {
-                    System.out.println("KalmanPatRecDriver::Residuals consistency check failed.");
-                    System.out.printf("Track has %d hits while I have %d residuals \n", KalmanTrackHPS.getTrackerHits().size(), residuals.size());
-                }
-                */
-                    
             } // end of loop on tracks
         } // end of loop on trackers
         
