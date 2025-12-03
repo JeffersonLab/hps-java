@@ -4,13 +4,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import java.util.Comparator;
 import org.apache.commons.math.util.FastMath;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
@@ -514,6 +515,49 @@ public class KalTrack {
         }
     }
 
+    public Pair<Double,Double> getIsoAndT0(int layer){
+         if (lyrMap == null) {
+            makeLyrMap();
+         }
+         if (lyrMap.containsKey(layer)) {
+             return getIsoAndT0(lyrMap.get(layer));
+         }else{
+             return new Pair<Double, Double>(-999., -999.);
+         }         
+    }
+
+    public Pair<Double, Double> getIsoAndT0(MeasurementSite ms){
+        double iso=-999.;
+        double isot0=-999.;
+        SiModule sensor=ms.m; 
+        List<Measurement> allHits=sensor.hits;
+        if(allHits.size()>2 && ms.hitID>-1){
+            Measurement hitOnTrack= allHits.get(ms.hitID);
+            double[] hpsSensorPos=KalmanInterface.localKalToHps(sensor.p.X());
+            // keep track of sensor position & orientation
+            // use the sign of the global plane position (vertical = z)
+            // times the local-->global v-->z element
+            // to determine if sensor is aligned (+ive v --> away from beam)
+            // or anti-aligned (+ive v is towards beam)
+
+            double vertPos=sensor.p.X().v[2];
+            double l2gv2z=sensor.R.M[1][2];
+            int awayFromBeam = (int)Math.signum(vertPos*l2gv2z);
+            //sort the hits on the module by increasing v
+            Collections.sort(allHits,Measurement.MeasurementComparatorUp);
+            // now get the position of nearest hit _away_ from beam
+            // the hits on the SiModule are sorted by v
+            int isoID=ms.hitID+awayFromBeam*1;
+            if(isoID<allHits.size() &&isoID>-1){
+                iso=Math.abs(allHits.get(isoID).v-allHits.get(ms.hitID).v); 
+                isot0=allHits.get(isoID).time;
+            }
+            return new Pair<Double, Double>(iso, isot0);
+        }else{
+            return new Pair<Double, Double>(-999., -999.);            
+        }
+    }
+    
     // Returns the unbiased residual for the track at a given layer, together with the variance on that residual
     public Pair<Double, Double> unbiasedResidual(MeasurementSite site) {
         double resid = -999.;
