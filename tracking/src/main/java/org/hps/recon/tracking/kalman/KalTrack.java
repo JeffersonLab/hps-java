@@ -531,16 +531,14 @@ public class KalTrack {
         double isot0=-999.;
         SiModule sensor=ms.m; 
         List<Measurement> allHits=sensor.hits;
-        if(allHits.size()>2 && ms.hitID>-1){
+        if(allHits.size()>1 && ms.hitID>-1){
             Measurement hitOnTrack= allHits.get(ms.hitID);
             double hitTime=hitOnTrack.time;
-            double[] hpsSensorPos=KalmanInterface.localKalToHps(sensor.p.X());
             // keep track of sensor position & orientation
             // use the sign of the global plane position (vertical = z)
             // times the local-->global v-->z element
             // to determine if sensor is aligned (+ive v --> away from beam)
             // or anti-aligned (+ive v is towards beam)
-
             double vertPos=sensor.p.X().v[2];
             double l2gv2z=sensor.R.M[1][2];
             int awayFromBeam = (int)Math.signum(vertPos*l2gv2z);
