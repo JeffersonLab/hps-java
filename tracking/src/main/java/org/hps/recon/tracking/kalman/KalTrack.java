@@ -531,7 +531,7 @@ public class KalTrack {
         double isot0=-999.;
         SiModule sensor=ms.m; 
         List<Measurement> allHits=sensor.hits;
-        if(allHits.size()>2 && ms.hitID>-1){
+        if(allHits.size()>1 && ms.hitID>-1){
             Measurement hitOnTrack= allHits.get(ms.hitID);
             double[] hpsSensorPos=KalmanInterface.localKalToHps(sensor.p.X());
             // keep track of sensor position & orientation
