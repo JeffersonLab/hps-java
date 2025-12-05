@@ -533,6 +533,7 @@ public class KalTrack {
         List<Measurement> allHits=sensor.hits;
         if(allHits.size()>2 && ms.hitID>-1){
             Measurement hitOnTrack= allHits.get(ms.hitID);
+            double hitTime=hitOnTrack.time;
             double[] hpsSensorPos=KalmanInterface.localKalToHps(sensor.p.X());
             // keep track of sensor position & orientation
             // use the sign of the global plane position (vertical = z)
@@ -546,11 +547,17 @@ public class KalTrack {
             //sort the hits on the module by increasing v
             Collections.sort(allHits,Measurement.MeasurementComparatorUp);
             // now get the position of nearest hit _away_ from beam
-            // the hits on the SiModule are sorted by v
-            int isoID=ms.hitID+awayFromBeam*1;
-            if(isoID<allHits.size() &&isoID>-1){
-                iso=Math.abs(allHits.get(isoID).v-allHits.get(ms.hitID).v); 
-                isot0=allHits.get(isoID).time;
+            // within 40ns of original hit
+            int nSteps=1; 
+            int isoID=ms.hitID+awayFromBeam*nSteps;            
+            while(isoID<allHits.size() && isoID>-1){
+                if(Math.abs(allHits.get(isoID).time-hitTime)<40.0){
+                    iso=Math.abs(allHits.get(isoID).v-hitOnTrack.v); 
+                    isot0=allHits.get(isoID).time;
+                    break; 
+                }//otherwise step to the next one
+                nSteps++;
+                isoID=ms.hitID+awayFromBeam*nSteps;  
             }
             return new Pair<Double, Double>(iso, isot0);
         }else{
