@@ -1,7 +1,7 @@
 package org.hps.recon.tracking.kalman;
 
 import java.util.ArrayList;
-
+import java.util.Comparator;
 /**
  * Holds a single silicon-strip measurement (single-sided), to interface with the Kalman fit
  */
@@ -63,6 +63,10 @@ class Measurement { //
         tksMC.add(idx);
     }
 
+    double getMeasuredValue(){
+        return v;
+    };
+
     void print(String s) {
         System.out.format("Measurement %s: Measurement value=%10.5f+-%8.6f; xStrip=%7.2f, MC truth=%10.5f; t=%8.3f; E=%8.3f", s, v, sigma, x, vTrue, time, energy);
         if (tracks.size() == 0) {
@@ -87,4 +91,19 @@ class Measurement { //
         if (rGlobal != null) str = str + rGlobal.toString("global location from MC truth"); 
         return str;
     }
+
+    // Comparator functions for sorting measurements by measured coordinate value
+    static Comparator<Measurement> MeasurementComparatorUp = new Comparator<Measurement>() {
+        public int compare(Measurement s1, Measurement s2) {
+            double v1 = s1.v;
+            double v2 = s2.v;
+            if(v1==v2)
+                return(0);
+            else if(v1>v2)
+                return(1);
+            else  
+                return(-1);
+        }
+    };
+    
 }
