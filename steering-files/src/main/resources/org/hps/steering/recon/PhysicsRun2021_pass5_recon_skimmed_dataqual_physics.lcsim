@@ -185,6 +185,8 @@
 	    <skimMoller>false</skimMoller>
 	    <v0ParamFile>v0skim_parameters_ver1.txt</v0ParamFile>
 	    <v0OutputFile>${outputFile}_v0skim.slcio</v0OutputFile>
+            <ignoreCollections>FPGAData HelicalTrackHitRelations HelicalTrackHits HelicalTrackMCRelations KFGBLStripClusterData KFGBLStripClusterDataRelations ReadoutTimestamps RotatedHelicalTrackHitRelations RotatedHelicalTrackHits RotatedHelicalTrackMCRelations SVTFittedRawTrackerHits SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D SVTRawTrackerHits FADCGenericHits HodoReadoutHits HodoCalHits EcalReadoutHits EcalUncalHits HodoGenericClusters VTPBank EcalClusters</ignoreCollections>
+        </driver>
         </driver>
 	<driver name="EcalMonitoring" type="org.hps.analysis.dataquality.EcalMonitoring">
             <triggerType>all</triggerType>
