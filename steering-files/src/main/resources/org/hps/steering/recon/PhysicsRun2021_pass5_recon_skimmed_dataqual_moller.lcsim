@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!--
-      Steering file for pass-4 2021 reconstruction on readout EVIO data
-      created:  10/17/2025
+      Steering file for pass-5 2021 reconstruction on readout EVIO data
+      created:  12/15/2025
       @author Matthew Gignac <mgignac@slac.stanford.edu>
     -->
     <execute>
