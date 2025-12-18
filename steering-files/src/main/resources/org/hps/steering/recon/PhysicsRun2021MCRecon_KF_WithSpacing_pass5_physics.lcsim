@@ -40,7 +40,6 @@
             <eventInterval>1000</eventInterval>
         </driver>
         <driver name="EventFlagFilter" type="org.hps.recon.filtering.EventFlagFilter">
-            <flagNames>svt_readout_overlap_good</flagNames>
         </driver>
         <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver">
             <inputCollectionName>HodoscopeReadoutHits</inputCollectionName>
