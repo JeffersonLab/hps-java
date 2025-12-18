@@ -184,15 +184,6 @@
             <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
             <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>
         </driver>
-        <driver name="StripEvent" type="org.hps.recon.skims.MultiSkimDriver">
-            <skimV0>true</skimV0>
-            <skimThreeBody>false</skimThreeBody>
-            <skimFEE>false</skimFEE>
-            <skimMoller>false</skimMoller>
-            <v0ParamFile>v0skim_parameters_ver1.txt</v0ParamFile>
-            <v0OutputFile>${outputFile}_v0skim.slcio</v0OutputFile>
-            <ignoreCollections>FPGAData HelicalTrackHitRelations HelicalTrackHits HelicalTrackMCRelations KFGBLStripClusterData KFGBLStripClusterDataRelations ReadoutTimestamps RotatedHelicalTrackHitRelations RotatedHelicalTrackHits RotatedHelicalTrackMCRelations SVTFittedRawTrackerHits SVTShapeFitParameters SVTTrueHitRelations StripClusterer_SiTrackerHitStrip1D SVTRawTrackerHits FADCGenericHits HodoReadoutHits HodoCalHits EcalReadoutHits EcalUncalHits HodoGenericClusters VTPBank EcalClusters</ignoreCollections>
-        </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
