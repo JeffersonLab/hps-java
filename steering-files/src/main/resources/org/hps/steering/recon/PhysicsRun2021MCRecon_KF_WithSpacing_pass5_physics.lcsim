@@ -32,7 +32,6 @@
 
         <!-- Event filtering -->
         <driver name="StripEvent"/>
-        <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
 
     </execute>
@@ -93,7 +92,6 @@
             <subtractTOF>true</subtractTOF>
             <subtractTriggerTime>false</subtractTriggerTime>
             <correctChanT0>false</correctChanT0>
-            <correctPerSensorPerPhase>true</correctPerSensorPerPhase>
             <isMC>true</isMC>
             <debug>false</debug>
         </driver>
