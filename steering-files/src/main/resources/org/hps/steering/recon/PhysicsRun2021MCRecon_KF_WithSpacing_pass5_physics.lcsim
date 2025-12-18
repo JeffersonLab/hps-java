@@ -31,7 +31,7 @@
 
 
         <!-- Event filtering -->
-        <driver name="StripEvent"/>
+        <driver name="LCIOWriter"/>
         <driver name="CleanupDriver"/>
 
     </execute>
@@ -198,8 +198,6 @@
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
-            <outputFilePath>${outputFile}.slcio</outputFilePath>
-        </driver>
+        
     </drivers>
 </lcsim>
