@@ -11,7 +11,7 @@
         <driver name="EventFlagFilter"/>
 
         <!-- Ecal reconstruction drivers -->
-        <driver name="EcalRunningPedestal"/>
+        <!-- <driver name="EcalRunningPedestal"/> -->
         <driver name="EcalRawConverter" />
         <driver name="EcalTimeCorrection"/>
         <driver name="ReconClusterer" />
@@ -54,10 +54,10 @@
         </driver>
 
         <!-- Ecal reconstruction drivers -->
-        <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
+        <!-- <driver name="EcalRunningPedestal" type="org.hps.recon.ecal.EcalRunningPedestalDriver">
             <logLevel>CONFIG</logLevel>
             <isMC>true</isMC>
-        </driver>
+        </driver> -->
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
             <!-- ecalCollectionName>EcalCalHits</ecalCollectionName -->
             <!-- fixShapeParameter>true</fixShapeParameter -->
