@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
+    <!--
+      Steering file for pass-5 2021 reconstruction on MC readout data
+      created:  12/18/2025
+      @author Matthew Gignac <mgignac@slac.stanford.edu>, Sarah Gaiser <sgaiser@slac.stanford.edu>
+    -->
+    <execute>
+
+        <driver name="EventMarkerDriver"/>
+
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRawConverter" />
+        <driver name="EcalTimeCorrection"/>
+        <driver name="ReconClusterer" />
+        <driver name="CopyCluster" />
+
+        <!-- Hodoscope drivers -->
+        <driver name="HodoRunningPedestal"/>
+        <driver name="HodoRawConverter"/>
+
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup"/>
+        <driver name="RawTrackerHitFitterDriver" />
+        <driver name="TrackerHitDriver"/>
+        <driver name="KalmanPatRecDriver"/>
+        <driver name="TrackTruthMatching_KF"/>
+        <driver name="ReconParticleDriver_Kalman" />
+
+
+        <!-- Event filtering -->
+        <driver name="LCIOWriter"/>
+        <driver name="CleanupDriver"/>
+
+    </execute>
+    <drivers>
+        <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
+            <eventInterval>1000</eventInterval>
+        </driver>
+        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver">
+            <inputCollectionName>HodoscopeReadoutHits</inputCollectionName>
+            <logLevel>CONFIG</logLevel>
+            <isMC>true</isMC>
+        </driver>
+        <driver name="HodoRawConverter" type="org.hps.recon.ecal.HodoRawConverterDriver">
+            <inputCollectionName>HodoscopeReadoutHits</inputCollectionName>
+            <tETAllChannels>8</tETAllChannels>
+            <logLevel>CONFIG</logLevel>
+            <isMC>true</isMC>
+        </driver>
+
+        <!-- Ecal reconstruction drivers -->
+        <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver">
+        </driver>
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver">
+            <additionalShift>13.3</additionalShift>
+        </driver>
+        <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
+            <logLevel>WARNING</logLevel>
+            <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
+        </driver>
+        <driver name="CopyCluster" type="org.hps.recon.ecal.cluster.CopyClusterCollectionDriver">
+            <inputCollectionName>EcalClusters</inputCollectionName>
+            <outputCollectionName>EcalClustersCorr</outputCollectionName>
+        </driver>
+        <!-- SVT reconstruction drivers -->
+        <driver name="RawTrackerHitSensorSetup" type="org.lcsim.recon.tracking.digitization.sisim.config.RawTrackerHitSensorSetup">
+            <readoutCollections>SVTRawTrackerHits</readoutCollections>
+        </driver>
+        <driver name="RawTrackerHitFitterDriver" type="org.hps.recon.tracking.RawTrackerHitFitterDriver">
+            <chiSqrThresh>.5</chiSqrThresh>
+            <doOldDT>1</doOldDT>
+            <fitAlgorithm>Pileup</fitAlgorithm>
+            <fitTimeMinimizer>Migrad</fitTimeMinimizer>
+            <useTimestamps>true</useTimestamps>
+            <tsCorrectionScale>165</tsCorrectionScale>
+            <correctTimeOffset>true</correctTimeOffset>
+            <correctT0Shift>true</correctT0Shift>
+            <useTruthTime>false</useTruthTime>
+            <subtractTOF>true</subtractTOF>
+            <subtractTriggerTime>false</subtractTriggerTime>
+            <correctChanT0>false</correctChanT0>
+            <isMC>true</isMC>
+            <debug>false</debug>
+        </driver>
+        <driver name="TrackerHitDriver" type="org.hps.recon.tracking.DataTrackerHitDriver">
+            <neighborDeltaT>24.0</neighborDeltaT>
+            <neighborDeltaTSigma>3.0</neighborDeltaTSigma>
+            <saveMonsterEvents>false</saveMonsterEvents>
+            <thresholdMonsterEvents>400</thresholdMonsterEvents>
+            <clusterSeedThreshold>4.0</clusterSeedThreshold>
+            <doTimeError>1.0</doTimeError>
+            <clusterNeighborThreshold>3.0</clusterNeighborThreshold>
+            <clusterThreshold>3.0</clusterThreshold>
+            <doDeadFix>true</doDeadFix>
+            <doVSplit>true</doVSplit>
+            <debug>false</debug>
+        </driver>
+        <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+            <addResiduals>true</addResiduals>
+            <addKinks>true</addKinks>
+            <numPatRecIteration> 2 </numPatRecIteration>
+            <numKalmanIteration> 1 </numKalmanIteration>
+            <maxPtInverse> 8.881915381218574 </maxPtInverse>
+            <maxD0> 39.249197341740356 </maxD0>
+            <maxZ0> 8.37847994612359 </maxZ0>
+            <maxChi2> 11.546843987796496 </maxChi2>
+            <minHitsTopIter1> 9 </minHitsTopIter1>
+            <minHitsBotIter1> 9 </minHitsBotIter1>
+            <minHitsTopIter2> 8 </minHitsTopIter2>
+            <minHitsBotIter2> 8 </minHitsBotIter2>
+            <minStereo> 3  </minStereo>
+            <maxSharedHits> 2 </maxSharedHits>
+            <maxTimeRange> 40.0 </maxTimeRange>
+            <maxTanLambda> 5.0 </maxTanLambda>
+            <maxChi2Inc> 12.320066328390354 </maxChi2Inc>
+            <minChi2IncBad> 9.206482863412027 </minChi2IncBad>
+            <maxChi2IncShare> 5.862027198856136 </maxChi2IncShare>
+            <mxChi2Vtx> 5.508828061070076 </mxChi2Vtx>
+            <numEvtPlots> 5 </numEvtPlots>
+            <doDebugPlots> false </doDebugPlots>
+            <siHitsLimit> 400 </siHitsLimit>
+            <seedCompThr> 0.3473319986601534 </seedCompThr>
+            <useBeamPositionConditions>true</useBeamPositionConditions>
+            <beamSigmaX>0.055</beamSigmaX>
+            <beamSigmaY>0.045</beamSigmaY>
+            <useFixedVertexZPosition>true</useFixedVertexZPosition>
+            <beamPositionZ>-1.1</beamPositionZ>
+            <lowPhThresh>  7.197594353612735 </lowPhThresh>
+            <verbose> false </verbose>
+        </driver>
+        <driver name="TrackTruthMatching_KF" type="org.hps.analysis.MC.TrackToMCParticleRelationsDriver">
+            <trackCollectionName>KalmanFullTracks</trackCollectionName>
+            <kalmanTracks>true</kalmanTracks>
+            <debug>false</debug>
+        </driver>
+        <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" >
+            <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
+            <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
+            <matcherTrackCollectionName>KalmanFullTracks</matcherTrackCollectionName>
+            <trackClusterMatcherAlgo>TrackClusterMatcherMinDistance</trackClusterMatcherAlgo>
+            <unconstrainedV0CandidatesColName>UnconstrainedV0Candidates_KF</unconstrainedV0CandidatesColName>
+            <unconstrainedV0VerticesColName>UnconstrainedV0Vertices_KF</unconstrainedV0VerticesColName>
+            <beamConV0CandidatesColName>BeamspotConstrainedV0Candidates_KF</beamConV0CandidatesColName>
+            <beamConV0VerticesColName>BeamspotConstrainedV0Vertices_KF</beamConV0VerticesColName>
+            <targetConV0CandidatesColName>TargetConstrainedV0Candidates_KF</targetConV0CandidatesColName>
+            <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
+            <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
+            <otherElectronsColName>OtherElectrons_KF</otherElectronsColName>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
+            <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
+            <useBeamPositionConditions>true</useBeamPositionConditions>
+            <requireClustersForV0>false</requireClustersForV0>
+            <beamSigmaX>0.055</beamSigmaX>
+            <beamSigmaY>0.045</beamSigmaY>
+            <beamPositionZ>-1.1</beamPositionZ>
+            <maxElectronP>7.0</maxElectronP>
+            <maxVertexP>7.0</maxVertexP>
+            <minVertexChisqProb>0.0</minVertexChisqProb>
+            <maxVertexClusterDt>40.0</maxVertexClusterDt>
+            <maxMatchDt>40</maxMatchDt>
+            <trackClusterTimeOffset>40</trackClusterTimeOffset>
+            <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
+            <applyClusterCorrections>true</applyClusterCorrections>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
+            <debug>false</debug>
+            <isMC>true</isMC>
+            <makeMollerCols>true</makeMollerCols>
+            <unconstrainedMollerCandidatesColName>UnconstrainedMollerCandidates_KF</unconstrainedMollerCandidatesColName>
+            <unconstrainedMollerVerticesColName>UnconstrainedMollerVertices_KF</unconstrainedMollerVerticesColName>
+            <beamConMollerCandidatesColName>BeamspotConstrainedMollerCandidates_KF</beamConMollerCandidatesColName>
+            <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
+            <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
+            <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>
+        </driver>
+        <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
+            <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
+        
+    </drivers>
+</lcsim>
+
