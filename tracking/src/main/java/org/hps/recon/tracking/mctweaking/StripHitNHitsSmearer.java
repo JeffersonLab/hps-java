@@ -96,8 +96,11 @@ public class StripHitNHitsSmearer extends Driver {
     public void detectorChanged(Detector detector) {
         // Get the HpsSiSensor objects from the tracker detector element
         smearMap = new HashMap<>();
+        String infile = "/org/hps/recon/tracking/svtTimeAndPositionSmearing/" + smearPositionFile;
+        InputStream inSmearing = this.getClass().getResourceAsStream(infile);
+       
 
-        try (BufferedReader br = new BufferedReader(new FileReader(smearPositionFile))) {
+        try (BufferedReader br = new BufferedReader( new InputStreamReader(inSmearing))) {
             String line;
             while ((line = br.readLine()) != null) {
                 line = line.trim();

@@ -34,7 +34,6 @@
         <driver name="TrackTimeSmearer"/>
         <driver name="TrackTruthMatching_KF"/>
         <driver name="ReconParticleDriver_Kalman" />
-        <driver name="SVTHitEfficiency"/>
 
 
 
@@ -66,7 +65,7 @@
             <smearTop>0.8</smearTop>
         </driver>  
         <driver name="StripHitNHitsSmearer" type="org.hps.recon.tracking.StripHitNHitsSmearer">
-            <smearPositionFile>/sdf/group/hps/users/eberzin/src/hps-java/tracking/src/main/resources/org/hps/recon/tracking/svtTimeAndPositionSmearing/posSmearing_pass5_v9.txt</smearPositionFile>
+            <smearPositionFile>posSmearing_pass5_v9.txt</smearPositionFile>
 	        <debug>false</debug>
         </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
