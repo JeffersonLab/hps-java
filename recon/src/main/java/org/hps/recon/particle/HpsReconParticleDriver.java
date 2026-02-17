@@ -3,8 +3,13 @@ package org.hps.recon.particle;
 import static java.lang.Math.sqrt;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.MCParticle;
 
 import org.hps.conditions.beam.BeamPosition;
 import org.hps.conditions.beam.BeamPosition.BeamPositionCollection;
@@ -15,6 +20,8 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
+import org.hps.recon.vertexing.KalmanVertexFitterGainMatrix;
+import org.hps.recon.vertexing.KalmanVertexFitterGainMatrix.TrackParams;
 import org.hps.record.StandardCuts;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -31,7 +38,12 @@ import org.lcsim.fit.helicaltrack.HelicalTrackFit;
 import org.lcsim.fit.helicaltrack.HelixUtils;
 import org.lcsim.geometry.Detector;
 
+import hep.physics.matrix.Matrix;
 import hep.physics.matrix.SymmetricMatrix;
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.BasicHepLorentzVector;
 import hep.physics.vec.Hep3Vector;
@@ -117,6 +129,25 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     protected List<ReconstructedParticle> unconstrainedVcCandidates;
 
     protected List<Vertex> unconstrainedVcVertices;
+    
+    // three-prong (e-e-e+) collections
+    protected String  threeProngCandidatesColName = "ThreeProngCandidates";
+
+    protected String  threeProngVerticesColName = "ThreeProngVertices";
+
+    protected List<ReconstructedParticle> threeProngCandidates;
+
+    protected List<Vertex> threeProngVertices;
+
+    // Predicted track vertex collections (fit N-1 tracks, predict Nth)
+    protected String threeProngPredictedEleColName = "ThreeProngPredictedEle";
+    protected String threeProngPredictedPosColName = "ThreeProngPredictedPos";
+    protected String threeProngPredictedRecColName = "ThreeProngPredictedRec";
+
+    protected List<Vertex> threeProngPredictedEle;
+    protected List<Vertex> threeProngPredictedPos;
+    protected List<Vertex> threeProngPredictedRec;
+
 
     private boolean makeConversionCols = true;
 
@@ -124,6 +155,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
     private boolean includeUnmatchedTracksInFSP = true;
 
+    private boolean makeThreeProngCols = true; 
+    
     /**
      * Whether to read beam positions from the conditions database. By default
      * this is turned off.
@@ -144,7 +177,42 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      */
     private double[] beamPositionToUse = new double[3];
     private boolean requireClustersForV0 = true;
+    private boolean requireClustersForThreeProng = true;
 
+    /** Beam energy for three-prong momentum constraint (GeV). Settable from steering file. */
+    private double threeProngBeamEnergy = 3.7;
+    /** Beam rotation angle for three-prong momentum constraint (rad). Settable from steering file. */
+    private double threeProngBeamRotAngle = -0.030;
+    /** Max pairwise track time difference for three-prong candidates (ns). */
+    //    private double threeProngMaxTrackDt = 2.5;
+    private double threeProngMaxTrackDt = 5.0;
+    /** Max pairwise cluster time difference for three-prong candidates (ns). */
+    private double threeProngMaxClusterDt = 4.0;
+    /** Require all three tracks in three-prong candidates to be truth matched to MC particles. */
+    private boolean threeProngRequireTruthMatch = false;
+    /** Set of tracks that have truth matches, populated per event. */
+    private Set<Track> truthMatchedTracks = new HashSet<Track>();
+
+    // Three-prong cutflow counters
+    private long tp_nCombinations = 0;
+    private long tp_nRecoilSofter = 0;
+    private long tp_nTrackTypeMatch = 0;
+    private long tp_nMinMomentum = 0;
+    private long tp_nMaxMomentum = 0;
+    private long tp_nTrackChi2 = 0;
+    private long tp_nTrackTime = 0;
+    private long tp_nDPhiXZ = 0;
+    private long tp_nTruthMatch = 0;
+    private long tp_nNotAllSameHalf = 0;
+    private long tp_nClusterExists = 0;
+    private long tp_nClusterRequirement = 0;
+    private long tp_nClusterTime = 0;
+    private long tp_nVertexP = 0;
+    private long tp_nVertexChisq = 0;
+    private long tp_nSaved = 0;
+
+    private long nProcessed = 0; 
+    
     /**
      * Represents a type of constraint for vertex fitting.
      *
@@ -162,10 +230,14 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         /**
          * Represents a fit with target constraints.
          */
-        TARGET_CONSTRAINED
+        TARGET_CONSTRAINED,
+        /**
+         * Represents a fit to 3-prong
+         */
+        THREEPRONG
     }
     // #dof for fit for each Constraint
-    private static final int[] DOF = {1, 3, 4};
+    private static final int[] DOF = {1, 3, 4, 9};
 
     private boolean _patchVertexTrackParameters = false;
     private boolean _storeCovTrkMomList = false;
@@ -283,7 +355,27 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     public void setRequireClustersForV0(boolean b) {
         this.requireClustersForV0 = b;
     }
-    
+
+    public void setThreeProngBeamEnergy(double e) {
+        this.threeProngBeamEnergy = e;
+    }
+
+    public void setThreeProngBeamRotAngle(double a) {
+        this.threeProngBeamRotAngle = a;
+    }
+
+    public void setThreeProngMaxTrackDt(double dt) {
+        this.threeProngMaxTrackDt = dt;
+    }
+
+    public void setThreeProngMaxClusterDt(double dt) {
+        this.threeProngMaxClusterDt = dt;
+    }
+
+    public void setThreeProngRequireTruthMatch(boolean b) {
+        this.threeProngRequireTruthMatch = b;
+    }
+
     public void setUnconstrainedMollerCandidatesColName(String s)
     {
         unconstrainedMollerCandidatesColName = s;
@@ -314,6 +406,16 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         targetConMollerVerticesColName = s;
     }
 
+    public void setThreeProngCandidatesColName(String s)
+    {
+        threeProngCandidatesColName = s;
+    }
+
+    public void setThreeProngVerticesColName(String s)
+    {
+        threeProngVerticesColName = s;
+    }
+
     /**
      * Processes the track and cluster collections in the event into
      * reconstructed particles and V0 candidate particles and vertices. These
@@ -332,6 +434,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             beamPositionToUse[0] = beamPosition[0];
         }
          */
+
+        nProcessed++;
+        
         if (makeMollerCols) {
             unconstrainedMollerCandidates = new ArrayList<ReconstructedParticle>();
             beamConMollerCandidates = new ArrayList<ReconstructedParticle>();
@@ -344,6 +449,30 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         if (makeConversionCols) {
             unconstrainedVcCandidates = new ArrayList<ReconstructedParticle>();
             unconstrainedVcVertices = new ArrayList<Vertex>();
+        }
+
+        if (makeThreeProngCols){
+            threeProngCandidates = new ArrayList<ReconstructedParticle>();
+            threeProngVertices = new ArrayList<Vertex>();
+            threeProngPredictedEle = new ArrayList<Vertex>();
+            threeProngPredictedPos = new ArrayList<Vertex>();
+            threeProngPredictedRec = new ArrayList<Vertex>();
+        }
+
+        // Build truth-matched track set for this event
+        truthMatchedTracks.clear();
+        if (threeProngRequireTruthMatch) {
+            for (String trackColName : trackCollectionNames) {
+                String relColName = trackColName + "ToMCParticleRelations";
+                if (event.hasCollection(LCRelation.class, relColName)) {
+                    List<LCRelation> relations = event.get(LCRelation.class, relColName);
+                    for (LCRelation relation : relations) {
+                        if (relation != null && relation.getFrom() != null && relation.getTo() != null) {
+                            truthMatchedTracks.add((Track) relation.getFrom());
+                        }
+                    }
+                }
+            }
         }
 
         super.process(event);
@@ -360,6 +489,14 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         if (makeConversionCols) {
             event.put(unconstrainedVcCandidatesColName, unconstrainedVcCandidates, ReconstructedParticle.class, 0);
             event.put(unconstrainedVcVerticesColName, unconstrainedVcVertices, Vertex.class, 0);
+        }
+
+        if (makeThreeProngCols) {
+            event.put(threeProngCandidatesColName, threeProngCandidates, ReconstructedParticle.class, 0);
+            event.put(threeProngVerticesColName, threeProngVertices, Vertex.class, 0);
+            event.put(threeProngPredictedEleColName, threeProngPredictedEle, Vertex.class, 0);
+            event.put(threeProngPredictedPosColName, threeProngPredictedPos, Vertex.class, 0);
+            event.put(threeProngPredictedRecColName, threeProngPredictedRec, Vertex.class, 0);
         }
     }
 
@@ -456,6 +593,174 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         }
     }
 
+    public void findThreeProngs(List<ReconstructedParticle> electrons, List<ReconstructedParticle> positrons) {
+        for (ReconstructedParticle positron : positrons) {
+            for (int i=0; i<electrons.size(); i++) {
+                for (int k=0; k<electrons.size();k++){
+                    if(i==k)// don't pick the same electron
+                        continue;
+                    ReconstructedParticle electron=electrons.get(i);
+                    ReconstructedParticle recoil=electrons.get(k);
+                    tp_nCombinations++;
+                    //force the recoil to be softest electron
+                    if(recoil.getMomentum().magnitude()>=electron.getMomentum().magnitude())
+                        continue;
+                    tp_nRecoilSofter++;
+                    // Don't vertex a GBL track with a SeedTrack.  This isn't really needed anymore.
+                    if (TrackType.isGBL(positron.getType()) != TrackType.isGBL(electron.getType())) {
+                        continue;
+                    }
+                    if (TrackType.isGBL(positron.getType()) != TrackType.isGBL(recoil.getType())) {
+                        continue;
+                    }
+                    tp_nTrackTypeMatch++;
+
+
+                    // Not all in same half of detector
+                    boolean eleIsTop = (electron.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0);
+                    boolean posIsTop = (positron.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0);
+                    boolean recIsTop = (recoil.getTracks().get(0).getTrackStates().get(0).getTanLambda() > 0);
+                    boolean notAllSame = !((eleIsTop && posIsTop && recIsTop) || (!eleIsTop && !posIsTop && !recIsTop));
+                    if (!notAllSame)
+                        continue;
+                    tp_nNotAllSameHalf++;
+                    
+                    // Three-prong selection cuts
+                    double eleP = electron.getMomentum().magnitude();
+                    double posP = positron.getMomentum().magnitude();
+                    double recP = recoil.getMomentum().magnitude();
+
+                    
+                    // All tracks must have momentum > 0.4 GeV
+                    if (eleP < 0.4 || posP < 0.4 || recP < 0.4)
+                        continue;
+                    tp_nMinMomentum++;
+
+                    // Electron and recoil must have momentum < 2.9 GeV
+                    if (eleP > 2.9 || recP > 2.9)
+                        continue;
+                    tp_nMaxMomentum++;
+
+                    // All tracks must have chi2 < 50
+                    if (electron.getTracks().get(0).getChi2() > 50.0 ||
+                        positron.getTracks().get(0).getChi2() > 50.0 ||
+                        recoil.getTracks().get(0).getChi2() > 50.0)
+                        continue;
+                    tp_nTrackChi2++;
+
+                    // Track times must be within 10 ns of each other
+                    // Use average tracker hit time as proxy for track time
+                    double eleTime = avgHitTime(electron.getTracks().get(0));
+                    double posTime = avgHitTime(positron.getTracks().get(0));
+                    double recTime = avgHitTime(recoil.getTracks().get(0));
+                    if (Math.abs(eleTime - posTime) > threeProngMaxTrackDt ||
+                        Math.abs(eleTime - recTime) > threeProngMaxTrackDt ||
+                        Math.abs(posTime - recTime) > threeProngMaxTrackDt)
+                        continue;
+                    tp_nTrackTime++;
+
+                    // Require (e+e-) pair and recoil e- to be approximately back-to-back
+                    // in the azimuthal angle phi = atan2(py, px).
+                    // For back-to-back: phi_pair - phi_recoil ~ pi
+                    // Rotate momenta to beam frame to account for beam rotation about y
+                    Hep3Vector eleMom = rotateToBeamFrame(electron.getMomentum());
+                    Hep3Vector posMom = rotateToBeamFrame(positron.getMomentum());
+                    Hep3Vector recMom = rotateToBeamFrame(recoil.getMomentum());
+
+                    // Pairing 1: (electron + positron) vs recoil
+                    double phiPair1 = Math.atan2(eleMom.y() + posMom.y(), eleMom.x() + posMom.x());
+                    double phiRec1 = Math.atan2(recMom.y(), recMom.x());
+                    double dPhi1 = Math.abs(phiPair1 - phiRec1);
+
+                    // Pairing 2: (recoil + positron) vs electron
+                    double phiPair2 = Math.atan2(recMom.y() + posMom.y(), recMom.x() + posMom.x());
+                    double phiEle2 = Math.atan2(eleMom.y(), eleMom.x());
+                    double dPhi2 = Math.abs(phiPair2 - phiEle2);
+
+                    // At least one pairing must be approximately back-to-back (dPhi ~ pi)
+                    // Cut relaxed for now to study the distribution
+                    if (Math.abs(dPhi1 - Math.PI) > 0.3 && Math.abs(dPhi2 - Math.PI) > 0.3)
+                        continue;
+                    tp_nDPhiXZ++;
+
+                    // Require all three tracks to be truth matched
+                    if (threeProngRequireTruthMatch) {
+                        if (!truthMatchedTracks.contains(electron.getTracks().get(0)) ||
+                            !truthMatchedTracks.contains(positron.getTracks().get(0)) ||
+                            !truthMatchedTracks.contains(recoil.getTracks().get(0)))
+                            continue;
+                    }
+                    tp_nTruthMatch++;
+
+                
+
+                    // Require cluster matching was attempted for the positron
+                    if (positron.getClusters() == null)
+                        continue;
+                    
+                    tp_nClusterExists++;
+
+
+                    // Require either the electron or recoil to have a cluster (in addition to positron)
+                   
+                    boolean eleHasCluster = electron.getClusters() != null && !electron.getClusters().isEmpty();
+                    boolean posHasCluster = !positron.getClusters().isEmpty();
+                    boolean recHasCluster = recoil.getClusters() != null && !recoil.getClusters().isEmpty();
+
+                    if (requireClustersForThreeProng && (!posHasCluster || (!eleHasCluster && !recHasCluster)))
+                        continue;
+                    tp_nClusterRequirement++;
+
+                    double posClusTime=ClusterUtilities.getSeedHitTime(positron.getClusters().get(0));
+
+                    if(Math.abs(posClusTime - posTime-cuts.getTrackClusterTimeOffset()) > 15.0)
+                        continue;
+                    if(Math.abs(posClusTime - eleTime-cuts.getTrackClusterTimeOffset()) > 100.0 &&
+                       Math.abs(posClusTime - recTime-cuts.getTrackClusterTimeOffset()) > 100.0)
+                        continue;
+                    
+                    tp_nClusterTime++;
+                    /*
+                    if (requireClustersForThreeProng) {
+                        boolean failClusterTime = false;
+
+                        if (eleHasCluster) {
+                            double eleClusTime = ClusterUtilities.getSeedHitTime(electron.getClusters().get(0));
+                            if (Math.abs(eleClusTime - posClusTime) > threeProngMaxClusterDt) {
+                                failClusterTime = true;
+                            }
+                            if (!failClusterTime && recHasCluster) {
+                                double recClusTime = ClusterUtilities.getSeedHitTime(recoil.getClusters().get(0));
+                                if (Math.abs(recClusTime - posClusTime) > threeProngMaxClusterDt) {
+                                    failClusterTime = true;
+                                }
+                                if (Math.abs(eleClusTime - recClusTime) > threeProngMaxClusterDt) {
+                                    failClusterTime = true;
+                                }
+                            }
+                        } else if (recHasCluster) {
+                            double recClusTime = ClusterUtilities.getSeedHitTime(recoil.getClusters().get(0));
+                            if (Math.abs(recClusTime - posClusTime) > threeProngMaxClusterDt) {
+                                failClusterTime = true;
+                            }
+                        }
+                        if (failClusterTime)
+                            continue;
+                    }
+                    tp_nClusterTime++;
+                    */
+                    // Make three-prong candidates
+                    try {
+                        this.makeThreeProngCandidates(electron, positron, recoil);
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
+                        System.out.println("HpsReconParticleDriver::makeThreeProngCandidates fails:: skipping ele/pos pair.");
+                        continue;
+                    }
+                }
+            }
+        }
+    }
     /**
      * Creates reconstructed V0 candidate particles and vertices for electron
      * positron pairs using no constraints, beam constraints, and target
@@ -473,7 +778,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         if (makeMollerCols) {
             findMollers(electrons);
         }
-
+        if (makeThreeProngCols){
+            findThreeProngs(electrons,positrons); 
+        }
     }
 
     /**
@@ -614,6 +921,178 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     }
 
     /**
+     * Fits a vertex from an electron/positron/recoil track trio using the 
+     * three-prong constraint indicated
+     *
+     * @param constraint - The constraint type to use.
+     * @param electron - The electron track.
+     * @param positron - The positron track.
+     * @param recoil - The recoil track. (which is just another electron
+     * @return Returns the reconstructed vertex as a <code>BilliorVertex
+     * </code> object.
+     */
+    private RealMatrix toRealMatrix(Matrix m) {
+        int rows = m.getNRows();
+        int cols = m.getNColumns();
+        RealMatrix rm = new Array2DRowRealMatrix(rows, cols);
+        for (int i = 0; i < rows; i++)
+            for (int j = 0; j < cols; j++)
+                rm.setEntry(i, j, m.e(i, j));
+        return rm;
+    }
+
+    private BilliorVertex fitVertex(Constraint constraint, ReconstructedParticle electron, ReconstructedParticle positron,  ReconstructedParticle recoil) {
+
+        // Build TrackParams directly from TrackState helix parameters (d0, phi0, omega, z0, tanLambda)
+        // NOT from BilliorTrack which uses a different parameter ordering (eps, z0, theta, phi0, curvature)
+        List<TrackParams> trkParList = new ArrayList<TrackParams>();
+        ReconstructedParticle[] particles = {electron, positron, recoil};
+        for (ReconstructedParticle part : particles) {
+            TrackState ts = TrackStateUtils.getTrackStatesAtLocation(part.getTracks().get(0), TrackState.AtPerigee).get(0);
+            double[] p = ts.getParameters();
+            SymmetricMatrix cov = new SymmetricMatrix(5, ts.getCovMatrix(), true);
+            trkParList.add(new TrackParams(p[0], p[1], p[2], p[3], p[4], toRealMatrix(cov)));
+        }
+
+        // Get the magnetic field
+        double bLocal=TrackStateUtils.getTrackStatesAtLocation(electron.getTracks().get(0),TrackState.AtPerigee).get(0).getBLocal();
+        if(trackType==0)
+            bLocal=bField;
+
+        if (debug) {
+            Hep3Vector eleMom = electron.getMomentum();
+            Hep3Vector posMom = positron.getMomentum();
+            Hep3Vector recMom = recoil.getMomentum();
+            System.out.println("=== HpsReconParticleDriver::fitVertex (3-prong) ===");
+            System.out.printf("  Electron ReconParticle momentum: [%.4f, %.4f, %.4f] |p|=%.4f%n",
+                              eleMom.x(), eleMom.y(), eleMom.z(), eleMom.magnitude());
+            System.out.printf("  Positron ReconParticle momentum: [%.4f, %.4f, %.4f] |p|=%.4f%n",
+                              posMom.x(), posMom.y(), posMom.z(), posMom.magnitude());
+            System.out.printf("  Recoil   ReconParticle momentum: [%.4f, %.4f, %.4f] |p|=%.4f%n",
+                              recMom.x(), recMom.y(), recMom.z(), recMom.magnitude());
+            double totalP = VecOp.add(eleMom, VecOp.add(posMom, recMom)).magnitude();
+            System.out.printf("  Total |p| = %.4f%n", totalP);
+            String[] labels = {"electron", "positron", "recoil  "};
+            for (int i = 0; i < 3; i++) {
+                TrackParams tp = trkParList.get(i);
+                System.out.printf("  TrackParams %s: d0=%.4f phi0=%.4f omega=%.6f z0=%.4f tanL=%.4f%n",
+                                  labels[i], tp.d0, tp.phi0, tp.omega, tp.z0, tp.tanLambda);
+            }
+            System.out.printf("  bLocal = %.4f%n", bLocal);
+            System.out.println("=== End HpsReconParticleDriver input ===");
+        }
+
+        // Set up Kalman vertex fitter
+
+        KalmanVertexFitterGainMatrix vtxFitter = new KalmanVertexFitterGainMatrix(bLocal);
+        vtxFitter.setBeamSize(beamSize);
+        vtxFitter.setBeamPosition(beamPositionToUse);
+        vtxFitter.setStoreCovTrkMomList(_storeCovTrkMomList);
+        //        vtxFitter.setDebug(debug);
+        vtxFitter.setDebug(true);
+        vtxFitter.setBeamEnergy(threeProngBeamEnergy);
+        vtxFitter.setBeamRotAngle(threeProngBeamRotAngle);
+
+        // Fit with beam momentum constraint for THREEPRONG, unconstrained otherwise
+        boolean useBeamConstraint = (constraint == Constraint.THREEPRONG);
+        System.out.println("Fitting a three prong candidate");
+        BilliorVertex vtx = vtxFitter.fitVertex(trkParList, useBeamConstraint);
+        System.out.println("...done fitting");
+
+        // For THREEPRONG, also do predicted track fits for each track
+        if (constraint == Constraint.THREEPRONG) {
+            // Set up beam momentum constraint for predicted track fits
+            // Tracking frame: X=HPS_Z (beam), Y=HPS_X (horizontal), Z=HPS_Y (vertical)
+            double pBeam = threeProngBeamEnergy;  // Assume electron mass ~ 0, so p ~ E
+            double cosR = Math.cos(threeProngBeamRotAngle);
+            double sinR = Math.sin(threeProngBeamRotAngle);
+            // Beam momentum in tracking frame (same convention as fitVertex):
+            double pxBeam_trk = pBeam * cosR;   // tracking X = HPS Z
+            double pyBeam_trk = -pBeam * sinR;  // tracking Y = HPS X (negative!)
+            double pzBeam_trk = 0.0;            // tracking Z = HPS Y
+            double[] beamP = new double[]{pxBeam_trk, pyBeam_trk, pzBeam_trk};
+            RealVector totalMomentumConstraint = MatrixUtils.createRealVector(beamP);
+
+            System.out.printf("DEBUG fitWithPredictedTrack: beam momentum (tracking) = [%.4f, %.4f, %.4f]%n",
+                pxBeam_trk, pyBeam_trk, pzBeam_trk);
+
+            // Small uncertainty on beam momentum
+            double beamPSigma = 0.05;  // 50 MeV spread
+            RealMatrix totalMomentumConstraintCov = MatrixUtils.createRealDiagonalMatrix(
+                new double[]{beamPSigma * beamPSigma, beamPSigma * beamPSigma, beamPSigma * beamPSigma});
+
+            // Vertex constraint from beam position
+            RealVector vertexConstraint = MatrixUtils.createRealVector(beamPositionToUse);
+            RealMatrix vertexConstraintCov = MatrixUtils.createRealDiagonalMatrix(
+                new double[]{beamSize[0] * beamSize[0], beamSize[1] * beamSize[1], beamSize[2] * beamSize[2]});
+
+            String[] trackLabels = new String[]{"Ele", "Pos", "Rec"};
+            List<Vertex>[] predCollections = new List[]{threeProngPredictedEle, threeProngPredictedPos, threeProngPredictedRec};
+
+            // Fit with each track predicted
+            for (int predictIdx = 0; predictIdx < 3; predictIdx++) {
+                KalmanVertexFitterGainMatrix.PredictedTrackResult predResult =
+                    vtxFitter.fitWithPredictedTrack(
+                        trkParList, predictIdx,
+                        vertexConstraint, vertexConstraintCov,
+                        totalMomentumConstraint, totalMomentumConstraintCov,
+                        null, null,  // no mass constraint
+                        10, 1e-6);
+
+                // Convert to BilliorVertex and add to appropriate collection
+                String label = trackLabels[predictIdx];
+                BilliorVertex predVtx = vtxFitter.predictedResultToBilliorVertex(
+                    predResult, predictIdx, "ThreeProngPredicted" + label);
+                predCollections[predictIdx].add(predVtx);
+
+                // Also store summary info in the main vertex parameters
+                vtx.setParameter("p" + label + "X_pred", predResult.predictedMomentum.getEntry(0));
+                vtx.setParameter("p" + label + "Y_pred", predResult.predictedMomentum.getEntry(1));
+                vtx.setParameter("p" + label + "Z_pred", predResult.predictedMomentum.getEntry(2));
+                vtx.setParameter("p" + label + "X_actual", predResult.actualMomentum.getEntry(0));
+                vtx.setParameter("p" + label + "Y_actual", predResult.actualMomentum.getEntry(1));
+                vtx.setParameter("p" + label + "Z_actual", predResult.actualMomentum.getEntry(2));
+                vtx.setParameter("p" + label + "X_res", predResult.momentumResidual.getEntry(0));
+                vtx.setParameter("p" + label + "Y_res", predResult.momentumResidual.getEntry(1));
+                vtx.setParameter("p" + label + "Z_res", predResult.momentumResidual.getEntry(2));
+                vtx.setParameter("chi2_pred" + label, predResult.chi2);
+                vtx.setParameter("ndf_pred" + label, (double) predResult.ndf);
+
+                if (debug) {
+                    System.out.printf("Predicted track %s: p_pred=(%.4f, %.4f, %.4f), p_actual=(%.4f, %.4f, %.4f), chi2=%.2f%n",
+                        label,
+                        predResult.predictedMomentum.getEntry(0), predResult.predictedMomentum.getEntry(1), predResult.predictedMomentum.getEntry(2),
+                        predResult.actualMomentum.getEntry(0), predResult.actualMomentum.getEntry(1), predResult.actualMomentum.getEntry(2),
+                        predResult.chi2);
+                }
+            }
+        }
+
+        // Compute layer code
+        int minLayEle = 6;
+        int minLayPos = 6;
+        List<TrackerHit> allTrackHits = electron.getTracks().get(0).getTrackerHits();
+        for (TrackerHit temp : allTrackHits) {
+            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
+            int layer = (sensor.getLayerNumber() + 1) / 2;
+            if (layer < minLayEle) {
+                minLayEle = layer;
+            }
+        }
+        allTrackHits = positron.getTracks().get(0).getTrackerHits();
+        for (TrackerHit temp : allTrackHits) {
+            HpsSiSensor sensor = (HpsSiSensor) ((RawTrackerHit) temp.getRawHits().get(0)).getDetectorElement();
+            int layer = (sensor.getLayerNumber() + 1) / 2;
+            if (layer < minLayPos) {
+                minLayPos = layer;
+            }
+        }
+        vtx.setLayerCode(minLayPos + minLayEle);
+        vtx.setProbability(DOF[constraint.ordinal()]);
+
+        return vtx;
+    }
+    /**
      *
      */
     private void makeV0Candidates(ReconstructedParticle electron, ReconstructedParticle positron) {
@@ -627,7 +1106,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         if ((eleIsTop == posIsTop) && (!makeConversionCols)) {
             return;
         }
-
+        //does this just require that cluster matching was attempted?  
         if (electron.getClusters() == null || positron.getClusters() == null) {
             return;
         }
@@ -670,8 +1149,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
         // Create candidate particles for the other two constraints.
         for (Constraint constraint : Constraint.values()) {
-            if (constraint == Constraint.UNCONSTRAINED) {
-                continue;           // Skip the UNCONSTRAINED case, done already
+            if (constraint == Constraint.UNCONSTRAINED || constraint == Constraint.THREEPRONG) {
+                continue;
             }
             // Generate a candidate vertex and particle.
             vtxFit = fitVertex(constraint, electron, positron);
@@ -707,6 +1186,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
         // Create candidate particles for each constraint.
         for (Constraint constraint : Constraint.values()) {
+            if (constraint == Constraint.THREEPRONG) {
+                continue;
+            }
 
             // Generate a candidate vertex and particle.
             BilliorVertex vtxFit = fitVertex(constraint, topElectron, botElectron);
@@ -743,7 +1225,33 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             }
         }
     }
+  /**
+     *
+     */
+    private void makeThreeProngCandidates(ReconstructedParticle electron, ReconstructedParticle positron, ReconstructedParticle recoil) {
 
+        BilliorVertex vtxFit = fitVertex(Constraint.THREEPRONG, electron, positron,recoil);
+
+        ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, recoil, vtxFit);
+
+        if (candidate.getMomentum().magnitude() > cuts.getMaxVertexP()) {
+            return;
+        }
+        tp_nVertexP++;
+
+        if (candidate.getStartVertex().getProbability() < cuts.getMinVertexChisqProb()) {
+            return;
+        }
+        tp_nVertexChisq++;
+
+        // patch the track parameters at the found vertex
+        if (_patchVertexTrackParameters) {
+            patchVertex(vtxFit);
+        }
+        threeProngVertices.add(vtxFit);
+        threeProngCandidates.add(candidate);
+        tp_nSaved++;         
+    }
     /**
      * Creates a reconstructed V0 candidate particle from an electron, positron,
      * and billior vertex.
@@ -809,6 +1317,74 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         return candidate;
     }
 
+     /**
+     * Creates a reconstructed 3-prong candidate particle from an electron, positron, recoil
+     * and billior vertex.
+     *
+     * @param electron - The electron.
+     * @param positron - The positron.
+     * @param recoil - The recoil.
+     * @param vtxFit - The billior vertex.
+     * @return Returns a reconstructed particle with properties generated from
+     * the child particles and vertex given as an argument.
+     */
+    public static ReconstructedParticle makeReconstructedParticle(ReconstructedParticle electron, ReconstructedParticle positron, ReconstructedParticle recoil,BilliorVertex vtxFit) {
+
+        // Create a new reconstructed particle to represent the V0
+        // candidate and populate it with the electron and positron.
+        ReconstructedParticle candidate = new BaseReconstructedParticle();
+        ((BaseReconstructedParticle) candidate).setStartVertex(vtxFit);
+        candidate.addParticle(electron);
+        candidate.addParticle(positron);
+        candidate.addParticle(recoil);
+
+        // Set the type of the V0 particle.  This will only be needed for pass 2.
+        ((BaseReconstructedParticle) candidate).setType(electron.getType());
+
+        // TODO: The calculation of the total fitted momentum should be
+        //       done within BilloirVertex.
+        // Calculate the candidate particle momentum and associate it
+        // with the reconstructed candidate particle.
+        ((BaseReconstructedParticle) candidate).setMass(vtxFit.getParameters().get("invMass"));
+        Hep3Vector fittedMomentum = new BasicHep3Vector(vtxFit.getParameters().get("p1X"),
+                vtxFit.getParameters().get("p1Y"),
+                vtxFit.getParameters().get("p1Z"));
+        fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFit.getParameters().get("p2X"),
+                vtxFit.getParameters().get("p2Y"),
+                vtxFit.getParameters().get("p2Z")));
+        fittedMomentum = VecOp.add(fittedMomentum, new BasicHep3Vector(vtxFit.getParameters().get("p3X"),
+                vtxFit.getParameters().get("p3Y"),
+                vtxFit.getParameters().get("p3Z")));
+        // If both the electron and positron have an associated Ecal cluster,
+        // calculate the total energy and assign it to the V0 particle
+        double v0Energy = 0;
+        if (!electron.getClusters().isEmpty() && !positron.getClusters().isEmpty()&&!recoil.getClusters().isEmpty()) {
+            v0Energy += electron.getClusters().get(0).getEnergy();
+            v0Energy += positron.getClusters().get(0).getEnergy();
+            v0Energy += recoil.getClusters().get(0).getEnergy();
+        }
+
+        HepLorentzVector fourVector = new BasicHepLorentzVector(v0Energy, fittedMomentum);
+        //((BasicHepLorentzVector) fourVector).setV3(fourVector.t(), fittedMomentum);
+        ((BaseReconstructedParticle) candidate).set4Vector(fourVector);
+
+        // Set the charge of the particle
+        double particleCharge = electron.getCharge() + positron.getCharge()+recoil.getCharge();
+        ((BaseReconstructedParticle) candidate).setCharge(particleCharge);
+
+        // VERBOSE :: Output the fitted momentum data.
+//        printDebug("Fitted momentum in tracking frame: " + fittedMomentum.toString());
+//        printDebug("Fitted momentum in detector frame: " + fittedMomentum.toString());
+        // Add the ReconstructedParticle to the vertex.
+        vtxFit.setAssociatedParticle(candidate);
+
+        // Set the vertex position as the reference point of the V0 particle
+        ((BaseReconstructedParticle) candidate).setReferencePoint(vtxFit.getPosition());
+
+        // Return the V0 candidate.
+        return candidate;
+    }
+    
     /**
      * Converts a <code>Track</code> object to a <code>BilliorTrack
      * </code> object.
@@ -902,6 +1478,57 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             newTrks.add(electronBTrackShift);
         }
         return newTrks;
+    }
+
+    /**
+     * Compute average tracker hit time for a track.
+     */
+    @Override
+    protected void endOfData() {
+        super.endOfData();
+        System.out.printf("%-40s %10d%n", "number of processed events", nProcessed);
+        System.out.println("\n===== Three-Prong Cutflow Summary =====");
+        System.out.printf("%-40s %10d%n", "Total combinations", tp_nCombinations);
+        System.out.printf("%-40s %10d%n", "Recoil softer than electron", tp_nRecoilSofter);
+        System.out.printf("%-40s %10d%n", "Track type match", tp_nTrackTypeMatch);
+        System.out.printf("%-40s %10d%n", "Not all same half", tp_nNotAllSameHalf);
+        System.out.printf("%-40s %10d%n", "Min momentum (> 0.4 GeV)", tp_nMinMomentum);
+        System.out.printf("%-40s %10d%n", "Max momentum (ele/rec < 2.9 GeV)", tp_nMaxMomentum);
+        System.out.printf("%-40s %10d%n", "Track chi2 (< 30)", tp_nTrackChi2);
+        System.out.printf("%-40s %10d%n", String.format("Track time (< %.1f ns)", threeProngMaxTrackDt), tp_nTrackTime);
+        System.out.printf("%-40s %10d%n", "DPhi_xz back-to-back", tp_nDPhiXZ);
+        System.out.printf("%-40s %10d%n", "Truth match (all 3 tracks)", tp_nTruthMatch);
+        System.out.printf("%-40s %10d%n", "Cluster exists (pos not null)", tp_nClusterExists);
+        System.out.printf("%-40s %10d%n", "Cluster requirement (pos + ele/rec)", tp_nClusterRequirement);
+        System.out.printf("%-40s %10d%n", String.format("Cluster time cut (< %.1f ns)", threeProngMaxClusterDt), tp_nClusterTime);
+        System.out.printf("%-40s %10d%n", "Vertex momentum cut", tp_nVertexP);
+        System.out.printf("%-40s %10d%n", "Vertex chi2 prob cut", tp_nVertexChisq);
+        System.out.printf("%-40s %10d%n", "Saved candidates", tp_nSaved);
+        System.out.println("========================================\n");
+    }
+
+    private double avgHitTime(Track track) {
+        List<TrackerHit> hits = track.getTrackerHits();
+        if (hits == null || hits.isEmpty())
+            return 0.0;
+        double sum = 0.0;
+        for (TrackerHit hit : hits) {
+            sum += hit.getTime();
+        }
+        return sum / hits.size();
+    }
+
+    /**
+     * Rotate a vector about the y-axis by the beam rotation angle.
+     * This transforms from detector coordinates to beam coordinates.
+     */
+    private Hep3Vector rotateToBeamFrame(Hep3Vector v) {
+        double cosTheta = Math.cos(threeProngBeamRotAngle);
+        double sinTheta = Math.sin(threeProngBeamRotAngle);
+        double xRot = v.x() * cosTheta + v.z() * sinTheta;
+        double yRot = v.y();
+        double zRot = -v.x() * sinTheta + v.z() * cosTheta;
+        return new BasicHep3Vector(xRot, yRot, zRot);
     }
 
 }

@@ -26,6 +26,7 @@ public class BilliorVertexer {
     private final double _bField;
     private boolean _beamspotConstraint;
     private boolean _targetConstraint;
+    private boolean _threeprongConstraint; 
     private String _constraintType;
     private final double[] _beamSize = {0.001, 0.01, 0.01}; //10um in y and z
     private final double[] _beamPosition = {0.0, 0.0, 0.0}; //origin
@@ -42,6 +43,11 @@ public class BilliorVertexer {
     private Matrix[][] covMomList;//max 2 tracks...just make this bigger for more
     private double _chiSq;
 
+    // beam momentum
+    private double _pBeam=3.7; //GeV...hardcode for now.
+    private double _rotAngle=-0.030; //mrad...hardcode for now;  I think the sign is correct
+    private double _beamMomentum[]={_pBeam*Math.cos(_rotAngle),-_pBeam*Math.sin(_rotAngle),0};
+        
     public BilliorVertexer(double bField) {
         _bField = bField;
         _constraintType = "Unconstrained";
@@ -76,6 +82,9 @@ public class BilliorVertexer {
             applyBSconstraint(true);
         else if (_targetConstraint)
             applyBSconstraint(false);
+        else if(_threeprongConstraint)
+            applyPBeamConstraint();
+        
         Map<Integer, Hep3Vector> pFitMap = new HashMap<Integer, Hep3Vector>();
         for (int i = 0; i < tracks.size(); i++) {
             Hep3Vector pFit = CoordinateTransformations.transformVectorToDetector(new BasicHep3Vector(this.getFittedMomentum(i)));
@@ -182,10 +191,7 @@ public class BilliorVertexer {
         if (_debug)
             System.out.println(methodName + "::rk = " + rk);
 
-        //mg...makeHkFixed is for our debugging..replace makeHk with that when we 
-        // are sure that it's correct...mg 2/28/19...maybe do that soon? 
-        BasicMatrix Hk = makeHkFixed(Vx, pxtot, pytot, pztot, pointback);
-        //        BasicMatrix Hk = makeHk(Vx, pxtot, pytot, pztot, pointback);
+        BasicMatrix Hk = makeHk(Vx, pxtot, pytot, pztot, pointback);
 
         if (_debug)
             System.out.println(methodName + "::Hk = " + Hk);
@@ -201,6 +207,8 @@ public class BilliorVertexer {
         if (_debug)
             System.out.println(methodName + "::Ckm1Hk = " + MatrixOp.mult(Ckm1, Hk));
 
+        //mg...Jan. 26, 2026
+        //shouldn't this be MatrixOp.mult(Hk,MatrixOp.mult(Ckm1,Hkt))?   per eqn. 15 in Wouter's NIM?
         BasicMatrix Rk = (BasicMatrix) MatrixOp.mult(Hkt, MatrixOp.mult(Ckm1, Hk));
         if (_debug)
             System.out.println("Pre Vk:  Rk = " + Rk.toString());
@@ -246,77 +254,139 @@ public class BilliorVertexer {
 
     }
 
-///// this is not correct;  use makeHkFixed...leave here for posterity 
-    private BasicMatrix makeHk(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
-        BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
-        //  ok, can set the derivitives wrt to V
-        if (bscon) {
-            Hk.setElement(0, 0, 0);
-            Hk.setElement(0, 1, pytot / pxtot);
-            Hk.setElement(0, 2, pztot / pxtot);
-        } else {
-            Hk.setElement(0, 0, 1);
-            Hk.setElement(0, 1, 0);
-            Hk.setElement(0, 2, 0);
+      /*  Add the constraint that V0 is at/points back to beamspot
+     *  this method is based on progressive least squares fit
+     *  using the unconstrained fit result as the (k-1) fit
+     *
+     *  all notation is taken from:
+     * W. Hulsbergen, NIM 552 (2005) 566-575
+     */
+    private void applyPBeamConstraint() {
+        String methodName = "PBeamConstraint";
+        BasicMatrix Ckm1 = new BasicMatrix(3 * (_ntracks + 1), 3 * (_ntracks + 1));
+        BasicMatrix Xkm1 = new BasicMatrix(3 * (_ntracks + 1), 1);
+        MatrixOp.setSubMatrix(Ckm1, _covVtx, 0, 0);
+        MatrixOp.setSubMatrix(Xkm1, _vertexPosition, 0, 0);
+        int n = 1;
+        for (Matrix covVtxMom : covVtxMomList) {
+            if (_debug)
+                System.out.println(methodName + "::Track " + n + "  covVtxMom : " + covVtxMom.toString());
+            MatrixOp.setSubMatrix(Ckm1, covVtxMom, 0, 3 * n);
+            MatrixOp.setSubMatrix(Ckm1, MatrixOp.transposed(covVtxMom), 3 * n, 0);
+            n++;
         }
-        Hk.setElement(1, 0, 0);
-        Hk.setElement(1, 1, 1);
-        Hk.setElement(1, 2, 0);
-        Hk.setElement(2, 0, 0);
-        Hk.setElement(2, 1, 0);
-        Hk.setElement(2, 2, 1);
-        //ok, loop over tracks again to set the derivitives wrt track momenta (theta,phi,rho)
+        for (int i = 0; i < _ntracks; i++) {
+            BasicMatrix pi = (BasicMatrix) _pFit.get(i);
+            MatrixOp.setSubMatrix(Xkm1, pi, 3 * (i + 1), 0);
+//            if (_debug)
+//                System.out.println(methodName + "::Track " + i + "  p : " + pi.toString());
+            for (int j = 0; j < _ntracks; j++)
+                MatrixOp.setSubMatrix(Ckm1, covMomList[i][j], 3 * (i + 1), 3 * (j + 1));
+        }
+
+        //  now calculate the derivative matrix for the beam constraint.
+        //  the beamspot is assumed to be at _beamPosition 
+        //  the V0 production position is Vbvec=(0,-(ptot_y)/(ptot_x)*Vx+Vy, -(ptot_z)/(ptot_x)*Vx+Vz)
+        //  where ptot=sum_i (pi)
+        //  need derivites wrt to the vertex position and momentum (theta,phi_v,rho)
+        double Vx = _vertexPosition.e(0, 0);
+        double Vy = _vertexPosition.e(1, 0);
+        double Vz = _vertexPosition.e(2, 0);
+        if (_debug) {
+            //mg 2/28/19 ... these two should be close for the refit (z reference position (track frame) = 0 is correct)
+            System.out.println(methodName + "::unconstrained vertexPosition = (" + Vx + "," + Vy + "," + Vz + ")");
+            System.out.println(methodName + "::referencePosition = (" + _referencePosition[0] + "," + _referencePosition[1] + "," + _referencePosition[2] + ")");
+
+        }
+//        double Vz = _vertexPosition.e(2, 0) + _referencePosition[2];;
+        //first, get the sum of momenta...
+        double pxtot = 0;
+        double pytot = 0;
+        double pztot = 0;
+//use getFittedMometum here???  Better, getV0Momentum
         for (int i = 0; i < _ntracks; i++) {
             BasicMatrix pi = (BasicMatrix) _pFit.get(i);
             double theta = pi.e(0, 0);
             double phiv = pi.e(1, 0);
             double rho = pi.e(2, 0);
             double Pt = Math.abs((1. / rho) * _bField * Constants.fieldConversion);
-            //            double px = Pt * Math.cos(phiv);
-            //            double py = Pt * Math.sin(phiv);
-            //            double pz = Pt * 1 / Math.tan(theta);
-            //derivities wrt theta
-            Hk.setElement(3 * (i + 1), 0, 0);
-            Hk.setElement(3 * (i + 1), 1, 0);
-            if (bscon)
-                Hk.setElement(3 * (i + 1), 2,
-                        -Pt / Math.pow(sin(theta), 2) * (Vx - _beamPosition[0]));
-            else
-                Hk.setElement(3 * (i + 1), 2, 0);
-            //derivities wrt phi
-            Hk.setElement(3 * (i + 1) + 1, 0, 0);
-            if (bscon) {
-                Hk.setElement(3 * (i + 1) + 1, 1,
-                        (Pt * Pt * cos(phiv) * sin(phiv) / (pxtot * pxtot)) * (Vx - _beamPosition[0]));
-                Hk.setElement(3 * (i + 1) + 1, 2,
-                        (Pt * sin(phiv) / (pxtot * pxtot)) * (Vx - _beamPosition[0]) * pztot);
-            } else {
-                Hk.setElement(3 * (i + 1) + 1, 1, 0);
-                Hk.setElement(3 * (i + 1) + 1, 2, 0);
-            }
-            //derivities wrt rho
-            Hk.setElement(3 * (i + 1) + 2, 0, 0);
-            //            Hk.setElement(3 * (i + 1) + 2, 1,
-            //                    (pytot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
-            //            Hk.setElement(3 * (i + 1) + 2, 2,
-            //                    (pztot / pxtot - 1) * (Pt / rho) * (1 / pxtot) * Vx);
-            if (bscon) {
-                Hk.setElement(3 * (i + 1) + 2, 1,
-                        (cos(phiv) * pytot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * (Vx - _beamPosition[0]));
-                Hk.setElement(3 * (i + 1) + 2, 2,
-                        (cos(phiv) * pztot / pxtot - sin(phiv)) * (Pt / rho) * (1 / pxtot) * (Vx - _beamPosition[0]));
-            } else {
-                Hk.setElement(3 * (i + 1) + 2, 1, 0);
-                Hk.setElement(3 * (i + 1) + 2, 2, 0);
-            }
-            //                   if(_debug)System.out.println("pxtot = "+pxtot+"; rho = "+rho+"; Pt = "+Pt);
-            //                   if(_debug)System.out.println("cos(phiv)*pytot / pxtot - sin(phiv) = "+(cos(phiv)*pytot / pxtot - sin(phiv)));
-            //                   if(_debug)System.out.println("Pt/(rho*pxtot) = "+(Pt / rho) * (1 / pxtot));
+            double px = Pt * Math.cos(phiv);
+            double py = Pt * Math.sin(phiv);
+            double pz = Pt * 1 / Math.tan(theta);
+            pxtot += px;
+            pytot += py;
+            pztot += pz;
         }
-        return Hk;
-    }
+        //calculate the position of the A' at X=Target
+        BasicMatrix rk = makePBeamRk(Vx, Vy, Vz, pxtot, pytot, pztot);
+        if (_debug)
+            System.out.println(methodName + "::rk = " + rk);
 
-    private BasicMatrix makeHkFixed(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
+        BasicMatrix Hk = makePBeamHk(Vx, pxtot, pytot, pztot);
+        //        BasicMatrix Hk = makeHk(Vx, pxtot, pytot, pztot, pointback);
+
+        if (_debug)
+            System.out.println(methodName + "::Hk = " + Hk);
+
+        // the beam covariance...no crossterms but easy to include
+        BasicMatrix Vk = new BasicMatrix(3, 3);
+        Vk.setElement(0, 0, _beamSize[0] * _beamSize[0]);
+        Vk.setElement(1, 1, _beamSize[1] * _beamSize[1]);
+        Vk.setElement(2, 2, _beamSize[2] * _beamSize[2]);
+
+        //now do the matrix operations to get the constrained parameters
+        BasicMatrix Hkt = (BasicMatrix) MatrixOp.transposed(Hk);
+        if (_debug)
+            System.out.println(methodName + "::Ckm1Hk = " + MatrixOp.mult(Ckm1, Hk));
+
+        //mg...Jan. 26, 2026
+        //shouldn't this be MatrixOp.mult(Hk,MatrixOp.mult(Ckm1,Hkt))?   per eqn. 15 in Wouter's NIM?
+        BasicMatrix Rk = (BasicMatrix) MatrixOp.mult(Hkt, MatrixOp.mult(Ckm1, Hk));
+        if (_debug)
+            System.out.println("Pre Vk:  Rk = " + Rk.toString());
+        Rk = (BasicMatrix) MatrixOp.add(Rk, Vk);
+        if (_debug)
+            System.out.println("Post Vk:  Rk = " + Rk.toString());
+        BasicMatrix Rkinv = (BasicMatrix) MatrixOp.inverse(Rk);
+        BasicMatrix Kk = (BasicMatrix) MatrixOp.mult(Ckm1, MatrixOp.mult(Hk, Rkinv));
+
+        Matrix _constrainedFit = MatrixOp.mult(Kk, rk);
+        _constrainedFit = MatrixOp.add(_constrainedFit, Xkm1);//Xk
+
+        //ok, get the new covariance
+        BasicMatrix RkKkt = (BasicMatrix) MatrixOp.mult(Rk, MatrixOp.transposed(Kk));
+        BasicMatrix HkCkm1 = (BasicMatrix) MatrixOp.mult(Hkt, Ckm1);
+        RkKkt = (BasicMatrix) MatrixOp.mult(1, RkKkt);
+        HkCkm1 = (BasicMatrix) MatrixOp.mult(-2, HkCkm1);
+        BasicMatrix sumMatrix = (BasicMatrix) MatrixOp.mult(Kk, MatrixOp.add(HkCkm1, RkKkt));
+        Matrix _constrainedCov = (BasicMatrix) MatrixOp.add(Ckm1, sumMatrix);
+
+        //update the regular parameter names to the constrained result
+        _vertexPosition = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 0, 0, 3, 1);
+
+        if (_debug)
+            System.out.println(methodName + "  Constrained vertex: " + _vertexPosition);
+
+        //update the covariance matrices and fitted momenta
+        _covVtx = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 0, 3, 3);
+        for (int i = 0; i < _ntracks; i++) {
+            BasicMatrix ptmp = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedFit, 3 * (i + 1), 0, 3, 1);
+            _pFit.set(i, ptmp);
+            covVtxMomList.set(i, (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 0, 3 * (i + 1), 3, 3));
+            for (int j = 0; j < _ntracks; j++)
+                covMomList[i][j] = (BasicMatrix) MatrixOp.getSubMatrix(_constrainedCov, 3 * (i + 1), 3 * (j + 1), 3, 3);;
+        }
+
+        if (_debug) {
+            System.out.println(_constraintType + "  Chisq contribution: " + MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)));
+            //            if (MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)).e(0, 0) > 1000 && pointback)
+            //    System.out.println(" BIG CHISQ CONTRIBUTION!!!!!!");
+        }
+        _chiSq += MatrixOp.mult(MatrixOp.transposed(rk), MatrixOp.mult(Rkinv, rk)).e(0, 0);
+
+    }
+    
+    private BasicMatrix makeHk(double Vx, double pxtot, double pytot, double pztot, boolean bscon) {
         BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
         //derivitives wrt to V
         if (bscon) {
@@ -436,6 +506,88 @@ public class BilliorVertexer {
     }
 
     /*
+    *    rK is the residual of the total beam momentum for three track vertices
+     */
+    private BasicMatrix makePBeamRk(double Vx, double Vy, double Vz, double pxtot, double pytot, double pztot) {
+        //calculate the position of the A' at X=beamspot
+        BasicMatrix rk = new BasicMatrix(3, 1);
+        if (_debug) {
+            System.out.println("makePBeamRk::Vx = " + Vx + "; Vy = " + Vy + "; Vz = " + Vz + "; pxtot = " + pxtot + "; pytot = " + pytot + "; pztot = " + pztot);
+            System.out.println("makePBeamRk::beamspot = (" + _beamMomentum[0] + ", " + _beamMomentum[1] + ", " + _beamMomentum[2] + ")");
+        }
+        rk.setElement(0, 0, _beamMomentum[0]-pxtot); 
+        rk.setElement(1, 0, _beamMomentum[1]-pytot);
+        rk.setElement(2, 0, _beamMomentum[2]-pztot);
+        if (_debug)
+            System.out.println("makeRk::rk = (" + rk.e(0, 0) + ", " + rk.e(1, 0) + ", " + rk.e(2, 0) + ")");
+        return rk;
+    }
+ private BasicMatrix makePBeamHk(double Vx, double pxtot, double pytot, double pztot) {
+        BasicMatrix Hk = new BasicMatrix(3 * (_ntracks + 1), 3);
+        //derivitives wrt to V
+        Hk.setElement(0, 0, 1);
+        Hk.setElement(0, 1, 0);
+        Hk.setElement(0, 2, 0);
+        
+        Hk.setElement(1, 0, 0);
+        Hk.setElement(1, 1, 1);
+        Hk.setElement(1, 2, 0);
+        Hk.setElement(2, 0, 0);
+        Hk.setElement(2, 1, 0);
+        Hk.setElement(2, 2, 1);
+
+        //store the track parameters
+        double theta[] = {0, 0};
+        double phiv[] = {0, 0};
+        double rho[] = {0, 0};
+        double Pt[] = {0, 0};
+        double px[] = {0, 0};
+        double py[] = {0, 0};
+        double pz[] = {0, 0};
+
+        for (int i = 0; i < _ntracks; i++) {
+            BasicMatrix pi = (BasicMatrix) _pFit.get(i);
+            theta[i] = pi.e(0, 0);
+            phiv[i] = pi.e(1, 0);
+            rho[i] = pi.e(2, 0);
+            Pt[i] = Math.abs((1. / rho[i]) * _bField * Constants.fieldConversion);
+            px[i] = Pt[i] * Math.cos(phiv[i]);
+            py[i] = Pt[i] * Math.sin(phiv[i]);
+            pz[i] = Pt[i] * 1 / Math.tan(theta[i]);
+        }
+
+        //derivatives wrt theta
+        Hk.setElement(3, 0, 0);
+        Hk.setElement(3, 1, 0);
+        Hk.setElement(6, 0, 0);
+        Hk.setElement(6, 1, 0);
+        Hk.setElement(3, 2, 0);
+        Hk.setElement(6, 2, 0);
+
+        //derivatives wrt phi
+        Hk.setElement(4, 0, 0);
+        Hk.setElement(4, 1, 0);
+        Hk.setElement(7, 0, 0);
+        Hk.setElement(7, 1, 0);
+        Hk.setElement(4, 1, 0);
+        Hk.setElement(7, 1, 0);
+        Hk.setElement(4, 2, 0);
+        Hk.setElement(7, 2, 0);
+
+        //derivatives wrt rho
+        Hk.setElement(5, 0, 0);
+        Hk.setElement(5, 1, 0);
+        Hk.setElement(8, 0, 0);
+        Hk.setElement(8, 1, 0);
+        Hk.setElement(5, 1, 0);
+        Hk.setElement(8, 1, 0);
+        Hk.setElement(5, 2, 0);
+        Hk.setElement(8, 2, 0);
+
+
+        return Hk;
+    }
+    /*
     *    rK is the residual of the projected beamspot to the target
      */
     private BasicMatrix makeRk(double Vx, double Vy, double Vz, double pxtot, double pytot, double pztot, boolean bscon) {
@@ -498,7 +650,13 @@ public class BilliorVertexer {
         if (tconst == true)
             _constraintType = "TargetConstrained";
     }
-
+    public void doThreeProngConstraint(boolean tpconst) {
+        _beamspotConstraint = false;
+        _targetConstraint = false;
+        _threeprongConstraint=true; 
+        if (tpconst == true)
+            _constraintType = "ThreeProng";
+    }
     public double getChiSq() {
         return _chiSq;
     }

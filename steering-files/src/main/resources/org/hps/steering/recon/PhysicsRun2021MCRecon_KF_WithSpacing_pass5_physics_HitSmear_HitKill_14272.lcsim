@@ -8,6 +8,7 @@
     <execute>
 
         <driver name="EventMarkerDriver"/>
+        <driver name="PreCleanupDriver"/>
 
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRawConverter" />
@@ -22,23 +23,23 @@
         <!-- SVT reconstruction drivers -->
         <driver name="RawTrackerHitSensorSetup"/>
         <driver name="RawTrackerHitFitterDriver" />
-        <driver name="RawHitTimeSmearer"/>
+        <driver name="RawHitTimeSmearer"/> 
         <driver name="TrackerHitDriver"/>
         <driver name="StripHitKiller"/>
+        <driver name="StripHitNHitsSmearer"/> 
 
-
-        <driver name="StripHitNHitsSmearer"/>
-
-
-        <driver name="KalmanPatRecDriver"/>
-        <driver name="TrackTimeSmearer"/>
-        <driver name="TrackTruthMatching_KF"/>
+        <driver name="KalmanPatRecDriver"/> 
+        <driver name="TrackTruthMatching_KF" />
         <driver name="ReconParticleDriver_Kalman" />
+
+        <driver name="ThreeProngPlots"/>
+        <driver name="ThreeProngPredictedPlots"/>
 
 
 
         <!-- Event filtering -->
-        <driver name="LCIOWriter"/>
+        <!--        <driver name="LCIOWriter"/> -->
+<!--        <driver name="ThreeProngMCSkim" /> -->
         <driver name="AidaSaveDriver"/>
         <driver name="CleanupDriver"/>
 
@@ -181,10 +182,13 @@
             <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
             <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
             <otherElectronsColName>OtherElectrons_KF</otherElectronsColName>
+            <threeProngCandidatesColName>ThreeProngCandidates</threeProngCandidatesColName>
+            <threeProngVerticesColName>ThreeProngVertices</threeProngVerticesColName>
             <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
             <useBeamPositionConditions>true</useBeamPositionConditions>
-            <requireClustersForV0>false</requireClustersForV0>
+            <requireClustersForV0>true</requireClustersForV0>
+            <threeProngRequireTruthMatch>false</threeProngRequireTruthMatch>
             <beamSigmaX>0.055</beamSigmaX>
             <beamSigmaY>0.045</beamSigmaY>
             <beamPositionZ>-1.1</beamPositionZ>
@@ -193,7 +197,7 @@
             <minVertexChisqProb>0.0</minVertexChisqProb>
             <maxVertexClusterDt>40.0</maxVertexClusterDt>
             <maxMatchDt>40</maxMatchDt>
-            <trackClusterTimeOffset>40</trackClusterTimeOffset>
+            <trackClusterTimeOffset>29.</trackClusterTimeOffset>
             <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
             <applyClusterCorrections>true</applyClusterCorrections>
             <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
@@ -207,11 +211,42 @@
             <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
             <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>
         </driver>
+        <driver name="ThreeProngPlots" type="org.hps.analysis.examples.ThreeProngAnalysisDriver">
+            <threeProngCandidatesColName>ThreeProngCandidates</threeProngCandidatesColName>
+            <threeProngVerticesColName>ThreeProngVertices</threeProngVerticesColName>
+        </driver>
+        <driver name="ThreeProngPredictedPlots" type="org.hps.analysis.examples.ThreeProngPredictedTrackAnalysisDriver">
+            <threeProngPredictedEleColName>ThreeProngPredictedEle</threeProngPredictedEleColName>
+            <threeProngPredictedPosColName>ThreeProngPredictedPos</threeProngPredictedPosColName>
+            <threeProngPredictedRecColName>ThreeProngPredictedRec</threeProngPredictedRecColName>
+        </driver>
+        <driver name="ThreeProngMCSkim" type="org.hps.analysis.examples.ThreeProngMCSkimDriver">
+          <outputFileName>${outputFile}.slcio</outputFileName>
+          <minLayersPerParticle>9</minLayersPerParticle>
+        </driver>
+
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
-            <outputFileName>${outputFile}_hit_eff.root</outputFileName>
+            <outputFileName>${outputFile}_three_prong.root</outputFileName>
         </driver>
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
+        </driver>
+        <driver name="PreCleanupDriver" type="org.hps.analysis.dataquality.ReadoutCleanupDriver">
+            <collectionNames>EcalCalHits EcalClusters EcalClustersCorr FinalStateParticles_KF
+            OtherElectrons_KF
+            UnconstrainedV0Candidates_KF UnconstrainedV0Vertices_KF
+            BeamspotConstrainedV0Candidates_KF BeamspotConstrainedV0Vertices_KF
+            TargetConstrainedV0Candidates_KF TargetConstrainedV0Vertices_KF
+            UnconstrainedMollerCandidates_KF UnconstrainedMollerVertices_KF
+            BeamspotConstrainedMollerCandidates_KF BeamspotConstrainedMollerVertices_KF
+            TargetConstrainedMollerCandidates_KF TargetConstrainedMollerVertices_KF
+            ThreeProngCandidates ThreeProngVertices
+            ThreeProngPredictedEle ThreeProngPredictedPos ThreeProngPredictedRec
+            KalmanFullTracks
+            SVTFittedRawTrackerHits SVTShapeFitParameters
+            StripClusterer_SiTrackerHitStrip1D
+            TrackData TrackDataRelations TrackResiduals TrackResidualsRelations
+            </collectionNames>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
         

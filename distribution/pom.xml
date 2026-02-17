@@ -158,10 +158,6 @@
     </dependency>
     <dependency>
       <groupId>org.hps</groupId>
-      <artifactId>hps-online-recon</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hps</groupId>
       <artifactId>hps-digi</artifactId>
     </dependency>
   </dependencies>

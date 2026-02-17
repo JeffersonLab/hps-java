@@ -45,6 +45,7 @@ target/
 
 # editor swap files
 .*.swp
+*~
 
 # local Maven repository
 .m2repo
@@ -54,3 +55,4 @@ target/
 
 # ignore local user documentation
 html/
+*.md

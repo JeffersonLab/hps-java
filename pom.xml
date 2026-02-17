@@ -159,7 +159,6 @@
     <module>job</module>
     <module>logging</module>
     <module>online-monitoring</module>
-    <module>online-recon</module>
     <module>plugin</module>
     <module>recon</module>
     <module>record-util</module>
@@ -233,11 +232,6 @@
       <dependency>
         <groupId>org.hps</groupId>
         <artifactId>hps-analysis</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hps</groupId>
-        <artifactId>hps-online-recon</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -548,7 +542,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>appassembler-maven-plugin</artifactId>
-          <version>1.10</version>
+          <version>2.1.0</version>
         </plugin>
       </plugins>
     </pluginManagement>

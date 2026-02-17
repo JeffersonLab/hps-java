@@ -191,7 +191,8 @@ public class StandardCuts {
         maxMatchDt = 6.0;
         maxMatchDx = 20.0;
         maxMatchDy = 20.0;
-        maxVertexClusterDt = 2.0;
+        maxVertexClusterDt = 6.0;
+        //        maxVertexClusterDt = 2.0;
         minVertexChisqProb = 0.00001;
         minMollerChisqProb = 0.00001;
         maxTrackChisqProb = 0.00001;

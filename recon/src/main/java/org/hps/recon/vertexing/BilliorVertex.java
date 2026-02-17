@@ -44,8 +44,11 @@ public class BilliorVertex implements Vertex {
     private double[] _v0TargetProjectionXY;
     private double[] _v0TargetProjectionXYErr;
     
-    private List<double[]> _fitTrkParsList=null;//fitted track parameters (theta,phiv,rho)   
+    private List<double[]> _fitTrkParsList=null;//fitted track parameters (theta,phiv,rho)
     private List<Matrix> _fitTrkCovList=null;  //list of trk covariances (theta,phiv,rho)
+
+    // Custom parameters map for storing arbitrary key-value pairs
+    private Map<String, Double> _customParameters = new HashMap<String, Double>();
     /**
      * Dflt Ctor
      */
@@ -264,6 +267,12 @@ public class BilliorVertex implements Vertex {
             pars.put("p2X", p2Fit.x());
             pars.put("p2Y", p2Fit.y());
             pars.put("p2Z", p2Fit.z());
+            if (_fittedMomentum.containsKey(2)) {
+                Hep3Vector p3Fit = _fittedMomentum.get(2);
+                pars.put("p3X", p3Fit.x());
+                pars.put("p3Y", p3Fit.y());
+                pars.put("p3Z", p3Fit.z());
+            }
         }
         if (_vertexPositionError !=null){
             pars.put("vXErr", _vertexPositionError.x());
@@ -330,8 +339,28 @@ public class BilliorVertex implements Vertex {
             pars.put("V0TargProjXErr", projErr[0]);
             pars.put("V0TargProjYErr", projErr[1]);
         }
-        
+
+        // Add any custom parameters
+        pars.putAll(_customParameters);
+
         return pars;
+    }
+
+    /**
+     * Set a custom parameter value
+     * @param key Parameter name
+     * @param value Parameter value
+     */
+    public void setParameter(String key, Double value) {
+        _customParameters.put(key, value);
+    }
+
+    /**
+     * Get the custom parameters map (for direct modification)
+     * @return The custom parameters map
+     */
+    public Map<String, Double> getCustomParameters() {
+        return _customParameters;
     }
 
 
