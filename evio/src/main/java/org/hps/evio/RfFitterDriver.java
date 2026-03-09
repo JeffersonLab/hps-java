@@ -128,7 +128,7 @@ public class RfFitterDriver extends Driver {
         double pedVal[] = {-999, -999};
 
         // Look for bins containing the peaks (2-3 peaks)
-        for (int ii = 4; ii < adcSamples.length; ii++) {
+        for (int ii = 4; ii < adcSamples.length-1; ii++) {
             // After 2 peaks, stop looking for more
             if (iz == 2) {
                 break;
