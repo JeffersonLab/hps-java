@@ -28,14 +28,14 @@
         <driver name="StripHitKiller"/>
         <driver name="StripHitNHitsSmearer"/> 
 
-        <driver name="KalmanPatRecDriver"/> 
+        <driver name="KalmanPatRecDriver"/>
         <driver name="TrackTruthMatching_KF" />
+        <driver name="TrackSmearingDriver"/>
         <driver name="ReconParticleDriver_Kalman" />
 
         <driver name="ThreeProngPlots"/>
         <driver name="ThreeProngPredictedPlots"/>
-
-
+        <driver name="ThreeProngTuple"/>
 
         <!-- Event filtering -->
         <!--        <driver name="LCIOWriter"/> -->
@@ -68,6 +68,13 @@
         <driver name="StripHitNHitsSmearer" type="org.hps.recon.tracking.StripHitNHitsSmearer">
             <smearPositionFile>posSmearing_pass5_v9.txt</smearPositionFile>
 	        <debug>false</debug>
+        </driver>
+        <driver name="TrackSmearingDriver" type="org.hps.recon.tracking.TrackSmearingDriver">
+            <trackCollectionName>KalmanFullTracks</trackCollectionName>
+            <smearOmega>true</smearOmega>
+            <smearZ0>true</smearZ0>
+            <smearingVariable>tanLambda</smearingVariable>
+            <debug>false</debug>
         </driver>
         <driver name="EventMarkerDriver" type="org.lcsim.job.EventMarkerDriver">
             <eventInterval>1000</eventInterval>
@@ -220,6 +227,9 @@
             <threeProngPredictedPosColName>ThreeProngPredictedPos</threeProngPredictedPosColName>
             <threeProngPredictedRecColName>ThreeProngPredictedRec</threeProngPredictedRecColName>
         </driver>
+        <driver name="ThreeProngTuple" type="org.hps.analysis.vertex.ThreeProngTupleDriver">
+            <outputFile>${outputFile}_three_prong_tuple.txt</outputFile>
+        </driver>
         <driver name="ThreeProngMCSkim" type="org.hps.analysis.examples.ThreeProngMCSkimDriver">
           <outputFileName>${outputFile}.slcio</outputFileName>
           <minLayersPerParticle>9</minLayersPerParticle>
@@ -241,6 +251,9 @@
             BeamspotConstrainedMollerCandidates_KF BeamspotConstrainedMollerVertices_KF
             TargetConstrainedMollerCandidates_KF TargetConstrainedMollerVertices_KF
             ThreeProngCandidates ThreeProngVertices
+            ThreeProngKFUnconstrainedCandidates ThreeProngKFUnconstrainedVertices
+            ThreeProngKFBSCandidates ThreeProngKFBSVertices
+            ThreeProngKFMomCandidates ThreeProngKFMomVertices
             ThreeProngPredictedEle ThreeProngPredictedPos ThreeProngPredictedRec
             KalmanFullTracks
             SVTFittedRawTrackerHits SVTShapeFitParameters

@@ -1016,9 +1016,8 @@ public class KalmanInterface {
         // LCRelations
         String fittedHitsCollectionName = "SVTFittedRawTrackerHits";
         List<LCRelation>  _fittedHits = event.get(LCRelation.class, fittedHitsCollectionName);
-
         Map<RawTrackerHit, LCRelation> fittedRawTrackerHitMap = new HashMap<RawTrackerHit, LCRelation>();
-        for (LCRelation fittedHit : _fittedHits) { 
+        for (LCRelation fittedHit : _fittedHits) {
             fittedRawTrackerHitMap.put(FittedRawTrackerHit.getRawTrackerHit(fittedHit), fittedHit);
         }
         

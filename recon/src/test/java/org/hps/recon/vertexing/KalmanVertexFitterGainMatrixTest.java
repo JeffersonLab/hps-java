@@ -147,7 +147,6 @@ public class KalmanVertexFitterGainMatrixTest extends TestCase {
 
         KalmanVertexFitterGainMatrix fitter = new KalmanVertexFitterGainMatrix(B_FIELD);
         fitter.setDebug(true);
-        fitter.setUseLagrangeMultiplier(true);
 
         // Beam parameters with realistic HPS rotation
         // The beam is rotated by ~30.5 mrad around the global Y-axis (vertical)

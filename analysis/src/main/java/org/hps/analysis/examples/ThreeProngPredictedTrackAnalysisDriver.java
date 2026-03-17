@@ -44,8 +44,14 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
         IHistogram1D predPx, predPy, predPz, predPtot;
         IHistogram1D actPx, actPy, actPz, actPtot;
         IHistogram1D resTanL, resPhi, chi2, prob;
+        IHistogram1D predTanL, predPhi, actTanL, actPhi;
         IHistogram1D vtxX, vtxY, vtxZ;
         IHistogram1D pullPx, pullPy, pullPz, pullPtot;
+        IHistogram1D pullTanL, pullPhi;
+        IHistogram1D predSigPx, predSigPy, predSigPz;
+        IHistogram1D actSigPx, actSigPy, actSigPz;
+        IHistogram1D predSigTanL, predSigPhi;
+        IHistogram1D actSigTanL, actSigPhi;
         IHistogram2D resVsP, resVsChi2;
         // 6 residuals x 3 kinematics: index = r*3+k
         // r: 0=Px,1=Py,2=Pz,3=Ptot,4=tanL,5=phi; k: 0=vsP,1=vsTanL,2=vsPhi
@@ -103,6 +109,8 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
         h.predPy = aida.histogram1D(p + " predicted Py", 200, -pyR, pyR);
         h.predPz = aida.histogram1D(p + " predicted Pz", 200, 0, 5.0);
         h.predPtot = aida.histogram1D(p + " predicted |P|", 200, 0, 5.0);
+        h.predTanL = aida.histogram1D(p + " predicted tanLambda", 200, -0.15, 0.15);
+        h.predPhi = aida.histogram1D(p + " predicted phi", 200, -0.2, 0.2);
 
         aida.tree().mkdir(dir + "/ActualMomentum");
         aida.tree().cd(dir + "/ActualMomentum");
@@ -110,6 +118,8 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
         h.actPy = aida.histogram1D(p + " actual Py", 200, -pyR, pyR);
         h.actPz = aida.histogram1D(p + " actual Pz", 200, 0, 5.0);
         h.actPtot = aida.histogram1D(p + " actual |P|", 200, 0, 5.0);
+        h.actTanL = aida.histogram1D(p + " actual tanLambda", 200, -0.15, 0.15);
+        h.actPhi = aida.histogram1D(p + " actual phi", 200, -0.2, 0.2);
 
         aida.tree().mkdir(dir + "/AngleResiduals");
         aida.tree().cd(dir + "/AngleResiduals");
@@ -133,6 +143,21 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
         h.pullPy = aida.histogram1D(p + " pull Py", 200, -5.0, 5.0);
         h.pullPz = aida.histogram1D(p + " pull Pz", 200, -5.0, 5.0);
         h.pullPtot = aida.histogram1D(p + " pull |P|", 200, -5.0, 5.0);
+        h.pullTanL = aida.histogram1D(p + " pull tanLambda", 200, -5.0, 5.0);
+        h.pullPhi = aida.histogram1D(p + " pull phi", 200, -5.0, 5.0);
+
+        aida.tree().mkdir(dir + "/Uncertainties");
+        aida.tree().cd(dir + "/Uncertainties");
+        h.predSigPx = aida.histogram1D(p + " predicted sigma Px", 200, 0, 0.5);
+        h.predSigPy = aida.histogram1D(p + " predicted sigma Py", 200, 0, 0.5);
+        h.predSigPz = aida.histogram1D(p + " predicted sigma Pz", 200, 0, 0.2);
+        h.actSigPx  = aida.histogram1D(p + " actual sigma Px",    200, 0, 0.05);
+        h.actSigPy  = aida.histogram1D(p + " actual sigma Py",    200, 0, 0.05);
+        h.actSigPz  = aida.histogram1D(p + " actual sigma Pz",    200, 0, 0.2);
+        h.predSigTanL = aida.histogram1D(p + " predicted sigma tanLambda", 200, 0, 0.2);
+        h.predSigPhi  = aida.histogram1D(p + " predicted sigma phi",        200, 0, 0.2);
+        h.actSigTanL  = aida.histogram1D(p + " actual sigma tanLambda",    200, 0, 0.02);
+        h.actSigPhi   = aida.histogram1D(p + " actual sigma phi",           200, 0, 0.02);
 
         aida.tree().mkdir(dir + "/Correlations");
         aida.tree().cd(dir + "/Correlations");
@@ -200,16 +225,26 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
         double actPhi = Math.atan2(actPx, actPz);
         double predTanL = predPy / Math.sqrt(predPx * predPx + predPz * predPz);
         double resTanL = predTanL - actTanL;
-        double resPhi = Math.atan2(predPx, predPz) - actPhi;
+        double predPhi = Math.atan2(predPx, predPz);
+        double resPhi = predPhi - actPhi;
         while (resPhi > Math.PI) resPhi -= 2 * Math.PI;
         while (resPhi < -Math.PI) resPhi += 2 * Math.PI;
 
-        // Pulls
+        // Uncertainties and pulls
+        double predSigPx = 0, predSigPy = 0, predSigPz = 0;
+        double actSigPx  = 0, actSigPy  = 0, actSigPz  = 0;
+        double predSigTanL = 0, predSigPhi = 0;
+        double actSigTanL  = 0, actSigPhi  = 0;
+        boolean hasSigP = false, hasSigAngles = false;
         double pullPx = 0, pullPy = 0, pullPz = 0, pullPtot = 0;
-        boolean pullsValid = false;
+        double pullTanL = 0, pullPhi = 0;
+        boolean pullsValid = false, pullTanLValid = false, pullPhiValid = false;
         if (hasCov) {
             double vXX = predCovXX + actCovXX, vYY = predCovYY + actCovYY, vZZ = predCovZZ + actCovZZ;
             if (vXX > 0 && vYY > 0 && vZZ > 0) {
+                predSigPx = Math.sqrt(predCovXX); predSigPy = Math.sqrt(predCovYY); predSigPz = Math.sqrt(predCovZZ);
+                actSigPx  = Math.sqrt(actCovXX);  actSigPy  = Math.sqrt(actCovYY);  actSigPz  = Math.sqrt(actCovZZ);
+                hasSigP = true;
                 pullPx = resPx / Math.sqrt(vXX);
                 pullPy = resPy / Math.sqrt(vYY);
                 pullPz = resPz / Math.sqrt(vZZ);
@@ -223,6 +258,54 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
                     pullPtot = resPtot / Math.sqrt(varPredP + varActP);
                     pullsValid = true;
                 }
+            }
+            // tanLambda = py / sqrt(px^2 + pz^2): propagate covariance
+            double predPt2xz = predPx * predPx + predPz * predPz;
+            double actPt2xz  = actPx  * actPx  + actPz  * actPz;
+            if (predPt2xz > 0 && actPt2xz > 0) {
+                double predPtxz = Math.sqrt(predPt2xz), actPtxz = Math.sqrt(actPt2xz);
+                double dPTanL_dpx = -predPx * predPy / (predPt2xz * predPtxz);
+                double dPTanL_dpy = 1.0 / predPtxz;
+                double dPTanL_dpz = -predPz * predPy / (predPt2xz * predPtxz);
+                double varPredTanL = dPTanL_dpx * dPTanL_dpx * predCovXX
+                        + dPTanL_dpy * dPTanL_dpy * predCovYY
+                        + dPTanL_dpz * dPTanL_dpz * predCovZZ
+                        + 2 * dPTanL_dpx * dPTanL_dpy * predCovXY
+                        + 2 * dPTanL_dpx * dPTanL_dpz * predCovXZ
+                        + 2 * dPTanL_dpy * dPTanL_dpz * predCovYZ;
+                double dATanL_dpx = -actPx * actPy / (actPt2xz * actPtxz);
+                double dATanL_dpy = 1.0 / actPtxz;
+                double dATanL_dpz = -actPz * actPy / (actPt2xz * actPtxz);
+                double varActTanL = dATanL_dpx * dATanL_dpx * actCovXX
+                        + dATanL_dpy * dATanL_dpy * actCovYY
+                        + dATanL_dpz * dATanL_dpz * actCovZZ
+                        + 2 * dATanL_dpx * dATanL_dpy * actCovXY
+                        + 2 * dATanL_dpx * dATanL_dpz * actCovXZ
+                        + 2 * dATanL_dpy * dATanL_dpz * actCovYZ;
+                if (varPredTanL >= 0) predSigTanL = Math.sqrt(varPredTanL);
+                if (varActTanL  >= 0) actSigTanL  = Math.sqrt(varActTanL);
+                if (varPredTanL + varActTanL > 0) {
+                    pullTanL = resTanL / Math.sqrt(varPredTanL + varActTanL);
+                    pullTanLValid = true;
+                }
+                // phi = atan2(px, pz): propagate covariance
+                double dPPhi_dpx = predPz / predPt2xz;
+                double dPPhi_dpz = -predPx / predPt2xz;
+                double varPredPhi = dPPhi_dpx * dPPhi_dpx * predCovXX
+                        + dPPhi_dpz * dPPhi_dpz * predCovZZ
+                        + 2 * dPPhi_dpx * dPPhi_dpz * predCovXZ;
+                double dAPhi_dpx = actPz / actPt2xz;
+                double dAPhi_dpz = -actPx / actPt2xz;
+                double varActPhi = dAPhi_dpx * dAPhi_dpx * actCovXX
+                        + dAPhi_dpz * dAPhi_dpz * actCovZZ
+                        + 2 * dAPhi_dpx * dAPhi_dpz * actCovXZ;
+                if (varPredPhi >= 0) predSigPhi = Math.sqrt(varPredPhi);
+                if (varActPhi  >= 0) actSigPhi  = Math.sqrt(varActPhi);
+                if (varPredPhi + varActPhi > 0) {
+                    pullPhi = resPhi / Math.sqrt(varPredPhi + varActPhi);
+                    pullPhiValid = true;
+                }
+                hasSigAngles = true;
             }
         }
 
@@ -238,7 +321,12 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
         fillHistSet(hists.get(particle + "_NoCut"), predPx, predPy, predPz, predPtot,
                 actPx, actPy, actPz, actPtot, resPx, resPy, resPz, resPtot,
                 resTanL, resPhi, chi2Val, probVal, vtxX, vtxY, vtxZ,
-                pullPx, pullPy, pullPz, pullPtot, pullsValid, resVals, kinVals);
+                pullPx, pullPy, pullPz, pullPtot, pullsValid,
+                predTanL, predPhi, actTanL, actPhi,
+                pullTanL, pullTanLValid, pullPhi, pullPhiValid,
+                predSigPx, predSigPy, predSigPz, actSigPx, actSigPy, actSigPz, hasSigP,
+                predSigTanL, predSigPhi, actSigTanL, actSigPhi, hasSigAngles,
+                resVals, kinVals);
 
         // Apply vertex probability cut
         double vtxProb = vtx.getProbability();
@@ -249,7 +337,12 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
         fillHistSet(hists.get(particle), predPx, predPy, predPz, predPtot,
                 actPx, actPy, actPz, actPtot, resPx, resPy, resPz, resPtot,
                 resTanL, resPhi, chi2Val, probVal, vtxX, vtxY, vtxZ,
-                pullPx, pullPy, pullPz, pullPtot, pullsValid, resVals, kinVals);
+                pullPx, pullPy, pullPz, pullPtot, pullsValid,
+                predTanL, predPhi, actTanL, actPhi,
+                pullTanL, pullTanLValid, pullPhi, pullPhiValid,
+                predSigPx, predSigPy, predSigPz, actSigPx, actSigPy, actSigPz, hasSigP,
+                predSigTanL, predSigPhi, actSigTanL, actSigPhi, hasSigAngles,
+                resVals, kinVals);
     }
 
     private void fillHistSet(HistSet h, double predPx, double predPy, double predPz, double predPtot,
@@ -258,11 +351,19 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
             double resTanL, double resPhi, double chi2, double prob,
             double vtxX, double vtxY, double vtxZ,
             double pullPx, double pullPy, double pullPz, double pullPtot, boolean pullsValid,
+            double predTanL, double predPhi, double actTanL, double actPhi,
+            double pullTanL, boolean pullTanLValid, double pullPhi, boolean pullPhiValid,
+            double predSigPx, double predSigPy, double predSigPz,
+            double actSigPx,  double actSigPy,  double actSigPz,  boolean hasSigP,
+            double predSigTanL, double predSigPhi,
+            double actSigTanL,  double actSigPhi,  boolean hasSigAngles,
             double[] resVals, double[] kinVals) {
         h.resPx.fill(resPx); h.resPy.fill(resPy); h.resPz.fill(resPz); h.resPtot.fill(resPtot);
         h.predPx.fill(predPx); h.predPy.fill(predPy); h.predPz.fill(predPz); h.predPtot.fill(predPtot);
         h.actPx.fill(actPx); h.actPy.fill(actPy); h.actPz.fill(actPz); h.actPtot.fill(actPtot);
         h.resTanL.fill(resTanL); h.resPhi.fill(resPhi);
+        h.predTanL.fill(predTanL); h.predPhi.fill(predPhi);
+        h.actTanL.fill(actTanL); h.actPhi.fill(actPhi);
         h.chi2.fill(chi2); h.prob.fill(prob);
         h.vtxX.fill(vtxX); h.vtxY.fill(vtxY); h.vtxZ.fill(vtxZ);
         h.resVsP.fill(actPtot, resPtot); h.resVsChi2.fill(chi2, resPtot);
@@ -271,6 +372,16 @@ public class ThreeProngPredictedTrackAnalysisDriver extends Driver {
                 h.resVsKin[r * 3 + k].fill(kinVals[k], resVals[r]);
         if (pullsValid) {
             h.pullPx.fill(pullPx); h.pullPy.fill(pullPy); h.pullPz.fill(pullPz); h.pullPtot.fill(pullPtot);
+        }
+        if (pullTanLValid) h.pullTanL.fill(pullTanL);
+        if (pullPhiValid)  h.pullPhi.fill(pullPhi);
+        if (hasSigP) {
+            h.predSigPx.fill(predSigPx); h.predSigPy.fill(predSigPy); h.predSigPz.fill(predSigPz);
+            h.actSigPx.fill(actSigPx);   h.actSigPy.fill(actSigPy);   h.actSigPz.fill(actSigPz);
+        }
+        if (hasSigAngles) {
+            h.predSigTanL.fill(predSigTanL); h.predSigPhi.fill(predSigPhi);
+            h.actSigTanL.fill(actSigTanL);   h.actSigPhi.fill(actSigPhi);
         }
     }
 }

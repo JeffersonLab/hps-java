@@ -207,6 +207,7 @@ public abstract class ReconParticleDriver extends Driver {
     protected double[] beamPosition = {0.0, 0.0, 0.0}; //
     protected double bField;
     protected double beamEnergy = 1.056;
+    private boolean beamEnergySet = false;
 
     // flipSign is a kludge...
     // HelicalTrackFitter doesn't deal with B-fields in -ive Z correctly
@@ -225,6 +226,11 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setIsMC(boolean state) {
         isMC = state;
+    }
+
+    public void setBeamEnergy(double beamEnergy) {
+        this.beamEnergy = beamEnergy;
+        this.beamEnergySet = true;
     }
 
     /**
@@ -431,9 +437,11 @@ public abstract class ReconParticleDriver extends Driver {
     @Override
     protected void detectorChanged(Detector detector) {
 
-        BeamEnergyCollection beamEnergyCollection
-                = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
-        beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        if (!beamEnergySet) {
+            BeamEnergyCollection beamEnergyCollection
+                    = this.getConditionsManager().getCachedConditions(BeamEnergyCollection.class, "beam_energies").getCachedData();
+            beamEnergy = beamEnergyCollection.get(0).getBeamEnergy();
+        }
 
         if (clusterParamFileName == null) {
             if (beamEnergy > 2) {
@@ -722,6 +730,8 @@ public abstract class ReconParticleDriver extends Driver {
             }
         }
 
+
+        
 //        hitToRotated = TrackUtils.getHitToRotatedTable(event);
 //        hitToStrips = TrackUtils.getHitToStripsTable(event);
 
@@ -849,5 +859,5 @@ public abstract class ReconParticleDriver extends Driver {
 
     public void setSnapToEdge(boolean val) {
         this.matcher.setSnapToEdge(val);
-    }
+    }  
 }

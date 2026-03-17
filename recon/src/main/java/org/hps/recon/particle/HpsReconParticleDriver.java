@@ -8,8 +8,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
+
+import org.hps.recon.tracking.TrackData;
 
 import org.hps.conditions.beam.BeamPosition;
 import org.hps.conditions.beam.BeamPosition.BeamPositionCollection;
@@ -148,6 +151,24 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     protected List<Vertex> threeProngPredictedPos;
     protected List<Vertex> threeProngPredictedRec;
 
+    // Three-prong KF unconstrained (no beamspot, no momentum constraint)
+    protected String threeProngKFUnconstrainedCandidatesColName = "ThreeProngKFUnconstrainedCandidates";
+    protected String threeProngKFUnconstrainedVerticesColName   = "ThreeProngKFUnconstrainedVertices";
+    protected List<ReconstructedParticle> threeProngKFUnconstrainedCandidates;
+    protected List<Vertex> threeProngKFUnconstrainedVertices;
+
+    // Three-prong KF beamspot-constrained (beamspot position only, no momentum constraint)
+    protected String threeProngKFBSCandidatesColName = "ThreeProngKFBSCandidates";
+    protected String threeProngKFBSVerticesColName   = "ThreeProngKFBSVertices";
+    protected List<ReconstructedParticle> threeProngKFBSCandidates;
+    protected List<Vertex> threeProngKFBSVertices;
+
+    // Three-prong KF momentum-constrained (beam momentum only, no beamspot constraint)
+    protected String threeProngKFMomCandidatesColName = "ThreeProngKFMomCandidates";
+    protected String threeProngKFMomVerticesColName   = "ThreeProngKFMomVertices";
+    protected List<ReconstructedParticle> threeProngKFMomCandidates;
+    protected List<Vertex> threeProngKFMomVertices;
+
 
     private boolean makeConversionCols = true;
 
@@ -179,13 +200,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     private boolean requireClustersForV0 = true;
     private boolean requireClustersForThreeProng = true;
 
-    /** Beam energy for three-prong momentum constraint (GeV). Settable from steering file. */
-    private double threeProngBeamEnergy = 3.7;
     /** Beam rotation angle for three-prong momentum constraint (rad). Settable from steering file. */
     private double threeProngBeamRotAngle = -0.030;
     /** Max pairwise track time difference for three-prong candidates (ns). */
-    //    private double threeProngMaxTrackDt = 2.5;
-    private double threeProngMaxTrackDt = 5.0;
+    private double threeProngMaxTrackDt = 10.0;
     /** Max pairwise cluster time difference for three-prong candidates (ns). */
     private double threeProngMaxClusterDt = 4.0;
     /** Require all three tracks in three-prong candidates to be truth matched to MC particles. */
@@ -211,7 +229,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     private long tp_nVertexChisq = 0;
     private long tp_nSaved = 0;
 
-    private long nProcessed = 0; 
+    private long nProcessed = 0;
+
+    /** Current event, stored so findThreeProngs can access TrackData. */
+    private EventHeader currentEvent = null;
     
     /**
      * Represents a type of constraint for vertex fitting.
@@ -232,12 +253,26 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
          */
         TARGET_CONSTRAINED,
         /**
-         * Represents a fit to 3-prong
+         * Represents a fit to 3-prong with beamspot + beam momentum constraints (KF fitter).
          */
-        THREEPRONG
+        THREEPRONG,
+        /**
+         * Represents a 3-prong fit with no additional constraints (KF fitter).
+         */
+        THREEPRONG_UNCONSTRAINED,
+        /**
+         * Represents a 3-prong fit with beamspot position constraint only (KF fitter).
+         */
+        THREEPRONG_BS,
+        /**
+         * Represents a 3-prong fit with beam momentum constraint only, no beamspot (KF fitter).
+         */
+        THREEPRONG_MOM
     }
     // #dof for fit for each Constraint
-    private static final int[] DOF = {1, 3, 4, 9};
+    // 2-track: UNCONSTRAINED=1, BS_CONSTRAINED=3, TARGET_CONSTRAINED=4
+    // 3-track: THREEPRONG=9 (bs+mom), THREEPRONG_UNCONSTRAINED=3, THREEPRONG_BS=6, THREEPRONG_MOM=6
+    private static final int[] DOF = {1, 3, 4, 9, 3, 6, 6};
 
     private boolean _patchVertexTrackParameters = false;
     private boolean _storeCovTrkMomList = false;
@@ -356,9 +391,6 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         this.requireClustersForV0 = b;
     }
 
-    public void setThreeProngBeamEnergy(double e) {
-        this.threeProngBeamEnergy = e;
-    }
 
     public void setThreeProngBeamRotAngle(double a) {
         this.threeProngBeamRotAngle = a;
@@ -416,6 +448,30 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         threeProngVerticesColName = s;
     }
 
+    public void setThreeProngKFUnconstrainedCandidatesColName(String s) {
+        threeProngKFUnconstrainedCandidatesColName = s;
+    }
+
+    public void setThreeProngKFUnconstrainedVerticesColName(String s) {
+        threeProngKFUnconstrainedVerticesColName = s;
+    }
+
+    public void setThreeProngKFBSCandidatesColName(String s) {
+        threeProngKFBSCandidatesColName = s;
+    }
+
+    public void setThreeProngKFBSVerticesColName(String s) {
+        threeProngKFBSVerticesColName = s;
+    }
+
+    public void setThreeProngKFMomCandidatesColName(String s) {
+        threeProngKFMomCandidatesColName = s;
+    }
+
+    public void setThreeProngKFMomVerticesColName(String s) {
+        threeProngKFMomVerticesColName = s;
+    }
+
     /**
      * Processes the track and cluster collections in the event into
      * reconstructed particles and V0 candidate particles and vertices. These
@@ -436,7 +492,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
          */
 
         nProcessed++;
-        
+        currentEvent = event;
+
         if (makeMollerCols) {
             unconstrainedMollerCandidates = new ArrayList<ReconstructedParticle>();
             beamConMollerCandidates = new ArrayList<ReconstructedParticle>();
@@ -457,6 +514,12 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             threeProngPredictedEle = new ArrayList<Vertex>();
             threeProngPredictedPos = new ArrayList<Vertex>();
             threeProngPredictedRec = new ArrayList<Vertex>();
+            threeProngKFUnconstrainedCandidates = new ArrayList<ReconstructedParticle>();
+            threeProngKFUnconstrainedVertices   = new ArrayList<Vertex>();
+            threeProngKFBSCandidates            = new ArrayList<ReconstructedParticle>();
+            threeProngKFBSVertices              = new ArrayList<Vertex>();
+            threeProngKFMomCandidates           = new ArrayList<ReconstructedParticle>();
+            threeProngKFMomVertices             = new ArrayList<Vertex>();
         }
 
         // Build truth-matched track set for this event
@@ -497,6 +560,12 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             event.put(threeProngPredictedEleColName, threeProngPredictedEle, Vertex.class, 0);
             event.put(threeProngPredictedPosColName, threeProngPredictedPos, Vertex.class, 0);
             event.put(threeProngPredictedRecColName, threeProngPredictedRec, Vertex.class, 0);
+            event.put(threeProngKFUnconstrainedCandidatesColName, threeProngKFUnconstrainedCandidates, ReconstructedParticle.class, 0);
+            event.put(threeProngKFUnconstrainedVerticesColName,   threeProngKFUnconstrainedVertices,   Vertex.class, 0);
+            event.put(threeProngKFBSCandidatesColName,            threeProngKFBSCandidates,            ReconstructedParticle.class, 0);
+            event.put(threeProngKFBSVerticesColName,              threeProngKFBSVertices,              Vertex.class, 0);
+            event.put(threeProngKFMomCandidatesColName,           threeProngKFMomCandidates,           ReconstructedParticle.class, 0);
+            event.put(threeProngKFMomVerticesColName,             threeProngKFMomVertices,             Vertex.class, 0);
         }
     }
 
@@ -632,9 +701,11 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
                     
                     // All tracks must have momentum > 0.4 GeV
+                    /*
                     if (eleP < 0.4 || posP < 0.4 || recP < 0.4)
                         continue;
-                    tp_nMinMomentum++;
+                        tp_nMinMomentum++;
+                    */
 
                     // Electron and recoil must have momentum < 2.9 GeV
                     if (eleP > 2.9 || recP > 2.9)
@@ -642,23 +713,25 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                     tp_nMaxMomentum++;
 
                     // All tracks must have chi2 < 50
+                    /*
                     if (electron.getTracks().get(0).getChi2() > 50.0 ||
                         positron.getTracks().get(0).getChi2() > 50.0 ||
                         recoil.getTracks().get(0).getChi2() > 50.0)
                         continue;
                     tp_nTrackChi2++;
-
-                    // Track times must be within 10 ns of each other
-                    // Use average tracker hit time as proxy for track time
-                    double eleTime = avgHitTime(electron.getTracks().get(0));
-                    double posTime = avgHitTime(positron.getTracks().get(0));
-                    double recTime = avgHitTime(recoil.getTracks().get(0));
-                    if (Math.abs(eleTime - posTime) > threeProngMaxTrackDt ||
-                        Math.abs(eleTime - recTime) > threeProngMaxTrackDt ||
-                        Math.abs(posTime - recTime) > threeProngMaxTrackDt)
+                    */
+                    // Track times must be within threeProngMaxTrackDt of zero.
+                    // Use track time from TrackData collection if available,
+                    // otherwise fall back to average tracker hit time.
+                    double eleTime = getTrackTime(electron.getTracks().get(0));
+                    double posTime = getTrackTime(positron.getTracks().get(0));
+                    double recTime = getTrackTime(recoil.getTracks().get(0));
+                    if (Math.abs(eleTime) > threeProngMaxTrackDt ||
+                        Math.abs(recTime) > threeProngMaxTrackDt ||
+                        Math.abs(posTime) > threeProngMaxTrackDt)
                         continue;
                     tp_nTrackTime++;
-
+                    
                     // Require (e+e-) pair and recoil e- to be approximately back-to-back
                     // in the azimuthal angle phi = atan2(py, px).
                     // For back-to-back: phi_pair - phi_recoil ~ pi
@@ -668,21 +741,24 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                     Hep3Vector recMom = rotateToBeamFrame(recoil.getMomentum());
 
                     // Pairing 1: (electron + positron) vs recoil
+                    /*
                     double phiPair1 = Math.atan2(eleMom.y() + posMom.y(), eleMom.x() + posMom.x());
                     double phiRec1 = Math.atan2(recMom.y(), recMom.x());
                     double dPhi1 = Math.abs(phiPair1 - phiRec1);
-
+                    */
                     // Pairing 2: (recoil + positron) vs electron
+                    /*
                     double phiPair2 = Math.atan2(recMom.y() + posMom.y(), recMom.x() + posMom.x());
                     double phiEle2 = Math.atan2(eleMom.y(), eleMom.x());
                     double dPhi2 = Math.abs(phiPair2 - phiEle2);
-
+                    */
                     // At least one pairing must be approximately back-to-back (dPhi ~ pi)
                     // Cut relaxed for now to study the distribution
+                    /*
                     if (Math.abs(dPhi1 - Math.PI) > 0.3 && Math.abs(dPhi2 - Math.PI) > 0.3)
                         continue;
                     tp_nDPhiXZ++;
-
+                    */
                     // Require all three tracks to be truth matched
                     if (threeProngRequireTruthMatch) {
                         if (!truthMatchedTracks.contains(electron.getTracks().get(0)) ||
@@ -702,7 +778,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
 
                     // Require either the electron or recoil to have a cluster (in addition to positron)
-                   
+                    /*                   
                     boolean eleHasCluster = electron.getClusters() != null && !electron.getClusters().isEmpty();
                     boolean posHasCluster = !positron.getClusters().isEmpty();
                     boolean recHasCluster = recoil.getClusters() != null && !recoil.getClusters().isEmpty();
@@ -720,6 +796,7 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                         continue;
                     
                     tp_nClusterTime++;
+                    */
                     /*
                     if (requireClustersForThreeProng) {
                         boolean failClusterTime = false;
@@ -988,22 +1065,23 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         vtxFitter.setBeamSize(beamSize);
         vtxFitter.setBeamPosition(beamPositionToUse);
         vtxFitter.setStoreCovTrkMomList(_storeCovTrkMomList);
-        //        vtxFitter.setDebug(debug);
-        vtxFitter.setDebug(true);
-        vtxFitter.setBeamEnergy(threeProngBeamEnergy);
+        vtxFitter.setDebug(debug);
+        //vtxFitter.setDebug(true);
+        vtxFitter.setBeamEnergy(beamEnergy);
         vtxFitter.setBeamRotAngle(threeProngBeamRotAngle);
 
-        // Fit with beam momentum constraint for THREEPRONG, unconstrained otherwise
-        boolean useBeamConstraint = (constraint == Constraint.THREEPRONG);
-        System.out.println("Fitting a three prong candidate");
-        BilliorVertex vtx = vtxFitter.fitVertex(trkParList, useBeamConstraint);
-        System.out.println("...done fitting");
+        // Dispatch to the appropriate KF fit based on constraint type
+        boolean useBeamspot = (constraint == Constraint.THREEPRONG || constraint == Constraint.THREEPRONG_BS);
+        boolean useMomentum = (constraint == Constraint.THREEPRONG || constraint == Constraint.THREEPRONG_MOM);
+        //        System.out.println("Fitting a three prong candidate (constraint=" + constraint + ")");
+        BilliorVertex vtx = vtxFitter.fitVertex(trkParList, useBeamspot, useMomentum, useMomentum);
+        //        System.out.println("...done fitting");
 
         // For THREEPRONG, also do predicted track fits for each track
         if (constraint == Constraint.THREEPRONG) {
             // Set up beam momentum constraint for predicted track fits
             // Tracking frame: X=HPS_Z (beam), Y=HPS_X (horizontal), Z=HPS_Y (vertical)
-            double pBeam = threeProngBeamEnergy;  // Assume electron mass ~ 0, so p ~ E
+            double pBeam = beamEnergy;  // Assume electron mass ~ 0, so p ~ E
             double cosR = Math.cos(threeProngBeamRotAngle);
             double sinR = Math.sin(threeProngBeamRotAngle);
             // Beam momentum in tracking frame (same convention as fitVertex):
@@ -1012,9 +1090,9 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             double pzBeam_trk = 0.0;            // tracking Z = HPS Y
             double[] beamP = new double[]{pxBeam_trk, pyBeam_trk, pzBeam_trk};
             RealVector totalMomentumConstraint = MatrixUtils.createRealVector(beamP);
-
-            System.out.printf("DEBUG fitWithPredictedTrack: beam momentum (tracking) = [%.4f, %.4f, %.4f]%n",
-                pxBeam_trk, pyBeam_trk, pzBeam_trk);
+            if(debug)
+                System.out.printf("DEBUG fitWithPredictedTrack: beam momentum (tracking) = [%.4f, %.4f, %.4f]%n",
+                                  pxBeam_trk, pyBeam_trk, pzBeam_trk);
 
             // Small uncertainty on beam momentum
             double beamPSigma = 0.05;  // 50 MeV spread
@@ -1029,15 +1107,17 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             String[] trackLabels = new String[]{"Ele", "Pos", "Rec"};
             List<Vertex>[] predCollections = new List[]{threeProngPredictedEle, threeProngPredictedPos, threeProngPredictedRec};
 
-            // Fit with each track predicted
+            // Compute the beamspot-constrained vertex fit once, then reuse it for all three predictions
+            KalmanVertexFitterGainMatrix.FitResult bsFit = vtxFitter.fit(
+                trkParList, null, vertexConstraint, vertexConstraintCov,
+                null, null, null, null, 10, 1e-6);
+
             for (int predictIdx = 0; predictIdx < 3; predictIdx++) {
                 KalmanVertexFitterGainMatrix.PredictedTrackResult predResult =
                     vtxFitter.fitWithPredictedTrack(
-                        trkParList, predictIdx,
-                        vertexConstraint, vertexConstraintCov,
+                        bsFit, predictIdx,
                         totalMomentumConstraint, totalMomentumConstraintCov,
-                        null, null,  // no mass constraint
-                        10, 1e-6);
+                        null, null);  // no mass constraint
 
                 // Convert to BilliorVertex and add to appropriate collection
                 String label = trackLabels[predictIdx];
@@ -1045,16 +1125,17 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
                     predResult, predictIdx, "ThreeProngPredicted" + label);
                 predCollections[predictIdx].add(predVtx);
 
-                // Also store summary info in the main vertex parameters
-                vtx.setParameter("p" + label + "X_pred", predResult.predictedMomentum.getEntry(0));
-                vtx.setParameter("p" + label + "Y_pred", predResult.predictedMomentum.getEntry(1));
-                vtx.setParameter("p" + label + "Z_pred", predResult.predictedMomentum.getEntry(2));
-                vtx.setParameter("p" + label + "X_actual", predResult.actualMomentum.getEntry(0));
-                vtx.setParameter("p" + label + "Y_actual", predResult.actualMomentum.getEntry(1));
-                vtx.setParameter("p" + label + "Z_actual", predResult.actualMomentum.getEntry(2));
-                vtx.setParameter("p" + label + "X_res", predResult.momentumResidual.getEntry(0));
-                vtx.setParameter("p" + label + "Y_res", predResult.momentumResidual.getEntry(1));
-                vtx.setParameter("p" + label + "Z_res", predResult.momentumResidual.getEntry(2));
+                // Store summary info in the main vertex parameters, converted to detector frame.
+                // Tracking frame -> detector frame: det(X,Y,Z) = trk(Y,Z,X) = trk(1,2,0).
+                vtx.setParameter("p" + label + "X_pred", predResult.predictedMomentum.getEntry(1));
+                vtx.setParameter("p" + label + "Y_pred", predResult.predictedMomentum.getEntry(2));
+                vtx.setParameter("p" + label + "Z_pred", predResult.predictedMomentum.getEntry(0));
+                vtx.setParameter("p" + label + "X_actual", predResult.actualMomentum.getEntry(1));
+                vtx.setParameter("p" + label + "Y_actual", predResult.actualMomentum.getEntry(2));
+                vtx.setParameter("p" + label + "Z_actual", predResult.actualMomentum.getEntry(0));
+                vtx.setParameter("p" + label + "X_res", predResult.momentumResidual.getEntry(1));
+                vtx.setParameter("p" + label + "Y_res", predResult.momentumResidual.getEntry(2));
+                vtx.setParameter("p" + label + "Z_res", predResult.momentumResidual.getEntry(0));
                 vtx.setParameter("chi2_pred" + label, predResult.chi2);
                 vtx.setParameter("ndf_pred" + label, (double) predResult.ndf);
 
@@ -1230,7 +1311,8 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
      */
     private void makeThreeProngCandidates(ReconstructedParticle electron, ReconstructedParticle positron, ReconstructedParticle recoil) {
 
-        BilliorVertex vtxFit = fitVertex(Constraint.THREEPRONG, electron, positron,recoil);
+        // Full constraint: beamspot position + beam momentum (existing behavior)
+        BilliorVertex vtxFit = fitVertex(Constraint.THREEPRONG, electron, positron, recoil);
 
         ReconstructedParticle candidate = makeReconstructedParticle(electron, positron, recoil, vtxFit);
 
@@ -1250,7 +1332,25 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         }
         threeProngVertices.add(vtxFit);
         threeProngCandidates.add(candidate);
-        tp_nSaved++;         
+        tp_nSaved++;
+
+        // KF unconstrained: no beamspot, no momentum constraint
+        BilliorVertex vtxKFUnconstrained = fitVertex(Constraint.THREEPRONG_UNCONSTRAINED, electron, positron, recoil);
+        ReconstructedParticle candidateKFUnconstrained = makeReconstructedParticle(electron, positron, recoil, vtxKFUnconstrained);
+        threeProngKFUnconstrainedVertices.add(vtxKFUnconstrained);
+        threeProngKFUnconstrainedCandidates.add(candidateKFUnconstrained);
+
+        // KF beamspot-constrained: beamspot position only, no momentum constraint
+        BilliorVertex vtxKFBS = fitVertex(Constraint.THREEPRONG_BS, electron, positron, recoil);
+        ReconstructedParticle candidateKFBS = makeReconstructedParticle(electron, positron, recoil, vtxKFBS);
+        threeProngKFBSVertices.add(vtxKFBS);
+        threeProngKFBSCandidates.add(candidateKFBS);
+
+        // KF momentum-constrained: beam momentum only, no beamspot constraint
+        BilliorVertex vtxKFMom = fitVertex(Constraint.THREEPRONG_MOM, electron, positron, recoil);
+        ReconstructedParticle candidateKFMom = makeReconstructedParticle(electron, positron, recoil, vtxKFMom);
+        threeProngKFMomVertices.add(vtxKFMom);
+        threeProngKFMomCandidates.add(candidateKFMom);
     }
     /**
      * Creates a reconstructed V0 candidate particle from an electron, positron,
@@ -1519,6 +1619,19 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     }
 
     /**
+     * Get the track time from the TrackData collection if available,
+     * otherwise fall back to the average tracker hit time.
+     */
+    private double getTrackTime(Track track) {
+        if (currentEvent != null && currentEvent.hasCollection(LCRelation.class, TrackData.TRACK_DATA_RELATION_COLLECTION)) {
+            GenericObject trackData = TrackData.getTrackData(currentEvent, track);
+            if (trackData != null)
+                return TrackData.getTrackTime(trackData);
+        }
+        return avgHitTime(track);
+    }
+
+    /**
      * Rotate a vector about the y-axis by the beam rotation angle.
      * This transforms from detector coordinates to beam coordinates.
      */
@@ -1529,6 +1642,5 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         double yRot = v.y();
         double zRot = -v.x() * sinTheta + v.z() * cosTheta;
         return new BasicHep3Vector(xRot, yRot, zRot);
-    }
-
+    }      
 }
