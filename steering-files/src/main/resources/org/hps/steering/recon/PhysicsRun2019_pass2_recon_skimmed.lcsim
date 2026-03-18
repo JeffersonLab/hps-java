@@ -207,9 +207,7 @@
 	    <skimV0>true</skimV0>
 	    <v0ParamFile>v0skim_parameters_2019_ver0.txt</v0ParamFile>  
 	    <v0OutputFile>${outputFile}_v0skim.slcio</v0OutputFile>
-            <skimMoller>true</skimMoller>
-            <mollerParamFile>mollerskim_parameters_2019_ver0.txt</mollerParamFile>
-            <mollerOutputFile>${outputFile}_mollerskim.slcio</mollerOutputFile>
+            <skimMoller>false</skimMoller>
             <skimThreeBody>false</skimThreeBody>
             <skimFEE>false</skimFEE>
         </driver>
