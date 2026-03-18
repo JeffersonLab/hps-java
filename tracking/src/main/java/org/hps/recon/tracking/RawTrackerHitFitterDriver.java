@@ -1,6 +1,7 @@
 package org.hps.recon.tracking;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +27,8 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.lcio.LCIOConstants;
 import org.lcsim.recon.cat.util.Const;
 import org.lcsim.util.Driver;
+import org.lcsim.detector.tracker.silicon.SiSensor;
+
 
 
 
@@ -67,6 +70,8 @@ public class RawTrackerHitFitterDriver extends Driver {
 
     private boolean isFirstEvent=true;
 
+    private List<String> sensorNames_ = new ArrayList<String>();
+
     private TrackerHitUtils tkHitUtils=new TrackerHitUtils();
 
     /**
@@ -74,6 +79,11 @@ public class RawTrackerHitFitterDriver extends Driver {
      *
      * @param useTruthTime
      */
+
+    public void setSkipSensors(String[] sensorNames) {
+        this.sensorNames_ = new ArrayList<String>(Arrays.asList(sensorNames));
+    }
+
     public void setChiSqrThresh(double chiSqrThresh){
         this.chiSqrThresh = chiSqrThresh;
     }
@@ -323,13 +333,29 @@ public class RawTrackerHitFitterDriver extends Driver {
                 }
                 if (debug)
                     System.out.println(fit);
-
+                
+                Boolean skipHit = false;
+                //SiSensor sensor = (SiSensor) hit.getDetectorElement();
+                String name = sensor.getName();
+            
+                if (sensorNames_.size() > 0) {
+                
+                    for (String sensorName : sensorNames_) {
+                        if (name.contains(sensorName)) {
+                            skipHit = true;
+                            break;
+                        }
+                    }
+                }
                 fits.add(fit);
                 FittedRawTrackerHit hth = new FittedRawTrackerHit(hit, fit);
                 hits.add(hth);
-                if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) // drop unbonded channel
-                    continue;
-                hit.getDetectorElement().getReadout().addHit(hth);
+
+                if (!skipHit) {
+                    if (strip == HPSSVTConstants.TOTAL_STRIPS_PER_SENSOR) // drop unbonded channel
+                        continue;
+                    hit.getDetectorElement().getReadout().addHit(hth);
+                }
             }
         }
         event.put(fitCollectionName, fits, ShapeFitParameters.class, genericObjectFlags);
