@@ -128,7 +128,7 @@ public class RfFitterDriver extends Driver {
         double pedVal[] = {-999, -999};
 
         // Look for bins containing the peaks (2-3 peaks)
-        for (int ii = 4; ii < adcSamples.length; ii++) {
+        for (int ii = 4; ii < adcSamples.length-1; ii++) {
             // After 2 peaks, stop looking for more
             if (iz == 2) {
                 break;
@@ -143,8 +143,16 @@ public class RfFitterDriver extends Driver {
         }
 
         int jj = 0;
+        int ik = 1;
         // Choose peak closest to center of window (second peak, ik=1)
-        final int ik = 1;
+        if( iz >=2 ) {
+            ik = 1;
+        }else if( iz == 1){
+            ik = 0; // Only one peak found.
+        }else{
+            return 0;
+        }
+        
         pedVal[ik] = (adcSamples[peakBin[ik] - 6] + adcSamples[peakBin[ik] - 7] + adcSamples[peakBin[ik] - 8] + adcSamples[peakBin[ik] - 9]) / 4.0;
         fitThresh[ik] = (adcSamples[peakBin[ik]] + pedVal[ik]) / 3.0;
 

@@ -17,7 +17,7 @@ public class ThreeBodySkimmer extends Skimmer {
     
     @Override
     public boolean passSelection(EventHeader event){
-	System.out.println(this.getClass().getName()+":: in pass selection"); 
+	// System.out.println(this.getClass().getName()+":: in pass selection");
 	boolean pass=true; 
 	
 	
