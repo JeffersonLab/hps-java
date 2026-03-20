@@ -2,7 +2,6 @@
 <lcsim xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="http://www.lcsim.org/schemas/lcsim/1.0/lcsim.xsd">
     <!-- 
       @brief Steering file that will be used for the reconstruction of 2019 MC. 
-      @author <a href="mailto:omoreno1@ucsc.edu">Omar Moreno</a>
     -->
     <execute>
         <driver name="EventMarkerDriver"/>
@@ -33,7 +32,9 @@
         </driver>
         <!-- Ecal reconstruction drivers -->
         <driver name="EcalRawConverter" type="org.hps.recon.ecal.EcalRawConverter2Driver"/>
-        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver"/>
+        <driver name="EcalTimeCorrection" type="org.hps.recon.ecal.EcalTimeCorrectionDriver">
+            <additionalShift>13.3</additionalShift>
+        </driver>
         <driver name="ReconClusterer" type="org.hps.recon.ecal.cluster.ReconClusterDriver">
             <logLevel>WARNING</logLevel>
             <outputClusterCollectionName>EcalClusters</outputClusterCollectionName>
@@ -43,8 +44,7 @@
             <outputCollectionName>EcalClustersCorr</outputCollectionName>
         </driver>
         <!-- Hodo reconstruction drivers -->
-        <driver name="HodoRunningPedestal"
-		type="org.hps.recon.ecal.HodoRunningPedestalDriver">
+        <driver name="HodoRunningPedestal" type="org.hps.recon.ecal.HodoRunningPedestalDriver">
             <inputCollectionName>HodoscopeReadoutHits</inputCollectionName>
             <logLevel>CONFIG</logLevel>
             <isMC>true</isMC>
@@ -71,7 +71,7 @@
           <useTimestamps>true</useTimestamps>     
           <!--offset to get times centered at 0 after timestamp correction-->                 
 	  <!-- set to 0 for unspaced; ~112 for spaced -->
-	  <tsCorrectionScale>120</tsCorrectionScale>
+	  <tsCorrectionScale>165</tsCorrectionScale>
           <!--correct for the SVT fit time offset...this should be on if <useTimingConditions> is turned on in readout-->        
           <correctTimeOffset>true</correctTimeOffset>   
           <!--per sensor shift...set false becasue it's not in readout sim-->       
@@ -85,6 +85,7 @@
           <!--per-strip timing correction from database...this should be on i f <useTimingConditions> is turned on in readout  -->  
           <correctChanT0>false</correctChanT0>          
           <isMC>true</isMC>
+          <skipSensors> module_L5b </skipSensors>
           <debug>false</debug>
         </driver>
         <!-- 
@@ -104,7 +105,66 @@
             <doVSplit>true</doVSplit>
             <debug>false</debug>
         </driver>
-    
+        <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
+	        <addResiduals>true</addResiduals>
+	        <addKinks>true</addKinks>
+            <seedStrategy>00AB0B0</seedStrategy>
+            <seedStrategy>00BB0S0</seedStrategy>
+            <seedStrategy>00BS0B0</seedStrategy>
+            <seedStrategy>00AB0B0</seedStrategy>
+            <seedStrategy>0A0B0B0</seedStrategy>
+            <seedStrategy>00BA0B0</seedStrategy>
+            <seedStrategy>00SB0B0</seedStrategy>
+            <seedStrategy>00SB0AA</seedStrategy>
+            <seedStrategy>00SB0SA</seedStrategy>
+            <seedStrategy>0SB00B0</seedStrategy>
+            <seedStrategy>000S0BB</seedStrategy>
+            <seedStrategy>000B0BS</seedStrategy>
+            <seedStrategy>0BBS000</seedStrategy>
+            <seedStrategy>0SBB000</seedStrategy>
+            <seedStrategy>000B0BA</seedStrategy>
+            <seedStrategy>ABSS000</seedStrategy>
+            <seedStrategy>SBB0000</seedStrategy>
+            <seedStrategy>SABS000</seedStrategy>
+	        <numPatRecIteration> 7 </numPatRecIteration>
+            <numKalmanIteration> 0 </numKalmanIteration>
+            <maxPtInverse> 8.881915381218574 </maxPtInverse>
+            <maxD0> 38.249197341740356 </maxD0>
+            <maxZ0> 8.37847994612359 </maxZ0>
+            <maxChi2> 11.546843987796496 </maxChi2>
+            <minHitsTopIter1> 6 </minHitsTopIter1>
+            <minHitsBotIter1> 6 </minHitsBotIter1>
+            <minHitsTopIter2> 6 </minHitsTopIter2>
+            <minHitsBotIter2> 6 </minHitsBotIter2>
+	        <minStereo> 2  </minStereo>
+	        <maxSharedHits> 0 </maxSharedHits>
+	        <maxTimeRange> 39.7900414452215 </maxTimeRange>
+	        <maxTanLambda> 4.9769217912110575 </maxTanLambda>
+	        <maxResidual> 57.03015190053787 </maxResidual>
+	        <maxChi2Inc> 12.320066328390354 </maxChi2Inc>
+	        <minChi2IncBad> 9.206482863412027 </minChi2IncBad>
+	        <maxResidShare> 50.79545123329545 </maxResidShare>
+	        <maxChi2IncShare> 5.862027198856136 </maxChi2IncShare>
+	        <mxChi2Vtx> 5.508828061070076 </mxChi2Vtx>
+	        <numEvtPlots> 5 </numEvtPlots>
+	        <doDebugPlots> true </doDebugPlots>
+	        <siHitsLimit> 219 </siHitsLimit>
+	        <seedCompThr> 0.3473319986601534 </seedCompThr>
+	        <!--numStrategyIter1></numStrategyIter1 tthe mxChi2Vtx was 1.0-->
+	        <beamPositionZ> -7.54 </beamPositionZ>
+            <beamSigmaZ> 0.02 </beamSigmaZ>
+            <beamPositionX> 0.0 </beamPositionX>
+            <beamSigmaX> 0.055 </beamSigmaX>
+            <beamPositionY> 0.0 </beamPositionY>
+            <beamSigmaY> 0.045 </beamSigmaY>
+	        <lowPhThresh>  7.197594353612735 </lowPhThresh>
+            <verbose> false </verbose>
+        </driver>
+        <driver name="TrackTruthMatching_KF" type="org.hps.analysis.MC.TrackToMCParticleRelationsDriver">
+            <trackCollectionName>KalmanFullTracks</trackCollectionName>
+            <kalmanTracks>true</kalmanTracks>
+            <debug>false</debug>
+        </driver>
         <driver name="ReconParticleDriver_Kalman" type="org.hps.recon.particle.HpsReconParticleDriver" > 
             <ecalClusterCollectionName>EcalClustersCorr</ecalClusterCollectionName>
             <trackCollectionNames>KalmanFullTracks</trackCollectionNames>
@@ -118,90 +178,37 @@
             <targetConV0VerticesColName>TargetConstrainedV0Vertices_KF</targetConV0VerticesColName>
             <finalStateParticlesColName>FinalStateParticles_KF</finalStateParticlesColName>
             <otherElectronsColName>OtherElectrons_KF</otherElectronsColName>
-	    <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>		       
-            <beamPositionX> 0.0  </beamPositionX>
-            <beamSigmaX> 0.3 </beamSigmaX>
-            <beamPositionY> 0.0 </beamPositionY>
-            <beamSigmaY> 0.02 </beamSigmaY>
-            <beamPositionZ> 0.9 </beamPositionZ>
-            <trackClusterTimeOffset>25</trackClusterTimeOffset>
-            <maxMatchDt>40</maxMatchDt>
+            <includeUnmatchedTracksInFSP>true</includeUnmatchedTracksInFSP>
             <useInternalVertexXYPositions>false</useInternalVertexXYPositions>
-            <minVertexChisqProb> 0.0 </minVertexChisqProb>
-            <maxVertexClusterDt>40.0</maxVertexClusterDt>
-	    <maxElectronP>7.0</maxElectronP>
-            <maxVertexP>7.0</maxVertexP>
             <requireClustersForV0>false</requireClustersForV0>
-	    <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
+            <beamPositionX>0.0</beamPositionX>
+            <beamSigmaX>0.055</beamSigmaX>
+            <beamPositionY>0.0</beamPositionY>
+            <beamSigmaY>0.045</beamSigmaY>
+            <beamPositionZ>-7.54</beamPositionZ>
+            <maxElectronP>7.0</maxElectronP>
+            <maxVertexP>7.0</maxVertexP>
+            <minVertexChisqProb>0.0</minVertexChisqProb>
+            <maxVertexClusterDt>40.0</maxVertexClusterDt>           
+            <maxMatchDt>40</maxMatchDt>
+            <trackClusterTimeOffset>40</trackClusterTimeOffset>
+            <useCorrectedClusterPositionsForMatching>false</useCorrectedClusterPositionsForMatching>
             <applyClusterCorrections>true</applyClusterCorrections>
-            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>  
-	    <isMC>true</isMC>
-	    <debug>false</debug>
-	    <makeMollerCols>true</makeMollerCols>
+            <useTrackPositionForClusterCorrection>true</useTrackPositionForClusterCorrection>
+            <debug>false</debug>
+            <isMC>true</isMC>
+	        <makeMollerCols>true</makeMollerCols>
             <unconstrainedMollerCandidatesColName>UnconstrainedMollerCandidates_KF</unconstrainedMollerCandidatesColName>
             <unconstrainedMollerVerticesColName>UnconstrainedMollerVertices_KF</unconstrainedMollerVerticesColName>
             <beamConMollerCandidatesColName>BeamspotConstrainedMollerCandidates_KF</beamConMollerCandidatesColName>
             <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
             <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
             <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>	    
-        </driver>         
-        <driver name="GBLRefitterDriver" type="org.hps.recon.tracking.gbl.GBLRefitterDriver"/>        
-        <driver name="KalmanPatRecDriver" type="org.hps.recon.tracking.kalman.KalmanPatRecDriver">
-	    <numPatRecIteration> 3 </numPatRecIteration>
-            <numKalmanIteration> 1 </numKalmanIteration>
-            <maxPtInverse> 8.757651 </maxPtInverse>
-            <maxD0> 38.0487 </maxD0>
-            <maxZ0> 3.98915 </maxZ0>
-            <maxChi2> 11.777395 </maxChi2>
-            <minHits> 0  </minHits>
-            <minStereo> 3  </minStereo>
-            <maxSharedHits> 3 </maxSharedHits>
-            <maxTimeRange> 39.95028 </maxTimeRange>
-            <maxTanLambda> 8.186345 </maxTanLambda>
-<!--            <maxResidual> 13.71568 </maxResidual>  -->
-            <maxChi2Inc> 13.52662 </maxChi2Inc>
-            <minChi2IncBad> 7.00678 </minChi2IncBad>
-<!--            <maxResidShare> 13.967129 </maxResidShare> -->
-            <maxChi2IncShare> 9.771546584 </maxChi2IncShare>
-            <mxChi2Vtx> 1.7652935 </mxChi2Vtx>
-            <numEvtPlots> 5 </numEvtPlots>
-            <doDebugPlots> false </doDebugPlots>
-            <siHitsLimit> 466 </siHitsLimit>
-            <seedCompThr> .725912 </seedCompThr>
-            <!--numStrategyIter1></numStrategyIter1 tthe mxChi2Vtx was 1.0-->
-            <beamPositionZ> 0.9 </beamPositionZ>
-            <beamSigmaZ> 0.02 </beamSigmaZ>
-            <beamPositionX> 0.0 </beamPositionX>
-            <beamSigmaX> 0.05 </beamSigmaX>
-            <beamPositionY> 0.0 </beamPositionY>
-            <beamSigmaY> 1.0 </beamSigmaY>
-            <lowPhThresh> 7.204329 </lowPhThresh>
-            <verbose> false </verbose>
-        </driver>
-        <driver name="TrackTruthMatching_KF" type="org.hps.analysis.MC.TrackToMCParticleRelationsDriver">
-            <trackCollectionName>KalmanFullTracks</trackCollectionName>
-            <kalmanTracks>true</kalmanTracks>
-            <debug>false</debug>
-        </driver>
-      
+        </driver>               
         <driver name="LCIOWriter" type="org.lcsim.util.loop.LCIODriver">
             <outputFilePath>${outputFile}.slcio</outputFilePath>
         </driver>
         <driver name="CleanupDriver" type="org.lcsim.recon.tracking.digitization.sisim.config.ReadoutCleanupDriver"/>
-
-	<driver name="KFOutputDriver" type="org.hps.recon.tracking.kalman.KFOutputDriver">
-          <outputPlotsFilename>${outputFile}.root</outputPlotsFilename>
-          <debug>false</debug>
-          <bsZ>0.9</bsZ>
-          <!--<trackCollectionName>GBLTracks</trackCollectionName> --> 
-          <trackCollectionName>KalmanFullTracks</trackCollectionName>
-          <minMom>0.1</minMom>
-          <maxMom>4.8</maxMom>
-          <chi2Cut>9999</chi2Cut>
-          <doKFresiduals>true</doKFresiduals>
-          <useParticles>true</useParticles>
-        </driver>
-
 
       </drivers>
 </lcsim>
