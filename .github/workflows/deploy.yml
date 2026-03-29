@@ -10,8 +10,9 @@ on:
 
 jobs:
   deploy:
+      rules:
+      when: never
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5
