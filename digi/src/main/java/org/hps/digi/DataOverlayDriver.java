@@ -62,6 +62,7 @@ public class DataOverlayDriver extends Driver {
 
     private final Queue<String> inputFilePaths = new LinkedList<String>();
     LCIOReader reader = null;
+    private int year = 2019;
 
     /**
      * Collections names to read.
@@ -111,6 +112,10 @@ public class DataOverlayDriver extends Driver {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void setYear(int year) {
+        this.year = year;
     }
 
     private EventHeader readNextEvent() throws EndOfDataException {
@@ -240,6 +245,10 @@ public class DataOverlayDriver extends Driver {
         } catch (IOException e) {
             LOGGER.severe("Failed to read from: " + filePath);
             throw new RuntimeException(e);
+        }
+        if (this.year == 2016) {
+            COLLECTION_NAMES = Arrays.asList("EcalReadoutHits", "SVTRawTrackerHits");
+            READOUT_NAMES = Arrays.asList("EcalHits", "TrackerHits");
         }
     }
 
