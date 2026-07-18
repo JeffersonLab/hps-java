@@ -82,6 +82,10 @@ public class KalmanPatRecDriver extends Driver {
     private int maxSharedHits;         // Maximum number of hits on a track that are shared with another track
     private double maxTimeRange;       // Maximum time range in ns spanned by all the hits on a track
     private double maxTanLambda;       // Maximum tan(lambda) for a track seed
+    private double maxPtInverseIter1;  // Iteration-1 maximum value of 1/pt for a seed (default 4.0 if not set)
+    private double maxD0Iter1;         // Iteration-1 maximum dRho at the target plane for a seed (default 15 mm if not set)
+    private double maxZ0Iter1;         // Iteration-1 maximum dz at the target plane for a seed (default 3 mm if not set)
+    private double maxTanLambdaIter1;  // Iteration-1 maximum tan(lambda) for a track seed (default 0.104 if not set)
     private double maxResidual;        // Maximum residual in units of SSD resolution to add a hit to a track candidate
     private double maxChi2Inc;         // Maximum increment in chi^2 to add a hit to an already completed track
     private double minChi2IncBad;      // Minimum increment in chi^2 to remove a hit from an already completed track
@@ -232,6 +236,12 @@ public class KalmanPatRecDriver extends Driver {
         if (maxSharedHits != 0) kPar.setMaxShared(maxSharedHits);
         if (maxTimeRange != 0.0) kPar.setMaxTimeRange(maxTimeRange);
         if (maxTanLambda != 0.0) kPar.setMaxTanL(maxTanLambda);
+        // Iteration-1 seed-cut overrides. These must come AFTER the tier-2 setters above,
+        // because setMaxK/setMaxdRho/setMaxdZ/setMaxTanL clamp the iteration-1 tier downward.
+        if (maxPtInverseIter1 != 0.0) kPar.setMaxKIter1(maxPtInverseIter1);
+        if (maxD0Iter1 != 0.0) kPar.setMaxdRhoIter1(maxD0Iter1);
+        if (maxZ0Iter1 != 0.0) kPar.setMaxdZIter1(maxZ0Iter1);
+        if (maxTanLambdaIter1 != 0.0) kPar.setMaxTanLIter1(maxTanLambdaIter1);
         if (maxResidual != 0.0) kPar.setMxResid(maxResidual);
         if (maxChi2Inc != 0.0) kPar.setMxChi2Inc(maxChi2Inc);
         if (minChi2IncBad != 0.0) kPar.setMinChi2IncBad(minChi2IncBad);
@@ -661,6 +671,18 @@ public class KalmanPatRecDriver extends Driver {
     }
     public void setMaxTanLambda(double maxTanLambda) {
         this.maxTanLambda = maxTanLambda;
+    }
+    public void setMaxPtInverseIter1(double maxPtInverseIter1) {
+        this.maxPtInverseIter1 = maxPtInverseIter1;
+    }
+    public void setMaxD0Iter1(double maxD0Iter1) {
+        this.maxD0Iter1 = maxD0Iter1;
+    }
+    public void setMaxZ0Iter1(double maxZ0Iter1) {
+        this.maxZ0Iter1 = maxZ0Iter1;
+    }
+    public void setMaxTanLambdaIter1(double maxTanLambdaIter1) {
+        this.maxTanLambdaIter1 = maxTanLambdaIter1;
     }
     public void setMaxResidual(double maxResidual) {
         this.maxResidual = maxResidual;

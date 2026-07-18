@@ -318,6 +318,15 @@ public class KalmanParams {
         }
         kMin = kMn;
     }
+
+    public void setMaxKIter1(double kMx) {
+        if (kMx <= 0.) {
+            logger.log(Level.WARNING,String.format("Max iteration-1 1/pt of %8.2f not allowed.", kMx));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the iteration-1 maximum 1/pt to %8.2f.", kMx));
+        kMax[0] = kMx;
+    }
     
     public void setMxResid(double mxR) {
         if (mxR <= 1.) {
@@ -358,7 +367,34 @@ public class KalmanParams {
         dzMax[1] = zMx;
         dzMax[0] = Math.min(dzMax[0], 0.4*zMx);
     }
-    
+
+    public void setMaxTanLIter1(double tlMx) {
+        if (tlMx <= 0.) {
+            logger.log(Level.WARNING,String.format("Max iteration-1 seed tan(lambda) of %8.2f not allowed.", tlMx));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the iteration-1 maximum seed tan(lambda) to %8.2f.", tlMx));
+        tanlMax[0] = tlMx;
+    }
+
+    public void setMaxdRhoIter1(double dMx) {
+        if (dMx <= 0.0) {
+            logger.log(Level.WARNING,String.format("Max iteration-1 dRho of %8.2f not allowed.", dMx));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the iteration-1 maximum dRho to %8.2f mm.", dMx));
+        dRhoMax[0] = dMx;
+    }
+
+    public void setMaxdZIter1(double zMx) {
+        if (zMx <= 0.0) {
+            logger.log(Level.WARNING,String.format("Max iteration-1 dZ of %8.2f not allowed.", zMx));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the iteration-1 maximum dz to %8.2f mm.", zMx));
+        dzMax[0] = zMx;
+    }
+
     public void setMaxChi2(double xMx) {
         if (xMx <= 0.) {
             logger.log(Level.WARNING,String.format("Max chi2 of %8.2f not allowed.", xMx));
