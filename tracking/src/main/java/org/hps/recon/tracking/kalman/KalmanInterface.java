@@ -1320,6 +1320,33 @@ public class KalmanInterface {
         return new KalmanTrackFit2(evtNumb, SiMoccupied, null, startIndex, nIt, new Vec(0., seed.yOrigin, 0.), seed.helixParams(), cov, kPar, fM);
     }
 
+    // Method to refit an explicitly supplied list of strip hits (e.g. a track's hits with some layers
+    // masked off), using the given helix parameters and covariance to initialize the Kalman Filter.
+    // The caller's covariance matrix is not modified.
+    public KalmanTrackFit2 createKalmanTrackFit(int evtNumb, Vec helixParams, Vec pivot, DMatrixRMaj cov,
+            List<TrackerHit> hitsOnTrack, int nIt) {
+        if (debug) { System.out.format("createKalmanTrackFit: refit from explicit hit list; number of hits = %d\n", hitsOnTrack.size()); }
+
+        ArrayList<SiModule> SiMoccupied = new ArrayList<SiModule>();
+
+        fillMeasurements(hitsOnTrack, 2);
+        for (SiModule SiM : SiMlist) {
+            if (!SiM.hits.isEmpty()) SiMoccupied.add(SiM);
+        }
+        Collections.sort(SiMoccupied, new SortByLayer());
+
+        for (int i = 0; i < SiMoccupied.size(); i++) {
+            SiModule SiM = SiMoccupied.get(i);
+            if (debug) SiM.print(String.format("SiMoccupied%d", i));
+        }
+
+        int startIndex = 0;
+        if (debug) System.out.printf("createKTF: using %d SiModules, startIndex %d \n", SiMoccupied.size(), startIndex);
+        DMatrixRMaj covScaled = cov.copy();
+        CommonOps_DDRM.scale(10., covScaled);
+        return new KalmanTrackFit2(evtNumb, SiMoccupied, null, startIndex, nIt, pivot, helixParams, covScaled, kPar, fM);
+    }
+
     // Method to refit an existing track, using the track's helix parameters and covariance to initialize the Kalman Filter.
     public KalmanTrackFit2 createKalmanTrackFit(int evtNumb, Vec helixParams, Vec pivot, DMatrixRMaj cov, Track track,
             RelationalTable hitToStrips, RelationalTable hitToRotated, int nIt) {
