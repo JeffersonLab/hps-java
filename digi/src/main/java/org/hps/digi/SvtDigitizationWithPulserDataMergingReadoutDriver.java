@@ -73,10 +73,111 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
     private boolean enablePileupCut = true;
     private boolean dropBadChannels = true;
     
+    // ------------------------------------------------------------------
+    // Truth-relation diagnostics.
+    //
+    // An MC strip hit only reaches SVTTrueHitRelations if it passes two
+    // independent gates in getOnTriggerData():
+    //   G1  totalContrib > 4.0 * meanNoise   -- attaches hit.simHits to the channel
+    //   G2  readoutCuts(hit)                 -- if this fails the raw hit is dropped
+    //                                           and the relations are never built
+    // G1 sees only the MC contribution, so it cannot depend on the pulser overlay.
+    // G2 is evaluated on the combined waveform, and on a channel carrying a pulser
+    // hit that waveform is real data whose baseline need not agree with the pedestal
+    // that samplesAboveThreshold() subtracts. Every counter below is therefore
+    // indexed [0] = no pulser hit on this channel, [1] = pulser hit on this channel,
+    // so the two populations can be compared directly.
+    // ------------------------------------------------------------------
+    private boolean debug = false;
+    private int debugMaxPrint = 200;
+    private int debugPrinted = 0;
+
+    private long nChannelsSeen = 0;
+    private long nChannelsWithPulser = 0;
+    private long nPulserQueueEmptyNonNull = 0;   // would make poll() return null at L668
+
+    private final long[] nMCStripHits = new long[2];
+    private final long[] nTruthGatePass = new long[2];
+    private final long[] nTruthGateFail = new long[2];
+    private final long[] nSimHitsLostTruthGate = new long[2];
+
+    private final long[] nHitsReadoutPass = new long[2];
+    private final long[] nHitsReadoutFail = new long[2];
+    private final long[] nHitsReadoutFailWithTruth = new long[2];
+    private final long[] nSimHitsLostReadoutCut = new long[2];
+    private final long[] nRelationsWritten = new long[2];
+
+    // totalContrib / meanNoise, binned: <1, 1-2, 2-4, 4-8, 8-16, >=16
+    private final long[][] truthRatioBins = new long[2][6];
+
+    // Mean offset of the pulser waveform from the conditions-DB pedestal, sampled
+    // before any MC contribution is added. A negative value means the overlaid data
+    // sits below the pedestal that the threshold cut subtracts, which eats into the
+    // MC signal's headroom over threshold.
+    private double sumPulserBaselineOffset = 0;
+    private double sumPulserBaselineOffsetSq = 0;
+    private long nPulserBaselineChannels = 0;
+
+    //-------------------------//
+    //--- Hit origin labels ---//
+    //-------------------------//
+
+    /**
+     * Opt-in provenance labelling for the output raw hits.
+     *
+     * The absence of a truth relation on a raw hit is ambiguous: it can mean the
+     * channel carried only overlaid pulser data, or that an MC particle did deposit
+     * charge there but fell below the truth gate G1 and so had its relation dropped.
+     * Those two cases need different fixes, so they are separated here by recording
+     * what actually contributed to each channel, independent of G1.
+     *
+     * Two extra relation collections are written:
+     *
+     *   SVTHitOriginPulser    (RawTrackerHit out) -> (RawTrackerHit pulser source)
+     *   SVTHitOriginMCContrib (RawTrackerHit out) -> (MCParticle depositing charge)
+     *
+     * The MC-contribution relation is written whether or not G1 passed. Combined with
+     * the existing SVTTrueHitRelations this gives a complete category per hit:
+     *
+     *   pulser  mcContrib  truthRel   category
+     *     -         -          -      NOISE                 pedestal and noise only
+     *     -         Y          Y      MC_PURE               MC only, truth kept
+     *     -         Y          -      MC_PURE_SUBTHRESH     MC only, truth lost at G1
+     *     Y         -          -      PULSER_PURE           overlaid data only
+     *     Y         Y          Y      MERGED                MC + data, truth kept
+     *     Y         Y          -      MERGED_SUBTHRESH      MC + data, truth lost at G1
+     *
+     * MERGED_SUBTHRESH is the category that distinguishes a genuine relation-propagation
+     * bug in the merging from tracks simply picking up real pulser hits.
+     *
+     * Off by default: when enabled the MCParticle collection is widened to cover the
+     * sub-threshold contributors, so the production output is only bit-identical with
+     * this disabled.
+     */
+    private boolean writeHitOriginCollections = false;
+    private String hitOriginPulserCollection = "SVTHitOriginPulser";
+    private String hitOriginMCContribCollection = "SVTHitOriginMCContrib";
+
+    private LCIOCollection<LCRelation> hitOriginPulserCollectionParams;
+    private LCIOCollection<LCRelation> hitOriginMCContribCollectionParams;
+
+    private static final int ORIGIN_NOISE             = 0;
+    private static final int ORIGIN_MC_PURE           = 1;
+    private static final int ORIGIN_MC_PURE_SUBTHRESH = 2;
+    private static final int ORIGIN_PULSER_PURE       = 3;
+    private static final int ORIGIN_MERGED            = 4;
+    private static final int ORIGIN_MERGED_SUBTHRESH  = 5;
+    private static final String[] ORIGIN_NAME = {
+        "NOISE            ", "MC_PURE          ", "MC_PURE_SUBTHRESH",
+        "PULSER_PURE      ", "MERGED           ", "MERGED_SUBTHRESH "
+    };
+    private final long[] nHitsByOrigin = new long[6];
+    private final long[] nSimHitsByOrigin = new long[6];
+
     // Collection Names
     private String outputCollection = "SVTRawTrackerHits";
     private String relationCollection = "SVTTrueHitRelations";
-    
+
     private LCIOCollection<RawTrackerHit> trackerHitCollectionParams;
     private LCIOCollection<LCRelation> truthRelationsCollectionParams;
     private LCIOCollection<SimTrackerHit> truthHitsCollectionParams;
@@ -97,6 +198,41 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
      * analog hits, while <code>false</code> uses only contributions
      * from pulses generated from truth data.
      */
+    /**
+     * Enables the truth-relation diagnostics. Counters are accumulated regardless;
+     * this additionally prints per-hit lines for the first {@link #debugMaxPrint}
+     * MC strip hits that lose their truth relation.
+     * @param debug - <code>true</code> to enable diagnostic printout.
+     */
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    /**
+     * Sets how many individual truth-loss records are printed when debug is enabled.
+     * @param debugMaxPrint - Maximum number of per-hit lines.
+     */
+    public void setDebugMaxPrint(int debugMaxPrint) {
+        this.debugMaxPrint = debugMaxPrint;
+    }
+
+    /**
+     * Write the per-hit provenance relation collections described above. Off by
+     * default; enabling it also widens the output MCParticle collection to cover
+     * sub-threshold contributors.
+     */
+    public void setWriteHitOriginCollections(boolean writeHitOriginCollections) {
+        this.writeHitOriginCollections = writeHitOriginCollections;
+    }
+
+    public void setHitOriginPulserCollection(String name) {
+        this.hitOriginPulserCollection = name;
+    }
+
+    public void setHitOriginMCContribCollection(String name) {
+        this.hitOriginMCContribCollection = name;
+    }
+
     public void setAddNoise(boolean addNoise) {
         this.addNoise = addNoise;
     }
@@ -425,6 +561,16 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
         LCIOCollectionFactory.setCollectionName(relationCollection);
         LCIOCollectionFactory.setProductionDriver(this);
         truthRelationsCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
+
+        if(writeHitOriginCollections) {
+            LCIOCollectionFactory.setCollectionName(hitOriginPulserCollection);
+            LCIOCollectionFactory.setProductionDriver(this);
+            hitOriginPulserCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
+
+            LCIOCollectionFactory.setCollectionName(hitOriginMCContribCollection);
+            LCIOCollectionFactory.setProductionDriver(this);
+            hitOriginMCContribCollectionParams = LCIOCollectionFactory.produceLCIOCollection(LCRelation.class);
+        }
         
         LCIOCollectionFactory.setCollectionName("TrackerHits");
         LCIOCollectionFactory.setFlags(0xc0000000);
@@ -637,7 +783,14 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
         // Create a list to hold the analog data
         List<RawTrackerHit> hits = new ArrayList<RawTrackerHit>();
         List<SimTrackerHit> truthHits = new ArrayList<SimTrackerHit>();
-        List<LCRelation> trueHitRelations = new ArrayList<LCRelation>();      
+        List<LCRelation> trueHitRelations = new ArrayList<LCRelation>();
+
+        // Provenance relations, only populated when writeHitOriginCollections is set.
+        List<LCRelation> hitOriginPulserRelations = new ArrayList<LCRelation>();
+        List<LCRelation> hitOriginMCContribRelations = new ArrayList<LCRelation>();
+        // Contributors that failed G1 and so appear in no truth hit. They still need to
+        // reach the output MCParticle collection or the relations above would dangle.
+        Set<MCParticle> extraContribParticles = new java.util.HashSet<MCParticle>();
         // Calculate time of first sample
 
         double firstSample = Math.floor(((triggerTime + 256) - readoutLatency - readoutOffset) / HPSSVTConstants.SAMPLING_INTERVAL)
@@ -662,16 +815,44 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                 // the channel.
                 double[] signal = new double[6];
 
+                nChannelsSeen++;
+                if(pulserHitQueues[channel] != null && pulserHitQueues[channel].isEmpty()) {
+                    // poll() below returns null on an empty queue, so this counts how often
+                    // the != null test at the next line is not sufficient on its own.
+                    nPulserQueueEmptyNonNull++;
+                }
+
                 //do the pulser hit first...if there is a pulser hit, don't add pedestal or noise to mc hit
                 boolean hasPulserHit=false; // flag if this channel has a pulser hit
+                // Kept in scope so the output hit can be related back to the data hit
+                // it was merged with.
+                RawTrackerHit pulserSourceHit = null;
                 if(pulserHitQueues[channel] != null){
                     StripHit ph=pulserHitQueues[channel].poll();
                     RawTrackerHit rth=ph.getRawTrackerHit();
+                    pulserSourceHit = rth;
                     hasPulserHit=true;
                     short[] samples =rth.getADCValues();
                     for(int sampleN = 0; sampleN < 6; sampleN++) {
                         signal[sampleN] = samples[sampleN];
                     }
+                }
+
+                // Index every counter by whether this channel carries pulser data.
+                final int pi = hasPulserHit ? 1 : 0;
+                if(hasPulserHit) {
+                    nChannelsWithPulser++;
+                    // Record where the overlaid data baseline sits relative to the pedestal
+                    // that samplesAboveThreshold() will subtract. Sampled here, before the
+                    // MC contribution is added below.
+                    double offset = 0;
+                    for(int sampleN = 0; sampleN < 6; sampleN++) {
+                        offset += signal[sampleN] - ((HpsSiSensor) sensor).getPedestal(channel, sampleN);
+                    }
+                    offset /= 6;
+                    sumPulserBaselineOffset += offset;
+                    sumPulserBaselineOffsetSq += offset * offset;
+                    nPulserBaselineChannels++;
                 }
 
                 if(!hasPulserHit){
@@ -690,12 +871,16 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                 
                 // Create a list to store truth SVT hits.
                 List<SimTrackerHit> simHits = new ArrayList<SimTrackerHit>();
-                
+                // Every sim hit that deposited charge on this channel, whether or not it
+                // passed G1. simHits above is the G1-surviving subset.
+                List<SimTrackerHit> allContribSimHits = new ArrayList<SimTrackerHit>();
+
                 // If there is data in the mc hit queues, process it.
                 if(hitQueues[channel] != null) {
                     for(StripHit hit : hitQueues[channel]) {
                         processedHits.add(hit);
-                        
+                        allContribSimHits.addAll(hit.simHits);
+
                         // Track the noise and contribution to the
                         // signal from the current hit.
                         double meanNoise = 0;
@@ -727,8 +912,35 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                         // from the hit. If it exceeds a the noise
                         // threshold, store it as a truth hit.
                         //meanNoise /= 6;
+                        // ---- G1 accounting (no behaviour change) ----
+                        nMCStripHits[pi]++;
+                        double truthRatio = (meanNoise > 0) ? (totalContrib / meanNoise) : -1;
+                        if(truthRatio >= 0) {
+                            int b;
+                            if(truthRatio < 1)       { b = 0; }
+                            else if(truthRatio < 2)  { b = 1; }
+                            else if(truthRatio < 4)  { b = 2; }
+                            else if(truthRatio < 8)  { b = 3; }
+                            else if(truthRatio < 16) { b = 4; }
+                            else                     { b = 5; }
+                            truthRatioBins[pi][b]++;
+                        }
+
                         if(totalContrib > 4.0 * meanNoise) {
                             simHits.addAll(hit.simHits);
+                            nTruthGatePass[pi]++;
+                        } else {
+                            nTruthGateFail[pi]++;
+                            nSimHitsLostTruthGate[pi] += hit.simHits.size();
+                            if(debug && debugPrinted < debugMaxPrint) {
+                                debugPrinted++;
+                                System.out.println("[SvtDigiTruth] G1 FAIL  pulser=" + hasPulserHit
+                                        + "  sensor=" + sensor.getName() + " ch=" + channel
+                                        + "  totalContrib=" + totalContrib
+                                        + "  meanNoise=" + meanNoise
+                                        + "  ratio=" + truthRatio
+                                        + "  nSimHits=" + hit.simHits.size());
+                            }
                         }
                     }
                 }
@@ -747,6 +959,7 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                 // Only tracker hits that pass the readout cuts may
                 // be passed through to readout.
                 if(readoutCuts(hit)) {
+                    nHitsReadoutPass[pi]++;
                     // Add the hit to the readout hits collection.
                     hits.add(hit);
                     // Associate the truth hits with the raw hit and
@@ -755,6 +968,64 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
                         LCRelation hitRelation = new BaseLCRelation(hit, simHit);
                         trueHitRelations.add(hitRelation);
                         truthHits.add(simHit);
+                        nRelationsWritten[pi]++;
+                    }
+
+                    // ---- provenance labelling ----
+                    // Classify by what actually contributed charge, independent of G1,
+                    // so that "no truth relation" resolves into a specific cause.
+                    final boolean mcContrib = !allContribSimHits.isEmpty();
+                    final boolean truthKept = !simHits.isEmpty();
+                    final int origin;
+                    if(!mcContrib) {
+                        origin = hasPulserHit ? ORIGIN_PULSER_PURE : ORIGIN_NOISE;
+                    } else if(hasPulserHit) {
+                        origin = truthKept ? ORIGIN_MERGED : ORIGIN_MERGED_SUBTHRESH;
+                    } else {
+                        origin = truthKept ? ORIGIN_MC_PURE : ORIGIN_MC_PURE_SUBTHRESH;
+                    }
+                    nHitsByOrigin[origin]++;
+                    nSimHitsByOrigin[origin] += allContribSimHits.size();
+
+                    if(writeHitOriginCollections) {
+                        if(pulserSourceHit != null) {
+                            hitOriginPulserRelations.add(new BaseLCRelation(hit, pulserSourceHit));
+                        }
+                        // One relation per distinct contributing particle. Duplicates are
+                        // dropped so the collection size counts particles, not sim hits.
+                        Set<MCParticle> seen = new java.util.HashSet<MCParticle>();
+                        for(SimTrackerHit simHit : allContribSimHits) {
+                            MCParticle p = simHit.getMCParticle();
+                            if(p == null || !seen.add(p)) { continue; }
+                            hitOriginMCContribRelations.add(new BaseLCRelation(hit, p));
+                            ReadoutDataManager.addParticleParents(p, extraContribParticles);
+                        }
+                    }
+                } else {
+                    // ---- G2 accounting. Truth attached here is discarded with the hit. ----
+                    nHitsReadoutFail[pi]++;
+                    if(!simHits.isEmpty()) {
+                        nHitsReadoutFailWithTruth[pi]++;
+                        nSimHitsLostReadoutCut[pi] += simHits.size();
+                        if(debug && debugPrinted < debugMaxPrint) {
+                            debugPrinted++;
+                            double baseline = 0;
+                            int nAbove = 0;
+                            for(int sampleN = 0; sampleN < 6; sampleN++) {
+                                double ped = ((HpsSiSensor) sensor).getPedestal(channel, sampleN);
+                                double nse = ((HpsSiSensor) sensor).getNoise(channel, sampleN);
+                                baseline += samples[sampleN] - ped;
+                                if(samples[sampleN] - ped > nse * noiseThreshold) { nAbove++; }
+                            }
+                            baseline /= 6;
+                            System.out.println("[SvtDigiTruth] G2 FAIL  pulser=" + hasPulserHit
+                                    + "  sensor=" + sensor.getName() + " ch=" + channel
+                                    + "  meanSampleMinusPed=" + baseline
+                                    + "  nSamplesAboveThresh=" + nAbove
+                                    + "/" + samplesAboveThreshold
+                                    + "  badChannel=" + !badChannelCut(hit)
+                                    + "  nSimHitsLost=" + simHits.size());
+                        }
                     }
                 }
             }
@@ -776,7 +1047,12 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
         for(SimTrackerHit simHit : truthHits) {
             ReadoutDataManager.addParticleParents(simHit.getMCParticle(), truthParticles);
         }
-        
+        // Sub-threshold contributors are referenced by the provenance relations but have
+        // no truth hit, so they would otherwise be missing from the written collection.
+        if(writeHitOriginCollections) {
+            truthParticles.addAll(extraContribParticles);
+        }
+
         // Create the truth MC particle collection.
         LCIOCollectionFactory.setCollectionName("MCParticle");
         LCIOCollectionFactory.setProductionDriver(this);
@@ -792,17 +1068,97 @@ public class SvtDigitizationWithPulserDataMergingReadoutDriver extends ReadoutDr
         timestampData.getData().add(timestamp);
         
         // Store them in a single collection.
-        Collection<TriggeredLCIOData<?>> eventOutput = new ArrayList<TriggeredLCIOData<?>>(5);
+        Collection<TriggeredLCIOData<?>> eventOutput = new ArrayList<TriggeredLCIOData<?>>(7);
         eventOutput.add(hitCollection);
         eventOutput.add(truthParticleData);
         eventOutput.add(truthHitCollection);
         eventOutput.add(truthRelationCollection);
         eventOutput.add(timestampData);
-        
+
+        if(writeHitOriginCollections) {
+            TriggeredLCIOData<LCRelation> originPulserData =
+                    new TriggeredLCIOData<LCRelation>(hitOriginPulserCollectionParams);
+            originPulserData.getData().addAll(hitOriginPulserRelations);
+            eventOutput.add(originPulserData);
+
+            TriggeredLCIOData<LCRelation> originMCContribData =
+                    new TriggeredLCIOData<LCRelation>(hitOriginMCContribCollectionParams);
+            originMCContribData.getData().addAll(hitOriginMCContribRelations);
+            eventOutput.add(originMCContribData);
+        }
+
         // Return the event output.
         return eventOutput;
     }
     
+    @Override
+    public void endOfData() {
+        String[] tag = { "no-pulser", "pulser   " };
+        System.out.println();
+        System.out.println("================ SvtDigitization truth-relation summary ================");
+        System.out.println("  channels processed        : " + nChannelsSeen);
+        System.out.println("  channels with pulser hit  : " + nChannelsWithPulser
+                + fraction(nChannelsWithPulser, nChannelsSeen));
+        System.out.println("  pulser queues non-null but empty (poll() -> null) : " + nPulserQueueEmptyNonNull);
+        if(nPulserBaselineChannels > 0) {
+            double mean = sumPulserBaselineOffset / nPulserBaselineChannels;
+            double var = sumPulserBaselineOffsetSq / nPulserBaselineChannels - mean * mean;
+            System.out.println("  pulser baseline - DB pedestal [ADC] : mean=" + mean
+                    + "  rms=" + (var > 0 ? Math.sqrt(var) : 0.0)
+                    + "   (negative eats MC headroom over threshold)");
+        }
+        System.out.println();
+        System.out.println("  G1 = truth gate (totalContrib > 4*meanNoise)");
+        System.out.println("  G2 = readoutCuts on the combined waveform");
+        for(int pi = 0; pi < 2; pi++) {
+            System.out.println("  ---- " + tag[pi] + " ----");
+            System.out.println("    MC strip hits            : " + nMCStripHits[pi]);
+            System.out.println("    G1 pass / fail           : " + nTruthGatePass[pi] + " / " + nTruthGateFail[pi]
+                    + fraction(nTruthGateFail[pi], nMCStripHits[pi]) + " fail");
+            System.out.println("    sim hits lost at G1      : " + nSimHitsLostTruthGate[pi]);
+            System.out.println("    raw hits G2 pass / fail  : " + nHitsReadoutPass[pi] + " / " + nHitsReadoutFail[pi]);
+            System.out.println("    G2 failures carrying truth : " + nHitsReadoutFailWithTruth[pi]);
+            System.out.println("    sim hits lost at G2      : " + nSimHitsLostReadoutCut[pi]);
+            System.out.println("    relations written        : " + nRelationsWritten[pi]);
+            long lost = nSimHitsLostTruthGate[pi] + nSimHitsLostReadoutCut[pi];
+            System.out.println("    total sim hits lost      : " + lost
+                    + fraction(lost, lost + nRelationsWritten[pi]));
+            StringBuilder sb = new StringBuilder("    totalContrib/meanNoise   : ");
+            String[] edges = { "<1", "1-2", "2-4", "4-8", "8-16", ">=16" };
+            for(int b = 0; b < 6; b++) {
+                sb.append(edges[b]).append("=").append(truthRatioBins[pi][b]).append("  ");
+            }
+            System.out.println(sb.toString());
+        }
+        System.out.println();
+        System.out.println("  ---- provenance of the raw hits that reached readout ----");
+        long totOrigin = 0;
+        for(int o = 0; o < nHitsByOrigin.length; o++) { totOrigin += nHitsByOrigin[o]; }
+        for(int o = 0; o < nHitsByOrigin.length; o++) {
+            System.out.println("    " + ORIGIN_NAME[o] + " : " + nHitsByOrigin[o]
+                    + fraction(nHitsByOrigin[o], totOrigin)
+                    + "   contributing sim hits = " + nSimHitsByOrigin[o]);
+        }
+        long untruthed = nHitsByOrigin[ORIGIN_NOISE] + nHitsByOrigin[ORIGIN_PULSER_PURE]
+                + nHitsByOrigin[ORIGIN_MC_PURE_SUBTHRESH] + nHitsByOrigin[ORIGIN_MERGED_SUBTHRESH];
+        long mcLostTruth = nHitsByOrigin[ORIGIN_MC_PURE_SUBTHRESH] + nHitsByOrigin[ORIGIN_MERGED_SUBTHRESH];
+        System.out.println("    hits with no truth relation : " + untruthed
+                + fraction(untruthed, totOrigin));
+        System.out.println("      of which MC did contribute : " + mcLostTruth
+                + fraction(mcLostTruth, untruthed)
+                + "   <- relation lost, not absent");
+        System.out.println("    origin collections written  : " + writeHitOriginCollections);
+        System.out.println("=======================================================================");
+        System.out.println();
+        super.endOfData();
+    }
+
+    /** Formats a count as a parenthesised fraction of a total, or "" if the total is zero. */
+    private static String fraction(long num, long den) {
+        if(den <= 0) { return ""; }
+        return String.format("  (%.4f)", (double) num / den);
+    }
+
     /**
      * Class <code>StripHit</code> is responsible for storing several
      * parameters defining a simulated hit object.
