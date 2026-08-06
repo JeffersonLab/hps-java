@@ -72,6 +72,8 @@ public class KalmanPatRecDriver extends Driver {
     private double maxPtInverse;       // Maximum value of 1/pt for the seed and the final track
     private double maxD0;              // Maximum dRho (or D0) at the target plane for a seed and the final track
     private double maxZ0;              // Maximum dz (or Z0) at the target plane for a seed and the final track
+    private double edgeTolerance = -1.0;      // Tolerance on the seed detector-bounds check; <0 (default) keeps the KalmanParams default (1 mm); 0 enforces zero tolerance
+    private int debugEvent = -1;       // Event to trace seed-by-seed in KalmanPatRecHPS; -1 = none
     private double maxChi2;            // Maximum Kalman chi^2 per hit for a track candidate
     // private int minHits;               // Minimum number of hits on a track
     private int minHitsTopIter1;               // Minimum number of hits on a track--top, first iteration
@@ -80,8 +82,20 @@ public class KalmanPatRecDriver extends Driver {
     private int minHitsBotIter2;               // Minimum number of hits on a track--bottom, second iteration
     private int minStereo;             // Minimum number of stereo hits on a track
     private int maxSharedHits;         // Maximum number of hits on a track that are shared with another track
-    private double maxTimeRange;       // Maximum time range in ns spanned by all the hits on a track
+    private double maxTimeRange;       // Maximum time range in ns spanned by all the hits on a track (both iterations)
+    private double maxTimeRangeIter1;  // Iteration-1 override of the maximum hit time range [ns]
+    private double maxTimeRangeIter2;  // Iteration-2 override of the maximum hit time range [ns]
+    private double seedTimeSpreadIter1;   // Iter-1 seed max time spread [ns] (0 = use mxTdif)
+    private double seedTimeSpreadIter2;   // Iter-2 seed max time spread [ns]
+    private double hitTimeWindowIter1;    // Iter-1 hit time window vs running mean [ns] (0 = legacy envelope)
+    private double hitTimeWindowIter2;    // Iter-2 hit time window vs running mean [ns]
+    private double maxTotalSpreadIter1;   // Iter-1 max total track time spread [ns] (0 = disabled)
+    private double maxTotalSpreadIter2;   // Iter-2 max total track time spread [ns]
     private double maxTanLambda;       // Maximum tan(lambda) for a track seed
+    private double maxPtInverseIter1;  // Iteration-1 maximum value of 1/pt for a seed (default 4.0 if not set)
+    private double maxD0Iter1;         // Iteration-1 maximum dRho at the target plane for a seed (default 15 mm if not set)
+    private double maxZ0Iter1;         // Iteration-1 maximum dz at the target plane for a seed (default 3 mm if not set)
+    private double maxTanLambdaIter1;  // Iteration-1 maximum tan(lambda) for a track seed (default 0.104 if not set)
     private double maxResidual;        // Maximum residual in units of SSD resolution to add a hit to a track candidate
     private double maxChi2Inc;         // Maximum increment in chi^2 to add a hit to an already completed track
     private double minChi2IncBad;      // Minimum increment in chi^2 to remove a hit from an already completed track
@@ -223,6 +237,8 @@ public class KalmanPatRecDriver extends Driver {
         if (maxD0 != 0.0) kPar.setMaxdRho(maxD0);
         if (maxZ0 != 0.0) kPar.setMaxdZ(maxZ0);
         if (maxChi2 != 0.0) kPar.setMaxChi2(maxChi2);
+        if (edgeTolerance >= 0.0) kPar.setEdgeTolerance(edgeTolerance);
+        kPar.setDebugEvent(debugEvent);
 	//        if (minHits != 0) kPar.setMinHits(minHits);
         if (minHitsTopIter1 != 0) kPar.setMinHitsTopIter1(minHitsTopIter1);
         if (minHitsTopIter2 != 0) kPar.setMinHitsTopIter2(minHitsTopIter2);
@@ -232,6 +248,22 @@ public class KalmanPatRecDriver extends Driver {
         if (maxSharedHits != 0) kPar.setMaxShared(maxSharedHits);
         if (maxTimeRange != 0.0) kPar.setMaxTimeRange(maxTimeRange);
         if (maxTanLambda != 0.0) kPar.setMaxTanL(maxTanLambda);
+        // Iteration-1 seed-cut overrides. These must come AFTER the tier-2 setters above,
+        // because setMaxK/setMaxdRho/setMaxdZ/setMaxTanL clamp the iteration-1 tier downward.
+        if (maxPtInverseIter1 != 0.0) kPar.setMaxKIter1(maxPtInverseIter1);
+        if (maxD0Iter1 != 0.0) kPar.setMaxdRhoIter1(maxD0Iter1);
+        if (maxZ0Iter1 != 0.0) kPar.setMaxdZIter1(maxZ0Iter1);
+        if (maxTanLambdaIter1 != 0.0) kPar.setMaxTanLIter1(maxTanLambdaIter1);
+        // Per-iteration hit time-range overrides. Must come AFTER setMaxTimeRange above,
+        // which sets BOTH iterations; these then override a single tier.
+        if (maxTimeRangeIter1 != 0.0) kPar.setMaxTimeRangeIter1(maxTimeRangeIter1);
+        if (maxTimeRangeIter2 != 0.0) kPar.setMaxTimeRangeIter2(maxTimeRangeIter2);
+        if (seedTimeSpreadIter1 != 0.0) kPar.setSeedTimeSpreadIter1(seedTimeSpreadIter1);
+        if (seedTimeSpreadIter2 != 0.0) kPar.setSeedTimeSpreadIter2(seedTimeSpreadIter2);
+        if (hitTimeWindowIter1 != 0.0) kPar.setHitTimeWindowIter1(hitTimeWindowIter1);
+        if (hitTimeWindowIter2 != 0.0) kPar.setHitTimeWindowIter2(hitTimeWindowIter2);
+        if (maxTotalSpreadIter1 != 0.0) kPar.setMaxTotalSpreadIter1(maxTotalSpreadIter1);
+        if (maxTotalSpreadIter2 != 0.0) kPar.setMaxTotalSpreadIter2(maxTotalSpreadIter2);
         if (maxResidual != 0.0) kPar.setMxResid(maxResidual);
         if (maxChi2Inc != 0.0) kPar.setMxChi2Inc(maxChi2Inc);
         if (minChi2IncBad != 0.0) kPar.setMinChi2IncBad(minChi2IncBad);
@@ -633,6 +665,18 @@ public class KalmanPatRecDriver extends Driver {
     public void setMaxChi2(double maxChi2) {
         this.maxChi2 = maxChi2;
     }
+    /**
+     * Tolerance in mm on the seed-acceptance check that the extrapolated helix lands
+     * inside a seed layer's active area. Set very large to disable the check and let
+     * chi2 decide instead. Default 1 mm, as before.
+     */
+    public void setEdgeTolerance(double edgeTolerance) {
+        this.edgeTolerance = edgeTolerance;
+    }
+    /** Event number to trace seed-by-seed in KalmanPatRecHPS; -1 (default) traces none. */
+    public void setDebugEvent(int debugEvent) {
+        this.debugEvent = debugEvent;
+    }
     // public void setMinHits(int minHits) {
     //     this.minHits = minHits;
     // }
@@ -659,8 +703,32 @@ public class KalmanPatRecDriver extends Driver {
     public void setMaxTimeRange(double maxTimeRange) {
         this.maxTimeRange = maxTimeRange;
     }
+    public void setMaxTimeRangeIter1(double maxTimeRangeIter1) {
+        this.maxTimeRangeIter1 = maxTimeRangeIter1;
+    }
+    public void setMaxTimeRangeIter2(double maxTimeRangeIter2) {
+        this.maxTimeRangeIter2 = maxTimeRangeIter2;
+    }
+    public void setSeedTimeSpreadIter1(double v) { this.seedTimeSpreadIter1 = v; }
+    public void setSeedTimeSpreadIter2(double v) { this.seedTimeSpreadIter2 = v; }
+    public void setHitTimeWindowIter1(double v) { this.hitTimeWindowIter1 = v; }
+    public void setHitTimeWindowIter2(double v) { this.hitTimeWindowIter2 = v; }
+    public void setMaxTotalSpreadIter1(double v) { this.maxTotalSpreadIter1 = v; }
+    public void setMaxTotalSpreadIter2(double v) { this.maxTotalSpreadIter2 = v; }
     public void setMaxTanLambda(double maxTanLambda) {
         this.maxTanLambda = maxTanLambda;
+    }
+    public void setMaxPtInverseIter1(double maxPtInverseIter1) {
+        this.maxPtInverseIter1 = maxPtInverseIter1;
+    }
+    public void setMaxD0Iter1(double maxD0Iter1) {
+        this.maxD0Iter1 = maxD0Iter1;
+    }
+    public void setMaxZ0Iter1(double maxZ0Iter1) {
+        this.maxZ0Iter1 = maxZ0Iter1;
+    }
+    public void setMaxTanLambdaIter1(double maxTanLambdaIter1) {
+        this.maxTanLambdaIter1 = maxTanLambdaIter1;
     }
     public void setMaxResidual(double maxResidual) {
         this.maxResidual = maxResidual;

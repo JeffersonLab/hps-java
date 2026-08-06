@@ -46,7 +46,13 @@ class KalmanPatRecHPS {
     private ArrayList<Double> XLscat;
 
     private int eventNumber;
-    private static final boolean debug = false;
+    /**
+     * Seed-by-seed tracing. Was a compile-time constant, so none of it could be reached
+     * without editing and rebuilding; it is now armed per event from
+     * KalmanParams.debugEvent (default -1, i.e. off), which restores the intent of the
+     * commented-out line below without costing anything when it is not in use.
+     */
+    private boolean debug = false;
     private int nModules;
     private KalmanParams kPar;
     private Logger logger;
@@ -101,9 +107,9 @@ class KalmanPatRecHPS {
     ArrayList<KalTrack> kalmanPatRec(EventHeader event, Map<Measurement, TrackerHit> hitMapHPS, ArrayList<SiModule> data, int topBottom) {
         // topBottom = 0 for the bottom tracker (z>0); 1 for the top tracker (z<0)
         
-        if (event != null) eventNumber = event.getEventNumber();      
+        if (event != null) eventNumber = event.getEventNumber();
         else eventNumber++;
-        //debug = (eventNumber == 16276);
+        debug = (kPar.debugEvent != -1 && eventNumber == kPar.debugEvent);
 
         if (debug) startTime = System.nanoTime();
         int nCandHits = 0;        
@@ -292,7 +298,8 @@ class KalmanPatRecHPS {
                                         tmin = Math.min(tmin, ht.hit.time);
                                         tmax = Math.max(tmax, ht.hit.time);
                                     }
-                                    if (tmax - tmin > kPar.mxTdif) {
+                                    double seedSpreadMax = (kPar.seedTimeSpread[trial] > 0.) ? kPar.seedTimeSpread[trial] : kPar.mxTdif[trial];
+                                    if (tmax - tmin > seedSpreadMax) {
                                         if (debug) {
                                             System.out.format("KalmanPatRecHPS: skipping seed %d %d %d %d %d with tdif=%8.2f\n Hits:  ", 
                                                     idx[0], idx[1], idx[2], idx[3], idx[4], tmax-tmin);
@@ -692,7 +699,7 @@ class KalmanPatRecHPS {
                     // Check if the track can be improved by removing hits
                     if (removeBadHits(candidateTrack, minHits1, trial)) {
                         if (debug) System.out.format("KalmanPatRecHPS: Refit candidate track %d after removing a hit.\n", candidateTrack.ID);
-                        if (candidateTrack.reFit()) {
+                        if (candidateTrack.reFit(trial)) {
                             if (debug) candidateTrack.print("after refitting and smoothing", false);
                         } else {
                             candidateTrack.good = false;
@@ -912,7 +919,7 @@ class KalmanPatRecHPS {
                                         if (!MatrixFeatures_DDRM.hasNaN(aS0.helix.C)) {
                                             Collections.sort(tkr.sites, MeasurementSite.SiteComparatorUp); // Occasionally necessary
                                             if (tkr.sites.get(0).aS == null) {
-                                                if (tkr.reFit()) {
+                                                if (tkr.reFit(trial)) {
                                                     tkr.good = true;
                                                     if (debug) {
                                                         System.out.format("KalmanPatRecHPS event %d: resurrecting refit candidate %d with chi2=%9.5f\n", 
@@ -1138,7 +1145,7 @@ class KalmanPatRecHPS {
                                 }
                                 if (site.chi2inc > kPar.mxChi2double) {
                                     if (!site.smoothed) logger.log(Level.WARNING,String.format("OOPS, why isn't this site smoothed at layer %d?",site.m.Layer));
-                                    if (tkr.removeHit(site, kPar.mxChi2Inc, kPar.mxTdif)) {
+                                    if (tkr.removeHit(site, kPar.mxChi2Inc, Math.max(kPar.mxTdif[0], kPar.mxTdif[1]))) {
                                         if (debug) {
                                             System.out.format("KalmanPatRecHPS: added a hit after removing one for Track %d, Layer %d\n",tkr.ID, module.Layer);
                                         }
@@ -1167,7 +1174,7 @@ class KalmanPatRecHPS {
             }
             
             // Try to add hits on layers with missing hits
-            int nAdded = tkr.addHits(data, kPar.mxResid[1], kPar.mxChi2Inc, kPar.mxTdif, debug);
+            int nAdded = tkr.addHits(data, kPar.mxResid[1], kPar.mxChi2Inc, Math.max(kPar.mxTdif[0], kPar.mxTdif[1]), debug);
             
             // check that there are enough hits in both views
             int nStereo = 0;
@@ -1538,7 +1545,17 @@ class KalmanPatRecHPS {
                 }
                 newSite = new MeasurementSite(lyr, m, kPar);
                 int rF;
-                double [] tRange = {tkrCandidate.tMax - kPar.mxTdif, tkrCandidate.tMin + kPar.mxTdif}; 
+                double [] tRange;
+                if (kPar.hitTimeWindow[trial] > 0.) {  // window vs running mean of accepted hits, with total-spread backstop
+                    double tWin = kPar.hitTimeWindow[trial];
+                    double tSpreadMax = (kPar.maxTotalSpread[trial] > 0.) ? kPar.maxTotalSpread[trial] : 1.e10;
+                    double tSum = 0.; int nT = 0;
+                    for (KalHit htm : tkrCandidate.hits) { tSum += htm.hit.time; nT++; }
+                    double tMean = (nT > 0) ? tSum/nT : 0.5*(tkrCandidate.tMin + tkrCandidate.tMax);
+                    tRange = new double[]{Math.max(tMean - tWin, tkrCandidate.tMax - tSpreadMax), Math.min(tMean + tWin, tkrCandidate.tMin + tSpreadMax)};
+                } else {
+                    tRange = new double[]{tkrCandidate.tMax - kPar.mxTdif[trial], tkrCandidate.tMin + kPar.mxTdif[trial]};
+                }
                 if (prevSite == null) { // For first layer use the initializer state vector               
                     boolean checkBounds = imod < moduleList.get(lyr).size() - 1;  // Note: boundary check is not made on last module of the layer
                     rF = newSite.makePrediction(sI, null, hitno, tkrCandidate.nTaken <= kPar.mxShared, pickUp, checkBounds, tRange, trial);
