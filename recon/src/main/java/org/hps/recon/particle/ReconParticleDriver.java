@@ -286,6 +286,16 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
+     * Sets the beam size sigma in the z-direction.
+     *
+     * @param sigmaZ - The standard deviation of the beam width in the
+     * z-direction (beam/target longitudinal spread).
+     */
+    public void setBeamSigmaZ(double sigmaZ) {
+        beamSize[0] = sigmaZ; // The beamsize array is in the tracking frame HPS Z => TRACK X
+    }
+
+    /**
      * Sets the beam position in the z-direction in mm.
      *
      * @param Z - The position of the beam in the y-direction in mm.
