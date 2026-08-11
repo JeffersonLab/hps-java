@@ -31,7 +31,10 @@ public class KalmanParams {
     int mxShared; 
     int [] minStereo;
     int minAxial;
-    double mxTdif;
+    double[] mxTdif;   // Maximum hit time-range [ns], per iteration (index 0 = iter1, 1 = iter2)
+    double[] seedTimeSpread;  // Max (tmax-tmin) [ns] among the 5 seed hits, per iteration (0 = use mxTdif)
+    double[] hitTimeWindow;   // Max |t_hit - running mean| [ns] to pick up a hit in extension, per iteration (0 = legacy envelope)
+    double[] maxTotalSpread;  // Backstop: max (tMax-tMin) [ns] over all hits on a track, per iteration (0 = disabled)
     double lowPhThresh;
     double seedCompThr;           // Compatibility threshold for seedTracks helix parameters;
     ArrayList<int[]> [] lyrList;
@@ -39,6 +42,7 @@ public class KalmanParams {
     double [] vtxSize;
     double [] minSeedE;
     double edgeTolerance;
+    int debugEvent = -1;        // event number to trace in KalmanPatRecHPS, -1 = none
     static final int numLayers = 14;
     
     private int[] Swap = {1,0, 3,2, 5,4, 7,6, 9,8, 11,10, 13,12};
@@ -78,7 +82,10 @@ public class KalmanParams {
         System.out.format("  Maximum residual, in units of detector resolution, for a hit to be shared: %8.2f\n", mxResidShare);
         System.out.format("  Maximum chi^2 increment to keep a shared hit: %8.2f\n", mxChi2double);
         System.out.format("  Maximum number of shared hits on a track: %d\n",  mxShared);
-        System.out.format("  Maximum time difference among the hits on a track: %8.2f ns\n", mxTdif);
+        System.out.format("  Maximum time difference among the hits on a track (iter1, iter2): %8.2f, %8.2f ns\n", mxTdif[0], mxTdif[1]);
+        System.out.format("  Seed max time spread (iter1, iter2; 0=use mxTdif): %8.2f, %8.2f ns\n", seedTimeSpread[0], seedTimeSpread[1]);
+        System.out.format("  Hit time window vs running mean (iter1, iter2; 0=legacy): %8.2f, %8.2f ns\n", hitTimeWindow[0], hitTimeWindow[1]);
+        System.out.format("  Max total track time spread (iter1, iter2; 0=off): %8.2f, %8.2f ns\n", maxTotalSpread[0], maxTotalSpread[1]);
         System.out.format("  Threshold to remove redundant seeds (-1 to disable): %8.2f\n", seedCompThr);
         System.out.format("  Maximum chi^2 for 5-hit tracks with a vertex constraint: %8.2f\n", mxChi2Vtx);
         System.out.format("  Default origin to use for vertex constraints:\n");
@@ -117,6 +124,10 @@ public class KalmanParams {
         minHitsBot = new int[mxTrials];
         mxResid = new double[mxTrials];
         minStereo = new int[mxTrials];  
+        mxTdif = new double[mxTrials];
+        seedTimeSpread = new double[mxTrials];
+        hitTimeWindow = new double[mxTrials];
+        maxTotalSpread = new double[mxTrials];
         
         minSeedE = new double[numLayers];
         for (int lyr=0; lyr<numLayers; ++lyr) {
@@ -159,7 +170,11 @@ public class KalmanParams {
         minStereo[1] = 3;   // Minimum number of stereo hits
         minAxial = 2;       // Minimum number of axial hits
         mxShared = 2;       // Maximum number of shared hits
-        mxTdif = 30.;       // Maximum time difference of hits in a track
+        mxTdif[0] = 30.;    // Maximum time difference of hits in a track, iteration 1
+        mxTdif[1] = 30.;    // Maximum time difference of hits in a track, iteration 2
+        seedTimeSpread[0] = 0.;  seedTimeSpread[1] = 0.;  // 0 = use mxTdif for the seed spread gate
+        hitTimeWindow[0]  = 0.;  hitTimeWindow[1]  = 0.;  // 0 = use the legacy tMin/tMax envelope for pickup
+        maxTotalSpread[0] = 0.;  maxTotalSpread[1] = 0.;  // 0 = no total-spread backstop
         firstLayer = 0;     // First layer in the tracking system (2 for pre-2019 data)
         lowPhThresh = 0.25; // Residual improvement ratio necessary to use a low-ph hit instead of high-ph
         seedCompThr = 0.05;  // Remove SeedTracks with all Helix params within relative seedCompThr . If -1 do not apply duplicate removal
@@ -318,6 +333,15 @@ public class KalmanParams {
         }
         kMin = kMn;
     }
+
+    public void setMaxKIter1(double kMx) {
+        if (kMx <= 0.) {
+            logger.log(Level.WARNING,String.format("Max iteration-1 1/pt of %8.2f not allowed.", kMx));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the iteration-1 maximum 1/pt to %8.2f.", kMx));
+        kMax[0] = kMx;
+    }
     
     public void setMxResid(double mxR) {
         if (mxR <= 1.) {
@@ -358,7 +382,58 @@ public class KalmanParams {
         dzMax[1] = zMx;
         dzMax[0] = Math.min(dzMax[0], 0.4*zMx);
     }
-    
+
+    public void setMaxTanLIter1(double tlMx) {
+        if (tlMx <= 0.) {
+            logger.log(Level.WARNING,String.format("Max iteration-1 seed tan(lambda) of %8.2f not allowed.", tlMx));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the iteration-1 maximum seed tan(lambda) to %8.2f.", tlMx));
+        tanlMax[0] = tlMx;
+    }
+
+    public void setMaxdRhoIter1(double dMx) {
+        if (dMx <= 0.0) {
+            logger.log(Level.WARNING,String.format("Max iteration-1 dRho of %8.2f not allowed.", dMx));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the iteration-1 maximum dRho to %8.2f mm.", dMx));
+        dRhoMax[0] = dMx;
+    }
+
+    public void setMaxdZIter1(double zMx) {
+        if (zMx <= 0.0) {
+            logger.log(Level.WARNING,String.format("Max iteration-1 dZ of %8.2f not allowed.", zMx));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the iteration-1 maximum dz to %8.2f mm.", zMx));
+        dzMax[0] = zMx;
+    }
+
+    /**
+     * Tolerance, in mm, on the check that a seed's extrapolated helix lands inside the
+     * sensor bounds (KalmanPatRecHPS, "check seed hit layer boundaries"). Failing it
+     * discards the whole seed, so for tracks running near the sensor edge -- low
+     * tan(lambda), close to the beam plane -- this is an acceptance cut rather than a
+     * quality cut. Exposed so it can be scanned; the default of 1 mm is unchanged.
+     */
+    public void setEdgeTolerance(double tol) {
+        if (tol < 0.) {
+            logger.log(Level.WARNING,String.format("Edge tolerance of %8.3f not allowed.", tol));
+            return;
+        }
+        logger.log(Level.CONFIG,String.format("Setting the detector edge tolerance to %8.3f mm.", tol));
+        edgeTolerance = tol;
+    }
+
+    /**
+     * Event number to dump KalmanPatRecHPS's seed-by-seed tracing for, or -1 for none.
+     * The tracing is far too verbose to enable for a whole run.
+     */
+    public void setDebugEvent(int evt) {
+        debugEvent = evt;
+    }
+
     public void setMaxChi2(double xMx) {
         if (xMx <= 0.) {
             logger.log(Level.WARNING,String.format("Max chi2 of %8.2f not allowed.", xMx));
@@ -456,9 +531,45 @@ public class KalmanParams {
         mxShared = mxSh;
     }
     
-    public void setMaxTimeRange(double mxT) {
-        logger.log(Level.CONFIG,String.format("Setting the maximum time range for hits on a track to %8.2f ns.", mxT));
-        mxTdif = mxT;
+    public void setMaxTimeRange(double mxT) {   // Sets BOTH iterations (backward compatible)
+        logger.log(Level.CONFIG,String.format("Setting the maximum time range for hits on a track to %8.2f ns (both iterations).", mxT));
+        mxTdif[0] = mxT;
+        mxTdif[1] = mxT;
+    }
+
+    public void setMaxTimeRangeIter1(double mxT) {
+        logger.log(Level.CONFIG,String.format("Setting the iteration-1 maximum time range for hits on a track to %8.2f ns.", mxT));
+        mxTdif[0] = mxT;
+    }
+
+    public void setMaxTimeRangeIter2(double mxT) {
+        logger.log(Level.CONFIG,String.format("Setting the iteration-2 maximum time range for hits on a track to %8.2f ns.", mxT));
+        mxTdif[1] = mxT;
+    }
+
+    public void setSeedTimeSpreadIter1(double v) {
+        logger.log(Level.CONFIG,String.format("Setting iteration-1 seed max time spread to %8.2f ns.", v));
+        seedTimeSpread[0] = v;
+    }
+    public void setSeedTimeSpreadIter2(double v) {
+        logger.log(Level.CONFIG,String.format("Setting iteration-2 seed max time spread to %8.2f ns.", v));
+        seedTimeSpread[1] = v;
+    }
+    public void setHitTimeWindowIter1(double v) {
+        logger.log(Level.CONFIG,String.format("Setting iteration-1 hit time window (vs running mean) to %8.2f ns.", v));
+        hitTimeWindow[0] = v;
+    }
+    public void setHitTimeWindowIter2(double v) {
+        logger.log(Level.CONFIG,String.format("Setting iteration-2 hit time window (vs running mean) to %8.2f ns.", v));
+        hitTimeWindow[1] = v;
+    }
+    public void setMaxTotalSpreadIter1(double v) {
+        logger.log(Level.CONFIG,String.format("Setting iteration-1 max total track time spread to %8.2f ns.", v));
+        maxTotalSpread[0] = v;
+    }
+    public void setMaxTotalSpreadIter2(double v) {
+        logger.log(Level.CONFIG,String.format("Setting iteration-2 max total track time spread to %8.2f ns.", v));
+        maxTotalSpread[1] = v;
     }
 
     public void setSeedCompThr(double seedComp_Thr) {      

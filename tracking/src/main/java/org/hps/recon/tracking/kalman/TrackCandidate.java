@@ -218,7 +218,7 @@ class TrackCandidate {
         if (nstr < 3 || nax < 2) good = false;
     }
     
-    boolean reFit() {
+    boolean reFit(int trial) {   // trial only selects the per-iteration time window; residual cuts unchanged
         final boolean verbose = false;
         if (verbose) System.out.format("TrackCandidate.reFit: starting filtering for event %d.\n",eventNumber);
 
@@ -262,7 +262,17 @@ class TrackCandidate {
     
                 boolean allowSharing = nTaken < kPar.mxShared;
                 boolean checkBounds = false;
-                double [] tRange = {tMax - kPar.mxTdif, tMin + kPar.mxTdif}; 
+                double [] tRange;
+                if (kPar.hitTimeWindow[trial] > 0.) {
+                    double tWin = kPar.hitTimeWindow[trial];
+                    double tSpreadMax = (kPar.maxTotalSpread[trial] > 0.) ? kPar.maxTotalSpread[trial] : 1.e10;
+                    double tSum = 0.; int nT = 0;
+                    for (KalHit htm : hits) { tSum += htm.hit.time; nT++; }
+                    double tMean = (nT > 0) ? tSum/nT : 0.5*(tMin + tMax);
+                    tRange = new double[]{Math.max(tMean - tWin, tMax - tSpreadMax), Math.min(tMean + tWin, tMin + tSpreadMax)};
+                } else {
+                    tRange = new double[]{tMax - kPar.mxTdif[trial], tMin + kPar.mxTdif[trial]};
+                }
                 int rF = currentSite.makePrediction(sH, prevMod, currentSite.hitID, allowSharing, pickupHits, checkBounds, tRange, 0);
                 if (rF < 0) {
                     if (verbose) System.out.format("TrackCandidate.reFit: failed to make prediction at layer %d for event %d!\n",currentSite.m.Layer,eventNumber);
