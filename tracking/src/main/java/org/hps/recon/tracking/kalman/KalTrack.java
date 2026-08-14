@@ -542,20 +542,24 @@ public class KalTrack {
             double vertPos=sensor.p.X().v[2];
             double l2gv2z=sensor.R.M[1][2];
             int awayFromBeam = (int)Math.signum(vertPos*l2gv2z);
-            //sort the hits on the module by increasing v
-            Collections.sort(allHits,Measurement.MeasurementComparatorUp);
+            // Sort a private copy by increasing v. sensor.hits is shared by every
+            // track that has a hit on this module (hitID indices into it are frozen
+            // at pattern recognition time), so it must never be sorted in place here.
+            List<Measurement> sortedHits=new ArrayList<Measurement>(allHits);
+            Collections.sort(sortedHits,Measurement.MeasurementComparatorUp);
+            int hitIdx=sortedHits.indexOf(hitOnTrack);
             // now get the position of nearest hit _away_ from beam
             // within 40ns of original hit
-            int nSteps=1; 
-            int isoID=ms.hitID+awayFromBeam*nSteps;            
-            while(isoID<allHits.size() && isoID>-1){
-                if(Math.abs(allHits.get(isoID).time-hitTime)<40.0){
-                    iso=Math.abs(allHits.get(isoID).v-hitOnTrack.v); 
-                    isot0=allHits.get(isoID).time;
-                    break; 
+            int nSteps=1;
+            int isoID=hitIdx+awayFromBeam*nSteps;
+            while(isoID<sortedHits.size() && isoID>-1){
+                if(Math.abs(sortedHits.get(isoID).time-hitTime)<40.0){
+                    iso=Math.abs(sortedHits.get(isoID).v-hitOnTrack.v);
+                    isot0=sortedHits.get(isoID).time;
+                    break;
                 }//otherwise step to the next one
                 nSteps++;
-                isoID=ms.hitID+awayFromBeam*nSteps;  
+                isoID=hitIdx+awayFromBeam*nSteps;
             }
             return new Pair<Double, Double>(iso, isot0);
         }else{
