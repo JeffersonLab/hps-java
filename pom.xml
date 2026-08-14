@@ -4,7 +4,7 @@
   <artifactId>hps-java</artifactId>
   <groupId>org.hps</groupId>
   <packaging>pom</packaging>
-  <version>5.3.0</version>
+  <version>5.3.1-SNAPSHOT</version>
   <name>HPS Java</name>
   <description>HPS Java Maven Project</description>
   <url>https://jeffersonlab.github.io/hps-java/</url>
