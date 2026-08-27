@@ -384,7 +384,7 @@
       <dependency>
         <groupId>org.freehep</groupId>
         <artifactId>freehep-jaida-remote</artifactId>
-        <version>3.4.13</version>
+        <version>3.5.0</version>
         <exclusions>
           <exclusion>
             <groupId>jdom</groupId>
