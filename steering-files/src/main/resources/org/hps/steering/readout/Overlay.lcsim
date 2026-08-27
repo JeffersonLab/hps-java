@@ -8,6 +8,7 @@
         <driver name="OverlayDriver" type="org.hps.digi.DataOverlayDriver">
             <!-- overlay file -->
             <inputFile>${overlayFile}.slcio</inputFile>
+            <!-- <year>2016</year> -->
         </driver>
         <driver name="OutputDriver" type="org.lcsim.util.loop.LCIODriver">
             <!-- output file will contain MC collections from signal and data collections from background -->
