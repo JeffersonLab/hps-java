@@ -10,19 +10,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.vertexing.CascadeVertexer;
+import org.hps.recon.vertexing.ThreeTrackVertexer;
 import org.hps.record.StandardCuts;
 
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.utils.TrackClusterMatcherFactory;
 
+import org.hps.recon.tracking.TrackStateUtils;
+
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.LCRelation;
+import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.base.BaseReconstructedParticle;
@@ -54,6 +62,7 @@ public abstract class ReconParticleDriver extends Driver {
 
     protected boolean isMC = false;
     private boolean disablePID = false;
+    private boolean fixV2BeamCoordinate = false;
     protected StandardCuts cuts = new StandardCuts();
 //    RelationalTable hitToRotated = null;
 //    RelationalTable hitToStrips = null;
@@ -130,9 +139,21 @@ public abstract class ReconParticleDriver extends Driver {
      */
     protected List<ReconstructedParticle> targetConV0Candidates;
     /**
+     * Stores reconstructed V0 candidate particles from the standalone unconstrained
+     * two-track Kalman vertex fit ({@link org.hps.recon.vertexing.KalmanV0Vertexer}),
+     * run in parallel with the ordinary Billoir unconstrained V0 fit for comparison.
+     * Off by default; only filled if {@link #kalmanUnconstrainedV0CandidatesColName} is set.
+     */
+    protected List<ReconstructedParticle> kalmanUnconstrainedV0Candidates;
+    /**
      * Stores reconstructed V0 candidate vertices generated without constraints.
      */
     protected List<Vertex> unconstrainedV0Vertices;
+    /**
+     * Stores reconstructed V0 candidate vertices from the standalone unconstrained
+     * two-track Kalman vertex fit. See {@link #kalmanUnconstrainedV0Candidates}.
+     */
+    protected List<Vertex> kalmanUnconstrainedV0Vertices;
     /**
      * Stores reconstructed V0 candidate vertices generated with beam spot
      * constraints.
@@ -143,6 +164,16 @@ public abstract class ReconParticleDriver extends Driver {
      * constraints.
      */
     protected List<Vertex> targetConV0Vertices;
+    /**
+     * Stores reconstructed cascade (V0 + recoil electron production vertex)
+     * candidate particles.
+     */
+    protected List<ReconstructedParticle> cascadeVertexCandidates;
+    /**
+     * Stores reconstructed 3-track (V0 e-/e+ + recoil electron) simultaneous
+     * vertex candidate particles.
+     */
+    protected List<ReconstructedParticle> threeTrackVertexCandidates;
 
     // LCIO Collection Names
     /**
@@ -187,6 +218,17 @@ public abstract class ReconParticleDriver extends Driver {
      */
     protected String unconstrainedV0VerticesColName = null;
     /**
+     * LCIO collection name for V0 candidate particles from the standalone unconstrained
+     * two-track Kalman vertex fit. Defaults to null, i.e. this fit is off unless a
+     * collection name is explicitly set. See {@link #kalmanUnconstrainedV0Candidates}.
+     */
+    protected String kalmanUnconstrainedV0CandidatesColName = null;
+    /**
+     * LCIO collection name for V0 candidate vertices from the standalone unconstrained
+     * two-track Kalman vertex fit. See {@link #kalmanUnconstrainedV0CandidatesColName}.
+     */
+    protected String kalmanUnconstrainedV0VerticesColName = null;
+    /**
      * LCIO collection name for V0 candidate vertices generated with beam spot
      * constraints.
      */
@@ -196,6 +238,38 @@ public abstract class ReconParticleDriver extends Driver {
      * constraints.
      */
     protected String targetConV0VerticesColName = null;
+    /**
+     * LCIO collection name for cascade (V0 + recoil electron production vertex)
+     * candidate particles. Defaults to null, i.e. cascade vertexing is off unless
+     * a collection name is explicitly set.
+     */
+    protected String cascadeVertexCandidatesColName = null;
+    /**
+     * LCIO collection name for 3-track (V0 e-/e+ + recoil electron) simultaneous
+     * vertex candidate particles. Defaults to null, i.e. this fit is off unless
+     * a collection name is explicitly set.
+     */
+    protected String threeTrackVertexCandidatesColName = null;
+    /**
+     * MC-truth collection names used only to gate the {@code BADFIT_DEBUG} diagnostic
+     * print in {@link ThreeTrackVertexer#fit} to genuinely truth-matched V0(e-/e+) +
+     * recoil-electron combinations, rather than every combinatorial pairing tried by
+     * {@link #findThreeTrackVertices}. Both default to null, i.e. no truth info is
+     * looked up and the debug print never fires, unless both are explicitly set (MC
+     * steering files only).
+     */
+    protected String mcParticlesColName = null;
+    protected String trackToMCParticleRelationsColName = null;
+
+    // Accumulated wall-clock time (ns) and count of calls spent in the cascade
+    // (helix + straight-line) vertex fit, reported in endOfData().
+    private long cascadeVertexFitTimeNs = 0L;
+    private int cascadeVertexFitCount = 0;
+
+    // Accumulated wall-clock time (ns) and count of calls spent in the 3-track
+    // simultaneous vertex fit, reported in endOfData().
+    private long threeTrackVertexFitTimeNs = 0L;
+    private int threeTrackVertexFitCount = 0;
 
     // Beam size variables.
     // The beamsize array is in the tracking frame
@@ -235,6 +309,50 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setBeamConV0CandidatesColName(String beamConV0CandidatesColName) {
         this.beamConV0CandidatesColName = beamConV0CandidatesColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for cascade (V0 + recoil electron
+     * production vertex) candidate particles. Setting this enables cascade
+     * vertexing, which is off by default.
+     *
+     * @param cascadeVertexCandidatesColName - The LCIO collection name.
+     */
+    public void setCascadeVertexCandidatesColName(String cascadeVertexCandidatesColName) {
+        this.cascadeVertexCandidatesColName = cascadeVertexCandidatesColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for 3-track (V0 e-/e+ + recoil
+     * electron) simultaneous vertex candidate particles. Setting this enables
+     * this fit, which is off by default.
+     *
+     * @param threeTrackVertexCandidatesColName - The LCIO collection name.
+     */
+    public void setThreeTrackVertexCandidatesColName(String threeTrackVertexCandidatesColName) {
+        this.threeTrackVertexCandidatesColName = threeTrackVertexCandidatesColName;
+    }
+
+    /**
+     * Sets the name of the LCIO MCParticle collection used only to gate the
+     * {@code BADFIT_DEBUG} print in {@link #findThreeTrackVertices} to truth-matched
+     * candidates. Optional; MC steering files only.
+     *
+     * @param mcParticlesColName - The LCIO collection name.
+     */
+    public void setMcParticlesColName(String mcParticlesColName) {
+        this.mcParticlesColName = mcParticlesColName;
+    }
+
+    /**
+     * Sets the name of the LCIO Track-to-MCParticle LCRelation collection used only to
+     * gate the {@code BADFIT_DEBUG} print in {@link #findThreeTrackVertices} to
+     * truth-matched candidates. Optional; MC steering files only.
+     *
+     * @param trackToMCParticleRelationsColName - The LCIO collection name.
+     */
+    public void setTrackToMCParticleRelationsColName(String trackToMCParticleRelationsColName) {
+        this.trackToMCParticleRelationsColName = trackToMCParticleRelationsColName;
     }
 
     /**
@@ -402,6 +520,28 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
+     * Sets the name of the LCIO collection for V0 candidate particles from the
+     * standalone unconstrained two-track Kalman vertex fit. Setting this enables that
+     * fit (run in parallel with, not instead of, the ordinary Billoir unconstrained V0
+     * fit), which is off by default.
+     *
+     * @param kalmanUnconstrainedV0CandidatesColName - The LCIO collection name.
+     */
+    public void setKalmanUnconstrainedV0CandidatesColName(String kalmanUnconstrainedV0CandidatesColName) {
+        this.kalmanUnconstrainedV0CandidatesColName = kalmanUnconstrainedV0CandidatesColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for V0 candidate vertices from the
+     * standalone unconstrained two-track Kalman vertex fit.
+     *
+     * @param kalmanUnconstrainedV0VerticesColName - The LCIO collection name.
+     */
+    public void setKalmanUnconstrainedV0VerticesColName(String kalmanUnconstrainedV0VerticesColName) {
+        this.kalmanUnconstrainedV0VerticesColName = kalmanUnconstrainedV0VerticesColName;
+    }
+
+    /**
      * Set the names of the LCIO track collections used as input.
      *
      * @param trackCollectionNames Array of collection names. If not set, use
@@ -428,6 +568,16 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setDisablePID(boolean disablePID) {
         this.disablePID = disablePID;
+    }
+
+    /**
+     * When true, {@link #findThreeTrackVertices}'s {@link ThreeTrackVertexer} holds V2's
+     * beam-direction coordinate fixed at the target position instead of fitting it freely --
+     * see {@link ThreeTrackVertexer#setFixV2BeamCoordinate}. Default false keeps the
+     * original fully-free-V2 joint fit.
+     */
+    public void setFixV2BeamCoordinate(boolean fixV2BeamCoordinate) {
+        this.fixV2BeamCoordinate = fixV2BeamCoordinate;
     }
 
     public void setClusterParamFileName(String input) {
@@ -744,8 +894,12 @@ public abstract class ReconParticleDriver extends Driver {
         beamConV0Candidates = new ArrayList<ReconstructedParticle>();
         targetConV0Candidates = new ArrayList<ReconstructedParticle>();
         unconstrainedV0Vertices = new ArrayList<Vertex>();
+        kalmanUnconstrainedV0Candidates = new ArrayList<ReconstructedParticle>();
+        kalmanUnconstrainedV0Vertices = new ArrayList<Vertex>();
         beamConV0Vertices = new ArrayList<Vertex>();
         targetConV0Vertices = new ArrayList<Vertex>();
+        cascadeVertexCandidates = new ArrayList<ReconstructedParticle>();
+        threeTrackVertexCandidates = new ArrayList<ReconstructedParticle>();
 
         // Loop through all of the track collections present in the event and
         // create final state particles.
@@ -778,6 +932,22 @@ public abstract class ReconParticleDriver extends Driver {
         List<ReconstructedParticle> goodFinalStateParticles = particleCuts(finalStateParticles);
         // VERBOSE :: Output the number of reconstructed particles.
         printDebug("Final State Particles :: " + goodFinalStateParticles.size());
+
+        // Form cascade (V0 + recoil electron production vertex) candidates, pairing each
+        // unconstrained V0 with every final-state electron that is not already one of its
+        // daughters. Off by default; only runs if a collection name has been set.
+        if (cascadeVertexCandidatesColName != null) {
+            findCascadeVertices(unconstrainedV0Candidates, goodFinalStateParticles);
+            printDebug("[ReconParticleDriver] findCascadeVertices() finished");
+        }
+        // Form 3-track (V0 e-/e+ + recoil electron) simultaneous vertex candidates,
+        // pairing each unconstrained V0 with every final-state electron that is not
+        // already one of its daughters. Off by default; only runs if a collection
+        // name has been set.
+        if (threeTrackVertexCandidatesColName != null) {
+            findThreeTrackVertices(event, unconstrainedV0Candidates, goodFinalStateParticles);
+            printDebug("[ReconParticleDriver] findThreeTrackVertices() finished");
+        }
         // Add the final state ReconstructedParticles to the event
         event.put(finalStateParticlesColName, goodFinalStateParticles, ReconstructedParticle.class, 0);
         for (ReconstructedParticle ele : goodFinalStateParticles) {
@@ -806,6 +976,14 @@ public abstract class ReconParticleDriver extends Driver {
             printDebug("Unconstrained V0 Vertices: " + unconstrainedV0Vertices.size());
             event.put(unconstrainedV0VerticesColName, unconstrainedV0Vertices, Vertex.class, 0);
         }
+        if (kalmanUnconstrainedV0CandidatesColName != null) {
+            printDebug("Kalman Unconstrained V0 Candidates: " + kalmanUnconstrainedV0Candidates.size());
+            event.put(kalmanUnconstrainedV0CandidatesColName, kalmanUnconstrainedV0Candidates, ReconstructedParticle.class, 0);
+        }
+        if (kalmanUnconstrainedV0VerticesColName != null) {
+            printDebug("Kalman Unconstrained V0 Vertices: " + kalmanUnconstrainedV0Vertices.size());
+            event.put(kalmanUnconstrainedV0VerticesColName, kalmanUnconstrainedV0Vertices, Vertex.class, 0);
+        }
         if (beamConV0VerticesColName != null) {
             printDebug("Beam-Constrained V0 Vertices: " + beamConV0Vertices.size());
             event.put(beamConV0VerticesColName, beamConV0Vertices, Vertex.class, 0);
@@ -814,7 +992,164 @@ public abstract class ReconParticleDriver extends Driver {
             printDebug("Target-Constrained V0 Vertices: " + targetConV0Vertices.size());
             event.put(targetConV0VerticesColName, targetConV0Vertices, Vertex.class, 0);
         }
+        if (cascadeVertexCandidatesColName != null) {
+            printDebug("Cascade Vertex Candidates: " + cascadeVertexCandidates.size());
+            event.put(cascadeVertexCandidatesColName, cascadeVertexCandidates, ReconstructedParticle.class, 0);
+        }
+        if (threeTrackVertexCandidatesColName != null) {
+            printDebug("3-Track Vertex Candidates: " + threeTrackVertexCandidates.size());
+            event.put(threeTrackVertexCandidatesColName, threeTrackVertexCandidates, ReconstructedParticle.class, 0);
+        }
 
+    }
+
+    /**
+     * Returns the field to use for {@code CascadeVertexer}/{@code ThreeTrackVertexer}
+     * fits involving the given track: the local field at that track's AtPerigee state
+     * (i.e. near the target, where the fringe field is weaker than at the SVT center),
+     * matching the {@code bLocal} correction already applied in
+     * {@link HpsReconParticleDriver#fitVertex} for the ordinary V0 fit. For GBL tracks
+     * (trackType==0), which don't carry a per-track local-field value, falls back to
+     * {@link #bField} (the SVT-center field), same as fitVertex does.
+     *
+     * @param track a track whose AtPerigee state is near the vertex being fit.
+     */
+    protected double bLocalForTrack(Track track) {
+        if (trackType == 0) {
+            return bField;
+        }
+        return TrackStateUtils.getTrackStatesAtLocation(track, TrackState.AtPerigee).get(0).getBLocal();
+    }
+
+    /**
+     * Forms cascade (production) vertex candidates: for each unconstrained V0 candidate,
+     * pair it with every final-state electron that is not already one of its daughters,
+     * fit the production vertex where the V0's momentum line meets the recoil electron's
+     * helix, and add the result to {@link #cascadeVertexCandidates}. Mirrors the
+     * try/catch-per-pair pattern used by {@code HpsReconParticleDriver#findV0s}: a failed
+     * fit for one pair (e.g. singular covariance, non-convergent geometry) is skipped
+     * without aborting the rest of the event.
+     *
+     * @param v0Candidates         Unconstrained V0 candidates for this event.
+     * @param finalStateElectrons  Final-state electrons for this event.
+     */
+    protected void findCascadeVertices(List<ReconstructedParticle> v0Candidates,
+            List<ReconstructedParticle> finalStateElectrons) {
+        for (ReconstructedParticle v0 : v0Candidates) {
+            List<ReconstructedParticle> v0Daughters = v0.getParticles();
+            ReconstructedParticle v0EleDaughter = v0Daughters.get(0).getCharge() < 0 ? v0Daughters.get(0) : v0Daughters.get(1);
+            CascadeVertexer cascadeVertexer = new CascadeVertexer(bLocalForTrack(v0EleDaughter.getTracks().get(0)));
+            for (ReconstructedParticle electron : finalStateElectrons) {
+                if (electron.getCharge() >= 0 || v0Daughters.contains(electron)) {
+                    continue;
+                }
+                long fitStartTime = System.nanoTime();
+                try {
+                    ReconstructedParticle cascade = cascadeVertexer.fit(v0, electron);
+                    if (cascade != null) {
+                        cascadeVertexCandidates.add(cascade);
+                    }
+                } catch (RuntimeException e) {
+                    printDebug("[ReconParticleDriver] findCascadeVertices: skipping pair after RuntimeException: " + e.getMessage());
+                    continue;
+                } finally {
+                    cascadeVertexFitTimeNs += System.nanoTime() - fitStartTime;
+                    cascadeVertexFitCount++;
+                }
+            }
+        }
+    }
+
+    /**
+     * Forms 3-track simultaneous vertex candidates: for each unconstrained V0 candidate,
+     * pair it with every final-state electron that is not already one of its daughters,
+     * fit a single common vertex for the V0's e-/e+ daughters and the recoil electron
+     * together, and add the result to {@link #threeTrackVertexCandidates}. Mirrors
+     * {@link #findCascadeVertices} exactly, using {@link ThreeTrackVertexer} instead of
+     * {@link CascadeVertexer}.
+     *
+     * @param event                Current event, used only to look up MC truth (via
+     *                              {@link #mcParticlesColName}/{@link #trackToMCParticleRelationsColName})
+     *                              to gate {@link ThreeTrackVertexer}'s BADFIT_DEBUG print
+     *                              to truth-matched candidates; unused otherwise.
+     * @param v0Candidates         Unconstrained V0 candidates for this event.
+     * @param finalStateElectrons  Final-state electrons for this event.
+     */
+    protected void findThreeTrackVertices(EventHeader event, List<ReconstructedParticle> v0Candidates,
+            List<ReconstructedParticle> finalStateElectrons) {
+        Map<Track, MCParticle> trackToMC = new HashMap<Track, MCParticle>();
+        MCParticle eleMC = null;
+        MCParticle posMC = null;
+        MCParticle recoilMC = null;
+        if (mcParticlesColName != null && trackToMCParticleRelationsColName != null
+                && event.hasCollection(MCParticle.class, mcParticlesColName)
+                && event.hasCollection(LCRelation.class, trackToMCParticleRelationsColName)) {
+            for (LCRelation rel : event.get(LCRelation.class, trackToMCParticleRelationsColName)) {
+                trackToMC.put((Track) rel.getFrom(), (MCParticle) rel.getTo());
+            }
+            MCParticle apMC = null;
+            List<MCParticle> mcParticles = event.get(MCParticle.class, mcParticlesColName);
+            for (MCParticle mcp : mcParticles) {
+                if (mcp.getPDGID() == 622 && mcp.getDaughters().size() == 2) {
+                    apMC = mcp;
+                    for (MCParticle daughter : mcp.getDaughters()) {
+                        if (daughter.getPDGID() == 11) {
+                            eleMC = daughter;
+                        } else if (daughter.getPDGID() == -11) {
+                            posMC = daughter;
+                        }
+                    }
+                    break;
+                }
+            }
+            // Recoil electron convention (see CascadeVertexTupleDriver): the A' (622) is
+            // its own top-level record with no parent, and the recoil electron is the
+            // single PDGID-11 daughter of a separate top-level PDGID 623 "reaction"
+            // particle -- it cannot be found via the A''s parent chain.
+            if (apMC != null) {
+                for (MCParticle mcp : mcParticles) {
+                    if (mcp.getPDGID() == 623) {
+                        for (MCParticle daughter : mcp.getDaughters()) {
+                            if (daughter.getPDGID() == 11) {
+                                recoilMC = daughter;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (ReconstructedParticle v0 : v0Candidates) {
+            List<ReconstructedParticle> v0Daughters = v0.getParticles();
+            ReconstructedParticle v0EleDaughter = v0Daughters.get(0).getCharge() < 0 ? v0Daughters.get(0) : v0Daughters.get(1);
+            ReconstructedParticle v0PosDaughter = v0Daughters.get(0).getCharge() < 0 ? v0Daughters.get(1) : v0Daughters.get(0);
+            boolean v0Matched = eleMC != null && eleMC.equals(trackToMC.get(v0EleDaughter.getTracks().get(0)))
+                    && posMC != null && posMC.equals(trackToMC.get(v0PosDaughter.getTracks().get(0)));
+            ThreeTrackVertexer threeTrackVertexer = new ThreeTrackVertexer(bLocalForTrack(v0EleDaughter.getTracks().get(0)));
+            threeTrackVertexer.setFixV2BeamCoordinate(fixV2BeamCoordinate);
+            for (ReconstructedParticle electron : finalStateElectrons) {
+                if (electron.getCharge() >= 0 || v0Daughters.contains(electron)) {
+                    continue;
+                }
+                boolean truthMatched = v0Matched && recoilMC != null
+                        && recoilMC.equals(trackToMC.get(electron.getTracks().get(0)));
+                long fitStartTime = System.nanoTime();
+                try {
+                    ReconstructedParticle threeTrackVertex = threeTrackVertexer.fit(v0, electron, truthMatched);
+                    if (threeTrackVertex != null) {
+                        threeTrackVertexCandidates.add(threeTrackVertex);
+                    }
+                } catch (RuntimeException e) {
+                    printDebug("[ReconParticleDriver] findThreeTrackVertices: skipping pair after RuntimeException: " + e.getMessage());
+                    continue;
+                } finally {
+                    threeTrackVertexFitTimeNs += System.nanoTime() - fitStartTime;
+                    threeTrackVertexFitCount++;
+                }
+            }
+        }
     }
 
     /**
@@ -854,6 +1189,22 @@ public abstract class ReconParticleDriver extends Driver {
     protected void endOfData() {
         if (enableTrackClusterMatchPlots) {
             matcher.saveHistograms();
+        }
+        if (cascadeVertexCandidatesColName != null && cascadeVertexFitCount > 0) {
+            double totalTimeMs = cascadeVertexFitTimeNs / 1e6;
+            double timePerFitMs = totalTimeMs / cascadeVertexFitCount;
+            System.out.format("ReconParticleDriver.endOfData: total cascade (helix+straight) vertex fit "
+                    + "execution time=%12.4f ms for %d fits.\n", totalTimeMs, cascadeVertexFitCount);
+            System.out.format("                               Cascade vertex fit time per fit = %9.4f ms\n",
+                    timePerFitMs);
+        }
+        if (threeTrackVertexCandidatesColName != null && threeTrackVertexFitCount > 0) {
+            double totalTimeMs = threeTrackVertexFitTimeNs / 1e6;
+            double timePerFitMs = totalTimeMs / threeTrackVertexFitCount;
+            System.out.format("ReconParticleDriver.endOfData: total 3-track simultaneous vertex fit "
+                    + "execution time=%12.4f ms for %d fits.\n", totalTimeMs, threeTrackVertexFitCount);
+            System.out.format("                               3-track vertex fit time per fit = %9.4f ms\n",
+                    timePerFitMs);
         }
     }
 

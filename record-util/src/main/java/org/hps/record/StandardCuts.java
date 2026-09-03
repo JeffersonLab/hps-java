@@ -24,6 +24,8 @@ public class StandardCuts {
     private double maxVertexP;
     // max chisq prob for V0 vertex fit
     private double minVertexChisqProb;
+    // max raw chisq for V0 vertex fit
+    private double maxVertexChisq;
     // max chisq prob for vertex fit
     private double minMollerChisqProb;
     // max time diff [ns] between the two recon particle clusters in vertex
@@ -104,12 +106,18 @@ public class StandardCuts {
     public void setMinVertexChisqProb(double input) {
         minVertexChisqProb = input;
     }
+    public void setMaxVertexChisq(double input) {
+        maxVertexChisq = input;
+    }
     public void setMinMollerChisqProb(double input) {
         minMollerChisqProb = input;
     }
     
     public double getMinVertexChisqProb() {
         return minVertexChisqProb;
+    }
+    public double getMaxVertexChisq() {
+        return maxVertexChisq;
     }
     public double getMinMollerChisqProb() {
         return minMollerChisqProb;
@@ -193,6 +201,7 @@ public class StandardCuts {
         maxMatchDy = 20.0;
         maxVertexClusterDt = 2.0;
         minVertexChisqProb = 0.00001;
+        maxVertexChisq = Double.MAX_VALUE;
         minMollerChisqProb = 0.00001;
         maxTrackChisqProb = 0.00001;
         

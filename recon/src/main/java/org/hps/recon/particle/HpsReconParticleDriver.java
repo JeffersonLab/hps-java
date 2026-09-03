@@ -15,6 +15,7 @@ import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
+import org.hps.recon.vertexing.KalmanV0Vertexer;
 import org.hps.record.StandardCuts;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.lcsim.detector.tracker.silicon.HpsSiSensor;
@@ -243,6 +244,13 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             cuts = new StandardCuts(beamEnergy);
         }
         cuts.setMinVertexChisqProb(input);
+    }
+
+    public void setMaxVertexChisq(double input) {
+        if (cuts == null) {
+            cuts = new StandardCuts(beamEnergy);
+        }
+        cuts.setMaxVertexChisq(input);
     }
 
     public void setIncludeUnmatchedTracksInFSP(boolean setUMTrks) {
@@ -656,6 +664,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             return;
         }
 
+        if (vtxFit.getChi2() > cuts.getMaxVertexChisq()) {
+            return;
+        }
+
         // patch the track parameters at the found vertex
         if (_patchVertexTrackParameters) {
             patchVertex(vtxFit);
@@ -663,6 +675,25 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         if (eleIsTop != posIsTop) {
             unconstrainedV0Vertices.add(vtxFit);
             unconstrainedV0Candidates.add(candidate);
+
+            // Standalone unconstrained two-track Kalman vertex fit, run in parallel with
+            // the Billoir fit above (for comparison) on the same track pair. Off unless
+            // kalmanUnconstrainedV0CandidatesColName is set. Kept in lockstep with
+            // unconstrainedV0Candidates (same cuts already applied above) so the two
+            // collections can be paired by index downstream.
+            if (kalmanUnconstrainedV0CandidatesColName != null) {
+                BilliorVertex kalmanVtxFit;
+                try {
+                    kalmanVtxFit = new KalmanV0Vertexer(bLocalForTrack(electron.getTracks().get(0)))
+                            .fitVertex(electron.getTracks().get(0), positron.getTracks().get(0));
+                } catch (RuntimeException e) {
+                    LOGGER.warning("KalmanV0Vertexer fit failed, using placeholder: " + e.getMessage());
+                    kalmanVtxFit = KalmanV0Vertexer.placeholderVertex();
+                }
+                ReconstructedParticle kalmanCandidate = makeReconstructedParticle(electron, positron, kalmanVtxFit);
+                kalmanUnconstrainedV0Vertices.add(kalmanVtxFit);
+                kalmanUnconstrainedV0Candidates.add(kalmanCandidate);
+            }
         } else {
             unconstrainedVcVertices.add(vtxFit);
             unconstrainedVcCandidates.add(candidate);

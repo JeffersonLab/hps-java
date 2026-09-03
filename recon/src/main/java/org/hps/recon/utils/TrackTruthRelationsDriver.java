@@ -830,8 +830,10 @@ public class TrackTruthRelationsDriver extends Driver {
                 //Add track<->truth relations for all Tracks matched to a MCP
                 //with purity >= 0.5
                 if(purity >= purityCut){
-                    //Add track to mcp relations
-                    trackToMCParticleRelations.add(new BaseLCRelation(track,mcp));
+                    //Add track to mcp relations; purity is carried in the relation's
+                    //weight so downstream consumers (e.g. CascadeVertexTupleDriver) can
+                    //inspect match quality instead of just the pass/fail purityCut result.
+                    trackToMCParticleRelations.add(new BaseLCRelation(track,mcp,purity));
 
                     //Transform MCP into helical track
                     HelicalTrackFit mcp_htf  = TrackUtils.getHTF(mcp,bfield);

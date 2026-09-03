@@ -98,6 +98,10 @@ public class BilliorVertexer {
         pcov.add(CoordinateTransformations.transformCovarianceToDetector(new SymmetricMatrix(this.getFittedTrk1Trk2MomCovariance(0, 1))));
         vertex.setTrackMomentumCovariances(pcov);
         vertex.setStoreCovTrkMomList(storeCovTrkMomList);
+        List<Matrix> vtxMomCov = new ArrayList<Matrix>();
+        vtxMomCov.add(CoordinateTransformations.transformMatrixToDetector(this.getVertexMomentumCovariance(0)));
+        vtxMomCov.add(CoordinateTransformations.transformMatrixToDetector(this.getVertexMomentumCovariance(1)));
+        vertex.setVertexMomentumCovariance(vtxMomCov);
         vertex.setV0Momentum(CoordinateTransformations.transformVectorToDetector(getV0Momentum()), CoordinateTransformations.transformVectorToDetector(getV0MomentumError()));
         vertex.setV0TargetXY(getV0Projection(), getV0ProjectionError());
         tpars.add(getFittedTrackParameters(0));
@@ -591,6 +595,21 @@ public class BilliorVertexer {
         return MatrixOp.mult(Jac1, MatrixOp.mult(covpi, Jac2T));
 //        return MatrixOp.mult(Jac1, MatrixOp.mult(covpi, Jac2T));
 
+    }
+
+    /*
+     * Cov(vertex position, track[index] momentum) in Cartesian (px,py,pz), track frame.
+     * covVtxMomList holds Cov(vertex_xyz, track_(theta,phiv,rho)); the vertex side is already
+     * Cartesian so only the momentum side needs the Jacobian, applied on the right.
+     */
+    public Matrix getVertexMomentumCovariance(int index) {
+        BasicMatrix pi = (BasicMatrix) _pFit.get(index);
+        double theta = pi.e(0, 0);
+        double phiv = pi.e(1, 0);
+        double rho = pi.e(2, 0);
+        BasicMatrix Jac = (BasicMatrix) getJacobianThetaPhiRhoToPxPyPz(theta, phiv, rho);
+        BasicMatrix JacT = (BasicMatrix) MatrixOp.transposed(Jac);
+        return MatrixOp.mult(covVtxMomList.get(index), JacT);
     }
 
     public Matrix getFittedVertexCovariance() {
