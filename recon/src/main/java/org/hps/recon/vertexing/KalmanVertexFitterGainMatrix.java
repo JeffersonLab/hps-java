@@ -125,6 +125,12 @@ public class KalmanVertexFitterGainMatrix {
         public int ndf;
         public List<TrackMomentum> trackMomenta;
         public List<TrackParams> fittedTracks;  // Fitted track parameters (for kinematic fit)
+        // Total (summed over all tracks) fitted 3-momentum and its covariance, correctly
+        // propagated through the FULL post-fit state covariance (including cross-track and
+        // vertex-momentum correlation blocks, not just each track's own diagonal block) --
+        // only populated by fitSoftConstrained/fitLagrangeMultiplier; null otherwise.
+        public RealVector totalMomentum;
+        public RealMatrix totalMomentumCov;
 
         public FitResult(RealVector vertex, RealMatrix vertexCov, double chi2,
                         int ndf, List<TrackMomentum> trackMomenta) {
@@ -575,11 +581,37 @@ public class KalmanVertexFitterGainMatrix {
      * Compute momentum covariance
      */
     private RealMatrix computeMomentumCovariance(TrackParams track, RealVector vertex) {
+        RealMatrix Jp = computeMomentumTrackJacobian(track, vertex);
+        return Jp.multiply(track.cov).multiply(Jp.transpose());
+    }
+
+    /**
+     * Raw momentum and covariance for a single track, with no vertex constraint applied
+     * -- evaluated at the track's own point of closest approach (arc length zero), which
+     * makes {@link #computeMomentumAtVertex} reduce to the direct px=pT*cos(phi0),
+     * py=pT*sin(phi0), pz=pT*tanLambda formula with no extrapolation. This is the "before
+     * any vertex fit" baseline used to compare against constrained/unconstrained
+     * vertex-fit momenta and their reported errors. Tracking frame.
+     */
+    public TrackMomentum computeRawMomentum(TrackParams track) {
+        RealVector poca = MatrixUtils.createRealVector(new double[]{
+                -track.d0 * FastMath.sin(track.phi0), track.d0 * FastMath.cos(track.phi0), track.z0});
+        return new TrackMomentum(computeMomentumAtVertex(track, poca), computeMomentumCovariance(track, poca));
+    }
+
+    /**
+     * Jacobian d(momentum)/d(track parameters) [d0, phi0, omega, z0, tanLambda] at the given
+     * vertex, as a 3x5 matrix. Extracted out of {@link #computeMomentumCovariance} so the same
+     * per-track momentum Jacobian can be reused (alongside {@link #computeMomentumVertexDerivatives})
+     * to build the full state-vector Jacobian needed for a correctly-correlated TOTAL momentum
+     * covariance (see the total-momentum computation in {@link #fitSoftConstrained}).
+     */
+    private RealMatrix computeMomentumTrackJacobian(TrackParams track, RealVector vertex) {
         double xV = vertex.getEntry(0);
         double yV = vertex.getEntry(1);
-        
+
         VertexParams vp = perigeeToVertexParams(track, xV, yV);
-        
+
         double R = 1.0 / FastMath.abs(track.omega);
         double sign = FastMath.signum(track.omega);
         double pT = 2.99792458e-4 * FastMath.abs(bField) / FastMath.abs(track.omega);
@@ -595,24 +627,24 @@ public class KalmanVertexFitterGainMatrix {
         double dphiDomega = -R * R * (FastMath.cos(track.phi0) * dx + FastMath.sin(track.phi0) * dy) / r2;
 
         double dpTDomega = -2.99792458e-4 * FastMath.abs(bField) * sign / (track.omega * track.omega);
-        
+
         double dpxDd0 = -pT * FastMath.sin(vp.phiV) * dphiDd0;
         double dpxDphi0 = -pT * FastMath.sin(vp.phiV) * dphiDphi0;
         double dpxDomega = FastMath.cos(vp.phiV) * dpTDomega - pT * FastMath.sin(vp.phiV) * dphiDomega;
-        
+
         double dpyDd0 = pT * FastMath.cos(vp.phiV) * dphiDd0;
         double dpyDphi0 = pT * FastMath.cos(vp.phiV) * dphiDphi0;
         double dpyDomega = FastMath.sin(vp.phiV) * dpTDomega + pT * FastMath.cos(vp.phiV) * dphiDomega;
-        
+
         double dpzDomega = track.tanLambda * dpTDomega;
         double dpzDtl = pT;
-        
+
         RealMatrix Jp = MatrixUtils.createRealMatrix(3, 5);
         Jp.setRow(0, new double[]{dpxDd0, dpxDphi0, dpxDomega, 0.0, 0.0});
         Jp.setRow(1, new double[]{dpyDd0, dpyDphi0, dpyDomega, 0.0, 0.0});
         Jp.setRow(2, new double[]{0.0, 0.0, dpzDomega, 0.0, dpzDtl});
-        
-        return Jp.multiply(track.cov).multiply(Jp.transpose());
+
+        return Jp;
     }
     
     /**
@@ -2168,78 +2200,40 @@ public class KalmanVertexFitterGainMatrix {
             }
 
             // Build constraint covariance matrix V for soft constraints.
-            // For each track, V is a 2x2 block: V = J_h * trackCov * J_h^T
-            // where J_h has rows [d(h_t)/d(params), d(h_z)/d(params)]:
-            //   h_t = r - R        -> d(h_t)/d(params) = +Jft  (positive)
-            //   h_z = zV - zPred   -> d(h_z)/d(params) = -Jz   (negative)
-            // For momentum constraints: use the provided fourMomentumConstraintCov
+            // The geometric track constraints (h_t = r-R, h_z = zV-zPred) are exact
+            // functions of the *same* state x whose track-parameter block is already
+            // weighted by W via the (x-x0) measurement term. Softening them with V =
+            // J_h*trackCov*J_h^T (as this used to do) double-counts that same track
+            // covariance a second time -- J_h here is exactly the track-parameter block
+            // of H above, so V was just H_trk*trackCov*H_trk^T, the same information
+            // already present in W^-1. That inflated the reported posterior vertex
+            // covariance (confirmed via toy-MC pulls: std ~0.7 instead of 1, for both
+            // hard and soft momentum-constraint modes, since this track-level V was
+            // added unconditionally regardless of the momentum-constraint softness).
+            // These constraints are therefore treated as effectively hard instead,
+            // regularized only by a tiny fixed epsilon (a small fraction of H*WInv*H^T's
+            // own diagonal scale) purely to avoid the near-singular case the original
+            // code was guarding against: two tracks with nearly identical |tanLambda|
+            // make the two longitudinal constraints nearly degenerate. Only the momentum
+            // constraint, when a real fourMomentumConstraintCov is supplied, represents
+            // genuinely independent information (the beam momentum uncertainty) and
+            // keeps its own physical covariance below.
             RealMatrix constraintCov = MatrixUtils.createRealMatrix(nConstraints, nConstraints);
 
-            // Track constraint covariances: 2x2 block per track
-            for (int i = 0; i < nTracks; i++) {
-                TrackParams track = tracks.get(i);
-                int rowT = 2 * i;
-                int rowZ = 2 * i + 1;
+            RealMatrix HWInvHTforEps = H.multiply(WInv).multiply(H.transpose());
+            double diagScale = 0.0;
+            for (int i = 0; i < nConstraints; i++) {
+                diagScale += HWInvHTforEps.getEntry(i, i);
+            }
+            diagScale = (nConstraints > 0) ? diagScale / nConstraints : 1.0;
+            double epsilon = (diagScale > 0) ? diagScale * 1e-6 : 1e-12;
 
-                double xV = vertex.getEntry(0);
-                double yV = vertex.getEntry(1);
+            for (int i = 0; i < nTrackConstraints; i++) {
+                constraintCov.setEntry(i, i, epsilon);
+            }
 
-                double R = 1.0 / FastMath.abs(track.omega);
-                double sign = FastMath.signum(track.omega);
-
-                double xc = sign * R * FastMath.sin(track.phi0) - track.d0 * FastMath.sin(track.phi0);
-                double yc = -sign * R * FastMath.cos(track.phi0) + track.d0 * FastMath.cos(track.phi0);
-                double dx = xV - xc;
-                double dy = yV - yc;
-                double r2 = dx * dx + dy * dy;
-                double r  = FastMath.sqrt(r2);
-
-                // d(h_t)/d(track params): Jft (positive)
-                double[] Jht = new double[5];
-                Jht[0] = (dx * FastMath.sin(track.phi0) - dy * FastMath.cos(track.phi0)) / r;
-                Jht[1] = -(sign * R - track.d0) * (dx * FastMath.cos(track.phi0) + dy * FastMath.sin(track.phi0)) / r;
-                Jht[2] = (dx * FastMath.sin(track.phi0) - dy * FastMath.cos(track.phi0)) / (r * track.omega * track.omega)
-                         + sign / (track.omega * track.omega);
-                Jht[3] = 0.0;
-                Jht[4] = 0.0;
-
-                // d(h_z)/d(track params): -Jz (negative, since h_z = zV - zPred)
-                double dphiDd0 = -(FastMath.cos(track.phi0) * dx + FastMath.sin(track.phi0) * dy) / r2;
-                double dphiDphi0 = (sign * R - track.d0) * (dy * FastMath.cos(track.phi0) - dx * FastMath.sin(track.phi0)) / r2;
-                double dphiDomega = -R * R * (FastMath.cos(track.phi0) * dx + FastMath.sin(track.phi0) * dy) / r2;
-                double phiV = FastMath.atan2(-dx * sign, dy * sign);
-                double dphi_v = phiV - track.phi0;
-                while (dphi_v >  FastMath.PI) dphi_v -= 2.0 * FastMath.PI;
-                while (dphi_v < -FastMath.PI) dphi_v += 2.0 * FastMath.PI;
-                double s = -sign * R * dphi_v;
-                // z_pred = z0 + s*tanLambda with s = -sign(omega)*R*dphi: each R*(dphi-derivative)
-                // term below picks up the same -sign factor; the explicit s/omega term does not.
-                double[] Jhz = new double[5];
-                Jhz[0] = -(-sign * track.tanLambda * R * dphiDd0);
-                Jhz[1] = -(-sign * (-track.tanLambda * R + track.tanLambda * R * dphiDphi0));
-                Jhz[2] = -(-s * track.tanLambda / track.omega - sign * track.tanLambda * R * dphiDomega);
-                Jhz[3] = -1.0;
-                Jhz[4] = -s;
-
-                // V_2x2 = J_h * trackCov * J_h^T
-                double V_tt = 0, V_zz = 0, V_tz = 0;
-                for (int a = 0; a < 5; a++) {
-                    for (int b = 0; b < 5; b++) {
-                        double c = track.cov.getEntry(a, b);
-                        V_tt += Jht[a] * c * Jht[b];
-                        V_zz += Jhz[a] * c * Jhz[b];
-                        V_tz += Jht[a] * c * Jhz[b];
-                    }
-                }
-                constraintCov.setEntry(rowT, rowT, V_tt);
-                constraintCov.setEntry(rowT, rowZ, V_tz);
-                constraintCov.setEntry(rowZ, rowT, V_tz);
-                constraintCov.setEntry(rowZ, rowZ, V_zz);
-
-                if (debugFlag && iteration == 0) {
-                    System.out.printf("    Track %d transverse sigma = %.4f mm, z sigma = %.4f mm%n",
-                                      i, FastMath.sqrt(V_tt), FastMath.sqrt(V_zz));
-                }
+            if (debugFlag && iteration == 0) {
+                System.out.printf("    Track constraint regularization epsilon = %.3e%n", epsilon);
             }
 
             // Momentum constraint covariances (if applicable)
@@ -2358,8 +2352,11 @@ public class KalmanVertexFitterGainMatrix {
             }
         }
 
-        // NDF = number of constraints
-        int ndf = nConstraints;
+        // NDF = number of constraints minus the vertex-position dof they determine
+        // (vertex has only a weak/free prior in W, so all 3 of its dof are absorbed
+        // by the constraints rather than by a measurement -- matches the ndf convention
+        // used elsewhere in this file, e.g. fitCascadeVertex's `2*nTracks-3`).
+        int ndf = nConstraints - nVertexParams;
 
         // Compute final track momenta using fitted track parameters and their post-fit covariances
         List<TrackMomentum> trackMomenta = new ArrayList<>();
@@ -2369,6 +2366,28 @@ public class KalmanVertexFitterGainMatrix {
             RealMatrix pCov = computeMomentumCovariance(track, vertex);
             trackMomenta.add(new TrackMomentum(p, pCov));
         }
+
+        // Total (summed) fitted momentum and its covariance, correctly propagated through the
+        // FULL post-fit state covariance C_fitted -- unlike each track's own pCov above (which
+        // only uses that track's diagonal block), this includes the cross-track and
+        // vertex-momentum correlation blocks induced by the shared vertex and (for the
+        // momentum-constrained fits) shared momentum-sum constraint. Built via
+        // Cov(totalP) = J^T C_fitted J, where J (stateSize x 3) stacks the vertex-block
+        // Jacobian (dP_total/d(vertex), summed over tracks) and each track's own
+        // dP_track/d(track params) block (computeMomentumTrackJacobian).
+        RealVector totalPTracking = MatrixUtils.createRealVector(new double[3]);
+        RealMatrix vertexPBlock = MatrixUtils.createRealMatrix(3, 3);
+        RealMatrix Jtotal = MatrixUtils.createRealMatrix(stateSize, 3);
+        for (int i = 0; i < nTracks; i++) {
+            TrackParams track = fittedTracks.get(i);
+            totalPTracking = totalPTracking.add(computeMomentumAtVertex(track, vertex));
+            vertexPBlock = vertexPBlock.add(computeMomentumVertexDerivatives(track, vertex));
+            RealMatrix Jp = computeMomentumTrackJacobian(track, vertex);
+            int offset = nVertexParams + i * nTrackParams;
+            Jtotal.setSubMatrix(Jp.transpose().getData(), offset, 0);
+        }
+        Jtotal.setSubMatrix(vertexPBlock.transpose().getData(), 0, 0);
+        RealMatrix totalPCovTracking = Jtotal.transpose().multiply(C_fitted).multiply(Jtotal);
 
         // Vertex covariance: upper-left 3x3 block of the post-fit covariance
         RealMatrix vertexCov = C_fitted.getSubMatrix(0, 2, 0, 2);
@@ -2416,7 +2435,10 @@ public class KalmanVertexFitterGainMatrix {
             }
         }
 
-        return new FitResult(vertex, vertexCov, chi2, ndf, trackMomenta, fittedTracks);
+        FitResult fitResult = new FitResult(vertex, vertexCov, chi2, ndf, trackMomenta, fittedTracks);
+        fitResult.totalMomentum = totalPTracking;
+        fitResult.totalMomentumCov = totalPCovTracking;
+        return fitResult;
     }
 
     /**
@@ -2447,7 +2469,22 @@ public class KalmanVertexFitterGainMatrix {
      * @param maxIterations      Maximum Newton-Raphson iterations
      * @param tolerance          Convergence tolerance
      * @return FitResult with vertex, track parameters, chi2, and momenta
+     *
+     * @deprecated The beam momentum is not actually conserved exactly by the tracked
+     * leptons alone -- some momentum (~18.6 MeV transverse, see
+     * {@link #setBeamMomentumTransverseNuclearRecoilSigma(double)}) is carried away by
+     * the target nuclear recoil. Enforcing V_mom=0 exactly therefore fits an equality
+     * that is not physically true, which structurally cannot be fixed by covariance
+     * tuning (see {@code ntrack_beam_momentum_constraint_result.md}: n=123 real
+     * candidates showed hard-mode chi2/ndf completely unchanged by the nuclear-recoil
+     * covariance widening that fixes soft mode, since that widening has no effect when
+     * V_mom is hardcoded to zero). Use {@link #fitSoftConstrained} (or
+     * {@link KalmanNTrackVertexer#fitVertexBeamConstrained} with
+     * {@code hardMomentumConstraint=false}) with a tuned
+     * {@code setBeamMomentumTransverseNuclearRecoilSigma} instead. Kept for
+     * reference/regression comparison, not recommended for new production use.
      */
+    @Deprecated
     public FitResult fitLagrangeMultiplier(List<TrackParams> inputTracks,
                                            RealVector vertexConstraint,
                                            RealMatrix vertexConstraintCov,
@@ -2480,6 +2517,14 @@ public class KalmanVertexFitterGainMatrix {
     private double rotAngle = -0.030;
     private boolean debugFlag = false;
     private boolean storeCovTrkMomList = false;
+    // Additional transverse beam-momentum-constraint width (GeV), combined in quadrature with
+    // the beam-divergence term below. Default 0 reproduces the original divergence-only
+    // covariance exactly. Non-zero values represent event-to-event transverse momentum not
+    // carried by the tracked leptons -- primarily momentum transferred to the target nucleus
+    // during production (nuclear recoil; distinct from a recoil electron from radiative/A'
+    // events) -- measured directly from trident MC truth (std(mcTotalPx), std(mcTotalPy)) at
+    // ~18.5-18.8 MeV, vs. the ~0.37 MeV implied by 100 urad beam divergence alone.
+    private double sigmaTNuclearRecoil = 0.0;
 
     public void setBeamSize(double[] bs) { this.beamSize = bs; }
     public void setBeamPosition(double[] bp) { this.beamPosition = bp; }
@@ -2488,6 +2533,7 @@ public class KalmanVertexFitterGainMatrix {
     public void setReferencePosition(double[] rp) { this.referencePosition = rp.clone(); }
     public void setBeamEnergy(double energy) { this.pBeam = energy; }
     public void setBeamRotAngle(double angle) { this.rotAngle = angle; }
+    public void setBeamMomentumTransverseNuclearRecoilSigma(double sigma) { this.sigmaTNuclearRecoil = sigma; }
     public void setDebug(boolean debug) { this.debugFlag = debug; }
     public void setStoreCovTrkMomList(boolean value) { this.storeCovTrkMomList = value; }
 
@@ -2825,7 +2871,12 @@ public class KalmanVertexFitterGainMatrix {
      * @param beamspotConstraint      If true, constrain vertex position to beam spot
      * @param beamMomentumConstraint  If true, constrain total 3-momentum to beam value
      * @param hardMomentumConstraint  If true (and beamMomentumConstraint is true), enforce
-     *                                the momentum constraint exactly via Lagrange multipliers
+     *                                the momentum constraint exactly via Lagrange multipliers.
+     *                                <b>Deprecated:</b> see {@link #fitLagrangeMultiplier} --
+     *                                the exact constraint is not physically correct (target
+     *                                nuclear recoil carries real momentum away) and this mode
+     *                                cannot be fixed by {@link #setBeamMomentumTransverseNuclearRecoilSigma}.
+     *                                Prefer {@code false} (soft mode) for new production use.
      * @return BilliorVertex with fitted results
      */
     public BilliorVertex fitVertex(List<TrackParams> tracks, boolean beamspotConstraint, boolean beamMomentumConstraint, boolean hardMomentumConstraint) {
@@ -2882,7 +2933,7 @@ public class KalmanVertexFitterGainMatrix {
             double dpOverP = 1e-2;
             double sigmaTheta = 100e-6;           // beam angular divergence (rad)
             double sigmaL = dpOverP * pBeam;
-            double sigmaT = sigmaTheta * pBeam;
+            double sigmaT = FastMath.hypot(sigmaTheta * pBeam, sigmaTNuclearRecoil);
             double cosR = FastMath.cos(rotAngle);
             double sinR = FastMath.sin(rotAngle);
             double sL2 = sigmaL * sigmaL;
@@ -2990,6 +3041,29 @@ public class KalmanVertexFitterGainMatrix {
 
         BilliorVertex bv = new BilliorVertex(vtxPos, covVtx, result.chi2, invMass, pFitMap, label);
         bv.setPositionError(vtxPosErr);
+        bv.setProbability(result.ndf);
+        bv.setParameter("ndf", (double) result.ndf);
+
+        // Total (summed) fitted momentum + diagonal error, converted tracking -> detector frame
+        // with the same {1,2,0} reindex used for the per-track momenta above. Reuses the
+        // existing (Kalman-unused until now) BilliorVertex V0-momentum slot rather than adding
+        // new custom-parameter keys -- this is exactly the "total momentum + error" slot it was
+        // designed for, and it is already wired into getParameters() (V0Px/y/z, V0PxErr/etc,
+        // V0PErr). Only the diagonal error is stored, matching the diagonal-only convention
+        // already used for fitMom{i}_pxErr below.
+        if (result.totalMomentum != null && result.totalMomentumCov != null) {
+            int[] map = {1, 2, 0}; // detector index -> tracking index
+            double detTotalPx = result.totalMomentum.getEntry(map[0]);
+            double detTotalPy = result.totalMomentum.getEntry(map[1]);
+            double detTotalPz = result.totalMomentum.getEntry(map[2]);
+            hep.physics.vec.Hep3Vector detTotalP =
+                    new hep.physics.vec.BasicHep3Vector(detTotalPx, detTotalPy, detTotalPz);
+            hep.physics.vec.Hep3Vector detTotalPErr = new hep.physics.vec.BasicHep3Vector(
+                    FastMath.sqrt(FastMath.abs(result.totalMomentumCov.getEntry(map[0], map[0]))),
+                    FastMath.sqrt(FastMath.abs(result.totalMomentumCov.getEntry(map[1], map[1]))),
+                    FastMath.sqrt(FastMath.abs(result.totalMomentumCov.getEntry(map[2], map[2]))));
+            bv.setV0Momentum(detTotalP, detTotalPErr);
+        }
 
         // Store momentum covariances in detector frame (for the _covTrkMomList accessor path)
         if (storeCovTrkMomList) {

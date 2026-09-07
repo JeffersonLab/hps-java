@@ -10,13 +10,18 @@ import java.util.Map;
 
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
+import hep.physics.vec.VecOp;
 
+import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackStateUtils;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
 import org.hps.recon.vertexing.BilliorVertexer;
 import org.hps.recon.vertexing.KalmanNTrackVertexer;
+import org.hps.recon.vertexing.KalmanVertexFitterGainMatrix;
+import org.hps.recon.vertexing.KalmanVertexFitterGainMatrix.TrackMomentum;
+import org.hps.recon.vertexing.KalmanVertexFitterGainMatrix.TrackParams;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
@@ -27,6 +32,9 @@ import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
 
 import hep.physics.matrix.SymmetricMatrix;
+
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
 
 /**
  * Writes a flat ASCII ntuple comparing, per trident MC event, the legacy Billoir N-track
@@ -51,8 +59,35 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
             "kalVtxX/D", "kalVtxY/D", "kalVtxZ/D",
             "kalVtxXErr/D", "kalVtxYErr/D", "kalVtxZErr/D",
             "kalChi2/D", "kalNdf/I", "kalMass/D",
+            "kalUncEle1Px/D", "kalUncEle1Py/D", "kalUncEle1Pz/D",
+            "kalUncEle1PxErr/D", "kalUncEle1PyErr/D", "kalUncEle1PzErr/D",
+            "kalUncEle2Px/D", "kalUncEle2Py/D", "kalUncEle2Pz/D",
+            "kalUncEle2PxErr/D", "kalUncEle2PyErr/D", "kalUncEle2PzErr/D",
+            "kalUncPosPx/D", "kalUncPosPy/D", "kalUncPosPz/D",
+            "kalUncPosPxErr/D", "kalUncPosPyErr/D", "kalUncPosPzErr/D",
+            "kalSoftVtxX/D", "kalSoftVtxY/D", "kalSoftVtxZ/D",
+            "kalSoftVtxXErr/D", "kalSoftVtxYErr/D", "kalSoftVtxZErr/D",
+            "kalSoftChi2/D", "kalSoftNdf/I", "kalSoftMass/D",
+            "kalSoftPx/D", "kalSoftPy/D", "kalSoftPz/D",
+            "kalSoftPxErr/D", "kalSoftPyErr/D", "kalSoftPzErr/D",
+            "kalSoftEle1Px/D", "kalSoftEle1Py/D", "kalSoftEle1Pz/D",
+            "kalSoftEle1PxErr/D", "kalSoftEle1PyErr/D", "kalSoftEle1PzErr/D",
+            "kalSoftEle2Px/D", "kalSoftEle2Py/D", "kalSoftEle2Pz/D",
+            "kalSoftEle2PxErr/D", "kalSoftEle2PyErr/D", "kalSoftEle2PzErr/D",
+            "kalSoftPosPx/D", "kalSoftPosPy/D", "kalSoftPosPz/D",
+            "kalSoftPosPxErr/D", "kalSoftPosPyErr/D", "kalSoftPosPzErr/D",
             "ele1TruthMatched/I", "ele2TruthMatched/I", "posTruthMatched/I", "allTruthMatched/I",
-            "apVtxXMC/D", "apVtxYMC/D", "apVtxZMC/D");
+            "apVtxXMC/D", "apVtxYMC/D", "apVtxZMC/D",
+            "mcTotalPx/D", "mcTotalPy/D", "mcTotalPz/D",
+            "mcEle1Px/D", "mcEle1Py/D", "mcEle1Pz/D",
+            "mcEle2Px/D", "mcEle2Py/D", "mcEle2Pz/D",
+            "mcPosPx/D", "mcPosPy/D", "mcPosPz/D",
+            "recoEle1Px/D", "recoEle1Py/D", "recoEle1Pz/D",
+            "recoEle1PxErr/D", "recoEle1PyErr/D", "recoEle1PzErr/D",
+            "recoEle2Px/D", "recoEle2Py/D", "recoEle2Pz/D",
+            "recoEle2PxErr/D", "recoEle2PyErr/D", "recoEle2PzErr/D",
+            "recoPosPx/D", "recoPosPy/D", "recoPosPz/D",
+            "recoPosPxErr/D", "recoPosPyErr/D", "recoPosPzErr/D");
 
     private String trackCollectionName = "KalmanFullTracks";
     private String mcParticlesColName = "MCParticle";
@@ -60,9 +95,24 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
     private String tupleFile = null;
     private PrintWriter tupleWriter = null;
     private double bField;
+    private double beamEnergy = 3.74;
+    private double beamRotAngle = -0.0305;
+    private double minTruthMatchPurity = 0.9;
 
     public void setTrackCollectionName(String trackCollectionName) {
         this.trackCollectionName = trackCollectionName;
+    }
+
+    public void setMinTruthMatchPurity(double minTruthMatchPurity) {
+        this.minTruthMatchPurity = minTruthMatchPurity;
+    }
+
+    public void setBeamEnergy(double beamEnergy) {
+        this.beamEnergy = beamEnergy;
+    }
+
+    public void setBeamRotAngle(double beamRotAngle) {
+        this.beamRotAngle = beamRotAngle;
     }
 
     public void setMcParticlesColName(String mcParticlesColName) {
@@ -143,6 +193,15 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
         // so no daughter-production-point workaround is needed here.
         Hep3Vector apVtxMC = ele1MC.getOrigin();
 
+        // Truth total momentum of the 3 trident daughters, used as the pull denominator's
+        // truth term for the fitted total-momentum pull plots -- same "no frame-conversion
+        // workaround needed" situation as apVtxMC above (MCParticle.getMomentum() is already
+        // in detector frame).
+        Hep3Vector ele1MCMom = ele1MC.getMomentum();
+        Hep3Vector ele2MCMom = ele2MC.getMomentum();
+        Hep3Vector posMCMom = posMC.getMomentum();
+        Hep3Vector mcTotalP = VecOp.add(VecOp.add(ele1MCMom, ele2MCMom), posMCMom);
+
         // A single MCParticle can receive relations from more than one Track (e.g. a
         // ghost/duplicate track sharing hits with the true particle), so pick the
         // highest-purity (rel.getWeight()) match rather than whichever relation the
@@ -154,6 +213,9 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
             MCParticle mcp = (MCParticle) rel.getTo();
             if (mcp == ele1MC || mcp == ele2MC || mcp == posMC) {
                 double weight = rel.getWeight();
+                if (weight < minTruthMatchPurity) {
+                    continue;
+                }
                 Double best = mcToWeight.get(mcp);
                 if (best == null || weight > best) {
                     mcToWeight.put(mcp, weight);
@@ -173,6 +235,18 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
         }
 
         List<Track> tracks = Arrays.asList(ele1Track, ele2Track, posTrack);
+
+        // Raw reconstructed momentum (+ its own, no-vertex-constraint error) at each
+        // track's own point of closest approach, before any vertex fit is applied -- the
+        // pre-fit baseline the vertex-fit momenta (and MC truth) are compared against.
+        // Computed in the tracking frame (same convention as TrackDataDriver.java) then
+        // converted to detector frame to match apVtxMC/mcEle1Px etc.
+        Hep3Vector[] recoEle1 = getRawMomentumAndError(ele1Track);
+        Hep3Vector[] recoEle2 = getRawMomentumAndError(ele2Track);
+        Hep3Vector[] recoPos = getRawMomentumAndError(posTrack);
+        Hep3Vector recoEle1Mom = recoEle1[0], recoEle1MomErr = recoEle1[1];
+        Hep3Vector recoEle2Mom = recoEle2[0], recoEle2MomErr = recoEle2[1];
+        Hep3Vector recoPosMom = recoPos[0], recoPosMomErr = recoPos[1];
 
         List<BilliorTrack> billTracks = new ArrayList<BilliorTrack>();
         for (Track track : tracks) {
@@ -206,12 +280,28 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
         billiorVertexer.setReferencePosition(newRef);
         BilliorVertex billoirVtx = billiorVertexer.fitVertex(shiftedTracks);
         BilliorVertex kalmanVtx = new KalmanNTrackVertexer(bField).fitVertex(tracks);
+        BilliorVertex kalmanVtxUnconstrained = new KalmanNTrackVertexer(bField).fitVertexNoBeamConstraint(tracks);
+        // Hard (Lagrange-multiplier/exact) beam-momentum-constrained mode is deprecated (see
+        // KalmanVertexFitterGainMatrix.fitLagrangeMultiplier) and no longer computed here.
+        // sigmaTNuclearRecoil accounts for momentum carried away by the target nuclear recoil
+        // in trident production, not modeled by the beam-divergence-only covariance alone (see
+        // KalmanVertexFitterGainMatrix.setBeamMomentumTransverseNuclearRecoilSigma). Value is
+        // 18.6 MeV, measured from std(mcTotalPx/Py) truth spread on a single 10-file real-MC
+        // pilot; TODO: retune on a larger/full sample.
+        double sigmaTNuclearRecoil = 0.0186; // GeV
+        BilliorVertex kalmanVtxSoft = new KalmanNTrackVertexer(bField).fitVertexBeamConstrained(
+                tracks, beamEnergy, beamRotAngle, false, sigmaTNuclearRecoil);
 
         Hep3Vector vtxPos = billoirVtx.getPosition();
         Hep3Vector vtxPosErr = billoirVtx.getPositionError();
         Hep3Vector kalVtxPos = kalmanVtx.getPosition();
         Hep3Vector kalVtxPosErr = kalmanVtx.getPositionError();
         Double kalNdf = kalmanVtx.getCustomParameters().get("ndf");
+        Hep3Vector kalSoftVtxPos = kalmanVtxSoft.getPosition();
+        Hep3Vector kalSoftVtxPosErr = kalmanVtxSoft.getPositionError();
+        Double kalSoftNdf = kalmanVtxSoft.getCustomParameters().get("ndf");
+        Hep3Vector kalSoftP = kalmanVtxSoft.getV0Momentum();
+        Hep3Vector kalSoftPErr = kalmanVtxSoft.getV0MomentumError();
 
         Map<String, Double> row = new HashMap<String, Double>();
         row.put("run/I", (double) event.getRunNumber());
@@ -233,6 +323,29 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
         row.put("kalChi2/D", kalmanVtx.getChi2());
         row.put("kalNdf/I", kalNdf != null ? kalNdf : -9999.0);
         row.put("kalMass/D", kalmanVtx.getInvMass());
+        row.put("kalSoftVtxX/D", kalSoftVtxPos.x());
+        row.put("kalSoftVtxY/D", kalSoftVtxPos.y());
+        row.put("kalSoftVtxZ/D", kalSoftVtxPos.z());
+        row.put("kalSoftVtxXErr/D", kalSoftVtxPosErr.x());
+        row.put("kalSoftVtxYErr/D", kalSoftVtxPosErr.y());
+        row.put("kalSoftVtxZErr/D", kalSoftVtxPosErr.z());
+        row.put("kalSoftChi2/D", kalmanVtxSoft.getChi2());
+        row.put("kalSoftNdf/I", kalSoftNdf != null ? kalSoftNdf : -9999.0);
+        row.put("kalSoftMass/D", kalmanVtxSoft.getInvMass());
+        if (kalSoftP != null && kalSoftPErr != null) {
+            row.put("kalSoftPx/D", kalSoftP.x());
+            row.put("kalSoftPy/D", kalSoftP.y());
+            row.put("kalSoftPz/D", kalSoftP.z());
+            row.put("kalSoftPxErr/D", kalSoftPErr.x());
+            row.put("kalSoftPyErr/D", kalSoftPErr.y());
+            row.put("kalSoftPzErr/D", kalSoftPErr.z());
+        }
+        putTrackMomentum(row, kalmanVtxUnconstrained, 0, "kalUncEle1");
+        putTrackMomentum(row, kalmanVtxUnconstrained, 1, "kalUncEle2");
+        putTrackMomentum(row, kalmanVtxUnconstrained, 2, "kalUncPos");
+        putTrackMomentum(row, kalmanVtxSoft, 0, "kalSoftEle1");
+        putTrackMomentum(row, kalmanVtxSoft, 1, "kalSoftEle2");
+        putTrackMomentum(row, kalmanVtxSoft, 2, "kalSoftPos");
         row.put("ele1TruthMatched/I", ele1Matched ? 1.0 : 0.0);
         row.put("ele2TruthMatched/I", ele2Matched ? 1.0 : 0.0);
         row.put("posTruthMatched/I", posMatched ? 1.0 : 0.0);
@@ -240,8 +353,100 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
         row.put("apVtxXMC/D", apVtxMC.x());
         row.put("apVtxYMC/D", apVtxMC.y());
         row.put("apVtxZMC/D", apVtxMC.z());
+        row.put("mcTotalPx/D", mcTotalP.x());
+        row.put("mcTotalPy/D", mcTotalP.y());
+        row.put("mcTotalPz/D", mcTotalP.z());
+        row.put("mcEle1Px/D", ele1MCMom.x());
+        row.put("mcEle1Py/D", ele1MCMom.y());
+        row.put("mcEle1Pz/D", ele1MCMom.z());
+        row.put("mcEle2Px/D", ele2MCMom.x());
+        row.put("mcEle2Py/D", ele2MCMom.y());
+        row.put("mcEle2Pz/D", ele2MCMom.z());
+        row.put("mcPosPx/D", posMCMom.x());
+        row.put("mcPosPy/D", posMCMom.y());
+        row.put("mcPosPz/D", posMCMom.z());
+        row.put("recoEle1Px/D", recoEle1Mom.x());
+        row.put("recoEle1Py/D", recoEle1Mom.y());
+        row.put("recoEle1Pz/D", recoEle1Mom.z());
+        row.put("recoEle1PxErr/D", recoEle1MomErr.x());
+        row.put("recoEle1PyErr/D", recoEle1MomErr.y());
+        row.put("recoEle1PzErr/D", recoEle1MomErr.z());
+        row.put("recoEle2Px/D", recoEle2Mom.x());
+        row.put("recoEle2Py/D", recoEle2Mom.y());
+        row.put("recoEle2Pz/D", recoEle2Mom.z());
+        row.put("recoEle2PxErr/D", recoEle2MomErr.x());
+        row.put("recoEle2PyErr/D", recoEle2MomErr.y());
+        row.put("recoEle2PzErr/D", recoEle2MomErr.z());
+        row.put("recoPosPx/D", recoPosMom.x());
+        row.put("recoPosPy/D", recoPosMom.y());
+        row.put("recoPosPz/D", recoPosMom.z());
+        row.put("recoPosPxErr/D", recoPosMomErr.x());
+        row.put("recoPosPyErr/D", recoPosMomErr.y());
+        row.put("recoPosPzErr/D", recoPosMomErr.z());
 
         writeRow(row);
+    }
+
+    /**
+     * Reads track {@code trackIndex}'s fitted momentum + diagonal error off {@code bv} (set
+     * unconditionally by {@code KalmanVertexFitterGainMatrix.fitVertex}'s dispatcher for every
+     * track, via {@code getFittedMomentum(i)} and the {@code fitMom{i}_pxErr} custom
+     * parameters) and writes them into {@code row} under {@code prefix}. No-ops (leaving the
+     * sentinel fill in {@code writeRow} to apply) if {@code bv} is a failed-fit placeholder,
+     * signaled by the custom-parameter errors being absent.
+     */
+    private static void putTrackMomentum(Map<String, Double> row, BilliorVertex bv, int trackIndex, String prefix) {
+        Hep3Vector p = bv.getFittedMomentum(trackIndex);
+        Double pxErr = bv.getCustomParameters().get("fitMom" + trackIndex + "_pxErr");
+        Double pyErr = bv.getCustomParameters().get("fitMom" + trackIndex + "_pyErr");
+        Double pzErr = bv.getCustomParameters().get("fitMom" + trackIndex + "_pzErr");
+        if (p == null || pxErr == null || pyErr == null || pzErr == null) {
+            return;
+        }
+        row.put(prefix + "Px/D", p.x());
+        row.put(prefix + "Py/D", p.y());
+        row.put(prefix + "Pz/D", p.z());
+        row.put(prefix + "PxErr/D", pxErr);
+        row.put(prefix + "PyErr/D", pyErr);
+        row.put(prefix + "PzErr/D", pzErr);
+    }
+
+    /**
+     * Raw pre-vertex-fit momentum and its diagonal error of {@code track}, evaluated at
+     * its own point of closest approach (no vertex constraint applied), converted to
+     * detector frame. The error comes from propagating the track's own helix-parameter
+     * covariance through the same momentum Jacobian the vertex fitters use
+     * ({@link KalmanVertexFitterGainMatrix#computeRawMomentum}), so it is directly
+     * comparable to the kalSoftXPxErr columns -- the "before any vertex fit"
+     * baseline for momentum pull plots. Returns {momentum, momentumError}.
+     */
+    private Hep3Vector[] getRawMomentumAndError(Track track) {
+        TrackState ts = TrackStateUtils.getTrackStatesAtLocation(track, TrackState.AtPerigee).get(0);
+        double[] par = ts.getParameters();
+        SymmetricMatrix sm = new SymmetricMatrix(5, ts.getCovMatrix(), true);
+        RealMatrix cov = MatrixUtils.createRealMatrix(5, 5);
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                cov.setEntry(i, j, sm.e(i, j));
+            }
+        }
+        TrackParams tp = new TrackParams(par[0], par[1], par[2], par[3], par[4], cov);
+        TrackMomentum tm = new KalmanVertexFitterGainMatrix(bField).computeRawMomentum(tp);
+
+        Hep3Vector pDet = CoordinateTransformations.transformVectorToDetector(
+                new BasicHep3Vector(tm.p.getEntry(0), tm.p.getEntry(1), tm.p.getEntry(2)));
+        SymmetricMatrix pCovTrk = new SymmetricMatrix(3);
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                pCovTrk.setElement(i, j, tm.pCov.getEntry(i, j));
+            }
+        }
+        SymmetricMatrix pCovDet = CoordinateTransformations.transformCovarianceToDetector(pCovTrk);
+        Hep3Vector pErrDet = new BasicHep3Vector(
+                Math.sqrt(Math.abs(pCovDet.e(0, 0))),
+                Math.sqrt(Math.abs(pCovDet.e(1, 1))),
+                Math.sqrt(Math.abs(pCovDet.e(2, 2))));
+        return new Hep3Vector[]{pDet, pErrDet};
     }
 
     private void writeRow(Map<String, Double> row) {

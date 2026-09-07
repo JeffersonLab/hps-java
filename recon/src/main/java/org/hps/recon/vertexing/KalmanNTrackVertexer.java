@@ -72,6 +72,98 @@ public class KalmanNTrackVertexer {
     }
 
     /**
+     * Fit the common vertex of N tracks with the total 3-momentum constrained to the beam
+     * value, using {@link KalmanVertexFitterGainMatrix#fitVertex(List, boolean, boolean,
+     * boolean)} directly (no beamspot-position constraint). That richer method already
+     * performs the tracking-to-detector frame conversion, invariant mass calculation, and
+     * ndf storage, so no separate {@code makeVertex}-style post-processing is needed here.
+     *
+     * @param tracks                 the input tracks (any N &gt;= 2)
+     * @param beamEnergy             beam energy (GeV)
+     * @param beamRotAngle           beam crossing angle about the tracking-frame Z axis (rad)
+     * @param hardMomentumConstraint if true, enforce the momentum constraint exactly
+     *                               (Lagrange multiplier); if false, apply it softly, weighted
+     *                               by the beam momentum uncertainty.
+     *                               <b>Deprecated:</b> {@code true} (hard mode) is not physically
+     *                               correct -- the target nuclear recoil carries real momentum
+     *                               away from the tracked leptons -- and, unlike soft mode,
+     *                               cannot be corrected via {@code transverseNuclearRecoilSigma}
+     *                               below (see {@link KalmanVertexFitterGainMatrix#fitLagrangeMultiplier}).
+     *                               Prefer {@code false} for new production use.
+     * @return the fitted vertex, or a sentinel placeholder vertex if the fit fails
+     */
+    public BilliorVertex fitVertexBeamConstrained(List<Track> tracks, double beamEnergy,
+            double beamRotAngle, boolean hardMomentumConstraint) {
+        return fitVertexBeamConstrained(tracks, beamEnergy, beamRotAngle, hardMomentumConstraint, 0.0);
+    }
+
+    /**
+     * Same as {@link #fitVertexBeamConstrained(List, double, double, boolean)}, but with an
+     * additional transverse beam-momentum-constraint width, combined in quadrature with the
+     * beam-divergence term, to account for event-to-event transverse momentum not carried by
+     * the tracked leptons -- primarily momentum transferred to the target nucleus during
+     * production (nuclear recoil; distinct from a recoil electron from radiative/A' events) --
+     * see {@link KalmanVertexFitterGainMatrix#setBeamMomentumTransverseNuclearRecoilSigma(double)}.
+     * Kept as a separate overload rather than changing the 4-argument method in place, so that
+     * method's existing (recoil-free) behavior remains available unchanged for any other caller.
+     *
+     * @param hardMomentumConstraint see {@link #fitVertexBeamConstrained(List, double, double, boolean)};
+     *                               deprecated (hard mode), prefer {@code false}
+     * @param transverseNuclearRecoilSigma additional transverse momentum width (GeV); 0.0
+     *                               reproduces the original divergence-only covariance exactly.
+     *                               Has no effect when {@code hardMomentumConstraint} is true.
+     */
+    public BilliorVertex fitVertexBeamConstrained(List<Track> tracks, double beamEnergy,
+            double beamRotAngle, boolean hardMomentumConstraint, double transverseNuclearRecoilSigma) {
+        List<TrackParams> trackParams = new ArrayList<TrackParams>();
+        double[] referencePoint = null;
+        for (Track track : tracks) {
+            TrackState ts = TrackStateUtils.getTrackStatesAtLocation(track, TrackState.AtPerigee).get(0);
+            if (referencePoint == null) {
+                referencePoint = ts.getReferencePoint();
+            }
+            trackParams.add(trackParamsFromTrack(ts));
+        }
+
+        KalmanVertexFitterGainMatrix fitter = new KalmanVertexFitterGainMatrix(bField);
+        fitter.setBeamEnergy(beamEnergy);
+        fitter.setBeamRotAngle(beamRotAngle);
+        fitter.setBeamMomentumTransverseNuclearRecoilSigma(transverseNuclearRecoilSigma);
+        fitter.setReferencePosition(referencePoint);
+        BilliorVertex bv = fitter.fitVertex(trackParams, false, true, hardMomentumConstraint);
+        return (bv != null) ? bv : placeholderVertex(tracks.size());
+    }
+
+    /**
+     * Fit the common vertex of N tracks with no beamspot-position or beam-momentum
+     * constraint, using {@link KalmanVertexFitterGainMatrix#fitVertex(List, boolean,
+     * boolean, boolean)} directly (dispatches internally to {@code fitBillior1985}, which
+     * -- unlike the simpler {@code fit()} algorithm used by {@link #fitVertex(List)} --
+     * already computes a real per-track momentum covariance). Kept as a separate method
+     * rather than changing {@link #fitVertex(List)} in place, so that method's existing
+     * (covariance-free) behavior remains available unchanged for any other caller.
+     *
+     * @param tracks the input tracks (any N &gt;= 2)
+     * @return the fitted vertex, or a sentinel placeholder vertex if the fit fails
+     */
+    public BilliorVertex fitVertexNoBeamConstraint(List<Track> tracks) {
+        List<TrackParams> trackParams = new ArrayList<TrackParams>();
+        double[] referencePoint = null;
+        for (Track track : tracks) {
+            TrackState ts = TrackStateUtils.getTrackStatesAtLocation(track, TrackState.AtPerigee).get(0);
+            if (referencePoint == null) {
+                referencePoint = ts.getReferencePoint();
+            }
+            trackParams.add(trackParamsFromTrack(ts));
+        }
+
+        KalmanVertexFitterGainMatrix fitter = new KalmanVertexFitterGainMatrix(bField);
+        fitter.setReferencePosition(referencePoint);
+        BilliorVertex bv = fitter.fitVertex(trackParams, false, false, false);
+        return (bv != null) ? bv : placeholderVertex(tracks.size());
+    }
+
+    /**
      * A sentinel vertex (chi2/mass = -9999, zero position/momenta) used in place of a null
      * result when the fit fails, so that callers pairing this fit's output index-for-index
      * against another collection (e.g. the Billoir N-track fit, for comparison) never see
