@@ -1,0 +1,3 @@
+requireFEETrigger		  true
+useFEETopTrigger		  true
+useFEEBotTrigger		  true

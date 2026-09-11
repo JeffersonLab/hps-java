@@ -31,17 +31,17 @@ public class MultiSkimDriver extends Driver {
 
     private String v0OutputFile="v0Skim"; 
     private String threeBodyOutputFile="threeBodySkim"; 
-    private String FEEOutputFile="FEESkim"; 
+    private String feeOutputFile="FEESkim"; 
     private String mollerOutputFile="mollerSkim"; 
     
     private String v0ParamFile="default"; 
     private String threeBodyParamFile="default";
-    private String FEEParamFile="default"; 
+    private String feeParamFile="default"; 
     private String mollerParamFile="default"; 
 
     private Skimmer v0Skimmer; 
     private Skimmer threeBodySkimmer; 
-    private Skimmer FEESkimmer; 
+    private Skimmer feeSkimmer; 
     private Skimmer mollerSkimmer;     
     
     protected Double beamEnergy;
@@ -60,6 +60,14 @@ public class MultiSkimDriver extends Driver {
 	    System.out.println("       Pass efficiency   = " + v0Skimmer.getPassFraction());
 	    System.out.println("Total number of V0s processed = "+((V0Skimmer)v0Skimmer).getTotalV0s()); 
 	    System.out.println("Total number of V0s passing skim = "+((V0Skimmer)v0Skimmer).getTotalV0sPassing()); 
+	}
+
+	if(skimFEE){
+	    System.out.println("FEE skim events processed = " + feeSkimmer.getNProcessed());
+	    System.out.println("Events passed            = " + feeSkimmer.getNPassed());
+	    System.out.println("       Pass efficiency   = " + feeSkimmer.getPassFraction());
+	    System.out.println("Total number of FEE top triggers = "+((FEESkimmer)feeSkimmer).getTotalFEETopTriggers());
+	    System.out.println("Total number of FEE bottom triggers = "+((FEESkimmer)feeSkimmer).getTotalFEEBotTriggers());
 	}
 
         if(skimMoller){
@@ -85,8 +93,8 @@ public class MultiSkimDriver extends Driver {
 	    writeSkimList.add(threeBodySkimmer); 
 
 	if(skimFEE &&
-	   FEESkimmer.passSelection(event))
-	    writeSkimList.add(FEESkimmer);
+	   feeSkimmer.passSelection(event))
+	    writeSkimList.add(feeSkimmer);
 	if(skimMoller &&
 	   mollerSkimmer.passSelection(event))
 	    writeSkimList.add(mollerSkimmer);
@@ -130,8 +138,8 @@ public class MultiSkimDriver extends Driver {
 	this.threeBodyOutputFile=outputFile; 
     }
     
-    public void setFEEOutputFile(String outputFile){
-	this.FEEOutputFile=outputFile; 
+    public void setFeeOutputFile(String outputFile){
+	this.feeOutputFile=outputFile; 
     }
     public void setMollerOutputFile(String outputFile){
 	this.mollerOutputFile=outputFile; 
@@ -154,7 +162,7 @@ public class MultiSkimDriver extends Driver {
 	if(skimThreeBody)
 	    threeBodySkimmer=setupSkimmer("ThreeBody",threeBodyOutputFile, threeBodyParamFile);	
 	if(skimFEE)
-	    FEESkimmer=setupSkimmer("FEE",FEEOutputFile, FEEParamFile);	
+	    feeSkimmer=setupSkimmer("FEE",feeOutputFile, feeParamFile);	
 	if(skimMoller)
 	    mollerSkimmer=setupSkimmer("Moller",mollerOutputFile, mollerParamFile);	
     }
@@ -188,8 +196,8 @@ public class MultiSkimDriver extends Driver {
 	this.threeBodyParamFile=pFile;
     }
 
-    public void setFEEParamFile(String pFile){
-	  this.FEEParamFile=pFile;
+    public void setFeeParamFile(String pFile){
+	  this.feeParamFile=pFile;
     }
 
     public void setMollerParamFile(String pFile){
