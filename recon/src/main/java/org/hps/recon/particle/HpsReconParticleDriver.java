@@ -146,6 +146,13 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     private boolean requireClustersForV0 = true;
 
     /**
+     * Whether to refit TARGET_CONSTRAINED vertices after shifting the tracks
+     * to the first-pass vertex, as is done for UNCONSTRAINED and
+     * BS_CONSTRAINED. Off by default (original behaviour).
+     */
+    private boolean refitTargetConstrained = false;
+
+    /**
      * Represents a type of constraint for vertex fitting.
      *
      */
@@ -282,6 +289,16 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
     public void setRequireClustersForV0(boolean b) {
         this.requireClustersForV0 = b;
+    }
+
+    /**
+     * Set whether TARGET_CONSTRAINED vertices are refit with the tracks
+     * shifted to the first-pass vertex.
+     *
+     * @param b True to refit target-constrained vertices
+     */
+    public void setRefitTargetConstrained(boolean b) {
+        this.refitTargetConstrained = b;
     }
     
     public void setUnconstrainedMollerCandidatesColName(String s)
@@ -589,7 +606,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         //  ...  this is required because the vertex fit assumes trajectories 
         // change linearly about the reference point (which we initially guess to be 
         // (0,0,0) while for long-lived decays there is significant curvature
-        if (constraint == Constraint.BS_CONSTRAINED || constraint == Constraint.UNCONSTRAINED) {
+        // Optionally do the same for TARGET_CONSTRAINED: the first pass is
+        // linearized about (0,0,0), the refit about the target point itself.
+        if (constraint == Constraint.BS_CONSTRAINED || constraint == Constraint.UNCONSTRAINED
+                || (constraint == Constraint.TARGET_CONSTRAINED && refitTargetConstrained)) {
             List<ReconstructedParticle> recoList = new ArrayList<ReconstructedParticle>();
             recoList.add(electron);
             recoList.add(positron);

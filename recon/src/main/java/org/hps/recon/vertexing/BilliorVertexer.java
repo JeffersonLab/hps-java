@@ -453,9 +453,12 @@ public class BilliorVertexer {
             rk.setElement(1, 0, _beamPosition[1] - ((Vy + _referencePosition[1]) - pytot / pxtot * (Vx - _beamPosition[0] + _referencePosition[0])));
             rk.setElement(2, 0, _beamPosition[2] - ((Vz + _referencePosition[2]) - pztot / pxtot * (Vx - _beamPosition[0] + _referencePosition[0])));
         } else {
-            rk.setElement(0, 0, _beamPosition[0] - Vx);
-            rk.setElement(1, 0, _beamPosition[1] - Vy);
-            rk.setElement(2, 0, _beamPosition[2] - Vz);
+            // The vertex position is relative to the reference position, so add it back
+            // before comparing with the (absolute) target position. The reference is the
+            // origin unless the tracks were shifted for a refit (see HpsReconParticleDriver).
+            rk.setElement(0, 0, _beamPosition[0] - (Vx + _referencePosition[0]));
+            rk.setElement(1, 0, _beamPosition[1] - (Vy + _referencePosition[1]));
+            rk.setElement(2, 0, _beamPosition[2] - (Vz + _referencePosition[2]));
         }
         if (_debug)
             System.out.println("makeRk::rk = (" + rk.e(0, 0) + ", " + rk.e(1, 0) + ", " + rk.e(2, 0) + ")");
