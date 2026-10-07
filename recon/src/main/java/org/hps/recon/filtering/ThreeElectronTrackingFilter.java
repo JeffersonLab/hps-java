@@ -16,7 +16,7 @@ import org.lcsim.util.Driver;
  * electrons -- the e-/e+ daughters of an A' (MCParticle PDGID 622 with two daughters) and a
  * separate recoil e- (the PDGID-11 daughter of a top-level PDGID-623 "reaction" particle) --
  * are each matched to a reconstructed Track, using the same MC-truth conventions as
- * CascadeVertexTupleDriver. Unlike filtering on CascadeVertexCandidates/ThreeTrackVertexCandidates,
+ * CascadeVertexTupleDriver. Unlike filtering on CascadeVertexCandidates,
  * this only requires that tracking found all three tracks; it doesn't require that any
  * V0/vertex candidate was successfully built from them, so the skim stays valid regardless of
  * changes to the downstream vertex-fitting code.

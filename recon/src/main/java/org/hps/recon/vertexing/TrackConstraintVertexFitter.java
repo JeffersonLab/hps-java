@@ -16,7 +16,7 @@ import org.hps.recon.tracking.CoordinateTransformations;
  * Kalman Filter vertex fitter using Gain Matrix formalism
  * Follows the approach of Frühwirth and Billoir for vertex fitting
  */
-public class KalmanVertexFitterGainMatrix {
+public class TrackConstraintVertexFitter {
     
     private double bField;
     private RealVector vertex;
@@ -156,7 +156,7 @@ public class KalmanVertexFitterGainMatrix {
     /**
      * Constraint representation: c = constraint residual, H = constraint matrix, V = covariance
      */
-    private static class Constraint {
+    static class Constraint {
         RealVector c;
         RealMatrix H;
         RealMatrix V;
@@ -168,18 +168,18 @@ public class KalmanVertexFitterGainMatrix {
         }
     }
     
-    public KalmanVertexFitterGainMatrix(double bField) {
+    public TrackConstraintVertexFitter(double bField) {
         this.bField = bField;
     }
     
-    public KalmanVertexFitterGainMatrix() {
+    public TrackConstraintVertexFitter() {
         this(2.0);
     }
     
     /**
      * Convert perigee to vertex parameters
      */
-    private static class VertexParams {
+    static class VertexParams {
         double phiV, zV;
         VertexParams(double phiV, double zV) {
             this.phiV = phiV;
@@ -187,7 +187,7 @@ public class KalmanVertexFitterGainMatrix {
         }
     }
     
-    private VertexParams perigeeToVertexParams(TrackParams track, double xV, double yV) {
+    VertexParams perigeeToVertexParams(TrackParams track, double xV, double yV) {
         double R = 1.0 / FastMath.abs(track.omega);
         double sign = FastMath.signum(track.omega);
         
@@ -217,7 +217,7 @@ public class KalmanVertexFitterGainMatrix {
      * Compute track constraint using Gain Matrix formalism
      * The track provides a constraint on where the vertex should be
      */
-    private Constraint computeTrackConstraint(TrackParams track, RealVector vertex) {
+    Constraint computeTrackConstraint(TrackParams track, RealVector vertex) {
         double xV = vertex.getEntry(0);
         double yV = vertex.getEntry(1);
         double zV = vertex.getEntry(2);
@@ -309,8 +309,58 @@ public class KalmanVertexFitterGainMatrix {
         RealMatrix J = MatrixUtils.createRealMatrix(2, 5);
         J.setRow(0, new double[]{dftDd0, dftDphi0, dftDomega, 0.0, 0.0});
         J.setRow(1, new double[]{dzDd0, dzDphi0, dzDomega, dzDz0, dzDtl});
-        
+
         return J.multiply(track.cov).multiply(J.transpose());
+    }
+
+    /**
+     * Jacobian of {@link #computeTrackConstraint}'s 2-row residual (transverse {@code r-R},
+     * longitudinal {@code zV-zPredicted}) with respect to the track's own 5 perigee
+     * parameters, at a fixed vertex {@code (xV,yV)} -- needed by
+     * {@link #fitCascadeVertexJointBeamConstrainedCore}, where each track's own parameters
+     * are free state variables rather than fixed inputs. Duplicates (rather than extracts)
+     * the algebra {@link #propagateTrackCovariance} already computes internally as its own
+     * local {@code J} before propagating it through the track covariance and discarding J
+     * itself, so that method and its existing callers stay untouched; the longitudinal row
+     * is negated relative to that internal {@code J} (matching the same negation
+     * {@link #fitSoftConstrained} applies to its own inline {@code rowZ} block), since the
+     * residual here is {@code zV-zPredicted}, not {@code zPredicted} itself.
+     */
+    private RealMatrix trackResidualJacobianWrtTrackParams(TrackParams track, double xV, double yV) {
+        double R = 1.0 / FastMath.abs(track.omega);
+        double sign = FastMath.signum(track.omega);
+
+        double xc = sign * R * FastMath.sin(track.phi0) - track.d0 * FastMath.sin(track.phi0);
+        double yc = -sign * R * FastMath.cos(track.phi0) + track.d0 * FastMath.cos(track.phi0);
+
+        double dx = xV - xc;
+        double dy = yV - yc;
+        double r2 = dx * dx + dy * dy;
+        double r = FastMath.sqrt(r2);
+
+        double dftDd0    = (dx * FastMath.sin(track.phi0) - dy * FastMath.cos(track.phi0)) / r;
+        double dftDphi0  = -(sign * R - track.d0) * (dx * FastMath.cos(track.phi0) + dy * FastMath.sin(track.phi0)) / r;
+        double dftDomega = (dx * FastMath.sin(track.phi0) - dy * FastMath.cos(track.phi0)) / (r * track.omega * track.omega)
+                           + sign / (track.omega * track.omega);
+
+        double dphiDd0 = -(FastMath.cos(track.phi0) * dx + FastMath.sin(track.phi0) * dy) / r2;
+        double dphiDphi0 = (sign * R - track.d0) * (dy * FastMath.cos(track.phi0) - dx * FastMath.sin(track.phi0)) / r2;
+        double dphiDomega = -R * R * (FastMath.cos(track.phi0) * dx + FastMath.sin(track.phi0) * dy) / r2;
+
+        double phiV = FastMath.atan2(-dx * sign, dy * sign);
+        double dphi = phiV - track.phi0;
+        while (dphi >  FastMath.PI) dphi -= 2.0 * FastMath.PI;
+        while (dphi < -FastMath.PI) dphi += 2.0 * FastMath.PI;
+        double s = -sign * R * dphi;
+
+        double dzPredDd0 = -sign * track.tanLambda * R * dphiDd0;
+        double dzPredDphi0 = -sign * (-track.tanLambda * R + track.tanLambda * R * dphiDphi0);
+        double dzPredDomega = -s * track.tanLambda / track.omega - sign * track.tanLambda * R * dphiDomega;
+
+        RealMatrix J = MatrixUtils.createRealMatrix(2, 5);
+        J.setRow(0, new double[]{dftDd0, dftDphi0, dftDomega, 0.0, 0.0});
+        J.setRow(1, new double[]{-dzPredDd0, -dzPredDphi0, -dzPredDomega, -1.0, -s});
+        return J;
     }
 
     /**
@@ -403,127 +453,6 @@ public class KalmanVertexFitterGainMatrix {
     }
 
     /**
-     * Compute vertex position constraint (beamspot)
-     */
-    private Constraint computeVertexConstraint(RealVector vertex, 
-                                               RealVector vertexConstraint,
-                                               RealMatrix vertexConstraintCov) {
-        RealVector c = vertex.subtract(vertexConstraint);
-        RealMatrix H = MatrixUtils.createRealIdentityMatrix(3);
-        RealMatrix V = vertexConstraintCov;
-        
-        return new Constraint(c, H, V);
-    }
-    
-    /**
-     * Compute momentum constraint
-     * The covariance V includes both beam momentum uncertainty AND track momentum uncertainties
-     */
-    private Constraint computeMomentumConstraint(List<TrackParams> tracks,
-                                                 RealVector vertex,
-                                                 RealVector momentumConstraint,
-                                                 RealMatrix momentumConstraintCov) {
-        // Calculate total momentum and total momentum covariance from tracks
-        RealVector totalP = MatrixUtils.createRealVector(new double[3]);
-        RealMatrix dpDvertex = MatrixUtils.createRealMatrix(3, 3);
-        RealMatrix totalPCov = MatrixUtils.createRealMatrix(3, 3);
-
-        for (TrackParams track : tracks) {
-            RealVector p = computeMomentumAtVertex(track, vertex);
-            totalP = totalP.add(p);
-
-            RealMatrix dpDv = computeMomentumVertexDerivatives(track, vertex);
-            dpDvertex = dpDvertex.add(dpDv);
-
-            // Add track momentum covariance (propagated from track parameter errors)
-            RealMatrix pCov = computeMomentumCovariance(track, vertex);
-            totalPCov = totalPCov.add(pCov);
-        }
-
-        RealVector c = totalP.subtract(momentumConstraint);
-        RealMatrix H = dpDvertex;
-        // Total covariance = beam momentum uncertainty + sum of track momentum uncertainties
-        RealMatrix V = momentumConstraintCov.add(totalPCov);
-
-        return new Constraint(c, H, V);
-    }
-    
-    /**
-     * Compute mass constraint
-     * Invariant mass: M² = (ΣE)² - (Σp)²
-     * 
-     * @param tracks List of track parameters
-     * @param vertex Vertex position
-     * @param massConstraint Constrained mass value (GeV/c²)
-     * @param massConstraintSigma Uncertainty on mass (GeV/c²)
-     * @return Constraint object
-     */
-    private Constraint computeMassConstraint(List<TrackParams> tracks,
-                                            RealVector vertex,
-                                            double massConstraint,
-                                            double massConstraintSigma) {
-        // Assume pion mass for all tracks (can be extended)
-        double mPi = 0.13957; // GeV/c²
-        
-        double totalE = 0.0;
-        RealVector totalP = MatrixUtils.createRealVector(new double[3]);
-        RealVector dEDvertex = MatrixUtils.createRealVector(new double[3]);
-        RealMatrix dpDvertex = MatrixUtils.createRealMatrix(3, 3);
-        
-        for (TrackParams track : tracks) {
-            RealVector p = computeMomentumAtVertex(track, vertex);
-            double pMag = p.getNorm();
-            
-            // Energy (assuming pion mass)
-            double E = FastMath.sqrt(pMag * pMag + mPi * mPi);
-            totalE += E;
-            totalP = totalP.add(p);
-            
-            // Derivatives of E w.r.t. vertex
-            // E = sqrt(p² + m²), so dE/dvertex = (p · dp/dvertex) / E
-            RealMatrix dpDv = computeMomentumVertexDerivatives(track, vertex);
-            
-            for (int i = 0; i < 3; i++) {
-                double dEDv = 0.0;
-                for (int j = 0; j < 3; j++) {
-                    dEDv += p.getEntry(j) * dpDv.getEntry(j, i);
-                }
-                dEDvertex.setEntry(i, dEDvertex.getEntry(i) + dEDv / E);
-            }
-            
-            dpDvertex = dpDvertex.add(dpDv);
-        }
-        
-        // Invariant mass
-        double totalPmag = totalP.getNorm();
-        double M = FastMath.sqrt(totalE * totalE - totalPmag * totalPmag);
-        
-        // Constraint residual
-        RealVector c = MatrixUtils.createRealVector(new double[]{M - massConstraint});
-        
-        // Derivatives of M w.r.t. vertex
-        // M² = E² - p², so 2M dM = 2E dE - 2p·dp
-        // dM/dvertex = (E * dE/dvertex - p · dp/dvertex) / M
-        RealVector dMDvertex = MatrixUtils.createRealVector(new double[3]);
-        for (int i = 0; i < 3; i++) {
-            double dpDotDv = 0.0;
-            for (int j = 0; j < 3; j++) {
-                dpDotDv += totalP.getEntry(j) * dpDvertex.getEntry(j, i);
-            }
-            dMDvertex.setEntry(i, (totalE * dEDvertex.getEntry(i) - dpDotDv) / M);
-        }
-        
-        RealMatrix H = MatrixUtils.createRealMatrix(1, 3);
-        H.setRowVector(0, dMDvertex);
-        
-        // Covariance (1x1 matrix)
-        RealMatrix V = MatrixUtils.createRealMatrix(1, 1);
-        V.setEntry(0, 0, massConstraintSigma * massConstraintSigma);
-        
-        return new Constraint(c, H, V);
-    }
-    
-    /**
      * Compute momentum at vertex
      */
     RealVector computeMomentumAtVertex(TrackParams track, RealVector vertex) {
@@ -543,7 +472,7 @@ public class KalmanVertexFitterGainMatrix {
     /**
      * Compute d(momentum)/d(vertex)
      */
-    private RealMatrix computeMomentumVertexDerivatives(TrackParams track, RealVector vertex) {
+    RealMatrix computeMomentumVertexDerivatives(TrackParams track, RealVector vertex) {
         double xV = vertex.getEntry(0);
         double yV = vertex.getEntry(1);
         
@@ -580,7 +509,7 @@ public class KalmanVertexFitterGainMatrix {
     /**
      * Compute momentum covariance
      */
-    private RealMatrix computeMomentumCovariance(TrackParams track, RealVector vertex) {
+    RealMatrix computeMomentumCovariance(TrackParams track, RealVector vertex) {
         RealMatrix Jp = computeMomentumTrackJacobian(track, vertex);
         return Jp.multiply(track.cov).multiply(Jp.transpose());
     }
@@ -606,7 +535,7 @@ public class KalmanVertexFitterGainMatrix {
      * to build the full state-vector Jacobian needed for a correctly-correlated TOTAL momentum
      * covariance (see the total-momentum computation in {@link #fitSoftConstrained}).
      */
-    private RealMatrix computeMomentumTrackJacobian(TrackParams track, RealVector vertex) {
+    RealMatrix computeMomentumTrackJacobian(TrackParams track, RealVector vertex) {
         double xV = vertex.getEntry(0);
         double yV = vertex.getEntry(1);
 
@@ -646,307 +575,36 @@ public class KalmanVertexFitterGainMatrix {
 
         return Jp;
     }
+
+    /**
+     * Full momentum covariance for a track evaluated at its associated (fitted) vertex,
+     * including the vertex-position uncertainty and its cross-covariance with the track's
+     * own parameters -- unlike {@link #computeMomentumCovariance}, which uses only the
+     * track's own diagonal covariance block and is a good approximation when the vertex's
+     * momentum-Jacobian ({@link #computeMomentumVertexDerivatives}) is negligible (true for
+     * high-pT tracks close to their reference vertex, but not necessarily true once the
+     * vertex itself carries significant, theta-lever-arm-inflated uncertainty -- e.g. the
+     * recoil track at V2 in {@link #fitCascadeVertexJointBeamConstrainedCore}, at large
+     * flight length). {@code vertexOffset}/{@code trackOffset} index into {@code cFitted},
+     * the full post-fit state covariance, to pull out the associated 3x3/5x5/cross blocks.
+     */
+    private RealMatrix computeMomentumCovarianceFull(TrackParams track, RealVector vertex,
+            RealMatrix cFitted, int vertexOffset, int trackOffset) {
+        RealMatrix Jv = computeMomentumVertexDerivatives(track, vertex);
+        RealMatrix Jp = computeMomentumTrackJacobian(track, vertex);
+        RealMatrix J = MatrixUtils.createRealMatrix(3, 8);
+        J.setSubMatrix(Jv.getData(), 0, 0);
+        J.setSubMatrix(Jp.getData(), 0, 3);
+
+        RealMatrix cFull = MatrixUtils.createRealMatrix(8, 8);
+        cFull.setSubMatrix(cFitted.getSubMatrix(vertexOffset, vertexOffset + 2, vertexOffset, vertexOffset + 2).getData(), 0, 0);
+        cFull.setSubMatrix(cFitted.getSubMatrix(vertexOffset, vertexOffset + 2, trackOffset, trackOffset + 4).getData(), 0, 3);
+        cFull.setSubMatrix(cFitted.getSubMatrix(trackOffset, trackOffset + 4, vertexOffset, vertexOffset + 2).getData(), 3, 0);
+        cFull.setSubMatrix(cFitted.getSubMatrix(trackOffset, trackOffset + 4, trackOffset, trackOffset + 4).getData(), 3, 3);
+
+        return J.multiply(cFull).multiply(J.transpose());
+    }
     
-    /**
-     * Fit vertex using Gain Matrix formalism
-     */
-    public FitResult fit(List<TrackParams> tracks,
-                        RealVector initialVertex,
-                        RealVector vertexConstraint,
-                        RealMatrix vertexConstraintCov,
-                        RealVector momentumConstraint,
-                        RealMatrix momentumConstraintCov,
-                        Double massConstraint,
-                        Double massConstraintSigma,
-                        int maxIterations,
-                        double tolerance) {
-        
-        int nTracks = tracks.size();
-        
-        // Initial vertex
-        RealVector vertex;
-        if (initialVertex != null) {
-            vertex = initialVertex.copy();
-        } else if (vertexConstraint != null) {
-            vertex = vertexConstraint.copy();
-        } else {
-            double xInit = 0.0, yInit = 0.0, zInit = 0.0;
-            for (TrackParams track : tracks) {
-                xInit += -track.d0 * FastMath.sin(track.phi0);
-                yInit += track.d0 * FastMath.cos(track.phi0);
-                zInit += track.z0;
-            }
-            vertex = MatrixUtils.createRealVector(new double[]{
-                xInit / nTracks, yInit / nTracks, zInit / nTracks
-            });
-        }
-        
-        // Prior covariance, re-applied at the top of every iteration below (see comment
-        // there for why) rather than the initial value of a running C.
-        RealMatrix priorC;
-        if (vertexConstraint != null && vertexConstraintCov != null) {
-            priorC = vertexConstraintCov.copy();
-        } else {
-            priorC = MatrixUtils.createRealIdentityMatrix(3).scalarMultiply(100.0);
-        }
-        RealMatrix I = MatrixUtils.createRealIdentityMatrix(3);
-        RealMatrix C = priorC;
-
-        // Iterative Gain Matrix updates
-        for (int iteration = 0; iteration < maxIterations; iteration++) {
-            RealVector vertexOld = vertex.copy();
-            // Reset to the vague prior each iteration: the vertex/track/momentum/mass
-            // constraints below are the same fixed measurements being re-linearized at
-            // successive vertex guesses, not new independent data arriving sequentially.
-            // Carrying C forward across iterations would reprocess the same information
-            // repeatedly, shrinking the covariance by roughly a factor of (iterations to
-            // converge) -- same bug as originally found and fixed in fitCascadeVertex().
-            C = priorC;
-
-            // Apply vertex constraint
-            if (vertexConstraint != null && vertexConstraintCov != null) {
-                Constraint constraint = computeVertexConstraint(vertex, vertexConstraint,
-                                                               vertexConstraintCov);
-
-                // Gain matrix: K = C * H^T * (H * C * H^T + V)^-1
-                RealMatrix S = constraint.H.multiply(C).multiply(constraint.H.transpose()).add(constraint.V);
-                RealMatrix K = C.multiply(constraint.H.transpose()).multiply(
-                    new LUDecomposition(S).getSolver().getInverse()
-                );
-
-                // Update: vertex = vertex - K * c
-                vertex = vertex.subtract(K.operate(constraint.c));
-
-                // Joseph-form covariance update: numerically stable under re-linearization
-                // across iterations, unlike the simple (I-KH)*C form which can
-                // systematically underestimate C.
-                RealMatrix ImKH = I.subtract(K.multiply(constraint.H));
-                C = ImKH.multiply(C).multiply(ImKH.transpose())
-                        .add(K.multiply(constraint.V).multiply(K.transpose()));
-            }
-
-            // Apply track constraints
-            for (TrackParams track : tracks) {
-                Constraint constraint = computeTrackConstraint(track, vertex);
-
-                RealMatrix S = constraint.H.multiply(C).multiply(constraint.H.transpose()).add(constraint.V);
-                RealMatrix K = C.multiply(constraint.H.transpose()).multiply(
-                    new LUDecomposition(S).getSolver().getInverse()
-                );
-
-                vertex = vertex.subtract(K.operate(constraint.c));
-                RealMatrix ImKH = I.subtract(K.multiply(constraint.H));
-                C = ImKH.multiply(C).multiply(ImKH.transpose())
-                        .add(K.multiply(constraint.V).multiply(K.transpose()));
-            }
-
-            // Apply momentum constraint
-            if (momentumConstraint != null && momentumConstraintCov != null) {
-                try {
-                    Constraint constraint = computeMomentumConstraint(tracks, vertex,
-                                                                      momentumConstraint,
-                                                                      momentumConstraintCov);
-
-                    RealMatrix S = constraint.H.multiply(C).multiply(constraint.H.transpose()).add(constraint.V);
-                    RealMatrix K = C.multiply(constraint.H.transpose()).multiply(
-                        new LUDecomposition(S).getSolver().getInverse()
-                    );
-
-                    vertex = vertex.subtract(K.operate(constraint.c));
-                    RealMatrix ImKH = I.subtract(K.multiply(constraint.H));
-                    C = ImKH.multiply(C).multiply(ImKH.transpose())
-                            .add(K.multiply(constraint.V).multiply(K.transpose()));
-                } catch (Exception e) {
-                    // Skip if singular
-                }
-            }
-
-            // Apply mass constraint
-            if (massConstraint != null && massConstraintSigma != null) {
-                try {
-                    Constraint constraint = computeMassConstraint(tracks, vertex,
-                                                                 massConstraint,
-                                                                 massConstraintSigma);
-
-                    RealMatrix S = constraint.H.multiply(C).multiply(constraint.H.transpose()).add(constraint.V);
-                    RealMatrix K = C.multiply(constraint.H.transpose()).multiply(
-                        new LUDecomposition(S).getSolver().getInverse()
-                    );
-
-                    vertex = vertex.subtract(K.operate(constraint.c));
-                    RealMatrix ImKH = I.subtract(K.multiply(constraint.H));
-                    C = ImKH.multiply(C).multiply(ImKH.transpose())
-                            .add(K.multiply(constraint.V).multiply(K.transpose()));
-                } catch (Exception e) {
-                    // Skip if singular
-                }
-            }
-
-            // Check convergence
-            if (vertex.subtract(vertexOld).getNorm() < tolerance) {
-                break;
-            }
-        }
-        
-        // Calculate chi-squared with individual contributions
-        double chi2 = 0.0;
-        double chi2Vertex = 0.0;
-        double chi2Momentum = 0.0;
-        double[] chi2Tracks = new double[nTracks];
-
-        if (vertexConstraint != null && vertexConstraintCov != null) {
-            Constraint constraint = computeVertexConstraint(vertex, vertexConstraint,
-                                                           vertexConstraintCov);
-            RealMatrix VInv = new LUDecomposition(constraint.V).getSolver().getInverse();
-            chi2Vertex = constraint.c.dotProduct(VInv.operate(constraint.c));
-            chi2 += chi2Vertex;
-        }
-
-        for (int itrk = 0; itrk < nTracks; itrk++) {
-            Constraint constraint = computeTrackConstraint(tracks.get(itrk), vertex);
-            RealMatrix VInv = new LUDecomposition(constraint.V).getSolver().getInverse();
-            chi2Tracks[itrk] = constraint.c.dotProduct(VInv.operate(constraint.c));
-            chi2 += chi2Tracks[itrk];
-        }
-
-        if (momentumConstraint != null && momentumConstraintCov != null) {
-            try {
-                Constraint constraint = computeMomentumConstraint(tracks, vertex,
-                                                                  momentumConstraint,
-                                                                  momentumConstraintCov);
-                RealMatrix VInv = new LUDecomposition(constraint.V).getSolver().getInverse();
-                chi2Momentum = constraint.c.dotProduct(VInv.operate(constraint.c));
-                chi2 += chi2Momentum;
-            } catch (Exception e) {
-                // Skip if singular
-            }
-        }
-
-        if (massConstraint != null && massConstraintSigma != null) {
-            try {
-                Constraint constraint = computeMassConstraint(tracks, vertex,
-                                                             massConstraint,
-                                                             massConstraintSigma);
-                RealMatrix VInv = new LUDecomposition(constraint.V).getSolver().getInverse();
-                chi2 += constraint.c.dotProduct(VInv.operate(constraint.c));
-            } catch (Exception e) {
-                // Skip if singular
-            }
-        }
-
-        // Print chi2 contributions
-        if(debugFlag){
-            System.out.printf("  Chi2 contributions: vertex=%.4f", chi2Vertex);
-            for (int itrk = 0; itrk < nTracks; itrk++) {
-                System.out.printf("  track%d=%.4f", itrk, chi2Tracks[itrk]);
-            }
-            System.out.printf("  momentum=%.4f  total=%.4f%n", chi2Momentum, chi2);
-        }
-        // NDF
-        int ndf = 2 * nTracks - 3;
-        if (vertexConstraint != null) ndf += 3;
-        if (momentumConstraint != null) ndf += 3;
-        if (massConstraint != null) ndf += 1;
-        
-        // Track momenta
-        List<TrackMomentum> trackMomenta = new ArrayList<>();
-        for (TrackParams track : tracks) {
-            RealVector p = computeMomentumAtVertex(track, vertex);
-            RealMatrix pCov = computeMomentumCovariance(track, vertex);
-            trackMomenta.add(new TrackMomentum(p, pCov));
-        }
-        
-        this.vertex = vertex;
-        this.vertexCov = C;
-        this.chi2 = chi2;
-        this.ndf = ndf;
-        this.trackMomenta = trackMomenta;
-
-        return new FitResult(vertex, C, chi2, ndf, trackMomenta);
-    }
-
-    /**
-     * Fit a "cascade" (production) vertex where a curving recoil track meets an
-     * already-fitted neutral V0's momentum direction, treated as a zero-curvature
-     * line. Same sequential Kalman gain-matrix update as {@link #fit}, specialized to
-     * exactly one track constraint and one line constraint (no vertex/momentum/mass
-     * constraints). NDF = (2 track-constraint dof + 2 line-constraint dof) - 3 (vertex
-     * position dof) = 1.
-     */
-    public FitResult fitCascadeVertex(TrackParams recoilTrack, LineParams v0Line,
-                                       RealVector initialVertex, int maxIterations, double tolerance) {
-        RealVector vertex = (initialVertex != null)
-                ? initialVertex.copy()
-                : MatrixUtils.createRealVector(new double[]{v0Line.x0, v0Line.y0, v0Line.z0});
-
-        RealMatrix priorC = MatrixUtils.createRealIdentityMatrix(3).scalarMultiply(100.0);
-        RealMatrix I = MatrixUtils.createRealIdentityMatrix(3);
-        RealMatrix C = priorC;
-
-        for (int iteration = 0; iteration < maxIterations; iteration++) {
-            RealVector vertexOld = vertex.copy();
-            // Reset to the vague prior each iteration: the track and line constraints are
-            // the same two fixed measurements being re-linearized at successive vertex
-            // guesses, not new independent data arriving sequentially. Carrying C forward
-            // across iterations would reprocess the same information repeatedly, shrinking
-            // the covariance by roughly a factor of (iterations to converge) -- exactly the
-            // ~20x variance underestimate (~4.5x pull-std inflation) seen before this fix.
-            C = priorC;
-
-            Constraint trackConstraint = computeTrackConstraint(recoilTrack, vertex);
-            RealMatrix St = trackConstraint.H.multiply(C).multiply(trackConstraint.H.transpose()).add(trackConstraint.V);
-            RealMatrix Kt = C.multiply(trackConstraint.H.transpose()).multiply(
-                    new LUDecomposition(St).getSolver().getInverse());
-            vertex = vertex.subtract(Kt.operate(trackConstraint.c));
-            // Joseph-form covariance update: numerically stable under re-linearization across
-            // iterations, unlike the simple (I-KH)*C form which can systematically underestimate C.
-            RealMatrix ImKHt = I.subtract(Kt.multiply(trackConstraint.H));
-            C = ImKHt.multiply(C).multiply(ImKHt.transpose())
-                    .add(Kt.multiply(trackConstraint.V).multiply(Kt.transpose()));
-
-            Constraint lineConstraint = computeLineConstraint(v0Line, vertex);
-            RealMatrix Sl = lineConstraint.H.multiply(C).multiply(lineConstraint.H.transpose()).add(lineConstraint.V);
-            RealMatrix Kl = C.multiply(lineConstraint.H.transpose()).multiply(
-                    new LUDecomposition(Sl).getSolver().getInverse());
-            vertex = vertex.subtract(Kl.operate(lineConstraint.c));
-            RealMatrix ImKHl = I.subtract(Kl.multiply(lineConstraint.H));
-            C = ImKHl.multiply(C).multiply(ImKHl.transpose())
-                    .add(Kl.multiply(lineConstraint.V).multiply(Kl.transpose()));
-
-            if (vertex.subtract(vertexOld).getNorm() < tolerance) {
-                break;
-            }
-        }
-
-        Constraint trackConstraint = computeTrackConstraint(recoilTrack, vertex);
-        RealMatrix VInvT = new LUDecomposition(trackConstraint.V).getSolver().getInverse();
-        double chi2Track = trackConstraint.c.dotProduct(VInvT.operate(trackConstraint.c));
-
-        Constraint lineConstraint = computeLineConstraint(v0Line, vertex);
-        RealMatrix VInvL = new LUDecomposition(lineConstraint.V).getSolver().getInverse();
-        double chi2Line = lineConstraint.c.dotProduct(VInvL.operate(lineConstraint.c));
-
-        double chi2 = chi2Track + chi2Line;
-        int ndf = 1;
-
-        List<TrackMomentum> trackMomenta = new ArrayList<>();
-        RealVector p = computeMomentumAtVertex(recoilTrack, vertex);
-        RealMatrix pCov = computeMomentumCovariance(recoilTrack, vertex);
-        trackMomenta.add(new TrackMomentum(p, pCov));
-
-        this.vertex = vertex;
-        this.vertexCov = C;
-        this.chi2 = chi2;
-        this.ndf = ndf;
-        this.trackMomenta = trackMomenta;
-
-        return new FitResult(vertex, C, chi2, ndf, trackMomenta);
-    }
-
-    public FitResult fitCascadeVertex(TrackParams recoilTrack, LineParams v0Line) {
-        return fitCascadeVertex(recoilTrack, v0Line, null, 20, 1.0e-8);
-    }
-
     /**
      * Result of {@link #fitCascadeVertexJoint}: a joint fit of an e-/e+ decay vertex (V1)
      * and a separate V0(=e-+e+)/recoil production vertex (V2), linked by requiring the
@@ -983,6 +641,18 @@ public class KalmanVertexFitterGainMatrix {
     private static final int TVJ_OFF_V2 = 4;
     private static final int TVJ_STATE_SIZE = 7;
     private static final double MAX_STEP_NORM = 5.0;
+
+    // State offsets for fitCascadeVertexJointBeamConstrainedCore: [V1(3), theta(1), V2(3),
+    // eMinus(5), ePlus(5), recoil(5)] -- the same V1/theta/V2 layout as TVJ_OFF_* above,
+    // extended with each track's own 5 perigee parameters as free state variables (see
+    // fitCascadeVertexJointBeamConstrainedCore javadoc for why that's needed).
+    private static final int CVJBC_OFF_V1 = 0;
+    private static final int CVJBC_OFF_THETA = 3;
+    private static final int CVJBC_OFF_V2 = 4;
+    private static final int CVJBC_OFF_EM = 7;
+    private static final int CVJBC_OFF_EP = 12;
+    private static final int CVJBC_OFF_RC = 17;
+    private static final int CVJBC_STATE_SIZE = 22;
 
     public static boolean DEBUG_JOINT_FIT = false;
 
@@ -1101,7 +771,7 @@ public class KalmanVertexFitterGainMatrix {
      * State is the 7-vector [V1(0-2), theta(3), V2(4-6)]; the eMinus/ePlus/recoil track
      * parameters are held fixed at their input values throughout (momenta are read off
      * those fixed tracks at the fitted vertices via {@link #computeMomentumAtVertex}, same
-     * convention as {@link #fitCascadeVertex}/{@link CascadeVertexer}) -- there is no
+     * convention as {@link #fitCascadeVertex}) -- there is no
      * 21-dim track sub-state to fit. Each outer iteration applies four constraints in
      * sequence via a single Kalman-gain update shared by measurement-type constraints
      * (track-at-vertex, Eq. 7-19) and the exact geometric constraint (Eq. 24-31, which the
@@ -1134,7 +804,7 @@ public class KalmanVertexFitterGainMatrix {
         TrackParams recoil = recoilIn.copy();
 
         // V2 -- the production vertex -- is genuinely known to sit at the beamspot when the
-        // caller doesn't supply its own guess (the case used by ThreeTrackVertexer); V1 --
+        // caller doesn't supply its own guess (the case used by CascadeVertexer); V1 --
         // the decay vertex -- is not otherwise constrained and is purely determined by the
         // eMinus-/ePlus-at-V1 track constraints, so it always gets a weak/flat prior.
         boolean useBeamspotPriorForV2 = (v2Init == null);
@@ -1182,10 +852,10 @@ public class KalmanVertexFitterGainMatrix {
      * {@link #selectPhysicalThetaSeed}'s own branch choice entirely -- lets a caller fit both
      * {@link #transverseCircleRoots} candidates to convergence and choose between them using
      * its own external discriminator, since neither chi2 nor selectPhysicalThetaSeed can tell
-     * the two branches apart (see {@link org.hps.recon.vertexing.ThreeTrackVertexer#fit}, which
+     * the two branches apart (see {@link org.hps.recon.vertexing.CascadeVertexer#fit}, which
      * picks between them by comparing each branch's V1 to the independently-fitted V0 vertex).
      * Package-private: not part of the general-purpose API, only used alongside
-     * {@link org.hps.recon.vertexing.ThreeTrackVertexer}.
+     * {@link org.hps.recon.vertexing.CascadeVertexer}.
      */
     TwoVertexFitResult fitCascadeVertexJointForcedBranch(TrackParams eMinusIn, TrackParams ePlusIn, TrackParams recoilIn,
             RealVector v1Init, double thetaInit, RealVector v2InitVec, RealMatrix v1CovIn, RealMatrix v2CovIn,
@@ -1194,6 +864,51 @@ public class KalmanVertexFitterGainMatrix {
         TrackParams ePlus = ePlusIn.copy();
         TrackParams recoil = recoilIn.copy();
         return fitCascadeVertexJointCore(eMinus, ePlus, recoil, v1Init, thetaInit, v2InitVec,
+                v1CovIn, v2CovIn, false, maxIterations, tolerance);
+    }
+
+    /**
+     * Free-track counterpart of {@link #fitCascadeVertexJointForcedBranch}: same explicitly-
+     * forced (theta, V2) seed, bypassing {@link #selectPhysicalThetaSeed}'s own branch choice,
+     * but dispatching to {@link #fitCascadeVertexJointFreeTrackCore} (all three tracks' own
+     * perigee parameters float under their own prior) instead of the fixed-track core. Needed
+     * because {@link #fitCascadeVertexJointFreeTrack}'s public wrapper unconditionally
+     * recomputes and substitutes {@code selectPhysicalThetaSeed}'s own (purely geometric) V2
+     * whenever it returns non-null -- which silently discards any caller-supplied V2 prior mean
+     * distinct from that geometric branch point (e.g. {@link
+     * org.hps.recon.vertexing.CascadeVertexer}'s beamspot-position-constraint override). Since
+     * {@code fitCascadeVertexJointFreeTrackCore} anchors its Newton iteration's prior term at
+     * the literal {@code v2InitVec} passed in (a genuine persistent Bayesian prior, unlike the
+     * fixed-track core's {@code fitCascadeVertexJointCore} -- see the class-level discussion),
+     * this is the only way to actually deliver a caller-chosen V2 prior mean to that fit.
+     * Package-private: not part of the general-purpose API, only used alongside {@link
+     * org.hps.recon.vertexing.CascadeVertexer}.
+     */
+    TwoVertexFitResult fitCascadeVertexJointFreeTrackForcedBranch(TrackParams eMinusIn, TrackParams ePlusIn,
+            TrackParams recoilIn, RealVector v1Init, double thetaInit, RealVector v2InitVec,
+            RealMatrix v1CovIn, RealMatrix v2CovIn, int maxIterations, double tolerance) {
+        TrackParams eMinus = eMinusIn.copy();
+        TrackParams ePlus = ePlusIn.copy();
+        TrackParams recoil = recoilIn.copy();
+        return fitCascadeVertexJointFreeTrackCore(eMinus, ePlus, recoil, v1Init, thetaInit, v2InitVec,
+                v1CovIn, v2CovIn, false, maxIterations, tolerance);
+    }
+
+    /**
+     * Beam-momentum-constrained counterpart of {@link #fitCascadeVertexJointFreeTrackForcedBranch}
+     * -- same rationale (bypass {@code selectPhysicalThetaSeed}'s silent V2-mean override so a
+     * caller-supplied V2 prior mean, e.g. a beamspot-position constraint, actually reaches the
+     * fit), but dispatching to {@link #fitCascadeVertexJointBeamConstrainedCore}. Package-private:
+     * not part of the general-purpose API, only used alongside {@link
+     * org.hps.recon.vertexing.CascadeVertexer}.
+     */
+    TwoVertexFitResult fitCascadeVertexJointBeamConstrainedForcedBranch(TrackParams eMinusIn, TrackParams ePlusIn,
+            TrackParams recoilIn, RealVector v1Init, double thetaInit, RealVector v2InitVec,
+            RealMatrix v1CovIn, RealMatrix v2CovIn, int maxIterations, double tolerance) {
+        TrackParams eMinus = eMinusIn.copy();
+        TrackParams ePlus = ePlusIn.copy();
+        TrackParams recoil = recoilIn.copy();
+        return fitCascadeVertexJointBeamConstrainedCore(eMinus, ePlus, recoil, v1Init, thetaInit, v2InitVec,
                 v1CovIn, v2CovIn, false, maxIterations, tolerance);
     }
 
@@ -1363,6 +1078,607 @@ public class KalmanVertexFitterGainMatrix {
                 eMinusMomentum, ePlusMomentum, recoilMomentum, fittedTracks);
     }
 
+    public TwoVertexFitResult fitCascadeVertexJointBeamConstrained(TrackParams eMinusIn, TrackParams ePlusIn,
+            TrackParams recoilIn, RealVector v1Init, RealVector v2Init) {
+        return fitCascadeVertexJointBeamConstrained(eMinusIn, ePlusIn, recoilIn, v1Init, v2Init,
+                null, null, DEFAULT_TVJ_MAX_ITERATIONS, 1.0e-8);
+    }
+
+    /** As above, but with explicit V1/V2 prior covariances (nullable, same convention as {@link #fitCascadeVertexJoint}). */
+    public TwoVertexFitResult fitCascadeVertexJointBeamConstrained(TrackParams eMinusIn, TrackParams ePlusIn,
+            TrackParams recoilIn, RealVector v1Init, RealVector v2Init, RealMatrix v1Cov, RealMatrix v2Cov) {
+        return fitCascadeVertexJointBeamConstrained(eMinusIn, ePlusIn, recoilIn, v1Init, v2Init,
+                v1Cov, v2Cov, DEFAULT_TVJ_MAX_ITERATIONS, 1.0e-8);
+    }
+
+    /**
+     * Joint V1(e-/e+ decay)+V2(V0/recoil production) vertex fit with the daughters' total
+     * 3-momentum constrained (softly, weighted by the beam-momentum uncertainty from
+     * {@link #beamMomentumCovarianceMatrix}) to the beam value from
+     * {@link #beamMomentumVector} -- see {@link #fitCascadeVertexJointBeamConstrainedCore}
+     * for the fit itself. Seeding (theta least-squares projection, then the
+     * {@link #transverseCircleRoots}/{@link #selectPhysicalThetaSeed} branch override) is
+     * identical to, and duplicated (not shared) from, {@link #fitCascadeVertexJoint} so
+     * that method's body stays untouched.
+     */
+    public TwoVertexFitResult fitCascadeVertexJointBeamConstrained(TrackParams eMinusIn, TrackParams ePlusIn,
+            TrackParams recoilIn, RealVector v1Init, RealVector v2Init, RealMatrix v1CovIn, RealMatrix v2CovIn,
+            int maxIterations, double tolerance) {
+
+        TrackParams eMinus = eMinusIn.copy();
+        TrackParams ePlus = ePlusIn.copy();
+        TrackParams recoil = recoilIn.copy();
+
+        boolean useBeamspotPriorForV2 = (v2Init == null);
+        RealVector v2InitVec = useBeamspotPriorForV2 ? MatrixUtils.createRealVector(beamPosition) : v2Init;
+
+        RealVector pV0Init = computeMomentumAtVertex(eMinus, v1Init).add(computeMomentumAtVertex(ePlus, v1Init));
+        double pV0InitNormSq = pV0Init.dotProduct(pV0Init);
+        double thetaInit = (pV0InitNormSq > 0)
+                ? v1Init.subtract(v2InitVec).dotProduct(pV0Init) / pV0InitNormSq
+                : 0.0;
+
+        ThetaSeed branchSeed = selectPhysicalThetaSeed(v1Init, pV0Init, recoil);
+        if (branchSeed != null) {
+            thetaInit = branchSeed.theta;
+            v2InitVec = branchSeed.v2;
+        }
+
+        return fitCascadeVertexJointBeamConstrainedCore(eMinus, ePlus, recoil, v1Init, thetaInit, v2InitVec,
+                v1CovIn, v2CovIn, useBeamspotPriorForV2, maxIterations, tolerance);
+    }
+
+    /**
+     * As {@link #fitCascadeVertexJointCore}, but lets each of the three tracks' own 5
+     * perigee parameters float as free state variables (weighted by that track's own input
+     * covariance), rather than holding them fixed at their input values -- required for a
+     * beam-momentum constraint to have any real effect on this fit: momentum magnitude
+     * depends only on {@code omega}, which the fixed-track formalism never adjusts (only
+     * momentum *direction* varies, via the moving vertex), so a momentum constraint bolted
+     * onto that state could never actually pull momentum toward the beam value. Mirrors
+     * {@link #fitSoftConstrained}'s approach for the flat N-track case.
+     *
+     * <p>State is the 22-vector {@code [V1(0-2), theta(3), V2(4-6), eMinus(7-11),
+     * ePlus(12-16), recoil(17-21)]} (see {@code CVJBC_OFF_*}). Solved via the same
+     * KKT/Newton-Raphson block-elimination {@link #fitSoftConstrained} uses (not the
+     * sequential Joseph-form Kalman update {@link #fitCascadeVertexJointCore} uses), since
+     * that formalism has no mechanism for a measurement's own parameters to be free state
+     * variables with a prior. Beam momentum/covariance come from this fitter's own
+     * {@code pBeam}/{@code rotAngle}/{@code sigmaTNuclearRecoil} fields via
+     * {@link #beamMomentumVector}/{@link #beamMomentumCovarianceMatrix}, matching how
+     * {@link NTrackVertexer#fitVertexBeamConstrained} already works.
+     *
+     * <p>Twelve constraint rows: eMinus-at-V1 (2), ePlus-at-V1 (2), recoil-at-V2 (2) --
+     * {@link #computeTrackConstraint}'s residual/vertex-Jacobian plus a track-parameter
+     * Jacobian block ({@link #trackResidualJacobianWrtTrackParams}); the geometric
+     * decay-length constraint (3, {@link #computeGeometricConstraint}'s residual/V1-theta-V2
+     * columns -- which happen to line up exactly with {@code CVJBC_OFF_V1/THETA/V2} since
+     * both use the same 0/3/4 offsets -- plus new eMinus/ePlus track-parameter columns
+     * {@code theta * }{@link #computeMomentumTrackJacobian}, since {@code p_v0(V1)} now also
+     * depends on those tracks' own free parameters); and the beam-momentum constraint (3,
+     * {@code pEm(V1)+pEp(V1)+pRc(V2)-pBeam=0}, with V1/V2 columns via
+     * {@link #computeMomentumVertexDerivatives} and per-track columns via
+     * {@link #computeMomentumTrackJacobian}, each evaluated at that track's own vertex).
+     *
+     * <p>Track-at-vertex and geometric blocks are regularized only by a tiny fixed epsilon,
+     * not by {@code computeTrackConstraint}'s/{@code computeGeometricConstraint}'s own
+     * {@code V} -- since each track's own parameters now carry a real prior via {@code W},
+     * softening these blocks with a track-covariance-derived {@code V} would double-count
+     * that same covariance a second time (identical reasoning already documented in
+     * {@link #fitSoftConstrained}). The beam-momentum block gets the real
+     * {@link #beamMomentumCovarianceMatrix}. {@code ndf = nConstraints(12) - 7} (7 =
+     * V1+theta+V2, the only state components with a free/weak prior; track params have a
+     * real prior via {@code W} so don't count) {@code = 5}.
+     */
+    private TwoVertexFitResult fitCascadeVertexJointBeamConstrainedCore(
+            TrackParams eMinus, TrackParams ePlus, TrackParams recoil,
+            RealVector v1Init, double thetaInit, RealVector v2InitVec,
+            RealMatrix v1CovIn, RealMatrix v2CovIn, boolean useBeamspotPriorForV2,
+            int maxIterations, double tolerance) {
+
+        final int N_TRACK_ROWS = 6;
+        final int N_GEOM_ROWS = 3;
+        final int N_MOM_ROWS = 3;
+        final int nConstraints = N_TRACK_ROWS + N_GEOM_ROWS + N_MOM_ROWS;
+
+        RealVector x0 = MatrixUtils.createRealVector(new double[CVJBC_STATE_SIZE]);
+        x0.setSubVector(CVJBC_OFF_V1, v1Init);
+        x0.setEntry(CVJBC_OFF_THETA, thetaInit);
+        x0.setSubVector(CVJBC_OFF_V2, v2InitVec);
+        x0.setSubVector(CVJBC_OFF_EM, MatrixUtils.createRealVector(eMinus.toArray()));
+        x0.setSubVector(CVJBC_OFF_EP, MatrixUtils.createRealVector(ePlus.toArray()));
+        x0.setSubVector(CVJBC_OFF_RC, MatrixUtils.createRealVector(recoil.toArray()));
+
+        RealMatrix W = MatrixUtils.createRealMatrix(CVJBC_STATE_SIZE, CVJBC_STATE_SIZE);
+        RealMatrix WInv = MatrixUtils.createRealMatrix(CVJBC_STATE_SIZE, CVJBC_STATE_SIZE);
+        if (v1CovIn != null) {
+            RealMatrix v1CovInv = new LUDecomposition(v1CovIn).getSolver().getInverse();
+            W.setSubMatrix(v1CovInv.getData(), CVJBC_OFF_V1, CVJBC_OFF_V1);
+            WInv.setSubMatrix(v1CovIn.getData(), CVJBC_OFF_V1, CVJBC_OFF_V1);
+        } else {
+            for (int i = 0; i < 3; i++) {
+                W.setEntry(CVJBC_OFF_V1 + i, CVJBC_OFF_V1 + i, 0.01);
+                WInv.setEntry(CVJBC_OFF_V1 + i, CVJBC_OFF_V1 + i, 100.0);
+            }
+        }
+        W.setEntry(CVJBC_OFF_THETA, CVJBC_OFF_THETA, 0.01);
+        WInv.setEntry(CVJBC_OFF_THETA, CVJBC_OFF_THETA, 100.0);
+        if (v2CovIn != null) {
+            RealMatrix v2CovInv = new LUDecomposition(v2CovIn).getSolver().getInverse();
+            W.setSubMatrix(v2CovInv.getData(), CVJBC_OFF_V2, CVJBC_OFF_V2);
+            WInv.setSubMatrix(v2CovIn.getData(), CVJBC_OFF_V2, CVJBC_OFF_V2);
+        } else {
+            for (int i = 0; i < 3; i++) {
+                double var = useBeamspotPriorForV2 ? beamSize[i] * beamSize[i] : 100.0;
+                W.setEntry(CVJBC_OFF_V2 + i, CVJBC_OFF_V2 + i, 1.0 / var);
+                WInv.setEntry(CVJBC_OFF_V2 + i, CVJBC_OFF_V2 + i, var);
+            }
+        }
+
+        RealMatrix[] trackCovs = {eMinus.cov, ePlus.cov, recoil.cov};
+        int[] trackOffsets = {CVJBC_OFF_EM, CVJBC_OFF_EP, CVJBC_OFF_RC};
+        for (int t = 0; t < 3; t++) {
+            RealMatrix covInv;
+            try {
+                covInv = new LUDecomposition(trackCovs[t]).getSolver().getInverse();
+            } catch (SingularMatrixException e) {
+                return null;  // Cannot build weight matrix; skip this event silently
+            }
+            W.setSubMatrix(covInv.getData(), trackOffsets[t], trackOffsets[t]);
+            WInv.setSubMatrix(trackCovs[t].getData(), trackOffsets[t], trackOffsets[t]);
+        }
+
+        RealVector pBeamVec = beamMomentumVector();
+        RealMatrix beamCov = beamMomentumCovarianceMatrix();
+
+        RealVector x = x0.copy();
+        RealMatrix finalH = null;
+        RealMatrix finalV = null;
+        RealVector finalHvec = null;
+
+        for (int iteration = 0; iteration < maxIterations; iteration++) {
+            RealVector xOld = x.copy();
+
+            RealVector v1 = x.getSubVector(CVJBC_OFF_V1, 3);
+            double theta = x.getEntry(CVJBC_OFF_THETA);
+            RealVector v2 = x.getSubVector(CVJBC_OFF_V2, 3);
+            eMinus.fromArray(x.getSubVector(CVJBC_OFF_EM, 5).toArray());
+            ePlus.fromArray(x.getSubVector(CVJBC_OFF_EP, 5).toArray());
+            recoil.fromArray(x.getSubVector(CVJBC_OFF_RC, 5).toArray());
+
+            try {
+                RealVector h = MatrixUtils.createRealVector(new double[nConstraints]);
+                RealMatrix H = MatrixUtils.createRealMatrix(nConstraints, CVJBC_STATE_SIZE);
+
+                Constraint cEm = computeTrackConstraint(eMinus, v1);
+                Constraint cEp = computeTrackConstraint(ePlus, v1);
+                Constraint cRc = computeTrackConstraint(recoil, v2);
+                h.setSubVector(0, cEm.c);
+                h.setSubVector(2, cEp.c);
+                h.setSubVector(4, cRc.c);
+                H.setSubMatrix(cEm.H.getData(), 0, CVJBC_OFF_V1);
+                H.setSubMatrix(trackResidualJacobianWrtTrackParams(eMinus, v1.getEntry(0), v1.getEntry(1)).getData(),
+                        0, CVJBC_OFF_EM);
+                H.setSubMatrix(cEp.H.getData(), 2, CVJBC_OFF_V1);
+                H.setSubMatrix(trackResidualJacobianWrtTrackParams(ePlus, v1.getEntry(0), v1.getEntry(1)).getData(),
+                        2, CVJBC_OFF_EP);
+                H.setSubMatrix(cRc.H.getData(), 4, CVJBC_OFF_V2);
+                H.setSubMatrix(trackResidualJacobianWrtTrackParams(recoil, v2.getEntry(0), v2.getEntry(1)).getData(),
+                        4, CVJBC_OFF_RC);
+
+                GeometricConstraint gc = computeGeometricConstraint(v1, theta, v2, eMinus, ePlus);
+                h.setSubVector(6, gc.g);
+                // gc.H's columns are laid out [V1(0-2), theta(3), V2(4-6)] (TVJ_OFF_*), which
+                // is bit-for-bit the same layout as CVJBC_OFF_V1/THETA/V2 -- copy directly.
+                H.setSubMatrix(gc.H.getData(), 6, 0);
+                RealMatrix dgdEm = computeMomentumTrackJacobian(eMinus, v1).scalarMultiply(theta);
+                RealMatrix dgdEp = computeMomentumTrackJacobian(ePlus, v1).scalarMultiply(theta);
+                H.setSubMatrix(dgdEm.getData(), 6, CVJBC_OFF_EM);
+                H.setSubMatrix(dgdEp.getData(), 6, CVJBC_OFF_EP);
+
+                RealVector pEmV1 = computeMomentumAtVertex(eMinus, v1);
+                RealVector pEpV1 = computeMomentumAtVertex(ePlus, v1);
+                RealVector pRcV2 = computeMomentumAtVertex(recoil, v2);
+                RealVector momResidual = pEmV1.add(pEpV1).add(pRcV2).subtract(pBeamVec);
+                h.setSubVector(9, momResidual);
+                RealMatrix dPdV1 = computeMomentumVertexDerivatives(eMinus, v1).add(computeMomentumVertexDerivatives(ePlus, v1));
+                RealMatrix dPdV2 = computeMomentumVertexDerivatives(recoil, v2);
+                H.setSubMatrix(dPdV1.getData(), 9, CVJBC_OFF_V1);
+                H.setSubMatrix(dPdV2.getData(), 9, CVJBC_OFF_V2);
+                H.setSubMatrix(computeMomentumTrackJacobian(eMinus, v1).getData(), 9, CVJBC_OFF_EM);
+                H.setSubMatrix(computeMomentumTrackJacobian(ePlus, v1).getData(), 9, CVJBC_OFF_EP);
+                H.setSubMatrix(computeMomentumTrackJacobian(recoil, v2).getData(), 9, CVJBC_OFF_RC);
+
+                RealMatrix HWInvHT = H.multiply(WInv).multiply(H.transpose());
+                // Regularization for the track-at-vertex/geometric rows, which are otherwise
+                // exact (V=0) equality constraints once each track's own parameters carry a
+                // real prior via W: must be several orders of magnitude smaller than each row's
+                // own H*WInv*H^T diagonal entry, or it materially over-softens that row and
+                // inflates the reported posterior covariance -- empirically, 1e-6*diag (the
+                // naive choice) already inflates sigma(V1x) by ~35% relative to the true
+                // (toy-MC) scatter; 1e-9 reproduces the correct, well-calibrated covariance.
+                // Scaled PER-ROW (not by a single averaged diagScale across all 9 rows) because
+                // the geometric row's diagonal grows with theta^2 (dgdEm/dgdEp scale with theta)
+                // while the track-at-vertex rows' diagonal does not -- pooling into one average
+                // let the geometric row's growth drag up the track rows' epsilon at large theta,
+                // over-softening the recoil-at-V2 row and inflating its reported momentum
+                // covariance (caught via the recoil-track Py pull std degrading from ~0.97 to
+                // ~0.79 as flight length grew from 5 to 150 mm in the toy-MC pull test).
+                RealMatrix constraintCov = MatrixUtils.createRealMatrix(nConstraints, nConstraints);
+                for (int i = 0; i < N_TRACK_ROWS + N_GEOM_ROWS; i++) {
+                    double diagI = HWInvHT.getEntry(i, i);
+                    double epsilonI = (diagI > 0) ? diagI * 1e-9 : 1e-12;
+                    constraintCov.setEntry(i, i, epsilonI);
+                }
+                constraintCov.setSubMatrix(beamCov.getData(), N_TRACK_ROWS + N_GEOM_ROWS, N_TRACK_ROWS + N_GEOM_ROWS);
+
+                finalH = H;
+                finalV = constraintCov;
+                finalHvec = h;
+
+                RealMatrix S = HWInvHT.add(constraintCov);
+                RealVector rhs = h.add(H.operate(x0.subtract(x)));
+                RealVector lambda = new LUDecomposition(S).getSolver().solve(rhs);
+                RealVector deltaX = x0.subtract(x).subtract(WInv.multiply(H.transpose()).operate(lambda));
+
+                double stepNorm = deltaX.getNorm();
+                if (stepNorm > MAX_STEP_NORM) {
+                    deltaX = deltaX.mapMultiply(MAX_STEP_NORM / stepNorm);
+                }
+                x = x.add(deltaX);
+
+                if (!Double.isFinite(x.getNorm())) {
+                    x = xOld;
+                    break;
+                }
+                if (deltaX.getNorm() < tolerance && h.getNorm() < tolerance * 10) {
+                    break;
+                }
+            } catch (Exception e) {
+                x = xOld;
+                break;
+            }
+        }
+
+        RealVector v1Final = x.getSubVector(CVJBC_OFF_V1, 3);
+        RealVector v2Final = x.getSubVector(CVJBC_OFF_V2, 3);
+        eMinus.fromArray(x.getSubVector(CVJBC_OFF_EM, 5).toArray());
+        ePlus.fromArray(x.getSubVector(CVJBC_OFF_EP, 5).toArray());
+        recoil.fromArray(x.getSubVector(CVJBC_OFF_RC, 5).toArray());
+
+        RealMatrix C_fitted = WInv.copy();
+        if (finalH != null) {
+            try {
+                RealMatrix S = finalH.multiply(WInv).multiply(finalH.transpose()).add(finalV);
+                RealMatrix K = WInv.multiply(finalH.transpose())
+                                    .multiply(new LUDecomposition(S).getSolver().getInverse());
+                C_fitted = WInv.subtract(K.multiply(finalH).multiply(WInv));
+            } catch (Exception e) {
+                // keep prior WInv as a fallback post-fit covariance
+            }
+        }
+
+        eMinus.cov = C_fitted.getSubMatrix(CVJBC_OFF_EM, CVJBC_OFF_EM + 4, CVJBC_OFF_EM, CVJBC_OFF_EM + 4);
+        ePlus.cov = C_fitted.getSubMatrix(CVJBC_OFF_EP, CVJBC_OFF_EP + 4, CVJBC_OFF_EP, CVJBC_OFF_EP + 4);
+        recoil.cov = C_fitted.getSubMatrix(CVJBC_OFF_RC, CVJBC_OFF_RC + 4, CVJBC_OFF_RC, CVJBC_OFF_RC + 4);
+
+        RealMatrix v1Cov = C_fitted.getSubMatrix(CVJBC_OFF_V1, CVJBC_OFF_V1 + 2, CVJBC_OFF_V1, CVJBC_OFF_V1 + 2);
+        RealMatrix v2Cov = C_fitted.getSubMatrix(CVJBC_OFF_V2, CVJBC_OFF_V2 + 2, CVJBC_OFF_V2, CVJBC_OFF_V2 + 2);
+
+        RealVector dx = x.subtract(x0);
+        double chi2 = dx.dotProduct(W.operate(dx));
+        if (finalHvec != null && finalV != null) {
+            chi2 += chi2Contribution(finalHvec.getSubVector(0, 2), finalV.getSubMatrix(0, 1, 0, 1));
+            chi2 += chi2Contribution(finalHvec.getSubVector(2, 2), finalV.getSubMatrix(2, 3, 2, 3));
+            chi2 += chi2Contribution(finalHvec.getSubVector(4, 2), finalV.getSubMatrix(4, 5, 4, 5));
+            chi2 += chi2Contribution(finalHvec.getSubVector(6, 3), finalV.getSubMatrix(6, 8, 6, 8));
+            chi2 += chi2Contribution(finalHvec.getSubVector(9, 3), finalV.getSubMatrix(9, 11, 9, 11));
+        }
+
+        int ndf = nConstraints - 7;
+
+        // Momentum covariance must be computed from a "measurement-only" sandwich
+        // C_fitted*Wtrk*C_fitted, NOT C_fitted's own [V2,recoil] sub-block directly: C_fitted
+        // is the Bayesian posterior covariance of the full state under the model "x0 ~
+        // N(x0, WInv)" for EVERY state component, including V1/theta/V2's weak/uninformative
+        // prior (var=100) -- but that prior's x0 (the caller's seed) is never actually
+        // randomized; only the 3 tracks' own parameters carry real (measurement) noise. Using
+        // C_fitted directly therefore double-counts the fake vertex/theta prior as if it were
+        // real randomness, which is propagated (via the geometric constraint's lever arm)
+        // into an over-estimated recoil-momentum covariance that grows with flight length
+        // (verified: at flightLength=150mm this inflated the reported recoil-Py sigma by
+        // ~21% relative to both a finite-difference sensitivity check and the toy-MC's
+        // empirical residual scatter). Sandwiching with Wtrk -- W with the V1/theta/V2 block
+        // zeroed, keeping only the 3 tracks' own (real) weight blocks -- exactly reproduces
+        // the finite-difference ground truth (confirmed to 3 significant figures).
+        RealMatrix Wtrk = MatrixUtils.createRealMatrix(CVJBC_STATE_SIZE, CVJBC_STATE_SIZE);
+        Wtrk.setSubMatrix(W.getSubMatrix(CVJBC_OFF_EM, CVJBC_OFF_EM + 4, CVJBC_OFF_EM, CVJBC_OFF_EM + 4).getData(),
+                CVJBC_OFF_EM, CVJBC_OFF_EM);
+        Wtrk.setSubMatrix(W.getSubMatrix(CVJBC_OFF_EP, CVJBC_OFF_EP + 4, CVJBC_OFF_EP, CVJBC_OFF_EP + 4).getData(),
+                CVJBC_OFF_EP, CVJBC_OFF_EP);
+        Wtrk.setSubMatrix(W.getSubMatrix(CVJBC_OFF_RC, CVJBC_OFF_RC + 4, CVJBC_OFF_RC, CVJBC_OFF_RC + 4).getData(),
+                CVJBC_OFF_RC, CVJBC_OFF_RC);
+        RealMatrix C_meas = C_fitted.multiply(Wtrk).multiply(C_fitted);
+
+        TrackMomentum eMinusMomentum = new TrackMomentum(computeMomentumAtVertex(eMinus, v1Final),
+                computeMomentumCovarianceFull(eMinus, v1Final, C_meas, CVJBC_OFF_V1, CVJBC_OFF_EM));
+        TrackMomentum ePlusMomentum = new TrackMomentum(computeMomentumAtVertex(ePlus, v1Final),
+                computeMomentumCovarianceFull(ePlus, v1Final, C_meas, CVJBC_OFF_V1, CVJBC_OFF_EP));
+        TrackMomentum recoilMomentum = new TrackMomentum(computeMomentumAtVertex(recoil, v2Final),
+                computeMomentumCovarianceFull(recoil, v2Final, C_meas, CVJBC_OFF_V2, CVJBC_OFF_RC));
+
+        List<TrackParams> fittedTracks = new ArrayList<>();
+        fittedTracks.add(eMinus);
+        fittedTracks.add(ePlus);
+        fittedTracks.add(recoil);
+
+        return new TwoVertexFitResult(v1Final, v1Cov, v2Final, v2Cov, chi2, ndf,
+                eMinusMomentum, ePlusMomentum, recoilMomentum, fittedTracks);
+    }
+
+    public TwoVertexFitResult fitCascadeVertexJointFreeTrack(TrackParams eMinusIn, TrackParams ePlusIn,
+            TrackParams recoilIn, RealVector v1Init, RealVector v2Init) {
+        return fitCascadeVertexJointFreeTrack(eMinusIn, ePlusIn, recoilIn, v1Init, v2Init,
+                null, null, DEFAULT_TVJ_MAX_ITERATIONS, 1.0e-8);
+    }
+
+    /** As above, but with explicit V1/V2 prior covariances (nullable, same convention as {@link #fitCascadeVertexJoint}). */
+    public TwoVertexFitResult fitCascadeVertexJointFreeTrack(TrackParams eMinusIn, TrackParams ePlusIn,
+            TrackParams recoilIn, RealVector v1Init, RealVector v2Init, RealMatrix v1Cov, RealMatrix v2Cov) {
+        return fitCascadeVertexJointFreeTrack(eMinusIn, ePlusIn, recoilIn, v1Init, v2Init,
+                v1Cov, v2Cov, DEFAULT_TVJ_MAX_ITERATIONS, 1.0e-8);
+    }
+
+    /**
+     * As {@link #fitCascadeVertexJointBeamConstrainedCore}, but with the beam-momentum
+     * constraint dropped entirely -- isolates the effect of letting each of the three
+     * tracks' own 5 perigee parameters float as free state (weighted by that track's own
+     * input covariance) from the effect of also imposing an external momentum constraint.
+     * Same 22-dim state layout ({@code CVJBC_OFF_*}) and KKT/Newton-Raphson solve as {@link
+     * #fitCascadeVertexJointBeamConstrainedCore}; see that method's Javadoc for the shared
+     * per-row regularization and measurement-only momentum-covariance-sandwich reasoning,
+     * both of which apply here unchanged.
+     *
+     * <p>Only nine constraint rows (no beam-momentum block): eMinus-at-V1 (2), ePlus-at-V1
+     * (2), recoil-at-V2 (2), and the geometric decay-length constraint (3). {@code ndf =
+     * nConstraints(9) - 7 = 2} (7 = V1+theta+V2, the only state components with a free/weak
+     * prior; track params have a real prior via {@code W} so don't count) -- the same ndf as
+     * the fixed-track {@link #fitCascadeVertexJointCore}, since freeing track params under
+     * their own real prior doesn't consume additional ndf.
+     */
+    public TwoVertexFitResult fitCascadeVertexJointFreeTrack(TrackParams eMinusIn, TrackParams ePlusIn,
+            TrackParams recoilIn, RealVector v1Init, RealVector v2Init, RealMatrix v1CovIn, RealMatrix v2CovIn,
+            int maxIterations, double tolerance) {
+
+        TrackParams eMinus = eMinusIn.copy();
+        TrackParams ePlus = ePlusIn.copy();
+        TrackParams recoil = recoilIn.copy();
+
+        boolean useBeamspotPriorForV2 = (v2Init == null);
+        RealVector v2InitVec = useBeamspotPriorForV2 ? MatrixUtils.createRealVector(beamPosition) : v2Init;
+
+        RealVector pV0Init = computeMomentumAtVertex(eMinus, v1Init).add(computeMomentumAtVertex(ePlus, v1Init));
+        double pV0InitNormSq = pV0Init.dotProduct(pV0Init);
+        double thetaInit = (pV0InitNormSq > 0)
+                ? v1Init.subtract(v2InitVec).dotProduct(pV0Init) / pV0InitNormSq
+                : 0.0;
+
+        ThetaSeed branchSeed = selectPhysicalThetaSeed(v1Init, pV0Init, recoil);
+        if (branchSeed != null) {
+            thetaInit = branchSeed.theta;
+            v2InitVec = branchSeed.v2;
+        }
+
+        return fitCascadeVertexJointFreeTrackCore(eMinus, ePlus, recoil, v1Init, thetaInit, v2InitVec,
+                v1CovIn, v2CovIn, useBeamspotPriorForV2, maxIterations, tolerance);
+    }
+
+    private TwoVertexFitResult fitCascadeVertexJointFreeTrackCore(
+            TrackParams eMinus, TrackParams ePlus, TrackParams recoil,
+            RealVector v1Init, double thetaInit, RealVector v2InitVec,
+            RealMatrix v1CovIn, RealMatrix v2CovIn, boolean useBeamspotPriorForV2,
+            int maxIterations, double tolerance) {
+
+        final int N_TRACK_ROWS = 6;
+        final int N_GEOM_ROWS = 3;
+        final int nConstraints = N_TRACK_ROWS + N_GEOM_ROWS;
+
+        RealVector x0 = MatrixUtils.createRealVector(new double[CVJBC_STATE_SIZE]);
+        x0.setSubVector(CVJBC_OFF_V1, v1Init);
+        x0.setEntry(CVJBC_OFF_THETA, thetaInit);
+        x0.setSubVector(CVJBC_OFF_V2, v2InitVec);
+        x0.setSubVector(CVJBC_OFF_EM, MatrixUtils.createRealVector(eMinus.toArray()));
+        x0.setSubVector(CVJBC_OFF_EP, MatrixUtils.createRealVector(ePlus.toArray()));
+        x0.setSubVector(CVJBC_OFF_RC, MatrixUtils.createRealVector(recoil.toArray()));
+
+        RealMatrix W = MatrixUtils.createRealMatrix(CVJBC_STATE_SIZE, CVJBC_STATE_SIZE);
+        RealMatrix WInv = MatrixUtils.createRealMatrix(CVJBC_STATE_SIZE, CVJBC_STATE_SIZE);
+        if (v1CovIn != null) {
+            RealMatrix v1CovInv = new LUDecomposition(v1CovIn).getSolver().getInverse();
+            W.setSubMatrix(v1CovInv.getData(), CVJBC_OFF_V1, CVJBC_OFF_V1);
+            WInv.setSubMatrix(v1CovIn.getData(), CVJBC_OFF_V1, CVJBC_OFF_V1);
+        } else {
+            for (int i = 0; i < 3; i++) {
+                W.setEntry(CVJBC_OFF_V1 + i, CVJBC_OFF_V1 + i, 0.01);
+                WInv.setEntry(CVJBC_OFF_V1 + i, CVJBC_OFF_V1 + i, 100.0);
+            }
+        }
+        W.setEntry(CVJBC_OFF_THETA, CVJBC_OFF_THETA, 0.01);
+        WInv.setEntry(CVJBC_OFF_THETA, CVJBC_OFF_THETA, 100.0);
+        if (v2CovIn != null) {
+            RealMatrix v2CovInv = new LUDecomposition(v2CovIn).getSolver().getInverse();
+            W.setSubMatrix(v2CovInv.getData(), CVJBC_OFF_V2, CVJBC_OFF_V2);
+            WInv.setSubMatrix(v2CovIn.getData(), CVJBC_OFF_V2, CVJBC_OFF_V2);
+        } else {
+            for (int i = 0; i < 3; i++) {
+                double var = useBeamspotPriorForV2 ? beamSize[i] * beamSize[i] : 100.0;
+                W.setEntry(CVJBC_OFF_V2 + i, CVJBC_OFF_V2 + i, 1.0 / var);
+                WInv.setEntry(CVJBC_OFF_V2 + i, CVJBC_OFF_V2 + i, var);
+            }
+        }
+
+        RealMatrix[] trackCovs = {eMinus.cov, ePlus.cov, recoil.cov};
+        int[] trackOffsets = {CVJBC_OFF_EM, CVJBC_OFF_EP, CVJBC_OFF_RC};
+        for (int t = 0; t < 3; t++) {
+            RealMatrix covInv;
+            try {
+                covInv = new LUDecomposition(trackCovs[t]).getSolver().getInverse();
+            } catch (SingularMatrixException e) {
+                return null;  // Cannot build weight matrix; skip this event silently
+            }
+            W.setSubMatrix(covInv.getData(), trackOffsets[t], trackOffsets[t]);
+            WInv.setSubMatrix(trackCovs[t].getData(), trackOffsets[t], trackOffsets[t]);
+        }
+
+        RealVector x = x0.copy();
+        RealMatrix finalH = null;
+        RealMatrix finalV = null;
+        RealVector finalHvec = null;
+
+        for (int iteration = 0; iteration < maxIterations; iteration++) {
+            RealVector xOld = x.copy();
+
+            RealVector v1 = x.getSubVector(CVJBC_OFF_V1, 3);
+            double theta = x.getEntry(CVJBC_OFF_THETA);
+            RealVector v2 = x.getSubVector(CVJBC_OFF_V2, 3);
+            eMinus.fromArray(x.getSubVector(CVJBC_OFF_EM, 5).toArray());
+            ePlus.fromArray(x.getSubVector(CVJBC_OFF_EP, 5).toArray());
+            recoil.fromArray(x.getSubVector(CVJBC_OFF_RC, 5).toArray());
+
+            try {
+                RealVector h = MatrixUtils.createRealVector(new double[nConstraints]);
+                RealMatrix H = MatrixUtils.createRealMatrix(nConstraints, CVJBC_STATE_SIZE);
+
+                Constraint cEm = computeTrackConstraint(eMinus, v1);
+                Constraint cEp = computeTrackConstraint(ePlus, v1);
+                Constraint cRc = computeTrackConstraint(recoil, v2);
+                h.setSubVector(0, cEm.c);
+                h.setSubVector(2, cEp.c);
+                h.setSubVector(4, cRc.c);
+                H.setSubMatrix(cEm.H.getData(), 0, CVJBC_OFF_V1);
+                H.setSubMatrix(trackResidualJacobianWrtTrackParams(eMinus, v1.getEntry(0), v1.getEntry(1)).getData(),
+                        0, CVJBC_OFF_EM);
+                H.setSubMatrix(cEp.H.getData(), 2, CVJBC_OFF_V1);
+                H.setSubMatrix(trackResidualJacobianWrtTrackParams(ePlus, v1.getEntry(0), v1.getEntry(1)).getData(),
+                        2, CVJBC_OFF_EP);
+                H.setSubMatrix(cRc.H.getData(), 4, CVJBC_OFF_V2);
+                H.setSubMatrix(trackResidualJacobianWrtTrackParams(recoil, v2.getEntry(0), v2.getEntry(1)).getData(),
+                        4, CVJBC_OFF_RC);
+
+                GeometricConstraint gc = computeGeometricConstraint(v1, theta, v2, eMinus, ePlus);
+                h.setSubVector(6, gc.g);
+                // gc.H's columns are laid out [V1(0-2), theta(3), V2(4-6)] (TVJ_OFF_*), which
+                // is bit-for-bit the same layout as CVJBC_OFF_V1/THETA/V2 -- copy directly.
+                H.setSubMatrix(gc.H.getData(), 6, 0);
+                RealMatrix dgdEm = computeMomentumTrackJacobian(eMinus, v1).scalarMultiply(theta);
+                RealMatrix dgdEp = computeMomentumTrackJacobian(ePlus, v1).scalarMultiply(theta);
+                H.setSubMatrix(dgdEm.getData(), 6, CVJBC_OFF_EM);
+                H.setSubMatrix(dgdEp.getData(), 6, CVJBC_OFF_EP);
+
+                RealMatrix HWInvHT = H.multiply(WInv).multiply(H.transpose());
+                // Regularization: see fitCascadeVertexJointBeamConstrainedCore's Javadoc/inline
+                // comment for why a tiny per-row epsilon (not 0) is needed here, and why it must
+                // be scaled per-row rather than by one averaged scale. With no momentum block,
+                // all nConstraints(9) rows get this same treatment.
+                RealMatrix constraintCov = MatrixUtils.createRealMatrix(nConstraints, nConstraints);
+                for (int i = 0; i < nConstraints; i++) {
+                    double diagI = HWInvHT.getEntry(i, i);
+                    double epsilonI = (diagI > 0) ? diagI * 1e-9 : 1e-12;
+                    constraintCov.setEntry(i, i, epsilonI);
+                }
+
+                finalH = H;
+                finalV = constraintCov;
+                finalHvec = h;
+
+                RealMatrix S = HWInvHT.add(constraintCov);
+                RealVector rhs = h.add(H.operate(x0.subtract(x)));
+                RealVector lambda = new LUDecomposition(S).getSolver().solve(rhs);
+                RealVector deltaX = x0.subtract(x).subtract(WInv.multiply(H.transpose()).operate(lambda));
+
+                double stepNorm = deltaX.getNorm();
+                if (stepNorm > MAX_STEP_NORM) {
+                    deltaX = deltaX.mapMultiply(MAX_STEP_NORM / stepNorm);
+                }
+                x = x.add(deltaX);
+
+                if (!Double.isFinite(x.getNorm())) {
+                    x = xOld;
+                    break;
+                }
+                if (deltaX.getNorm() < tolerance && h.getNorm() < tolerance * 10) {
+                    break;
+                }
+            } catch (Exception e) {
+                x = xOld;
+                break;
+            }
+        }
+
+        RealVector v1Final = x.getSubVector(CVJBC_OFF_V1, 3);
+        RealVector v2Final = x.getSubVector(CVJBC_OFF_V2, 3);
+        eMinus.fromArray(x.getSubVector(CVJBC_OFF_EM, 5).toArray());
+        ePlus.fromArray(x.getSubVector(CVJBC_OFF_EP, 5).toArray());
+        recoil.fromArray(x.getSubVector(CVJBC_OFF_RC, 5).toArray());
+
+        RealMatrix C_fitted = WInv.copy();
+        if (finalH != null) {
+            try {
+                RealMatrix S = finalH.multiply(WInv).multiply(finalH.transpose()).add(finalV);
+                RealMatrix K = WInv.multiply(finalH.transpose())
+                                    .multiply(new LUDecomposition(S).getSolver().getInverse());
+                C_fitted = WInv.subtract(K.multiply(finalH).multiply(WInv));
+            } catch (Exception e) {
+                // keep prior WInv as a fallback post-fit covariance
+            }
+        }
+
+        eMinus.cov = C_fitted.getSubMatrix(CVJBC_OFF_EM, CVJBC_OFF_EM + 4, CVJBC_OFF_EM, CVJBC_OFF_EM + 4);
+        ePlus.cov = C_fitted.getSubMatrix(CVJBC_OFF_EP, CVJBC_OFF_EP + 4, CVJBC_OFF_EP, CVJBC_OFF_EP + 4);
+        recoil.cov = C_fitted.getSubMatrix(CVJBC_OFF_RC, CVJBC_OFF_RC + 4, CVJBC_OFF_RC, CVJBC_OFF_RC + 4);
+
+        RealMatrix v1Cov = C_fitted.getSubMatrix(CVJBC_OFF_V1, CVJBC_OFF_V1 + 2, CVJBC_OFF_V1, CVJBC_OFF_V1 + 2);
+        RealMatrix v2Cov = C_fitted.getSubMatrix(CVJBC_OFF_V2, CVJBC_OFF_V2 + 2, CVJBC_OFF_V2, CVJBC_OFF_V2 + 2);
+
+        RealVector dx = x.subtract(x0);
+        double chi2 = dx.dotProduct(W.operate(dx));
+        if (finalHvec != null && finalV != null) {
+            chi2 += chi2Contribution(finalHvec.getSubVector(0, 2), finalV.getSubMatrix(0, 1, 0, 1));
+            chi2 += chi2Contribution(finalHvec.getSubVector(2, 2), finalV.getSubMatrix(2, 3, 2, 3));
+            chi2 += chi2Contribution(finalHvec.getSubVector(4, 2), finalV.getSubMatrix(4, 5, 4, 5));
+            chi2 += chi2Contribution(finalHvec.getSubVector(6, 3), finalV.getSubMatrix(6, 8, 6, 8));
+        }
+
+        int ndf = nConstraints - 7;
+
+        // Measurement-only momentum-covariance sandwich (Wtrk zeroes the weak V1/theta/V2
+        // prior block) -- same double-counting reasoning as
+        // fitCascadeVertexJointBeamConstrainedCore's Javadoc.
+        RealMatrix Wtrk = MatrixUtils.createRealMatrix(CVJBC_STATE_SIZE, CVJBC_STATE_SIZE);
+        Wtrk.setSubMatrix(W.getSubMatrix(CVJBC_OFF_EM, CVJBC_OFF_EM + 4, CVJBC_OFF_EM, CVJBC_OFF_EM + 4).getData(),
+                CVJBC_OFF_EM, CVJBC_OFF_EM);
+        Wtrk.setSubMatrix(W.getSubMatrix(CVJBC_OFF_EP, CVJBC_OFF_EP + 4, CVJBC_OFF_EP, CVJBC_OFF_EP + 4).getData(),
+                CVJBC_OFF_EP, CVJBC_OFF_EP);
+        Wtrk.setSubMatrix(W.getSubMatrix(CVJBC_OFF_RC, CVJBC_OFF_RC + 4, CVJBC_OFF_RC, CVJBC_OFF_RC + 4).getData(),
+                CVJBC_OFF_RC, CVJBC_OFF_RC);
+        RealMatrix C_meas = C_fitted.multiply(Wtrk).multiply(C_fitted);
+
+        TrackMomentum eMinusMomentum = new TrackMomentum(computeMomentumAtVertex(eMinus, v1Final),
+                computeMomentumCovarianceFull(eMinus, v1Final, C_meas, CVJBC_OFF_V1, CVJBC_OFF_EM));
+        TrackMomentum ePlusMomentum = new TrackMomentum(computeMomentumAtVertex(ePlus, v1Final),
+                computeMomentumCovarianceFull(ePlus, v1Final, C_meas, CVJBC_OFF_V1, CVJBC_OFF_EP));
+        TrackMomentum recoilMomentum = new TrackMomentum(computeMomentumAtVertex(recoil, v2Final),
+                computeMomentumCovarianceFull(recoil, v2Final, C_meas, CVJBC_OFF_V2, CVJBC_OFF_RC));
+
+        List<TrackParams> fittedTracks = new ArrayList<>();
+        fittedTracks.add(eMinus);
+        fittedTracks.add(ePlus);
+        fittedTracks.add(recoil);
+
+        return new TwoVertexFitResult(v1Final, v1Cov, v2Final, v2Cov, chi2, ndf,
+                eMinusMomentum, ePlusMomentum, recoilMomentum, fittedTracks);
+    }
+
     private static final int TVJX_OFF_V1 = 0;
     private static final int TVJX_OFF_THETA = 3;
     private static final int TVJX_OFF_V2FREE = 4; // holds only v2[1], v2[2] (the free transverse coords)
@@ -1424,7 +1740,7 @@ public class KalmanVertexFitterGainMatrix {
      * Run the fixed-V2-coordinate joint fit from an explicitly forced (theta, V2) seed,
      * bypassing {@link #selectPhysicalThetaSeed}'s own branch choice -- the fixed-V2X
      * counterpart of {@link #fitCascadeVertexJointForcedBranch}, used the same way by
-     * {@link ThreeTrackVertexer#fit} to fit both {@link #transverseCircleRoots} candidates
+     * {@link CascadeVertexer#fit} to fit both {@link #transverseCircleRoots} candidates
      * and choose between them externally. Package-private, not part of the general-purpose
      * API.
      */
@@ -1968,7 +2284,17 @@ public class KalmanVertexFitterGainMatrix {
 
         // Vertex part
         if (vertexConstraintCov != null) {
-            RealMatrix vertexCovInv = new LUDecomposition(vertexConstraintCov).getSolver().getInverse();
+            // Threshold 0.0: a tight-but-well-conditioned diagonal beamspot prior (e.g. a
+            // few-micron beamSize, variance ~1e-12) is not actually singular, but LUDecomposition's
+            // default 1e-11 threshold flags small-magnitude (not small-rank) pivots as singular --
+            // unlike fitBillior1985's inversion (hep.physics.matrix.MatrixOp), which has no such
+            // absolute-scale threshold and handles the same tight priors fine.
+            RealMatrix vertexCovInv;
+            try {
+                vertexCovInv = new LUDecomposition(vertexConstraintCov, 0.0).getSolver().getInverse();
+            } catch (SingularMatrixException e) {
+                return null;  // Genuinely singular vertex constraint covariance; skip this event silently
+            }
             for (int i = 0; i < 3; i++)
                 for (int j = 0; j < 3; j++)
                     W.setEntry(i, j, vertexCovInv.getEntry(i, j));
@@ -2226,7 +2552,19 @@ public class KalmanVertexFitterGainMatrix {
                 diagScale += HWInvHTforEps.getEntry(i, i);
             }
             diagScale = (nConstraints > 0) ? diagScale / nConstraints : 1.0;
-            double epsilon = (diagScale > 0) ? diagScale * 1e-6 : 1e-12;
+            // Scale factor confirmed via a fitBillior1985-vs-fitSoftConstrained (momentum
+            // constraint off) toy-MC agreement test: at 1e-6 the leftover geometric-constraint
+            // residual h was not actually driven near zero (|h| ~ 1e-3-1e-2), so the h^T V^-1 h
+            // term below priced that residual as if epsilon were a real measurement covariance,
+            // producing a consistent ~10-19% chi2 bias relative to fitBillior1985's exact
+            // (hard-constraint) elimination -- worse, not better, since the *smaller* term
+            // (the missing chi2 relative to Billior) was mostly hidden in an under-converged
+            // pull term, not in this block. Shrinking to 1e-10 drives |h| far closer to zero,
+            // reducing the max chi2 disagreement to sub-percent across 200 toys, without
+            // reintroducing the singularity this regularization guards against (the full
+            // TrackConstraintVertexFitterTest suite -- 22 tests, all fitSoftConstrained/
+            // fitLagrangeMultiplier call sites in this file -- still passes at this scale).
+            double epsilon = (diagScale > 0) ? diagScale * 1e-10 : 1e-12;
 
             for (int i = 0; i < nTrackConstraints; i++) {
                 constraintCov.setEntry(i, i, epsilon);
@@ -2479,7 +2817,7 @@ public class KalmanVertexFitterGainMatrix {
      * candidates showed hard-mode chi2/ndf completely unchanged by the nuclear-recoil
      * covariance widening that fixes soft mode, since that widening has no effect when
      * V_mom is hardcoded to zero). Use {@link #fitSoftConstrained} (or
-     * {@link KalmanNTrackVertexer#fitVertexBeamConstrained} with
+     * {@link NTrackVertexer#fitVertexBeamConstrained} with
      * {@code hardMomentumConstraint=false}) with a tuned
      * {@code setBeamMomentumTransverseNuclearRecoilSigma} instead. Kept for
      * reference/regression comparison, not recommended for new production use.
@@ -2500,15 +2838,6 @@ public class KalmanVertexFitterGainMatrix {
                                   beamMomentum, null, maxIterations, tolerance);
     }
 
-    // Simplified methods
-    public FitResult fit(List<TrackParams> tracks) {
-        return fit(tracks, null, null, null, null, null, null, null, 10, 1e-6);
-    }
-    
-    public FitResult fit(List<TrackParams> tracks, int maxIterations, double tolerance) {
-        return fit(tracks, null, null, null, null, null, null, null, maxIterations, tolerance);
-    }
-    
     // Configurable fields for BilliorVertexer-style interface
     private double[] beamSize = {0.001, 0.150, 0.050};
     private double[] beamPosition = {-1.1, 0, 0};
@@ -2536,6 +2865,45 @@ public class KalmanVertexFitterGainMatrix {
     public void setBeamMomentumTransverseNuclearRecoilSigma(double sigma) { this.sigmaTNuclearRecoil = sigma; }
     public void setDebug(boolean debug) { this.debugFlag = debug; }
     public void setStoreCovTrkMomList(boolean value) { this.storeCovTrkMomList = value; }
+
+    /**
+     * Beam 3-momentum in the tracking frame (x=beam, y=horiz, z=vert), from this fitter's
+     * {@code pBeam}/{@code rotAngle} fields. Extracted out of {@link #fitVertex}'s inline
+     * beam-momentum-constraint setup so the same vector can be reused by
+     * {@link #fitCascadeVertexJointBeamConstrainedCore}.
+     */
+    private RealVector beamMomentumVector() {
+        double pxBeam = pBeam * FastMath.cos(rotAngle);  // tracking X = HPS Z
+        double pyBeam = -pBeam * FastMath.sin(rotAngle); // tracking Y = HPS X
+        double pzBeam = 0.0;                             // tracking Z = HPS Y
+        return MatrixUtils.createRealVector(new double[]{pxBeam, pyBeam, pzBeam});
+    }
+
+    /**
+     * Covariance (3x3, tracking frame) of {@link #beamMomentumVector}, from 1% dp/p
+     * (longitudinal) combined in quadrature with the beam angular divergence and
+     * {@code sigmaTNuclearRecoil} (transverse). Extracted out of {@link #fitVertex}'s inline
+     * beam-momentum-constraint setup, dropping the energy row/column that method also builds
+     * (not needed here, or by {@link #fitCascadeVertexJointBeamConstrainedCore} -- like
+     * {@link #fitSoftConstrained}, both constrain only 3-momentum, not energy).
+     */
+    private RealMatrix beamMomentumCovarianceMatrix() {
+        double dpOverP = 1e-2;
+        double sigmaTheta = 100e-6;           // beam angular divergence (rad)
+        double sigmaL = dpOverP * pBeam;
+        double sigmaT = FastMath.hypot(sigmaTheta * pBeam, sigmaTNuclearRecoil);
+        double cosR = FastMath.cos(rotAngle);
+        double sinR = FastMath.sin(rotAngle);
+        double sL2 = sigmaL * sigmaL;
+        double sT2 = sigmaT * sigmaT;
+        RealMatrix cov = MatrixUtils.createRealMatrix(3, 3);
+        cov.setEntry(0, 0, sL2 * cosR * cosR + sT2 * sinR * sinR);
+        cov.setEntry(0, 1, (sT2 - sL2) * sinR * cosR);
+        cov.setEntry(1, 0, (sT2 - sL2) * sinR * cosR);
+        cov.setEntry(1, 1, sL2 * sinR * sinR + sT2 * cosR * cosR);
+        cov.setEntry(2, 2, sT2);
+        return cov;
+    }
 
     /**
      * Vertex-only fit following Billior (NIM A225, 1984) / Billior &amp; Qian (NIM A311, 1992).
@@ -2920,31 +3288,21 @@ public class KalmanVertexFitterGainMatrix {
         RealVector fourMomentumConstraintVec = null;
         RealMatrix fourMomentumConstraintCovMat = null;
         if (beamMomentumConstraint) {
-            // Beam momentum vector in tracking frame
-            // Detector frame: beam along HPS Z, rotated by rotAngle in HPS X-Z plane
-            // Tracking frame: X=HPS_Z, Y=HPS_X, Z=HPS_Y
-            double pxBeam = pBeam * FastMath.cos(rotAngle);  // tracking X = HPS Z
-            double pyBeam = -pBeam * FastMath.sin(rotAngle); // tracking Y = HPS X
-            double pzBeam = 0.0;                             // tracking Z = HPS Y
+            // Beam momentum vector in tracking frame (X=HPS_Z, Y=HPS_X, Z=HPS_Y), detector
+            // frame beam along HPS Z rotated by rotAngle in the HPS X-Z plane -- see
+            // beamMomentumVector()/beamMomentumCovarianceMatrix() for the (extracted,
+            // bit-identical) formulas, also reused by fitCascadeVertexJointBeamConstrainedCore.
+            RealVector pBeamVec = beamMomentumVector();
             double me = 0.000511;  // electron mass in GeV
             double eBeam = FastMath.sqrt(pBeam * pBeam + me * me);
-            fourMomentumConstraintVec = MatrixUtils.createRealVector(new double[]{pxBeam, pyBeam, pzBeam, eBeam});
+            fourMomentumConstraintVec = MatrixUtils.createRealVector(new double[]{
+                    pBeamVec.getEntry(0), pBeamVec.getEntry(1), pBeamVec.getEntry(2), eBeam});
 
+            RealMatrix pCovMat = beamMomentumCovarianceMatrix();
             double dpOverP = 1e-2;
-            double sigmaTheta = 100e-6;           // beam angular divergence (rad)
-            double sigmaL = dpOverP * pBeam;
-            double sigmaT = FastMath.hypot(sigmaTheta * pBeam, sigmaTNuclearRecoil);
-            double cosR = FastMath.cos(rotAngle);
-            double sinR = FastMath.sin(rotAngle);
-            double sL2 = sigmaL * sigmaL;
-            double sT2 = sigmaT * sigmaT;
-            fourMomentumConstraintCovMat = MatrixUtils.createRealMatrix(4, 4);
-            fourMomentumConstraintCovMat.setEntry(0, 0, sL2 * cosR * cosR + sT2 * sinR * sinR);
-            fourMomentumConstraintCovMat.setEntry(0, 1, (sT2 - sL2) * sinR * cosR);
-            fourMomentumConstraintCovMat.setEntry(1, 0, (sT2 - sL2) * sinR * cosR);
-            fourMomentumConstraintCovMat.setEntry(1, 1, sL2 * sinR * sinR + sT2 * cosR * cosR);
-            fourMomentumConstraintCovMat.setEntry(2, 2, sT2);
             double sigmaE = dpOverP * eBeam;
+            fourMomentumConstraintCovMat = MatrixUtils.createRealMatrix(4, 4);
+            fourMomentumConstraintCovMat.setSubMatrix(pCovMat.getData(), 0, 0);
             fourMomentumConstraintCovMat.setEntry(3, 3, sigmaE * sigmaE);
         }
 
@@ -3119,7 +3477,7 @@ public class KalmanVertexFitterGainMatrix {
         }
 
         if (debugFlag) {
-            System.out.println("=== KalmanVertexFitterGainMatrix::fitVertex ===");
+            System.out.println("=== TrackConstraintVertexFitter::fitVertex ===");
             System.out.println("  B field: " + bField);
             System.out.println("  Beamspot constraint: " + beamspotConstraint);
             System.out.println("  Beam momentum constraint: " + beamMomentumConstraint);
@@ -3168,7 +3526,7 @@ public class KalmanVertexFitterGainMatrix {
             double totalPMag = FastMath.sqrt(totalPx * totalPx + totalPy * totalPy + totalPz * totalPz);
             System.out.printf("  Total momentum (det frame): [%.4f, %.4f, %.4f] |p|=%.4f  E=%.4f%n",
                               totalPx, totalPy, totalPz, totalPMag, totalE);
-            System.out.println("=== End KalmanVertexFitterGainMatrix::fitVertex ===");
+            System.out.println("=== End TrackConstraintVertexFitter::fitVertex ===");
         }
 
         return bv;
@@ -3181,375 +3539,4 @@ public class KalmanVertexFitterGainMatrix {
     public int getNdf() { return ndf; }
     public List<TrackMomentum> getTrackMomenta() { return trackMomenta; }
 
-    /**
-     * Fit vertex using N-1 tracks and predict the momentum of the Nth track
-     * 
-     * This method uses vertex and/or total momentum constraints to fit with a subset
-     * of tracks, then predicts the momentum of the excluded track.
-     * 
-     * @param tracks All track parameters including the one to predict
-     * @param predictTrackIdx Index of track to predict (0-based)
-     * @param vertexConstraint Known vertex position
-     * @param vertexConstraintCov Vertex constraint covariance
-     * @param totalMomentumConstraint Known total momentum of ALL tracks
-     * @param totalMomentumConstraintCov Total momentum constraint covariance
-     * @param massConstraint Invariant mass constraint for ALL tracks
-     * @param massConstraintSigma Mass constraint uncertainty
-     * @param maxIterations Maximum iterations
-     * @param tolerance Convergence tolerance
-     * @return PredictedTrackResult containing vertex, predicted momentum, and all track momenta
-     */
-    public PredictedTrackResult fitWithPredictedTrack(
-            List<TrackParams> tracks,
-            int predictTrackIdx,
-            RealVector vertexConstraint,
-            RealMatrix vertexConstraintCov,
-            RealVector totalMomentumConstraint,
-            RealMatrix totalMomentumConstraintCov,
-            Double massConstraint,
-            Double massConstraintSigma,
-            int maxIterations,
-            double tolerance) {
-        
-        int nTracks = tracks.size();
-        
-        if (predictTrackIdx < 0 || predictTrackIdx >= nTracks) {
-            throw new IllegalArgumentException(
-                "predictTrackIdx must be between 0 and " + (nTracks - 1));
-        }
-        
-        // Fit all N tracks to get the best vertex - do NOT use momentum constraint here;
-        // we use momentum conservation to PREDICT the excluded track's momentum
-        FitResult fitResult = fit(
-            tracks, null, vertexConstraint, vertexConstraintCov,
-            null, null,  // No momentum constraint for N-track fit
-            null, null,  // No mass constraint either
-            maxIterations, tolerance
-        );
-
-        return fitWithPredictedTrack(fitResult, predictTrackIdx,
-            totalMomentumConstraint, totalMomentumConstraintCov,
-            massConstraint, massConstraintSigma);
-    }
-
-    /**
-     * Predict the momentum of one track using momentum conservation, given a pre-computed
-     * vertex fit result. The vertex fit must already include all tracks.
-     * Use this overload to avoid recomputing the vertex fit for each predicted track.
-     *
-     * @param precomputedFit  Result of a prior fit to all N tracks
-     * @param predictTrackIdx Index of the track whose momentum is to be predicted
-     * @param totalMomentumConstraint Known total momentum (beam momentum)
-     * @param totalMomentumConstraintCov Covariance on total momentum
-     * @param massConstraint  Invariant mass constraint (null to skip)
-     * @param massConstraintSigma Mass constraint uncertainty (null to skip)
-     * @return PredictedTrackResult containing vertex, predicted momentum, and all track momenta
-     */
-    public PredictedTrackResult fitWithPredictedTrack(
-            FitResult precomputedFit,
-            int predictTrackIdx,
-            RealVector totalMomentumConstraint,
-            RealMatrix totalMomentumConstraintCov,
-            Double massConstraint,
-            Double massConstraintSigma) {
-
-        int nTracks = precomputedFit.trackMomenta.size();
-
-        if (predictTrackIdx < 0 || predictTrackIdx >= nTracks) {
-            throw new IllegalArgumentException(
-                "predictTrackIdx must be between 0 and " + (nTracks - 1));
-        }
-
-        FitResult fitResult = precomputedFit;
-
-        // Predict momentum of excluded track
-        RealVector predictedP;
-        RealMatrix predictedPCov;
-        
-        if (totalMomentumConstraint != null) {
-            // Use momentum conservation: p_predicted = p_total - sum(p_fitted for other tracks)
-            RealVector fittedTotalP = MatrixUtils.createRealVector(new double[3]);
-            RealMatrix fittedPCov = MatrixUtils.createRealMatrix(3, 3);
-            for (int i = 0; i < nTracks; i++) {
-                if (i == predictTrackIdx) continue;
-                TrackMomentum mom = fitResult.trackMomenta.get(i);
-                fittedTotalP = fittedTotalP.add(mom.p);
-                fittedPCov = fittedPCov.add(mom.pCov);
-                if(debugFlag)
-                    System.out.printf("DEBUG fitWithPredictedTrack: fitted track %d p (tracking) = [%.4f, %.4f, %.4f] |p|=%.4f%n",
-                                      i, mom.p.getEntry(0), mom.p.getEntry(1), mom.p.getEntry(2), mom.p.getNorm());
-            }
-            predictedP = totalMomentumConstraint.subtract(fittedTotalP);
-            if(debugFlag){
-                System.out.printf("DEBUG fitWithPredictedTrack: total fitted p (tracking) = [%.4f, %.4f, %.4f] |p|=%.4f%n",
-                                  fittedTotalP.getEntry(0), fittedTotalP.getEntry(1), fittedTotalP.getEntry(2), fittedTotalP.getNorm());
-                System.out.printf("DEBUG fitWithPredictedTrack: momentum constraint (tracking) = [%.4f, %.4f, %.4f] |p|=%.4f%n",
-                                  totalMomentumConstraint.getEntry(0), totalMomentumConstraint.getEntry(1), totalMomentumConstraint.getEntry(2),
-                                  totalMomentumConstraint.getNorm());
-                System.out.printf("DEBUG fitWithPredictedTrack: predicted p (tracking) = [%.4f, %.4f, %.4f] |p|=%.4f%n",
-                                  predictedP.getEntry(0), predictedP.getEntry(1), predictedP.getEntry(2), predictedP.getNorm());
-            }
-            // Propagate uncertainty: Cov(p_pred) = Cov(p_total) + Cov(sum p_fitted for other tracks)
-            // Note: This assumes uncorrelated track momenta (ignores vertex correlations)
-
-            if (totalMomentumConstraintCov != null) {
-                predictedPCov = totalMomentumConstraintCov.add(fittedPCov);
-            } else {
-                predictedPCov = fittedPCov;
-            }
-
-        } else {
-            // Without momentum constraint, use the fitted momentum of the predicted track
-            predictedP = fitResult.trackMomenta.get(predictTrackIdx).p;
-            predictedPCov = fitResult.trackMomenta.get(predictTrackIdx).pCov;
-        }
-        
-        // Create momentum info for predicted track
-        TrackMomentum predictedMom = new TrackMomentum(predictedP, predictedPCov);
-        
-        // All track momenta in original order; replace predicted track entry with
-        // the conservation-predicted momentum (actual fitted momentum stored in actualP)
-        List<TrackMomentum> allTrackMomenta = new ArrayList<>(fitResult.trackMomenta);
-        allTrackMomenta.set(predictTrackIdx, predictedMom);
-        
-        // Calculate total chi2:
-        // Start with chi2 from fitting all N tracks
-        double chi2Total = fitResult.chi2;
-        if(debugFlag)
-            System.out.printf("DEBUG fitWithPredictedTrack: N-track fit chi2=%.2f ndf=%d%n", fitResult.chi2, fitResult.ndf);
-
-        // Add chi2 contribution from comparing predicted momentum to actual fitted track momentum
-        RealVector actualP = fitResult.trackMomenta.get(predictTrackIdx).p;
-        RealMatrix actualPCov = fitResult.trackMomenta.get(predictTrackIdx).pCov;
-
-        if(debugFlag)
-            System.out.printf("DEBUG fitWithPredictedTrack: actual p (tracking) = [%.4f, %.4f, %.4f] |p|=%.4f%n",
-                          actualP.getEntry(0), actualP.getEntry(1), actualP.getEntry(2), actualP.getNorm());
-
-        // Residual: predicted - actual
-        RealVector pResidual = predictedP.subtract(actualP);
-        if(debugFlag)
-            System.out.printf("DEBUG fitWithPredictedTrack: residual (pred-act) = [%.4f, %.4f, %.4f]%n",
-                              pResidual.getEntry(0), pResidual.getEntry(1), pResidual.getEntry(2));
-
-        // Combined covariance for the comparison
-        RealMatrix combinedCov = predictedPCov.add(actualPCov);
-
-        // Chi2 contribution from momentum comparison
-        double chi2Momentum = 0;
-        try {
-            RealMatrix combinedCovInv = new LUDecomposition(combinedCov).getSolver().getInverse();
-            chi2Momentum = pResidual.dotProduct(combinedCovInv.operate(pResidual));
-            chi2Total += chi2Momentum;
-            if(debugFlag)                
-                System.out.printf("DEBUG fitWithPredictedTrack: chi2 from momentum comparison = %.2f%n", chi2Momentum);
-        } catch (SingularMatrixException e) {
-            // Combined covariance is singular; skip this chi2 contribution silently
-        }
-        if(debugFlag)
-            System.out.printf("DEBUG fitWithPredictedTrack: total chi2 = %.2f%n", chi2Total);
-        
-        // ndf: from N-track fit plus 3 for the 3-component momentum comparison
-        int ndfTotal = fitResult.ndf + 3;
-
-        this.vertex = fitResult.vertex;
-        this.vertexCov = fitResult.vertexCov;
-        this.chi2 = chi2Total;
-        this.ndf = ndfTotal;
-        this.trackMomenta = allTrackMomenta;
-
-        return new PredictedTrackResult(
-            fitResult.vertex, fitResult.vertexCov,
-            predictedP, predictedPCov,
-            actualP, actualPCov,
-            pResidual,
-            chi2Total, ndfTotal, allTrackMomenta
-        );
-    }
-
-    /**
-     * Convert a PredictedTrackResult to a BilliorVertex
-     *
-     * @param result The predicted track result
-     * @param predictedTrackIdx Index of the predicted track (0=ele, 1=pos, 2=rec)
-     * @param label Label for the vertex type
-     * @return BilliorVertex containing the fit results
-     */
-    public BilliorVertex predictedResultToBilliorVertex(PredictedTrackResult result, int predictedTrackIdx, String label) {
-        // Tracking frame to detector frame: HPS X = TRACK Y, HPS Y = TRACK Z, HPS Z = TRACK X
-        double vtxX = result.vertex.getEntry(1); // tracking Y -> HPS X
-        double vtxY = result.vertex.getEntry(2); // tracking Z -> HPS Y
-        double vtxZ = result.vertex.getEntry(0); // tracking X -> HPS Z
-        hep.physics.vec.Hep3Vector vtxPos = new hep.physics.vec.BasicHep3Vector(vtxX, vtxY, vtxZ);
-
-        // Convert covariance matrix (tracking -> detector frame)
-        double[] covPacked = new double[6];
-        covPacked[0] = result.vertexCov.getEntry(1, 1); // xx = trk(1,1)
-        covPacked[1] = result.vertexCov.getEntry(2, 1); // yx = trk(2,1)
-        covPacked[2] = result.vertexCov.getEntry(2, 2); // yy = trk(2,2)
-        covPacked[3] = result.vertexCov.getEntry(0, 1); // zx = trk(0,1)
-        covPacked[4] = result.vertexCov.getEntry(0, 2); // zy = trk(0,2)
-        covPacked[5] = result.vertexCov.getEntry(0, 0); // zz = trk(0,0)
-        hep.physics.matrix.SymmetricMatrix covVtx = new hep.physics.matrix.SymmetricMatrix(3, covPacked, true);
-
-        // Vertex position error
-        hep.physics.vec.Hep3Vector vtxPosErr = new hep.physics.vec.BasicHep3Vector(
-            FastMath.sqrt(result.vertexCov.getEntry(1, 1)),
-            FastMath.sqrt(result.vertexCov.getEntry(2, 2)),
-            FastMath.sqrt(result.vertexCov.getEntry(0, 0))
-        );
-
-        // Fitted momenta (convert tracking -> detector frame)
-        java.util.Map<Integer, hep.physics.vec.Hep3Vector> pFitMap = new java.util.HashMap<>();
-        double me = 0.000511;
-        double totalE = 0.0;
-        double totalPx = 0.0, totalPy = 0.0, totalPz = 0.0;
-
-        for (int i = 0; i < result.allTrackMomenta.size(); i++) {
-            RealVector p = result.allTrackMomenta.get(i).p;
-            // tracking (px,py,pz) -> detector (py, pz, px)
-            double detPx = p.getEntry(1);
-            double detPy = p.getEntry(2);
-            double detPz = p.getEntry(0);
-            pFitMap.put(i, new hep.physics.vec.BasicHep3Vector(detPx, detPy, detPz));
-            double pMag = p.getNorm();
-            totalE += FastMath.sqrt(pMag * pMag + me * me);
-            totalPx += detPx;
-            totalPy += detPy;
-            totalPz += detPz;
-        }
-
-        double pSumSq = totalPx * totalPx + totalPy * totalPy + totalPz * totalPz;
-        double massSq = totalE * totalE - pSumSq;
-        double invMass = massSq > 0 ? FastMath.sqrt(massSq) : -99.0;
-
-        BilliorVertex bv = new BilliorVertex(vtxPos, covVtx, result.chi2, invMass, pFitMap, label);
-        bv.setProbability(result.ndf);
-        bv.setParameter("ndf", (double) result.ndf);
-        bv.setPositionError(vtxPosErr);
-
-        // Store predicted momentum (converted to detector frame)
-        // Tracking frame: (px_trk, py_trk, pz_trk) -> Detector frame: (py_trk, pz_trk, px_trk)
-        double predPx = result.predictedMomentum.getEntry(1);  // trk Y -> det X
-        double predPy = result.predictedMomentum.getEntry(2);  // trk Z -> det Y
-        double predPz = result.predictedMomentum.getEntry(0);  // trk X -> det Z
-        double predPtot = Math.sqrt(predPx*predPx + predPy*predPy + predPz*predPz);
-        if(debugFlag){
-            System.out.printf("DEBUG toBilliorVertex: predicted p (tracking) = [%.4f, %.4f, %.4f]%n",
-                              result.predictedMomentum.getEntry(0), result.predictedMomentum.getEntry(1), result.predictedMomentum.getEntry(2));
-            System.out.printf("DEBUG toBilliorVertex: predicted p (detector) = [%.4f, %.4f, %.4f] |p|=%.4f%n",
-                              predPx, predPy, predPz, predPtot);
-        }
-        bv.setParameter("predictedPx", predPx);
-        bv.setParameter("predictedPy", predPy);
-        bv.setParameter("predictedPz", predPz);
-
-        // Store actual momentum (converted to detector frame)
-        double actPx = result.actualMomentum.getEntry(1);
-        double actPy = result.actualMomentum.getEntry(2);
-        double actPz = result.actualMomentum.getEntry(0);
-        double actPtot = Math.sqrt(actPx*actPx + actPy*actPy + actPz*actPz);
-        if(debugFlag){
-            System.out.printf("DEBUG toBilliorVertex: actual p (tracking) = [%.4f, %.4f, %.4f]%n",
-                              result.actualMomentum.getEntry(0), result.actualMomentum.getEntry(1), result.actualMomentum.getEntry(2));
-            System.out.printf("DEBUG toBilliorVertex: actual p (detector) = [%.4f, %.4f, %.4f] |p|=%.4f%n",
-                              actPx, actPy, actPz, actPtot);
-        }
-        bv.setParameter("actualPx", actPx);
-        bv.setParameter("actualPy", actPy);
-        bv.setParameter("actualPz", actPz);
-
-        // Store residuals (converted to detector frame)
-        double resPx = result.momentumResidual.getEntry(1);
-        double resPy = result.momentumResidual.getEntry(2);
-        double resPz = result.momentumResidual.getEntry(0);
-        bv.setParameter("residualPx", resPx);
-        bv.setParameter("residualPy", resPy);
-        bv.setParameter("residualPz", resPz);
-
-        // Store predicted momentum covariance (converted to detector frame)
-        {
-            RealMatrix pCov = result.predictedMomentumCov;
-            int[] map = {1, 2, 0}; // detector index -> tracking index
-            bv.setParameter("predictedMomCovXX", pCov.getEntry(map[0], map[0]));
-            bv.setParameter("predictedMomCovXY", pCov.getEntry(map[0], map[1]));
-            bv.setParameter("predictedMomCovXZ", pCov.getEntry(map[0], map[2]));
-            bv.setParameter("predictedMomCovYY", pCov.getEntry(map[1], map[1]));
-            bv.setParameter("predictedMomCovYZ", pCov.getEntry(map[1], map[2]));
-            bv.setParameter("predictedMomCovZZ", pCov.getEntry(map[2], map[2]));
-        }
-
-        // Store actual momentum covariance (converted to detector frame)
-        {
-            RealMatrix pCov = result.actualMomentumCov;
-            int[] map = {1, 2, 0}; // detector index -> tracking index
-            bv.setParameter("actualMomCovXX", pCov.getEntry(map[0], map[0]));
-            bv.setParameter("actualMomCovXY", pCov.getEntry(map[0], map[1]));
-            bv.setParameter("actualMomCovXZ", pCov.getEntry(map[0], map[2]));
-            bv.setParameter("actualMomCovYY", pCov.getEntry(map[1], map[1]));
-            bv.setParameter("actualMomCovYZ", pCov.getEntry(map[1], map[2]));
-            bv.setParameter("actualMomCovZZ", pCov.getEntry(map[2], map[2]));
-        }
-
-        // Store which track was predicted
-        bv.setParameter("predictedTrackIdx", (double) predictedTrackIdx);
-
-        // Store momentum covariances if requested
-        if (storeCovTrkMomList) {
-            java.util.List<hep.physics.matrix.Matrix> covTrkMomList = new java.util.ArrayList<>();
-            for (int i = 0; i < result.allTrackMomenta.size(); i++) {
-                RealMatrix pCov = result.allTrackMomenta.get(i).pCov;
-                // Reorder tracking -> detector frame
-                double[][] detCov = new double[3][3];
-                int[] map = {1, 2, 0}; // detector index -> tracking index
-                for (int a = 0; a < 3; a++)
-                    for (int b = 0; b < 3; b++)
-                        detCov[a][b] = pCov.getEntry(map[a], map[b]);
-                double[] packed = new double[6];
-                packed[0] = detCov[0][0];
-                packed[1] = detCov[1][0];
-                packed[2] = detCov[1][1];
-                packed[3] = detCov[2][0];
-                packed[4] = detCov[2][1];
-                packed[5] = detCov[2][2];
-                covTrkMomList.add(new hep.physics.matrix.SymmetricMatrix(3, packed, true));
-            }
-            bv.setTrackMomentumCovariances(covTrkMomList);
-        }
-
-        return bv;
-    }
-
-    /**
-     * Result from fitting with predicted track
-     */
-    public static class PredictedTrackResult {
-        public RealVector vertex;
-        public RealMatrix vertexCov;
-        public RealVector predictedMomentum;
-        public RealMatrix predictedMomentumCov;
-        public RealVector actualMomentum;       // Measured momentum of excluded track
-        public RealMatrix actualMomentumCov;
-        public RealVector momentumResidual;     // predicted - actual
-        public double chi2;
-        public int ndf;
-        public List<TrackMomentum> allTrackMomenta;
-
-        public PredictedTrackResult(RealVector vertex, RealMatrix vertexCov,
-                                   RealVector predictedMomentum, RealMatrix predictedMomentumCov,
-                                   RealVector actualMomentum, RealMatrix actualMomentumCov,
-                                   RealVector momentumResidual,
-                                   double chi2, int ndf, List<TrackMomentum> allTrackMomenta) {
-            this.vertex = vertex;
-            this.vertexCov = vertexCov;
-            this.predictedMomentum = predictedMomentum;
-            this.predictedMomentumCov = predictedMomentumCov;
-            this.actualMomentum = actualMomentum;
-            this.actualMomentumCov = actualMomentumCov;
-            this.momentumResidual = momentumResidual;
-            this.chi2 = chi2;
-            this.ndf = ndf;
-            this.allTrackMomenta = allTrackMomenta;
-        }
-    }
 }

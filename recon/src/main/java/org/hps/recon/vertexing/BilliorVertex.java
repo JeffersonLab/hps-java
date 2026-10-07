@@ -421,6 +421,9 @@ public class BilliorVertex implements Vertex {
     *  note:  only the diagional terms of covariance
      */
     public Hep3Vector getFittedMomentumError(int index) {
+        if (_covTrkMomList == null || index >= _covTrkMomList.size()) {
+            return null;
+        }
         return new BasicHep3Vector(Math.sqrt(_covTrkMomList.get(index).e(0, 0)), Math.sqrt(_covTrkMomList.get(index).e(1, 1)), Math.sqrt(_covTrkMomList.get(index).e(2, 2)));
     }
 
