@@ -32,6 +32,7 @@
         <driver name="TrackerHitDriver"/>
         <driver name="KalmanPatRecDriver"/>
         <driver name="ReconParticleDriver_Kalman" />
+        <driver name="CascadeVertexTupleDriver" />
 
         <!--  DQM   -->
         <!-- Following are optional Analysis Drivers  -->
@@ -245,6 +246,19 @@
             <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
             <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
             <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>
+            <cascadeVertexCandidatesColName>CascadeVertexCandidates</cascadeVertexCandidatesColName>
+            <cascadeVertexCandidatesBeamConstrainedColName>CascadeVertexCandidatesBeamConstrained</cascadeVertexCandidatesBeamConstrainedColName>
+            <ntrackVertexCandidatesColName>NTrackVertexCandidates</ntrackVertexCandidatesColName>
+            <ntrackVertexCandidatesBeamConstrainedColName>NTrackVertexCandidatesBeamConstrained</ntrackVertexCandidatesBeamConstrainedColName>
+        </driver>
+        <driver name="CascadeVertexTupleDriver" type="org.hps.analysis.tuple.CascadeVertexTupleDriver">
+            <cascadeVertexCandidatesColName>CascadeVertexCandidates</cascadeVertexCandidatesColName>
+            <cascadeVertexCandidatesBeamConstrainedColName>CascadeVertexCandidatesBeamConstrained</cascadeVertexCandidatesBeamConstrainedColName>
+            <ntrackVertexCandidatesColName>NTrackVertexCandidates</ntrackVertexCandidatesColName>
+            <ntrackVertexCandidatesBeamConstrainedColName>NTrackVertexCandidatesBeamConstrained</ntrackVertexCandidatesBeamConstrainedColName>
+            <mcParticlesColName>MCParticle</mcParticlesColName>
+            <trackToMCParticleRelationsColName>KalmanFullTracksToMCParticleRelations</trackToMCParticleRelationsColName>
+            <tupleFile>${outputFile}_cascade.txt</tupleFile>
         </driver>
         <driver name="StripEvent" type="org.hps.recon.skims.MultiSkimDriver">
 	    <skimV0>true</skimV0>
