@@ -61,7 +61,7 @@ public class CascadeVertexerTest extends TestCase {
         ReconstructedParticle recoilElectron = makeElectronParticle(recoilTrack);
 
         CascadeVertexer vertexer = new CascadeVertexer(B_FIELD);
-        ReconstructedParticle cascade = vertexer.fit(v0Particle, recoilElectron, true);
+        ReconstructedParticle cascade = vertexer.fit(v0Particle, recoilElectron);
 
         assertNotNull("three-track fit should not be null", cascade);
 
@@ -119,7 +119,7 @@ public class CascadeVertexerTest extends TestCase {
         ReconstructedParticle recoilElectron = makeElectronParticle(recoilTrack);
 
         CascadeVertexer defaultVertexer = new CascadeVertexer(B_FIELD);
-        ReconstructedParticle cascadeDefault = defaultVertexer.fit(v0Particle, recoilElectron, true);
+        ReconstructedParticle cascadeDefault = defaultVertexer.fit(v0Particle, recoilElectron);
         assertNotNull("default (unconstrained-V2) fit should not be null", cascadeDefault);
         Hep3Vector v2PosDetDefault = ((BilliorVertex) cascadeDefault.getStartVertex()).getPosition();
 
@@ -138,7 +138,7 @@ public class CascadeVertexerTest extends TestCase {
         CascadeVertexer beamspotVertexer = new CascadeVertexer(B_FIELD);
         beamspotVertexer.setUseBeamspotConstraintForV2(true);
         beamspotVertexer.setBeamspotConstraintForV2Params(beamPositionOverride, beamSizeOverride);
-        ReconstructedParticle cascadeBS = beamspotVertexer.fit(v0Particle, recoilElectron, true);
+        ReconstructedParticle cascadeBS = beamspotVertexer.fit(v0Particle, recoilElectron);
         assertNotNull("beamspot-constrained-V2 fit should not be null", cascadeBS);
         Hep3Vector v2PosDetBS = ((BilliorVertex) cascadeBS.getStartVertex()).getPosition();
 
@@ -209,7 +209,7 @@ public class CascadeVertexerTest extends TestCase {
         ReconstructedParticle recoilElectron = makeElectronParticle(recoilTrack);
 
         CascadeVertexer defaultVertexer = new CascadeVertexer(B_FIELD);
-        ReconstructedParticle cascadeDefault = defaultVertexer.fit(v0Particle, recoilElectron, true);
+        ReconstructedParticle cascadeDefault = defaultVertexer.fit(v0Particle, recoilElectron);
         assertNotNull("default (unconstrained) fit should not be null", cascadeDefault);
         Hep3Vector v2PosDetDefault = ((BilliorVertex) cascadeDefault.getStartVertex()).getPosition();
         Hep3Vector totalPDefault = cascadeDefault.getMomentum();
@@ -235,7 +235,7 @@ public class CascadeVertexerTest extends TestCase {
         bothVertexer.setUseBeamspotConstraintForV2(true);
         bothVertexer.setBeamspotConstraintForV2Params(beamPositionOverride, beamSizeOverride);
         ReconstructedParticle cascadeBoth = bothVertexer.fit(
-                v0Particle, recoilElectron, true, true, beamEnergy, beamRotAngle, 0.0);
+                v0Particle, recoilElectron, true, beamEnergy, beamRotAngle, 0.0);
         assertNotNull("both-constrained fit should not be null", cascadeBoth);
         Hep3Vector v2PosDetBoth = ((BilliorVertex) cascadeBoth.getStartVertex()).getPosition();
         Hep3Vector totalPBoth = cascadeBoth.getMomentum();
@@ -270,7 +270,7 @@ public class CascadeVertexerTest extends TestCase {
         CascadeVertexer beamspotOnlyVertexer = new CascadeVertexer(B_FIELD);
         beamspotOnlyVertexer.setUseBeamspotConstraintForV2(true);
         beamspotOnlyVertexer.setBeamspotConstraintForV2Params(beamPositionOverride, beamSizeOverride);
-        ReconstructedParticle cascadeBS = beamspotOnlyVertexer.fit(v0Particle, recoilElectron, true);
+        ReconstructedParticle cascadeBS = beamspotOnlyVertexer.fit(v0Particle, recoilElectron);
         assertNotNull("beamspot-only fit should not be null", cascadeBS);
         Hep3Vector v2PosDetBS = ((BilliorVertex) cascadeBS.getStartVertex()).getPosition();
         assertEquals(0.0, v2PosDetBS.x(), 0.01);
@@ -279,7 +279,7 @@ public class CascadeVertexerTest extends TestCase {
 
         CascadeVertexer beamMomOnlyVertexer = new CascadeVertexer(B_FIELD);
         ReconstructedParticle cascadeBM = beamMomOnlyVertexer.fit(
-                v0Particle, recoilElectron, true, true, beamEnergy, beamRotAngle, 0.0);
+                v0Particle, recoilElectron, true, beamEnergy, beamRotAngle, 0.0);
         assertNotNull("beam-momentum-only fit should not be null", cascadeBM);
         double distBMFromBeam = distance(cascadeBM.getMomentum(), beamPDet);
         assertTrue("beam-momentum-only total momentum should also be pulled measurably closer "
@@ -313,7 +313,7 @@ public class CascadeVertexerTest extends TestCase {
         ReconstructedParticle recoilElectron = makeElectronParticle(recoilTrack);
 
         CascadeVertexer vertexer = new CascadeVertexer(B_FIELD);
-        ReconstructedParticle cascade = vertexer.fit(v0Particle, recoilElectron, true);
+        ReconstructedParticle cascade = vertexer.fit(v0Particle, recoilElectron);
         assertNotNull("cascade fit should not be null", cascade);
 
         ReconstructedParticle placeholder = CascadeVertexer.placeholderCascade(cascade);

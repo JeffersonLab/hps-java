@@ -85,20 +85,15 @@ public class CascadeVertexer extends Vertexer {
      * @param v0Particle     an already-fitted V0 whose daughters are the e-/e+ tracks and
      *                        whose {@code getStartVertex()} is a {@link BilliorVertex}
      * @param recoilElectron a final-state electron not already a daughter of v0Particle
-     * @param truthMatched   whether this (v0Particle, recoilElectron) combination is the
-     *                        MC-truth-matched signal pairing; gates the BADFIT_DEBUG print
-     *                        below so it isn't flooded by wrong-pairing combinatorics that
-     *                        are expected to fit badly. Callers without truth info should
-     *                        pass {@code true} to preserve the original always-print behavior.
      * @return the cascade ReconstructedParticle (V0 particle + recoil electron), or null
      *         if the fit fails
      */
-    public ReconstructedParticle fit(ReconstructedParticle v0Particle, ReconstructedParticle recoilElectron, boolean truthMatched) {
-        return fit(v0Particle, recoilElectron, truthMatched, false, 0.0, 0.0, 0.0);
+    public ReconstructedParticle fit(ReconstructedParticle v0Particle, ReconstructedParticle recoilElectron) {
+        return fit(v0Particle, recoilElectron, false, 0.0, 0.0, 0.0);
     }
 
     /**
-     * Same as {@link #fit(ReconstructedParticle, ReconstructedParticle, boolean)}, but
+     * Same as {@link #fit(ReconstructedParticle, ReconstructedParticle)}, but
      * optionally also constrains the three daughters' total 3-momentum (softly, weighted by
      * the beam-momentum uncertainty) to the beam value, via {@link
      * TrackConstraintVertexFitter#fitCascadeVertexJointBeamConstrained}. Branch
@@ -125,7 +120,7 @@ public class CascadeVertexer extends Vertexer {
      *                               {@code beamConstrained} is false
      */
     public ReconstructedParticle fit(ReconstructedParticle v0Particle, ReconstructedParticle recoilElectron,
-            boolean truthMatched, boolean beamConstrained, double beamEnergy, double beamRotAngle,
+            boolean beamConstrained, double beamEnergy, double beamRotAngle,
             double sigmaTNuclearRecoil) {
         List<ReconstructedParticle> v0Daughters = v0Particle.getParticles();
         ReconstructedParticle eleDaughter = v0Daughters.get(0).getCharge() < 0 ? v0Daughters.get(0) : v0Daughters.get(1);
@@ -332,18 +327,6 @@ public class CascadeVertexer extends Vertexer {
         RealVector refPointVec = MatrixUtils.createRealVector(refPoint);
         finalResult.v1 = finalResult.v1.add(refPointVec);
         finalResult.v2 = finalResult.v2.add(refPointVec);
-        if (truthMatched && finalResult.chi2 / finalResult.ndf > 1000) {
-            System.out.println("BADFIT_DEBUG bField=" + bField);
-            System.out.println("BADFIT_DEBUG v1Init=" + v1Init);
-            System.out.println("BADFIT_DEBUG v1Cov=" + v1Cov);
-            System.out.println("BADFIT_DEBUG v2Init=" + v2InitForFit);
-            System.out.println("BADFIT_DEBUG v2Cov=" + v2CovForFit);
-            System.out.println("BADFIT_DEBUG eleParams=" + dumpTrackParams(eleParams));
-            System.out.println("BADFIT_DEBUG posParams=" + dumpTrackParams(posParams));
-            System.out.println("BADFIT_DEBUG recoilParams=" + dumpTrackParams(recoilParams));
-            System.out.println("BADFIT_DEBUG chi2=" + finalResult.chi2 + " ndf=" + finalResult.ndf);
-            System.out.println("BADFIT_DEBUG v1=" + finalResult.v1 + " v2=" + finalResult.v2);
-        }
 
         return makeReconstructedParticle(finalResult, eleDaughter, posDaughter, recoilElectron, v0Proj, recoilProj, v0Vertex);
     }
@@ -412,26 +395,6 @@ public class CascadeVertexer extends Vertexer {
         return new LineParams(
                 line.x0 + sign * refPoint[0], line.y0 + sign * refPoint[1], line.z0 + sign * refPoint[2],
                 line.dx, line.dy, line.dz, line.cov);
-    }
-
-    private static String dumpTrackParams(TrackParams tp) {
-        double[] a = tp.toArray();
-        StringBuilder sb = new StringBuilder();
-        sb.append("d0=").append(a[0]).append(" phi0=").append(a[1]).append(" omega=").append(a[2])
-                .append(" z0=").append(a[3]).append(" tanLambda=").append(a[4]).append(" cov=[");
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
-                sb.append(tp.cov.getEntry(i, j));
-                if (j < 4) {
-                    sb.append(",");
-                }
-            }
-            if (i < 4) {
-                sb.append(";");
-            }
-        }
-        sb.append("]");
-        return sb.toString();
     }
 
     private static ReconstructedParticle makeReconstructedParticle(TwoVertexFitResult result,

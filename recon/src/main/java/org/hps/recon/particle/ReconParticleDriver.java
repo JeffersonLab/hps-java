@@ -27,8 +27,6 @@ import org.hps.recon.tracking.TrackStateUtils;
 
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
-import org.lcsim.event.LCRelation;
-import org.lcsim.event.MCParticle;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
@@ -321,16 +319,6 @@ public abstract class ReconParticleDriver extends Driver {
      * #ntrackVertexCandidatesColName} is also set.
      */
     protected String ntrackVertexCandidatesBothConstrainedColName = null;
-    /**
-     * MC-truth collection names used only to gate the {@code BADFIT_DEBUG} diagnostic
-     * print in {@link CascadeVertexer#fit} to genuinely truth-matched V0(e-/e+) +
-     * recoil-electron combinations, rather than every combinatorial pairing tried by
-     * {@link #findCascadeVertices}. Both default to null, i.e. no truth info is
-     * looked up and the debug print never fires, unless both are explicitly set (MC
-     * steering files only).
-     */
-    protected String mcParticlesColName = null;
-    protected String trackToMCParticleRelationsColName = null;
 
     // Accumulated wall-clock time (ns) and count of calls spent in the cascade
     // simultaneous vertex fit, reported in endOfData().
@@ -510,28 +498,6 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setBeamMomConstraintSigmaTNuclearRecoil(double beamMomConstraintSigmaTNuclearRecoil) {
         this.beamMomConstraintSigmaTNuclearRecoil = beamMomConstraintSigmaTNuclearRecoil;
-    }
-
-    /**
-     * Sets the name of the LCIO MCParticle collection used only to gate the
-     * {@code BADFIT_DEBUG} print in {@link #findCascadeVertices} to truth-matched
-     * candidates. Optional; MC steering files only.
-     *
-     * @param mcParticlesColName - The LCIO collection name.
-     */
-    public void setMcParticlesColName(String mcParticlesColName) {
-        this.mcParticlesColName = mcParticlesColName;
-    }
-
-    /**
-     * Sets the name of the LCIO Track-to-MCParticle LCRelation collection used only to
-     * gate the {@code BADFIT_DEBUG} print in {@link #findCascadeVertices} to
-     * truth-matched candidates. Optional; MC steering files only.
-     *
-     * @param trackToMCParticleRelationsColName - The LCIO collection name.
-     */
-    public void setTrackToMCParticleRelationsColName(String trackToMCParticleRelationsColName) {
-        this.trackToMCParticleRelationsColName = trackToMCParticleRelationsColName;
     }
 
     /**
@@ -1111,7 +1077,7 @@ public abstract class ReconParticleDriver extends Driver {
         // already one of its daughters. Off by default; only runs if a collection
         // name has been set.
         if (cascadeVertexCandidatesColName != null) {
-            findCascadeVertices(event, unconstrainedV0Candidates, goodFinalStateParticles);
+            findCascadeVertices(unconstrainedV0Candidates, goodFinalStateParticles);
             printDebug("[ReconParticleDriver] findCascadeVertices() finished");
         }
         // Add the final state ReconstructedParticles to the event
@@ -1236,65 +1202,15 @@ public abstract class ReconParticleDriver extends Driver {
      * than null on failure, so these two lists stay index-aligned with {@link
      * #cascadeVertexCandidates} automatically.
      *
-     * @param event                Current event, used only to look up MC truth (via
-     *                              {@link #mcParticlesColName}/{@link #trackToMCParticleRelationsColName})
-     *                              to gate {@link CascadeVertexer}'s BADFIT_DEBUG print
-     *                              to truth-matched candidates; unused otherwise.
      * @param v0Candidates         Unconstrained V0 candidates for this event.
      * @param finalStateElectrons  Final-state electrons for this event.
      */
-    protected void findCascadeVertices(EventHeader event, List<ReconstructedParticle> v0Candidates,
+    protected void findCascadeVertices(List<ReconstructedParticle> v0Candidates,
             List<ReconstructedParticle> finalStateElectrons) {
-        Map<Track, MCParticle> trackToMC = new HashMap<Track, MCParticle>();
-        MCParticle eleMC = null;
-        MCParticle posMC = null;
-        MCParticle recoilMC = null;
-        if (mcParticlesColName != null && trackToMCParticleRelationsColName != null
-                && event.hasCollection(MCParticle.class, mcParticlesColName)
-                && event.hasCollection(LCRelation.class, trackToMCParticleRelationsColName)) {
-            for (LCRelation rel : event.get(LCRelation.class, trackToMCParticleRelationsColName)) {
-                trackToMC.put((Track) rel.getFrom(), (MCParticle) rel.getTo());
-            }
-            MCParticle apMC = null;
-            List<MCParticle> mcParticles = event.get(MCParticle.class, mcParticlesColName);
-            for (MCParticle mcp : mcParticles) {
-                if (mcp.getPDGID() == 622 && mcp.getDaughters().size() == 2) {
-                    apMC = mcp;
-                    for (MCParticle daughter : mcp.getDaughters()) {
-                        if (daughter.getPDGID() == 11) {
-                            eleMC = daughter;
-                        } else if (daughter.getPDGID() == -11) {
-                            posMC = daughter;
-                        }
-                    }
-                    break;
-                }
-            }
-            // Recoil electron convention (see CascadeVertexTupleDriver): the A' (622) is
-            // its own top-level record with no parent, and the recoil electron is the
-            // single PDGID-11 daughter of a separate top-level PDGID 623 "reaction"
-            // particle -- it cannot be found via the A''s parent chain.
-            if (apMC != null) {
-                for (MCParticle mcp : mcParticles) {
-                    if (mcp.getPDGID() == 623) {
-                        for (MCParticle daughter : mcp.getDaughters()) {
-                            if (daughter.getPDGID() == 11) {
-                                recoilMC = daughter;
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
         for (ReconstructedParticle v0 : v0Candidates) {
             List<ReconstructedParticle> v0Daughters = v0.getParticles();
             ReconstructedParticle v0EleDaughter = v0Daughters.get(0).getCharge() < 0 ? v0Daughters.get(0) : v0Daughters.get(1);
             ReconstructedParticle v0PosDaughter = v0Daughters.get(0).getCharge() < 0 ? v0Daughters.get(1) : v0Daughters.get(0);
-            boolean v0Matched = eleMC != null && eleMC.equals(trackToMC.get(v0EleDaughter.getTracks().get(0)))
-                    && posMC != null && posMC.equals(trackToMC.get(v0PosDaughter.getTracks().get(0)));
             CascadeVertexer cascadeVertexer = new CascadeVertexer(bLocalForTrack(v0EleDaughter.getTracks().get(0)));
             cascadeVertexer.setFixV2BeamCoordinate(fixV2BeamCoordinate);
             cascadeVertexer.setUseBeamspotConstraintForV2(useBeamspotConstraintForV2);
@@ -1305,17 +1221,15 @@ public abstract class ReconParticleDriver extends Driver {
                 if (electron.getCharge() >= 0 || v0Daughters.contains(electron)) {
                     continue;
                 }
-                boolean truthMatched = v0Matched && recoilMC != null
-                        && recoilMC.equals(trackToMC.get(electron.getTracks().get(0)));
                 long fitStartTime = System.nanoTime();
                 try {
-                    ReconstructedParticle cascadeVertex = cascadeVertexer.fit(v0, electron, truthMatched);
+                    ReconstructedParticle cascadeVertex = cascadeVertexer.fit(v0, electron);
                     if (cascadeVertex != null) {
                         cascadeVertexCandidates.add(cascadeVertex);
                         if (cascadeVertexCandidatesBeamConstrainedColName != null) {
                             ReconstructedParticle cascadeVertexBC;
                             try {
-                                cascadeVertexBC = cascadeVertexer.fit(v0, electron, truthMatched, true,
+                                cascadeVertexBC = cascadeVertexer.fit(v0, electron, true,
                                         beamMomConstraintEnergy, beamMomConstraintRotAngle,
                                         beamMomConstraintSigmaTNuclearRecoil);
                             } catch (RuntimeException e) {
@@ -1335,7 +1249,7 @@ public abstract class ReconParticleDriver extends Driver {
                             cascadeVertexer.setBeamspotConstraintForV2Params(beamPosition, beamSize);
                             ReconstructedParticle cascadeVertexBSC;
                             try {
-                                cascadeVertexBSC = cascadeVertexer.fit(v0, electron, truthMatched);
+                                cascadeVertexBSC = cascadeVertexer.fit(v0, electron);
                             } catch (RuntimeException e) {
                                 printDebug("[ReconParticleDriver] findCascadeVertices: beamspot-position-constrained "
                                         + "refit failed with RuntimeException: " + e.getMessage());
@@ -1353,7 +1267,7 @@ public abstract class ReconParticleDriver extends Driver {
                             cascadeVertexer.setBeamspotConstraintForV2Params(beamPosition, beamSize);
                             ReconstructedParticle cascadeVertexBoth;
                             try {
-                                cascadeVertexBoth = cascadeVertexer.fit(v0, electron, truthMatched, true,
+                                cascadeVertexBoth = cascadeVertexer.fit(v0, electron, true,
                                         beamMomConstraintEnergy, beamMomConstraintRotAngle,
                                         beamMomConstraintSigmaTNuclearRecoil);
                             } catch (RuntimeException e) {
