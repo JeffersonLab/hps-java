@@ -34,6 +34,7 @@
         <driver name="TrackTimeSmearer"/>
         <driver name="TrackTruthMatching_KF"/>
         <driver name="ReconParticleDriver_Kalman" />
+        <driver name="CascadeVertexTupleDriver" />
 
 
 
@@ -206,6 +207,19 @@
             <beamConMollerVerticesColName>BeamspotConstrainedMollerVertices_KF</beamConMollerVerticesColName>
             <targetConMollerCandidatesColName>TargetConstrainedMollerCandidates_KF</targetConMollerCandidatesColName>
             <targetConMollerVerticesColName>TargetConstrainedMollerVertices_KF</targetConMollerVerticesColName>
+            <cascadeVertexCandidatesColName>CascadeVertexCandidates</cascadeVertexCandidatesColName>
+            <cascadeVertexCandidatesBeamConstrainedColName>CascadeVertexCandidatesBeamConstrained</cascadeVertexCandidatesBeamConstrainedColName>
+            <ntrackVertexCandidatesColName>NTrackVertexCandidates</ntrackVertexCandidatesColName>
+            <ntrackVertexCandidatesBeamConstrainedColName>NTrackVertexCandidatesBeamConstrained</ntrackVertexCandidatesBeamConstrainedColName>
+        </driver>
+        <driver name="CascadeVertexTupleDriver" type="org.hps.analysis.tuple.CascadeVertexTupleDriver">
+            <cascadeVertexCandidatesColName>CascadeVertexCandidates</cascadeVertexCandidatesColName>
+            <cascadeVertexCandidatesBeamConstrainedColName>CascadeVertexCandidatesBeamConstrained</cascadeVertexCandidatesBeamConstrainedColName>
+            <ntrackVertexCandidatesColName>NTrackVertexCandidates</ntrackVertexCandidatesColName>
+            <ntrackVertexCandidatesBeamConstrainedColName>NTrackVertexCandidatesBeamConstrained</ntrackVertexCandidatesBeamConstrainedColName>
+            <mcParticlesColName>MCParticle</mcParticlesColName>
+            <trackToMCParticleRelationsColName>KalmanFullTracksToMCParticleRelations</trackToMCParticleRelationsColName>
+            <tupleFile>${outputFile}_cascade.txt</tupleFile>
         </driver>
         <driver name="AidaSaveDriver" type="org.lcsim.job.AidaSaveDriver">
             <outputFileName>${outputFile}_hit_eff.root</outputFileName>

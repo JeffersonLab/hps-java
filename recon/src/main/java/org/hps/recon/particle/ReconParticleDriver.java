@@ -7,22 +7,29 @@ import hep.physics.vec.HepLorentzVector;
 import hep.physics.vec.VecOp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hps.conditions.beam.BeamEnergy.BeamEnergyCollection;
 import org.hps.recon.tracking.CoordinateTransformations;
+import org.hps.recon.vertexing.CascadeVertexer;
+import org.hps.recon.vertexing.NTrackVertexer;
 import org.hps.record.StandardCuts;
 
 import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.utils.TrackClusterMatcherFactory;
 
+import org.hps.recon.tracking.TrackStateUtils;
+
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
+import org.lcsim.event.TrackState;
 import org.lcsim.event.Vertex;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.event.base.BaseReconstructedParticle;
@@ -54,6 +61,8 @@ public abstract class ReconParticleDriver extends Driver {
 
     protected boolean isMC = false;
     private boolean disablePID = false;
+    private boolean fixV2BeamCoordinate = false;
+    private boolean useBeamspotConstraintForV2 = false;
     protected StandardCuts cuts = new StandardCuts();
 //    RelationalTable hitToRotated = null;
 //    RelationalTable hitToStrips = null;
@@ -143,6 +152,54 @@ public abstract class ReconParticleDriver extends Driver {
      * constraints.
      */
     protected List<Vertex> targetConV0Vertices;
+    /**
+     * Stores reconstructed 3-track (V0 e-/e+ + recoil electron) simultaneous
+     * vertex candidate particles.
+     */
+    protected List<ReconstructedParticle> cascadeVertexCandidates;
+    /**
+     * Stores the beam-momentum-constrained refit of each entry in {@link
+     * #cascadeVertexCandidates}, index-aligned with it (a failed refit is
+     * represented by {@link CascadeVertexer#placeholderCascade} rather than
+     * being omitted). See {@link #cascadeVertexCandidatesBeamConstrainedColName}.
+     */
+    protected List<ReconstructedParticle> cascadeVertexCandidatesBeamConstrained;
+    /**
+     * Stores the beamspot-position-constrained refit of each entry in {@link
+     * #cascadeVertexCandidates} (V2 pulled toward the beamspot, no beam-momentum constraint),
+     * index-aligned with it. See {@link #cascadeVertexCandidatesBeamspotConstrainedColName}.
+     */
+    protected List<ReconstructedParticle> cascadeVertexCandidatesBeamspotConstrained;
+    /**
+     * Stores the refit of each entry in {@link #cascadeVertexCandidates} with both the
+     * beamspot-position and beam-momentum constraints applied together, index-aligned with
+     * it. See {@link #cascadeVertexCandidatesBothConstrainedColName}.
+     */
+    protected List<ReconstructedParticle> cascadeVertexCandidatesBothConstrained;
+    /**
+     * Stores the single-common-vertex ("N-track") fit of the same three tracks (V0 e-/e+ +
+     * recoil electron) as each entry in {@link #cascadeVertexCandidates}, index-aligned with
+     * it. See {@link #ntrackVertexCandidatesColName}.
+     */
+    protected List<Vertex> ntrackVertexCandidates;
+    /**
+     * Stores the beam-momentum-constrained refit of each entry in {@link
+     * #ntrackVertexCandidates}, index-aligned with it. See {@link
+     * #ntrackVertexCandidatesBeamConstrainedColName}.
+     */
+    protected List<Vertex> ntrackVertexCandidatesBeamConstrained;
+    /**
+     * Stores the beamspot-position-constrained refit of each entry in {@link
+     * #ntrackVertexCandidates}, index-aligned with it. See {@link
+     * #ntrackVertexCandidatesBeamspotConstrainedColName}.
+     */
+    protected List<Vertex> ntrackVertexCandidatesBeamspotConstrained;
+    /**
+     * Stores the refit of each entry in {@link #ntrackVertexCandidates} with both the
+     * beamspot-position and beam-momentum constraints applied together, index-aligned with
+     * it. See {@link #ntrackVertexCandidatesBothConstrainedColName}.
+     */
+    protected List<Vertex> ntrackVertexCandidatesBothConstrained;
 
     // LCIO Collection Names
     /**
@@ -196,6 +253,87 @@ public abstract class ReconParticleDriver extends Driver {
      * constraints.
      */
     protected String targetConV0VerticesColName = null;
+    /**
+     * LCIO collection name for 3-track (V0 e-/e+ + recoil electron) simultaneous
+     * vertex candidate particles. Defaults to null, i.e. this fit is off unless
+     * a collection name is explicitly set.
+     */
+    protected String cascadeVertexCandidatesColName = null;
+    /**
+     * LCIO collection name for the beam-momentum-constrained refit of {@link
+     * #cascadeVertexCandidates} (see {@link #cascadeVertexCandidatesBeamConstrained}).
+     * Defaults to null, i.e. this refit is off unless a collection name is explicitly
+     * set; has no effect unless {@link #cascadeVertexCandidatesColName} is also set,
+     * since the refit is always seeded from the plain fit's already-resolved branch.
+     */
+    protected String cascadeVertexCandidatesBeamConstrainedColName = null;
+    /**
+     * LCIO collection name for the beamspot-position-constrained refit of {@link
+     * #cascadeVertexCandidates} (see {@link #cascadeVertexCandidatesBeamspotConstrained}),
+     * using {@link CascadeVertexer#setUseBeamspotConstraintForV2} with the driver's own
+     * {@link #beamPosition}/{@link #beamSize} -- independent of {@link
+     * #useBeamspotConstraintForV2}, which instead changes what {@link
+     * #cascadeVertexCandidatesColName} itself contains. Defaults to null, i.e. this refit is
+     * off unless a collection name is explicitly set; has no effect unless {@link
+     * #cascadeVertexCandidatesColName} is also set.
+     */
+    protected String cascadeVertexCandidatesBeamspotConstrainedColName = null;
+    /**
+     * LCIO collection name for the refit of {@link #cascadeVertexCandidates} with both the
+     * beamspot-position and beam-momentum constraints applied together (see {@link
+     * #cascadeVertexCandidatesBothConstrained}). Defaults to null, i.e. this refit is off
+     * unless a collection name is explicitly set; has no effect unless {@link
+     * #cascadeVertexCandidatesColName} is also set.
+     */
+    protected String cascadeVertexCandidatesBothConstrainedColName = null;
+    /**
+     * LCIO collection name for the single-common-vertex ("N-track") fit of the same three
+     * tracks as {@link #cascadeVertexCandidates}, index-aligned with it (see {@link
+     * #ntrackVertexCandidates}). Defaults to null, i.e. this fit is off unless a collection
+     * name is explicitly set; has no effect unless {@link #cascadeVertexCandidatesColName} is
+     * also set, since it only runs for pairs where the plain cascade fit already succeeded.
+     */
+    protected String ntrackVertexCandidatesColName = null;
+    /**
+     * LCIO collection name for the beam-momentum-constrained refit of {@link
+     * #ntrackVertexCandidates} (see {@link #ntrackVertexCandidatesBeamConstrained}). Defaults
+     * to null, i.e. this refit is off unless a collection name is explicitly set; has no
+     * effect unless {@link #ntrackVertexCandidatesColName} is also set.
+     */
+    protected String ntrackVertexCandidatesBeamConstrainedColName = null;
+    /**
+     * LCIO collection name for the beamspot-position-constrained refit of {@link
+     * #ntrackVertexCandidates} (see {@link #ntrackVertexCandidatesBeamspotConstrained}),
+     * using {@link NTrackVertexer#fitVertexBeamspotConstrained} with the driver's
+     * own {@link #beamPosition}/{@link #beamSize}. Defaults to null, i.e. this refit is
+     * off unless a collection name is explicitly set; has no effect unless {@link
+     * #ntrackVertexCandidatesColName} is also set.
+     */
+    protected String ntrackVertexCandidatesBeamspotConstrainedColName = null;
+    /**
+     * LCIO collection name for the refit of {@link #ntrackVertexCandidates} with both the
+     * beamspot-position and beam-momentum constraints applied together (see {@link
+     * #ntrackVertexCandidatesBothConstrained}), using {@link
+     * NTrackVertexer#fitVertexBothConstrained}. Defaults to null, i.e. this refit is
+     * off unless a collection name is explicitly set; has no effect unless {@link
+     * #ntrackVertexCandidatesColName} is also set.
+     */
+    protected String ntrackVertexCandidatesBothConstrainedColName = null;
+
+    // Accumulated wall-clock time (ns) and count of calls spent in the cascade
+    // simultaneous vertex fit, reported in endOfData().
+    private long cascadeVertexFitTimeNs = 0L;
+    private int cascadeVertexFitCount = 0;
+
+    // Shared parameters for the beam-momentum-constrained refits (see
+    // cascadeVertexCandidatesBeamConstrainedColName and
+    // ntrackVertexCandidatesBeamConstrainedColName). Named distinctly from the
+    // unrelated beamEnergy field below (the real per-event beam energy from
+    // conditions data, used elsewhere for track/cluster matching). Defaults match
+    // CascadeVertexTupleDriver's previously-hardcoded values.
+    private double beamMomConstraintEnergy = 3.74;
+    private double beamMomConstraintRotAngle = -0.0305;
+    private double beamMomConstraintSigmaTNuclearRecoil = 0.0186;
 
     // Beam size variables.
     // The beamsize array is in the tracking frame
@@ -235,6 +373,131 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setBeamConV0CandidatesColName(String beamConV0CandidatesColName) {
         this.beamConV0CandidatesColName = beamConV0CandidatesColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for 3-track (V0 e-/e+ + recoil
+     * electron) simultaneous vertex candidate particles. Setting this enables
+     * this fit, which is off by default.
+     *
+     * @param cascadeVertexCandidatesColName - The LCIO collection name.
+     */
+    public void setCascadeVertexCandidatesColName(String cascadeVertexCandidatesColName) {
+        this.cascadeVertexCandidatesColName = cascadeVertexCandidatesColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for the beam-momentum-constrained refit
+     * of the cascade vertex candidates. Setting this enables this refit, which is
+     * off by default and has no effect unless {@link #cascadeVertexCandidatesColName}
+     * is also set.
+     *
+     * @param cascadeVertexCandidatesBeamConstrainedColName - The LCIO collection name.
+     */
+    public void setCascadeVertexCandidatesBeamConstrainedColName(String cascadeVertexCandidatesBeamConstrainedColName) {
+        this.cascadeVertexCandidatesBeamConstrainedColName = cascadeVertexCandidatesBeamConstrainedColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for the beamspot-position-constrained refit of
+     * the cascade vertex candidates. Setting this enables this refit, which is off by
+     * default and has no effect unless {@link #cascadeVertexCandidatesColName} is also set.
+     *
+     * @param cascadeVertexCandidatesBeamspotConstrainedColName - The LCIO collection name.
+     */
+    public void setCascadeVertexCandidatesBeamspotConstrainedColName(
+            String cascadeVertexCandidatesBeamspotConstrainedColName) {
+        this.cascadeVertexCandidatesBeamspotConstrainedColName = cascadeVertexCandidatesBeamspotConstrainedColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for the refit of the cascade vertex candidates
+     * with both the beamspot-position and beam-momentum constraints applied together.
+     * Setting this enables this refit, which is off by default and has no effect unless
+     * {@link #cascadeVertexCandidatesColName} is also set.
+     *
+     * @param cascadeVertexCandidatesBothConstrainedColName - The LCIO collection name.
+     */
+    public void setCascadeVertexCandidatesBothConstrainedColName(
+            String cascadeVertexCandidatesBothConstrainedColName) {
+        this.cascadeVertexCandidatesBothConstrainedColName = cascadeVertexCandidatesBothConstrainedColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for the single-common-vertex ("N-track") fit of
+     * the same three tracks as the cascade vertex candidates. Setting this enables this fit,
+     * which is off by default and has no effect unless {@link #cascadeVertexCandidatesColName}
+     * is also set.
+     *
+     * @param ntrackVertexCandidatesColName - The LCIO collection name.
+     */
+    public void setNtrackVertexCandidatesColName(String ntrackVertexCandidatesColName) {
+        this.ntrackVertexCandidatesColName = ntrackVertexCandidatesColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for the beam-momentum-constrained refit of the
+     * N-track vertex candidates. Setting this enables this refit, which is off by default and
+     * has no effect unless {@link #ntrackVertexCandidatesColName} is also set.
+     *
+     * @param ntrackVertexCandidatesBeamConstrainedColName - The LCIO collection name.
+     */
+    public void setNtrackVertexCandidatesBeamConstrainedColName(String ntrackVertexCandidatesBeamConstrainedColName) {
+        this.ntrackVertexCandidatesBeamConstrainedColName = ntrackVertexCandidatesBeamConstrainedColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for the beamspot-position-constrained refit of
+     * the N-track vertex candidates. Setting this enables this refit, which is off by
+     * default and has no effect unless {@link #ntrackVertexCandidatesColName} is also set.
+     *
+     * @param ntrackVertexCandidatesBeamspotConstrainedColName - The LCIO collection name.
+     */
+    public void setNtrackVertexCandidatesBeamspotConstrainedColName(
+            String ntrackVertexCandidatesBeamspotConstrainedColName) {
+        this.ntrackVertexCandidatesBeamspotConstrainedColName = ntrackVertexCandidatesBeamspotConstrainedColName;
+    }
+
+    /**
+     * Sets the name of the LCIO collection for the refit of the N-track vertex candidates
+     * with both the beamspot-position and beam-momentum constraints applied together.
+     * Setting this enables this refit, which is off by default and has no effect unless
+     * {@link #ntrackVertexCandidatesColName} is also set.
+     *
+     * @param ntrackVertexCandidatesBothConstrainedColName - The LCIO collection name.
+     */
+    public void setNtrackVertexCandidatesBothConstrainedColName(
+            String ntrackVertexCandidatesBothConstrainedColName) {
+        this.ntrackVertexCandidatesBothConstrainedColName = ntrackVertexCandidatesBothConstrainedColName;
+    }
+
+    /**
+     * Sets the beam energy (GeV) used by the cascade and N-track beam-momentum-constrained
+     * refits. Has no effect unless {@link #cascadeVertexCandidatesBeamConstrainedColName} or
+     * {@link #ntrackVertexCandidatesBeamConstrainedColName} is set.
+     */
+    public void setBeamMomConstraintEnergy(double beamMomConstraintEnergy) {
+        this.beamMomConstraintEnergy = beamMomConstraintEnergy;
+    }
+
+    /**
+     * Sets the beam crossing angle (rad) about the tracking-frame Z axis used by the
+     * cascade and N-track beam-momentum-constrained refits. Has no effect unless {@link
+     * #cascadeVertexCandidatesBeamConstrainedColName} or {@link
+     * #ntrackVertexCandidatesBeamConstrainedColName} is set.
+     */
+    public void setBeamMomConstraintRotAngle(double beamMomConstraintRotAngle) {
+        this.beamMomConstraintRotAngle = beamMomConstraintRotAngle;
+    }
+
+    /**
+     * Sets the additional transverse beam-momentum-constraint width (GeV) accounting
+     * for target nuclear recoil, used by the cascade and N-track beam-momentum-constrained
+     * refits. Has no effect unless {@link #cascadeVertexCandidatesBeamConstrainedColName} or
+     * {@link #ntrackVertexCandidatesBeamConstrainedColName} is set.
+     */
+    public void setBeamMomConstraintSigmaTNuclearRecoil(double beamMomConstraintSigmaTNuclearRecoil) {
+        this.beamMomConstraintSigmaTNuclearRecoil = beamMomConstraintSigmaTNuclearRecoil;
     }
 
     /**
@@ -428,6 +691,28 @@ public abstract class ReconParticleDriver extends Driver {
      */
     public void setDisablePID(boolean disablePID) {
         this.disablePID = disablePID;
+    }
+
+    /**
+     * When true, {@link #findCascadeVertices}'s {@link CascadeVertexer} holds V2's
+     * beam-direction coordinate fixed at the target position instead of fitting it freely --
+     * see {@link CascadeVertexer#setFixV2BeamCoordinate}. Default false keeps the
+     * original fully-free-V2 joint fit.
+     */
+    public void setFixV2BeamCoordinate(boolean fixV2BeamCoordinate) {
+        this.fixV2BeamCoordinate = fixV2BeamCoordinate;
+    }
+
+    /**
+     * When true, {@link #findCascadeVertices}'s {@link CascadeVertexer} replaces V2's
+     * V0-flight-line prior with a direct Gaussian prior toward the driver's own {@link
+     * #beamPosition}/{@link #beamSize} -- see {@link
+     * CascadeVertexer#setUseBeamspotConstraintForV2} and {@link
+     * CascadeVertexer#setBeamspotConstraintForV2Params}. Default false keeps the original
+     * V0-flight-line-projection prior.
+     */
+    public void setUseBeamspotConstraintForV2(boolean useBeamspotConstraintForV2) {
+        this.useBeamspotConstraintForV2 = useBeamspotConstraintForV2;
     }
 
     public void setClusterParamFileName(String input) {
@@ -746,6 +1031,14 @@ public abstract class ReconParticleDriver extends Driver {
         unconstrainedV0Vertices = new ArrayList<Vertex>();
         beamConV0Vertices = new ArrayList<Vertex>();
         targetConV0Vertices = new ArrayList<Vertex>();
+        cascadeVertexCandidates = new ArrayList<ReconstructedParticle>();
+        cascadeVertexCandidatesBeamConstrained = new ArrayList<ReconstructedParticle>();
+        cascadeVertexCandidatesBeamspotConstrained = new ArrayList<ReconstructedParticle>();
+        cascadeVertexCandidatesBothConstrained = new ArrayList<ReconstructedParticle>();
+        ntrackVertexCandidates = new ArrayList<Vertex>();
+        ntrackVertexCandidatesBeamConstrained = new ArrayList<Vertex>();
+        ntrackVertexCandidatesBeamspotConstrained = new ArrayList<Vertex>();
+        ntrackVertexCandidatesBothConstrained = new ArrayList<Vertex>();
 
         // Loop through all of the track collections present in the event and
         // create final state particles.
@@ -778,6 +1071,15 @@ public abstract class ReconParticleDriver extends Driver {
         List<ReconstructedParticle> goodFinalStateParticles = particleCuts(finalStateParticles);
         // VERBOSE :: Output the number of reconstructed particles.
         printDebug("Final State Particles :: " + goodFinalStateParticles.size());
+
+        // Form 3-track (V0 e-/e+ + recoil electron) simultaneous vertex candidates,
+        // pairing each unconstrained V0 with every final-state electron that is not
+        // already one of its daughters. Off by default; only runs if a collection
+        // name has been set.
+        if (cascadeVertexCandidatesColName != null) {
+            findCascadeVertices(unconstrainedV0Candidates, goodFinalStateParticles);
+            printDebug("[ReconParticleDriver] findCascadeVertices() finished");
+        }
         // Add the final state ReconstructedParticles to the event
         event.put(finalStateParticlesColName, goodFinalStateParticles, ReconstructedParticle.class, 0);
         for (ReconstructedParticle ele : goodFinalStateParticles) {
@@ -814,7 +1116,238 @@ public abstract class ReconParticleDriver extends Driver {
             printDebug("Target-Constrained V0 Vertices: " + targetConV0Vertices.size());
             event.put(targetConV0VerticesColName, targetConV0Vertices, Vertex.class, 0);
         }
+        if (cascadeVertexCandidatesColName != null) {
+            printDebug("Cascade Vertex Candidates: " + cascadeVertexCandidates.size());
+            event.put(cascadeVertexCandidatesColName, cascadeVertexCandidates, ReconstructedParticle.class, 0);
+        }
+        if (cascadeVertexCandidatesBeamConstrainedColName != null) {
+            printDebug("Cascade Vertex Candidates (beam-momentum-constrained): "
+                    + cascadeVertexCandidatesBeamConstrained.size());
+            event.put(cascadeVertexCandidatesBeamConstrainedColName, cascadeVertexCandidatesBeamConstrained,
+                    ReconstructedParticle.class, 0);
+        }
+        if (cascadeVertexCandidatesBeamspotConstrainedColName != null) {
+            printDebug("Cascade Vertex Candidates (beamspot-position-constrained): "
+                    + cascadeVertexCandidatesBeamspotConstrained.size());
+            event.put(cascadeVertexCandidatesBeamspotConstrainedColName, cascadeVertexCandidatesBeamspotConstrained,
+                    ReconstructedParticle.class, 0);
+        }
+        if (cascadeVertexCandidatesBothConstrainedColName != null) {
+            printDebug("Cascade Vertex Candidates (both-constrained): "
+                    + cascadeVertexCandidatesBothConstrained.size());
+            event.put(cascadeVertexCandidatesBothConstrainedColName, cascadeVertexCandidatesBothConstrained,
+                    ReconstructedParticle.class, 0);
+        }
+        if (ntrackVertexCandidatesColName != null) {
+            printDebug("N-track Vertex Candidates: " + ntrackVertexCandidates.size());
+            event.put(ntrackVertexCandidatesColName, ntrackVertexCandidates, Vertex.class, 0);
+        }
+        if (ntrackVertexCandidatesBeamConstrainedColName != null) {
+            printDebug("N-track Vertex Candidates (beam-momentum-constrained): "
+                    + ntrackVertexCandidatesBeamConstrained.size());
+            event.put(ntrackVertexCandidatesBeamConstrainedColName, ntrackVertexCandidatesBeamConstrained,
+                    Vertex.class, 0);
+        }
+        if (ntrackVertexCandidatesBeamspotConstrainedColName != null) {
+            printDebug("N-track Vertex Candidates (beamspot-position-constrained): "
+                    + ntrackVertexCandidatesBeamspotConstrained.size());
+            event.put(ntrackVertexCandidatesBeamspotConstrainedColName, ntrackVertexCandidatesBeamspotConstrained,
+                    Vertex.class, 0);
+        }
+        if (ntrackVertexCandidatesBothConstrainedColName != null) {
+            printDebug("N-track Vertex Candidates (both-constrained): "
+                    + ntrackVertexCandidatesBothConstrained.size());
+            event.put(ntrackVertexCandidatesBothConstrainedColName, ntrackVertexCandidatesBothConstrained,
+                    Vertex.class, 0);
+        }
 
+    }
+
+    /**
+     * Returns the field to use for {@code CascadeVertexer}
+     * fits involving the given track: the local field at that track's AtPerigee state
+     * (i.e. near the target, where the fringe field is weaker than at the SVT center),
+     * matching the {@code bLocal} correction already applied in
+     * {@link HpsReconParticleDriver#fitVertex} for the ordinary V0 fit. For GBL tracks
+     * (trackType==0), which don't carry a per-track local-field value, falls back to
+     * {@link #bField} (the SVT-center field), same as fitVertex does.
+     *
+     * @param track a track whose AtPerigee state is near the vertex being fit.
+     */
+    protected double bLocalForTrack(Track track) {
+        if (trackType == 0) {
+            return bField;
+        }
+        return TrackStateUtils.getTrackStatesAtLocation(track, TrackState.AtPerigee).get(0).getBLocal();
+    }
+
+    /**
+     * Forms cascade simultaneous vertex candidates: for each unconstrained V0 candidate,
+     * pair it with every final-state electron that is not already one of its daughters,
+     * fit a single common vertex for the V0's e-/e+ daughters and the recoil electron
+     * together, and add the result to {@link #cascadeVertexCandidates}. Mirrors the
+     * try/catch-per-pair pattern used by {@code HpsReconParticleDriver#findV0s}: a failed
+     * fit for one pair (e.g. singular covariance, non-convergent geometry) is skipped
+     * without aborting the rest of the event. Uses {@link CascadeVertexer} for the fit.
+     * When {@link #cascadeVertexCandidatesBeamConstrainedColName} is set, also refits each
+     * successful candidate with the beam-momentum constraint applied and adds it to {@link
+     * #cascadeVertexCandidatesBeamConstrained}, using {@link CascadeVertexer#placeholderCascade}
+     * in place of a failed refit so the two lists stay index-aligned. When {@link
+     * #ntrackVertexCandidatesColName} is set, also fits the same three tracks to a single
+     * common vertex (the alternative N-track topology hypothesis, via {@link
+     * NTrackVertexer}) and adds the result to {@link #ntrackVertexCandidates}, plus its
+     * own beam-momentum-constrained refit to {@link #ntrackVertexCandidatesBeamConstrained}
+     * when {@link #ntrackVertexCandidatesBeamConstrainedColName} is set -- both
+     * {@code NTrackVertexer} fit methods already return an internal placeholder rather
+     * than null on failure, so these two lists stay index-aligned with {@link
+     * #cascadeVertexCandidates} automatically.
+     *
+     * @param v0Candidates         Unconstrained V0 candidates for this event.
+     * @param finalStateElectrons  Final-state electrons for this event.
+     */
+    protected void findCascadeVertices(List<ReconstructedParticle> v0Candidates,
+            List<ReconstructedParticle> finalStateElectrons) {
+        for (ReconstructedParticle v0 : v0Candidates) {
+            List<ReconstructedParticle> v0Daughters = v0.getParticles();
+            ReconstructedParticle v0EleDaughter = v0Daughters.get(0).getCharge() < 0 ? v0Daughters.get(0) : v0Daughters.get(1);
+            ReconstructedParticle v0PosDaughter = v0Daughters.get(0).getCharge() < 0 ? v0Daughters.get(1) : v0Daughters.get(0);
+            CascadeVertexer cascadeVertexer = new CascadeVertexer(bLocalForTrack(v0EleDaughter.getTracks().get(0)));
+            cascadeVertexer.setFixV2BeamCoordinate(fixV2BeamCoordinate);
+            cascadeVertexer.setUseBeamspotConstraintForV2(useBeamspotConstraintForV2);
+            if (useBeamspotConstraintForV2) {
+                cascadeVertexer.setBeamspotConstraintForV2Params(beamPosition, beamSize);
+            }
+            for (ReconstructedParticle electron : finalStateElectrons) {
+                if (electron.getCharge() >= 0 || v0Daughters.contains(electron)) {
+                    continue;
+                }
+                long fitStartTime = System.nanoTime();
+                try {
+                    ReconstructedParticle cascadeVertex = cascadeVertexer.fit(v0, electron);
+                    if (cascadeVertex != null) {
+                        cascadeVertexCandidates.add(cascadeVertex);
+                        if (cascadeVertexCandidatesBeamConstrainedColName != null) {
+                            ReconstructedParticle cascadeVertexBC;
+                            try {
+                                cascadeVertexBC = cascadeVertexer.fit(v0, electron, true,
+                                        beamMomConstraintEnergy, beamMomConstraintRotAngle,
+                                        beamMomConstraintSigmaTNuclearRecoil);
+                            } catch (RuntimeException e) {
+                                printDebug("[ReconParticleDriver] findCascadeVertices: beam-momentum-constrained "
+                                        + "refit failed with RuntimeException: " + e.getMessage());
+                                cascadeVertexBC = null;
+                            }
+                            cascadeVertexCandidatesBeamConstrained.add(cascadeVertexBC != null
+                                    ? cascadeVertexBC : CascadeVertexer.placeholderCascade(cascadeVertex));
+                        }
+                        // useBeamspotConstraintForV2 is instance state on this cascadeVertexer, shared by
+                        // the default/BC calls above (for every electron paired with this v0) -- flip it on
+                        // just for these two extra refits, then restore the driver-level setting immediately
+                        // after so subsequent electron iterations' default/BC calls are unaffected.
+                        if (cascadeVertexCandidatesBeamspotConstrainedColName != null) {
+                            cascadeVertexer.setUseBeamspotConstraintForV2(true);
+                            cascadeVertexer.setBeamspotConstraintForV2Params(beamPosition, beamSize);
+                            ReconstructedParticle cascadeVertexBSC;
+                            try {
+                                cascadeVertexBSC = cascadeVertexer.fit(v0, electron);
+                            } catch (RuntimeException e) {
+                                printDebug("[ReconParticleDriver] findCascadeVertices: beamspot-position-constrained "
+                                        + "refit failed with RuntimeException: " + e.getMessage());
+                                cascadeVertexBSC = null;
+                            }
+                            cascadeVertexCandidatesBeamspotConstrained.add(cascadeVertexBSC != null
+                                    ? cascadeVertexBSC : CascadeVertexer.placeholderCascade(cascadeVertex));
+                            cascadeVertexer.setUseBeamspotConstraintForV2(useBeamspotConstraintForV2);
+                            if (useBeamspotConstraintForV2) {
+                                cascadeVertexer.setBeamspotConstraintForV2Params(beamPosition, beamSize);
+                            }
+                        }
+                        if (cascadeVertexCandidatesBothConstrainedColName != null) {
+                            cascadeVertexer.setUseBeamspotConstraintForV2(true);
+                            cascadeVertexer.setBeamspotConstraintForV2Params(beamPosition, beamSize);
+                            ReconstructedParticle cascadeVertexBoth;
+                            try {
+                                cascadeVertexBoth = cascadeVertexer.fit(v0, electron, true,
+                                        beamMomConstraintEnergy, beamMomConstraintRotAngle,
+                                        beamMomConstraintSigmaTNuclearRecoil);
+                            } catch (RuntimeException e) {
+                                printDebug("[ReconParticleDriver] findCascadeVertices: both-constrained "
+                                        + "refit failed with RuntimeException: " + e.getMessage());
+                                cascadeVertexBoth = null;
+                            }
+                            cascadeVertexCandidatesBothConstrained.add(cascadeVertexBoth != null
+                                    ? cascadeVertexBoth : CascadeVertexer.placeholderCascade(cascadeVertex));
+                            cascadeVertexer.setUseBeamspotConstraintForV2(useBeamspotConstraintForV2);
+                            if (useBeamspotConstraintForV2) {
+                                cascadeVertexer.setBeamspotConstraintForV2Params(beamPosition, beamSize);
+                            }
+                        }
+                        if (ntrackVertexCandidatesColName != null) {
+                            List<Track> ntrackTracks = Arrays.asList(v0EleDaughter.getTracks().get(0),
+                                    v0PosDaughter.getTracks().get(0), electron.getTracks().get(0));
+                            NTrackVertexer ntrackVertexer = new NTrackVertexer(
+                                    bLocalForTrack(v0EleDaughter.getTracks().get(0)));
+                            Vertex ntrackVertex;
+                            try {
+                                ntrackVertex = ntrackVertexer.fitVertexNoBeamConstraint(ntrackTracks);
+                            } catch (RuntimeException e) {
+                                printDebug("[ReconParticleDriver] findCascadeVertices: N-track fit failed with "
+                                        + "RuntimeException: " + e.getMessage());
+                                ntrackVertex = NTrackVertexer.placeholderVertex(3);
+                            }
+                            ntrackVertexCandidates.add(ntrackVertex);
+                            if (ntrackVertexCandidatesBeamConstrainedColName != null) {
+                                Vertex ntrackVertexBC;
+                                try {
+                                    ntrackVertexBC = ntrackVertexer.fitVertexBeamConstrained(ntrackTracks,
+                                            beamMomConstraintEnergy, beamMomConstraintRotAngle, false,
+                                            beamMomConstraintSigmaTNuclearRecoil);
+                                } catch (RuntimeException e) {
+                                    printDebug("[ReconParticleDriver] findCascadeVertices: N-track "
+                                            + "beam-momentum-constrained refit failed with RuntimeException: "
+                                            + e.getMessage());
+                                    ntrackVertexBC = NTrackVertexer.placeholderVertex(3);
+                                }
+                                ntrackVertexCandidatesBeamConstrained.add(ntrackVertexBC);
+                            }
+                            if (ntrackVertexCandidatesBeamspotConstrainedColName != null) {
+                                Vertex ntrackVertexBSC;
+                                try {
+                                    ntrackVertexBSC = ntrackVertexer.fitVertexBeamspotConstrained(ntrackTracks,
+                                            beamPosition, beamSize);
+                                } catch (RuntimeException e) {
+                                    printDebug("[ReconParticleDriver] findCascadeVertices: N-track "
+                                            + "beamspot-position-constrained refit failed with RuntimeException: "
+                                            + e.getMessage());
+                                    ntrackVertexBSC = NTrackVertexer.placeholderVertex(3);
+                                }
+                                ntrackVertexCandidatesBeamspotConstrained.add(ntrackVertexBSC);
+                            }
+                            if (ntrackVertexCandidatesBothConstrainedColName != null) {
+                                Vertex ntrackVertexBoth;
+                                try {
+                                    ntrackVertexBoth = ntrackVertexer.fitVertexBothConstrained(ntrackTracks,
+                                            beamPosition, beamSize, beamMomConstraintEnergy,
+                                            beamMomConstraintRotAngle, beamMomConstraintSigmaTNuclearRecoil);
+                                } catch (RuntimeException e) {
+                                    printDebug("[ReconParticleDriver] findCascadeVertices: N-track "
+                                            + "both-constrained refit failed with RuntimeException: "
+                                            + e.getMessage());
+                                    ntrackVertexBoth = NTrackVertexer.placeholderVertex(3);
+                                }
+                                ntrackVertexCandidatesBothConstrained.add(ntrackVertexBoth);
+                            }
+                        }
+                    }
+                } catch (RuntimeException e) {
+                    printDebug("[ReconParticleDriver] findCascadeVertices: skipping pair after RuntimeException: " + e.getMessage());
+                    continue;
+                } finally {
+                    cascadeVertexFitTimeNs += System.nanoTime() - fitStartTime;
+                    cascadeVertexFitCount++;
+                }
+            }
+        }
     }
 
     /**
@@ -854,6 +1387,14 @@ public abstract class ReconParticleDriver extends Driver {
     protected void endOfData() {
         if (enableTrackClusterMatchPlots) {
             matcher.saveHistograms();
+        }
+        if (cascadeVertexCandidatesColName != null && cascadeVertexFitCount > 0) {
+            double totalTimeMs = cascadeVertexFitTimeNs / 1e6;
+            double timePerFitMs = totalTimeMs / cascadeVertexFitCount;
+            System.out.format("ReconParticleDriver.endOfData: total cascade simultaneous vertex fit "
+                    + "execution time=%12.4f ms for %d fits.\n", totalTimeMs, cascadeVertexFitCount);
+            System.out.format("                               cascade vertex fit time per fit = %9.4f ms\n",
+                    timePerFitMs);
         }
     }
 

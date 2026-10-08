@@ -118,7 +118,7 @@ public class TrackToMCParticleRelationsDriver extends Driver {
                 MCParticle mcp = ttm.getMCParticle();
                 
                 if (mcp != null) {
-                    trackToMCParticleRelations.add(new BaseLCRelation(track,mcp));
+                    trackToMCParticleRelations.add(new BaseLCRelation(track,mcp,ttm.getPurity()));
                     
                     //Hep3Vector origin = new BasicHep3Vector(0.,0.,0.);
                     HelicalTrackFit mcp_htf  = TrackUtils.getHTF(mcp,bfield);
@@ -178,8 +178,9 @@ public class TrackToMCParticleRelationsDriver extends Driver {
         }
         
         int flag = 1 << LCIOConstants.TRBIT_HITS;
+        int relFlag = 1 << LCIOConstants.LCREL_WEIGHTED;
         event.put(trackCollectionName+"Truth", truthTrackCollection, Track.class, flag);
         event.put(trackCollectionName+"ToTruthTrackRelations", trackToTruthTrackRelations, LCRelation.class, 0);
-        event.put(trackCollectionName+"ToMCParticleRelations", trackToMCParticleRelations, LCRelation.class, 0);
+        event.put(trackCollectionName+"ToMCParticleRelations", trackToMCParticleRelations, LCRelation.class, relFlag);
     }//closes process
 }
