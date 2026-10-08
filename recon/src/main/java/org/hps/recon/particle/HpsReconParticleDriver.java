@@ -146,6 +146,17 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
     private boolean requireClustersForV0 = true;
 
     /**
+     * Whether the first-pass vertex fit uses the reference point of the
+     * input track states. Kalman perigee states are defined about the beam
+     * spot (e.g. z = -1.1 mm), not the origin; without this the fitter
+     * assumes the origin, which biases target-constrained fits (the vertex
+     * is pulled to twice the target z and the opening angle closes by ~2%).
+     * On by default; set false to reproduce the original (pass5 and earlier)
+     * behaviour.
+     */
+    private boolean useTrackReferencePoint = true;
+
+    /**
      * Represents a type of constraint for vertex fitting.
      *
      */
@@ -294,6 +305,17 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
 
     public void setRequireClustersForV0(boolean b) {
         this.requireClustersForV0 = b;
+    }
+
+    /**
+     * Set whether the first-pass vertex fit is done about the reference
+     * point of the input track states instead of the origin (default true).
+     * Set false only to reproduce the original behaviour.
+     *
+     * @param b True to use the track state reference point
+     */
+    public void setUseTrackReferencePoint(boolean b) {
+        this.useTrackReferencePoint = b;
     }
     
     public void setUnconstrainedMollerCandidatesColName(String s)
@@ -555,6 +577,22 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             case TARGET_CONSTRAINED:
                 vtxFitter.doTargetConstraint(true);
                 break;
+        }
+
+        // The Billior tracks carry the parameters of the first track state,
+        // which are defined about that state's reference point (tracking
+        // frame). Fit about the same point so that the vertex position and
+        // the beam/target constraints are computed in absolute coordinates.
+        if (useTrackReferencePoint) {
+            double[] eleRef = electron.getTracks().get(0).getTrackStates().get(0).getReferencePoint();
+            double[] posRef = positron.getTracks().get(0).getTrackStates().get(0).getReferencePoint();
+            if (Math.abs(eleRef[0] - posRef[0]) > 1e-6 || Math.abs(eleRef[1] - posRef[1]) > 1e-6
+                    || Math.abs(eleRef[2] - posRef[2]) > 1e-6) {
+                LOGGER.warning(String.format("Electron and positron track reference points differ: "
+                        + "(%f, %f, %f) vs (%f, %f, %f); using the electron's.",
+                        eleRef[0], eleRef[1], eleRef[2], posRef[0], posRef[1], posRef[2]));
+            }
+            vtxFitter.setReferencePosition(eleRef);
         }
 
         // Add the electron and positron tracks to a track list for

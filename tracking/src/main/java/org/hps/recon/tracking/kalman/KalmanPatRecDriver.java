@@ -313,27 +313,23 @@ public class KalmanPatRecDriver extends Driver {
         // Setup optional usage of beam positions from database.
         final DatabaseConditionsManager mgr = DatabaseConditionsManager.getInstance();
         double[] beamPositionArr = {beamPositionX, beamPositionY, beamPositionZ};
-        if (mgr.hasConditionsRecord("beam_positions")){
-            BeamPositionCollection beamPositions = 
+        // Only read the database when asked to: previously the DB values were copied
+        // into beamPositionArr (used for the track state at the target) even with
+        // useBeamPositionConditions false.
+        if (useBeamPositionConditions && mgr.hasConditionsRecord("beam_positions")){
+            BeamPositionCollection beamPositions =
                     mgr.getCachedConditions(BeamPositionCollection.class, "beam_positions").getCachedData();
-            BeamPosition beamPositionCond = beamPositions.get(0); 
+            BeamPosition beamPositionCond = beamPositions.get(0);
             beamPositionArr[0] = beamPositionCond.getPositionX();
             beamPositionArr[1] = beamPositionCond.getPositionY();
-            beamPositionArr[2] = beamPositionCond.getPositionZ();
-            System.out.println("beamPosition[0]: " + beamPositionArr[0]);
-            System.out.println("beamPosition[1]: " + beamPositionArr[1]);
-            System.out.println("beamPosition[2]: " + beamPositionArr[2]);
-            if (useBeamPositionConditions) {
-                logger.config("Using Kalman beam position from the conditions database");
-                if (!useFixedVertexZPosition) kPar.setBeamSpotY(beamPositionCond.getPositionZ());  
-                else logger.config("Using fixed Kalman beam Z position: " + kPar.beamSpot[1]);
-                kPar.setBeamSpotX(beamPositionCond.getPositionX());   // Includes a transformation to Kalman coordinates
-                kPar.setBeamSpotZ(-beamPositionCond.getPositionY());
-            } 
-            else {
-                logger.config("Using Kalman beam position from the steering file or default");
-            }
-
+            if (!useFixedVertexZPosition) beamPositionArr[2] = beamPositionCond.getPositionZ();
+            logger.config("Using Kalman beam position from the conditions database");
+            if (!useFixedVertexZPosition) kPar.setBeamSpotY(beamPositionCond.getPositionZ());
+            else logger.config("Using fixed Kalman beam Z position: " + kPar.beamSpot[1]);
+            kPar.setBeamSpotX(beamPositionCond.getPositionX());   // Includes a transformation to Kalman coordinates
+            kPar.setBeamSpotZ(-beamPositionCond.getPositionY());
+        } else {
+            logger.config("Using Kalman beam position from the steering file or default");
         }
         logger.config("Using Kalman beam position [ Z, X, Y ]: " + String.format("[ %f, %f, %f ]",
                        kPar.beamSpot[0], -kPar.beamSpot[2], kPar.beamSpot[1]) + " in HPS coordinates.");      
