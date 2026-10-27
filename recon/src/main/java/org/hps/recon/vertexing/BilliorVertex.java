@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import hep.physics.matrix.Matrix;
+import hep.physics.matrix.MatrixOp;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Vector;
 import hep.physics.vec.Hep3Vector;
@@ -44,8 +45,14 @@ public class BilliorVertex implements Vertex {
     private double[] _v0TargetProjectionXY;
     private double[] _v0TargetProjectionXYErr;
     
-    private List<double[]> _fitTrkParsList=null;//fitted track parameters (theta,phiv,rho)   
+    private List<double[]> _fitTrkParsList=null;//fitted track parameters (theta,phiv,rho)
     private List<Matrix> _fitTrkCovList=null;  //list of trk covariances (theta,phiv,rho)
+
+    // Cov(vertex position, daughter momentum) for each daughter, i.e. [Cov(V,p1), Cov(V,p2)]
+    private List<Matrix> _covVtxMomList = null;
+
+    // Custom parameters map for storing arbitrary key-value pairs (e.g. cascade-fit chi2/ndf)
+    private Map<String, Double> _customParameters = new HashMap<String, Double>();
     /**
      * Dflt Ctor
      */
@@ -149,7 +156,10 @@ public class BilliorVertex implements Vertex {
     }
     
     public void setProbability(int dof) {
-        _probability = ChisqProb.gammq(dof, _chiSq);
+        // Chi2 should be non-negative; a fitted chi2 can come out as a tiny negative value
+        // from floating-point cancellation in near-degenerate fits, which otherwise trips
+        // ChisqProb.gammq's "Invalid arguments"/"x less than 0" warnings.
+        _probability = ChisqProb.gammq(dof, Math.max(0.0, _chiSq));
     }
 
     public void setStoreCovTrkMomList(boolean input) {
@@ -211,6 +221,13 @@ public class BilliorVertex implements Vertex {
         _fitTrkCovList=covs;
     }
 
+    /**
+     * Set Cov(vertex position, daughter momentum) for each daughter: [Cov(V,p1), Cov(V,p2)].
+     */
+    public void setVertexMomentumCovariance(List<Matrix> covs) {
+        _covVtxMomList = covs;
+    }
+
     @Override
     public boolean isPrimary() {
         return _isPrimary;
@@ -264,6 +281,12 @@ public class BilliorVertex implements Vertex {
             pars.put("p2X", p2Fit.x());
             pars.put("p2Y", p2Fit.y());
             pars.put("p2Z", p2Fit.z());
+            if (_fittedMomentum.containsKey(2)) {
+                Hep3Vector p3Fit = _fittedMomentum.get(2);
+                pars.put("p3X", p3Fit.x());
+                pars.put("p3Y", p3Fit.y());
+                pars.put("p3Z", p3Fit.z());
+            }
         }
         if (_vertexPositionError !=null){
             pars.put("vXErr", _vertexPositionError.x());
@@ -330,8 +353,28 @@ public class BilliorVertex implements Vertex {
             pars.put("V0TargProjXErr", projErr[0]);
             pars.put("V0TargProjYErr", projErr[1]);
         }
-        
+
+        // Add any custom parameters
+        pars.putAll(_customParameters);
+
         return pars;
+    }
+
+    /**
+     * Set a custom parameter value
+     * @param key Parameter name
+     * @param value Parameter value
+     */
+    public void setParameter(String key, Double value) {
+        _customParameters.put(key, value);
+    }
+
+    /**
+     * Get the custom parameters map (for direct modification)
+     * @return The custom parameters map
+     */
+    public Map<String, Double> getCustomParameters() {
+        return _customParameters;
     }
 
 
@@ -378,14 +421,34 @@ public class BilliorVertex implements Vertex {
     *  note:  only the diagional terms of covariance
      */
     public Hep3Vector getFittedMomentumError(int index) {
+        if (_covTrkMomList == null || index >= _covTrkMomList.size()) {
+            return null;
+        }
         return new BasicHep3Vector(Math.sqrt(_covTrkMomList.get(index).e(0, 0)), Math.sqrt(_covTrkMomList.get(index).e(1, 1)), Math.sqrt(_covTrkMomList.get(index).e(2, 2)));
     }
 
-    /* 
-    *  Return the entire track momentum covariance list for all tracks  
+    /*
+    *  Return the entire track momentum covariance list for all tracks
      */
     public List<Matrix> getFittedMomentumCovariance() {
         return _covTrkMomList;
+    }
+
+    /*
+    *  Return Cov(vertex position, daughter[index] momentum)
+     */
+    public Matrix getVertexMomentumCovariance(int index) {
+        return _covVtxMomList.get(index);
+    }
+
+    /*
+    *  Return Cov(vertex position, V0 momentum) = Cov(V,p1) + Cov(V,p2),
+    *  valid by linearity since P_V0 = p1 + p2. This is the full cross-covariance
+    *  block needed to treat the V0 as a straight line with proper position-momentum
+    *  correlations (no block-diagonal approximation).
+     */
+    public Matrix getVertexV0MomentumCovariance() {
+        return MatrixOp.add(_covVtxMomList.get(0), _covVtxMomList.get(1));
     }
 
     /* 
