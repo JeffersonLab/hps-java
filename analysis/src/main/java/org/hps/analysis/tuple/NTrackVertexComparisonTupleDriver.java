@@ -14,6 +14,7 @@ import hep.physics.vec.VecOp;
 
 import org.hps.recon.tracking.CoordinateTransformations;
 import org.hps.recon.tracking.TrackStateUtils;
+import org.hps.recon.tracking.TrackType;
 import org.hps.recon.tracking.TrackUtils;
 import org.hps.recon.vertexing.BilliorTrack;
 import org.hps.recon.vertexing.BilliorVertex;
@@ -27,6 +28,7 @@ import org.lcsim.event.LCRelation;
 import org.lcsim.event.MCParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
+import org.lcsim.event.base.BaseTrack;
 import org.lcsim.event.base.BaseTrackState;
 import org.lcsim.geometry.Detector;
 import org.lcsim.util.Driver;
@@ -129,7 +131,7 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
 
     @Override
     protected void detectorChanged(Detector detector) {
-        bField = detector.getFieldMap().getField(new BasicHep3Vector(0., 0., -4.3)).y();
+        bField = detector.getFieldMap().getField(new BasicHep3Vector(0., 0., 500.0)).y();
         if (tupleFile == null) {
             return;
         }
@@ -139,6 +141,19 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
             throw new RuntimeException("Could not open N-track vertex comparison tuple file " + tupleFile, e);
         }
         tupleWriter.println(String.join(":", VARIABLES));
+    }
+
+    /**
+     * Local field at the track's own AtPerigee state (Kalman tracks), falling back to the
+     * SVT-center field only for GBL tracks -- same convention as
+     * {@code ReconParticleDriver.bLocalForTrack}. This driver only ever processes
+     * KalmanFullTracks, so the GBL branch is dead in practice but kept for correctness.
+     */
+    private double bLocalForTrack(Track track) {
+        if (!TrackType.isGBL(track.getType())) {
+            return TrackStateUtils.getTrackStatesAtLocation(track, TrackState.AtPerigee).get(0).getBLocal();
+        }
+        return bField;
     }
 
     @Override
@@ -306,11 +321,14 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
         // TrackUtils.getParametersAtNewRefPoint/getCovarianceAtNewRefPoint, and refit from
         // there. Mirrored here verbatim (generalized to N=3 tracks) rather than just adding
         // the reference point back once, for full consistency with the production pattern.
-        BilliorVertexer firstPassVertexer = new BilliorVertexer(bField);
+        double bLocal = bLocalForTrack(tracks.get(0));
+
+        BilliorVertexer firstPassVertexer = new BilliorVertexer(bLocal);
         BilliorVertex firstPassVtx = firstPassVertexer.fitVertex(billTracks);
 
         double[] newRef = {firstPassVtx.getPosition().z(), firstPassVtx.getPosition().x(), 0.0};
         List<BilliorTrack> shiftedTracks = new ArrayList<BilliorTrack>();
+        List<Track> shiftedKalmanTracks = new ArrayList<Track>();
         for (Track track : tracks) {
             BaseTrackState oldTs = (BaseTrackState) TrackStateUtils.getTrackStatesAtLocation(track, TrackState.AtPerigee).get(0);
             double[] newParams = TrackUtils.getParametersAtNewRefPoint(newRef, oldTs);
@@ -318,12 +336,15 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
                     new SymmetricMatrix(5, oldTs.getCovMatrix(), true));
             BaseTrackState newTs = new BaseTrackState(newParams, newRef, newCov.asPackedArray(true), TrackState.AtPerigee, oldTs.getBLocal());
             shiftedTracks.add(new BilliorTrack(newTs, 0, 0));
+            BaseTrack shiftedTrack = new BaseTrack();
+            shiftedTrack.getTrackStates().add(newTs);
+            shiftedKalmanTracks.add(shiftedTrack);
         }
 
-        BilliorVertexer billiorVertexer = new BilliorVertexer(bField);
+        BilliorVertexer billiorVertexer = new BilliorVertexer(bLocal);
         billiorVertexer.setReferencePosition(newRef);
         BilliorVertex billoirVtx = billiorVertexer.fitVertex(shiftedTracks);
-        BilliorVertex kalmanVtxUnconstrained = new NTrackVertexer(bField).fitVertexNoBeamConstraint(tracks);
+        BilliorVertex kalmanVtxUnconstrained = new NTrackVertexer(bLocal).fitVertexNoBeamConstraint(shiftedKalmanTracks);
         // Hard (Lagrange-multiplier/exact) beam-momentum-constrained mode is deprecated (see
         // TrackConstraintVertexFitter.fitLagrangeMultiplier) and no longer computed here.
         // sigmaTNuclearRecoil accounts for momentum carried away by the target nuclear recoil
@@ -332,8 +353,8 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
         // 18.6 MeV, measured from std(mcTotalPx/Py) truth spread on a single 10-file real-MC
         // pilot; TODO: retune on a larger/full sample.
         double sigmaTNuclearRecoil = 0.0186; // GeV
-        BilliorVertex kalmanVtxSoft = new NTrackVertexer(bField).fitVertexBeamConstrained(
-                tracks, beamEnergy, beamRotAngle, false, sigmaTNuclearRecoil);
+        BilliorVertex kalmanVtxSoft = new NTrackVertexer(bLocal).fitVertexBeamConstrained(
+                shiftedKalmanTracks, beamEnergy, beamRotAngle, false, sigmaTNuclearRecoil);
 
         Hep3Vector vtxPos = billoirVtx.getPosition();
         Hep3Vector vtxPosErr = billoirVtx.getPositionError();
@@ -462,7 +483,7 @@ public class NTrackVertexComparisonTupleDriver extends Driver {
             }
         }
         TrackParams tp = new TrackParams(par[0], par[1], par[2], par[3], par[4], cov);
-        TrackMomentum tm = new TrackConstraintVertexFitter(bField).computeRawMomentum(tp);
+        TrackMomentum tm = new TrackConstraintVertexFitter(bLocalForTrack(track)).computeRawMomentum(tp);
 
         Hep3Vector pDet = CoordinateTransformations.transformVectorToDetector(
                 new BasicHep3Vector(tm.p.getEntry(0), tm.p.getEntry(1), tm.p.getEntry(2)));

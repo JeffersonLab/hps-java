@@ -24,9 +24,12 @@ import org.hps.recon.utils.TrackClusterMatcher;
 import org.hps.recon.utils.TrackClusterMatcherFactory;
 
 import org.hps.recon.tracking.TrackStateUtils;
+import org.hps.recon.tracking.TrackData;
+import org.hps.recon.tracking.TrackUtils;
 
 import org.lcsim.event.Cluster;
 import org.lcsim.event.EventHeader;
+import org.lcsim.event.RelationalTable;
 import org.lcsim.event.ReconstructedParticle;
 import org.lcsim.event.Track;
 import org.lcsim.event.TrackState;
@@ -782,6 +785,10 @@ public abstract class ReconParticleDriver extends Driver {
         cuts.setTrackClusterTimeOffset(input);
     }
 
+    public void setMaxTrackTimeDt(double input) {
+        cuts.setMaxTrackTimeDt(input);
+    }
+
     protected abstract List<ReconstructedParticle> particleCuts(List<ReconstructedParticle> finalStateParticles);
 
     /**
@@ -1077,7 +1084,7 @@ public abstract class ReconParticleDriver extends Driver {
         // already one of its daughters. Off by default; only runs if a collection
         // name has been set.
         if (cascadeVertexCandidatesColName != null) {
-            findCascadeVertices(unconstrainedV0Candidates, goodFinalStateParticles);
+            findCascadeVertices(unconstrainedV0Candidates, goodFinalStateParticles, event);
             printDebug("[ReconParticleDriver] findCascadeVertices() finished");
         }
         // Add the final state ReconstructedParticles to the event
@@ -1182,6 +1189,22 @@ public abstract class ReconParticleDriver extends Driver {
     }
 
     /**
+     * Returns the time of the given track, dispatching on {@link #trackType} the same way
+     * {@link AbstractTrackClusterMatcher#getTrackTime} does: for GBL tracks (trackType==0),
+     * the mean strip-hit time via {@link TrackUtils#getTrackTime}; for Kalman tracks
+     * (trackType==1), the persisted per-track time in the {@code KFTrackData}/
+     * {@code KFTrackDataRelations} collections via {@link TrackData}.
+     */
+    protected double getTrackTime(Track track, EventHeader event) {
+        if (trackType == 0) {
+            RelationalTable hitToRotated = TrackUtils.getHitToRotatedTable(event);
+            RelationalTable hitToStrips = TrackUtils.getHitToStripsTable(event);
+            return TrackUtils.getTrackTime(track, hitToStrips, hitToRotated);
+        }
+        return TrackData.getTrackTime(TrackData.getTrackData(event, track));
+    }
+
+    /**
      * Forms cascade simultaneous vertex candidates: for each unconstrained V0 candidate,
      * pair it with every final-state electron that is not already one of its daughters,
      * fit a single common vertex for the V0's e-/e+ daughters and the recoil electron
@@ -1204,9 +1227,11 @@ public abstract class ReconParticleDriver extends Driver {
      *
      * @param v0Candidates         Unconstrained V0 candidates for this event.
      * @param finalStateElectrons  Final-state electrons for this event.
+     * @param event                Current event, used to look up track times for the
+     *                             {@link StandardCuts#getMaxTrackTimeDt} cut below.
      */
     protected void findCascadeVertices(List<ReconstructedParticle> v0Candidates,
-            List<ReconstructedParticle> finalStateElectrons) {
+            List<ReconstructedParticle> finalStateElectrons, EventHeader event) {
         for (ReconstructedParticle v0 : v0Candidates) {
             List<ReconstructedParticle> v0Daughters = v0.getParticles();
             ReconstructedParticle v0EleDaughter = v0Daughters.get(0).getCharge() < 0 ? v0Daughters.get(0) : v0Daughters.get(1);
@@ -1219,6 +1244,14 @@ public abstract class ReconParticleDriver extends Driver {
             }
             for (ReconstructedParticle electron : finalStateElectrons) {
                 if (electron.getCharge() >= 0 || v0Daughters.contains(electron)) {
+                    continue;
+                }
+                double v0EleTime = getTrackTime(v0EleDaughter.getTracks().get(0), event);
+                double v0PosTime = getTrackTime(v0PosDaughter.getTracks().get(0), event);
+                double recoilTime = getTrackTime(electron.getTracks().get(0), event);
+                double maxTrackTimeDiff = Math.max(Math.abs(v0EleTime - v0PosTime),
+                        Math.max(Math.abs(v0EleTime - recoilTime), Math.abs(v0PosTime - recoilTime)));
+                if (maxTrackTimeDiff >= cuts.getMaxTrackTimeDt()) {
                     continue;
                 }
                 long fitStartTime = System.nanoTime();
