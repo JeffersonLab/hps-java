@@ -24,10 +24,14 @@ public class StandardCuts {
     private double maxVertexP;
     // max chisq prob for V0 vertex fit
     private double minVertexChisqProb;
+    // max raw chisq for V0 vertex fit
+    private double maxVertexChisq;
     // max chisq prob for vertex fit
     private double minMollerChisqProb;
     // max time diff [ns] between the two recon particle clusters in vertex
     private double maxVertexClusterDt;
+    // max pairwise time diff [ns] between any two of the tracks going into a 3-track (cascade/N-track) vertex
+    private double maxTrackTimeDt;
     // max momentum for good electron recon particle
     private double maxElectronP;
     // min momentum sum of tracks in good Moller vertex
@@ -49,6 +53,7 @@ public class StandardCuts {
     private boolean maxMatchDxSet = false;
     private boolean maxMatchDySet = false;
     private boolean maxVertexClusterDtSet = false;
+    private boolean maxTrackTimeDtSet = false;
 
     public double getTrackClusterTimeOffset() {
         return trackClusterTimeOffset;
@@ -104,12 +109,18 @@ public class StandardCuts {
     public void setMinVertexChisqProb(double input) {
         minVertexChisqProb = input;
     }
+    public void setMaxVertexChisq(double input) {
+        maxVertexChisq = input;
+    }
     public void setMinMollerChisqProb(double input) {
         minMollerChisqProb = input;
     }
     
     public double getMinVertexChisqProb() {
         return minVertexChisqProb;
+    }
+    public double getMaxVertexChisq() {
+        return maxVertexChisq;
     }
     public double getMinMollerChisqProb() {
         return minMollerChisqProb;
@@ -154,7 +165,17 @@ public class StandardCuts {
     public double getMaxVertexClusterDt() {
         return maxVertexClusterDt;
     }
-    
+
+    public void setMaxTrackTimeDt(double input) {
+        if (!maxTrackTimeDtSet) {
+            maxTrackTimeDt = input;
+            maxTrackTimeDtSet = true;
+        }
+    }
+    public double getMaxTrackTimeDt() {
+        return maxTrackTimeDt;
+    }
+
     public void setMaxElectronP(double input) {
         if (!maxElectronPset) {
             maxElectronP = input;
@@ -192,7 +213,9 @@ public class StandardCuts {
         maxMatchDx = 20.0;
         maxMatchDy = 20.0;
         maxVertexClusterDt = 2.0;
+        maxTrackTimeDt = 15.0;
         minVertexChisqProb = 0.00001;
+        maxVertexChisq = Double.MAX_VALUE;
         minMollerChisqProb = 0.00001;
         maxTrackChisqProb = 0.00001;
         

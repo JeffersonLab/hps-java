@@ -27,6 +27,7 @@ import org.lcsim.event.RelationalTable;
 import org.lcsim.event.EventHeader;
 import org.lcsim.event.base.BaseRelationalTable;
 import org.lcsim.event.LCRelation;
+import org.lcsim.event.GenericObject;
 import org.lcsim.event.base.BaseCluster;
 import org.lcsim.geometry.subdetector.HPSEcal3;
 import org.lcsim.event.ReconstructedParticle;
@@ -326,7 +327,6 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
             trackz = TrackUtils.getTrackStateAtECal(track).getReferencePoint()[0];
         }
         else {
-            TrackData trackdata = (TrackData) trackToData.from(track);
             TrackState ts_ecal = TrackUtils.getTrackStateAtECal(track);
             //If trackstate is null, upstream extrapolation error. Skip this
             //Track
@@ -355,8 +355,7 @@ public class TrackClusterMatcherMinDistance extends AbstractTrackClusterMatcher{
 
         //KF
         else{
-            TrackData trackdata = (TrackData) trackToData.from(track);
-            trackt = trackdata.getTrackTime();
+            trackt = TrackData.getTrackTime((GenericObject) trackToData.from(track));
         }
         return trackt;
     }

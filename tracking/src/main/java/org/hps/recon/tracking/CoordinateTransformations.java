@@ -1,5 +1,8 @@
 package org.hps.recon.tracking;
 
+import hep.physics.matrix.BasicMatrix;
+import hep.physics.matrix.Matrix;
+import hep.physics.matrix.MatrixOp;
 import hep.physics.matrix.SymmetricMatrix;
 import hep.physics.vec.BasicHep3Matrix;
 import hep.physics.vec.Hep3Matrix;
@@ -77,6 +80,31 @@ public class CoordinateTransformations {
 
     public static Hep3Matrix getMatrixInverse() {
         return _trkToDet.getRotation().getRotationMatrix();
+    }
+
+    /**
+     * Rotate a general (possibly non-symmetric) 3x3 matrix from tracking frame to detector frame
+     * via R*m*R^T. Needed for cross-covariance blocks (e.g. Cov(vertex position, momentum)) which
+     * are not instances of SymmetricMatrix and so cannot use {@link #transformCovarianceToDetector}.
+     */
+    public static Matrix transformMatrixToDetector(Matrix m) {
+        return rotate(m, getMatrixInverse());
+    }
+
+    /**
+     * Rotate a general (possibly non-symmetric) 3x3 matrix from detector frame to tracking frame
+     * via R*m*R^T. See {@link #transformMatrixToDetector(Matrix)}.
+     */
+    public static Matrix transformMatrixToTracking(Matrix m) {
+        return rotate(m, getMatrix());
+    }
+
+    private static Matrix rotate(Matrix m, Hep3Matrix rot) {
+        BasicMatrix r = new BasicMatrix(3, 3);
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                r.setElement(i, j, rot.e(i, j));
+        return MatrixOp.mult(r, MatrixOp.mult(m, MatrixOp.transposed(r)));
     }
 
 }

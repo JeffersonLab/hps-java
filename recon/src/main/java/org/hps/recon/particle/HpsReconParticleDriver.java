@@ -212,6 +212,11 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         }
         LOGGER.config("Using beam position [ Z, X, Y ]: " + String.format("[ %f, %f, %f ]",
                 beamPositionToUse[0], beamPositionToUse[1], beamPositionToUse[2]));
+
+        // Keep the base class's beamPosition field (read directly by the cascade/N-track
+        // beamspot-position-constraint toggles in ReconParticleDriver.findCascadeVertices)
+        // in sync with the conditions-resolved value used by the existing V0 constraint above.
+        this.beamPosition = beamPositionToUse;
     }
 
     public void setMaxMollerP(double input) {
@@ -254,6 +259,13 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
             cuts = new StandardCuts(beamEnergy);
         }
         cuts.setMinVertexChisqProb(input);
+    }
+
+    public void setMaxVertexChisq(double input) {
+        if (cuts == null) {
+            cuts = new StandardCuts(beamEnergy);
+        }
+        cuts.setMaxVertexChisq(input);
     }
 
     public void setIncludeUnmatchedTracksInFSP(boolean setUMTrks) {
@@ -691,6 +703,10 @@ public class HpsReconParticleDriver extends ReconParticleDriver {
         }
 
         if (candidate.getStartVertex().getProbability() < cuts.getMinVertexChisqProb()) {
+            return;
+        }
+
+        if (vtxFit.getChi2() > cuts.getMaxVertexChisq()) {
             return;
         }
 
