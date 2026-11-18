@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.hps.conditions.database.DatabaseConditionsManager;
@@ -87,6 +88,14 @@ public class ReadoutDataManager extends Driver {
      * has passed to fully buffer the necessary readout data.
      */
     private static final PriorityQueue<TriggerTime> triggerQueue = new PriorityQueue<TriggerTime>();
+    /**
+     * Buffers the input event weight (e.g. a biased/forced MC
+     * generation weight written by SLIC) for each simulation time,
+     * so that it can be correctly associated with a trigger even
+     * though the trigger is not written out until long after the
+     * input event that caused it has been processed.
+     */
+    private static final TreeMap<Double, float[]> weightBuffer = new TreeMap<Double, float[]>();
     /**
      * A writer for writing readout events to an output LCIO file.
      */
@@ -207,6 +216,19 @@ public class ReadoutDataManager extends Driver {
     
     @Override
     public void process(EventHeader event) {
+        // Buffer the weight of the input event (e.g. a biased/forced
+        // MC generation weight written by SLIC) against the current
+        // simulation time, so that it can be recovered later by the
+        // trigger time when the triggered event is actually written
+        // out. This must be captured here and not at write-out time,
+        // since by the time a trigger is flushed the "current" event
+        // being processed is a different, later bunch-crossing than
+        // the one that actually caused the trigger.
+        float[] currentWeight = event.getFloatParameters().get("_weight");
+        if(currentWeight != null) {
+            weightBuffer.put(getCurrentTime(), currentWeight);
+        }
+
         // Check the trigger queue.
         if(!triggerQueue.isEmpty()) {
             // Check the earliest possible trigger write time.
@@ -242,6 +264,21 @@ public class ReadoutDataManager extends Driver {
                 int triggerEventNumber = event.getEventNumber() - ((int) Math.floor((getCurrentTime() - trigger.getTriggerTime()) / 2.0));
                 EventHeader lcsimEvent = new BaseLCSimEvent(DatabaseConditionsManager.getInstance().getRun(),
                         triggerEventNumber, event.getDetectorName(), (long) 4 * (Math.round(trigger.getTriggerTime() / 4)), false);
+
+                // Propagate the weight of the input event that actually
+                // caused this trigger (e.g. a biased/forced MC generation
+                // weight written by SLIC). BaseLCSimEvent's own getWeight()
+                // is hardcoded to 1.0, so it must be explicitly carried over
+                // as a float parameter or it is silently lost here, since
+                // this is a brand new EventHeader rather than a copy of the
+                // triggering one. The weight must be looked up by the
+                // trigger's own time, not read from the event currently
+                // being processed, since that is a later bunch-crossing by
+                // the time this buffered trigger is finally written out.
+                Map.Entry<Double, float[]> weightEntry = weightBuffer.floorEntry(trigger.getTriggerTime());
+                if (weightEntry != null) {
+                    lcsimEvent.getFloatParameters().put("_weight", weightEntry.getValue());
+                }
                 
                 // 2016 MC only process one trigger, and no TS bank is stored
                 // 2019 MC can process multi-trigger, and TS bank is stored
@@ -428,7 +465,12 @@ public class ReadoutDataManager extends Driver {
                 data.getData().removeFirst();
             }
         }
-        
+
+        // Prune weight buffer entries that are older than any trigger
+        // could still reference, so this map does not grow unbounded
+        // over the course of a run.
+        weightBuffer.headMap(getCurrentTime() - 500).clear();
+
         // Increment the current time.
         currentTime += BEAM_BUNCH_SIZE;
     }
